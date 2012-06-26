@@ -4,4 +4,7 @@ project/target
 target
 tmp
 .history
+.classpath
+.project
+.settings
 dist
