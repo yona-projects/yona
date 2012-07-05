@@ -1,8 +1,13 @@
 @(message: String) 
 
 @main("Project Home") {
-  <div class="page-header">
-	  <h1>@message</h1>
+  <div class="row-fluid">
+    <div class="span4">
+      <h3>nForge4java</h3>
+    </div>
+    <div class="span8">    
+      @views.html.project.topmenu()  
+    </div>
   </div>
-  
+  <hr>  
 }
