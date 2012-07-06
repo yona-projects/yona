@@ -1,0 +1,55 @@
+@(title: String)(newProjectForm: Form[Project])
+
+@import helper._
+@import helper.twitterBootstrap._
+
+@main(title){
+	
+			@helper.form(action = routes.ProjectApp.getNewProject, 
+							'class -> "form-horizontal"){
+				<div class="row">
+					<fieldset>
+						
+						@inputText(
+							newProjectForm("name"),
+							'_label -> "프로젝트 이름",
+							'_showConstraints -> true,
+							'_help -> "필수 입력 사항",
+							'_error -> newProjectForm.globalError
+						)
+					</br>
+						
+						@textarea(
+							newProjectForm("overview"),
+							'_label -> "설명",
+							'cols -> 50,
+							'_help -> "선택 입력 사항"
+						)
+					</br>
+
+						@inputRadioGroup(
+							newProjectForm("share_option"),
+							options = options("false"->"비공개", "true"->"공개"),
+							'_label -> "공개설정"
+						)
+
+					</br>
+						@select(
+							newProjectForm("vcs"),
+							options=options(Project.vcs_list), 
+							'_label -> "코드관리시스템"
+						)
+					</br>
+					</fieldset>
+				</div>
+				
+				<div class="row">
+					<div class="actions">
+						<center><input type="submit" class="btn btn-primary" value="프로젝트 생성"></center>
+					</div>
+				</div>
+			}
+	
+
+	
+}
