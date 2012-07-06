@@ -1,0 +1,12 @@
+@(title: String)(content: Html)
+
+@main(title) {
+	<div class="row-fluid">
+    <div class="span2">
+      @views.html.project.sidebar()
+    </div>
+    <div class="span10">    
+			@content        
+    </div>
+  </div>
+}

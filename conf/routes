@@ -18,3 +18,4 @@ POST    /boards/new                 controllers.BoardApp.newBoard()
 
 # Projects
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
+GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
