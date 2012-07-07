@@ -7,21 +7,25 @@
     <meta charset="utf-8">
     <title>@title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
     <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-responsive.min.css")">
-	  <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/prettify.css")">
+    <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/docs.css")">    
+      <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/prettify.css")">
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+    
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
   </head>
 
   <body>
-	  @views.html.navbar()
-	  <div class="container">
-	    @content
-	  </div>
+      @views.html.navbar()      
+      <div class="container">
+        @content
+      </div>
 
     <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
     <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
+    <script src="@routes.Assets.at("javascripts/bootstrap.js")" type="text/javascript"></script>
     <script src="@routes.Assets.at("javascripts/prettify.js")" type="text/javascript"></script>        
   </body>
 </html>
