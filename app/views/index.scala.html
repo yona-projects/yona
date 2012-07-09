@@ -1,31 +1,24 @@
 @(message: String) 
 
 @main("Welcome to nForge") {
-  <div class="row-fluid">
-    <div class="span12">    
-  	  <div class="hero-unit">
-		    <h1>nForge4 Java</h1>
-		    <p>Software development platform for <Strong>Open Source</Strong> project.</p>
-		    <p>
-			    <a class="btn btn-primary btn-large">Create your project</a>
-		    </p>	    
-      </div>  		  
+    <div class="row-fluid">
+        <div class="span12">    
+            <div class="hero-unit">
+                <h1>nForge4 Java</h1>
+                <p>Software development platform for <Strong>Open Source</Strong> project.</p>
+                <p><a class="btn btn-primary btn-large">Create your project</a></p>
+            </div>
+        </div>
     </div>
-  </div>
   
-  <div class="row-fluid">
-    <div class="span9">
+    <div class="row-fluid">
+        <div class="span9"></div>
+        <div class="span3">    
+            <ul class="nav nav-list">
+                <li class="nav-header">My projcets</li>
+                <li><a href="@routes.ProjectApp.project(1)">nforge4 java</a></li>
+            </ul>
+        </div>
     </div>
-    <div class="span3">    
-      <ul class="nav nav-list">
-        <li class="nav-header">
-          My projcets
-        </li>
-        <li>
-          <a href="@routes.ProjectApp.project(1)">nforge4 java</a>
-        </li>
-      </ul>
-    </div>
-  </div>
   
 }

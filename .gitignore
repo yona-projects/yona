@@ -7,4 +7,5 @@ tmp
 .classpath
 .project
 .settings
+.target
 dist
