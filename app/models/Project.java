@@ -39,11 +39,7 @@ public class Project extends Model{
 	}
 	
 	public static Project findById(Long id) {
-        return find.ref(id);
-    }
-	
-	public Long getId() {
-        return id;
+        return find.byId(id);
     }
 
 /*	public static List<String>	vcs_list(){
