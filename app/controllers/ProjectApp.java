@@ -4,6 +4,8 @@ package controllers;
  * @author: Hwi Ahn
  */
 
+import java.util.regex.Pattern;
+
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.data.*;
@@ -29,9 +31,15 @@ public class ProjectApp  extends Controller {
 	public static Result getNewProject(){
 		Form<Project> filledNewProjectForm = newProjectForm.bindFromRequest();
 		
+		//약관 동의  체크
 		if(!"true".equals(filledNewProjectForm.field("accept").value())) {
 			filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
 	    }
+		
+		//올바른 이름 검사		
+		if(!Pattern.matches("^[a-zA-Z0-9]*$", filledNewProjectForm.field("name").value())){
+			filledNewProjectForm.reject("name", "올바른 이름을 입력해야 합니다.");
+		}
 		
 		if(filledNewProjectForm.hasErrors()){
 			return badRequest(projectNewPage.render("Create a new project", filledNewProjectForm));
