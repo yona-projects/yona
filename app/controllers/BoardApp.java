@@ -1,3 +1,7 @@
+/**
+ * @author Ahn Hyeok Jun
+ */
+
 package controllers;
 
 import java.util.*;
@@ -57,6 +61,9 @@ public class BoardApp extends Controller {
 	}
 	public static Result delete(int articleNum)
 	{
+		//TODO delete 구현
+		Article.delete(articleNum);
+		Reply.deleteByArticleNum(articleNum);
 		return TODO;
 	}
 }

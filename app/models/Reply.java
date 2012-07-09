@@ -38,16 +38,17 @@ public class Reply extends Model{
 	
 	
 	//TODO File attach 기능 추가해야함.
-	private static Finder<Long, Reply> find = new Finder<Long, Reply>(Long.class, Reply.class);
+	public static Finder<Long, Reply> find = new Finder<Long, Reply>(Long.class, Reply.class);
 	
 	public static List<Reply> findArticlesReply(int articleNum)
 	{
 		return find.where().eq("articleNum", articleNum).findList();
 	}
-	public static void write(Reply reply)
+	public static long write(Reply reply)
 	{
-		Article.reply(reply);
+		Article.replyAdd(reply.articleNum);
 		reply.save();
+		return reply.replyNum;
 	}
 	public static void deleteByArticleNum(int articleNum)
 	{

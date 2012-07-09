@@ -1,8 +1,14 @@
+/**
+ * @author Ahn Hyeok Jun
+ */
+
 package models;
 
 import java.util.*;
 
 import javax.persistence.*;
+
+import com.avaje.ebean.Page;
 
 import play.data.*;
 import play.data.format.*;
@@ -43,9 +49,9 @@ public class Article extends Model {
 		return find.byId(articleNum);
 	}
 	
-	public static List<Article> findOnePage(int pageNum)
+	public static Page<Article> findOnePage(int pageNum)
 	{
-		return find.findPagingList(25).getPage(pageNum - 1).getList();
+		return find.findPagingList(25).getPage(pageNum - 1);
 	}
 	
 	public static int write(Article article)
@@ -95,9 +101,9 @@ public class Article extends Model {
 		}
 	}
 
-	public static void reply(Reply reply) {
-		Article article = findById(reply.articleNum);
+	public static void replyAdd(int articleNum){
+		Article article = findById(articleNum);
 		article.replyNum++;
-		article.save();
+		article.update();
 	}
 }

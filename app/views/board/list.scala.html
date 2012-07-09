@@ -1,4 +1,4 @@
-@(title:String)(articles:List[models.Article])
+@(title:String)(articles:Page[models.Article])
 
 @main(title){
 	
@@ -13,8 +13,10 @@
     	<li class="active"><a href="">전체</a></li>
     	<li><a href="">Q&A</a></li>
     </ul>
-    @if(articles.isEmpty()){
-    <p>등록된 글이 없습니다.</p>
+    @if(articles.getTotalRowCount == 0){
+    <div class="well">
+    	<p>등록된 글이 없습니다.</p>
+    </div>
     }else{
     <table class="table table-striped">
     	<thead>
@@ -23,7 +25,7 @@
     		</tr>
     	</thead>
     	<tbody>
-    		@for(article <- articles){
+    		@for(article <- articles.getList()){
     		<tr>
     			<td>@article.articleNum</td>
     			<td><a href="@routes.BoardApp.showDetail(article.articleNum)">@article.title [@article.replyNum]</a></td>
