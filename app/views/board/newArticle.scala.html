@@ -1,0 +1,17 @@
+@(title:String)(form:Form[models.Article])
+
+@import helper.twitterBootstrap._
+
+@main(title) {
+    @helper.form(action=routes.BoardApp.newArticleSave()){
+    	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
+    	@helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
+    	@helper.inputText(form("writer"), '_showConstraints -> false, '_label->"글쓴이")
+    	<input type="submit" class="btn" value="저장"/>
+    	<input type="reset" class="btn" value="다시쓰기"/>
+    }
+    
+        
+}
+
+            

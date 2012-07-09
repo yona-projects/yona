@@ -1,5 +1,40 @@
-@(title:String)
+@(title:String)(articles:List[models.Article])
 
-@main(title) {
-    <h1>list</h1>
+@main(title){
+	
+	<div>
+    	<form class="form-search form-inline">
+  			<input type="text" class="search-query">
+  			<button type="submit" class="btn"><i class="icon-search"></i></button>
+  			<a class="btn btn-primary" href="@routes.BoardApp.newArticle()" >새글</a>
+		</form>
+    </div>
+    <ul class="nav nav-tabs" id="board_list">
+    	<li class="active"><a href="">전체</a></li>
+    	<li><a href="">Q&A</a></li>
+    </ul>
+    @if(articles.isEmpty()){
+    <p>등록된 글이 없습니다.</p>
+    }else{
+    <table class="table table-striped">
+    	<thead>
+    		<tr>
+    			<th>#</th><th>제목</th><th>작성자</th><th>나이</th>
+    		</tr>
+    	</thead>
+    	<tbody>
+    		@for(article <- articles){
+    		<tr>
+    			<td>@article.articleNum</td>
+    			<td><a href="@routes.BoardApp.showDetail(article.articleNum)">@article.title</a></td>
+    			<td>@article.writer</td>
+    			<td>@article.calcPassTime()</td>
+    		</tr>
+    		}
+    	</tbody>
+    </table>
+    }
+    <div>
+    	<a class="btn" href=""><i class="icon-ok"></i>자동알림</a>
+    </div>
 }
