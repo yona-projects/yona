@@ -1,5 +1,17 @@
 @(title: String)(content: Html)
 
 @layout(title) {
-	@content
+    @views.html.navbar()      
+    <div class="container">
+		    <div class="row-fluid">
+		        <div class="span2">
+		            <h3>nForge4 Java</h3>
+		        </div>
+		        <div class="span10">
+		            @views.html.topmenu()
+		        </div>
+		    </div>
+		    
+      @content    
+    </div>  
 }

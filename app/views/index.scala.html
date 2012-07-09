@@ -1,6 +1,8 @@
 @(message: String) 
 
-@main("Welcome to nForge") {
+@layout("Welcome to nForge") {
+  @views.html.navbar()
+
   <div class="row-fluid">
     <div class="span12">    
   	  <div class="hero-unit">
