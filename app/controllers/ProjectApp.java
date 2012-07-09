@@ -12,6 +12,9 @@ import views.html.project.*;
 
 import models.Project;
 
+import views.html.project.projectHome;
+import views.html.project.setting;
+
 public class ProjectApp  extends Controller {
 	
 	final static Form<Project> newProjectForm = form(Project.class);
@@ -33,5 +36,9 @@ public class ProjectApp  extends Controller {
 				Project.create(filledNewProjectForm.get()))
 			);
 		}
+	}
+
+	public static Result setting(Long id) {
+		return ok(setting.render("Setting"));
 	}
 }
