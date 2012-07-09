@@ -41,7 +41,7 @@ public class BoardApp extends Controller {
 		Article article = Article.findById(articleNum);
 		List<Reply> replys = Reply.findArticlesReply(articleNum);
 		if(article == null)
-			return ok("TODO :존재하지 않는 게시물입니다.");
+			return ok(notExsitPage.render("존재하지 않는 게시물"));
 		else
 			return ok(detail.render(article, replys, replyForm));
 		

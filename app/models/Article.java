@@ -14,6 +14,7 @@ public class Article extends Model {
 	
 	public Article() {
 		this.date = new Date();//XXX 이게 맞는지 모르겠음.
+		this.replyNum = 0;
 	}
 	
 	@Id
@@ -32,7 +33,10 @@ public class Article extends Model {
 	@Formats.DateTime(pattern="YYYY/MM/DD/hh/mm/ss")
 	public Date date;
 	
-	public static Finder<Integer, Article> find = new Finder<Integer, Article>(Integer.class, Article.class);
+	public int replyNum;
+	
+	
+	private static Finder<Integer, Article> find = new Finder<Integer, Article>(Integer.class, Article.class);
 	
 	public static Article findById(int articleNum)
 	{
@@ -44,9 +48,10 @@ public class Article extends Model {
 		return find.findPagingList(25).getPage(pageNum - 1).getList();
 	}
 	
-	public static void write(Article article)
+	public static int write(Article article)
 	{
 		article.save();
+		return article.articleNum;
 	}
 	public static void delete(int articleNum)
 	{
@@ -88,5 +93,11 @@ public class Article extends Model {
 		{
 			return dTime.get(Calendar.YEAR) + "년 전";
 		}
+	}
+
+	public static void reply(Reply reply) {
+		Article article = findById(reply.articleNum);
+		article.replyNum++;
+		article.save();
 	}
 }

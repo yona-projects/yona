@@ -2,6 +2,7 @@ package models;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.*;
@@ -45,6 +46,7 @@ public class Reply extends Model{
 	}
 	public static void write(Reply reply)
 	{
+		Article.reply(reply);
 		reply.save();
 	}
 	public static void deleteByArticleNum(int articleNum)
@@ -52,7 +54,13 @@ public class Reply extends Model{
 		List<Reply> targets = Reply.find.where().eq("articleNum", "" + articleNum).findList();
 		
 		//루프 돌면서 삭제
-		
+		Iterator<Reply> target = targets.iterator();
+		while(target.hasNext())
+		{
+			Reply reply = target.next();
+			
+			reply.delete();
+		}
 	}
 	
 	public String calcPassTime()
