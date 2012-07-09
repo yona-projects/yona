@@ -26,3 +26,12 @@ GET		/project/new				controllers.ProjectApp.newProject()
 POST	/project/new 				controllers.ProjectApp.getNewProject()
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
+
+#Milestones
+
+GET		/milestones					controllers.MilestoneApp.milestoneList(pageNum:Int = 1)
+GET		/milestones/new				controllers.MilestoneApp.addMilestone()
+POST	/milestones/new				controllers.MilestoneApp.addMilestone()
+POST	/milestones/save			controllers.MilestoneApp.addMilestoneSave()
+POST	/milestones/:id/delete		controllers.MilestoneApp.deleteMilestone(id: Long)
+GET		/milestones/:pageNum		controllers.MilestoneApp.milestoneList(pageNum:Int)
