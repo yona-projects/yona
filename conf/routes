@@ -22,5 +22,7 @@ POST    /board/detail/:id/delete       controllers.BoardApp.delete(id: Int)
 GET     /board/:pageNum             controllers.BoardApp.boardList(pageNum:Int)
 
 # Projects
+GET		/project/new				controllers.ProjectApp.newProject()
+POST	/project/new 				controllers.ProjectApp.getNewProject()
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
