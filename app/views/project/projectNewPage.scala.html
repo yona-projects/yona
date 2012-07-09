@@ -4,52 +4,72 @@
 @import helper.twitterBootstrap._
 
 @main(title){
-	
-			@helper.form(action = routes.ProjectApp.getNewProject, 
-							'class -> "form-horizontal"){
-				<div class="row">
-					<fieldset>
-						
-						@inputText(
-							newProjectForm("name"),
-							'_label -> "프로젝트 이름",
-							'_showConstraints -> true,
-							'_help -> "필수 입력 사항",
-							'_error -> newProjectForm.globalError
-						)
-					</br>
-						
-						@textarea(
-							newProjectForm("overview"),
-							'_label -> "설명",
-							'cols -> 50,
-							'_help -> "선택 입력 사항"
-						)
-					</br>
 
-						@inputRadioGroup(
-							newProjectForm("share_option"),
-							options = options("false"->"비공개", "true"->"공개"),
-							'_label -> "공개설정"
-						)
-
-					</br>
-						@select(
-							newProjectForm("vcs"),
-							options=options(Project.vcs_list), 
-							'_label -> "코드관리시스템"
-						)
-					</br>
-					</fieldset>
-				</div>
+	@helper.form(action = routes.ProjectApp.getNewProject, 
+					'class -> "form-horizontal"){
+		<div class="row">
+			<fieldset>
+				<legend>새로운 프로젝트 생성</legend>  
+				  
+				<div class="icon-question-sign" href = "#" id="project_name" rel="popover"
+					data-content="특수문자, 이름 사이의 공백, 한글은 프로젝트 이름으로 사용하실 수 없습니다."
+					data-original-title="이름 규칙"
+				></div>
+				@inputText(
+					newProjectForm("name"),
+					'_label -> "프로젝트 이름",
+					'_showConstraints -> true,
+					'_help -> "필수 입력 사항"
+				)
 				
-				<div class="row">
-					<div class="actions">
-						<center><input type="submit" class="btn btn-primary" value="프로젝트 생성"></center>
-					</div>
-				</div>
-			}
-	
+				@textarea(
+					newProjectForm("overview"),
+					'_label -> "설명",
+					'cols -> 50,
+					'_help -> "선택 입력 사항"
+				)
+				
+				<div class="icon-question-sign" href = "#" id="share_option_explanation" rel="popover"
+					data-content="비공개 설정은 .... 공개 설정은 ...."
+					data-original-title="공개 설정"
+				></div>
+				@inputRadioGroup(
+					newProjectForm("share_option"),
+					options = options("false"->"비공개", "true"->"공개"),
+					'_label -> "공개설정"
+				)
+				
+
+				@select(
+					newProjectForm("vcs"),
+					options=options(Project.vcs_list), 
+					'_label -> "코드관리시스템"
+				)
+				
+				<div class="icon-question-sign" href = "#" id="terms" rel="popover"
+					data-content="약관 ..."
+					data-original-title="이용 약관"
+				></div>
+				@checkbox(
+             				newProjectForm("accept"), 
+	                '_label -> None, '_text -> "본인은 약관에 대한 안내를 읽었으며 동의합니다.",
+	                '_showConstraints -> false
+          			)
+			</fieldset>
+		</div>
+		<div class="row">
+			<div class="actions">
+				<center><input type="submit" class="btn btn-primary" value="프로젝트 생성"></center>
+			</div>
+		</div>
+	}
+	<script>  
+		window.onload = function(){
+			$("#project_name").popover();
+			$("#share_option_explanation").popover();
+			$("#terms").popover();
+		}
+	</script> 
 
 	
 }
