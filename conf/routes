@@ -12,9 +12,14 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /users/login                controllers.UserApp.login()
 
 # Boards
-GET     /boards                     controllers.BoardApp.boardList()
-GET     /boards/new                 controllers.BoardApp.newBoard()
-POST    /boards/new                 controllers.BoardApp.newBoard()
+GET     /board                      controllers.BoardApp.boardList(pageNum:Int = 1)
+GET     /board/new                  controllers.BoardApp.newArticle()
+POST    /board/new                  controllers.BoardApp.newArticle()
+POST    /board/save                 controllers.BoardApp.newArticleSave()
+GET     /board/detail/:id           controllers.BoardApp.showDetail(id:Int)
+POST    /board/detail/:id/replay_save  controllers.BoardApp.saveReply(id: Int)
+POST    /board/detail/:id/delete       controllers.BoardApp.delete(id: Int)
+GET     /board/:pageNum             controllers.BoardApp.boardList(pageNum:Int)
 
 # Projects
 GET		/project/new				controllers.ProjectApp.newProject()
