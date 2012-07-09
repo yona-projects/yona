@@ -32,21 +32,26 @@ public class Project extends Model{
 */
 
 	public static Finder<Long, Project> find = new Finder(Long.class, Project.class);
-	
-	public static List<String>	vcs_list(){
-		List<String> all = new ArrayList<String>();
-		all.add("GIT");
-		all.add("Subversion");
-
-		return all;
-	}
 
 	public static Long create(Project newProject){
 		newProject.save();
 		return newProject.id;
 	}
+	
+	public static Project findById(Long id) {
+        return find.byId(id);
+    }
 
-	public static List<Project> all() {
+/*	public static List<String>	vcs_list(){
+		List<String> all = new ArrayList<String>();
+		all.add("GIT");
+		all.add("Subversion");
+	
+		return all;
+	}*/
+	
+/*	public static List<Project> all() {
 		return find.all();
-	}
+	}*/
+
 }

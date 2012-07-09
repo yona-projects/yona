@@ -6,14 +6,13 @@ package controllers;
 
 import play.mvc.Controller;
 import play.mvc.Result;
-import play.data.Form;
+import play.data.*;
 
 import views.html.project.*;
 
 import models.Project;
 
-import views.html.project.projectHome;
-import views.html.project.setting;
+import views.html.project.*;
 
 public class ProjectApp  extends Controller {
 	
@@ -29,8 +28,13 @@ public class ProjectApp  extends Controller {
 
 	public static Result getNewProject(){
 		Form<Project> filledNewProjectForm = newProjectForm.bindFromRequest();
+		
+		if(!"true".equals(filledNewProjectForm.field("accept").value())) {
+			filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
+	    }
+		
 		if(filledNewProjectForm.hasErrors()){
-			return TODO;
+			return badRequest(projectNewPage.render("Create a new project", filledNewProjectForm));
 		}else{
 			return redirect(routes.ProjectApp.project(
 				Project.create(filledNewProjectForm.get()))

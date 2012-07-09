@@ -42,7 +42,7 @@
 
 				@select(
 					newProjectForm("vcs"),
-					options=options(Project.vcs_list), 
+					options=options("GIT"->"GIT", "Subversion"->"Subversion"), 
 					'_label -> "코드관리시스템"
 				)
 				
@@ -51,8 +51,9 @@
 					data-original-title="이용 약관"
 				></div>
 				@checkbox(
-             				newProjectForm("accept"), 
-	                '_label -> None, '_text -> "본인은 약관에 대한 안내를 읽었으며 동의합니다.",
+             		newProjectForm("accept"), 
+	                '_label -> None,
+	                '_text -> "본인은 약관에 대한 안내를 읽었으며 동의합니다.",
 	                '_showConstraints -> false
           			)
 			</fieldset>
