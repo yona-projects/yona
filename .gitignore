@@ -9,3 +9,4 @@ tmp
 .settings
 .target
 dist
+conf/evolutions/default/
