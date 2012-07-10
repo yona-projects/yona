@@ -30,6 +30,11 @@ public class ProjectApp  extends Controller {
 		return ok(projectNewPage.render("Create a new project", newProjectForm));
 	}
 
+	public static Result setting(Long id) {
+		Form<Project> projectForm = form(Project.class).fill(Project.findById(id));
+		return ok(setting.render("Setting", projectForm, id));
+	}
+
 	public static Result getNewProject(){
 		Form<Project> filledNewProjectForm = newProjectForm.bindFromRequest();
 		
@@ -51,14 +56,27 @@ public class ProjectApp  extends Controller {
 			);
 		}
 	}
-
-	public static Result setting(Long id) {
-		Form<Project> projectForm = form(Project.class).fill(Project.findById(id));
-		return ok(setting.render("Setting", projectForm));
-	}
 	
-	public static Result getProjects(){ // 차후에 user 부분 작성이 완료되면, user id를 받아와서 해당 user의 project만 return 하는 것으로 변경.
-		return TODO;
+	public static Result getUpdatedProject(Long id){
+		Form<Project> filledUpdatedProjectForm = newProjectForm.bindFromRequest();
+		
+		//올바른 이름 검사		
+		if(!Pattern.matches("^[a-zA-Z0-9_]*$", filledUpdatedProjectForm.field("name").value())){
+			filledUpdatedProjectForm.reject("name", "올바른 이름을 입력해야 합니다.");
+		}
+		
+		//올바른 사이트 이름 검사
+		if(!filledUpdatedProjectForm.field("url").value().startsWith("http://")){
+			filledUpdatedProjectForm.reject("url", "사이트 URL은 http://로 시작하여야 합니다.");
+		}
+		
+		if(filledUpdatedProjectForm.hasErrors()){
+			return badRequest(setting.render("Setting", filledUpdatedProjectForm, id));
+		}else{
+			return redirect(routes.ProjectApp.setting(
+				Project.update(filledUpdatedProjectForm.get(), id))
+			);
+		}
 	}
 	
 }

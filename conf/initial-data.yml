@@ -20,7 +20,6 @@ users:
         password:   nori00
         name:       eungjun
         role:       프로젝트멤버
-        
 # board
 Articles:
     - !!models.Article
@@ -28,4 +27,25 @@ Articles:
         contents:   첫글의 내용은 아무것도 없는것이 진리
         writerId:   1
         replyNum:   0
-        
+# Issues
+issues:
+    - !!models.Issue
+        userId:     1
+        title:      불필요한 로그 출력 코드 제거
+        body:       내용 불필요한~
+        status:     1
+    - !!models.Issue
+        userId:     2
+        title:      다운로드는 익명 댓글에도 사용자명에 링크가 걸림
+        body:       내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
+        status:     2
+    - !!models.Issue
+        userId:     3
+        title:      gittracker.php의 메모리 제한 에러
+        body:       내용 gittracker.php의 메모리 제한 에러
+        status:     3
+    - !!models.Issue
+        userId:     4
+        title:      git/hg 코드 브라우저에 i18n이 적용되지 않음
+        body:       내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
+        status:     4

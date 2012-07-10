@@ -1,16 +1,18 @@
-@(message: String)(projectForm: Form[Project])
+@(message: String)(projectForm: Form[Project], id: Long)
 
 @import helper._
 @import helper.twitterBootstrap._
 
 @projectMngMain(message) {
-    <h1>Setting</h1>
-    	@helper.form(action = routes.ProjectApp.getNewProject, 
-					'class -> "form-horizontal"){
+    	@helper.form(action = routes.ProjectApp.getUpdatedProject(id), 'class -> "form-horizontal"){
 		<div class="row">
 			<fieldset>
-				<legend>프로젝트 설정 변경</legend>  
+				<legend>프로젝트 설정 변경</legend> 
 				
+				<div class="icon-question-sign" href = "#" id="project_name" rel="popover"
+					data-content="특수문자, 공백, 한글은 프로젝트 이름으로 사용하실 수 없습니다."
+					data-original-title="이름 규칙"
+				></div>
 				@inputText(
 					projectForm("name"),
 					'_label -> "프로젝트 이름",
@@ -25,6 +27,10 @@
 					'_help -> "선택 입력 사항"
 				)
 				
+				<div class="icon-question-sign" href = "#" id="share_option_explanation" rel="popover"
+					data-content="비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼수 있습니다."
+					data-original-title="공개 설정"
+				></div>
 				@inputRadioGroup(
 					projectForm("share_option"),
 					options = options("false"->"비공개", "true"->"공개"),
@@ -44,4 +50,11 @@
 			</div>
 		</div>
 	}
+	<script>  
+		window.onload = function(){
+			$("#project_name").popover();
+			$("#share_option_explanation").popover();
+			$("#terms").popover();
+		}
+	</script>
 }

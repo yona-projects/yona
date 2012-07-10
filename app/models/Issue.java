@@ -17,6 +17,7 @@ public class Issue extends Model {
 	
 	@Id
     public Long id;
+	public Long userId;
 	
 	@Constraints.Required
     public String title;
@@ -27,7 +28,6 @@ public class Issue extends Model {
 	@Constraints.Required
     public int status;
     
-	@Constraints.Required
 	@Formats.DateTime(pattern="YYYY/MM/DD/hh/mm/ss")
 	public Date date;
 	
@@ -41,4 +41,18 @@ public class Issue extends Model {
     public static final int STATUS_CLOSED 		= 4;	//닫힘  
 	
     private static Finder<Long, Issue> find = new Finder<Long, Issue>(Long.class, Issue.class);
+
+	public static Long create(Issue issue) {
+		issue.save();
+		return issue.id;
+	}
+	
+	public static void delete(Long id){
+		find.ref(id).delete();
+	}
+	
+	public static void findById(Long id){
+		find.ref(id);
+	}
+	
 }

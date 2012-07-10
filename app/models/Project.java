@@ -42,17 +42,14 @@ public class Project extends Model{
 		return newProject.id;
 	}
 	
+	public static Long update(Project updatedProject, Long id){
+		updatedProject.update(id);
+		return id;
+	}
+	
 	public static Project findById(Long id) {
         return find.byId(id);
     }
-
-/*	public static List<String>	vcs_list(){
-		List<String> all = new ArrayList<String>();
-		all.add("GIT");
-		all.add("Subversion");
-	
-		return all;
-	}*/
 	
 	public static List<Project> all() { // user 부분 완료 전 임시 method
 		return find.all();
