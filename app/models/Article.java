@@ -10,17 +10,19 @@ import javax.persistence.*;
 
 import com.avaje.ebean.Page;
 
-import play.data.*;
 import play.data.format.*;
 import play.data.validation.*;
 import play.db.ebean.*;
 
 @Entity
 public class Article extends Model {
-	
+	private static final long serialVersionUID = 1L;
+
+
 	public Article() {
 		this.date = new Date();//XXX 이게 맞는지 모르겠음.
 		this.replyNum = 0;
+		this.writerId = User.guest.id;
 	}
 	
 	@Id
@@ -33,13 +35,15 @@ public class Article extends Model {
 	public String contents;
 	
 	@Constraints.Required
-	public String writer;
+	public Long writerId;
 	
 	@Constraints.Required
 	@Formats.DateTime(pattern="YYYY/MM/DD/hh/mm/ss")
 	public Date date;
 	
 	public int replyNum;
+	
+	public String filePath;
 	
 	
 	private static Finder<Integer, Article> find = new Finder<Integer, Article>(Integer.class, Article.class);
@@ -62,6 +66,7 @@ public class Article extends Model {
 	public static void delete(int articleNum)
 	{
 		find.byId(articleNum).delete();
+		Reply.deleteByArticleNum(articleNum);
 	}
 	
 	public String calcPassTime()
@@ -105,5 +110,10 @@ public class Article extends Model {
 		Article article = findById(articleNum);
 		article.replyNum++;
 		article.update();
+	}
+	
+	public String writer()
+	{
+		return User.findById(writerId).name;
 	}
 }

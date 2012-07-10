@@ -5,20 +5,19 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
-import com.avaje.ebean.ExpressionList;
-
-import play.data.*;
-import play.data.validation.*;
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
-import play.db.ebean.Model.*;
 
 @Entity
 public class Reply extends Model{
-	
+	private static final long serialVersionUID = 1L;
+
 	public Reply() {
 		date = new Date();
+		this.writerId = User.guest.id;
 	}
 	
 	@Id
@@ -31,7 +30,7 @@ public class Reply extends Model{
 	public String contents;
 	
 	@Constraints.Required
-	public String writer;
+	public Long writerId;
 	
 	@Constraints.Required
 	public Date date;
@@ -99,5 +98,9 @@ public class Reply extends Model{
 		{
 			return dTime.get(Calendar.YEAR) + "년 전";
 		}
+	}
+	public String writer()
+	{
+		return User.findById(writerId).name;
 	}
 }
