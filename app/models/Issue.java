@@ -1,46 +1,44 @@
 package models;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import java.util.*;
 
-import play.db.ebean.Model;
+import javax.persistence.*;
+
+import com.avaje.ebean.Page;
+
+import play.data.format.*;
+import play.data.validation.*;
+import play.db.ebean.*;
+
 
 @Entity
 public class Issue extends Model {
-
-    @Id
-    private Long id;
-    private String title;
-    private String body;
-    public static Finder<Long, Issue> find = new Finder<Long, Issue>(Long.class, Issue.class);
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public static void create(Issue issue) {
-        issue.save();
-    }
-
-    public String getTitle() {
-        return this.title;
-    }
-
-    public String getBody() {
-        return this.body;
-    }
-
-    public Long getId() {
-        return null;
-    }
-
-    public static Issue findById(Long id) {
-        return find.ref(id);
-    }
-
-
+	private static final long serialVersionUID = 1L;
+	
+	@Id
+    public Long id;
+	
+	@Constraints.Required
+    public String title;
+	
+	@Constraints.Required
+	public String body;
+	
+	@Constraints.Required
+    public int status;
+    
+	@Constraints.Required
+	@Formats.DateTime(pattern="YYYY/MM/DD/hh/mm/ss")
+	public Date date;
+	
+	//public int replyNum;
+	
+	//public String filePath;
+    
+    public static final int STATUS_ENROLLED 	= 1; 	//등록
+    public static final int STATUS_ASSINGED 	= 2;	//진행중
+    public static final int STATUS_SOLVED 		= 3;	//해결
+    public static final int STATUS_CLOSED 		= 4;	//닫힘  
+	
+    private static Finder<Long, Issue> find = new Finder<Long, Issue>(Long.class, Issue.class);
 }
