@@ -1,0 +1,9 @@
+@(title: String)(content: Html)
+
+@layout(title) {
+    @views.html.navbar()      
+		
+		<div class="container">
+      @content		
+		</div>
+}
