@@ -31,7 +31,7 @@ public class ReplyTest {
 		Article article = new Article();
 		article.contents = "aa";
 		article.title = "aaa";
-		article.writer = "aaa";
+		article.writerId = User.guest.id;
 		int articleNum = Article.write(article);
 		assertThat(Article.findById(articleNum)).isNotNull();
 		assertThat(Article.findById(articleNum).articleNum).isNotNull();
@@ -39,7 +39,7 @@ public class ReplyTest {
 		Reply reply = new Reply();
 		reply.articleNum = articleNum;
 		reply.contents = "testThing";
-		reply.writer = "tester";
+		reply.writerId = User.guest.id;
 		
 		long id = Reply.write(reply);
 		

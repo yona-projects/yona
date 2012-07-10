@@ -22,6 +22,7 @@ public class Article extends Model {
 	public Article() {
 		this.date = new Date();//XXX 이게 맞는지 모르겠음.
 		this.replyNum = 0;
+		//FIXME Dummy 사용중
 		this.writerId = User.guest.id;
 	}
 	
