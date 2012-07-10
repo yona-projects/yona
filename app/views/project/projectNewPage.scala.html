@@ -1,11 +1,11 @@
 @(title: String)(newProjectForm: Form[Project])
 
 @import helper._
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @main(title){
 
-	@helper.form(action = routes.ProjectApp.getNewProject, 
+	@form(action = routes.ProjectApp.getNewProject, 
 					'class -> "form-horizontal"){
 		<div class="row">
 			<fieldset>
