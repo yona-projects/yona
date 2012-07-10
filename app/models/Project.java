@@ -25,6 +25,8 @@ public class Project extends Model{
 	public boolean share_option; // 프로젝트 공개설정
 	
 	public String vcs; // Version Control System (vcs) 코드 관리 시스템
+	
+	public String url; // 프로젝트 url
 
 /*
 	public Long owner; // 프로젝트 생성자 id - 나중에 연결
@@ -35,6 +37,8 @@ public class Project extends Model{
 
 	public static Long create(Project newProject){
 		newProject.save();
+		newProject.url = "http://localhost:9000/project/" + Long.toString(newProject.id); // default url 설정
+		newProject.update();
 		return newProject.id;
 	}
 	
@@ -50,8 +54,8 @@ public class Project extends Model{
 		return all;
 	}*/
 	
-/*	public static List<Project> all() {
+	public static List<Project> all() { // user 부분 완료 전 임시 method
 		return find.all();
-	}*/
+	}
 
 }

@@ -2,6 +2,8 @@ package controllers;
 
 /*
  * @author: Hwi Ahn
+ * 
+ * 
  */
 
 import java.util.regex.Pattern;
@@ -37,7 +39,7 @@ public class ProjectApp  extends Controller {
 	    }
 		
 		//올바른 이름 검사		
-		if(!Pattern.matches("^[a-zA-Z0-9]*$", filledNewProjectForm.field("name").value())){
+		if(!Pattern.matches("^[a-zA-Z0-9_]*$", filledNewProjectForm.field("name").value())){
 			filledNewProjectForm.reject("name", "올바른 이름을 입력해야 합니다.");
 		}
 		
@@ -51,6 +53,12 @@ public class ProjectApp  extends Controller {
 	}
 
 	public static Result setting(Long id) {
-		return ok(setting.render("Setting"));
+		Form<Project> projectForm = form(Project.class).fill(Project.findById(id));
+		return ok(setting.render("Setting", projectForm));
 	}
+	
+	public static Result getProjects(){ // 차후에 user 부분 작성이 완료되면, user id를 받아와서 해당 user의 project만 return 하는 것으로 변경.
+		return TODO;
+	}
+	
 }

@@ -1,0 +1,5 @@
+@for(project <- Project.all()){
+  <li>
+    <a href="@routes.ProjectApp.project(project.id)">@project.name</a>
+  </li>
+}

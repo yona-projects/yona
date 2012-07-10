@@ -1,5 +1,11 @@
 package models;
 
+/*
+ * @author: Hwi Ahn
+ * 
+ */
+
+
 import static org.junit.Assert.*;
 
 import org.junit.*;
@@ -34,6 +40,7 @@ public class ProjectTest {
 		        assertEquals("Overview for prj_test", actualProject.overview);
 		        assertEquals(false, actualProject.share_option);
 		        assertEquals("GIT", actualProject.vcs);
+		        assertEquals("http://localhost:9000/project/" + Long.toString(actualProject.id), actualProject.url);
 			}
 		});
 	}
