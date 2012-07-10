@@ -1,0 +1,22 @@
+# Users
+users:
+    - !!models.User
+        userId:     hobi
+        password:   hobi00
+        name:       hobi
+        role:       사용자
+    - !!models.User
+        userId:     k16wire
+        password:   k16wire00
+        name:       scott
+        role:       사이트관리자
+    - !!models.User
+        userId:     doortts
+        password:   doortts00
+        name:       suwon
+        role:       프로젝트관리자
+    - !!models.User
+        userId:     nori
+        password:   nori00
+        name:       eungjun
+        role:       프로젝트멤버
