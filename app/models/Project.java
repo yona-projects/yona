@@ -16,23 +16,14 @@ public class Project extends Model{
 	
 	@Id
 	public Long id;
-	
 	@Constraints.Required
 	public String name;
-	
 	public String overview; // 프로젝트 설명
-	
 	public boolean share_option; // 프로젝트 공개설정
-	
 	public String vcs; // Version Control System (vcs) 코드 관리 시스템
-	
 	public String url; // 프로젝트 url
-
-/*
-	public Long owner; // 프로젝트 생성자 id - 나중에 연결
-	public List<Long> participants; // 프로젝트 참여자 id 리스트 - 나중에 연결
-*/
-
+	public Long owner; // 프로젝터 소유자
+	
 	public static Finder<Long, Project> find = new Finder(Long.class, Project.class);
 
 	public static Long create(Project newProject){
@@ -47,12 +38,16 @@ public class Project extends Model{
 		return id;
 	}
 	
+	public static void delete(Project deletedProject){
+		deletedProject.delete();
+	}
+	
 	public static Project findById(Long id) {
         return find.byId(id);
     }
 	
-	public static List<Project> all() { // user 부분 완료 전 임시 method
-		return find.all();
+	public static List<Project> findByOwner(Long owner) { // user 부분 완료 전 임시 method
+		return find.where().eq("owner", owner).findList();
 	}
 
 }

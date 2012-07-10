@@ -1,4 +1,4 @@
-@for(project <- Project.all()){
+@for(project <- Project.findByOwner(1)){
   <li>
     <a href="@routes.ProjectApp.project(project.id)">@project.name</a>
   </li>

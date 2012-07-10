@@ -38,7 +38,7 @@ public class ProjectApp  extends Controller {
 	public static Result getNewProject(){
 		Form<Project> filledNewProjectForm = newProjectForm.bindFromRequest();
 		
-		//약관 동의  체크
+		//약관 동의 체크
 		if(!"true".equals(filledNewProjectForm.field("accept").value())) {
 			filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
 	    }

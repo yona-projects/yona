@@ -44,4 +44,26 @@ issues:
         body:       내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         status:     4
         
-        
+# Projects
+projects:
+    - !!models.Project
+        name:           Project1
+        overview:       첫번째 프로젝트입니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/project/1
+        owner:          1
+    - !!models.Project
+        name:           Proj_code
+        overview:       하하하
+        share_option:   true
+        vcs:            Subversion
+        url:            http://localhost:9000/project/2
+        owner:          1
+    - !!models.Project
+        name:           nforge
+        overview:       
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/project/3
+        owner:          1

@@ -63,8 +63,22 @@ public class ProjectTest {
 		
 		Project actualProject = Project.findById(id);
 		
-		assertEquals("prj", actualProject.name);
+		assertEquals("prj", actualProject.name);	
+	}
+	
+	@Test
+	public void testDelete(){
+		Project prj1 = new Project();
 		
+		prj1.name = "prj_test";
+		prj1.overview = "Overview for prj_test";
+		prj1.share_option = false;
+		prj1.vcs = "GIT";
+		Long id = Project.create(prj1);
+		
+		Project.delete(prj1);
+		
+		assertEquals(null, Project.findById(id));
 	}
 	
 	@AfterClass
