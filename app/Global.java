@@ -23,7 +23,7 @@ public class Global extends GlobalSettings {
 						.load("initial-data.yml");
 
 				Ebean.save(all.get("users"));
-				Ebean.save(all.get("Articles"));
+				//Ebean.save(all.get("Articles"));
 				Ebean.save(all.get("issues"));
 				Ebean.save(all.get("projects"));
 			}

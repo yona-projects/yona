@@ -3,7 +3,7 @@
 @import helper.twitterBootstrap._
 
 @main(title) {
-    @helper.form(action=routes.BoardApp.newArticleSave(), 'enctype -> "multipart/form-data"){
+    @helper.form(action=routes.BoardApp.saveArticle(), 'enctype -> "multipart/form-data"){
     	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
     	@helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
     	@helper.inputFile(form("filePath"))
