@@ -3,7 +3,10 @@
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
-@main(title){
+@home(title){
+  <div class="page-header">
+    <h1>title</h1>
+  </div>
 
 	@form(action = routes.ProjectApp.getNewProject, 
 					'class -> "form-horizontal"){
