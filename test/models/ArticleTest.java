@@ -19,7 +19,6 @@ public class ArticleTest extends ModelTest {
 	public void setUp() {
 		testUser = User.findByName("hobi");
 	}
-
 	@Test
 	public void testFindById() throws Exception {
 		Article article = new Article();
@@ -63,5 +62,4 @@ public class ArticleTest extends ModelTest {
 		Article.delete(id);
 		assertThat(Article.findById(id)).isEqualTo(null);
 	}
-
 }
