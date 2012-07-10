@@ -26,6 +26,7 @@ GET		/project/new				controllers.ProjectApp.newProject()
 POST	/project/new 				controllers.ProjectApp.getNewProject()
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
+POST    /project/:id/setting   		controllers.ProjectApp.getUpdatedProject(id:Long)
 
 #Milestones
 
