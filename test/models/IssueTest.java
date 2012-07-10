@@ -1,48 +1,60 @@
 package models;
 
-import static org.junit.Assert.assertEquals;
 import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.running;
+import static org.fest.assertions.Assertions.*;
 
 import org.junit.Test;
 
 public class IssueTest {
 
 	@Test
-	public void testCreate() {
+	public void create() {
 		running(fakeApplication(), new Runnable() {
 			public void run() {
-
-//				Issue issue = new Issue();
-//				issue.setTitle("Bug on test page");
-//				issue.setBody("There is javascript erron on line 75.");
-//
-//				Issue.create(issue);
-//				Issue actualIssue = Issue.findById(issue.getId());
-//
-//				assertEquals("Bug on test page", actualIssue.getTitle());
-//				assertEquals("There is javascript erron on line 75.",
-//						actualIssue.getBody());
-//
-//				Project prj = new Project();
-//				prj.name = "prj_test";
-//				prj.overview = "Overview for prj_test";
-//				prj.share_option = false;
-//				prj.vcs = "GIT";
-//				Project.create(prj);
-//
-//				Project actualProject = Project.findById(prj.id);
-//
-//				assertEquals("prj_test", actualProject.name);
-//				assertEquals("Overview for prj_test", actualProject.overview);
-//				assertEquals(false, actualProject.share_option);
-//				assertEquals("GIT", actualProject.vcs);
-//				assertEquals(
-//						"http://localhost:9000/project/"
-//								+ Long.toString(actualProject.id),
-//						actualProject.url);
+				Issue issue = new Issue();
+				issue.title = "불필요한 로그 출력 코드 제거";
+//				issue.date = "";
+				issue.status = Issue.STATUS_ENROLLED;
+				issue.userId = 1l;
+				assertThat(Issue.create(issue)).isEqualTo(5l);
+				
+				
 			}
 		});
 	}
+//	
+//	@Test
+//	public void delete() {
+//		running(fakeApplication(), new Runnable() {
+//			public void run() {
+//				
+//				Issue issue = new Issue();
+//				issue.title = "지우기 테스트";
+////				issue.date = "";
+//				issue.status = Issue.STATUS_ENROLLED;
+//				issue.userId = 2l;
+//				
+//				Issue.create(issue);
+//				Issue.delete(5l);
+//				
+//				assertThat(Issue.findById(5l)).isNull();
+//				
+//			}
+//		});
+//	}
+	/*
+	
+	 @Test
+	    public void findById() {
+	        running(fakeApplication(), new Runnable() {
+	           public void run() {
+	               Issue user1 = Issue.find.byId(1l);
+	               assertThat(user1.title).isEqualTo("불필요한 로그 출력 코드 제거");
+	               //assertThat(formatted(macintosh.introduced)).isEqualTo("1984-01-24");
+	           }
+	        });
+	    }
+	*/
 
 }
