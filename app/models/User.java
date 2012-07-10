@@ -10,7 +10,7 @@ public class User extends Model {
 	@Id
 	public Long id;
 	public String name;
-	public String userId;
+	public String loginId;
 	public String password;
 	public String role;
 
@@ -23,8 +23,7 @@ public class User extends Model {
 		return find.where().eq("name", name).findUnique();		
 	}
 
-	public static User findById(Long writerId) {
-		// TODO Auto-generated method stub
-		return null;
+	public static User findById(Long id) {
+		return find.byId(id);
 	}
 }

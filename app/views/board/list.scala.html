@@ -37,8 +37,12 @@
     </table>
     
     <div class="btn-group">
+    	@if(articles.hasPrev){
     	<a href="" class="btn">Prev</a>
+    	}
+    	@if(articles.hasNext){
     	<a href="" class="btn">Next</a>
+    	}
     </div>
     }
     <div>

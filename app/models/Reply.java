@@ -18,19 +18,17 @@ public class Reply extends Model{
 	public Reply() {
 		date = new Date();
 		//FIXME dummy 사용중.
-		this.writerId = 1l;
+		//this.writerId = User.findByName("hobi").id;
 	}
 	
 	@Id
 	public int replyNum;
 	
-	@Constraints.Required
 	public int articleNum;
 	
 	@Constraints.Required
 	public String contents;
 	
-	@Constraints.Required
 	public Long writerId;
 	
 	@Constraints.Required
