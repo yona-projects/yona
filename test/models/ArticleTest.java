@@ -16,22 +16,31 @@ public class ArticleTest {
 	private static FakeApplication app;
 
 	@BeforeClass
-	  public static void startApp() {
-	    app = Helpers.fakeApplication(Helpers.inMemoryDatabase());
-	    Helpers.start(app);
-	  }
+	public static void startApp() {
+		app = Helpers.fakeApplication(Helpers.inMemoryDatabase());
+		Helpers.start(app);
+	}
+	@AfterClass
+	public static void stopApp() {
+		Helpers.stop(app);
+	}
 
-	  @AfterClass
-	  public static void stopApp() {
-	    Helpers.stop(app);
-	  }
+	private User testUser;
+	
+	
+	@Before
+	public void setUp()
+	{
+		testUser = User.findByName("hobi");
+		
+	}
 	
 	@Test
 	public void testFindById() throws Exception {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writerId = 1l;
+		article.writerId = testUser.id;
 		int id = Article.write(article);
 		
 		Article actual = Article.findById(id);
@@ -44,7 +53,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writerId = 1l;
+		article.writerId = testUser.id;
 		int id = Article.write(article);
 		
 		Article actual = Article.findById(id);
@@ -62,7 +71,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writerId = 1l;
+		article.writerId = testUser.id;
 		int id = Article.write(article);
 		
 		assertThat(Article.findById(id)).isNotNull();

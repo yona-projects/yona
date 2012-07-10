@@ -24,7 +24,6 @@ public class User extends Model {
 	}
 
 	public static User findById(Long writerId) {
-		// TODO Auto-generated method stub
-		return null;
+		return find.byId(writerId);
 	}
 }
