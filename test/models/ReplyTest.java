@@ -23,16 +23,21 @@ public class ReplyTest {
 		Helpers.stop(app);
 	}
 
+	private User testUser;
+	
+	@Before
+	public void setUp()
+	{
+		testUser = User.findByName("hobi");
+	}
+
 	@Test
 	public void testWrite() throws Exception {
-		
-		//not working on ecilpse but work well in console
 		
 		Article article = new Article();
 		article.contents = "aa";
 		article.title = "aaa";
-		// FIXME 
-		article.writerId = 1l;
+		article.writerId = testUser.id;
 		int articleNum = Article.write(article);
 		assertThat(Article.findById(articleNum)).isNotNull();
 		assertThat(Article.findById(articleNum).articleNum).isNotNull();
@@ -40,8 +45,7 @@ public class ReplyTest {
 		Reply reply = new Reply();
 		reply.articleNum = articleNum;
 		reply.contents = "testThing";
-		// FIXME
-		reply.writerId = 1l;
+		reply.writerId = testUser.id;
 		
 		long id = Reply.write(reply);
 		

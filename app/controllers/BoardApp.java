@@ -4,10 +4,12 @@
 
 package controllers;
 
+import java.io.File;
 import java.util.*;
 
 import models.Article;
 import models.Reply;
+import models.User;
 import play.data.*;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
@@ -37,12 +39,18 @@ public class BoardApp extends Controller {
 		
 		MultipartFormData body = request().body().asMultipartFormData();
 		
-		FilePart file = body.getFile("filePath");
+		FilePart filePart = body.getFile("filePath");
 		
-		if(form.hasErrors())
+		
+		if(form.hasErrors()) {
 			return ok("입력값이 잘못되었습니다.");
-		else
-			form.get().save();
+		}else {
+			Article article = form.get();
+			article.writerId = User.findByName("hobi").id;
+			File file = filePart.getFile();
+			article.filePath = file.getAbsolutePath();
+			article.save();
+		}
 		return redirect(routes.BoardApp.boardList(1));
 	}
 	
@@ -59,10 +67,10 @@ public class BoardApp extends Controller {
 	public static Result saveReply(int articleNum)
 	{
 		Form<Reply> form = replyForm.bindFromRequest();
-		Map<String, String> data = form.data();
-		data.put("articleNum", "" + articleNum);
-		form = form.bind(data);
-		Reply.write(form.get());
+		Reply reply = form.get();
+		reply.articleNum = articleNum;
+		reply.writerId = User.findByName("hobi").id;
+		Reply.write(reply);
 		return redirect(routes.BoardApp.showDetail(articleNum));
 	}
 	public static Result delete(int articleNum)
