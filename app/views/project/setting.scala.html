@@ -4,9 +4,7 @@
 @import helper.twitterBootstrap._
 
 @projectMngMain(message) {
-    <h1>Setting</h1>
-    	@helper.form(action = routes.ProjectApp.getNewProject, 
-					'class -> "form-horizontal"){
+    	@helper.form(action = routes.ProjectApp.getNewProject, 'class -> "form-horizontal"){
 		<div class="row">
 			<fieldset>
 				<legend>프로젝트 설정 변경</legend>  
