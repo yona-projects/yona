@@ -1,3 +1,7 @@
+/**
+ * @author Ahn Hyeok Jun
+ */
+
 package controllers;
 
 import java.util.*;
@@ -29,6 +33,9 @@ public class BoardApp extends Controller {
 	{
 		//TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
 		Form<Article> form = articleform.bindFromRequest();
+		
+		//MultipartFormData body = request().body().asMultipartFormData();
+		
 		if(form.hasErrors())
 			return ok("입력값이 잘못되었습니다.");
 		else
@@ -57,6 +64,7 @@ public class BoardApp extends Controller {
 	}
 	public static Result delete(int articleNum)
 	{
-		return TODO;
+		Article.delete(articleNum);
+		return redirect(routes.BoardApp.boardList(1));
 	}
 }

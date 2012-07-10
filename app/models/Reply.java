@@ -5,20 +5,19 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
-import com.avaje.ebean.ExpressionList;
-
-import play.data.*;
-import play.data.validation.*;
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
-import play.db.ebean.Model.*;
 
 @Entity
 public class Reply extends Model{
-	
+	private static final long serialVersionUID = 1L;
+
 	public Reply() {
 		date = new Date();
+		this.writerId = User.guest.id;
 	}
 	
 	@Id
@@ -31,23 +30,24 @@ public class Reply extends Model{
 	public String contents;
 	
 	@Constraints.Required
-	public String writer;
+	public Long writerId;
 	
 	@Constraints.Required
 	public Date date;
 	
 	
 	//TODO File attach 기능 추가해야함.
-	private static Finder<Long, Reply> find = new Finder<Long, Reply>(Long.class, Reply.class);
+	public static Finder<Long, Reply> find = new Finder<Long, Reply>(Long.class, Reply.class);
 	
 	public static List<Reply> findArticlesReply(int articleNum)
 	{
 		return find.where().eq("articleNum", articleNum).findList();
 	}
-	public static void write(Reply reply)
+	public static long write(Reply reply)
 	{
-		Article.reply(reply);
+		Article.replyAdd(reply.articleNum);
 		reply.save();
+		return reply.replyNum;
 	}
 	public static void deleteByArticleNum(int articleNum)
 	{
@@ -98,5 +98,9 @@ public class Reply extends Model{
 		{
 			return dTime.get(Calendar.YEAR) + "년 전";
 		}
+	}
+	public String writer()
+	{
+		return User.findById(writerId).name;
 	}
 }

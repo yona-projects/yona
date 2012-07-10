@@ -1,3 +1,7 @@
+/**
+ * @author Ahn Hyeok Jun
+ */
+
 package models;
 
 import org.junit.*;
@@ -5,6 +9,7 @@ import org.junit.*;
 import play.test.*;
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
+import static org.junit.Assert.*;
 
 public class ArticleTest {
 	
@@ -42,6 +47,20 @@ public class ArticleTest {
 		assertThat(actual.date).isEqualTo(article.date);
 		assertThat(actual.writer).isEqualTo(article.writer);
 		assertThat(actual.articleNum).isEqualTo(id);
+	}
+	
+	@Test
+	public void testDelete() throws Exception {
+		
+		Article article = new Article();
+		article.contents = "new Contents";
+		article.title = "new_title";
+		article.writer = "new_writer";
+		int id = Article.write(article);
+		
+		assertThat(Article.findById(id)).isNotNull();
+		Article.delete(id);
+		assertThat(Article.findById(id)).isEqualTo(null);
 	}
 
 }
