@@ -32,7 +32,7 @@ public class BoardApp extends Controller {
 		return ok(newArticle.render("New Board", new Form<Article>(Article.class)));
 	}
 	
-	public static Result newArticleSave()
+	public static Result saveArticle()
 	{
 		//TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
 		Form<Article> form = articleform.bindFromRequest();
@@ -54,7 +54,7 @@ public class BoardApp extends Controller {
 		return redirect(routes.BoardApp.boardList(1));
 	}
 	
-	public static Result showDetail(int articleNum)
+	public static Result article(int articleNum)
 	{
 		Article article = Article.findById(articleNum);
 		List<Reply> replys = Reply.findArticlesReply(articleNum);
@@ -71,7 +71,7 @@ public class BoardApp extends Controller {
 		reply.articleNum = articleNum;
 		reply.writerId = User.findByName("hobi").id;
 		Reply.write(reply);
-		return redirect(routes.BoardApp.showDetail(articleNum));
+		return redirect(routes.BoardApp.article(articleNum));
 	}
 	public static Result delete(int articleNum)
 	{
