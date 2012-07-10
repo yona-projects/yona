@@ -5,8 +5,6 @@ import java.util.*;
 import play.mvc.*;
 import play.data.*;
 import play.*;
-import views.html.milestone.*;
-
 
 import models.Milestone;
 
@@ -24,9 +22,7 @@ public class MilestoneApp extends Controller {
 	public static Result milestoneList(int pageNum) {
 		
 		
-		return ok(list.render("Milestone", Milestone.findOnePage(pageNum))
-	
-	 	);
+		return TODO;
 	 	
 				//find.orderBy("id").findList()));
 	}

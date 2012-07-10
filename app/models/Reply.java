@@ -18,7 +18,7 @@ public class Reply extends Model{
 	public Reply() {
 		date = new Date();
 		//FIXME dummy 사용중.
-		this.writerId = User.guest.id;
+		this.writerId = 1l;
 	}
 	
 	@Id

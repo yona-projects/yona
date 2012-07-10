@@ -22,4 +22,9 @@ public class User extends Model {
 	{
 		return find.where().eq("name", name).findUnique();		
 	}
+
+	public static User findById(Long writerId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

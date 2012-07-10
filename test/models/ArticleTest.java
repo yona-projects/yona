@@ -31,7 +31,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writerId = User.guest.id;
+		article.writerId = 1l;
 		int id = Article.write(article);
 		
 		Article actual = Article.findById(id);
@@ -44,7 +44,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writerId = User.guest.id;
+		article.writerId = 1l;
 		int id = Article.write(article);
 		
 		Article actual = Article.findById(id);
@@ -52,7 +52,7 @@ public class ArticleTest {
 		assertThat(actual.title).isEqualTo(article.title);
 		assertThat(actual.contents).isEqualTo(article.contents);
 		assertThat(actual.date).isEqualTo(article.date);
-		assertThat(actual.writerId).isEqualTo(User.guest.id);
+		assertThat(actual.writerId).isEqualTo(1l);
 		assertThat(actual.articleNum).isEqualTo(id);
 	}
 	
@@ -62,7 +62,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writerId = User.guest.id;
+		article.writerId = 1l;
 		int id = Article.write(article);
 		
 		assertThat(Article.findById(id)).isNotNull();
