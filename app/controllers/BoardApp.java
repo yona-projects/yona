@@ -42,7 +42,11 @@ public class BoardApp extends Controller {
 		if(form.hasErrors())
 			return ok("입력값이 잘못되었습니다.");
 		else
-			form.get().save();
+		{
+			Article article = form.get();
+			article.filePath = file.getFile().getPath();
+			Article.write(article);
+		}
 		return redirect(routes.BoardApp.boardList(1));
 	}
 	
