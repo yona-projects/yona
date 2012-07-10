@@ -22,7 +22,6 @@ public class Article extends Model {
 	public Article() {
 		this.date = new Date();
 		this.replyNum = 0;
-		this.writerId = User.findByName("hobi").id;
 	}
 	
 	@Id
@@ -33,8 +32,7 @@ public class Article extends Model {
 	
 	@Constraints.Required
 	public String contents;
-	
-	@Constraints.Required
+	//required
 	public Long writerId;
 	
 	@Constraints.Required

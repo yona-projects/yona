@@ -20,3 +20,12 @@ users:
         password:   nori00
         name:       eungjun
         role:       프로젝트멤버
+        
+# board
+Articles:
+    - !!models.Article
+        title:      첫글
+        contents:   첫글의 내용은 아무것도 없는것이 진리
+        writerId:   1
+        replyNum:   0
+        
