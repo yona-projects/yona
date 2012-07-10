@@ -28,7 +28,14 @@ public class ArticleTest {
 	
 	@Test
 	public void testFindById() throws Exception {
-		// FIXME How to test it!?
+		Article article = new Article();
+		article.contents = "new Contents";
+		article.title = "new_title";
+		article.writerId = 1l;
+		int id = Article.write(article);
+		
+		Article actual = Article.findById(id);
+		assertThat(actual).isNotNull();
 	}
 	
 	@Test
@@ -37,7 +44,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writer = "new_writer";
+		article.writerId = 1l;
 		int id = Article.write(article);
 		
 		Article actual = Article.findById(id);
@@ -45,7 +52,7 @@ public class ArticleTest {
 		assertThat(actual.title).isEqualTo(article.title);
 		assertThat(actual.contents).isEqualTo(article.contents);
 		assertThat(actual.date).isEqualTo(article.date);
-		assertThat(actual.writer).isEqualTo(article.writer);
+		assertThat(actual.writerId).isEqualTo(1l);
 		assertThat(actual.articleNum).isEqualTo(id);
 	}
 	
@@ -55,7 +62,7 @@ public class ArticleTest {
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
-		article.writer = "new_writer";
+		article.writerId = 1l;
 		int id = Article.write(article);
 		
 		assertThat(Article.findById(id)).isNotNull();

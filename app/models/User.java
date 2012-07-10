@@ -14,16 +14,17 @@ public class User extends Model {
 	public String password;
 	public String role;
 
-	public User(String name) {
-		this.name = name;
-		this.id = 19894242L;
-	}
-
 	private static final long serialVersionUID = 1L;
 
-	public static User guest = new User("guest");
+	private static Finder<Long, User> find = new Finder<Long, User>(Long.class, User.class);
+	
+	public static User findByName(String name)
+	{
+		return find.where().eq("name", name).findUnique();		
+	}
 
-	public static User findById(Long Id) {
-		return guest;
+	public static User findById(Long writerId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
