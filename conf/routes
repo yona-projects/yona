@@ -29,7 +29,6 @@ GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
 POST    /project/:id/setting   		controllers.ProjectApp.getUpdatedProject(id:Long)
 
 #Milestones
-
 GET		/milestones					controllers.MilestoneApp.milestoneList(pageNum:Int = 1)
 GET		/milestones/new				controllers.MilestoneApp.addMilestone()
 POST	/milestones/new				controllers.MilestoneApp.addMilestone()
