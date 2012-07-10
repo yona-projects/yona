@@ -8,9 +8,10 @@ import java.util.*;
 
 import models.Article;
 import models.Reply;
-import play.data.Form;
-import play.mvc.Controller;
-import play.mvc.Result;
+import play.data.*;
+import play.mvc.*;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
 
 import views.html.board.*;
 
@@ -34,7 +35,9 @@ public class BoardApp extends Controller {
 		//TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
 		Form<Article> form = articleform.bindFromRequest();
 		
-		//MultipartFormData body = request().body().asMultipartFormData();
+		MultipartFormData body = request().body().asMultipartFormData();
+		
+		FilePart file = body.getFile("filePath");
 		
 		if(form.hasErrors())
 			return ok("입력값이 잘못되었습니다.");
