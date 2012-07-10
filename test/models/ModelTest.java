@@ -6,7 +6,7 @@ import play.test.FakeApplication;
 import play.test.Helpers;
 
 public class ModelTest {
-	protected static FakeApplication app;
+	protected FakeApplication app;
 
 	@Before
 	public void startApp() {
