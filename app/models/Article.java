@@ -24,7 +24,7 @@ public class Article extends Model {
     }
 
     @Id
-    public int articleNum;
+    public Long articleNum;
 
     @Constraints.Required
     public String title;
@@ -42,9 +42,9 @@ public class Article extends Model {
 
     public String filePath;
 
-    private static Finder<Integer, Article> find = new Finder<Integer, Article>(Integer.class, Article.class);
+    private static Finder<Long, Article> find = new Finder<Long, Article>(Long.class, Article.class);
 
-    public static Article findById(int articleNum) {
+    public static Article findById(Long articleNum) {
         return find.byId(articleNum);
     }
 
@@ -52,17 +52,17 @@ public class Article extends Model {
         return find.findPagingList(25).getPage(pageNum - 1);
     }
 
-    public static int write(Article article) {
+    public static Long write(Article article) {
         article.save();
         return article.articleNum;
     }
 
-    public static void delete(int articleNum) {
+    public static void delete(Long articleNum) {
         find.byId(articleNum).delete();
         Reply.deleteByArticleNum(articleNum);
     }
 
-    public static void replyAdd(int articleNum) {
+    public static void replyAdd(Long articleNum) {
         Article article = findById(articleNum);
         article.replyNum++;
         article.update();

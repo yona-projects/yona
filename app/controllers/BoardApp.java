@@ -41,15 +41,17 @@ public class BoardApp extends Controller {
 
             FilePart filePart = body.getFile("filePath");
 
-            File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
-            filePart.getFile().renameTo(saveFile);
-            article.filePath = saveFile.getAbsolutePath();
+            if (filePart != null) {
+                File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
+                filePart.getFile().renameTo(saveFile);
+                article.filePath = saveFile.getAbsolutePath();
+            }
             Article.write(article);
         }
         return redirect(routes.BoardApp.boardList(1));
     }
 
-    public static Result article(int articleNum) {
+    public static Result article(Long articleNum) {
         Article article = Article.findById(articleNum);
         List<Reply> replys = Reply.findArticlesReply(articleNum);
         if (article == null) {
@@ -60,22 +62,35 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result saveReply(int articleNum) {
+    public static Result saveReply(Long articleNum) {
         Form<Reply> replyForm = new Form<Reply>(Reply.class).bindFromRequest();
-        Reply reply = replyForm.get();
+
         if (replyForm.hasErrors()) {
             return TODO;
 
         } else {
+            Reply reply = replyForm.get();
             reply.articleNum = articleNum;
             reply.writerId = User.findByName("hobi").id;
+
+            MultipartFormData body = request().body().asMultipartFormData();
+
+            FilePart filePart = body.getFile("filePath");
+
+            if (filePart != null) {
+                File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
+                filePart.getFile().renameTo(saveFile);
+
+                reply.filePath = saveFile.getAbsolutePath();
+            }
+
             Reply.write(reply);
 
             return redirect(routes.BoardApp.article(articleNum));
         }
     }
 
-    public static Result delete(int articleNum) {
+    public static Result delete(Long articleNum) {
         Article.delete(articleNum);
         return redirect(routes.BoardApp.boardList(1));
     }

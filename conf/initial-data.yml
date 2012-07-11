@@ -24,8 +24,8 @@ users:
 # Board
 articles:
     - !!models.Article
-        title:      새글
-        contents:   새글은 아무 내용도 없는게 진리.
+        title:      게시판이 새로 생성되었습니다.
+        contents:   새로운 게시판에서 많은 활동 부탁드립니다. 
         writerId:   1
         replyNum:   0
 

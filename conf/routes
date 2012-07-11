@@ -15,9 +15,9 @@ GET     /users/login                controllers.UserApp.login()
 GET     /boardList                  controllers.BoardApp.boardList(pageNum:Int = 1)
 GET     /boards/new                 controllers.BoardApp.newArticle()
 POST    /boards/new                 controllers.BoardApp.saveArticle()
-GET     /board/:id                  controllers.BoardApp.article(id:Int)
-POST    /board/:id/replay           controllers.BoardApp.saveReply(id: Int)
-GET    	/board/:id/delete           controllers.BoardApp.delete(id: Int)
+GET     /board/:id                  controllers.BoardApp.article(id:Long)
+POST    /board/:id/replay           controllers.BoardApp.saveReply(id:Long)
+GET    	/board/:id/delete           controllers.BoardApp.delete(id:Long)
 GET     /boardList/:pageNum         controllers.BoardApp.boardList(pageNum:Int)
 
 # Projects
