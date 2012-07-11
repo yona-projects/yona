@@ -46,11 +46,15 @@ public class Milestone extends Model {
         milestone.save();
     }
 
+    public static void update(Milestone milestone, Long id) {
+        milestone.update(id);
+    }
+
     public static void delete(Long id) {
         find.ref(id).delete();
     }
 
     public static Milestone findById(Long id) {
-        return find.ref(id);
+        return find.byId(id);
     }
 }
