@@ -21,11 +21,11 @@ GET    	/board/:id/delete           controllers.BoardApp.delete(id: Int)
 GET     /boardList/:pageNum         controllers.BoardApp.boardList(pageNum:Int)
 
 # Projects
-GET		/project/new				controllers.ProjectApp.newProject()
-POST	/project/new 				controllers.ProjectApp.getNewProject()
+GET		/projects/new				controllers.ProjectApp.newProject()
+POST	/projects/new 				controllers.ProjectApp.saveProject()
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
-POST    /project/:id/setting   		controllers.ProjectApp.getUpdatedProject(id:Long)
+POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
 
 #Milestones
 GET		/milestones					controllers.MilestoneApp.milestoneList(pageNum:Int = 1)

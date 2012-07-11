@@ -1,10 +1,10 @@
 @(message: String)(projectForm: Form[Project], id: Long)
 
 @import helper._
-@import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @projectMngMain(message) {
-   	@helper.form(action = routes.ProjectApp.getUpdatedProject(id), 'class -> "form-horizontal"){
+   	@helper.form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal"){
 		<div class="row">
 			<fieldset>
 				<legend>프로젝트 설정 변경</legend> 

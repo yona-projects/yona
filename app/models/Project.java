@@ -17,6 +17,7 @@ public class Project extends Model{
 	@Id
 	public Long id;
 	@Constraints.Required
+	@Constraints.Pattern("^[a-zA-Z0-9_]*$")
 	public String name;
 	public String overview; // 프로젝트 설명
 	public boolean share_option; // 프로젝트 공개설정

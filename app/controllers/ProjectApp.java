@@ -6,7 +6,6 @@ package controllers;
  * 
  */
 
-import java.util.regex.Pattern;
 
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -27,7 +26,7 @@ public class ProjectApp  extends Controller {
 	}
 
 	public static Result newProject(){
-		return ok(projectNewPage.render("Create a new project", newProjectForm));
+		return ok(newProject.render("Create a new project", newProjectForm));
 	}
 
 	public static Result setting(Long id) {
@@ -35,7 +34,7 @@ public class ProjectApp  extends Controller {
 		return ok(setting.render("Setting", projectForm, id));
 	}
 
-	public static Result getNewProject(){
+	public static Result saveProject(){
 		Form<Project> filledNewProjectForm = newProjectForm.bindFromRequest();
 		
 		//약관 동의 체크
@@ -43,13 +42,8 @@ public class ProjectApp  extends Controller {
 			filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
 	    }
 		
-		//올바른 이름 검사		
-		if(!Pattern.matches("^[a-zA-Z0-9_]*$", filledNewProjectForm.field("name").value())){
-			filledNewProjectForm.reject("name", "올바른 이름을 입력해야 합니다.");
-		}
-		
 		if(filledNewProjectForm.hasErrors()){
-			return badRequest(projectNewPage.render("Create a new project", filledNewProjectForm));
+			return badRequest(newProject.render("Create a new project", filledNewProjectForm));
 		}else{
 			return redirect(routes.ProjectApp.project(
 				Project.create(filledNewProjectForm.get()))
@@ -57,13 +51,8 @@ public class ProjectApp  extends Controller {
 		}
 	}
 	
-	public static Result getUpdatedProject(Long id){
+	public static Result saveSetting(Long id){
 		Form<Project> filledUpdatedProjectForm = newProjectForm.bindFromRequest();
-		
-		//올바른 이름 검사		
-		if(!Pattern.matches("^[a-zA-Z0-9_]*$", filledUpdatedProjectForm.field("name").value())){
-			filledUpdatedProjectForm.reject("name", "올바른 이름을 입력해야 합니다.");
-		}
 		
 		//올바른 사이트 이름 검사
 		if(!filledUpdatedProjectForm.field("url").value().startsWith("http://")){
