@@ -1,4 +1,4 @@
-@(title:String)(articles:Page[models.Article])
+@(title:String, articles:Page[Post])
 
 @main(title){
 	
@@ -27,9 +27,9 @@
     	<tbody>
     		@for(article <- articles.getList()){
     		<tr>
-    			<td>@article.articleNum</td>
-    			<td><a href="@routes.BoardApp.article(article.articleNum)">@article.title [@article.replyNum]</a></td>
-    			<td>@article.writer</td>
+    			<td>@article.id</td>
+    			<td><a href="@routes.BoardApp.article(article.id)">@article.title [@article.commentCount]</a></td>
+    			<td>@User.findNameById(article.userId)</td>
     			<td>@article.calcPassTime()</td>
     		</tr>
     		}

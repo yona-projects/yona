@@ -31,4 +31,8 @@ public class User extends Model {
 		return find.where().eq("loginId", user.loginId)
 				.eq("password", user.password).findUnique();
 	}
+
+    public static String findNameById(long id) {
+        return find.byId(id).name;
+    }
 }

@@ -1,19 +1,19 @@
-@(article : models.Article)(replys : List[models.Reply])(replyForm : Form[models.Reply])
+@(article:Post, replys:List[Comment], replyForm:Form[Comment])
 
 @main("상세보기"){
 <div id="board_btn_panel">
 	<a class="btn btn-primary" href="">수정</a>
-	<a class="btn" href="@routes.BoardApp.delete(article.articleNum)">삭제</a>
+	<a class="btn" href="@routes.BoardApp.delete(article.id)">삭제</a>
 	<a class="btn" href="@routes.BoardApp.boardList(1)">목록</a>
 </div>
 <!-- 메인 글 -->
 <div>
 	<div class="row">
-		<div class="span2"><span class="badge">#@article.articleNum</span></div>
+		<div class="span2"><span class="badge">#@article.id</span></div>
 		<div class="span10">
 			<h1>@article.title</h1>
 			<div>
-				<span>@article.writer가 @article.calcPassTime()에 작성함<span> |
+				<span>@User.findNameById(article.id)가 @article.calcPassTime()에 작성함<span> |
 				<span>@article.date</span>
 			</div>
 		</div>
@@ -34,28 +34,26 @@
 	</div>
 </div>
 <!-- 여기서 부터 덧글 -->
+@for(reply <-replys){
 <hr/>
-<div>
-	@for(reply <-replys){
-	<div class="row">
-		<div class="span2"><img src="http://placehold.it/100x100" width="100" height="100"/></div>
-		<div class="span10">
-			<div>
-				<span>@reply.writer가 @reply.calcPassTime()에 작성함</span> | 
-				<span>@reply.date</span>
-			</div>
-			<p>@reply.contents<p>
-			@if(reply.filePath != null){
-			<p><a href=""><i class="icon-download"></i>@reply.filePath</a></p>
-			}
+<div class="row">
+	<div class="span2"><img src="http://placehold.it/100x100" width="100" height="100"/></div>
+	<div class="span10">
+		<div>
+			<span>@User.findNameById(reply.userId)가 @reply.calcPassTime()에 작성함</span> | 
+			<span>@reply.date</span>
 		</div>
+		<p>@reply.contents<p>
+		@if(reply.filePath != null){
+		<p><a href=""><i class="icon-download"></i>@reply.filePath</a></p>
+		}
 	</div>
-	}
 </div>
+}
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div>
-	@helper.form(routes.BoardApp.saveReply(article.articleNum), 'enctype -> "multipart/form-data"){
+	@helper.form(routes.BoardApp.saveReply(article.id), 'enctype -> "multipart/form-data"){
 		@helper.textarea(replyForm("contents"))
 		@helper.inputFile(replyForm("filePath"))		
 		<input type="submit" class="btn" value="댓글입력"/>

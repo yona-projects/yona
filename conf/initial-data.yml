@@ -1,33 +1,33 @@
 # Users
 users:
     - !!models.User
-        loginId:     hobi
-        password:   hobi00
-        name:       hobi
-        role:       사용자
+        loginId:        hobi
+        password:       hobi00
+        name:           hobi
+        role:           사용자
     - !!models.User
-        loginId:     k16wire
-        password:   k16wire00
-        name:       scott
-        role:       사이트관리자
+        loginId:        k16wire
+        password:       k16wire00
+        name:           scott
+        role:           사이트관리자
     - !!models.User
-        loginId:     doortts
-        password:   doortts00
-        name:       suwon
-        role:       프로젝트관리자
+        loginId:        doortts
+        password:       doortts00
+        name:           suwon
+        role:           프로젝트관리자
     - !!models.User
-        loginId:     nori
-        password:   nori00
-        name:       eungjun
-        role:       프로젝트멤버
+        loginId:        nori
+        password:       nori00
+        name:           eungjun
+        role:           프로젝트멤버
         
 # Board
 articles:
-    - !!models.Article
-        title:      게시판이 새로 생성되었습니다.
-        contents:   새로운 게시판에서 많은 활동 부탁드립니다. 
-        writerId:   1
-        replyNum:   0
+    - !!models.Post
+        title:          게시판이 새로 생성되었습니다.
+        contents:       새로운 게시판에서 많은 활동 부탁드립니다. 
+        userId:         1
+        commentCount:   0
 
 # Issues
 issues:

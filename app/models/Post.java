@@ -13,58 +13,53 @@ import com.avaje.ebean.Page;
 import play.data.format.*;
 import play.data.validation.*;
 import play.db.ebean.*;
+import utils.JodaDateUtil;
 
 @Entity
-public class Article extends Model {
+public class Post extends Model {
     private static final long serialVersionUID = 1L;
 
-    public Article() {
-        this.date = new Date();
-        this.replyNum = 0;
-    }
-
     @Id
-    public Long articleNum;
-
+    public Long id;
+    public Long userId;    
     @Constraints.Required
     public String title;
-
     @Constraints.Required
     public String contents;
-    // required
-    public Long writerId;
-
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date;
-
-    public int replyNum;
-
+    public int commentCount;
     public String filePath;
 
-    private static Finder<Long, Article> find = new Finder<Long, Article>(Long.class, Article.class);
+    public Post() {
+        this.date = JodaDateUtil.today();
+        this.commentCount = 0;
+    }
+    
+    private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
 
-    public static Article findById(Long articleNum) {
-        return find.byId(articleNum);
+    public static Post findById(Long id) {
+        return find.byId(id);
     }
 
-    public static Page<Article> findOnePage(int pageNum) {
+    public static Page<Post> findOnePage(int pageNum) {
         return find.findPagingList(25).getPage(pageNum - 1);
     }
 
-    public static Long write(Article article) {
-        article.save();
-        return article.articleNum;
+    public static Long write(Post post) {
+        post.save();
+        return post.id;
     }
 
-    public static void delete(Long articleNum) {
-        find.byId(articleNum).delete();
-        Reply.deleteByArticleNum(articleNum);
+    public static void delete(Long id) {
+        find.byId(id).delete();
+        Comment.deleteByPostId(id);
     }
 
-    public static void replyAdd(Long articleNum) {
-        Article article = findById(articleNum);
-        article.replyNum++;
+    public static void countUpCommentCounter(Long id) {
+        Post article = findById(id);
+        article.commentCount++;
         article.update();
     }
 
@@ -90,9 +85,5 @@ public class Article extends Model {
         } else {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
-    }
-
-    public String writer() {
-        return User.findById(writerId).name;
     }
 }
