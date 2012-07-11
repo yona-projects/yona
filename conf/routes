@@ -26,6 +26,7 @@ POST	/projects/new 				controllers.ProjectApp.saveProject()
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
 POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
+POST	/project/:id/deleting		controllers.ProjectApp.deleteProject(id:Long)
 
 #Milestones
 GET		/milestones					controllers.MilestoneApp.milestoneList(pageNum:Int = 1)
