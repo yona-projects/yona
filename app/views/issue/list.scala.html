@@ -38,9 +38,9 @@
     		@for(issue <- issues.getList()){
     		<tr>
     			<td>@issue.id</td>
-    			<td>@issue.printStatus()</td> 
+    			<td>@issue.status()</td> 
     			<td><a href="">@issue.title</a></td>
-    			<td>@issue.reposibleMemberId</td>
+    			<td>@issue.responsibleMemberId</td>
     			<td>@issue.date</td>
     			
     			</tr>
