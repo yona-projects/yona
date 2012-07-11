@@ -1,4 +1,4 @@
-@(title:String, articles:Page[Post])
+@(title:String, page:Page[Post])
 
 @main(title){
 	
@@ -13,7 +13,7 @@
     	<li class="active"><a href="">전체</a></li>
     	<li><a href="">Q&A</a></li>
     </ul>
-    @if(articles.getTotalRowCount == 0){
+    @if(page.getTotalRowCount == 0){
     <div class="well">
     	<p>등록된 글이 없습니다.</p>
     </div>
@@ -25,22 +25,22 @@
     		</tr>
     	</thead>
     	<tbody>
-    		@for(article <- articles.getList()){
+    		@for(post <- page.getList()){
     		<tr>
-    			<td>@article.id</td>
-    			<td><a href="@routes.BoardApp.post(article.id)">@article.title [@article.commentCount]</a></td>
-    			<td>@User.findNameById(article.userId)</td>
-    			<td>@article.calcPassTime()</td>
+    			<td>@post.id</td>
+    			<td><a href="@routes.BoardApp.post(post.id)">@post.title [@post.commentCount]</a></td>
+    			<td>@User.findNameById(post.userId)</td>
+    			<td>@post.calcPassTime()</td>
     		</tr>
     		}
     	</tbody>
     </table>
     
     <div class="btn-group">
-    	@if(articles.hasPrev){
+    	@if(page.hasPrev){
     	<a href="" class="btn">Prev</a>
     	}
-    	@if(articles.hasNext){
+    	@if(page.hasNext){
     	<a href="" class="btn">Next</a>
     	}
     </div>

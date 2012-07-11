@@ -24,7 +24,7 @@ public class BoardApp extends Controller {
     }
 
     public static Result newPost() {
-        return ok(newArticle.render("새 게시물", new Form<Post>(Post.class)));
+        return ok(newPost.render("새 게시물", new Form<Post>(Post.class)));
     }
 
     public static Result savePost() {

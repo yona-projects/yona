@@ -21,7 +21,7 @@ public class Post extends Model {
 
     @Id
     public Long id;
-    public Long userId;    
+    public Long userId;
     @Constraints.Required
     public String title;
     @Constraints.Required
@@ -36,7 +36,7 @@ public class Post extends Model {
         this.date = JodaDateUtil.today();
         this.commentCount = 0;
     }
-    
+
     private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
 
     public static Post findById(Long id) {

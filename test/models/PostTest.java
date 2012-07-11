@@ -33,29 +33,29 @@ public class PostTest extends ModelTest {
 
     @Test
     public void write() throws Exception {
-        //Given
-        Post article = new Post();
-        article.contents = "new Contents";
-        article.title = "new_title";
-        article.userId = testUser.id;
-        //When
-        Long id = Post.write(article);
-        //Then
+        // Given
+        Post post = new Post();
+        post.contents = "new Contents";
+        post.title = "new_title";
+        post.userId = testUser.id;
+        // When
+        Long id = Post.write(post);
+        // Then
         Post actual = Post.findById(id);
 
-        assertThat(actual.title).isEqualTo(article.title);
-        assertThat(actual.contents).isEqualTo(article.contents);
-        assertThat(actual.date).isEqualTo(article.date);
+        assertThat(actual.title).isEqualTo(post.title);
+        assertThat(actual.contents).isEqualTo(post.contents);
+        assertThat(actual.date).isEqualTo(post.date);
         assertThat(actual.userId).isEqualTo(1l);
         assertThat(actual.id).isEqualTo(id);
     }
 
     @Test
     public void delete() throws Exception {
-        //Given
-        //When
+        // Given
+        // When
         Post.delete(1l);
-        //Then
+        // Then
         assertThat(Post.findById(1l)).isNull();
     }
 }

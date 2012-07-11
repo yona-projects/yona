@@ -18,7 +18,7 @@ public class CommentTest extends ModelTest {
     public void deleteByPostId() throws Exception {
         // Given
         // When
-        Comment.deleteByPostId(1l);        
+        Comment.deleteByPostId(1l);
         // Then
         assertThat(Comment.findCommentsByPostId(1l)).isEmpty();
     }
