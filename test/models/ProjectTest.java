@@ -44,7 +44,12 @@ public class ProjectTest extends ModelTest{
 		
 		Project actualProject = Project.findById(id);
 		
-		assertEquals("modifiedProjectName", actualProject.name);	
+		assertEquals("modifiedProjectName", actualProject.name);
+		assertEquals("첫번째 프로젝트입니다.", actualProject.overview);
+		assertEquals("false", Boolean.toString(actualProject.share_option));
+		assertEquals("GIT", actualProject.vcs);
+		assertEquals("http://localhost:9000/project/1", actualProject.url);
+		assertEquals("1", Long.toString(actualProject.owner));
 	}
 	
 	@Test

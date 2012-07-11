@@ -5,15 +5,13 @@
 
 @home(title){
   <div class="page-header">
-    <h1>title</h1>
+    <h1>@title</h1>
   </div>
 
 	@form(action = routes.ProjectApp.saveProject, 
 					'class -> "form-horizontal"){
 		<div class="row">
 			<fieldset>
-				<legend>새로운 프로젝트 생성</legend>  
-				  
 				<div class="icon-question-sign" href = "#" id="project_name" rel="popover"
 					data-content="특수문자, 공백, 한글은 프로젝트 이름으로 사용하실 수 없습니다."
 					data-original-title="이름 규칙"

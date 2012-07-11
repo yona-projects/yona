@@ -6,9 +6,7 @@
 @projectMngMain(message) {
    	@helper.form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal"){
 		<div class="row">
-			<fieldset>
-				<legend>프로젝트 설정 변경</legend> 
-				
+			<fieldset>				
 				<div class="icon-question-sign" href = "#" id="project_name" rel="popover"
 					data-content="특수문자, 공백, 한글은 프로젝트 이름으로 사용하실 수 없습니다."
 					data-original-title="이름 규칙"
