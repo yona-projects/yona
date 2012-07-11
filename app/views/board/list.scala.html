@@ -1,4 +1,4 @@
-@(title:String)(articles:Page[models.Article])
+@(title:String, page:Page[Post])
 
 @main(title){
 	
@@ -6,14 +6,14 @@
     	<form class="form-search form-inline">
   			<input type="text" class="search-query">
   			<button type="submit" class="btn"><i class="icon-search"></i></button>
-  			<a class="btn btn-primary" href="@routes.BoardApp.newArticle()" >새글</a>
+  			<a class="btn btn-primary" href="@routes.BoardApp.newPost()" >새글</a>
 		</form>
     </div>
     <ul class="nav nav-tabs" id="board_list">
     	<li class="active"><a href="">전체</a></li>
     	<li><a href="">Q&A</a></li>
     </ul>
-    @if(articles.getTotalRowCount == 0){
+    @if(page.getTotalRowCount == 0){
     <div class="well">
     	<p>등록된 글이 없습니다.</p>
     </div>
@@ -25,22 +25,22 @@
     		</tr>
     	</thead>
     	<tbody>
-    		@for(article <- articles.getList()){
+    		@for(post <- page.getList()){
     		<tr>
-    			<td>@article.articleNum</td>
-    			<td><a href="@routes.BoardApp.article(article.articleNum)">@article.title [@article.replyNum]</a></td>
-    			<td>@article.writer</td>
-    			<td>@article.calcPassTime()</td>
+    			<td>@post.id</td>
+    			<td><a href="@routes.BoardApp.post(post.id)">@post.title [@post.commentCount]</a></td>
+    			<td>@User.findNameById(post.userId)</td>
+    			<td>@post.calcPassTime()</td>
     		</tr>
     		}
     	</tbody>
     </table>
     
     <div class="btn-group">
-    	@if(articles.hasPrev){
+    	@if(page.hasPrev){
     	<a href="" class="btn">Prev</a>
     	}
-    	@if(articles.hasNext){
+    	@if(page.hasNext){
     	<a href="" class="btn">Next</a>
     	}
     </div>

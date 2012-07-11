@@ -10,45 +10,46 @@ import javax.persistence.Id;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
 @Entity
-public class Reply extends Model {
+public class Comment extends Model {
     private static final long serialVersionUID = 1L;
 
-    public Reply() {
-        date = new Date();
-    }
-
     @Id
-    public int replyNum;
-    public Long articleNum;
+    public Long id;
+    public Long postId;
+    public Long userId;
     @Constraints.Required
     public String contents;
-    public Long writerId;
     @Constraints.Required
     public Date date;
     public String filePath;
-    
-    public static Finder<Long, Reply> find = new Finder<Long, Reply>(Long.class, Reply.class);
 
-    public static List<Reply> findArticlesReply(Long articleNum) {
-        return find.where().eq("articleNum", articleNum).findList();
+    public static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
+
+    public Comment() {
+        date = JodaDateUtil.today();
     }
 
-    public static long write(Reply reply) {
-        Article.replyAdd(reply.articleNum);
-        reply.save();
-        return reply.replyNum;
+    public static List<Comment> findCommentsByPostId(Long postId) {
+        return find.where().eq("postId", postId).findList();
     }
 
-    public static void deleteByArticleNum(Long articleNum) {
-        List<Reply> targets = Reply.find.where().eq("articleNum", "" + articleNum).findList();
+    public static Long write(Comment comment) {
+        Post.countUpCommentCounter(comment.postId);
+        comment.save();
+        return comment.id;
+    }
+
+    public static void deleteByPostId(Long postId) {
+        List<Comment> targets = Comment.find.where().eq("postId", "" + postId).findList();
 
         // 루프 돌면서 삭제
-        Iterator<Reply> target = targets.iterator();
+        Iterator<Comment> target = targets.iterator();
         while (target.hasNext()) {
-            Reply reply = target.next();
-            reply.delete();
+            Comment comment = target.next();
+            comment.delete();
         }
     }
 
@@ -74,9 +75,5 @@ public class Reply extends Model {
         } else {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
-    }
-
-    public String writer() {
-        return User.findById(writerId).name;
     }
 }
