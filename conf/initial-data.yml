@@ -20,6 +20,14 @@ users:
         password:   nori00
         name:       eungjun
         role:       프로젝트멤버
+        
+# Board
+articles:
+    - !!models.Article
+        title:      새글
+        contents:   새글은 아무 내용도 없는게 진리.
+        writerId:   1
+        replyNum:   0
 
 # Issues
 issues:
