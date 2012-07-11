@@ -21,20 +21,17 @@ public class Reply extends Model {
 
     @Id
     public int replyNum;
-
-    public int articleNum;
-
+    public Long articleNum;
     @Constraints.Required
     public String contents;
-
     public Long writerId;
-
     @Constraints.Required
     public Date date;
+    public String filePath;
     
     public static Finder<Long, Reply> find = new Finder<Long, Reply>(Long.class, Reply.class);
 
-    public static List<Reply> findArticlesReply(int articleNum) {
+    public static List<Reply> findArticlesReply(Long articleNum) {
         return find.where().eq("articleNum", articleNum).findList();
     }
 
@@ -44,14 +41,13 @@ public class Reply extends Model {
         return reply.replyNum;
     }
 
-    public static void deleteByArticleNum(int articleNum) {
+    public static void deleteByArticleNum(Long articleNum) {
         List<Reply> targets = Reply.find.where().eq("articleNum", "" + articleNum).findList();
 
         // 루프 돌면서 삭제
         Iterator<Reply> target = targets.iterator();
         while (target.hasNext()) {
             Reply reply = target.next();
-
             reply.delete();
         }
     }
