@@ -33,7 +33,6 @@ public class ArticleTest extends ModelTest {
 
 	@Test
 	public void testWrite() throws Exception {
-
 		Article article = new Article();
 		article.contents = "new Contents";
 		article.title = "new_title";
