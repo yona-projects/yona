@@ -30,7 +30,7 @@ public class Project extends Model{
 		newProject.save();
 		newProject.url = "http://localhost:9000/project/" + Long.toString(newProject.id); // default url 설정
 		newProject.update();
-		return newProject.id;
+	    return newProject.id;
 	}
 	
 	public static Long update(Project updatedProject, Long id){
