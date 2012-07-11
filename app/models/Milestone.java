@@ -31,18 +31,17 @@ public class Milestone extends Model {
     @Constraints.Required
     public String contents;
 
+    public Long projectId;
+
     public int numClosedIssues;
 
     public int numOpenIssues;
-
-    // 추후 추가해야할 듯
-    //public int projectId; //foreign key
 
     public static List<Milestone> findOnePage(int pageNum) {
         return find.findPagingList(10).getPage(pageNum - 1).getList();
     }
 
-    public static void create(Milestone milestone) {
+    public static void write(Milestone milestone) {
         milestone.save();
     }
 
@@ -56,5 +55,9 @@ public class Milestone extends Model {
 
     public static Milestone findById(Long id) {
         return find.byId(id);
+    }
+
+    public static List<Milestone> findByProjectId(Long projectId) {
+        return find.where().eq("projectId", projectId).findList();
     }
 }

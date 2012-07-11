@@ -1,9 +1,10 @@
 package models;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -11,29 +12,65 @@ import static org.junit.Assert.assertThat;
 public class MilestoneTest extends ModelTest {
 
     @Test
-    @Ignore
-    public void testCRUD() throws Exception {
-        Milestone v01Milestone = new Milestone();
-        v01Milestone.versionName = "v.0.1";
-        v01Milestone.contents = "Dark launch";
-        v01Milestone.dueDate = new Date();
-        Milestone.create(v01Milestone); // Create
+    public void testCreate() {
+        Milestone newMilestone = new Milestone();
+        newMilestone.dueDate = new Date();
+        newMilestone.contents = "테스트 마일스톤";
+        newMilestone.numClosedIssues = 10;
+        newMilestone.numOpenIssues = 20;
+        newMilestone.projectId = 100l;
+        newMilestone.versionName = "0.1";
 
-        Milestone actualMilestone = Milestone.findById(v01Milestone.id); // Read
-        assertThat("Milestone model create & read", actualMilestone.id, is(notNullValue()));
-        assertThat("Milestone model create & read", actualMilestone.versionName, is(v01Milestone.versionName));
-        assertThat("Milestone model create & read", actualMilestone.contents, is(v01Milestone.contents));
-        assertThat("Milestone model create & read test", actualMilestone.dueDate, is(v01Milestone.dueDate));
+        Milestone.write(newMilestone);
 
-        actualMilestone.contents = "Light launch";
-        actualMilestone.dueDate = new Date();
+        assertThat(newMilestone.id, is(notNullValue()));
+    }
 
-        Milestone.update(actualMilestone, actualMilestone.id); // Update
-        Milestone updatedlMilestone = Milestone.findById(actualMilestone.id); // Read
-        assertThat("Milestone model update test", updatedlMilestone.contents, is(actualMilestone.contents));
-        assertThat("Milestone model update test", updatedlMilestone.dueDate, is(actualMilestone.dueDate));
+    @Test
+    public void testFindById() {
+        Milestone firstMilestone = Milestone.findById(1l);
+        assertThat(firstMilestone.versionName, is("v.0.1"));
+        assertThat(firstMilestone.contents, is("nFORGE 첫번째 버전."));
 
-        Milestone.delete(updatedlMilestone.id); // Delete
-        assertThat("Milestone model delete test", Milestone.findById(updatedlMilestone.id), is(nullValue()));
+        Calendar expactDueDate = new GregorianCalendar();
+        expactDueDate.set(2012, 6, 12); // 2012-07-12
+
+        Calendar dueDate = new GregorianCalendar();
+        dueDate.setTime(firstMilestone.dueDate);
+
+        assertThat(expactDueDate.get(Calendar.YEAR), is(dueDate.get(Calendar.YEAR)));
+        assertThat(expactDueDate.get(Calendar.MONTH), is(dueDate.get(Calendar.MONTH)));
+        assertThat(expactDueDate.get(Calendar.DAY_OF_MONTH), is(dueDate.get(Calendar.DAY_OF_MONTH)));
+
+        assertThat(firstMilestone.numClosedIssues, is(12));
+        assertThat(firstMilestone.numOpenIssues, is(33));
+        assertThat(firstMilestone.projectId, is(1l));
+    }
+
+    @Test
+    public void testDelete() {
+        Milestone firstMilestone = Milestone.findById(1l);
+        assertThat(firstMilestone, is(notNullValue()));
+        Milestone.delete(firstMilestone.id);
+
+        firstMilestone = Milestone.findById(1l);
+        assertThat(firstMilestone, is(nullValue()));
+    }
+
+    @Test
+    public void testUpdate() {
+        Milestone milestone = new Milestone();
+        milestone.contents = "엔포지 첫번째 버전.";
+        milestone.versionName = "1.0.0-SNAPSHOT";
+        milestone.numClosedIssues = 100;
+        milestone.numOpenIssues = 200;
+
+        Milestone.update(milestone, 1l);
+
+        Milestone actualMilestone = Milestone.findById(1l);
+        assertThat(actualMilestone.contents, is(milestone.contents));
+        assertThat(actualMilestone.versionName, is(milestone.versionName));
+        assertThat(actualMilestone.numClosedIssues, is(100));
+        assertThat(actualMilestone.numOpenIssues, is(200));
     }
 }

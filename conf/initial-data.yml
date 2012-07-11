@@ -74,3 +74,34 @@ projects:
         vcs:            Subversion
         url:            http://localhost:9000/project/2
         owner:          1
+
+# Milestone
+milestones:
+    - !!models.Milestone
+        versionName:     v.0.1
+        dueDate:         2012-07-12 23:59:59
+        contents:        nFORGE 첫번째 버전.
+        numClosedIssues: 12
+        numOpenIssues:   33
+        projectId:       1
+    - !!models.Milestone
+        versionName:     v.0.2
+        dueDate:         2012-07-19 23:59:59
+        contents:        nFORGE 두번째 버전 (Stable).
+        numClosedIssues: 1
+        numOpenIssues:   9
+        projectId:       1
+    - !!models.Milestone
+        versionName:     v.1.0.0
+        dueDate:         2012-08-10 23:59:59
+        contents:        Jindo 안정화 버전
+        numClosedIssues: 99
+        numOpenIssues:   100
+        projectId:       2
+    - !!models.Milestone
+        versionName:     v.2.0.0
+        dueDate:         2012-09-11 23:59:59
+        contents:        Jindo2
+        numClosedIssues: 1
+        numOpenIssues:   88
+        projectId:       2
