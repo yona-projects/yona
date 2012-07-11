@@ -14,15 +14,8 @@ import static play.test.Helpers.*;
 import play.test.*;
 import static org.fest.assertions.Assertions.*;
 
-public class ProjectTest {
-	public static FakeApplication fakeApp;
+public class ProjectTest extends ModelTest{
 	
-	@BeforeClass
-	public static void startApp(){
-		fakeApp = Helpers.fakeApplication(Helpers.inMemoryDatabase());
-		Helpers.start(fakeApp);
-	}
-
 	@Test
 	public void testCreate() {
 		Project prj = new Project();
@@ -43,48 +36,28 @@ public class ProjectTest {
 	
 	@Test
 	public void testUpdate(){
-		Project prj1 = new Project();
-		
-		prj1.name = "prj_test";
-		prj1.overview = "Overview for prj_test";
-		prj1.share_option = false;
-		prj1.vcs = "GIT";
-		Long id = Project.create(prj1);
-		
-		Project prj2 = new Project();
-		
-		prj2.name = "prj";
-		prj2.overview = "Overview for prj_test";
-		prj2.share_option = false;
-		prj2.vcs = "GIT";
-		
-		
-		Project.update(prj2, id);
+	    Long id = new Long(1);
+	    Project prj = new Project();
+	    prj.name = "modifiedProjectName";
+	    		
+		Project.update(prj, id);
 		
 		Project actualProject = Project.findById(id);
 		
-		assertEquals("prj", actualProject.name);	
+		assertEquals("modifiedProjectName", actualProject.name);
+		assertEquals("첫번째 프로젝트입니다.", actualProject.overview);
+		assertEquals("false", Boolean.toString(actualProject.share_option));
+		assertEquals("GIT", actualProject.vcs);
+		assertEquals("http://localhost:9000/project/1", actualProject.url);
+		assertEquals("1", Long.toString(actualProject.owner));
 	}
 	
 	@Test
 	public void testDelete(){
-		Project prj1 = new Project();
-		
-		prj1.name = "prj_test";
-		prj1.overview = "Overview for prj_test";
-		prj1.share_option = false;
-		prj1.vcs = "GIT";
-		Long id = Project.create(prj1);
-		
-		Project.delete(prj1);
+		Long id = new Long(1);
+		Project prj = Project.findById(id);
+		Project.delete(prj);
 		
 		assertEquals(null, Project.findById(id));
 	}
-	
-	@AfterClass
-	public static void stopApp(){
-		Helpers.stop(fakeApp);
-	}
-
-
 }

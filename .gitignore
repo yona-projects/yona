@@ -10,3 +10,4 @@ tmp
 .target
 dist
 conf/evolutions/default/
+public/uploadFiles
