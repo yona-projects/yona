@@ -17,7 +17,7 @@ public class Comment extends Model {
     private static final long serialVersionUID = 1L;
 
     @Id
-    public Long replyNum;
+    public Long id;
     public Long postId;
     public Long userId;
     @Constraints.Required
@@ -32,14 +32,14 @@ public class Comment extends Model {
         date = JodaDateUtil.today();
     }
 
-    public static List<Comment> findArticlesReply(Long postId) {
+    public static List<Comment> findCommentsByPostId(Long postId) {
         return find.where().eq("postId", postId).findList();
     }
 
-    public static Long write(Comment reply) {
-        Post.countUpCommentCounter(reply.postId);
-        reply.save();
-        return reply.replyNum;
+    public static Long write(Comment comment) {
+        Post.countUpCommentCounter(comment.postId);
+        comment.save();
+        return comment.id;
     }
 
     public static void deleteByPostId(Long postId) {
@@ -48,8 +48,8 @@ public class Comment extends Model {
         // 루프 돌면서 삭제
         Iterator<Comment> target = targets.iterator();
         while (target.hasNext()) {
-            Comment reply = target.next();
-            reply.delete();
+            Comment comment = target.next();
+            comment.delete();
         }
     }
 

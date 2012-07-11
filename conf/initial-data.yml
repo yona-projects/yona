@@ -28,6 +28,12 @@ articles:
         contents:       새로운 게시판에서 많은 활동 부탁드립니다. 
         userId:         1
         commentCount:   0
+        
+comments:
+    - !!models.Comment
+        contents:       게시판이 너무 기대됩니다. 많은 글이 필요합니다. 
+        userId:         1
+        postId:         1
 
 # Issues
 issues:

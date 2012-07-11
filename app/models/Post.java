@@ -58,9 +58,9 @@ public class Post extends Model {
     }
 
     public static void countUpCommentCounter(Long id) {
-        Post article = findById(id);
-        article.commentCount++;
-        article.update();
+        Post post = findById(id);
+        post.commentCount++;
+        post.update();
     }
 
     public String calcPassTime() {

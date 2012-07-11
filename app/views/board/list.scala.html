@@ -6,7 +6,7 @@
     	<form class="form-search form-inline">
   			<input type="text" class="search-query">
   			<button type="submit" class="btn"><i class="icon-search"></i></button>
-  			<a class="btn btn-primary" href="@routes.BoardApp.newArticle()" >새글</a>
+  			<a class="btn btn-primary" href="@routes.BoardApp.newPost()" >새글</a>
 		</form>
     </div>
     <ul class="nav nav-tabs" id="board_list">
@@ -28,7 +28,7 @@
     		@for(article <- articles.getList()){
     		<tr>
     			<td>@article.id</td>
-    			<td><a href="@routes.BoardApp.article(article.id)">@article.title [@article.commentCount]</a></td>
+    			<td><a href="@routes.BoardApp.post(article.id)">@article.title [@article.commentCount]</a></td>
     			<td>@User.findNameById(article.userId)</td>
     			<td>@article.calcPassTime()</td>
     		</tr>

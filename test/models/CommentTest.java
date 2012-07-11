@@ -1,7 +1,6 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +15,12 @@ public class CommentTest extends ModelTest {
     }
 
     @Test
-    public void testName() throws Exception {
+    public void deleteByPostId() throws Exception {
         // Given
-
         // When
+        Comment.deleteByPostId(1l);        
         // Then
+        assertThat(Comment.findCommentsByPostId(1l)).isEmpty();
     }
 
     @Test

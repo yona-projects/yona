@@ -53,7 +53,7 @@
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div>
-	@helper.form(routes.BoardApp.saveReply(article.id), 'enctype -> "multipart/form-data"){
+	@helper.form(routes.BoardApp.saveComment(article.id), 'enctype -> "multipart/form-data"){
 		@helper.textarea(replyForm("contents"))
 		@helper.inputFile(replyForm("filePath"))		
 		<input type="submit" class="btn" value="댓글입력"/>
