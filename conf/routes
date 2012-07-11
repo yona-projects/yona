@@ -35,3 +35,7 @@ POST	/milestones/new				controllers.MilestoneApp.addMilestone()
 POST	/milestones/save			controllers.MilestoneApp.addMilestoneSave()
 POST	/milestones/:id/delete		controllers.MilestoneApp.deleteMilestone(id: Long)
 GET		/milestones/:pageNum		controllers.MilestoneApp.milestoneList(pageNum:Int)
+
+
+#Issues
+GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1)
