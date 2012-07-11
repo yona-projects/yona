@@ -18,64 +18,65 @@ import play.mvc.Http.MultipartFormData.FilePart;
 import views.html.board.*;
 
 public class BoardApp extends Controller {
-	
-	final static Form<Article> articleform = new Form<Article>(Article.class);
-	
-	final static Form<Reply> replyForm = new Form<Reply>(Reply.class);
-	
-	public static Result boardList(int pageNum)
-	{
-		return ok(list.render("게시판", Article.findOnePage(pageNum)));
-	}
 
-	public static Result newArticle() {
-		return ok(newArticle.render("New Board", new Form<Article>(Article.class)));
-	}
-	
-	public static Result saveArticle()
-	{
-		//TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
-		Form<Article> form = articleform.bindFromRequest();
-		
-		MultipartFormData body = request().body().asMultipartFormData();
-		
-		FilePart filePart = body.getFile("filePath");
-		
-		
-		if(form.hasErrors()) {
-			return ok("입력값이 잘못되었습니다.");
-		}else {
-			Article article = form.get();
-			article.writerId = User.findByName("hobi").id;
-			File file = filePart.getFile();
-			article.filePath = file.getAbsolutePath();
-			article.save();
-		}
-		return redirect(routes.BoardApp.boardList(1));
-	}
-	
-	public static Result article(int articleNum)
-	{
-		Article article = Article.findById(articleNum);
-		List<Reply> replys = Reply.findArticlesReply(articleNum);
-		if(article == null)
-			return ok(notExsitPage.render("존재하지 않는 게시물"));
-		else
-			return ok(detail.render(article, replys, replyForm));
-		
-	}
-	public static Result saveReply(int articleNum)
-	{
-		Form<Reply> form = replyForm.bindFromRequest();
-		Reply reply = form.get();
-		reply.articleNum = articleNum;
-		reply.writerId = User.findByName("hobi").id;
-		Reply.write(reply);
-		return redirect(routes.BoardApp.article(articleNum));
-	}
-	public static Result delete(int articleNum)
-	{
-		Article.delete(articleNum);
-		return redirect(routes.BoardApp.boardList(1));
-	}
+    public static Result boardList(int pageNum) {
+        return ok(list.render("게시판", Article.findOnePage(pageNum)));
+    }
+
+    public static Result newArticle() {
+        return ok(newArticle.render("새 게시물", new Form<Article>(Article.class)));
+    }
+
+    public static Result saveArticle() {
+        // TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
+        Form<Article> form = new Form<Article>(Article.class).bindFromRequest();
+
+        if (form.hasErrors()) {
+            return ok("입력값이 잘못되었습니다.");
+        } else {
+            Article article = form.get();
+            article.writerId = User.findByName("hobi").id;
+
+            MultipartFormData body = request().body().asMultipartFormData();
+
+            FilePart filePart = body.getFile("filePath");
+
+            File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
+            filePart.getFile().renameTo(saveFile);
+            article.filePath = saveFile.getAbsolutePath();
+            Article.write(article);
+        }
+        return redirect(routes.BoardApp.boardList(1));
+    }
+
+    public static Result article(int articleNum) {
+        Article article = Article.findById(articleNum);
+        List<Reply> replys = Reply.findArticlesReply(articleNum);
+        if (article == null) {
+            return ok(notExsitPage.render("존재하지 않는 게시물"));
+        } else {
+            Form<Reply> replyForm = new Form<Reply>(Reply.class);
+            return ok(detail.render(article, replys, replyForm));
+        }
+    }
+
+    public static Result saveReply(int articleNum) {
+        Form<Reply> replyForm = new Form<Reply>(Reply.class).bindFromRequest();
+        Reply reply = replyForm.get();
+        if (replyForm.hasErrors()) {
+            return TODO;
+
+        } else {
+            reply.articleNum = articleNum;
+            reply.writerId = User.findByName("hobi").id;
+            Reply.write(reply);
+
+            return redirect(routes.BoardApp.article(articleNum));
+        }
+    }
+
+    public static Result delete(int articleNum) {
+        Article.delete(articleNum);
+        return redirect(routes.BoardApp.boardList(1));
+    }
 }

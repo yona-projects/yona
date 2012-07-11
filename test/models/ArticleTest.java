@@ -13,53 +13,54 @@ import static org.junit.Assert.*;
 
 public class ArticleTest extends ModelTest {
 
-	private User testUser;
+    private User testUser;
 
-	@Before
-	public void setUp() {
-		testUser = User.findByName("hobi");
-	}
-	@Test
-	public void testFindById() throws Exception {
-		Article article = new Article();
-		article.contents = "new Contents";
-		article.title = "new_title";
-		article.writerId = testUser.id;
-		int id = Article.write(article);
+    @Before
+    public void setUp() {
+        testUser = User.findByName("hobi");
+    }
 
-		Article actual = Article.findById(id);
-		assertThat(actual).isNotNull();
-	}
+    @Test
+    public void testFindById() throws Exception {
+        Article article = new Article();
+        article.contents = "new Contents";
+        article.title = "new_title";
+        article.writerId = testUser.id;
+        int id = Article.write(article);
 
-	@Test
-	public void testWrite() throws Exception {
+        Article actual = Article.findById(id);
+        assertThat(actual).isNotNull();
+    }
 
-		Article article = new Article();
-		article.contents = "new Contents";
-		article.title = "new_title";
-		article.writerId = testUser.id;
-		int id = Article.write(article);
+    @Test
+    public void testWrite() throws Exception {
 
-		Article actual = Article.findById(id);
+        Article article = new Article();
+        article.contents = "new Contents";
+        article.title = "new_title";
+        article.writerId = testUser.id;
+        int id = Article.write(article);
 
-		assertThat(actual.title).isEqualTo(article.title);
-		assertThat(actual.contents).isEqualTo(article.contents);
-		assertThat(actual.date).isEqualTo(article.date);
-		assertThat(actual.writerId).isEqualTo(1l);
-		assertThat(actual.articleNum).isEqualTo(id);
-	}
+        Article actual = Article.findById(id);
 
-	@Test
-	public void testDelete() throws Exception {
+        assertThat(actual.title).isEqualTo(article.title);
+        assertThat(actual.contents).isEqualTo(article.contents);
+        assertThat(actual.date).isEqualTo(article.date);
+        assertThat(actual.writerId).isEqualTo(1l);
+        assertThat(actual.articleNum).isEqualTo(id);
+    }
 
-		Article article = new Article();
-		article.contents = "new Contents";
-		article.title = "new_title";
-		article.writerId = testUser.id;
-		int id = Article.write(article);
+    @Test
+    public void testDelete() throws Exception {
 
-		assertThat(Article.findById(id)).isNotNull();
-		Article.delete(id);
-		assertThat(Article.findById(id)).isEqualTo(null);
-	}
+        Article article = new Article();
+        article.contents = "new Contents";
+        article.title = "new_title";
+        article.writerId = testUser.id;
+        int id = Article.write(article);
+
+        assertThat(Article.findById(id)).isNotNull();
+        Article.delete(id);
+        assertThat(Article.findById(id)).isEqualTo(null);
+    }
 }

@@ -6,12 +6,17 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <div class="nav">
+            <div class="nav">            
                 <a class="brand" href="@routes.Application.index()">nForge</a>
             </div>
             <div class="nav-collapse collapse">
                 <ul class="nav pull-right">
+                @if(session.contains("userId")){
+                    <li class=""><a href="#">@session.get("userName")</a></li>
+                    <li class=""><a href="@routes.UserApp.login()">LogOut</a></li>
+                }else {
                     <li class=""><a href="@routes.UserApp.login()">Login</a></li>
+                }
                 </ul>
             </div>
         </div>
