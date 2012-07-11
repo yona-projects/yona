@@ -49,7 +49,7 @@
 		</div>
 	}
 	
-	@form(action = routes.ProjectApp.deleteProject(id), 'class -> "form-horizontal"){
+	@form(action = routes.ProjectApp.deleteProject(id), 'class -> "form-horizontal", 'id -> "deletion"){
 		<table class="table table-bordered">
 			<thead>
 				<tr>
@@ -85,6 +85,15 @@
 			$("#project_name").popover();
 			$("#share_option_explanation").popover();
 			$("#terms").popover();
+			$("#deletion").submit(function() {
+			     if($("#acceptDeletion").is(":checked")) {
+			         return true;    
+			     }else {
+			         alert("프로젝트 삭제에 동의하여야 합니다.");
+			         return false;
+			     }
+			     
+			 });
 		}
-	</script>
+	</script>	
 }

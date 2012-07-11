@@ -1,6 +1,7 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -35,4 +36,12 @@ public class UserTest extends ModelTest {
 		// Then
 		assertThat(user.id).isEqualTo(1l);
 	}
+	@Test
+    public void findNameById() throws Exception {
+        //Given
+        //When
+	    String name = User.findNameById(1l);
+        //Then
+	    assertThat(name).isEqualTo("hobi");
+    }
 }

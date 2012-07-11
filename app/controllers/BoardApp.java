@@ -7,8 +7,8 @@ package controllers;
 import java.io.File;
 import java.util.*;
 
-import models.Article;
-import models.Reply;
+import models.Post;
+import models.Comment;
 import models.User;
 import play.data.*;
 import play.mvc.*;
@@ -20,22 +20,22 @@ import views.html.board.*;
 public class BoardApp extends Controller {
 
     public static Result boardList(int pageNum) {
-        return ok(list.render("게시판", Article.findOnePage(pageNum)));
+        return ok(list.render("게시판", Post.findOnePage(pageNum)));
     }
 
-    public static Result newArticle() {
-        return ok(newArticle.render("새 게시물", new Form<Article>(Article.class)));
+    public static Result newPost() {
+        return ok(newPost.render("새 게시물", new Form<Post>(Post.class)));
     }
 
-    public static Result saveArticle() {
+    public static Result savePost() {
         // TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
-        Form<Article> form = new Form<Article>(Article.class).bindFromRequest();
+        Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
 
-        if (form.hasErrors()) {
+        if (postForm.hasErrors()) {
             return ok("입력값이 잘못되었습니다.");
         } else {
-            Article article = form.get();
-            article.writerId = User.findByName("hobi").id;
+            Post post = postForm.get();
+            post.userId = User.findByName("hobi").id;
 
             MultipartFormData body = request().body().asMultipartFormData();
 
@@ -44,34 +44,34 @@ public class BoardApp extends Controller {
             if (filePart != null) {
                 File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
                 filePart.getFile().renameTo(saveFile);
-                article.filePath = saveFile.getAbsolutePath();
+                post.filePath = saveFile.getAbsolutePath();
             }
-            Article.write(article);
+            Post.write(post);
         }
         return redirect(routes.BoardApp.boardList(1));
     }
 
-    public static Result article(Long articleNum) {
-        Article article = Article.findById(articleNum);
-        List<Reply> replys = Reply.findArticlesReply(articleNum);
-        if (article == null) {
+    public static Result post(Long postId) {
+        Post post = Post.findById(postId);
+        List<Comment> comments = Comment.findCommentsByPostId(postId);
+        if (post == null) {
             return ok(notExsitPage.render("존재하지 않는 게시물"));
         } else {
-            Form<Reply> replyForm = new Form<Reply>(Reply.class);
-            return ok(detail.render(article, replys, replyForm));
+            Form<Comment> commentForm = new Form<Comment>(Comment.class);
+            return ok(detail.render(post, comments, commentForm));
         }
     }
 
-    public static Result saveReply(Long articleNum) {
-        Form<Reply> replyForm = new Form<Reply>(Reply.class).bindFromRequest();
+    public static Result saveComment(Long postId) {
+        Form<Comment> commentForm = new Form<Comment>(Comment.class).bindFromRequest();
 
-        if (replyForm.hasErrors()) {
+        if (commentForm.hasErrors()) {
             return TODO;
 
         } else {
-            Reply reply = replyForm.get();
-            reply.articleNum = articleNum;
-            reply.writerId = User.findByName("hobi").id;
+            Comment comment = commentForm.get();
+            comment.postId = postId;
+            comment.userId = User.findByName("hobi").id;
 
             MultipartFormData body = request().body().asMultipartFormData();
 
@@ -81,17 +81,17 @@ public class BoardApp extends Controller {
                 File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
                 filePart.getFile().renameTo(saveFile);
 
-                reply.filePath = saveFile.getAbsolutePath();
+                comment.filePath = saveFile.getAbsolutePath();
             }
 
-            Reply.write(reply);
+            Comment.write(comment);
 
-            return redirect(routes.BoardApp.article(articleNum));
+            return redirect(routes.BoardApp.post(postId));
         }
     }
 
-    public static Result delete(Long articleNum) {
-        Article.delete(articleNum);
+    public static Result delete(Long postId) {
+        Post.delete(postId);
         return redirect(routes.BoardApp.boardList(1));
     }
 }
