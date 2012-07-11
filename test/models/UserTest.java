@@ -5,7 +5,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Test;
 
 public class UserTest extends ModelTest {
-	
+
 	@Test
 	public void authenticate() throws Exception {
 		// Given
@@ -16,5 +16,23 @@ public class UserTest extends ModelTest {
 		User authenticate = User.authenticate(user);
 		// Then
 		assertThat(authenticate.name).isEqualTo("hobi");
+	}
+
+	@Test
+	public void findById() throws Exception {
+		// Given
+		// When
+		User user = User.findById(1l);
+		// Then
+		assertThat(user.name).isEqualTo("hobi");
+	}
+
+	@Test
+	public void findByName() throws Exception {
+		// Given
+		// When
+		User user = User.findByName("hobi");
+		// Then
+		assertThat(user.id).isEqualTo(1l);
 	}
 }
