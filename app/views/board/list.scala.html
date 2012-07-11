@@ -28,7 +28,7 @@
     		@for(article <- articles.getList()){
     		<tr>
     			<td>@article.articleNum</td>
-    			<td><a href="@routes.BoardApp.showDetail(article.articleNum)">@article.title [@article.replyNum]</a></td>
+    			<td><a href="@routes.BoardApp.article(article.articleNum)">@article.title [@article.replyNum]</a></td>
     			<td>@article.writer</td>
     			<td>@article.calcPassTime()</td>
     		</tr>

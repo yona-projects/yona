@@ -51,8 +51,8 @@ public class Issue extends Model {
 		find.ref(id).delete();
 	}
 	
-	public static void findById(Long id){
-		find.ref(id);
+	static Issue findById(Long id){
+		return find.byId(id);
 	}
 	
 }
