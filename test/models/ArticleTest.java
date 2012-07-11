@@ -22,25 +22,25 @@ public class ArticleTest extends ModelTest {
 
     @Test
     public void testFindById() throws Exception {
-        Article article = new Article();
-        article.contents = "new Contents";
-        article.title = "new_title";
-        article.writerId = testUser.id;
-        int id = Article.write(article);
-
-        Article actual = Article.findById(id);
+        // Given
+        // When
+        Article actual = Article.findById(1l);
+        // Then
         assertThat(actual).isNotNull();
+        assertThat(actual.title).isEqualTo("게시판이 새로 생성되었습니다.");
+        assertThat(actual.writerId).isEqualTo(1L);
     }
 
     @Test
     public void testWrite() throws Exception {
-
+        //Given
         Article article = new Article();
         article.contents = "new Contents";
         article.title = "new_title";
         article.writerId = testUser.id;
-        int id = Article.write(article);
-
+        //When
+        Long id = Article.write(article);
+        //Then
         Article actual = Article.findById(id);
 
         assertThat(actual.title).isEqualTo(article.title);
@@ -52,15 +52,10 @@ public class ArticleTest extends ModelTest {
 
     @Test
     public void testDelete() throws Exception {
-
-        Article article = new Article();
-        article.contents = "new Contents";
-        article.title = "new_title";
-        article.writerId = testUser.id;
-        int id = Article.write(article);
-
-        assertThat(Article.findById(id)).isNotNull();
-        Article.delete(id);
-        assertThat(Article.findById(id)).isEqualTo(null);
+        //Given
+        //When
+        Article.delete(1l);
+        //Then
+        assertThat(Article.findById(1l)).isNull();
     }
 }

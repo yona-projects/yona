@@ -15,9 +15,9 @@ GET     /users/login                controllers.UserApp.login()
 GET     /boardList                  controllers.BoardApp.boardList(pageNum:Int = 1)
 GET     /boards/new                 controllers.BoardApp.newArticle()
 POST    /boards/new                 controllers.BoardApp.saveArticle()
-GET     /board/:id                  controllers.BoardApp.article(id:Int)
-POST    /board/:id/replay           controllers.BoardApp.saveReply(id: Int)
-GET    	/board/:id/delete           controllers.BoardApp.delete(id: Int)
+GET     /board/:id                  controllers.BoardApp.article(id:Long)
+POST    /board/:id/replay           controllers.BoardApp.saveReply(id:Long)
+GET    	/board/:id/delete           controllers.BoardApp.delete(id:Long)
 GET     /boardList/:pageNum         controllers.BoardApp.boardList(pageNum:Int)
 
 # Projects
@@ -26,6 +26,7 @@ POST	/projects/new 				controllers.ProjectApp.saveProject()
 GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
 POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
+POST	/project/:id/deleting		controllers.ProjectApp.deleteProject(id:Long)
 
 #Milestones
 GET		/milestones					controllers.MilestoneApp.milestoneList(pageNum:Int = 1)
@@ -34,3 +35,9 @@ POST	/milestones/new				controllers.MilestoneApp.addMilestone()
 POST	/milestones/save			controllers.MilestoneApp.addMilestoneSave()
 POST	/milestones/:id/delete		controllers.MilestoneApp.deleteMilestone(id: Long)
 GET		/milestones/:pageNum		controllers.MilestoneApp.milestoneList(pageNum:Int)
+
+
+#Issues
+GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1)
+#GET	/issues/new					controllers.IssueApp.newIssue()
+#POST	/issues/new					controllers.IssueApp.saveIssue()

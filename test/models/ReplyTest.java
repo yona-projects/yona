@@ -25,7 +25,7 @@ public class ReplyTest extends ModelTest {
         article.contents = "aa";
         article.title = "aaa";
         article.writerId = testUser.id;
-        int articleNum = Article.write(article);
+        Long articleNum = Article.write(article);
         assertThat(Article.findById(articleNum)).isNotNull();
         assertThat(Article.findById(articleNum).articleNum).isNotNull();
 

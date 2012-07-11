@@ -4,7 +4,7 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @projectMngMain(message) {
-   	@helper.form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal"){
+   	@form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal"){
 		<div class="row">
 			<fieldset>				
 				<div class="icon-question-sign" href = "#" id="project_name" rel="popover"
@@ -48,6 +48,38 @@
 			</div>
 		</div>
 	}
+	
+	@form(action = routes.ProjectApp.deleteProject(id), 'class -> "form-horizontal"){
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th><strong>프로젝트 삭제</strong></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td align="right">
+						<strong>프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되면 한번 삭제된 데이터는 복구가 불가능합니다.</strong>
+						<br>
+						<fieldset>
+						@checkbox(
+							projectForm("acceptDeletion"),
+							'_text -> "프로젝트를 삭제하는데 동의합니다.",
+							'_label -> None,
+							'_showConstraints -> false
+		     			)
+						</fieldset>
+						<br>
+						<div class="actions">
+							<input type="submit" class="btn btn-danger" value="프로젝트 삭제">
+						</div>
+					</td>	
+				</tr>
+			</tbody>
+		</table>
+	}
+	
+	
 	<script>  
 		window.onload = function(){
 			$("#project_name").popover();
