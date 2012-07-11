@@ -5,60 +5,64 @@ package models;
  * 
  */
 
-import static org.junit.Assert.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.*;
-
-import static play.test.Helpers.*;
-import play.test.*;
-import static org.fest.assertions.Assertions.*;
+import org.junit.Test;
 
 public class ProjectTest extends ModelTest {
 
     @Test
-    public void testCreate() {
-        Project prj = new Project();
-        prj.name = "prj_test";
-        prj.overview = "Overview for prj_test";
-        prj.share_option = false;
-        prj.vcs = "GIT";
-        Project.create(prj);
-
-        Project actualProject = Project.findById(prj.id);
-
-        assertEquals("prj_test", actualProject.name);
-        assertEquals("Overview for prj_test", actualProject.overview);
-        assertEquals(false, actualProject.share_option);
-        assertEquals("GIT", actualProject.vcs);
-        assertEquals(
-                "http://localhost:9000/project/"
-                        + Long.toString(actualProject.id), actualProject.url);
+    public void create() throws Exception {
+        // Given
+        Project project = new Project();
+        project.name = "prj_test";
+        project.overview = "Overview for prj_test";
+        project.share_option = false;
+        project.vcs = "GIT";
+        // When
+        Project.create(project);
+        // Then
+        Project actualProject = Project.findById(project.id);
+        
+        assertThat(actualProject).isNotNull();
+        assertThat(actualProject.name).isEqualTo("prj_test");
     }
 
     @Test
-    public void testUpdate() {
-        Long id = new Long(1);
+    public void update() throws Exception {
+        // Given
         Project prj = new Project();
         prj.name = "modifiedProjectName";
+        // When
+        Project.update(prj, 1l);
+        // Then
+        Project actualProject = Project.findById(1l);
 
-        Project.update(prj, id);
-
-        Project actualProject = Project.findById(id);
-
-        assertEquals("modifiedProjectName", actualProject.name);
-        assertEquals("첫번째 프로젝트입니다.", actualProject.overview);
-        assertEquals("false", Boolean.toString(actualProject.share_option));
-        assertEquals("GIT", actualProject.vcs);
-        assertEquals("http://localhost:9000/project/1", actualProject.url);
-        assertEquals("1", Long.toString(actualProject.owner));
+        assertThat(actualProject.name).isEqualTo("modifiedProjectName");
+        assertThat(actualProject.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
     }
 
     @Test
-    public void testDelete() {
-        Long id = new Long(1);
-        Project prj = Project.findById(id);
-        Project.delete(prj);
-
-        assertEquals(null, Project.findById(id));
+    public void delete() throws Exception {
+        // Given
+        // When
+        Project.delete(1l);
+        // Then
+        assertEquals(null, Project.findById(1l));
+    }
+    
+    @Test
+    public void findById() throws Exception {
+        // Given
+        // When
+        Project project = Project.findById(1l);
+        // Then
+        assertThat(project.name).isEqualTo("nForge4java");
+        assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
+        assertThat(project.share_option).isEqualTo(true);
+        assertThat(project.vcs).isEqualTo("GIT");
+        assertThat(project.url).isEqualTo("http://localhost:9000/project/1");
+      
     }
 }

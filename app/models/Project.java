@@ -11,8 +11,14 @@ import play.db.ebean.*;
 
 import java.util.*;
 
+/**
+ * @author nhn
+ * 
+ */
 @Entity
 public class Project extends Model {
+    private static final long serialVersionUID = 1L;
+    public static final String defaultSiteURL = "http://localhost:9000";
 
     @Id
     public Long id;
@@ -27,13 +33,8 @@ public class Project extends Model {
     public String url; // Project site URL. It should be started with 'http://'.
     public Long owner; // The id of the owner of the project.
 
-    public Project() {
-        this.owner = new Long(1);
-    }
-
-    public static final String defaultSiteURL = "http://localhost:9000";
-    public static Finder<Long, Project> find = new Finder(Long.class,
-            Project.class);
+    private static Finder<Long, Project> find = new Finder<Long, Project>(
+            Long.class, Project.class);
 
     public static Long create(Project newProject) {
         newProject.save();
@@ -48,8 +49,8 @@ public class Project extends Model {
         return id;
     }
 
-    public static void delete(Project deletedProject) {
-        deletedProject.delete();
+    public static void delete(Long id) {
+        Project.findById(id).delete();
     }
 
     public static Project findById(Long id) {
@@ -59,5 +60,4 @@ public class Project extends Model {
     public static List<Project> findByOwner(Long owner) {
         return find.where().eq("owner", owner).findList();
     }
-
 }

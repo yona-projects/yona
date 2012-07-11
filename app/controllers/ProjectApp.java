@@ -16,40 +16,40 @@ import models.Project;
 
 public class ProjectApp extends Controller {
 
-    final static Form<Project> newProjectForm = form(Project.class);
-
     public static Result project(Long id) {
-        return ok(projectHome.render("Project Home"));
+        return ok(projectHome.render("프로젝트 홈"));
     }
 
     public static Result newProject() {
-        return ok(newProject.render("Create a new project", newProjectForm));
+        return ok(newProject.render("새 프로젝트 생성", form(Project.class)));
     }
 
     public static Result setting(Long id) {
         Form<Project> projectForm = form(Project.class).fill(
                 Project.findById(id));
-        return ok(setting.render("Setting", projectForm, id));
+        return ok(setting.render("프로젝트 설정", projectForm, id));
     }
 
     public static Result saveProject() {
-        Form<Project> filledNewProjectForm = newProjectForm.bindFromRequest();
+        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
         if (!"true".equals(filledNewProjectForm.field("accept").value())) {
             filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
         }
 
         if (filledNewProjectForm.hasErrors()) {
-            return badRequest(newProject.render("Create a new project",
+            return badRequest(newProject.render("새 프로젝트 생성",
                     filledNewProjectForm));
         } else {
+            Project project = filledNewProjectForm.get();
+            project.owner = UserApp.userId();
             return redirect(routes.ProjectApp.project(Project
-                    .create(filledNewProjectForm.get())));
+                    .create(project)));
         }
     }
 
     public static Result saveSetting(Long id) {
-        Form<Project> filledUpdatedProjectForm = newProjectForm
+        Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
 
         if (!filledUpdatedProjectForm.field("url").value()
@@ -71,14 +71,12 @@ public class ProjectApp extends Controller {
         Form<Project> deletedProject = form(Project.class).bindFromRequest();
 
         if (!"true".equals(deletedProject.field("acceptDeletion").value())) {
+            deletedProject = form(Project.class).fill(Project.findById(id));
             deletedProject.reject("acceptDeletion", "프로젝트 삭제에 동의하여야 합니다.");
+            return badRequest(setting.render("Setting", deletedProject, id));
         }
 
-        if (deletedProject.hasErrors()) {
-            return badRequest(setting.render("Setting", deletedProject, id));
-        } else {
-            Project.delete(deletedProject.get());
-            return ok(views.html.index.render("Your new application is ready."));
-        }
+        Project.delete(id);
+        return redirect(routes.Application.index());
     }
 }
