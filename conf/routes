@@ -31,8 +31,8 @@ GET 	/project/:id/delete    		controllers.ProjectApp.deleteProject(id:Long)
 
 #Milestones
 GET     /project/:pId/milestones        controllers.MilestoneApp.milestones(pId:Long,state:String = "incomplete")
-GET     /project/:pId/milestones/:state controllers.MilestoneApp.milestones(pId:Long,state:String)
 GET		/project/:pId/milestones/new    controllers.MilestoneApp.newMilestone(pId:Long)
+GET     /project/:pId/milestones/:state controllers.MilestoneApp.milestones(pId:Long,state:String)
 POST	/milestones/new				    controllers.MilestoneApp.createMilestone()
 POST	/milestones/:id/save		    controllers.MilestoneApp.updateMilestone(id: Long)
 POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Long)
