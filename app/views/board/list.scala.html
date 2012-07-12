@@ -1,51 +1,88 @@
 @(title:String, page:Page[Post])
 
-@main(title){
-	
-	<div>
-    	<form class="form-search form-inline">
-  			<input type="text" class="search-query">
-  			<button type="submit" class="btn"><i class="icon-search"></i></button>
-  			<a class="btn btn-primary" href="@routes.BoardApp.newPost()" >새글</a>
-		</form>
-    </div>
-    <ul class="nav nav-tabs" id="board_list">
-    	<li class="active"><a href="">전체</a></li>
-    	<li><a href="">Q&A</a></li>
-    </ul>
-    @if(page.getTotalRowCount == 0){
-    <div class="well">
-    	<p>등록된 글이 없습니다.</p>
-    </div>
-    }else{
-    <table class="table table-striped">
-    	<thead>
-    		<tr>
-    			<th>#</th><th>제목</th><th>작성자</th><th>나이</th>
-    		</tr>
-    	</thead>
-    	<tbody>
-    		@for(post <- page.getList()){
-    		<tr>
-    			<td>@post.id</td>
-    			<td><a href="@routes.BoardApp.post(post.id)">@post.title [@post.commentCount]</a></td>
-    			<td>@User.findNameById(post.userId)</td>
-    			<td>@post.calcPassTime()</td>
-    		</tr>
-    		}
-    	</tbody>
-    </table>
+@pagination(pageNum:Int) = @{
+    var currentPageNum = page.getPageIndex + 1
+    var lastPageNum = page.getTotalPageCount()
+    var str = ""
     
-    <div class="btn-group">
-    	@if(page.hasPrev){
-    	<a href="" class="btn">Prev</a>
-    	}
-    	@if(page.hasNext){
-    	<a href="" class="btn">Next</a>
-    	}
-    </div>
+    if(currentPageNum <= pageNum/2) {
+        currentPageNum = pageNum/2 +1
+    } else if(currentPageNum > lastPageNum - pageNum/2) {
+        currentPageNum = lastPageNum - pageNum/2 - 1
     }
-    <div>
-    	<a class="btn" href=""><i class="icon-ok"></i>자동알림</a>
+    
+    for( x <- (currentPageNum - pageNum/2 to currentPageNum + pageNum/2)){
+       str += "<li><a href=\"" + routes.BoardApp.boardList(x) + "\">" + x + "</a></li>"
+       
+    }
+    Html(str)
+}
+
+@main(title) {
+  <div class="row">
+    <div class="span12">
+      <div class="pull-right">
+        <form class="form-search form-inline">
+          <input type="text" class="search-query">
+            <button type="submit" class="btn"><i class="icon-search"></i></button>
+            <a class="btn btn-primary" href="@routes.BoardApp.newPost()" >새글</a>
+        </form>
+      </div>    
+    </div>  
+  </div>
+
+  <div class="row">  
+    <div class="span12">
+	    <ul class="nav nav-tabs" id="board_list">
+	    	<li class="active"><a href="">전체</a></li>
+	    	<li><a href="">Q&A</a></li>
+	    </ul>
+	    @if(page.getTotalRowCount == 0){
+	    <div class="well">
+	    	<p>등록된 글이 없습니다.</p>
+	    </div>
+	    }else{
+	    <table class="table table-striped">
+	    	<thead>
+	    		<tr>
+	    			<th class="">#</th><th>제목</th><th>작성자</th><th>나이</th>
+	    		</tr>
+	    	</thead>
+	    	<tbody>
+	    		@for(post <- page.getList()){
+	    		<tr>
+	    			<td>@post.id</td>
+	    			<td><a href="@routes.BoardApp.post(post.id)">@post.title [@post.commentCount]</a></td>
+	    			<td>@post.findWriter()</td>
+	    			<td>@post.calcPassTime()</td>
+	    		</tr>
+	    		}
+	    	</tbody>
+	    </table>
+	    }
     </div>
+  </div>
+
+  <div class="row">  
+    <div class="span6 offset4">   
+	    <div class="pagination">
+	          <ul>
+	              @if(page.hasPrev){
+	              <li><a href="@routes.BoardApp.boardList(page.getPageIndex)">prev</a></li>
+	              } else {
+	              <li class="disabled"><a>prev</a></li>
+	              }
+	              @pagination(5)
+	              @if(page.hasNext){
+	              <li><a href="@routes.BoardApp.boardList(page.getPageIndex + 2)">Next</a></li>
+	              } else {
+	              <li class="disabled"><a>Next</a></li>
+	              }
+	          </ul>
+	      </div>   
+    </div>
+    <div class="span2">
+      <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>    
+    </div>
+  </div>
 }

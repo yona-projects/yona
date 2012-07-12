@@ -1,16 +1,11 @@
 package controllers;
 
 import models.Milestone;
-import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.milestone.list;
-import views.html.project.setting;
 
 public class MilestoneApp extends Controller {
-
-    static Form<Milestone> milestoneForm = form(Milestone.class);
-
     public static Result index() {
         return redirect(routes.MilestoneApp.milestoneList(1));
     }
@@ -40,10 +35,7 @@ public class MilestoneApp extends Controller {
 
     }
 
-
     public static Result deleteMilestone(Long id) {
         return TODO;
     }
-
-
 }

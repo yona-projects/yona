@@ -5,16 +5,13 @@
 package controllers;
 
 import java.io.File;
-import java.util.*;
+import java.util.List;
 
-import models.Post;
-import models.Comment;
-import models.User;
-import play.data.*;
+import models.*;
+import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
-
 import views.html.board.*;
 
 public class BoardApp extends Controller {
