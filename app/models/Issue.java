@@ -6,6 +6,10 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import org.h2.expression.ExpressionList;
+
+import com.avaje.ebean.Expression;
+import com.avaje.ebean.ExpressionFactory;
 import com.avaje.ebean.Page;
 
 import play.data.format.Formats;
@@ -26,7 +30,7 @@ public class Issue extends Model {
     public static final int issueType_2 = 2; // 진행중
     public static final int issueType_3 = 3; // 해결
     public static final int issueType_4 = 4; // 닫힘
-    
+
     @Id
     public Long id;
     public Long userId; // 글쓴이
@@ -46,7 +50,7 @@ public class Issue extends Model {
     public int importance;// 중요도
     public int diagnosisType;// 진단유형
     public int commentCount;
-    //TODO 첨부 파일이 여러개인경우는?
+    // TODO 첨부 파일이 여러개인경우는?
     public String filePath;
 
     public String status() {
@@ -61,7 +65,7 @@ public class Issue extends Model {
         } else
             return "등록";
     }
-    
+
     private static Finder<Long, Issue> find = new Finder<Long, Issue>(
             Long.class, Issue.class);
 
@@ -74,8 +78,11 @@ public class Issue extends Model {
         find.ref(id).delete();
     }
 
+    // public static Page<Issue> findOnePage(int pageNum) {
+    // return find.findPagingList(25).getPage(pageNum - 1);
+    // }
     public static Page<Issue> findOnePage(int pageNum) {
-        return find.findPagingList(25).getPage(pageNum - 1);
+        return find.findPagingList(25).getPage(pageNum);
     }
 
     public static Issue findById(Long id) {
@@ -84,5 +91,25 @@ public class Issue extends Model {
 
     public static List<Issue> findByTitle(String keyword) {
         return find.where().contains("title", keyword).findList();
+    }
+
+    public static Page<Issue> findOnlyOpenIssues(int pageNum) {
+        ExpressionFactory exprFactory = find.getExpressionFactory();
+
+        return find
+                .where()
+                .or(exprFactory.eq("status", STATUS_ENROLLED),
+                        exprFactory.eq("status", STATUS_ASSINGED))
+                .findPagingList(25).getPage(pageNum - 1);
+    }
+
+    public static Page<Issue> findOnlyClosedIssues(int pageNum) {
+        ExpressionFactory exprFactory = find.getExpressionFactory();
+
+        return find
+                .where()
+                .or(exprFactory.eq("status", STATUS_CLOSED),
+                        exprFactory.eq("status", STATUS_SOLVED))
+                .findPagingList(25).getPage(pageNum - 1);
     }
 }
