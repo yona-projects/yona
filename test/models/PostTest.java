@@ -4,12 +4,9 @@
 
 package models;
 
-import org.junit.*;
+import static org.fest.assertions.Assertions.assertThat;
 
-import play.test.*;
-import static play.test.Helpers.*;
-import static org.fest.assertions.Assertions.*;
-import static org.junit.Assert.*;
+import org.junit.*;
 
 public class PostTest extends ModelTest {
 
@@ -57,5 +54,15 @@ public class PostTest extends ModelTest {
         Post.delete(1l);
         // Then
         assertThat(Post.findById(1l)).isNull();
+    }
+
+    @Test
+    public void findWriter() throws Exception {
+        // Given
+        // When
+        Post post = Post.findById(1l);
+        String name = post.findWriter();
+        // Then
+        assertThat(name).isEqualTo("hobi");
     }
 }

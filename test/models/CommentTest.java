@@ -2,8 +2,7 @@ package models;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 public class CommentTest extends ModelTest {
 
@@ -34,5 +33,14 @@ public class CommentTest extends ModelTest {
         long id = Comment.write(comment);
         // Then
         assertThat(Comment.find.byId(id)).isNotNull();
+    }
+
+    @Test
+    public void findWriter() throws Exception {
+        // Given
+        // When
+        String name = Comment.find.byId(1l).findWriter();
+        // Then
+        assertThat(name).isEqualTo("hobi");
     }
 }

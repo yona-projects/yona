@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.avaje.ebean.Page;
+
 import utils.JodaDateUtil;
 
 public class IssueTest extends ModelTest {
@@ -54,6 +56,33 @@ public class IssueTest extends ModelTest {
         List<Issue> issueTest = Issue.findByTitle("git");
         // Then
         assertThat(issueTest).hasSize(2);
+    }
+    
+    @Test
+    public void findOnePage() {
+        // Given
+        // When
+        Page<Issue> issueTest = Issue.findOnePage(1);
+        // Then 
+        assertThat(issueTest.getTotalRowCount()).isEqualTo(4);
+    }
+
+    @Test
+    public void findOnlyOpenIssues() {
+        // Given
+        // When
+        Page<Issue> issueTest = Issue.findOnlyOpenIssues(1);
+        // Then
+        assertThat(issueTest.getTotalRowCount()).isEqualTo(2);
+    }
+
+    @Test
+    public void findOnlyClosedIssues() {
+        // Given
+        // When
+        Page<Issue> issueTest = Issue.findOnlyClosedIssues(1);
+        // Then
+        assertThat(issueTest.getTotalRowCount()).isEqualTo(2);
     }
 
 }

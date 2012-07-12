@@ -1,12 +1,8 @@
 package models;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -75,5 +71,9 @@ public class Comment extends Model {
         } else {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
+    }
+
+    public String findWriter() {
+        return User.findNameById(userId);
     }
 }

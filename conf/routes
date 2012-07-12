@@ -17,8 +17,9 @@ GET     /boards/new                 controllers.BoardApp.newPost()
 POST    /boards/new                 controllers.BoardApp.savePost()
 GET     /board/:id                  controllers.BoardApp.post(id:Long)
 POST    /board/:id/replay           controllers.BoardApp.saveComment(id:Long)
-GET    	/board/:id/delete           controllers.BoardApp.delete(id:Long)
+GET     /board/:id/delete           controllers.BoardApp.delete(id:Long)
 GET     /boardList/:pageNum         controllers.BoardApp.boardList(pageNum:Int)
+GET     /boards/edit                controllers.BoardApp.editPost(id:Long)
 
 # Projects
 GET		/projects/new				controllers.ProjectApp.newProject()
@@ -38,6 +39,8 @@ GET		/milestones/:pageNum		controllers.MilestoneApp.milestoneList(pageNum:Int)
 
 
 #Issues
-GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1)
-#GET	/issues/new					controllers.IssueApp.newIssue()
+GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
+GET		/issues/new					controllers.IssueApp.newIssue()
 #POST	/issues/new					controllers.IssueApp.saveIssue()
+#GET	/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
+#GET	/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)

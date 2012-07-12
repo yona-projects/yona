@@ -22,7 +22,7 @@ users:
         role:           프로젝트멤버
         
 # Board
-articles:
+posts:
     - !!models.Post
         title:          게시판이 새로 생성되었습니다.
         contents:       새로운 게시판에서 많은 활동 부탁드립니다. 
