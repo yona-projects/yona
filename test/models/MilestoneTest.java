@@ -19,7 +19,7 @@ public class MilestoneTest extends ModelTest {
         newMilestone.projectId = 100l;
         newMilestone.versionName = "0.1";
 
-        Milestone.write(newMilestone);
+        Milestone.create(newMilestone);
 
         assertThat(newMilestone.id, is(notNullValue()));
     }
