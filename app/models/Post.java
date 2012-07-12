@@ -44,7 +44,7 @@ public class Post extends Model {
     }
 
     public static Page<Post> findOnePage(int pageNum) {
-        return find.findPagingList(25).getPage(pageNum - 1);
+        return find.orderBy("id desc").findPagingList(10).getPage(pageNum - 1);
     }
 
     public static Long write(Post post) {
