@@ -1,11 +1,5 @@
 package controllers;
 
-/*
- * @author: Hwi Ahn
- * 
- * 
- */
-
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.data.*;
@@ -14,6 +8,10 @@ import views.html.project.*;
 
 import models.Project;
 
+/**
+ * @author "Hwi Ahn"
+ *
+ */
 public class ProjectApp extends Controller {
     
     public static final String PROJECT_HOME = "프로젝트 홈";
