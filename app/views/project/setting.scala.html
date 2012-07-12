@@ -4,7 +4,7 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @projectMngMain(message) {
-       @form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal"){
+       @form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data"){
         <div class="row">
             <fieldset>                
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
@@ -23,6 +23,11 @@
                     '_label -> "설명",
                     'cols -> 50,
                     '_help -> "선택 입력 사항"
+                )
+                
+                @inputFile(
+                    projectForm("logoPath"),
+                    '_label -> "로고"
                 )
                 
                 <div class="icon-question-sign" href = "#" id="share_option_explanation" rel="popover"
@@ -86,6 +91,15 @@
     
     <script>  
         window.onload = function(){
+            var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
+            $("input[id='logoPath']").change(function(){
+                if (!reg.test($(this).val())) { 
+                    alert('이미지 파일이 아닙니다.');
+                    $(this).val('');
+                } else { 
+                    return form_submit('formprof'); 
+                }     
+            });
             $("#project_name").popover();
             $("#share_option_explanation").popover();
             $("#terms").popover();
@@ -98,5 +112,6 @@
                 } 
             });
         }
+        
     </script>    
 }
