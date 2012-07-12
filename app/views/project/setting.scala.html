@@ -49,41 +49,47 @@
         </div>
     }
     
-    @form(action = routes.ProjectApp.deleteProject(id), 'class -> "form-horizontal", 'id -> "deletion"){
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th><strong>프로젝트 삭제</strong></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <strong>프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되면 한번 삭제된 데이터는 복구가 불가능합니다.</strong>
-                        <br>
-                        <fieldset>
-                        @checkbox(
-                            projectForm("acceptDeletion"),
-                            '_text -> "프로젝트를 삭제하는데 동의합니다.",
-                            '_label -> None,
-                            '_showConstraints -> false
-                        )
-                        </fieldset><br>
-                        <div class="actions">
-                            <input type="submit" class="btn btn-danger" value="프로젝트 삭제">
-                        </div>
-                    </td>    
-                </tr>
-            </tbody>
-        </table>
-    }
+   
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th><strong>프로젝트 삭제</strong></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p align="left"><strong>프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되면 한번 삭제된 데이터는 복구가 불가능합니다.</strong></p>
+                    <p align="right">
+                        <input type="checkbox" id="acceptDeletion"> <span>프로젝트를 삭제하는데 동의합니다.</span>
+                    </p>
+                    <a id="deletion" data-toggle="modal" href="#alertDeletion" class="btn btn-danger">프로젝트 삭제</a>
+                </td>    
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="modal hide" id="alertDeletion">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">×</button>
+            <h3>프로젝트를 삭제하시겠습니까?</h3>
+        </div>
+        <div class="modal-body">
+            <p> 프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다. </p>
+            <p> 정말로 삭제하시겠습니까? </p>
+        </div>
+        <div class="modal-footer">
+            <a href="#" class="btn" data-dismiss="modal">아니오</a>
+            <a href="@routes.ProjectApp.deleteProject(id)" class="btn btn-danger">예, 삭제하겠습니다.</a>
+        </div>
+    </div>
     
     <script>  
         window.onload = function(){
             $("#project_name").popover();
             $("#share_option_explanation").popover();
             $("#terms").popover();
-            $("#deletion").submit(function() {
+            $("#deletion").click(function() {
                 if($("#acceptDeletion").is(":checked")) {
                     return true;    
                 }else {
