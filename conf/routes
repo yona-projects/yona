@@ -30,12 +30,12 @@ POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
 GET 	/project/:id/delete    		controllers.ProjectApp.deleteProject(id:Long)
 
 #Milestones
-GET		/milestones					controllers.MilestoneApp.milestoneList(pageNum:Int = 1)
-GET		/milestones/new				controllers.MilestoneApp.addMilestone()
-POST	/milestones/new				controllers.MilestoneApp.addMilestone()
-POST	/milestones/save			controllers.MilestoneApp.addMilestoneSave()
-POST	/milestones/:id/delete		controllers.MilestoneApp.deleteMilestone(id: Long)
-GET		/milestones/:pageNum		controllers.MilestoneApp.milestoneList(pageNum:Int)
+GET     /project/:pId/milestones        controllers.MilestoneApp.milestones(pId:Long,state:String = "incomplete")
+GET		/project/:pId/milestones/new    controllers.MilestoneApp.newMilestone(pId:Long)
+GET     /project/:pId/milestones/:state controllers.MilestoneApp.milestones(pId:Long,state:String)
+POST	/milestones/new				    controllers.MilestoneApp.createMilestone()
+POST	/milestones/:id/save		    controllers.MilestoneApp.updateMilestone(id: Long)
+POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Long)
 
 
 #Issues

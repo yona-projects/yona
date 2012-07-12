@@ -1,42 +1,36 @@
-@(title:String)(milestones:List[models.Milestone])
+@(message: String,milestones:List[models.Milestone],id:Long, state:String)
 
-@main(title){
-	
-	
+@project.projectMngMain(message)(id) {
 	<div>
     <ul class="nav nav-tabs" id="milestone_list">
-    	<li><a href="">전체</a></li>
-    	<li class="active"><a href="">미완료</a></li>
-    	<li><a href="">완료</a></li>
-    
+    	<li class="@if(state.equals("all")){active}"><a href="/project/@id/milestones/all">전체</a></li>
+    	<li class="@if(state.equals("incomplete")){active}"><a href="/project/@id/milestones/incomplete">미완료</a></li>
+    	<li class="@if(state.equals("completed")){active}"><a href="/project/@id/milestones/completed">완료</a></li>
     </ul>
     @if(milestones.isEmpty()){
     <p>해당 마일스톤이 없습니다</p>
     }else{
     <table class="table">
-    	
     	<tbody>
     		@for(milestone <- milestones){
     		<tr>
     			<td>
-    				<h3><a href="">@milestone.versionName</a><br /></h4>
-    				<font size=1>@milestone.dueDate<br /></font>
+    				<h3><a href="">@milestone.versionName</a><br /></h3>
+    				@milestone.getDuedate<br />
     				@milestone.contents    			
     			</td>
     			<td>
-    			<font size=1><a href="">@milestone.numClosedIssues</a> 해결 </font>
-    			<font size=1><a href="">@milestone.numOpenIssues</a> 미해결 </font>
-    			<br />
-    			<!-- 여기에 progress 바 추가--->
-    			
-    			</td> 			
+    			    <a href="">@milestone.numClosedIssues</a> <span>해결</span>
+    			    <a href="">@milestone.numOpenIssues</a> <span>미해결</span>
+    			    <!-- 여기에 progress 바 추가--->
+    			</td>
     		</tr>
     		}
     	</tbody>
     </table>
     </div>
     <div style="text-align: right">
-    <a class="btn btn-primary" href="@routes.MilestoneApp.addMilestone()" >마일스톤 관리</a>
+    <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(id)" >마일스톤 관리</a>
     </div>
     }
 }

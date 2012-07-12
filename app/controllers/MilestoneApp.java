@@ -6,16 +6,12 @@ import play.mvc.Result;
 import views.html.milestone.list;
 
 public class MilestoneApp extends Controller {
-    public static Result index() {
-        return redirect(routes.MilestoneApp.milestoneList(1));
+
+    public static Result milestones(Long projectId, String state) {
+        return ok(list.render("마일스톤 리스트", Milestone.delegateFindList(projectId,state),projectId,state));
     }
 
-    public static Result milestoneList(Long projectId) {
-        return ok(list.render("마일스톤 리스트",Milestone.findByProjectId(projectId)));
-        //find.orderBy("id").findList()));
-    }
-
-    public static Result addMilestone() {
+    public static Result newMilestone(Long projectId) {
         return TODO;
         /*
           Form<Milestone> filledForm = milestoneForm.bindFromRequest();
@@ -30,9 +26,12 @@ public class MilestoneApp extends Controller {
           */
     }
 
-    public static Result addMilestoneSave() {
+    public static Result createMilestone() {
         return TODO;
+    }
 
+    public static Result updateMilestone(Long id) {
+        return TODO;
     }
 
     public static Result deleteMilestone(Long id) {

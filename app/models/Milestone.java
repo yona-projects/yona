@@ -6,6 +6,7 @@ import play.db.ebean.Model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -14,9 +15,32 @@ import java.util.List;
  */
 @Entity
 public class Milestone extends Model {
+
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
-            Long.class, Milestone.class);
+
+    /* can be defined outside the class */
+    public static enum MilestoneState {
+        INCOMPLETE("incomplete"), COMPLETED("completed"), ALL("all");
+        private String state;
+
+        MilestoneState(String state) {
+            this.state = state;
+        }
+
+        public String state() {
+            return this.state;
+        }
+
+        public static MilestoneState getValue(String value) {
+            for(MilestoneState milestoneState : MilestoneState.values()) {
+                if(milestoneState.state().equals(value)) {
+                    return milestoneState;
+                }
+            }
+            return null;
+        }
+    }
+
     @Id
     public Long id;
     @Constraints.Required
@@ -29,12 +53,12 @@ public class Milestone extends Model {
     public Long projectId;
     public int numClosedIssues;
     public int numOpenIssues;
+    public boolean isCompleted;
 
-    public static List<Milestone> findOnePage(int pageNum) {
-        return find.findPagingList(10).getPage(pageNum - 1).getList();
-    }
+    public static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
+            Long.class, Milestone.class);
 
-    public static void create(Milestone milestone) {
+    public static void write(Milestone milestone) {
         milestone.save();
     }
 
@@ -50,7 +74,57 @@ public class Milestone extends Model {
         return find.byId(id);
     }
 
+    /**
+     * 모든 마일스톤이 완료일 순서대로 보인다.
+     *
+     * @param projectId
+     * @return
+     */
     public static List<Milestone> findByProjectId(Long projectId) {
-        return find.where().eq("projectId", projectId).findList();
+        return find.where()
+                .eq("projectId", projectId)
+                .orderBy("dueDate")
+                .findList();
+    }
+
+    public static List<Milestone> findCompletedMilestones(Long projectId) {
+        return find.where()
+                .eq("projectId", projectId)
+                .eq("isCompleted", true)
+                .orderBy("dueDate")
+                .findList();
+    }
+
+    public static List<Milestone> findInCompleteMilestones(Long projectId) {
+        return find.where()
+                .eq("projectId", projectId)
+                .eq("isCompleted", false)
+                .orderBy("dueDate")
+                .findList();
+    }
+
+    public static int getCompletionRate(Milestone milestone) {
+        double closedIssueCount = new Double(milestone.numClosedIssues);
+        double openIssueCount = new Double(milestone.numOpenIssues);
+        double completionRate = (closedIssueCount / openIssueCount) * 100;
+        return new Double(completionRate).intValue();
+    }
+
+    public String getDuedate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(this.dueDate);
+    }
+
+    public static List<Milestone> delegateFindList(Long projectId, String state) {
+        switch (MilestoneState.getValue(state)) {
+            case INCOMPLETE:
+                return Milestone.findInCompleteMilestones(projectId);
+            case COMPLETED:
+                return Milestone.findCompletedMilestones(projectId);
+            case ALL:
+            default:
+                return Milestone.findByProjectId(projectId);
+
+        }
     }
 }

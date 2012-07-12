@@ -1,13 +1,13 @@
-@(title: String)(content: Html)
+@(title: String)(id:Long)(content: Html)
 
 @main(title) {
-    <div class="row-fluid">
-        <div class="span2">
-            @views.html.project.sidebar(title)
-        </div>
-        <div class="span10">
-            @content
-        </div>
-        
+<div class="row-fluid">
+    <div class="span2">
+        @views.html.project.sidebar(title,id)
+    </div>
+    <div class="span10">
+        @content
+    </div>
+
 </div>
 }
