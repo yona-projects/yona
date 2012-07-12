@@ -64,7 +64,7 @@ public class IssueTest extends ModelTest {
         // When
         Page<Issue> issueTest = Issue.findOnePage(1);
         // Then 
-        assertThat(issueTest.getTotalRowCount()).isEqualTo(4);
+        assertThat(issueTest.getList().size()).isEqualTo(4);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class IssueTest extends ModelTest {
         // When
         Page<Issue> issueTest = Issue.findOnlyOpenIssues(1);
         // Then
-        assertThat(issueTest.getTotalRowCount()).isEqualTo(2);
+        assertThat(issueTest.getList().size()).isEqualTo(2);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class IssueTest extends ModelTest {
         // When
         Page<Issue> issueTest = Issue.findOnlyClosedIssues(1);
         // Then
-        assertThat(issueTest.getTotalRowCount()).isEqualTo(2);
+        assertThat(issueTest.getList().size()).isEqualTo(2);
     }
 
 }

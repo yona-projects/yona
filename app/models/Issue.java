@@ -24,9 +24,9 @@ public class Issue extends Model {
     public static final int STATUS_ASSINGED = 2; // 진행중
     public static final int STATUS_SOLVED = 3; // 해결
     public static final int STATUS_FINISHED = 4; // 닫힘
-    public static final int STATUS_OPEN = 5; // 닫힘
-    public static final int STATUS_CLOSED = 6; // 닫힘
-    public static final int STATUS_NONE = 0;
+    public static final int STATUS_OPEN = 5; // 해결
+    public static final int STATUS_CLOSED = 6; // 미해결
+    public static final int STATUS_NONE = 0; // 전체
 
     // TODO_추후 세부정보의 해당 이슈 유형이 결정나면 추후 설정
     public static final int issueType_1 = 1; // 등록
@@ -84,7 +84,7 @@ public class Issue extends Model {
     }
 
     public static Page<Issue> findOnePage(int pageNum) {
-        return find.findPagingList(numIssueOnePage).getPage(pageNum);
+        return find.findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
 
     public static Issue findById(Long id) {
