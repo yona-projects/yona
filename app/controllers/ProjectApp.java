@@ -15,19 +15,23 @@ import views.html.project.*;
 import models.Project;
 
 public class ProjectApp extends Controller {
+    
+    public static final String PROJECT_HOME = "프로젝트 홈";
+    public static final String NEW_PROJECT = "새 프로젝트 생성";
+    public static final String SETTING = "프로젝트 설정";
 
     public static Result project(Long id) {
-        return ok(projectHome.render("프로젝트 홈"));
+        return ok(projectHome.render(PROJECT_HOME));
     }
 
     public static Result newProject() {
-        return ok(newProject.render("새 프로젝트 생성", form(Project.class)));
+        return ok(newProject.render(NEW_PROJECT, form(Project.class)));
     }
 
     public static Result setting(Long id) {
         Form<Project> projectForm = form(Project.class).fill(
                 Project.findById(id));
-        return ok(setting.render("프로젝트 설정", projectForm, id));
+        return ok(setting.render(SETTING, projectForm, id));
     }
 
     public static Result saveProject() {
@@ -38,7 +42,7 @@ public class ProjectApp extends Controller {
         }
 
         if (filledNewProjectForm.hasErrors()) {
-            return badRequest(newProject.render("새 프로젝트 생성",
+            return badRequest(newProject.render(NEW_PROJECT,
                     filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
@@ -59,7 +63,7 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render("Setting",
+            return badRequest(setting.render(SETTING,
                     filledUpdatedProjectForm, id));
         } else {
             return redirect(routes.ProjectApp.setting(Project.update(
@@ -68,13 +72,13 @@ public class ProjectApp extends Controller {
     }
 
     public static Result deleteProject(Long id) {
-        Form<Project> deletedProject = form(Project.class).bindFromRequest();
-
-        if (!"true".equals(deletedProject.field("acceptDeletion").value())) {
-            deletedProject = form(Project.class).fill(Project.findById(id));
-            deletedProject.reject("acceptDeletion", "프로젝트 삭제에 동의하여야 합니다.");
-            return badRequest(setting.render("Setting", deletedProject, id));
-        }
+//        Form<Project> deletedProject = form(Project.class).bindFromRequest();
+//
+//        if (!"true".equals(deletedProject.field("acceptDeletion").value())) {
+//            deletedProject = form(Project.class).fill(Project.findById(id));
+//            deletedProject.reject("acceptDeletion", "프로젝트 삭제에 동의하여야 합니다.");
+//            return badRequest(setting.render(SETTING, deletedProject, id));
+//        }
 
         Project.delete(id);
         return redirect(routes.Application.index());
