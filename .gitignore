@@ -10,9 +10,5 @@ tmp
 .target
 dist
 conf/evolutions/default/
-<<<<<<< HEAD
 .idea*
-||||||| merged common ancestors
-=======
 public/uploadFiles
->>>>>>> 8027373f1787e5738196db87447ddff0ce48e707
