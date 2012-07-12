@@ -1,7 +1,4 @@
-@(title:String)(issues:Page[models.Issue]) 
-
-@import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@(title:String, page:Page[models.Issue]) 
 
 @main(title){
 <div class="row">
@@ -30,8 +27,10 @@
 		<li class="active"><a href="@routes.IssueApp.issueList(5)">미해결</a></li>
 		<li><a href="@routes.IssueApp.issueList(6)">해결</a></li>
 	</ul>
-	@if(issues.getTotalRowCount == 0){
-	<p>등록된 이슈가 없습니다</p>
+	@if(page.getTotalRowCount == 0){
+	<div class="well">
+		<p>등록된 이슈가 없습니다</p>
+	</div>
 	}else{
 	<table class="table">
 		<thead>
@@ -44,7 +43,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			@for(issue <- issues.getList()){
+			@for(issue <- page.getList()){
 			<tr>
 				<td>@issue.id</td>
 				<td>@issue.status()</td>
