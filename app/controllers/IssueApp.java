@@ -13,12 +13,12 @@ public class IssueApp extends Controller {
 
     public static Result issueList(int pageNum, int status) {
         Page<Issue> page = null;
-        if (status == Issue.STATUS_OPEN) {
-            page = Issue.findOnlyOpenIssues(pageNum);
-        } else if (status == Issue.STATUS_CLOSED) {
+        if (status == Issue.STATUS_CLOSED) {
             page = Issue.findOnlyClosedIssues(pageNum);
-        } else if (status == Issue.STATUS_NONE){
+        } else if (status == Issue.STATUS_NONE) {
             page = Issue.findOnePage(pageNum);
+        } else {
+            page = Issue.findOnlyOpenIssues(pageNum);
         }
 
         return ok(issueList.render("이슈", page));

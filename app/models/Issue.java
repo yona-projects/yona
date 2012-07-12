@@ -26,14 +26,15 @@ public class Issue extends Model {
     public static final int STATUS_FINISHED = 4; // 닫힘
     public static final int STATUS_OPEN = 5; // 닫힘
     public static final int STATUS_CLOSED = 6; // 닫힘
-    public static final int STATUS_NONE =   0;
-    
+    public static final int STATUS_NONE = 0;
 
     // TODO_추후 세부정보의 해당 이슈 유형이 결정나면 추후 설정
     public static final int issueType_1 = 1; // 등록
     public static final int issueType_2 = 2; // 진행중
     public static final int issueType_3 = 3; // 해결
     public static final int issueType_4 = 4; // 닫힘
+
+    public static final int numIssueOnePage = 25;
 
     @Id
     public Long id;
@@ -82,11 +83,8 @@ public class Issue extends Model {
         find.ref(id).delete();
     }
 
-    // public static Page<Issue> findOnePage(int pageNum) {
-    // return find.findPagingList(25).getPage(pageNum - 1);
-    // }
     public static Page<Issue> findOnePage(int pageNum) {
-        return find.findPagingList(25).getPage(pageNum);
+        return find.findPagingList(numIssueOnePage).getPage(pageNum);
     }
 
     public static Issue findById(Long id) {
@@ -104,7 +102,7 @@ public class Issue extends Model {
                 .where()
                 .or(exprFactory.eq("status", STATUS_ENROLLED),
                         exprFactory.eq("status", STATUS_ASSINGED))
-                .findPagingList(25).getPage(pageNum - 1);
+                .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
 
     public static Page<Issue> findOnlyClosedIssues(int pageNum) {
@@ -114,6 +112,6 @@ public class Issue extends Model {
                 .where()
                 .or(exprFactory.eq("status", STATUS_FINISHED),
                         exprFactory.eq("status", STATUS_SOLVED))
-                .findPagingList(25).getPage(pageNum - 1);
+                .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
 }
