@@ -3,7 +3,7 @@
 @main("상세보기"){
 <div id="board_btn_panel">
 	<a class="btn btn-primary" href="">수정</a>
-	<a class="btn" href="@routes.BoardApp.delete(post.id)">삭제</a>
+	<a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
 	<a class="btn" href="@routes.BoardApp.boardList(1)">목록</a>
 </div>
 <!-- 메인 글 -->
@@ -58,6 +58,23 @@
 		@helper.inputFile(commentForm("filePath"))		
 		<input type="submit" class="btn" value="댓글입력"/>
 	}
+</div>
+
+
+<!--삭제확인상자-->
+<div class="modal hide fade" id="deleteConfirm">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>게시글 삭제확인</h3>
+  </div>
+  <div class="modal-body">
+    <p>게시글이 삭제되며 영원히 복구할수 없습니다.</p>
+    <p>그래도 삭제하시겠습니까?</p>
+  </div>
+  <div class="modal-footer">
+    <a class="btn btn-primary" href="@routes.BoardApp.delete(post.id)">예</a>
+    <a href="#" class="btn" data-dismiss="modal">아니오</a>
+  </div>
 </div>
 }
             
