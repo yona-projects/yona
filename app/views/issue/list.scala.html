@@ -1,52 +1,56 @@
-@(title:String)(issues:Page[models.Issue])
-
+@(title:String)(issues:Page[models.Issue]) 
 @main(title){
-	<text style="text-align: right"><div>
+<text style="text-align: right">
+<div>
 	<div class="clearfix">
-    <label>마일스톤</label>
-    <div class="input">
-        <select>
-            <option>마일스톤1</option>
-            <option>마일스톤2</option>
-        </select>
-    </div>
-</div> 	<label>검색</label>
-	 <form class="form-search form-inline">
-  			<input type="text" class="search-query">
-  			<button type="submit" class="btn"><i class="icon-search"></i></button>
-    	</form>
-    </div>
-    
-    
-	<div>
-    <ul class="nav nav-tabs" id="issue_list">
-    	<li><a href="">전체</a></li>
-    	<li class="active"><a href="">미해결</a></li>
-    	<li><a href="">해결</a></li>
-    <!------------->
-    </ul>
-    @if(issues.getTotalRowCount == 0){
-    <p>등록된 이슈가 없습니다</p>
-    }else{
-    <table class="table">
-    	<thead>
-    		<tr>
-    			<th>#</th><th>상태</th><th>제목</th><th>담당자</th><th>작성일</th>
-    		</tr>
-    	</thead>
-    	<tbody>
-    		@for(issue <- issues.getList()){
-    		<tr>
-    			<td>@issue.id</td>
-    			<td>@issue.status()</td> 
-    			<td><a href="">@issue.title</a></td>
-    			<td>@issue.responsibleMemberId</td>
-    			<td>@issue.date</td>
-    			
-    			</tr>
-    		}
-    	</tbody>
-    </table>
-    
-    }
-}
+		<label>마일스톤</label>
+		<div class="input">
+			<select>
+				<option>마일스톤1</option>
+				<option>마일스톤4</option>
+			</select>
+		</div>
+		<a class="btn btn-primary" href="@routes.IssueApp.newIssue()" >새 이슈</a>
+	</div>
+	<label>검색</label>
+	<form class="form-search form-inline">
+		<input type="text" class="search-query">
+		<button type="submit" class="btn">
+			<i class="icon-search"></i>
+		</button>
+	</form>
+</div>
+<div>
+	<ul class="nav nav-tabs" id="issue_list">
+		<li><a href="@routes.IssueApp.issueList(0)">전체</a></li>
+		<li class="active"><a href="@routes.IssueApp.issueList(1)">미해결</a></li>
+		<li><a href="@routes.IssueApp.issueList(2)">해결</a></li>
+	</ul>
+	@if(issues.getTotalRowCount == 0){
+	<p>등록된 이슈가 없습니다</p>
+	}else{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>상태</th>
+				<th>제목</th>
+				<th>담당자</th>
+				<th>작성일</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for(issue <- issues.getList()){
+			<tr>
+				<td>@issue.id</td>
+				<td>@issue.status()</td>
+				<td><a href="">@issue.title</a></td>
+				<td>@issue.responsibleMemberId</td>
+				<td>@issue.date</td>
+
+			</tr>
+			}
+		</tbody>
+	</table>
+
+	} }
