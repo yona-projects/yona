@@ -38,6 +38,8 @@ GET		/milestones/:pageNum		controllers.MilestoneApp.milestoneList(pageNum:Int)
 
 
 #Issues
-GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1)
-#GET	/issues/new					controllers.IssueApp.newIssue()
+GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
+GET		/issues/new					controllers.IssueApp.newIssue()
 #POST	/issues/new					controllers.IssueApp.saveIssue()
+#GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
+#GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
