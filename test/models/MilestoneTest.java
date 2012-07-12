@@ -2,9 +2,7 @@ package models;
 
 import org.junit.Test;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -33,7 +31,7 @@ public class MilestoneTest extends ModelTest {
         assertThat(firstMilestone.contents, is("nFORGE 첫번째 버전."));
 
         Calendar expactDueDate = new GregorianCalendar();
-        expactDueDate.set(2012, 6, 12); // 2012-07-12
+        expactDueDate.set(2012, 6, 12, 23, 59, 59); // 2012-07-12
 
         Calendar dueDate = new GregorianCalendar();
         dueDate.setTime(firstMilestone.dueDate);
@@ -72,5 +70,25 @@ public class MilestoneTest extends ModelTest {
         assertThat(actualMilestone.versionName, is(milestone.versionName));
         assertThat(actualMilestone.numClosedIssues, is(100));
         assertThat(actualMilestone.numOpenIssues, is(200));
+    }
+
+    @Test
+    public void testFindByProjectId() {
+        List<Milestone> firstProjectMilestones = Milestone.findByProjectId(1l);
+        assertThat(firstProjectMilestones.size(), is(2));
+
+        checkIfTheMilestoneIsBelongToTheProject(firstProjectMilestones, 1l, 2l);
+
+        List<Milestone> secondProjectMilestones = Milestone.findByProjectId(2l);
+        assertThat(secondProjectMilestones.size(), is(2));
+
+        checkIfTheMilestoneIsBelongToTheProject(secondProjectMilestones, 3l, 4l);
+    }
+
+    private void checkIfTheMilestoneIsBelongToTheProject(List<Milestone> milestones, Long... actualMilestoneIds) {
+        List<Long> milestoneIds = Arrays.asList(actualMilestoneIds);
+        for (Milestone milestone : milestones) {
+            assertThat(milestoneIds.contains(milestone.id), is(true));
+        }
     }
 }

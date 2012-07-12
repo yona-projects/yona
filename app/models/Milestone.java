@@ -25,7 +25,7 @@ public class Milestone extends Model {
     public String versionName;
 
     @Constraints.Required
-    @Formats.DateTime(pattern = "yyyy-MM-dd")
+    @Formats.DateTime(pattern = "yyyy-MM-dd HH:mm:ss")
     public Date dueDate;
 
     @Constraints.Required
