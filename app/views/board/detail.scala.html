@@ -13,7 +13,7 @@
 		<div class="span10">
 			<h1>@post.title</h1>
 			<div>
-				<span>@User.findNameById(post.id)가 @post.calcPassTime()에 작성함<span> |
+				<span>@post.findWriter()가 @post.calcPassTime()에 작성함<span> |
 				<span>@post.date</span>
 			</div>
 		</div>
@@ -40,7 +40,7 @@
 	<div class="span2"><img src="http://placehold.it/100x100" width="100" height="100"/></div>
 	<div class="span10">
 		<div>
-			<span>@User.findNameById(comment.userId)가 @comment.calcPassTime()에 작성함</span> | 
+			<span>@comment.findWriter()가 @comment.calcPassTime()에 작성함</span> | 
 			<span>@comment.date</span>
 		</div>
 		<p>@comment.contents<p>

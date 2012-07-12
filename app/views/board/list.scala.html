@@ -29,7 +29,7 @@
     		<tr>
     			<td>@post.id</td>
     			<td><a href="@routes.BoardApp.post(post.id)">@post.title [@post.commentCount]</a></td>
-    			<td>@User.findNameById(post.userId)</td>
+    			<td>@post.findWriter()</td>
     			<td>@post.calcPassTime()</td>
     		</tr>
     		}

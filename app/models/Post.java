@@ -8,12 +8,12 @@ import java.util.*;
 
 import javax.persistence.*;
 
-import com.avaje.ebean.Page;
-
-import play.data.format.*;
-import play.data.validation.*;
-import play.db.ebean.*;
+import play.data.format.Formats;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
 import utils.JodaDateUtil;
+
+import com.avaje.ebean.Page;
 
 @Entity
 public class Post extends Model {
@@ -85,5 +85,9 @@ public class Post extends Model {
         } else {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
+    }
+
+    public String findWriter() {
+        return User.findNameById(this.userId);
     }
 }
