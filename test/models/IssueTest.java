@@ -66,7 +66,7 @@ public class IssueTest extends ModelTest {
         // Then
         assertThat(issueTest.getTotalRowCount()).isEqualTo(2);
     }
-    
+
     @Test
     public void findOnlyClosedIssues() {
         // Given
