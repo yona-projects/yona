@@ -1,0 +1,41 @@
+@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(Int) => Call)
+
+@{
+    var currentPageNum = page.getPageIndex + 1
+    var lastPageNum = page.getTotalPageCount()
+    var str = ""
+    
+    
+    if(currentPageNum <= pageNum/2) {
+        currentPageNum = pageNum/2 +1
+    } else if(currentPageNum > lastPageNum - pageNum/2) {
+        currentPageNum = lastPageNum - pageNum/2 - 1
+    }
+    
+    str += "<div class='pagination'><ul>"
+    
+    if(page.hasPrev){
+        str +=  "<li><a href=\"" + routes.BoardApp.boardList(page.getPageIndex) + "\">prev</a></li>"
+    } else {
+        str += <li class="disabled"><a>prev</a></li>
+    }
+    
+    if(lastPageNum < pageNum){
+        for(x <- (1 to lastPageNum)){
+            str += "<li><a href=\"" + func(x) + "\">" + x + "</a></li>"
+        }
+    } else {
+        for( x <- (currentPageNum - pageNum/2 to currentPageNum + pageNum/2)){
+           str += "<li><a href=\"" + func(x) + "\">" + x + "</a></li>"
+        }
+    }
+    
+    if(page.hasNext){
+           str += "<li><a href=\"" + routes.BoardApp.boardList(page.getPageIndex + 2)+ "\">Next</a></li>"
+    } else {
+           str += <li class="disabled"><a>Next</a></li>
+    }
+    
+    str += "</ul></div>"
+    Html(str)
+}

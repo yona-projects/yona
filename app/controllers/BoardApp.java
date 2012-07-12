@@ -17,7 +17,7 @@ import views.html.board.*;
 public class BoardApp extends Controller {
 
     public static Result boardList(int pageNum) {
-        return ok(list.render("게시판", Post.findOnePage(pageNum)));
+        return ok(postList.render("게시판", Post.findOnePage(pageNum)));
     }
 
     public static Result newPost() {
@@ -41,7 +41,7 @@ public class BoardApp extends Controller {
             if (filePart != null) {
                 File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
                 filePart.getFile().renameTo(saveFile);
-                post.filePath = saveFile.getAbsolutePath();
+                post.filePath = filePart.getFilename();
             }
             Post.write(post);
         }
@@ -55,7 +55,7 @@ public class BoardApp extends Controller {
             return ok(notExsitPage.render("존재하지 않는 게시물"));
         } else {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
-            return ok(detail.render(post, comments, commentForm));
+            return ok(views.html.board.post.render(post, comments, commentForm));
         }
     }
 
@@ -78,7 +78,7 @@ public class BoardApp extends Controller {
                 File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
                 filePart.getFile().renameTo(saveFile);
 
-                comment.filePath = saveFile.getAbsolutePath();
+                comment.filePath = filePart.getFilename();
             }
 
             Comment.write(comment);
@@ -90,5 +90,9 @@ public class BoardApp extends Controller {
     public static Result delete(Long postId) {
         Post.delete(postId);
         return redirect(routes.BoardApp.boardList(1));
+    }
+    
+    public static Result editPost(Long postId) {
+        return TODO;
     }
 }

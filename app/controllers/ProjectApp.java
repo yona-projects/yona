@@ -1,11 +1,5 @@
 package controllers;
 
-/*
- * @author: Hwi Ahn
- * 
- * 
- */
-
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.data.*;
@@ -14,6 +8,10 @@ import views.html.project.*;
 
 import models.Project;
 
+/**
+ * @author "Hwi Ahn"
+ *
+ */
 public class ProjectApp extends Controller {
     
     public static final String PROJECT_HOME = "프로젝트 홈";
@@ -72,14 +70,6 @@ public class ProjectApp extends Controller {
     }
 
     public static Result deleteProject(Long id) {
-//        Form<Project> deletedProject = form(Project.class).bindFromRequest();
-//
-//        if (!"true".equals(deletedProject.field("acceptDeletion").value())) {
-//            deletedProject = form(Project.class).fill(Project.findById(id));
-//            deletedProject.reject("acceptDeletion", "프로젝트 삭제에 동의하여야 합니다.");
-//            return badRequest(setting.render(SETTING, deletedProject, id));
-//        }
-
         Project.delete(id);
         return redirect(routes.Application.index());
     }
