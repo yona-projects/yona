@@ -57,6 +57,15 @@ public class IssueTest extends ModelTest {
         // Then
         assertThat(issueTest).hasSize(2);
     }
+    
+    @Test
+    public void findOnePage() {
+        // Given
+        // When
+        Page<Issue> issueTest = Issue.findOnePage(1);
+        // Then 
+        assertThat(issueTest.getTotalRowCount()).isEqualTo(4);
+    }
 
     @Test
     public void findOnlyOpenIssues() {

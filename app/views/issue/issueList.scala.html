@@ -1,0 +1,60 @@
+@(title:String)(issues:Page[models.Issue]) 
+
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@main(title){
+<div class="row">
+	<div span="span12">
+		<div class="pull-right">
+			<form class="form-search form-inline">
+				<label class="control-label" for="selectMilestone"></label>
+				<a class="controls">
+					<select id="selectMilestone">
+					<option>마일스톤</option>
+					<option>마일스톤3</option>
+				</select>
+				</a>
+				<label class="control-label" for="searchIssueButton">검색</label>
+				<input type="text" class="search-query">
+				<button type="submit" class="btn"><i class="icon-search"></i></button>
+				<a class="btn btn-primary" href="@routes.IssueApp.newIssue()" >새 이슈</a>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div>
+	<ul class="nav nav-tabs" id="issue_list">
+		<li><a href="@routes.IssueApp.issueList(0)">전체</a></li>
+		<li class="active"><a href="@routes.IssueApp.issueList(5)">미해결</a></li>
+		<li><a href="@routes.IssueApp.issueList(6)">해결</a></li>
+	</ul>
+	@if(issues.getTotalRowCount == 0){
+	<p>등록된 이슈가 없습니다</p>
+	}else{
+	<table class="table">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>상태</th>
+				<th>제목</th>
+				<th>담당자</th>
+				<th>작성일</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for(issue <- issues.getList()){
+			<tr>
+				<td>@issue.id</td>
+				<td>@issue.status()</td>
+				<td><a href="">@issue.title</a></td>
+				<td>@issue.responsibleMemberId</td>
+				<td>@issue.date</td>
+
+			</tr>
+			}
+		</tbody>
+	</table>
+
+	} }

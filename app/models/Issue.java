@@ -23,7 +23,11 @@ public class Issue extends Model {
     public static final int STATUS_ENROLLED = 1; // 등록
     public static final int STATUS_ASSINGED = 2; // 진행중
     public static final int STATUS_SOLVED = 3; // 해결
-    public static final int STATUS_CLOSED = 4; // 닫힘
+    public static final int STATUS_FINISHED = 4; // 닫힘
+    public static final int STATUS_OPEN = 5; // 닫힘
+    public static final int STATUS_CLOSED = 6; // 닫힘
+    public static final int STATUS_NONE =   0;
+    
 
     // TODO_추후 세부정보의 해당 이슈 유형이 결정나면 추후 설정
     public static final int issueType_1 = 1; // 등록
@@ -60,7 +64,7 @@ public class Issue extends Model {
             return "진행중";
         } else if (this.status == STATUS_SOLVED) {
             return "해결";
-        } else if (this.status == STATUS_CLOSED) {
+        } else if (this.status == STATUS_FINISHED) {
             return "닫힘";
         } else
             return "등록";
@@ -108,7 +112,7 @@ public class Issue extends Model {
 
         return find
                 .where()
-                .or(exprFactory.eq("status", STATUS_CLOSED),
+                .or(exprFactory.eq("status", STATUS_FINISHED),
                         exprFactory.eq("status", STATUS_SOLVED))
                 .findPagingList(25).getPage(pageNum - 1);
     }
