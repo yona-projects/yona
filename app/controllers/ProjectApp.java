@@ -1,12 +1,18 @@
 package controllers;
 
+import java.io.File;
+
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
 import play.data.*;
 
 import views.html.project.*;
 
+import models.Post;
 import models.Project;
+import models.User;
 
 /**
  * @author "Hwi Ahn"
@@ -53,7 +59,7 @@ public class ProjectApp extends Controller {
     public static Result saveSetting(Long id) {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
-
+        
         if (!filledUpdatedProjectForm.field("url").value()
                 .startsWith("http://")) {
             filledUpdatedProjectForm.reject("url",
@@ -64,8 +70,18 @@ public class ProjectApp extends Controller {
             return badRequest(setting.render(SETTING,
                     filledUpdatedProjectForm, id));
         } else {
+            Project project = filledUpdatedProjectForm.get();
+            MultipartFormData body = request().body().asMultipartFormData();
+            FilePart filePart = body.getFile("logoPath");
+            
+            if(filePart != null){
+                File file = new File("public/uploadFiles/" + filePart.getFilename());
+                filePart.getFile().renameTo(file);
+                project.logoPath = filePart.getFilename();
+            }
+            
             return redirect(routes.ProjectApp.setting(Project.update(
-                    filledUpdatedProjectForm.get(), id)));
+                    project, id)));
         }
     }
 
