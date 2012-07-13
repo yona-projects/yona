@@ -77,6 +77,7 @@ public class ProjectApp extends Controller {
             if(filePart != null){
                 File file = new File("public/uploadFiles/" + filePart.getFilename());
                 filePart.getFile().renameTo(file);
+                
                 project.logoPath = filePart.getFilename();
             }
             

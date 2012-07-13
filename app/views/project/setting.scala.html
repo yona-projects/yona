@@ -27,8 +27,12 @@
                 )
                 
                 <div class="thumbnail">
-                    <img src="@routes.Assets.at("uploadFiles/" + projectForm("logoPath").value)" alt="">
+                @if(projectForm("logoPath").value != null) {
+                    <img src="@routes.Assets.at("uploadFiles/" + projectForm("logoPath").value)" alt="" width="234" height="168">
                     <h5>@projectForm("logoPath").value</h5>
+                } else {
+                    <img src="@routes.Assets.at("images/project_image_default.jpg")" alt="" width="234" height="168">
+                }
                 </div>                                
                                 
                 @inputFile(
