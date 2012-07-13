@@ -4,8 +4,8 @@
 	<div>
     <ul class="nav nav-tabs" id="milestone_list">
     	<li class="@if(state.equals("all")){active}"><a href="/project/@id/milestones/all">전체</a></li>
-    	<li class="@if(state.equals("incomplete")){active}"><a href="/project/@id/milestones/incomplete">미완료</a></li>
-    	<li class="@if(state.equals("completed")){active}"><a href="/project/@id/milestones/completed">완료</a></li>
+    	<li class="@if(state.equals("open")){active}"><a href="/project/@id/milestones/open">미완료</a></li>
+    	<li class="@if(state.equals("closed")){active}"><a href="/project/@id/milestones/closed">완료</a></li>
     </ul>
     @if(milestones.isEmpty()){
     <p>해당 마일스톤이 없습니다</p>

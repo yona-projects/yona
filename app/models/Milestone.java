@@ -20,7 +20,7 @@ public class Milestone extends Model {
 
     /* can be defined outside the class */
     public static enum MilestoneState {
-        INCOMPLETE("incomplete"), COMPLETED("completed"), ALL("all");
+        OPEN("open"), CLOSED("closed"), ALL("all");
         private String state;
 
         MilestoneState(String state) {
@@ -32,8 +32,8 @@ public class Milestone extends Model {
         }
 
         public static MilestoneState getValue(String value) {
-            for(MilestoneState milestoneState : MilestoneState.values()) {
-                if(milestoneState.state().equals(value)) {
+            for (MilestoneState milestoneState : MilestoneState.values()) {
+                if (milestoneState.state().equals(value)) {
                     return milestoneState;
                 }
             }
@@ -55,10 +55,18 @@ public class Milestone extends Model {
     public int numOpenIssues;
     public boolean isCompleted;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
             Long.class, Milestone.class);
 
-    public static void write(Milestone milestone) {
+    public static void create(Milestone milestone) {
         milestone.save();
     }
 
@@ -87,7 +95,7 @@ public class Milestone extends Model {
                 .findList();
     }
 
-    public static List<Milestone> findCompletedMilestones(Long projectId) {
+    public static List<Milestone> findClosedMilestones(Long projectId) {
         return find.where()
                 .eq("projectId", projectId)
                 .eq("isCompleted", true)
@@ -95,7 +103,7 @@ public class Milestone extends Model {
                 .findList();
     }
 
-    public static List<Milestone> findInCompleteMilestones(Long projectId) {
+    public static List<Milestone> findOpenMilestones(Long projectId) {
         return find.where()
                 .eq("projectId", projectId)
                 .eq("isCompleted", false)
@@ -117,10 +125,10 @@ public class Milestone extends Model {
 
     public static List<Milestone> delegateFindList(Long projectId, String state) {
         switch (MilestoneState.getValue(state)) {
-            case INCOMPLETE:
-                return Milestone.findInCompleteMilestones(projectId);
-            case COMPLETED:
-                return Milestone.findCompletedMilestones(projectId);
+            case OPEN:
+                return Milestone.findOpenMilestones(projectId);
+            case CLOSED:
+                return Milestone.findClosedMilestones(projectId);
             case ALL:
             default:
                 return Milestone.findByProjectId(projectId);
