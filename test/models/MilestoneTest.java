@@ -1,11 +1,10 @@
 package models;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import java.util.*;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class MilestoneTest extends ModelTest {
 
@@ -58,21 +57,14 @@ public class MilestoneTest extends ModelTest {
     }
 
     @Test
-    @Ignore
     public void update() throws Exception {
-        Milestone m1 = Milestone.findById(1l);
         Milestone updateMilestone = new Milestone();
         updateMilestone.contents = "엔포지 첫번째 버전.";
         updateMilestone.versionName = "1.0.0-SNAPSHOT";
         updateMilestone.numClosedIssues = 100;
         updateMilestone.numOpenIssues = 200;
 
-        m1.contents = updateMilestone.contents;
-        m1.versionName = updateMilestone.versionName;
-        m1.numClosedIssues = updateMilestone.numClosedIssues;
-        m1.numOpenIssues = updateMilestone.numOpenIssues;
-
-        Milestone.update(m1, 1l);
+        Milestone.update(updateMilestone, 1l);
 
         Milestone actualMilestone = Milestone.findById(1l);
         assertThat(actualMilestone.contents).isEqualTo(updateMilestone.contents);
