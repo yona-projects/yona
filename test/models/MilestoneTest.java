@@ -113,14 +113,14 @@ public class MilestoneTest extends ModelTest {
     }
 
     @Test
-    public void delegateFindList() throws Exception {
-        List<Milestone> p1InCmpleteMilestones = Milestone.delegateFindList(1l, "open");
+    public void findMilestones() throws Exception {
+        List<Milestone> p1InCmpleteMilestones = Milestone.findMilestones(1l, "open");
         assertThat(p1InCmpleteMilestones.size()).isEqualTo(1);
 
-        List<Milestone> p2CompletedMilestones = Milestone.delegateFindList(2l, "closed");
+        List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l, "closed");
         assertThat(p2CompletedMilestones.size()).isEqualTo(2);
 
-        List<Milestone> p2Milestones = Milestone.delegateFindList(2l, "all");
+        List<Milestone> p2Milestones = Milestone.findMilestones(2l, "all");
         assertThat(p2Milestones.size()).isEqualTo(4);
     }
 
@@ -145,13 +145,13 @@ public class MilestoneTest extends ModelTest {
     }
 
     @Test
-    public void getDudate() throws Exception {
+    public void getDueDate() throws Exception {
         Milestone m1 = Milestone.findById(1l);
-        String m1Duedate = m1.getDuedate();
-        assertThat(m1Duedate).isEqualTo("2012-07-12");
+        String m1DueDate = m1.getDueDate();
+        assertThat(m1DueDate).isEqualTo("2012-07-12");
 
         Milestone m4 = Milestone.findById(4l);
-        String m4Duedate = m4.getDuedate();
-        assertThat(m4Duedate).isEqualTo("2012-04-11");
+        String m4DueDate = m4.getDueDate();
+        assertThat(m4DueDate).isEqualTo("2012-04-11");
     }
 }

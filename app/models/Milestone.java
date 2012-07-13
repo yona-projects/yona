@@ -1,5 +1,11 @@
 package models;
 
+import models.enumeration.Matching;
+import models.enumeration.MilestoneState;
+import models.enumeration.Ordering;
+import models.support.FinderTemplate;
+import models.support.OrderParams;
+import models.support.SearchParams;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -17,29 +23,8 @@ import java.util.List;
 public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
-
-    /* can be defined outside the class */
-    public static enum MilestoneState {
-        OPEN("open"), CLOSED("closed"), ALL("all");
-        private String state;
-
-        MilestoneState(String state) {
-            this.state = state;
-        }
-
-        public String state() {
-            return this.state;
-        }
-
-        public static MilestoneState getValue(String value) {
-            for (MilestoneState milestoneState : MilestoneState.values()) {
-                if (milestoneState.state().equals(value)) {
-                    return milestoneState;
-                }
-            }
-            return null;
-        }
-    }
+    private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
+            Long.class, Milestone.class);
 
     @Id
     public Long id;
@@ -62,9 +47,6 @@ public class Milestone extends Model {
     public void setId(Long id) {
         this.id = id;
     }
-
-    public static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
-            Long.class, Milestone.class);
 
     public static void create(Milestone milestone) {
         milestone.save();
@@ -89,50 +71,58 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findByProjectId(Long projectId) {
-        return find.where()
-                .eq("projectId", projectId)
-                .orderBy("dueDate")
-                .findList();
+        return Milestone.findMilestones(projectId, MilestoneState.ALL.state());
     }
 
     public static List<Milestone> findClosedMilestones(Long projectId) {
-        return find.where()
-                .eq("projectId", projectId)
-                .eq("isCompleted", true)
-                .orderBy("dueDate")
-                .findList();
+        return Milestone.findMilestones(projectId, MilestoneState.CLOSED.state());
     }
 
     public static List<Milestone> findOpenMilestones(Long projectId) {
-        return find.where()
-                .eq("projectId", projectId)
-                .eq("isCompleted", false)
-                .orderBy("dueDate")
-                .findList();
+        return Milestone.findMilestones(projectId, MilestoneState.OPEN.state());
     }
 
     public static int getCompletionRate(Milestone milestone) {
+        if (milestone.numOpenIssues == 0) {
+            return 0;
+        }
+
         double closedIssueCount = new Double(milestone.numClosedIssues);
         double openIssueCount = new Double(milestone.numOpenIssues);
         double completionRate = (closedIssueCount / openIssueCount) * 100;
         return new Double(completionRate).intValue();
     }
 
-    public String getDuedate() {
+    public String getDueDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(this.dueDate);
     }
 
-    public static List<Milestone> delegateFindList(Long projectId, String state) {
+    public static List<Milestone> findMilestones(Long projectId, String state) {
+        OrderParams orderParams = new OrderParams();
+        SearchParams searchParams = new SearchParams();
+
         switch (MilestoneState.getValue(state)) {
             case OPEN:
-                return Milestone.findOpenMilestones(projectId);
+                orderParams.add("dueDate", Ordering.ASC);
+                searchParams.add("projectId", projectId, Matching.EQUALS);
+                searchParams.add("isCompleted", false, Matching.EQUALS);
+                break;
             case CLOSED:
-                return Milestone.findClosedMilestones(projectId);
+                orderParams.add("dueDate", Ordering.ASC);
+                searchParams.add("projectId", projectId, Matching.EQUALS);
+                searchParams.add("isCompleted", true, Matching.EQUALS);
+                break;
             case ALL:
+                orderParams.add("dueDate", Ordering.ASC);
+                searchParams.add("projectId", projectId, Matching.EQUALS);
+                break;
             default:
                 return Milestone.findByProjectId(projectId);
-
         }
+
+        return FinderTemplate.findBy(orderParams, searchParams, find);
     }
+
+
 }
