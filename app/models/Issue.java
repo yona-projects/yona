@@ -115,4 +115,11 @@ public class Issue extends Model {
                 .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
 
+    public static void countUpCommentCounter(Long issueId) {
+        Issue issue = findById(issueId);
+        issue.commentCount++;
+        issue.update();
+    }
+
+
 }

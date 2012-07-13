@@ -58,6 +58,12 @@ issues:
         body:       내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         status:     4
         
+issueComments:
+    - !!models.IssueComment
+        contents:       코드를 수정했습니다
+        userId:         1
+        issueId:        1
+        
 # Projects
 projects:
     - !!models.Project
