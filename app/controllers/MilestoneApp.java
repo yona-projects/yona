@@ -8,7 +8,7 @@ import views.html.milestone.list;
 public class MilestoneApp extends Controller {
 
     public static Result milestones(Long projectId, String state) {
-        return ok(list.render("마일스톤 리스트", Milestone.delegateFindList(projectId,state),projectId,state));
+        return ok(list.render("마일스톤 리스트", Milestone.delegateFindList(projectId, state), projectId, state));
     }
 
     public static Result newMilestone(Long projectId) {
