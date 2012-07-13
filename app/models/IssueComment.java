@@ -28,6 +28,8 @@ public class IssueComment extends Model {
     public String contents;
     @Constraints.Required
     public Date date;
+    public String filePath;
+    
 
     public IssueComment() {
         date = JodaDateUtil.today();

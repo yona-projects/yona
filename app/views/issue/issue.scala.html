@@ -1,0 +1,81 @@
+@(issue:Issue, comments:List[IssueComment], commentForm:Form[IssueComment])
+
+@main("상세보기"){
+<div class="row">
+    <div class="span2 offset10">
+	    <div id="board_btn_panel">
+	        <a class="btn btn-primary" href="">수정</a>
+	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
+	        <a class="btn" href="@routes.IssueApp.issueList(6)">목록</a>
+	    </div>
+	</div>
+</div>
+<!-- 메인 글 -->
+<div>
+	<div class="row">
+		<div class="span1"><span class="badge">#@issue.id</span></div>
+		<div class="span11">
+			<h1>@issue.title</h1>
+			<div>
+				<span>@issue.date</span>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
+		<div class="span11">
+			<div class="well">
+				<p>@issue.body</p>
+				@if(issue.filePath != null){
+				<p><a href='@routes.Assets.at("uploadFiles/" + issue.filePath)'><i class="icon-download"></i>@issue.filePath</a></p>
+				}
+			</div>
+		</div>
+        <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
+	</div>
+</div>
+<!-- 여기서 부터 덧글 -->
+@for(comment <-comments){
+<hr/>
+<div class="row">
+	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
+	<div class="span11">
+		<div>
+			<span>@comment.date</span>
+		</div>
+		<p>@comment.contents<p>
+		@if(comment.filePath != null){
+		<p><a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i class="icon-download"></i>@comment.filePath</a></p>
+		}
+	</div>
+</div>
+}
+<!-- 댓글 입력 폼 -->
+<hr/>
+<div class="row">
+	@helper.form(routes.IssueApp.saveComment(issue.id), 'enctype -> "multipart/form-data"){
+		<div class="span12">@helper.textarea(commentForm("contents"))</div>
+		<div class="span6">@helper.inputFile(commentForm("filePath"))</div>		
+		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
+	}
+	</div>
+</div>
+
+
+<!--삭제확인상자-->
+<div class="modal hide fade" id="deleteConfirm">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>확인</h3>
+  </div>
+  <div class="modal-body">
+    <p>게시글이 삭제되며 영원히 복구할수 없습니다.</p>
+    <p>그래도 삭제하시겠습니까?</p>
+  </div>
+  <div class="modal-footer">
+    <a class="btn btn-primary" href="@routes.IssueApp.delete(issue.id)">예</a>
+    <a href="#" class="btn" data-dismiss="modal">아니오</a>
+  </div>
+</div>
+}
+            
