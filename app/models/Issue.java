@@ -114,4 +114,12 @@ public class Issue extends Model {
                         exprFactory.eq("status", STATUS_SOLVED))
                 .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
+
+    public static void countUpCommentCounter(Long issueId) {
+        Issue issue = findById(issueId);
+        issue.commentCount++;
+        issue.update();
+    }
+
+
 }
