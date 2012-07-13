@@ -39,7 +39,8 @@ POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Lo
 
 
 #Issues
-GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
+GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int = 5)
+GET		/issueList/:status			controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
 GET		/issues/new					controllers.IssueApp.newIssue()
 #POST	/issues/new					controllers.IssueApp.saveIssue()
 #GET	/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)

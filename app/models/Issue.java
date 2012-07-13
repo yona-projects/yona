@@ -114,4 +114,5 @@ public class Issue extends Model {
                         exprFactory.eq("status", STATUS_SOLVED))
                 .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
+
 }

@@ -29,5 +29,9 @@ public class IssueApp extends Controller {
     public static Result newIssue() {
         return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class)));
     }
+    
+//    public static Result findByTitle(){
+//        
+//    }
 
 }
