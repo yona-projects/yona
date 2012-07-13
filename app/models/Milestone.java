@@ -82,13 +82,13 @@ public class Milestone extends Model {
         return Milestone.findMilestones(projectId, MilestoneState.OPEN.state());
     }
 
-    public static int getCompletionRate(Milestone milestone) {
-        if (milestone.numOpenIssues == 0) {
+    public int getCompletionRate() {
+        if (this.numOpenIssues == 0) {
             return 0;
         }
 
-        double closedIssueCount = new Double(milestone.numClosedIssues);
-        double openIssueCount = new Double(milestone.numOpenIssues);
+        double closedIssueCount = new Double(this.numClosedIssues);
+        double openIssueCount = new Double(this.numOpenIssues);
         double completionRate = (closedIssueCount / openIssueCount) * 100;
         return new Double(completionRate).intValue();
     }

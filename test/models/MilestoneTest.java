@@ -127,19 +127,19 @@ public class MilestoneTest extends ModelTest {
     @Test
     public void getCompletionRate() throws Exception {
         Milestone m1 = Milestone.findById(1l);
-        int m1CompletionRate = Milestone.getCompletionRate(m1);
+        int m1CompletionRate = m1.getCompletionRate();
         assertThat(m1CompletionRate).isEqualTo(100);
 
         Milestone m2 = Milestone.findById(2l);
-        int m2CompletionRate = Milestone.getCompletionRate(m2);
+        int m2CompletionRate = m2.getCompletionRate();
         assertThat(m2CompletionRate).isEqualTo(11);
 
         Milestone m3 = Milestone.findById(3l);
-        int m3CompletionRate = Milestone.getCompletionRate(m3);
+        int m3CompletionRate = m3.getCompletionRate();
         assertThat(m3CompletionRate).isEqualTo(100);
 
         Milestone m6 = Milestone.findById(6l);
-        int m6CompletionRate = Milestone.getCompletionRate(m6);
+        int m6CompletionRate = m6.getCompletionRate();
         assertThat(m6CompletionRate).isEqualTo(0);
 
     }
