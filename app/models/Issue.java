@@ -15,6 +15,7 @@ import com.avaje.ebean.Page;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
 @Entity
 public class Issue extends Model {
@@ -29,10 +30,11 @@ public class Issue extends Model {
     public static final int STATUS_NONE = 0; // 전체
 
     // TODO_추후 세부정보의 해당 이슈 유형이 결정나면 추후 설정
-    public static final int issueType_1 = 1; // 등록
-    public static final int issueType_2 = 2; // 진행중
-    public static final int issueType_3 = 3; // 해결
-    public static final int issueType_4 = 4; // 닫힘
+    public static final int DEFECTTYPE_WORST = 1; // 치명결함
+    public static final int DEFECTTYPE_WORSE = 2; // 중결함
+    public static final int DEFECTTYPE_BAD = 3; // 경결함
+    public static final int DEFECTTYPE_IMPROVEMENT = 4; // 단순개선
+    public static final int DEFECTTYPE_RECOMMENDATION = 5; // 권고사항
 
     public static final int numIssueOnePage = 25;
 
@@ -58,6 +60,12 @@ public class Issue extends Model {
     // TODO 첨부 파일이 여러개인경우는?
     public String filePath;
 
+    
+    public Issue() {
+        this.date = JodaDateUtil.today();
+        this.commentCount = 0;
+    }
+    
     public String status() {
         if (this.status == STATUS_ENROLLED) {
             return "등록";
@@ -81,10 +89,11 @@ public class Issue extends Model {
 
     public static void delete(Long id) {
         find.ref(id).delete();
+        IssueComment.deleteByIssueId(id);
     }
 
     public static Page<Issue> findOnePage(int pageNum) {
-        return find.findPagingList(numIssueOnePage).getPage(pageNum - 1);
+        return find.orderBy("id desc").findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
 
     public static Issue findById(Long id) {
@@ -114,4 +123,15 @@ public class Issue extends Model {
                         exprFactory.eq("status", STATUS_SOLVED))
                 .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     }
+
+    public static void countUpCommentCounter(Long issueId) {
+        Issue issue = findById(issueId);
+        issue.commentCount++;
+        issue.update();
+    }
+    
+    public static void findOnePageByStatus(int pageNum, int status){
+        
+    }
+
 }

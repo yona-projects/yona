@@ -8,6 +8,8 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Test;
 
 public class ProjectTest extends ModelTest {
@@ -64,5 +66,14 @@ public class ProjectTest extends ModelTest {
         assertThat(project.vcs).isEqualTo("GIT");
         assertThat(project.url).isEqualTo("http://localhost:9000/project/1");
       
+    }
+    
+    @Test
+    public void findByOwner() throws Exception {
+        // Given
+        // When
+        List<Project> projectList = Project.findByOwner(1l);
+        // Then
+        assertThat(projectList.size()).isEqualTo(2);      
     }
 }

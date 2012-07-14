@@ -47,7 +47,7 @@
 			<tr>
 				<td>@issue.id</td>
 				<td>@issue.status()</td>
-				<td><a href="">@issue.title</a></td>
+				<td><a href="@routes.IssueApp.issue(issue.id)">@issue.title [@issue.commentCount]</a></td>
 				<td>@issue.responsibleMemberId</td>
 				<td>@issue.date</td>
 

@@ -3,8 +3,9 @@
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
+
 @projectMngMain(message)(id) {
-       @form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data"){
+       @form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>                
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
@@ -25,6 +26,15 @@
                     '_help -> "선택 입력 사항"
                 )
                 
+                <div class="thumbnail">
+                @if(projectForm("logoPath").value != null) {
+                    <img src="@routes.Assets.at("uploadFiles/" + projectForm("logoPath").value)" alt="" width="234" height="168">
+                    <h5>@projectForm("logoPath").value</h5>
+                } else {
+                    <img src="@routes.Assets.at("images/project_image_default.jpg")" alt="" width="234" height="168">
+                }
+                </div>                                
+                                
                 @inputFile(
                     projectForm("logoPath"),
                     '_label -> "로고"
@@ -97,7 +107,7 @@
                     alert('이미지 파일이 아닙니다.');
                     $(this).val('');
                 } else { 
-                    return form_submit('formprof'); 
+                    return $("form[id='saveSetting']").submit(); 
                 }     
             });
             $("#project_name").popover();

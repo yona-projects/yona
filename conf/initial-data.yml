@@ -38,10 +38,11 @@ comments:
 # Issues
 issues:
     - !!models.Issue
-        userId:     1
-        title:      불필요한 로그 출력 코드 제거
-        body:       내용 불필요한~
-        status:     1
+        userId:         1
+        title:          불필요한 로그 출력 코드 제거
+        body:           내용 불필요한~
+        status:         1
+        commentCount:   1
     - !!models.Issue
         userId:     2
         title:      다운로드는 익명 댓글에도 사용자명에 링크가 걸림
@@ -57,6 +58,12 @@ issues:
         title:      git/hg 코드 브라우저에 i18n이 적용되지 않음
         body:       내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         status:     4
+        
+issueComments:
+    - !!models.IssueComment
+        contents:       코드를 수정했습니다
+        userId:         1
+        issueId:        1
         
 # Projects
 projects:
