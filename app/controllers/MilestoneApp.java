@@ -1,14 +1,18 @@
 package controllers;
 
 import models.Milestone;
+import models.enumeration.MilestoneState;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.milestone.list;
 
+import java.util.List;
+
 public class MilestoneApp extends Controller {
 
     public static Result milestones(Long projectId, String state) {
-        return ok(list.render("마일스톤 리스트", Milestone.findMilestones(projectId, state), projectId, state));
+        List<Milestone> milestones = Milestone.findMilestones(projectId, MilestoneState.getValue(state));
+        return ok(list.render("마일스톤 리스트", milestones, projectId, state));
     }
 
     public static Result newMilestone(Long projectId) {

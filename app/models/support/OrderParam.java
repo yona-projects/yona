@@ -1,23 +1,23 @@
 package models.support;
 
-import models.enumeration.Ordering;
+import models.enumeration.Direction;
 
 public class OrderParam {
 
-    private String field;
+    private String sort;
 
-    private Ordering ordering;
+    private Direction direction;
 
-    public OrderParam(String field, Ordering ordering) {
-        this.field = field;
-        this.ordering = ordering;
+    public OrderParam(String sort, Direction direction) {
+        this.sort = sort;
+        this.direction = direction;
     }
 
-    public String getField() {
-        return field;
+    public String getSort() {
+        return sort;
     }
 
-    public Ordering getOrdering() {
-        return ordering;
+    public Direction getDirection() {
+        return direction;
     }
 }

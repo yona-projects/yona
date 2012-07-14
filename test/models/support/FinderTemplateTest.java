@@ -2,8 +2,8 @@ package models.support;
 
 import models.Milestone;
 import models.ModelTest;
+import models.enumeration.Direction;
 import models.enumeration.Matching;
-import models.enumeration.Ordering;
 import org.junit.Test;
 import play.db.ebean.Model;
 
@@ -22,7 +22,7 @@ public class FinderTemplateTest extends ModelTest {
         OrderParams orderParams = new OrderParams();
         SearchParams searchParams = new SearchParams();
 
-        orderParams.add("dueDate", Ordering.ASC);
+        orderParams.add("dueDate", Direction.ASC);
         searchParams.add("projectId", 2l, Matching.EQUALS);
         searchParams.add("isCompleted", false, Matching.EQUALS);
 
@@ -32,7 +32,7 @@ public class FinderTemplateTest extends ModelTest {
         orderParams.clean();
         searchParams.clean();
 
-        orderParams.add("dueDate", Ordering.DESC);
+        orderParams.add("dueDate", Direction.DESC);
         searchParams.add("projectId", 2l, Matching.LT);
         searchParams.add("isCompleted", false, Matching.NOT_EQUALS);
 

@@ -1,8 +1,8 @@
 package models;
 
+import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.enumeration.MilestoneState;
-import models.enumeration.Ordering;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
@@ -13,6 +13,8 @@ import play.db.ebean.Model;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -64,22 +66,16 @@ public class Milestone extends Model {
         return find.byId(id);
     }
 
-    /**
-     * 모든 마일스톤이 완료일 순서대로 보인다.
-     *
-     * @param projectId
-     * @return
-     */
     public static List<Milestone> findByProjectId(Long projectId) {
-        return Milestone.findMilestones(projectId, MilestoneState.ALL.state());
+        return Milestone.findMilestones(projectId, MilestoneState.ALL);
     }
 
     public static List<Milestone> findClosedMilestones(Long projectId) {
-        return Milestone.findMilestones(projectId, MilestoneState.CLOSED.state());
+        return Milestone.findMilestones(projectId, MilestoneState.CLOSED);
     }
 
     public static List<Milestone> findOpenMilestones(Long projectId) {
-        return Milestone.findMilestones(projectId, MilestoneState.OPEN.state());
+        return Milestone.findMilestones(projectId, MilestoneState.OPEN);
     }
 
     public int getCompletionRate() {
@@ -98,30 +94,71 @@ public class Milestone extends Model {
         return sdf.format(this.dueDate);
     }
 
-    public static List<Milestone> findMilestones(Long projectId, String state) {
-        OrderParams orderParams = new OrderParams();
-        SearchParams searchParams = new SearchParams();
+    /**
+     * sort와 direction이 없을 때는 완료일(dueDate) 기준으로 오른차순으로 정렬합니다.
+     *
+     * @param projectId
+     * @param state
+     * @return
+     */
+    public static List<Milestone> findMilestones(Long projectId, MilestoneState state) {
+        return findMilestones(projectId, state, Direction.ASC);
+    }
 
-        switch (MilestoneState.getValue(state)) {
+    /**
+     * sort는 없고 direction만 있을 때는 완료일(dueDate) 기준으로 direction에 따라 정렬합니다.
+     *
+     * @param projectId
+     * @param state
+     * @param direction
+     * @return
+     */
+    public static List<Milestone> findMilestones(Long projectId, MilestoneState state,
+                                                 Direction direction) {
+        OrderParams orderParams = new OrderParams()
+                .add("dueDate", direction);
+
+        SearchParams searchParams = new SearchParams()
+                .add("projectId", projectId, Matching.EQUALS);
+
+        switch (state) {
             case OPEN:
-                orderParams.add("dueDate", Ordering.ASC);
-                searchParams.add("projectId", projectId, Matching.EQUALS);
                 searchParams.add("isCompleted", false, Matching.EQUALS);
                 break;
             case CLOSED:
-                orderParams.add("dueDate", Ordering.ASC);
-                searchParams.add("projectId", projectId, Matching.EQUALS);
                 searchParams.add("isCompleted", true, Matching.EQUALS);
                 break;
-            case ALL:
-                orderParams.add("dueDate", Ordering.ASC);
-                searchParams.add("projectId", projectId, Matching.EQUALS);
-                break;
-            default:
-                return Milestone.findByProjectId(projectId);
         }
-
         return FinderTemplate.findBy(orderParams, searchParams, find);
+    }
+
+    /**
+     * OrderParam이 있을 때는 해당 정렬 기준으로 정렬합니다.
+     *
+     * @param projectId
+     * @param state
+     * @param sort
+     * @param direction
+     * @return
+     */
+    public static List<Milestone> findMilestones(Long projectId, MilestoneState state, String sort,
+                                                 final Direction direction) {
+        List<Milestone> milestones = findMilestones(projectId, state, direction);
+        if (sort == "dueDate") { // 완료일(dueDate) 기준 정렬
+            return milestones;
+        } else if (sort == "completionRate") {
+            Collections.sort(milestones, new Comparator<Milestone>() {
+                @Override
+                public int compare(Milestone m1, Milestone m2) {
+                    if (direction == Direction.ASC) {
+                        return m1.getCompletionRate() - m2.getCompletionRate();
+                    } else {
+                        return m2.getCompletionRate() - m1.getCompletionRate();
+                    }
+                }
+            });
+        }
+        return milestones;
     }
 
 

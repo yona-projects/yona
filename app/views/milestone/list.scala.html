@@ -1,35 +1,35 @@
-@(message: String,milestones:List[models.Milestone],id:Long, state:String)
+@(message: String, milestones: List[models.Milestone], id: Long, state: String)
 
-@project.projectMngMain(message)(id) {
-	<div>
-    <ul class="nav nav-tabs" id="milestone_list">
-    	<li class="@if(state.equals("all")){active}"><a href="/project/@id/milestones/all">전체</a></li>
-    	<li class="@if(state.equals("open")){active}"><a href="/project/@id/milestones/open">미완료</a></li>
-    	<li class="@if(state.equals("closed")){active}"><a href="/project/@id/milestones/closed">완료</a></li>
-    </ul>
+@project.projectMngMain(message, id) {
+    <div>
+        <ul class="nav nav-tabs" id="milestone_list">
+            <li class="@if(state.equals("all")){active"}"><a href="/project/@id/milestones/all">전체</a></li>
+            <li class="@if(state.equals("open")){active}"><a href="/project/@id/milestones/open">미완료</a></li>
+            <li class="@if(state.equals("closed")){active}"><a href="/project/@id/milestones/closed">완료</a></li>
+        </ul>
     @if(milestones.isEmpty()){
     <p>해당 마일스톤이 없습니다</p>
     }else{
     <table class="table">
-    	<tbody>
-    		@for(milestone <- milestones){
-    		<tr>
-    			<td>
-    				<h3><a href="">@milestone.versionName</a><br /></h3>
-    				@milestone.getDueDate<br />
-    				@milestone.contents    			
-    			</td>
-    			<td>
-    			    <a href="">@milestone.numClosedIssues</a> <span>해결</span>
-    			    <a href="">@milestone.numOpenIssues</a> <span>미해결</span>
+        <tbody>
+            @for(milestone <- milestones){
+            <tr>
+                <td>
+                    <h3><a href="">@milestone.versionName</a><br /></h3>
+                    완료일 @milestone.getDueDate<br />
+                    @milestone.contents
+                </td>
+                <td>
+                    <a href="">@milestone.numClosedIssues</a> <span>해결</span>
+                    <a href="">@milestone.numOpenIssues</a> <span>미해결</span>
                     <div class="progress">
                         <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
                     </div>
-    			    <!-- 여기에 progress 바 추가--->
-    			</td>
-    		</tr>
-    		}
-    	</tbody>
+                    <!-- 여기에 progress 바 추가--->
+                </td>
+            </tr>
+            }
+        </tbody>
     </table>
     </div>
     <div style="text-align: right">

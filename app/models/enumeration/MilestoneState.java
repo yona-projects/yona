@@ -18,6 +18,6 @@ public enum MilestoneState {
                 return milestoneState;
             }
         }
-        return null;
+        return MilestoneState.ALL;
     }
 }

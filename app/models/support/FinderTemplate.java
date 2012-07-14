@@ -18,7 +18,7 @@ public class FinderTemplate {
                     case EQUALS:
                         el.eq(field, value);
                         break;
-                    case NOT_EQUALS :
+                    case NOT_EQUALS:
                         el.ne(field, value);
                     case GE:
                         el.ge(field, value);
@@ -29,7 +29,7 @@ public class FinderTemplate {
                     case LE:
                         el.le(field, value);
                         break;
-                    case LT :
+                    case LT:
                         el.lt(field, value);
                         break;
                     case CONTAINS:
@@ -43,12 +43,12 @@ public class FinderTemplate {
 
         if (!mop.getOrderParams().isEmpty()) {
             for (OrderParam op : mop.getOrderParams()) {
-                switch (op.getOrdering()) {
+                switch (op.getDirection()) {
                     case ASC:
-                        el.orderBy(op.getField() + " asc");
+                        el.orderBy(op.getSort() + " asc");
                         break;
                     case DESC:
-                        el.orderBy(op.getField() + " desc");
+                        el.orderBy(op.getSort() + " desc");
                         break;
                 }
             }

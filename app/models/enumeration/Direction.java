@@ -1,6 +1,6 @@
 package models.enumeration;
 
-public enum Ordering {
+public enum Direction {
 
     ASC, DESC;
 

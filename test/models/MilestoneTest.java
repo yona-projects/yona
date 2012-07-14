@@ -1,5 +1,7 @@
 package models;
 
+import models.enumeration.Direction;
+import models.enumeration.MilestoneState;
 import org.junit.Test;
 
 import java.util.*;
@@ -141,21 +143,35 @@ public class MilestoneTest extends ModelTest {
     public void findMilestones() throws Exception {
         //Given
         //When
-        List<Milestone> p1InCmpleteMilestones = Milestone.findMilestones(1l, "open");
+        List<Milestone> p1InCmpleteMilestones = Milestone.findMilestones(1l, MilestoneState.OPEN);
         //Then
         assertThat(p1InCmpleteMilestones.size()).isEqualTo(1);
 
         //Given
         //When
-        List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l, "closed");
+        List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l, MilestoneState.CLOSED);
         //Then
         assertThat(p2CompletedMilestones.size()).isEqualTo(2);
 
         //Given
         //When
-        List<Milestone> p2Milestones = Milestone.findMilestones(2l, "all");
+        List<Milestone> p2Milestones = Milestone.findMilestones(2l, MilestoneState.ALL);
         //Then
         assertThat(p2Milestones.size()).isEqualTo(4);
+
+        //Given
+        //When
+        List<Milestone> p1MilestonesASCDirection = Milestone.findMilestones(1l, MilestoneState.ALL,
+                "completionRate", Direction.ASC);
+        //Then
+        assertThat(p1MilestonesASCDirection.get(0).getCompletionRate()).isEqualTo(11);
+
+        //Given
+        //When
+        List<Milestone> p2MilestonesDESCDirection = Milestone.findMilestones(2l, MilestoneState.ALL,
+                "completionRate", Direction.DESC);
+        //Then
+        assertThat(p2MilestonesDESCDirection.get(0).getCompletionRate()).isEqualTo(100);
     }
 
     @Test
@@ -206,4 +222,5 @@ public class MilestoneTest extends ModelTest {
         String m4DueDate = m4.getDueDate();
         assertThat(m4DueDate).isEqualTo("2012-04-11");
     }
+
 }

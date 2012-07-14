@@ -4,7 +4,7 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 
-@projectMngMain(message)(id) {
+@projectMngMain(message, id) {
        @form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>                

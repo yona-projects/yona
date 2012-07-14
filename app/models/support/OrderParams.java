@@ -1,9 +1,10 @@
 package models.support;
 
-import models.enumeration.Ordering;
+import models.enumeration.Direction;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class OrderParams {
 
@@ -13,8 +14,8 @@ public class OrderParams {
         this.orderParams = new ArrayList<OrderParam>();
     }
 
-    public OrderParams add(String field, Ordering ordering) {
-        this.orderParams.add(new OrderParam(field, ordering));
+    public OrderParams add(String field, Direction direction) {
+        this.orderParams.add(new OrderParam(field, direction));
         return this;
     }
 
