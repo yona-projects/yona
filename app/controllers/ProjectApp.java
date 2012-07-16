@@ -55,9 +55,12 @@ public class ProjectApp extends Controller {
     }
 
     public static Result saveSetting(Long id) {
-       
+
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
+        Project project = filledUpdatedProjectForm.get();
+        MultipartFormData body = request().body().asMultipartFormData();
+        FilePart filePart = body.getFile("logoPath");
 
         if (!filledUpdatedProjectForm.field("url").value()
                 .startsWith("http://")) {
@@ -65,24 +68,28 @@ public class ProjectApp extends Controller {
                     "사이트 URL은 http://로 시작하여야 합니다.");
         }
 
+        if (filePart != null) {
+            if (filePart.getFile().length() > 1048576) {
+                filledUpdatedProjectForm.reject("logoPath",
+                        "이미지 용량은 1MB 이하여야 합니다.");
+            } else {
+                String string = filePart.getFilename();
+                string = string.substring(string.lastIndexOf("."));
+
+                File file = new File("public/uploadFiles/" + Long.toString(id)
+                        + string);
+                if (file.exists())
+                    file.delete();
+                filePart.getFile().renameTo(file);
+
+                project.logoPath = Long.toString(id) + string;
+            }
+        }
+
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
                     id));
         } else {
-            Project project = filledUpdatedProjectForm.get();
-            MultipartFormData body = request().body().asMultipartFormData();
-            FilePart filePart = body.getFile("logoPath");
-            if (filePart != null) {
-                String string = filePart.getFilename();
-                string = string.substring(string.lastIndexOf("."));
-                
-                File file = new File("public/uploadFiles/" + Long.toString(id) + string);
-                if(file.exists()) file.delete();
-                filePart.getFile().renameTo(file);
-                
-                project.logoPath = Long.toString(id) + string;
-            }
-
             return redirect(routes.ProjectApp.setting(Project.update(project,
                     id)));
         }
