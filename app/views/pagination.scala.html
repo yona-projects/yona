@@ -1,4 +1,4 @@
-@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(Int) => Call)
+@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(Int, String, String) => Call, order:String, key:String)
 
 @{
     var currentPageNum = page.getPageIndex + 1
@@ -22,11 +22,11 @@
     
     if(lastPageNum < pageNum){
         for(x <- (1 to lastPageNum)){
-            str += "<li><a href=\"" + func(x) + "\">" + x + "</a></li>"
+            str += "<li><a href=\"" + func(x, order, key) + "\">" + x + "</a></li>"
         }
     } else {
         for( x <- (currentPageNum - pageNum/2 to currentPageNum + pageNum/2)){
-           str += "<li><a href=\"" + func(x) + "\">" + x + "</a></li>"
+           str += "<li><a href=\"" + func(x, order, key) + "\">" + x + "</a></li>"
         }
     }
     

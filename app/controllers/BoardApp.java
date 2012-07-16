@@ -16,8 +16,11 @@ import views.html.board.*;
 
 public class BoardApp extends Controller {
 
-    public static Result boardList(int pageNum) {
-        return ok(postList.render("게시판", Post.findOnePage(pageNum)));
+    public static Result boardList(int pageNum, String order, String key) {
+        
+        return ok(postList.render("게시판", 
+                Post.findOnePage(pageNum, order, key),
+                order, key));
     }
 
     public static Result newPost() {
@@ -45,7 +48,7 @@ public class BoardApp extends Controller {
             }
             Post.write(post);
         }
-        return redirect(routes.BoardApp.boardList(1));
+        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
     }
 
     public static Result post(Long postId) {
@@ -89,7 +92,7 @@ public class BoardApp extends Controller {
 
     public static Result delete(Long postId) {
         Post.delete(postId);
-        return redirect(routes.BoardApp.boardList(1));
+        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
     }
 
     public static Result editPost(Long postId) {
@@ -122,6 +125,6 @@ public class BoardApp extends Controller {
 
             Post.edit(post);
         }
-        return redirect(routes.BoardApp.boardList(1));
+        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
     }
 }

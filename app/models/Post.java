@@ -18,6 +18,14 @@ import com.avaje.ebean.Page;
 @Entity
 public class Post extends Model {
     private static final long serialVersionUID = 1L;
+    
+    public final static String ORDER_ASCENDING = "asc";
+    public final static String ORDER_DESCENDING = "desc";
+    
+    public final static String ORDERING_KEY_ID = "id";
+    public final static String ORDERING_KEY_TITLE = "title";
+    public final static String ORDERING_KEY_AGE = "date";
+    
 
     @Id
     public Long id;
@@ -42,8 +50,8 @@ public class Post extends Model {
         return find.byId(id);
     }
 
-    public static Page<Post> findOnePage(int pageNum) {
-        return find.orderBy("id desc").findPagingList(10).getPage(pageNum - 1);
+    public static Page<Post> findOnePage(int pageNum, String order, String key){
+        return find.orderBy(key + " " + order).findPagingList(10).getPage(pageNum - 1);
     }
 
     public static Long write(Post post) {

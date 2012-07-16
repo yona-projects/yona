@@ -1,6 +1,32 @@
-@(title:String, page:Page[Post])
+@(title:String, page:Page[Post], order:String, currentKey:String)
 
+@header(label:String, key:String) = {
+    <th>
+        <a href="@link(key)")">@label</a>
+        @if(key == currentKey){
+        @if(order == "desc"){
+        <i class="icon-chevron-down"></i>
+        } else {
+        <i class="icon-chevron-up"></i>
+        }
+        }
+    </th>
+}
 
+@link(newKey:String) = @{
+
+    var gOrder = ""
+    if(currentKey == newKey){
+        if(order == "asc"){
+            gOrder = "desc"
+        } else {
+            gOrder = "asc"
+        }
+    } else {
+        gOrder = "desc"
+    }
+    routes.BoardApp.boardList(page.getPageIndex+ 1, gOrder, newKey)
+}
 
 @main(title) {
   <div class="row">
@@ -29,7 +55,10 @@
 	    <table class="table table-striped">
 	    	<thead>
 	    		<tr>
-	    			<th class="">#</th><th>제목</th><th>작성자</th><th>나이</th>
+	    		    @header("#", "id")
+	    		    @header("제목", "title")
+	    		    <th>작성자</th>
+	    		    @header("나이", "date")
 	    		</tr>
 	    	</thead>
 	    	<tbody>
@@ -49,7 +78,7 @@
 
     <div class="row">  
         <div class="span6 offset4">
-	       @pagination(page, 5, routes.BoardApp.boardList)
+	       @pagination(page, 5, routes.BoardApp.boardList, order, currentKey)
         </div>
         <div class="span2">
             <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
