@@ -1,4 +1,39 @@
-@(title:String, page:Page[models.Issue]) 
+@(title: String, currentPage: Page[Issue], currentSortBy: String, currentOrder: String, currentFilter: String, status: Int)
+
+@****************************************
+* Helper generating navigation links    *
+****************************************@
+@link(newPage:Int, newSortBy:String) = @{
+    
+    var sortBy = currentSortBy
+    var order = currentOrder
+    
+    if(newSortBy != null) {
+        sortBy = newSortBy
+        if(currentSortBy == newSortBy) {
+            if(currentOrder == "asc") {
+                order = "desc"
+            } else {
+                order = "asc"
+            }
+        } else {
+            order = "asc"
+        }
+    }
+    
+    // Generate the link
+    routes.IssueApp.list(newPage, sortBy, order, currentFilter)
+    
+}
+
+@**********************************
+* Helper generating table headers *
+***********************************@
+@header(key:String, title:String) = {
+    <th class="@key.replace(".","_") header @if(currentSortBy == key) @{if(currentOrder == "asc") "headerSortDown" else "headerSortUp"}">
+        <a href="@link(0, key)">@title</a>
+    </th>
+}
 
 @main(title){
 <div class="row">
@@ -13,7 +48,7 @@
 				</select>
 				</a>
 				<label class="control-label" for="searchIssueButton">검색</label>
-				<input type="text" class="search-query">
+				<input type="search" id="searchbox" name="f" value"@currentFilter" placeholder="Search by issue name...">
 				<button type="submit" class="btn"><i class="icon-search"></i></button>
 				<a class="btn btn-primary" href="@routes.IssueApp.newIssue()" >새 이슈</a>
 			</form>
@@ -23,37 +58,67 @@
 
 <div>
 	<ul class="nav nav-tabs" id="issue_list">
-		<li><a href="@routes.IssueApp.issueList(0)">전체</a></li>
-		<li class="active"><a href="@routes.IssueApp.issueList(5)">미해결</a></li>
-		<li><a href="@routes.IssueApp.issueList(6)">해결</a></li>
+		<li class="@if(status.equals(0)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 0)">전체</a></li>
+		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 5)">미해결</a></li>
+		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 6)">해결</a></li>
 	</ul>
-	@if(page.getTotalRowCount == 0){
-	<div class="well">
-		<p>등록된 이슈가 없습니다</p>
-	</div>
+	@if(currentPage.getTotalRowCount == 0){
+
+		<div class="well">
+			<em>등록된 이슈가 없습니다</em>
+		</div>
+
 	}else{
-	<table class="table">
-		<thead>
-			<tr>
-				<th>#</th>
-				<th>상태</th>
-				<th>제목</th>
-				<th>담당자</th>
-				<th>작성일</th>
-			</tr>
-		</thead>
-		<tbody>
-			@for(issue <- page.getList()){
-			<tr>
-				<td>@issue.id</td>
-				<td>@issue.status()</td>
-				<td><a href="@routes.IssueApp.issue(issue.id)">@issue.title [@issue.commentCount]</a></td>
-				<td>@issue.responsibleMemberId</td>
-				<td>@issue.date</td>
+
+		<table class="table">
+			<thead>
+				<tr>
+					@header("id", "#")
+					@header("status", "상태")
+					@header("title", "제목")
+					@header("responsibleMemberId", "담당자")
+					@header("date", "작성일")
+				</tr>
+			</thead>
+			<tbody>
+			
+				@for(issue <- currentPage.getList()){
+					<tr>
+						<td>@issue.id</td>
+						<td>@issue.status()</td>
+						<td><a href="@routes.IssueApp.issue(issue.id)">@issue.title [@issue.commentCount]</a></td>
+						<td>@issue.responsibleMemberId</td>
+						<td>@issue.date.format("dd MMM yyyy")</td>
 
 			</tr>
 			}
 		</tbody>
 	</table>
+
+	<div id="pagination" class="pagination">
+            <ul>
+                @if(currentPage.hasPrev) {
+                    <li class="prev">
+                        <a href="@link(currentPage.getPageIndex - 1, null)">&larr; Previous</a>
+                    </li>
+                } else {
+                    <li class="prev disabled">
+                        <a>&larr; Previous</a>
+                    </li>
+                }
+                <li class="current">
+                    <a>Displaying @currentPage.getDisplayXtoYofZ(" to "," of ")</a>
+                </li>
+                @if(currentPage.hasNext) {
+                    <li class="next">
+                        <a href="@link(currentPage.getPageIndex + 1, null)">Next &rarr;</a>
+                    </li>
+                } else {
+                    <li class="next disabled">
+                        <a>Next &rarr;</a>
+                    </li>
+                }
+            </ul>
+        </div>
 
 	} }

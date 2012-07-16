@@ -42,22 +42,26 @@ issues:
         title:          불필요한 로그 출력 코드 제거
         body:           내용 불필요한~
         status:         1
+        statusType:     5
         commentCount:   1
     - !!models.Issue
         userId:     2
         title:      다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         body:       내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         status:     2
+        statusType:     5
     - !!models.Issue
         userId:     3
         title:      gittracker.php의 메모리 제한 에러
         body:       내용 gittracker.php의 메모리 제한 에러
         status:     3
+        statusType:     6
     - !!models.Issue
         userId:     4
         title:      git/hg 코드 브라우저에 i18n이 적용되지 않음
         body:       내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         status:     4
+        statusType:     6
         
 issueComments:
     - !!models.IssueComment
