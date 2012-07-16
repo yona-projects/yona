@@ -1,6 +1,10 @@
 package controllers;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -16,10 +20,10 @@ import models.User;
 
 /**
  * @author "Hwi Ahn"
- *
+ * 
  */
 public class ProjectApp extends Controller {
-    
+
     public static final String PROJECT_HOME = "프로젝트 홈";
     public static final String NEW_PROJECT = "새 프로젝트 생성";
     public static final String SETTING = "프로젝트 설정";
@@ -39,7 +43,8 @@ public class ProjectApp extends Controller {
     }
 
     public static Result saveProject() {
-        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
+        Form<Project> filledNewProjectForm = form(Project.class)
+                .bindFromRequest();
 
         if (!"true".equals(filledNewProjectForm.field("accept").value())) {
             filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
@@ -51,15 +56,15 @@ public class ProjectApp extends Controller {
         } else {
             Project project = filledNewProjectForm.get();
             project.owner = UserApp.userId();
-            return redirect(routes.ProjectApp.project(Project
-                    .create(project)));
+            return redirect(routes.ProjectApp.project(Project.create(project)));
         }
     }
 
     public static Result saveSetting(Long id) {
+       
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
-        
+
         if (!filledUpdatedProjectForm.field("url").value()
                 .startsWith("http://")) {
             filledUpdatedProjectForm.reject("url",
@@ -67,22 +72,25 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render(SETTING,
-                    filledUpdatedProjectForm, id));
+            return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
+                    id));
         } else {
             Project project = filledUpdatedProjectForm.get();
             MultipartFormData body = request().body().asMultipartFormData();
             FilePart filePart = body.getFile("logoPath");
-            
-            if(filePart != null){
-                File file = new File("public/uploadFiles/" + filePart.getFilename());
+            if (filePart != null) {
+                String string = filePart.getFilename();
+                string = string.substring(string.lastIndexOf("."));
+                
+                File file = new File("public/uploadFiles/" + Long.toString(id) + string);
+                if(file.exists()) file.delete();
                 filePart.getFile().renameTo(file);
                 
-                project.logoPath = filePart.getFilename();
+                project.logoPath = Long.toString(id) + string;
             }
-            
-            return redirect(routes.ProjectApp.setting(Project.update(
-                    project, id)));
+
+            return redirect(routes.ProjectApp.setting(Project.update(project,
+                    id)));
         }
     }
 
