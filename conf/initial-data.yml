@@ -81,6 +81,13 @@ projects:
         vcs:            Subversion
         url:            http://localhost:9000/project/2
         owner:          1
+    - !!models.Project
+        name:           네이버 나눔고딕 코딩글꼴
+        overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/project/3
+        owner:          3
 
 # Milestone
 milestones:
