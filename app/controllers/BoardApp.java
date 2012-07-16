@@ -12,6 +12,7 @@ import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Http.Request;
 import views.html.board.*;
 
 public class BoardApp extends Controller {
@@ -34,19 +35,10 @@ public class BoardApp extends Controller {
             Post post = postForm.get();
             post.userId = UserApp.userId();
             post.commentCount = 0;
-
-            MultipartFormData body = request().body().asMultipartFormData();
-
-            FilePart filePart = body.getFile("filePath");
-
-            if (filePart != null) {
-                File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
-                filePart.getFile().renameTo(saveFile);
-                post.filePath = filePart.getFilename();
-            }
+            post.filePath = saveFile(request());
             Post.write(post);
         }
-        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
+        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID));
     }
 
     public static Result post(Long postId) {
@@ -70,17 +62,7 @@ public class BoardApp extends Controller {
             Comment comment = commentForm.get();
             comment.postId = postId;
             comment.userId = UserApp.userId();
-
-            MultipartFormData body = request().body().asMultipartFormData();
-
-            FilePart filePart = body.getFile("filePath");
-
-            if (filePart != null) {
-                File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
-                filePart.getFile().renameTo(saveFile);
-
-                comment.filePath = filePart.getFilename();
-            }
+            comment.filePath = saveFile(request());
 
             Comment.write(comment);
 
@@ -100,7 +82,6 @@ public class BoardApp extends Controller {
     }
 
     public static Result updatePost(Long postId) {
-        Post exsitPost = Post.findById(postId);
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
 
         if (postForm.hasErrors()) {
@@ -110,19 +91,23 @@ public class BoardApp extends Controller {
             Post post = postForm.get();
             post.userId = UserApp.userId();
             post.id = postId;
-
-            MultipartFormData body = request().body().asMultipartFormData();
-
-            FilePart filePart = body.getFile("filePath");
-
-            if (filePart != null) {
-                File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
-                filePart.getFile().renameTo(saveFile);
-                post.filePath = filePart.getFilename();
-            }
+            post.filePath = saveFile(request());
 
             Post.edit(post);
         }
         return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
+    }
+
+    private static String saveFile(Request request) {
+        MultipartFormData body = request.body().asMultipartFormData();
+
+        FilePart filePart = body.getFile("filePath");
+
+        if (filePart != null) {
+            File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
+            filePart.getFile().renameTo(saveFile);
+            return filePart.getFilename();
+        }
+        return null;
     }
 }
