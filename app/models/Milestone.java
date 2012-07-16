@@ -143,10 +143,11 @@ public class Milestone extends Model {
      */
     public static List<Milestone> findMilestones(Long projectId, MilestoneState state, String sort,
                                                  final Direction direction) {
-        List<Milestone> milestones = findMilestones(projectId, state, direction);
-        if (sort == "dueDate") { // 완료일(dueDate) 기준 정렬
-            return milestones;
-        } else if (sort == "completionRate") {
+        List<Milestone> milestones = null;
+        if (sort.equals("dueDate")) { // 완료일(dueDate) 기준 정렬
+            milestones = findMilestones(projectId, state, direction);
+        } else if (sort.equals("completionRate")) {
+            milestones = findMilestones(projectId, state);
             Collections.sort(milestones, new Comparator<Milestone>() {
                 @Override
                 public int compare(Milestone m1, Milestone m2) {

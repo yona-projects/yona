@@ -3,9 +3,9 @@
 <div class="well" style="padding: 8px 0;">
     <ul class="nav nav-list">
         <li class="nav-header">프로젝트 관리</li>
-        <li class="@if(currPage.equals("프로젝트 설정")) {active}"><a href="/project/@id/setting"><i class="icon-cog"></i>설정</a></li>
+        <li class="@if(currPage.equals("프로젝트 설정")) {active}"><a href="@routes.ProjectApp.setting(id)"><i class="icon-cog"></i>설정</a></li>
         <li><a href=""><i class="icon-user"></i>멤버</a></li>
-        <li class="@if(currPage.equals("마일스톤 관리")) {active}"><a href="/project/@id/milestones"><i class="icon-gift"></i>마일스톤</a></li>
+        <li class="@if(currPage.equals("마일스톤 리스트")) {active}"><a href="/project/@id/milestones"><i class="icon-gift"></i>마일스톤</a></li>
         <li><a href="#"><i class="icon-wrench"></i>플러그인</a></li>
         <li class="divider"></li>
         <li><a href="#"><i class="icon-book"></i>Help</a></li>

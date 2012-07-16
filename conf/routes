@@ -31,9 +31,9 @@ POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
 GET 	/project/:id/delete    		controllers.ProjectApp.deleteProject(id:Long)
 
 #Milestones
-GET     /project/:pId/milestones        controllers.MilestoneApp.milestones(pId:Long,state:String = "open")
+GET     /project/:pId/milestones        controllers.MilestoneApp.milestones(pId:Long, state ?= "open", sort ?= "dueDate", direction ?= "asc")
+GET     /project/:pId/milestones/manage controllers.MilestoneApp.manageMilestones(pId:Long, sort ?= "dueDate", direction ?= "asc")
 GET		/project/:pId/milestones/new    controllers.MilestoneApp.newMilestone(pId:Long)
-GET     /project/:pId/milestones/:state controllers.MilestoneApp.milestones(pId:Long,state:String)
 POST	/milestones/new				    controllers.MilestoneApp.createMilestone()
 POST	/milestones/:id/save		    controllers.MilestoneApp.updateMilestone(id: Long)
 POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Long)
