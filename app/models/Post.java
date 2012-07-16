@@ -91,6 +91,11 @@ public class Post extends Model {
     }
 
     public static void edit(Post post) {
+        Post beforePost = findById(post.id);
+        post.commentCount = beforePost.commentCount;
+        if (post.filePath == null) {
+            post.filePath = beforePost.filePath;
+        }
         post.update();
     }
 }

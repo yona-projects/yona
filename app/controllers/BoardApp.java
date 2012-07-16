@@ -25,7 +25,6 @@ public class BoardApp extends Controller {
     }
 
     public static Result savePost() {
-        // TODO form에 있는 정보 받아와서 DB에저장 파일 세이브도 구현할것
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
 
         if (postForm.hasErrors()) {
@@ -110,7 +109,6 @@ public class BoardApp extends Controller {
             Post post = postForm.get();
             post.userId = UserApp.userId();
             post.id = postId;
-            post.commentCount = exsitPost.commentCount;
 
             MultipartFormData body = request().body().asMultipartFormData();
 
@@ -120,8 +118,6 @@ public class BoardApp extends Controller {
                 File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
                 filePart.getFile().renameTo(saveFile);
                 post.filePath = filePart.getFilename();
-            } else {
-                post.filePath = exsitPost.filePath;
             }
 
             Post.edit(post);
