@@ -1,10 +1,6 @@
 package controllers;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -14,9 +10,7 @@ import play.data.*;
 
 import views.html.project.*;
 
-import models.Post;
 import models.Project;
-import models.User;
 
 /**
  * @author "Hwi Ahn"
