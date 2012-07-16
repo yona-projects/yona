@@ -1,10 +1,6 @@
 package controllers;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -14,9 +10,7 @@ import play.data.*;
 
 import views.html.project.*;
 
-import models.Post;
 import models.Project;
-import models.User;
 
 /**
  * @author "Hwi Ahn"
@@ -29,7 +23,13 @@ public class ProjectApp extends Controller {
     public static final String SETTING = "프로젝트 설정";
 
     public static Result project(Long id) {
-        return ok(projectHome.render(PROJECT_HOME));
+        Project project = Project.findById(id);
+        if(!project.share_option){
+            if(!UserApp.userId().equals(project.owner)) // 현재는 생성자 체크만 함. 차후에 참여자 체크도 넣어야함.
+                return ok(projectHome.render(PROJECT_HOME, false));
+            else return ok(projectHome.render(PROJECT_HOME, true));
+        }
+        return ok(projectHome.render(PROJECT_HOME, true));
     }
 
     public static Result newProject() {
@@ -61,9 +61,12 @@ public class ProjectApp extends Controller {
     }
 
     public static Result saveSetting(Long id) {
-       
+
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
+        Project project = filledUpdatedProjectForm.get();
+        MultipartFormData body = request().body().asMultipartFormData();
+        FilePart filePart = body.getFile("logoPath");
 
         if (!filledUpdatedProjectForm.field("url").value()
                 .startsWith("http://")) {
@@ -71,24 +74,28 @@ public class ProjectApp extends Controller {
                     "사이트 URL은 http://로 시작하여야 합니다.");
         }
 
+        if (filePart != null) {
+            if (filePart.getFile().length() > 1048576) {
+                filledUpdatedProjectForm.reject("logoPath",
+                        "이미지 용량은 1MB 이하여야 합니다.");
+            } else {
+                String string = filePart.getFilename();
+                string = string.substring(string.lastIndexOf("."));
+
+                File file = new File("public/uploadFiles/" + Long.toString(id)
+                        + string);
+                if (file.exists())
+                    file.delete();
+                filePart.getFile().renameTo(file);
+
+                project.logoPath = Long.toString(id) + string;
+            }
+        }
+
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
                     id));
         } else {
-            Project project = filledUpdatedProjectForm.get();
-            MultipartFormData body = request().body().asMultipartFormData();
-            FilePart filePart = body.getFile("logoPath");
-            if (filePart != null) {
-                String string = filePart.getFilename();
-                string = string.substring(string.lastIndexOf("."));
-                
-                File file = new File("public/uploadFiles/" + Long.toString(id) + string);
-                if(file.exists()) file.delete();
-                filePart.getFile().renameTo(file);
-                
-                project.logoPath = Long.toString(id) + string;
-            }
-
             return redirect(routes.ProjectApp.setting(Project.update(project,
                     id)));
         }

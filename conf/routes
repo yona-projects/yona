@@ -12,13 +12,13 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /users/login                controllers.UserApp.login()
 
 # Boards
-GET     /boardList                  controllers.BoardApp.boardList(pageNum:Int = 1)
+GET     /boardList                  controllers.BoardApp.boardList(pageNum:Int = 1, order:String ?= "desc", key ?= "id")
+GET     /boardList/:pageNum         controllers.BoardApp.boardList(pageNum:Int, order:String ?= "desc", key ?= "id")
 GET     /boards/new                 controllers.BoardApp.newPost()
 POST    /boards/new                 controllers.BoardApp.savePost()
 GET     /board/:id                  controllers.BoardApp.post(id:Long)
 POST    /board/:id/replay           controllers.BoardApp.saveComment(id:Long)
 GET     /board/:id/delete           controllers.BoardApp.delete(id:Long)
-GET     /boardList/:pageNum         controllers.BoardApp.boardList(pageNum:Int)
 GET     /boards/:id/edit            controllers.BoardApp.editPost(id:Long)
 POST    /boards/:id/edit            controllers.BoardApp.updatePost(id:Long)
 
@@ -40,8 +40,7 @@ POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Lo
 
 
 #Issues
-GET		/issueList					controllers.IssueApp.issueList(pageNum:Int = 1, status:Int = 5)
-GET		/issueList/:status			controllers.IssueApp.issueList(pageNum:Int = 1, status:Int)
+GET     /issueList	                controllers.IssueApp.list(pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 5)
 GET		/issues/new					controllers.IssueApp.newIssue()
 #POST	/issues/new					controllers.IssueApp.saveIssue()
 GET     /issues/:id                 controllers.IssueApp.issue(id:Long)

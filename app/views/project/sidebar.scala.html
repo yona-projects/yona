@@ -12,13 +12,13 @@
     <ul class="nav nav-list">
         <li class="nav-header">프로젝트 관리</li>
         <li class="@chooseMenu("프로젝트 설정")">
-            <a href="/project/@id/setting"><i class="icon-cog"></i>설정</a>
+            <a href="@routes.ProjectApp.setting(id)"><i class="icon-cog"></i>설정</a>
         </li>
         <li class="@chooseMenu("맴버")">
             <a href="#"><i class="icon-user"></i>멤버</a>
         </li>
         <li class="@chooseMenu("마일스톤 리스트","마일스톤 관리")">
-            <a href="/project/@id/milestones"><i class="icon-gift"></i>마일스톤</a>
+            <a href="@routes.MilestoneApp.milestones(id)"><i class="icon-gift"></i>마일스톤</a>
         </li>
         <li class="@chooseMenu("플러그인")">
             <a href="#"><i class="icon-wrench"></i>플러그인</a>
