@@ -1,6 +1,7 @@
 package controllers;
 
 import models.Milestone;
+import models.enumeration.Direction;
 import models.enumeration.MilestoneState;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -10,9 +11,13 @@ import java.util.List;
 
 public class MilestoneApp extends Controller {
 
-    public static Result milestones(Long projectId, String state) {
-        List<Milestone> milestones = Milestone.findMilestones(projectId, MilestoneState.getValue(state));
-        return ok(list.render("마일스톤 리스트", milestones, projectId, state));
+    public static Result milestones(Long projectId, String state,
+                                    String sort, String direction) {
+        List<Milestone> milestones = Milestone.findMilestones(projectId,
+                MilestoneState.getValue(state),
+                sort,
+                Direction.getValue(direction));
+        return ok(list.render("마일스톤 리스트", milestones, projectId, state, sort, direction));
     }
 
     public static Result newMilestone(Long projectId) {
@@ -28,6 +33,10 @@ public class MilestoneApp extends Controller {
               return redirect(routes.MilestoneApp.milestoneList());
           }
           */
+    }
+
+    public static Result manageMilestones(Long projectId, String sort, String direction) {
+        return TODO;
     }
 
     public static Result createMilestone() {

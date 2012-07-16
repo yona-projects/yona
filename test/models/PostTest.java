@@ -5,6 +5,7 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import org.junit.*;
 
@@ -64,5 +65,19 @@ public class PostTest extends ModelTest {
         String name = post.findWriter();
         // Then
         assertThat(name).isEqualTo("hobi");
+    }
+
+    @Test
+    public void edit() throws Exception {
+        // Given
+        Post post = new Post();
+        post.contents = "수정되었습니다.";
+        post.id = 1l;
+        // When
+        Post.edit(post);
+        // Then
+        Post actual = Post.findById(1l);
+        assertThat(actual.contents).isEqualTo("수정되었습니다.");
+        assertThat(actual.commentCount).isEqualTo(1);
     }
 }

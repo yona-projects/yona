@@ -34,7 +34,6 @@ public class Post extends Model {
 
     public Post() {
         this.date = JodaDateUtil.today();
-        this.commentCount = 0;
     }
 
     private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
@@ -89,5 +88,14 @@ public class Post extends Model {
 
     public String findWriter() {
         return User.findNameById(this.userId);
+    }
+
+    public static void edit(Post post) {
+        Post beforePost = findById(post.id);
+        post.commentCount = beforePost.commentCount;
+        if (post.filePath == null) {
+            post.filePath = beforePost.filePath;
+        }
+        post.update();
     }
 }
