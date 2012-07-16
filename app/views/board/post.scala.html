@@ -56,8 +56,8 @@
 <hr/>
 <div class="row">
 	@helper.form(routes.BoardApp.saveComment(post.id), 'enctype -> "multipart/form-data"){
-		<div class="span12">@helper.textarea(commentForm("contents"))</div>
-		<div class="span6">@helper.inputFile(commentForm("filePath"))</div>		
+		<div class="span12">@helper.textarea(commentForm("contents"), '_showConstraints -> false, 'label-> "덧글내용")</div>
+		<div class="span6">@helper.inputFile(commentForm("filePath"), '_showConstraints -> false, 'label->"파일첨부")</div>		
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
 	}
 	</div>

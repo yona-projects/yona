@@ -32,7 +32,8 @@ public class BoardApp extends Controller {
             return ok("입력값이 잘못되었습니다.");
         } else {
             Post post = postForm.get();
-            post.userId = User.findByName("hobi").id;
+            post.userId = UserApp.userId();
+            post.commentCount = 0;
 
             MultipartFormData body = request().body().asMultipartFormData();
 
@@ -68,7 +69,7 @@ public class BoardApp extends Controller {
         } else {
             Comment comment = commentForm.get();
             comment.postId = postId;
-            comment.userId = User.findByName("hobi").id;
+            comment.userId = UserApp.userId();
 
             MultipartFormData body = request().body().asMultipartFormData();
 
@@ -91,8 +92,40 @@ public class BoardApp extends Controller {
         Post.delete(postId);
         return redirect(routes.BoardApp.boardList(1));
     }
-    
+
     public static Result editPost(Long postId) {
-        return TODO;
+        Post exsitPost = Post.findById(postId);
+        Form<Post> editForm = new Form<Post>(Post.class).fill(exsitPost);
+        return ok(editPost.render("게시물 수정", editForm, postId));
+    }
+
+    public static Result updatePost(Long postId) {
+        Post exsitPost = Post.findById(postId);
+        Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
+
+        if (postForm.hasErrors()) {
+            return ok("입력값이 잘못되었습니다.");
+        } else {
+
+            Post post = postForm.get();
+            post.userId = UserApp.userId();
+            post.id = postId;
+            post.commentCount = exsitPost.commentCount;
+
+            MultipartFormData body = request().body().asMultipartFormData();
+
+            FilePart filePart = body.getFile("filePath");
+
+            if (filePart != null) {
+                File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
+                filePart.getFile().renameTo(saveFile);
+                post.filePath = filePart.getFilename();
+            } else {
+                post.filePath = exsitPost.filePath;
+            }
+
+            Post.edit(post);
+        }
+        return redirect(routes.BoardApp.boardList(1));
     }
 }
