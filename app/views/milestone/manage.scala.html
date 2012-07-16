@@ -1,0 +1,59 @@
+@(message: String, milestones: List[models.Milestone], id: Long, sort: String, direction: String)
+@completionRateName(completionRate: Int) = @{
+    /* TODO It will be chnaged. */
+    if(completionRate == 100) "완료"
+    else "미완료"
+}
+@sortMark(_sort: String) = @{
+    /* TODO It will be chnaged. */
+    if(sort.equals(_sort)) {
+        if(direction.equals("desc")){
+            "▼"
+        } else {
+            "▲"
+        }
+    }
+}
+@makeSortLink(_sort:String) = @{
+    var _direction = "asc";
+        if(sort.equals(_sort)) {
+            if(_direction.equals(direction)) {
+            _direction = "desc"
+        }
+    }
+    "/project/%d/milestones/manage?sort=%s&direction=%s".format(id, _sort, _direction)
+}
+@project.projectMngMain(message, id) {
+    <div>
+    @if(milestones == null || milestones.isEmpty()){
+        <p>등록된 마일스톤이 없습니다.</p>
+    }else{
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <td>
+                        <a href="@makeSortLink("versionName")">마일스톤 @sortMark("versionName")</a>
+                    </td>
+                    <td>특징</td>
+                    <td>
+                        <a href="@makeSortLink("dueDate")">완료일 @sortMark("dueDate")</a>
+                    </td>
+                    <td>
+                        <a href="@makeSortLink("completionRate")">상태 @sortMark("completionRate")</a>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+            @for(milestone <- milestones){
+                <tr>
+                    <td>@milestone.versionName</td>
+                    <td>@milestone.contents</td>
+                    <td>@milestone.getDueDate</td>
+                    <td>@completionRateName(milestone.completionRate)</td>
+                </tr>
+        }
+            </tbody>
+        </table>
+    </div>
+    }
+}

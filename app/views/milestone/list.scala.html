@@ -6,10 +6,20 @@
             _direction = "desc"
         }
     }
-    String.format("/project/%d/milestones?state=%s&sort=%s&direction=%s", id,state,_sort,_direction)
+    "/project/%d/milestones?state=%s&sort=%s&direction=%s".format(id, state, _sort, _direction)
 }
 @makeIssuesLink(mId: Long, _state: String) = @{
-    String.format("/issueList?milestone=%d&state=%s", mId,_state)
+    "/issueList?milestone=%d&state=%s".format(mId, _state)
+}
+@sortMark(_sort: String) = @{
+    /* TODO It will be chnaged. */
+    if(sort.equals(_sort)) {
+        if(direction.equals("desc")){
+        "▼"
+        } else {
+        "▲"
+        }
+    }
 }
 @project.projectMngMain(message, id) {
     <div>
@@ -26,11 +36,11 @@
                 </li>
             </ul>
             <div style="position: absolute; top: 10px; right: 0;">
-                <a href="@makeSortLink("dueDate")">완료일순</a>
-                <a href="@makeSortLink("completionRate")">완료율순</a>
+                <a href="@makeSortLink("dueDate")">완료일순 @sortMark("dueDate")</a>
+                <a href="@makeSortLink("completionRate")">완료율순 @sortMark("completionRate")</a>
             </div>
         </div>
-    @if(milestones.isEmpty()){
+    @if(milestones == null || milestones.isEmpty()){
         <p>등록된 마일스톤이 없습니다.</p>
     }else{
     <table class="table">
@@ -47,9 +57,8 @@
                     <span>해결</span>
                     <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>미해결</span>
                     <div class="progress">
-                        <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
+                        <div class="bar" style="width: @milestone.completionRate%;"></div>
                     </div>
-                    <!-- 여기에 progress 바 추가--->
                 </td>
             </tr>
             }

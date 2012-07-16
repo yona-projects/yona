@@ -6,6 +6,7 @@ import models.enumeration.MilestoneState;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.milestone.list;
+import views.html.milestone.manage;
 
 import java.util.List;
 
@@ -36,7 +37,11 @@ public class MilestoneApp extends Controller {
     }
 
     public static Result manageMilestones(Long projectId, String sort, String direction) {
-        return TODO;
+        List<Milestone> milestones = Milestone.findMilestones(projectId,
+                MilestoneState.ALL,
+                sort,
+                Direction.getValue(direction));
+        return ok(manage.render("마일스톤 관리", milestones, projectId, sort, direction));
     }
 
     public static Result createMilestone() {

@@ -16,11 +16,12 @@ public class MilestoneTest extends ModelTest {
         Milestone newMilestone = new Milestone();
         newMilestone.dueDate = new Date();
         newMilestone.contents = "테스트 마일스톤";
-        newMilestone.numClosedIssues = 10;
-        newMilestone.numOpenIssues = 10;
+        newMilestone.numClosedIssues = 0;
+        newMilestone.numOpenIssues = 0;
+        newMilestone.numTotalIssues = 0;
         newMilestone.projectId = 100l;
         newMilestone.versionName = "0.1";
-        newMilestone.isCompleted = true;
+        newMilestone.completionRate = 0;
         //When
         Milestone.create(newMilestone);
         //Then
@@ -47,9 +48,10 @@ public class MilestoneTest extends ModelTest {
         assertThat(expactDueDate.get(Calendar.DAY_OF_MONTH)).isEqualTo(dueDate.get(Calendar.DAY_OF_MONTH));
 
         assertThat(firstMilestone.numClosedIssues).isEqualTo(10);
-        assertThat(firstMilestone.numOpenIssues).isEqualTo(10);
+        assertThat(firstMilestone.numOpenIssues).isEqualTo(0);
+        assertThat(firstMilestone.numTotalIssues).isEqualTo(10);
         assertThat(firstMilestone.projectId).isEqualTo(1l);
-        assertThat(firstMilestone.isCompleted).isEqualTo(true);
+        assertThat(firstMilestone.completionRate).isEqualTo(100);
     }
 
     @Test
@@ -70,17 +72,19 @@ public class MilestoneTest extends ModelTest {
         Milestone updateMilestone = new Milestone();
         updateMilestone.contents = "엔포지 첫번째 버전.";
         updateMilestone.versionName = "1.0.0-SNAPSHOT";
-        updateMilestone.numClosedIssues = 100;
-        updateMilestone.numOpenIssues = 200;
+        updateMilestone.numClosedIssues = 10;
+        updateMilestone.numOpenIssues = 1;
+        updateMilestone.numTotalIssues = 11;
         //When
-        Milestone.update(updateMilestone, 1l);
+        Milestone.update(updateMilestone, 2l);
         //Then
-        Milestone actualMilestone = Milestone.findById(1l);
+        Milestone actualMilestone = Milestone.findById(2l);
         assertThat(actualMilestone.contents).isEqualTo(updateMilestone.contents);
         assertThat(actualMilestone.versionName).isEqualTo(updateMilestone.versionName);
-        assertThat(actualMilestone.numClosedIssues).isEqualTo(100);
-        assertThat(actualMilestone.numOpenIssues).isEqualTo(200);
-        assertThat(actualMilestone.isCompleted).isEqualTo(false);
+        assertThat(actualMilestone.numClosedIssues).isEqualTo(10);
+        assertThat(actualMilestone.numOpenIssues).isEqualTo(1);
+        assertThat(actualMilestone.numTotalIssues).isEqualTo(11);
+        assertThat(actualMilestone.completionRate).isEqualTo(90);
     }
 
     @Test
@@ -89,8 +93,8 @@ public class MilestoneTest extends ModelTest {
         //When
         List<Milestone> firstProjectMilestones = Milestone.findByProjectId(1l);
         //Then
-        assertThat(firstProjectMilestones.size()).isEqualTo(2);
-        checkIfTheMilestoneIsBelongToTheProject(firstProjectMilestones, 1l, 2l);
+        assertThat(firstProjectMilestones.size()).isEqualTo(3);
+        checkIfTheMilestoneIsBelongToTheProject(firstProjectMilestones, 1l, 2l, 7l);
 
         //Given
         //When
@@ -129,7 +133,7 @@ public class MilestoneTest extends ModelTest {
         List<Milestone> p1Milestones = Milestone.findOpenMilestones(1l);
 
         //Then
-        assertThat(p1Milestones.size()).isEqualTo(1);
+        assertThat(p1Milestones.size()).isEqualTo(2);
 
         //Given
         //When
@@ -145,7 +149,7 @@ public class MilestoneTest extends ModelTest {
         //When
         List<Milestone> p1InCmpleteMilestones = Milestone.findMilestones(1l, MilestoneState.OPEN);
         //Then
-        assertThat(p1InCmpleteMilestones.size()).isEqualTo(1);
+        assertThat(p1InCmpleteMilestones.size()).isEqualTo(2);
 
         //Given
         //When
@@ -164,46 +168,14 @@ public class MilestoneTest extends ModelTest {
         List<Milestone> p1MilestonesASCDirection = Milestone.findMilestones(1l, MilestoneState.ALL,
                 "completionRate", Direction.ASC);
         //Then
-        assertThat(p1MilestonesASCDirection.get(0).getCompletionRate()).isEqualTo(11);
+        assertThat(p1MilestonesASCDirection.get(0).completionRate).isEqualTo(9);
 
         //Given
         //When
         List<Milestone> p2MilestonesDESCDirection = Milestone.findMilestones(2l, MilestoneState.ALL,
                 "completionRate", Direction.DESC);
         //Then
-        assertThat(p2MilestonesDESCDirection.get(0).getCompletionRate()).isEqualTo(100);
-    }
-
-    @Test
-    public void getCompletionRate() throws Exception {
-        //Given
-        //When
-        Milestone m1 = Milestone.findById(1l);
-        //Then
-        int m1CompletionRate = m1.getCompletionRate();
-        assertThat(m1CompletionRate).isEqualTo(100);
-
-        //Given
-        //When
-        Milestone m2 = Milestone.findById(2l);
-        //Then
-        int m2CompletionRate = m2.getCompletionRate();
-        assertThat(m2CompletionRate).isEqualTo(11);
-
-        //Given
-        //When
-        Milestone m3 = Milestone.findById(3l);
-        //Then
-        int m3CompletionRate = m3.getCompletionRate();
-        assertThat(m3CompletionRate).isEqualTo(100);
-
-        //Given
-        //When
-        Milestone m6 = Milestone.findById(6l);
-        int m6CompletionRate = m6.getCompletionRate();
-        //When
-        assertThat(m6CompletionRate).isEqualTo(0);
-
+        assertThat(p2MilestonesDESCDirection.get(0).completionRate).isEqualTo(100);
     }
 
     @Test

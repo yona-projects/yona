@@ -89,46 +89,61 @@ milestones:
         dueDate:         2012-07-12 10:59:59
         contents:        nFORGE 첫번째 버전.
         numClosedIssues: 10
-        numOpenIssues:   10
+        numOpenIssues:   0
+        numTotalIssues:  10
         projectId:       1
-        isCompleted:     true
+        completionRate:  100
     - !!models.Milestone
         versionName:     v.0.2
         dueDate:         2012-07-19 10:59:59
         contents:        nFORGE 두번째 버전 (Stable).
         numClosedIssues: 1
-        numOpenIssues:   9
+        numOpenIssues:   10
+        numTotalIssues:  11
         projectId:       1
-        isCompleted:     false
+        completionRate:  9
     - !!models.Milestone
         versionName:     v.1.0.0
         dueDate:         2011-08-10 10:59:59
         contents:        Jindo 안정화 버전
         numClosedIssues: 100
-        numOpenIssues:   100
+        numOpenIssues:   0
+        numTotalIssues:  100
         projectId:       2
-        isCompleted:     true
+        completionRate:  100
     - !!models.Milestone
         versionName:     v.2.0.0
         dueDate:         2012-04-11 10:59:59
         contents:        Jindo2
         numClosedIssues: 88
-        numOpenIssues:   88
+        numOpenIssues:   0
+        numTotalIssues:  88
         projectId:       2
-        isCompleted:     true
+        completionRate:  100
     - !!models.Milestone
         versionName:     v.3.0.0
         dueDate:         2012-12-14 10:59:59
         contents:        Jindo3
-        numClosedIssues: 12
-        numOpenIssues:   22
+        numClosedIssues: 99
+        numOpenIssues:   1
+        numTotalIssues:  100
         projectId:       2
-        isCompleted:     false
+        completionRate:  99
     - !!models.Milestone
         versionName:     v.3.0.1
         dueDate:         2012-12-31 10:59:59
         contents:        Jindo3 안정화버전
         numClosedIssues: 0
         numOpenIssues:   5
+        numTotalIssues:  5
         projectId:       2
-        isCompleted:     false
+        completionRate:  0
+    - !!models.Milestone
+        versionName:     v.0.3
+        dueDate:         2012-09-09 10:59:59
+        contents:        nFORGE 3번째 버전.
+        numClosedIssues: 1
+        numOpenIssues:   2
+        numTotalIssues:  3
+        projectId:       1
+        completionRate:  33
