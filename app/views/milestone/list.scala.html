@@ -1,27 +1,51 @@
-@(message: String, milestones: List[models.Milestone], id: Long, state: String)
-
+@(message: String, milestones: List[models.Milestone], id: Long, state: String, sort: String, direction: String)
+@makeSortLink(_sort:String) = @{
+    var _direction = "asc";
+    if(sort.equals(_sort)) {
+        if(_direction.equals(direction)) {
+            _direction = "desc"
+        }
+    }
+    String.format("/project/%d/milestones?state=%s&sort=%s&direction=%s", id,state,_sort,_direction)
+}
+@makeIssuesLink(mId: Long, _state: String) = @{
+    String.format("/issueList?milestone=%d&state=%s", mId,_state)
+}
 @project.projectMngMain(message, id) {
     <div>
-        <ul class="nav nav-tabs" id="milestone_list">
-            <li class="@if(state.equals("all")){active"}"><a href="/project/@id/milestones/all">전체</a></li>
-            <li class="@if(state.equals("open")){active}"><a href="/project/@id/milestones/open">미완료</a></li>
-            <li class="@if(state.equals("closed")){active}"><a href="/project/@id/milestones/closed">완료</a></li>
-        </ul>
+        <div style="position: relative;">
+            <ul class="nav nav-tabs" id="milestone_list">
+                <li class="@if(state.equals("all")){active}">
+                <a href="/project/@id/milestones?state=all">전체</a>
+                </li>
+                <li class="@if(state.equals("open")){active}">
+                <a href="/project/@id/milestones?state=open">미완료</a>
+                </li>
+                <li class="@if(state.equals("closed")){active}">
+                <a href="/project/@id/milestones?state=closed">완료</a>
+                </li>
+            </ul>
+            <div style="position: absolute; top: 10px; right: 0;">
+                <a href="@makeSortLink("dueDate")">완료일순</a>
+                <a href="@makeSortLink("completionRate")">완료율순</a>
+            </div>
+        </div>
     @if(milestones.isEmpty()){
-    <p>해당 마일스톤이 없습니다</p>
+        <p>등록된 마일스톤이 없습니다.</p>
     }else{
     <table class="table">
         <tbody>
             @for(milestone <- milestones){
             <tr>
                 <td>
-                    <h3><a href="">@milestone.versionName</a><br /></h3>
+                    <h3><a href="@makeIssuesLink(milestone.id,"all")">@milestone.versionName</a><br /></h3>
                     완료일 @milestone.getDueDate<br />
                     @milestone.contents
                 </td>
                 <td>
-                    <a href="">@milestone.numClosedIssues</a> <span>해결</span>
-                    <a href="">@milestone.numOpenIssues</a> <span>미해결</span>
+                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a>
+                    <span>해결</span>
+                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>미해결</span>
                     <div class="progress">
                         <div class="bar" style="width: @milestone.getCompletionRate%;"></div>
                     </div>
@@ -33,7 +57,7 @@
     </table>
     </div>
     <div style="text-align: right">
-    <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(id)" >마일스톤 관리</a>
+    <a class="btn btn-primary" href="@routes.MilestoneApp.manageMilestones(id)" >마일스톤 관리</a>
     </div>
     }
 }
