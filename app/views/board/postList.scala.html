@@ -14,7 +14,6 @@
 }
 
 @link(newKey:String) = @{
-
     var gOrder = ""
     if(currentKey == newKey){
         if(order == "asc"){
@@ -57,7 +56,7 @@
 	    		<tr>
 	    		    @header("#", "id")
 	    		    @header("제목", "title")
-	    		    <th>작성자</th>
+	    		    @header("글쓴이", "userId")
 	    		    @header("나이", "date")
 	    		</tr>
 	    	</thead>

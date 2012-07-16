@@ -15,7 +15,7 @@
     str += "<div class='pagination'><ul>"
     
     if(page.hasPrev){
-        str +=  "<li><a href=\"" + routes.BoardApp.boardList(page.getPageIndex) + "\">prev</a></li>"
+        str +=  "<li><a href=\"" + func(page.getPageIndex, order, key) + "\">prev</a></li>"
     } else {
         str += <li class="disabled"><a>prev</a></li>
     }
@@ -31,7 +31,7 @@
     }
     
     if(page.hasNext){
-           str += "<li><a href=\"" + routes.BoardApp.boardList(page.getPageIndex + 2)+ "\">Next</a></li>"
+           str += "<li><a href=\"" + func(page.getPageIndex + 2, order, key)+ "\">Next</a></li>"
     } else {
            str += <li class="disabled"><a>Next</a></li>
     }

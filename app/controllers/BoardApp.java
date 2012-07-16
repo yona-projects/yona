@@ -17,10 +17,8 @@ import views.html.board.*;
 public class BoardApp extends Controller {
 
     public static Result boardList(int pageNum, String order, String key) {
-        
-        return ok(postList.render("게시판", 
-                Post.findOnePage(pageNum, order, key),
-                order, key));
+
+        return ok(postList.render("게시판", Post.findOnePage(pageNum, order, key), order, key));
     }
 
     public static Result newPost() {
