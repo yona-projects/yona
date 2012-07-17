@@ -40,9 +40,10 @@ POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Lo
 
 
 #Issues
-GET     /issueList	                controllers.IssueApp.list(pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 5)
+GET     /issueList	                controllers.IssueApp.list(pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 0)
 GET		/issues/new					controllers.IssueApp.newIssue()
-#POST	/issues/new					controllers.IssueApp.saveIssue()
+POST	/issues/new					controllers.IssueApp.saveIssue()
 GET     /issues/:id                 controllers.IssueApp.issue(id:Long)
 POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long)
 GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long)
+GET		/issueList/excel			controllers.IssueApp.extractExcelFile()
