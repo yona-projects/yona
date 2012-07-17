@@ -1,5 +1,48 @@
-@(message: String, share: Boolean) 
+@(message: String, project: Project) 
 
 @main(message) {
-    Project Home
+
+    <div class="row-fluid">
+        <div class="span4">
+            <div class="well">
+                <div class="thumbnail">
+                @if(project.logoPath != null) {
+                    <img src="http://localhost:9000/assets/uploadFiles/@project.logoPath" alt="" width="234" height="168">
+                    
+                } else {
+                    <img src="@routes.Assets.at("images/project_image_default.jpg")" alt="" width="234" height="168">
+                }
+                </div>
+            </div>
+        </div>
+        <div class="span4">
+            <div class="well">
+                <h3>프로젝트 정보</h3>
+                <ul>
+                    <li>@project.overview</li>
+                    <li>@project.vcs</li>
+                    <li>@project.url</li>
+                    <li>@if(project.share_option){
+                        공개 프로젝트</li>
+                        } else {
+                        비공개 프로젝트</li>
+                        }
+                </ul>
+                
+                <p>
+            </div>
+        </div>
+        <div class="span4">
+            <div class="well">
+                <h3>프로젝트 인원</h3>
+                <!-- 일단 id로 처리. 차후 이름으로 변경. -->
+                <i class="icon-user"></i>@project.owner
+            </div>
+        </div>
+    </div>
+    
+    <!-- hero-unit을 사용할 수도 있음 -->
+    <div class="row-fluid">
+        wiki
+    </div>
 }

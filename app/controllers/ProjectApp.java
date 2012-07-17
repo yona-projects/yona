@@ -23,13 +23,7 @@ public class ProjectApp extends Controller {
     public static final String SETTING = "프로젝트 설정";
 
     public static Result project(Long id) {
-        Project project = Project.findById(id);
-        if(!project.share_option){
-            if(!UserApp.userId().equals(project.owner)) // 현재는 생성자 체크만 함. 차후에 참여자 체크도 넣어야함.
-                return ok(projectHome.render(PROJECT_HOME, false));
-            else return ok(projectHome.render(PROJECT_HOME, true));
-        }
-        return ok(projectHome.render(PROJECT_HOME, true));
+        return ok(projectHome.render(PROJECT_HOME, Project.findById(id)));
     }
 
     public static Result newProject() {
