@@ -32,11 +32,11 @@
             <thead>
                 <tr>
                     <td>
-                        <a href="@makeSortLink("versionName")">마일스톤 @sortMark("versionName")</a>
+                        <a href="@makeSortLink("title")">제목 @sortMark("title")</a>
                     </td>
-                    <td>특징</td>
+                    <td>내용</td>
                     <td>
-                        <a href="@makeSortLink("dueDate")">완료일 @sortMark("dueDate")</a>
+                        <a href="@makeSortLink("dueDate")">완료일 @sortMark("dueDateString")</a>
                     </td>
                     <td>
                         <a href="@makeSortLink("completionRate")">상태 @sortMark("completionRate")</a>
@@ -46,9 +46,11 @@
             <tbody>
             @for(milestone <- milestones){
                 <tr>
-                    <td>@milestone.versionName</td>
+                    <td>
+                        <a href="@routes.MilestoneApp.editMilestone(id,milestone.id)">@milestone.title</a>
+                    </td>
                     <td>@milestone.contents</td>
-                    <td>@milestone.getDueDate</td>
+                    <td>@milestone.getDueDateString</td>
                     <td>@completionRateName(milestone.completionRate)</td>
                 </tr>
         }

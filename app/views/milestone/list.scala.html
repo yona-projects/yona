@@ -48,8 +48,8 @@
             @for(milestone <- milestones){
             <tr>
                 <td>
-                    <h3><a href="@makeIssuesLink(milestone.id,"all")">@milestone.versionName</a><br /></h3>
-                    완료일 @milestone.getDueDate<br />
+                    <h3><a href="@makeIssuesLink(milestone.id,"all")">@milestone.title</a><br /></h3>
+                    완료일 @milestone.getDueDateString<br />
                     @milestone.contents
                 </td>
                 <td>

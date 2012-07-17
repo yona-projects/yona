@@ -3,8 +3,10 @@ package controllers;
 import models.Milestone;
 import models.enumeration.Direction;
 import models.enumeration.MilestoneState;
+import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
+import views.html.milestone.edit;
 import views.html.milestone.list;
 import views.html.milestone.manage;
 
@@ -44,11 +46,25 @@ public class MilestoneApp extends Controller {
         return ok(manage.render("마일스톤 관리", milestones, projectId, sort, direction));
     }
 
-    public static Result createMilestone() {
-        return TODO;
+    public static Result editMilestone(Long projectId, Long milestoneId) {
+        Milestone milestone = Milestone.findById(milestoneId);
+        Form<Milestone> editForm = new Form<Milestone>(Milestone.class).fill(milestone);
+        return ok(edit.render("마일스톤 수정", editForm, projectId, milestoneId));
     }
 
-    public static Result updateMilestone(Long id) {
+    public static Result updateMilestone(Long projectId, Long milestoneId) {
+        Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
+        if(milestoneForm.hasErrors()) {
+            return ok(edit.render("마일스톤 수정", milestoneForm, projectId, milestoneId));
+        } else {
+            Milestone existingMilestone = Milestone.findById(milestoneId);
+            existingMilestone.updateWith(milestoneForm.get());
+            Milestone.update(existingMilestone, milestoneId);
+            return redirect(routes.MilestoneApp.manageMilestones(projectId, "dueDate", Direction.ASC.name()));
+        }
+    }
+
+    public static Result createMilestone() {
         return TODO;
     }
 

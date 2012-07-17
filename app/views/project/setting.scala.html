@@ -28,7 +28,7 @@
                 
                 <div class="thumbnail">
                 @if(projectForm("logoPath").value != null) {
-                    <img src="http://localhost:9000/assets/uploadFiles/1.jpg" alt="" width="234" height="168">
+                    <img src="http://localhost:9000/assets/uploadFiles/@projectForm("logoPath").value" alt="" width="234" height="168">
                     
                 } else {
                     <img src="@routes.Assets.at("images/project_image_default.jpg")" alt="" width="234" height="168">
