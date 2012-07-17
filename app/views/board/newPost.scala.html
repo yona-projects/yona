@@ -1,6 +1,7 @@
 @(title:String, form:Form[Post])
 
 @import helper.twitterBootstrap._
+@implicitFieldConstructor = @{ helper.FieldConstructor(twitterBootstrapInput.render) } 
 
 @main(title) {
     @helper.form(action=routes.BoardApp.savePost(), 'enctype -> "multipart/form-data"){

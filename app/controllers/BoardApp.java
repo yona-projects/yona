@@ -101,7 +101,7 @@ public class BoardApp extends Controller {
 
             Post.edit(post);
         }
-        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
+        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID));
     }
 
     private static String saveFile(Request request) {
