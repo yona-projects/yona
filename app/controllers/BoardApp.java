@@ -30,8 +30,7 @@ public class BoardApp extends Controller {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
 
         if (postForm.hasErrors()) {
-            return ok(boardError.render("본문과 제목은 반드시 써야합니다.",
-                    routes.BoardApp.newPost()));
+            return ok(boardError.render("본문과 제목은 반드시 써야합니다.", routes.BoardApp.newPost()));
         } else {
             Post post = postForm.get();
             post.userId = UserApp.userId();
@@ -58,7 +57,6 @@ public class BoardApp extends Controller {
 
         if (commentForm.hasErrors()) {
             return ok(boardError.render("본문은 반드시 쓰셔야 합니다.", routes.BoardApp.post(postId)));
-
         } else {
             Comment comment = commentForm.get();
             comment.postId = postId;
