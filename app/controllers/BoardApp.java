@@ -30,7 +30,8 @@ public class BoardApp extends Controller {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
 
         if (postForm.hasErrors()) {
-            return ok("입력값이 잘못되었습니다.");
+            return ok(boardError.render("본문과 제목은 반드시 써야합니다.",
+                    routes.BoardApp.newPost()));
         } else {
             Post post = postForm.get();
             post.userId = UserApp.userId();
@@ -56,7 +57,7 @@ public class BoardApp extends Controller {
         Form<Comment> commentForm = new Form<Comment>(Comment.class).bindFromRequest();
 
         if (commentForm.hasErrors()) {
-            return TODO;
+            return ok(boardError.render("본문은 반드시 쓰셔야 합니다.", routes.BoardApp.post(postId)));
 
         } else {
             Comment comment = commentForm.get();
@@ -78,7 +79,12 @@ public class BoardApp extends Controller {
     public static Result editPost(Long postId) {
         Post exsitPost = Post.findById(postId);
         Form<Post> editForm = new Form<Post>(Post.class).fill(exsitPost);
-        return ok(editPost.render("게시물 수정", editForm, postId));
+
+        if (UserApp.userId() == exsitPost.userId) {
+            return ok(editPost.render("게시물 수정", editForm, postId));
+        } else {
+            return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(postId)));
+        }
     }
 
     public static Result updatePost(Long postId) {
