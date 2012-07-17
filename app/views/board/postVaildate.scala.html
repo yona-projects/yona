@@ -1,0 +1,26 @@
+<div class="modal hide fade" id="chk_vaildate">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal">×</button>
+    <h3>확인</h3>
+  </div>
+  <div class="modal-body alert alert-error">
+    <p>본문과 제목에 빈칸이 있습니다.</p>
+    <p>본문과 제목을 입력해 주세요</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" data-dismiss="modal">확인</a>
+  </div>
+</div>
+<script>
+$(document).ready(function(){
+    $("form").submit(function(){
+        if($("input#title").val() == "" || $("textarea#contents").val() == "")
+        {
+            $('#chk_vaildate').modal()
+            return false;
+        }
+        else
+            return true;
+    });
+})
+</script>
