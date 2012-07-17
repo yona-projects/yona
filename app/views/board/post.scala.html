@@ -61,6 +61,14 @@
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
 	}
 	</div>
+	<script>
+	   $("form").submit(function(){
+		  if($("textarea#contents").val() == "")
+			  return false;
+		  else
+			  return true;
+	   });
+	</script>
 </div>
 
 
