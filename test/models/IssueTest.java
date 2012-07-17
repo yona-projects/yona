@@ -49,42 +49,6 @@ public class IssueTest extends ModelTest {
         assertThat(Issue.findById(4l)).isNull();
     }
 
-//    @Test
-//    public void findByTitle() {
-//        // Given
-//        // When
-//        List<Issue> issueTest = Issue.findByTitle("git");
-//        // Then
-//        assertThat(issueTest).hasSize(2);
-//    }
-//
-//    @Test
-//    public void findOnePage() {
-//        // Given
-//        // When
-//        Page<Issue> issueTest = Issue.findOnePage(1);
-//        // Then
-//        assertThat(issueTest.getList().size()).isEqualTo(4);
-//    }
-
-//    @Test
-//    public void findOnlyOpenIssues() {
-//        // Given
-//        // When
-//        Page<Issue> issueTest = Issue.findOnlyOpenIssues(1);
-//        // Then
-//        assertThat(issueTest.getList().size()).isEqualTo(2);
-//    }
-//
-//    @Test
-//    public void findOnlyClosedIssues() {
-//        // Given
-//        // When
-//        Page<Issue> issueTest = Issue.findOnlyClosedIssues(1);
-//        // Then
-//        assertThat(issueTest.getList().size()).isEqualTo(2);
-//    }
-
     @Test
     public void page() {
         // Given
@@ -94,5 +58,15 @@ public class IssueTest extends ModelTest {
         assertThat(issues.getTotalRowCount()).isEqualTo(2);
         assertThat(issues.getList().size()).isEqualTo(2);
 
+    }
+
+    @Test
+    public void pageSearch() {
+        // Given
+        // When
+        Page<Issue> issues = Issue.page(0, 20, "statusType", "DESC", "메모리", 0);
+        // Then
+        assertThat(issues.getTotalRowCount()).isEqualTo(1);
+        assertThat(issues.getList().size()).isEqualTo(1);
     }
 }

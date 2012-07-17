@@ -1,3 +1,7 @@
+/**
+ * @author Taehyun Park
+ */
+
 package controllers;
 
 import java.io.File;
@@ -14,22 +18,25 @@ import com.avaje.ebean.Page;
 
 public class IssueApp extends Controller {
 
-    // public static Result issueList(int pageNum, int status) {
-    // Page<Issue> page = null;
-    // if (status == Issue.STATUS_OPEN) {
-    // page = Issue.findOnlyOpenIssues(pageNum);
-    // } else if (status == Issue.STATUS_CLOSED) {
-    // page = Issue.findOnlyClosedIssues(pageNum);
-    // } else if (status == Issue.STATUS_NONE) {
-    // page = Issue.findOnePage(pageNum);
-    // } else {
-    // page = Issue.findOnePage(pageNum);
-    // }
-    //
-    // return ok(issueList.render("이슈", page));
-    // }
+    /**
+     * Display the paginated list of issues.
+     * 
+     * @param page
+     *            Current page number (starts from 0)
+     * @param sortBy
+     *            Column to be sorted
+     * @param order
+     *            Sort order (either asc or desc)
+     * @param filter
+     *            Filter applied on issue names
+     */
+    public static Result list(int page, String sortBy, String order,
+            String filter, int status) {
+        return ok(issueList.render("이슈",
+                Issue.page(page, 10, sortBy, order, filter, status), sortBy,
+                order, filter, status));
+    }
 
-    // TODO 이것 수정할것.
     public static Result saveIssue() {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
 
@@ -81,25 +88,6 @@ public class IssueApp extends Controller {
         return redirect(routes.IssueApp.list(0, "id", "DESC", "", 5));
     }
 
-    /**
-     * Display the paginated list of issues.
-     * 
-     * @param page
-     *            Current page number (starts from 0)
-     * @param sortBy
-     *            Column to be sorted
-     * @param order
-     *            Sort order (either asc or desc)
-     * @param filter
-     *            Filter applied on computer names
-     */
-    public static Result list(int page, String sortBy, String order,
-            String filter, int status) {
-        return ok(issueList.render("이슈",
-                Issue.page(page, 10, sortBy, order, filter, status), sortBy,
-                order, filter, status));
-    }
-
     public static Result saveComment(Long issueId) {
         Form<IssueComment> commentForm = new Form<IssueComment>(
                 IssueComment.class).bindFromRequest();
@@ -129,5 +117,11 @@ public class IssueApp extends Controller {
             return redirect(routes.IssueApp.issue(issueId));
         }
     }
+    
+    public static Result extractExcelFile(){
+        return TODO;
+    }
+  
+
 
 }
