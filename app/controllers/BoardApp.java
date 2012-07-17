@@ -73,7 +73,7 @@ public class BoardApp extends Controller {
 
     public static Result delete(Long postId) {
         Post.delete(postId);
-        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDER_DESCENDING));
+        return redirect(routes.BoardApp.boardList(1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID));
     }
 
     public static Result editPost(Long postId) {
