@@ -1,0 +1,15 @@
+@(title:String, form:Form[Milestone], projectId:Long)
+
+@import helper.twitterBootstrap._
+
+@main(title) {
+    @helper.form(action=routes.MilestoneApp.createMilestone(projectId)){
+        @helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
+        @helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
+        @helper.input(form("dueDate"), '_showConstraints -> false, '_label->"완료일") { (id, name, value, args) =>
+            <input type="text" name="@name" value="@value" id="dueDate" />
+        }
+        <a href="@routes.MilestoneApp.manageMilestones(projectId)" class="btn">취소</a>
+        <input type="submit" class="btn btn-primary" value="추가"/>
+    }
+}
