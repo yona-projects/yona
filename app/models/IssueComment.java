@@ -1,3 +1,8 @@
+
+/**
+ * @author Taehyun Park
+ */
+
 package models;
 
 import java.util.Date;

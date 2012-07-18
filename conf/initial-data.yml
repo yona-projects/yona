@@ -96,7 +96,7 @@ projects:
 # Milestone
 milestones:
     - !!models.Milestone
-        versionName:     v.0.1
+        title:           v.0.1
         dueDate:         2012-07-12 10:59:59
         contents:        nFORGE 첫번째 버전.
         numClosedIssues: 10
@@ -105,7 +105,7 @@ milestones:
         projectId:       1
         completionRate:  100
     - !!models.Milestone
-        versionName:     v.0.2
+        title:           v.0.2
         dueDate:         2012-07-19 10:59:59
         contents:        nFORGE 두번째 버전 (Stable).
         numClosedIssues: 1
@@ -114,7 +114,7 @@ milestones:
         projectId:       1
         completionRate:  9
     - !!models.Milestone
-        versionName:     v.1.0.0
+        title:           v.1.0.0
         dueDate:         2011-08-10 10:59:59
         contents:        Jindo 안정화 버전
         numClosedIssues: 100
@@ -123,7 +123,7 @@ milestones:
         projectId:       2
         completionRate:  100
     - !!models.Milestone
-        versionName:     v.2.0.0
+        title:           v.2.0.0
         dueDate:         2012-04-11 10:59:59
         contents:        Jindo2
         numClosedIssues: 88
@@ -132,7 +132,7 @@ milestones:
         projectId:       2
         completionRate:  100
     - !!models.Milestone
-        versionName:     v.3.0.0
+        title:           v.3.0.0
         dueDate:         2012-12-14 10:59:59
         contents:        Jindo3
         numClosedIssues: 99
@@ -141,7 +141,7 @@ milestones:
         projectId:       2
         completionRate:  99
     - !!models.Milestone
-        versionName:     v.3.0.1
+        title:           v.3.0.1
         dueDate:         2012-12-31 10:59:59
         contents:        Jindo3 안정화버전
         numClosedIssues: 0
@@ -150,7 +150,7 @@ milestones:
         projectId:       2
         completionRate:  0
     - !!models.Milestone
-        versionName:     v.0.3
+        title:           v.0.3
         dueDate:         2012-09-09 10:59:59
         contents:        nFORGE 3번째 버전.
         numClosedIssues: 1

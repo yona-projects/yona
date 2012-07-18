@@ -29,9 +29,9 @@ public class Milestone extends Model {
     @Id
     public Long id;
     @Constraints.Required
-    public String versionName;
+    public String title;
     @Constraints.Required
-    @Formats.DateTime(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
     @Constraints.Required
     public String contents;
@@ -73,19 +73,38 @@ public class Milestone extends Model {
         return find.byId(id);
     }
 
+    /**
+     * 해당 프로젝트의 전체 마일스톤들을 찾아줍니다.
+     * @param projectId
+     * @return
+     */
     public static List<Milestone> findByProjectId(Long projectId) {
         return Milestone.findMilestones(projectId, MilestoneState.ALL);
     }
 
+    /**
+     * 완료된 마일스톤들을 찾아 줍니다.
+     * @param projectId
+     * @return
+     */
     public static List<Milestone> findClosedMilestones(Long projectId) {
         return Milestone.findMilestones(projectId, MilestoneState.CLOSED);
     }
 
+    /**
+     * 미완료된 마일스톤들을 찾아 줍니다.
+     * @param projectId
+     * @return
+     */
     public static List<Milestone> findOpenMilestones(Long projectId) {
         return Milestone.findMilestones(projectId, MilestoneState.OPEN);
     }
 
-    public String getDueDate() {
+    /**
+     * 완료일을 yyyy-MM-dd 형식의 문자열로 변환시킵니다.
+     * @return
+     */
+    public String getDueDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(this.dueDate);
     }
@@ -127,5 +146,11 @@ public class Milestone extends Model {
                 break;
         }
         return FinderTemplate.findBy(orderParams, searchParams, find);
+    }
+
+    public void updateWith(Milestone newMilestone) {
+        this.contents = newMilestone.contents;
+        this.title = newMilestone.title;
+        this.dueDate = newMilestone.dueDate;
     }
 }

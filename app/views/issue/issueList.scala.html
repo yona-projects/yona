@@ -3,7 +3,7 @@
 @****************************************
 * Helper generating navigation links    *
 ****************************************@
-@link(newPage:Int, newSortBy:String) = @{
+@link(newPage:Int, newSortBy:String, status:Int) = @{
     
     var sortBy = currentSortBy
     var order = currentOrder
@@ -31,7 +31,7 @@
 ***********************************@
 @header(key:String, title:String) = {
     <th class="@key.replace(".","_") header @if(currentSortBy == key) @{if(currentOrder == "asc") "headerSortDown" else "headerSortUp"}">
-        <a href="@link(0, key)">@title</a>
+        <a href="@link(0, key, status)">@title</a>
     </th>
 }
 
@@ -43,14 +43,18 @@
 				<label class="control-label" for="selectMilestone"></label>
 				<a class="controls">
 					<select id="selectMilestone">
-					<option>마일스톤</option>
-					<option>마일스톤3</option>
-				</select>
+						<option>마일스톤</option>
+						<option>마일스톤3</option>
+					</select>
 				</a>
-				<label class="control-label" for="searchIssueButton">검색</label>
-				<input type="search" id="searchbox" name="f" value"@currentFilter" placeholder="Search by issue name...">
-				<button type="submit" class="btn"><i class="icon-search"></i></button>
-				<a class="btn btn-primary" href="@routes.IssueApp.newIssue()" >새 이슈</a>
+				<form action="@link(0, "name",status)" method="GET">
+					<label class="control-label" for="searchIssueButton">검색</label>
+					<input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Search by issue title...">
+					<button type="submit" id="searchsubmit" class="btn">
+						<i class="icon-search"></i>
+					</button>
+					<a class="btn btn-primary" href="@routes.IssueApp.newIssue()" >새 이슈</a>
+				</form>
 			</form>
 		</div>
 	</div>
@@ -62,6 +66,24 @@
 		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 5)">미해결</a></li>
 		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 6)">해결</a></li>
 	</ul>
+
+	<div class="pull-right">
+          <div class="control-group">
+            <label class="control-label" for="inlineCheckboxes"></label>
+            <div class="controls">
+              <label class="checkbox inline">
+                <input type="checkbox" id="fineOnlyCommented" value="fineOnlyCommented"> 댓글
+              </label>
+              <label class="checkbox inline">
+                <input type="checkbox" id="fineOnlyFileattached" value="fineOnlyFileattached"> 첨부파일
+              </label>
+              <label class="checkbox inline">
+               <a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
+           </label>
+            </div>
+          </div>
+</div>
+
 	@if(currentPage.getTotalRowCount == 0){
 
 		<div class="well">
@@ -95,11 +117,13 @@
 		</tbody>
 	</table>
 
-	<div id="pagination" class="pagination">
+	<div class="row">
+		<div class="span6 offset4">
+			<div id="pagination" class="pagination">
             <ul>
                 @if(currentPage.hasPrev) {
                     <li class="prev">
-                        <a href="@link(currentPage.getPageIndex - 1, null)">&larr; Previous</a>
+                        <a href="@link(currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
                     </li>
                 } else {
                     <li class="prev disabled">
@@ -111,7 +135,7 @@
                 </li>
                 @if(currentPage.hasNext) {
                     <li class="next">
-                        <a href="@link(currentPage.getPageIndex + 1, null)">Next &rarr;</a>
+                        <a href="@link(currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
                     </li>
                 } else {
                     <li class="next disabled">
@@ -119,6 +143,13 @@
                     </li>
                 }
             </ul>
+        	</div>
+   		</div>
+		<div class="span2">
+            <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
         </div>
+	</div>
+</div>
+	
 
 	} }

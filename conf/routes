@@ -31,18 +31,20 @@ POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
 GET 	/project/:id/delete    		controllers.ProjectApp.deleteProject(id:Long)
 
 #Milestones
-GET     /project/:pId/milestones        controllers.MilestoneApp.milestones(pId:Long, state ?= "open", sort ?= "dueDate", direction ?= "asc")
-GET     /project/:pId/milestones/manage controllers.MilestoneApp.manageMilestones(pId:Long, sort ?= "dueDate", direction ?= "asc")
-GET		/project/:pId/milestones/new    controllers.MilestoneApp.newMilestone(pId:Long)
-POST	/milestones/new				    controllers.MilestoneApp.createMilestone()
-POST	/milestones/:id/save		    controllers.MilestoneApp.updateMilestone(id: Long)
-POST	/milestones/:id/delete		    controllers.MilestoneApp.deleteMilestone(id: Long)
+GET     /project/:pId/milestones            controllers.MilestoneApp.milestones(pId:Long, state ?= "open", sort ?= "dueDate", direction ?= "asc")
+GET     /project/:pId/milestones/manage     controllers.MilestoneApp.manageMilestones(pId:Long, sort ?= "dueDate", direction ?= "asc")
+GET		/project/:pId/milestones/new        controllers.MilestoneApp.newMilestone(pId:Long)
+POST	/milestones/new				        controllers.MilestoneApp.createMilestone()
+POST	/project/:pId/milestones/:id/save	controllers.MilestoneApp.updateMilestone(pId:Long, id: Long)
+POST	/milestones/:id/delete		        controllers.MilestoneApp.deleteMilestone(id: Long)
+GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilestone(pId:Long, id: Long)
 
 
 #Issues
-GET     /issueList	                controllers.IssueApp.list(pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 5)
+GET     /issueList	                controllers.IssueApp.list(pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 0)
 GET		/issues/new					controllers.IssueApp.newIssue()
-#POST	/issues/new					controllers.IssueApp.saveIssue()
+POST	/issues/new					controllers.IssueApp.saveIssue()
 GET     /issues/:id                 controllers.IssueApp.issue(id:Long)
 POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long)
 GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long)
+GET		/issueList/excel			controllers.IssueApp.extractExcelFile()

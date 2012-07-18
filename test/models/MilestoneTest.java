@@ -20,7 +20,7 @@ public class MilestoneTest extends ModelTest {
         newMilestone.numOpenIssues = 0;
         newMilestone.numTotalIssues = 0;
         newMilestone.projectId = 100l;
-        newMilestone.versionName = "0.1";
+        newMilestone.title = "0.1";
         newMilestone.completionRate = 0;
         //When
         Milestone.create(newMilestone);
@@ -34,7 +34,7 @@ public class MilestoneTest extends ModelTest {
         //When
         Milestone firstMilestone = Milestone.findById(1l);
         //Then
-        assertThat(firstMilestone.versionName).isEqualTo("v.0.1");
+        assertThat(firstMilestone.title).isEqualTo("v.0.1");
         assertThat(firstMilestone.contents).isEqualTo("nFORGE 첫번째 버전.");
 
         Calendar expactDueDate = new GregorianCalendar();
@@ -71,7 +71,7 @@ public class MilestoneTest extends ModelTest {
         //Given
         Milestone updateMilestone = new Milestone();
         updateMilestone.contents = "엔포지 첫번째 버전.";
-        updateMilestone.versionName = "1.0.0-SNAPSHOT";
+        updateMilestone.title = "1.0.0-SNAPSHOT";
         updateMilestone.numClosedIssues = 10;
         updateMilestone.numOpenIssues = 1;
         updateMilestone.numTotalIssues = 11;
@@ -80,7 +80,7 @@ public class MilestoneTest extends ModelTest {
         //Then
         Milestone actualMilestone = Milestone.findById(2l);
         assertThat(actualMilestone.contents).isEqualTo(updateMilestone.contents);
-        assertThat(actualMilestone.versionName).isEqualTo(updateMilestone.versionName);
+        assertThat(actualMilestone.title).isEqualTo(updateMilestone.title);
         assertThat(actualMilestone.numClosedIssues).isEqualTo(10);
         assertThat(actualMilestone.numOpenIssues).isEqualTo(1);
         assertThat(actualMilestone.numTotalIssues).isEqualTo(11);
@@ -179,19 +179,19 @@ public class MilestoneTest extends ModelTest {
     }
 
     @Test
-    public void getDueDate() throws Exception {
+    public void getDueDateString() throws Exception {
         //Given
         //When
         Milestone m1 = Milestone.findById(1l);
         //Then
-        String m1DueDate = m1.getDueDate();
+        String m1DueDate = m1.getDueDateString();
         assertThat(m1DueDate).isEqualTo("2012-07-12");
 
         //Given
         //When
         Milestone m4 = Milestone.findById(4l);
         //Then
-        String m4DueDate = m4.getDueDate();
+        String m4DueDate = m4.getDueDateString();
         assertThat(m4DueDate).isEqualTo("2012-04-11");
     }
 

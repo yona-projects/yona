@@ -1,3 +1,6 @@
+/**
+ * @author Taehyun Park
+ */
 package models;
 
 import java.util.Date;
@@ -33,10 +36,10 @@ public class Issue extends Model {
     public static final int DEFECTTYPE_WORST = 1; // 치명결함
     public static final int DEFECTTYPE_WORSE = 2; // 중결함
     public static final int DEFECTTYPE_BAD = 3; // 경결함
-    public static final int DEFECTTYPE_IMPROVEMENT = 4; // 단순개선
+    public static final int DEFECTTYPE_SIMPLEIMPROVEMENT = 4; // 단순개선
     public static final int DEFECTTYPE_RECOMMENDATION = 5; // 권고사항
 
-    public static final int numIssueOnePage = 25;
+    public static final int numIssuePerPage = 25;
 
     /**
      * @ userId : 글쓴이 title 제목 body 이슈 내용 status statusType date issueType
@@ -60,6 +63,7 @@ public class Issue extends Model {
     @ManyToOne
     public User responsibleMemberId; // 담당자
     public String comp; // 컴포넌트
+    @ManyToOne
     public Milestone milestone; // 적용된 마일스톤
     public int importance;// 중요도
     public int diagnosisType;// 진단유형
@@ -67,7 +71,6 @@ public class Issue extends Model {
     // TODO 첨부 파일이 여러개인경우는?
     public String filePath;
 
-    // TODO 코멘트 카운트 0으로 초기값잡는거 controller 세이브이슈에서 해줄것.
     public Issue() {
         this.date = JodaDateUtil.today();
         this.commentCount = 0;
@@ -108,31 +111,8 @@ public class Issue extends Model {
         IssueComment.deleteByIssueId(id);
     }
 
-    public static Issue findById(Long id) {
-        return find.byId(id);
-    }
-
-    // public static List<Issue> findByTitle(String keyword) {
-    // return find.where().contains("title", keyword).findList();
-    // }
-    //
-    // public static Page<Issue> findOnlyOpenIssues(int pageNum) {
-    // ExpressionFactory exprFactory = find.getExpressionFactory();
-    //
-    // return find
-    // .where()
-    // .or(exprFactory.eq("status", STATUS_ENROLLED),
-    // exprFactory.eq("status", STATUS_ASSINGED))
-    // .findPagingList(numIssueOnePage).getPage(pageNum - 1);
-    // }
-    //
-    // public static Page<Issue> findOnePage(int pageNum) {
-    // return find.orderBy("id desc").findPagingList(numIssueOnePage)
-    // .getPage(pageNum - 1);
-    // }
-
     /**
-     * Return a page of computer
+     * Return a page of Issues
      * 
      * @param page
      *            Page to display
@@ -144,32 +124,32 @@ public class Issue extends Model {
      *            Sort order (either or asc or desc)
      * @param filter
      *            Filter applied on the title column
-     * @param status
+     * @param statusType
+     *            status type of issue(OPEN or CLOSED), '0' means ALL
      * 
      */
     public static Page<Issue> page(int page, int pageSize, String sortBy,
             String order, String filter, int statusType) {
-        Page<Issue> pageIssue = null;
+        Page<Issue> pageIssues = null;
         if (statusType == 0) {
-            pageIssue = find.where().ilike("title", "%" + filter + "%")
+            pageIssues = find.where().ilike("title", "%" + filter + "%")
                     .orderBy(sortBy + " " + order).findPagingList(pageSize)
                     .getPage(page);
         } else {
-            pageIssue = find.where().ilike("title", "%" + filter + "%")
-                    .eq("statusType", statusType).orderBy(sortBy + " " + order)
-                    .findPagingList(pageSize).getPage(page);
+            pageIssues = find.where().eq("statusType", statusType)
+                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
+                    .getPage(page);
         }
-        return pageIssue;
-        // return find.where().ilike("title", "%" + filter + "%")
-        // .eq("statusType", statusType).orderBy(sortBy + " " + order)
-        // .findPagingList(pageSize).getPage(page);
+        return pageIssues;
     }
 
-    // public static Page<Issue> findAll(int page, int pageSize, String sortBy,
-    // String order, String filter, int statusType) {
-    // return find.orderBy("id desc").findPagingList(numIssueOnePage)
-    // .getPage(pageNum - 1);
-    // }
+    public static Issue findById(Long id) {
+        return find.byId(id);
+    }
+
+    public static List<Issue> findByTitle(String keyword) {
+        return find.where().contains("title", keyword).findList();
+    }
 
     // public static Page<Issue> findOnlyClosedIssues(int pageNum) {
     // ExpressionFactory exprFactory = find.getExpressionFactory();
@@ -186,14 +166,5 @@ public class Issue extends Model {
         issue.commentCount++;
         issue.update();
     }
-
-    // public static Page<Issue> findOnlyCommentedIssues(){
-    //
-    // }
-    // public static Page<Issue> findOnlyAttachedFileIssues(){
-    // }
-    //
-    //
-    //
 
 }
