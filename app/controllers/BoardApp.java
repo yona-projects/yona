@@ -80,8 +80,8 @@ public class BoardApp extends Controller {
 
         if (UserApp.userId() == exsitPost.userId) {
             return ok(editPost.render("게시물 수정", editForm, postId));
-        } else {
-            return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(postId)));
+        } else { 
+            return ok(boardError.render("게시글 수정은 글쓴이 혹은 관리자만이 가능합니다.", routes.BoardApp.post(postId)));
         }
     }
 
@@ -89,7 +89,7 @@ public class BoardApp extends Controller {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
 
         if (postForm.hasErrors()) {
-            return ok("입력값이 잘못되었습니다.");
+            return ok(boardError.render("본문과 제목은 반드시 써야 합니다.", routes.BoardApp.editPost(postId)));
         } else {
 
             Post post = postForm.get();
@@ -111,7 +111,8 @@ public class BoardApp extends Controller {
             File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
             filePart.getFile().renameTo(saveFile);
             return filePart.getFilename();
+        } else {
+            return null;
         }
-        return null;
     }
 }
