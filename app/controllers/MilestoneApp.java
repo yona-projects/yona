@@ -9,6 +9,7 @@ import play.mvc.Result;
 import views.html.milestone.edit;
 import views.html.milestone.list;
 import views.html.milestone.manage;
+import views.html.milestone.create;
 
 import java.util.List;
 
@@ -24,18 +25,19 @@ public class MilestoneApp extends Controller {
     }
 
     public static Result newMilestone(Long projectId) {
-        return TODO;
-        /*
-          Form<Milestone> filledForm = milestoneForm.bindFromRequest();
-          if(filledForm.hasErrors()){
-              return badRequest(
-                      index.render(Milestone.all(), filledForm)
-                      );
-          }else{
-              Milestone.create(filledForm.get());
-              return redirect(routes.MilestoneApp.milestoneList());
-          }
-          */
+        return ok(create.render("새 마일스톤", new Form<Milestone>(Milestone.class), projectId));
+    }
+
+    public static Result createMilestone(Long projectId) {
+        Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
+        if(milestoneForm.hasErrors()) {
+            return ok(create.render("새 마일스톤", milestoneForm, projectId));
+        } else {
+            Milestone newMilestone = milestoneForm.get();
+            newMilestone.projectId = projectId;
+            Milestone.create(newMilestone);
+            return redirect(routes.MilestoneApp.manageMilestones(projectId, "dueDate", Direction.ASC.name()));
+        }
     }
 
     public static Result manageMilestones(Long projectId, String sort, String direction) {
@@ -64,11 +66,8 @@ public class MilestoneApp extends Controller {
         }
     }
 
-    public static Result createMilestone() {
-        return TODO;
-    }
-
-    public static Result deleteMilestone(Long id) {
-        return TODO;
+    public static Result deleteMilestone(Long pId, Long id) {
+        Milestone.delete(id);
+        return redirect(routes.MilestoneApp.manageMilestones(pId, "dueDate", Direction.ASC.name()));
     }
 }
