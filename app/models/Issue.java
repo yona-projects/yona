@@ -75,7 +75,7 @@ public class Issue extends Model {
     @ManyToOne
     public Milestone milestone; // 적용된 마일스톤
     public int importance;// 중요도
-    public int diagnosisType;// 진단유형
+    public int diagnosisResult;// 진단유형
     public int commentCount;
     // TODO 첨부 파일이 여러개인경우는?
     public String filePath;
