@@ -7,10 +7,6 @@ object ApplicationBuild extends Build {
     val appName         = "nforge4"
     val appVersion      = "1.0-SNAPSHOT"
 
-    resolvers += (
-      "jgit-repository" at "http://download.eclipse.org/jgit/maven"
-    )
-
     val appDependencies = Seq(
       // Add your project dependencies here,
       "mysql" % "mysql-connector-java" % "5.1.18",
@@ -21,7 +17,10 @@ object ApplicationBuild extends Build {
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
-      // Add your own project settings here      
+      // Add your own project settings here
+      resolvers += (
+      "jgit-repository" at "http://download.eclipse.org/jgit/maven"
+      )
     )
 
 }

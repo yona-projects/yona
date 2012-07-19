@@ -48,3 +48,8 @@ GET     /issues/:id                 controllers.IssueApp.issue(id:Long)
 POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long)
 GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long)
 GET		/issueList/excel			controllers.IssueApp.extractExcelFile()
+
+
+#scm
+GET     /git/*path                  controllers.GitApp.get(path:String)
+POST    /git/*path                  controllers.GitApp.post(path:String)

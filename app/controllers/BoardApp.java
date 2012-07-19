@@ -14,6 +14,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Http.Request;
 import views.html.board.*;
+import org.eclipse.jgit.http.server.*;
 
 public class BoardApp extends Controller {
 
