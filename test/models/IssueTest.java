@@ -53,7 +53,9 @@ public class IssueTest extends ModelTest {
     public void page() {
         // Given
         // When
-        Page<Issue> issues = Issue.page(0, 20, "id", "DESC", "", 5);
+        Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER, Issue.ISSUE_COUNT_PER_PAGE,
+                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
+                Issue.STATUS_NONE);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(2);
         assertThat(issues.getList().size()).isEqualTo(2);
@@ -64,7 +66,9 @@ public class IssueTest extends ModelTest {
     public void pageSearch() {
         // Given
         // When
-        Page<Issue> issues = Issue.page(0, 20, "statusType", "DESC", "메모리", 0);
+        Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER, Issue.ISSUE_COUNT_PER_PAGE,
+                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "메모리",
+                Issue.STATUS_NONE);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
         assertThat(issues.getList().size()).isEqualTo(1);

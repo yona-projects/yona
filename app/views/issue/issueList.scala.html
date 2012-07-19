@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], currentSortBy: String, currentOrder: String, currentFilter: String, status: Int)
+@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: Int)
 
 @****************************************
 * Helper generating navigation links    *
@@ -22,7 +22,7 @@
     }
     
     // Generate the link
-    routes.IssueApp.list(newPage, sortBy, order, currentFilter, status)
+    routes.IssueApp.list(projectId, newPage, sortBy, order, currentFilter, status)
     
 }
 
@@ -41,6 +41,7 @@
 		<div class="pull-right">
 			<form class="form-search form-inline">
 				<label class="control-label" for="selectMilestone"></label>
+<!--TODO Options으로 바꿀것-->
 				<a class="controls">
 					<select id="selectMilestone">
 						<option>마일스톤</option>
@@ -53,7 +54,7 @@
 					<button type="submit" id="searchsubmit" class="btn">
 						<i class="icon-search"></i>
 					</button>
-					<a class="btn btn-primary" href="@routes.IssueApp.newIssue()" >새 이슈</a>
+					<a class="btn btn-primary" href="@routes.IssueApp.newIssue(projectId)" >새 이슈</a>
 				</form>
 			</form>
 		</div>
@@ -62,9 +63,9 @@
 
 <div>
 	<ul class="nav nav-tabs" id="issue_list">
-		<li class="@if(status.equals(0)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 0)">전체</a></li>
-		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 5)">미해결</a></li>
-		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(0, "id", "DESC", "", 6)">해결</a></li>
+		<li class="@if(status.equals(0)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 0)">전체</a></li>
+		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 5)">미해결</a></li>
+		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 6)">해결</a></li>
 	</ul>
 
 	<div class="pull-right">
@@ -92,6 +93,7 @@
 
 	}else{
 
+
 		<table class="table">
 			<thead>
 				<tr>
@@ -108,7 +110,7 @@
 					<tr>
 						<td>@issue.id</td>
 						<td>@issue.status()</td>
-						<td><a href="@routes.IssueApp.issue(issue.id)">@issue.title [@issue.commentCount]</a></td>
+						<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title [@issue.commentCount]</a></td>
 						<td>
 							@if(issue.responsibleMember == null){
 							<em>미배정</em>						

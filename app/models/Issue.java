@@ -10,30 +10,26 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import org.h2.expression.ExpressionList;
-
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import com.avaje.ebean.ExpressionFactory;
 import com.avaje.ebean.Page;
 
 @Entity
 public class Issue extends Model {
     private static final long serialVersionUID = 1L;
-    
-    
+
     public final static String ORDERBY_ASCENDING = "asc";
     public final static String ORDERBY_DESCENDING = "desc";
 
     public final static String SORTBY_ID = "id";
     public final static String SORTBY_TITLE = "title";
     public final static String SORTBY_AGE = "date";
-    
+
     public final static int FIRST_PAGE_NUMBER = 0;
-    
+
     public static final int STATUS_ENROLLED = 1; // 등록
     public static final int STATUS_ASSINGED = 2; // 진행중
     public static final int STATUS_SOLVED = 3; // 해결
@@ -63,6 +59,7 @@ public class Issue extends Model {
     public String title; // 제목
     @Constraints.Required
     public String body; // 글 내용
+    public Long projectId;
     public int status; // 이슈 상태
     public int statusType;
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
@@ -83,7 +80,7 @@ public class Issue extends Model {
     public String osType;
     public String browserType;
     public String dbmsType;
-    
+
     public Issue() {
         this.date = JodaDateUtil.today();
         this.commentCount = 0;
@@ -127,7 +124,7 @@ public class Issue extends Model {
     /**
      * Return a page of Issues
      * 
-     * @param page
+     * @param pageNum
      *            Page to display
      * @param pageSize
      *            Number of issues per page
@@ -141,17 +138,17 @@ public class Issue extends Model {
      *            status type of issue(OPEN or CLOSED), '0' means ALL
      * 
      */
-    public static Page<Issue> page(int page, int pageSize, String sortBy,
-            String order, String filter, int statusType) {
+    public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
+            String sortBy, String order, String filter, int statusType) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
             pageIssues = find.where().ilike("title", "%" + filter + "%")
-                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
-                    .getPage(page);
+                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
+                    .findPagingList(pageSize).getPage(pageNum);
         } else {
             pageIssues = find.where().eq("statusType", statusType)
-                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
-                    .getPage(page);
+                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
+                    .findPagingList(pageSize).getPage(pageNum);
         }
         return pageIssues;
     }

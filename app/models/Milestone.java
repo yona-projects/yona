@@ -162,11 +162,13 @@ public class Milestone extends Model {
 
     /**
      * 마일스톤의 목록을 제공합니다.
+     * 
      * @return
      */
-    public static Map<String, String> options() {
+    public static Map<String, String> options(Long projectId) {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
-        for (Milestone milestone : Milestone.find.orderBy("title").findList()) {
+        for (Milestone milestone : Milestone.find.where()
+                .eq("projectId", projectId).orderBy("title").findList()) {
             options.put(milestone.id.toString(), milestone.title);
         }
         return options;

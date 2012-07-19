@@ -1,12 +1,12 @@
-@(issue:Issue, comments:List[IssueComment], commentForm:Form[IssueComment])
+@(title:String, issue:Issue, projectId:Long, comments:List[IssueComment], commentForm:Form[IssueComment])
 
-@main("상세보기"){
+@main(title){
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
 	        <a class="btn btn-primary" href="">수정</a>
 	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
-	        <a class="btn" href="@routes.IssueApp.list(20, "name", "ASC", "")">목록</a>
+	        <a class="btn" href="@routes.IssueApp.list(projectId, 0, "", "", "", 0)">목록</a>
 	    </div>
 	</div>
 </div>
@@ -53,7 +53,7 @@
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div class="row">
-	@helper.form(routes.IssueApp.saveComment(issue.id), 'enctype -> "multipart/form-data"){
+	@helper.form(routes.IssueApp.saveComment(issue.id, projectId), 'enctype -> "multipart/form-data"){
 		<div class="span12">@helper.textarea(commentForm("contents"))</div>
 		<div class="span6">@helper.inputFile(commentForm("filePath"))</div>		
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
@@ -73,7 +73,7 @@
     <p>그래도 삭제하시겠습니까?</p>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="@routes.IssueApp.delete(issue.id)">예</a>
+    <a class="btn btn-primary" href="@routes.IssueApp.delete(issue.id, projectId)">예</a>
     <a href="#" class="btn" data-dismiss="modal">아니오</a>
   </div>
 </div>
