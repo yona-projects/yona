@@ -210,9 +210,9 @@ public class MilestoneTest extends ModelTest {
     public void options() {
         // Given
         // When
-        Map<String, String> milestoneOptions = Milestone.options();
+        Map<String, String> milestoneOptions = Milestone.options(1l);
         // Then
-        assertThat(milestoneOptions).hasSize(7);
+        assertThat(milestoneOptions).hasSize(3);
     }
 
 }

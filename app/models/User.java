@@ -39,12 +39,11 @@ public class User extends Model {
         return find.byId(id).name;
     }
 
-    public static Map<String, String> options(Long projectId) {
+    public static Map<String, String> options() {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
-        for (User user : User.find.where().eq("projectId", projectId).orderBy("name").findList()) {
+        for (User user : User.find.orderBy("name").findList()) {
             options.put(user.id.toString(), user.name);
         }
         return options;
     }
-
 }
