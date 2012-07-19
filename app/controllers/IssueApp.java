@@ -41,10 +41,8 @@ public class IssueApp extends Controller {
     public static Result saveIssue() {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
 
-        
-        // TODO 마일스톤 모델로부터 리스트를 불러와서 선택해야할듯.
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render("에러났슈", issueForm));
+            return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.userId = UserApp.userId();

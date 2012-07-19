@@ -98,7 +98,7 @@
 					@header("id", "#")
 					@header("status", "상태")
 					@header("title", "제목")
-					@header("responsibleMemberId", "담당자")
+					@header("responsibleMember.name", "담당자")
 					@header("date", "작성일")
 				</tr>
 			</thead>
@@ -109,7 +109,13 @@
 						<td>@issue.id</td>
 						<td>@issue.status()</td>
 						<td><a href="@routes.IssueApp.issue(issue.id)">@issue.title [@issue.commentCount]</a></td>
-						<td>@issue.responsibleMemberId</td>
+						<td>
+							@if(issue.responsibleMember == null){
+							<em>미배정</em>						
+						} else {
+							@issue.responsibleMember.name
+						}
+						</td>
 						<td>@issue.date.format("dd MMM yyyy")</td>
 
 			</tr>

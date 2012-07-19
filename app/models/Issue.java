@@ -70,7 +70,7 @@ public class Issue extends Model {
     // 세부정보
     public int issueType; // 이슈유형
     @ManyToOne
-    public User responsibleMemberId; // 담당자
+    public User responsibleMember; // 담당자
     public String componentName; // 컴포넌트
     @ManyToOne
     public Milestone milestone; // 적용된 마일스톤

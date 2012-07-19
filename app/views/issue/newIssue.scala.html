@@ -47,22 +47,24 @@
 				    					"3"->"경결함", 
 				    					"4"->"단순개선", 
 				    					"5"->"권고사항"),
-				    		'_label-> "유형 : ")
+				    		'_label-> "유형 : ",
+				    		'_showConstraints -> false)
 				    	@select(
-				    		issueForm("responsibleMemeberId"), 
-				    		options = options(
-				    					"1"->"user1"),
-				    		'_label-> "담당자 : ")
+				    		issueForm("responsibleMemeber.id"), 
+				    		options(User.options),
+				    		'_label-> "담당자 : ",
+				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("componentName"), 
 				    		options = options(
 				    					"컴포넌트"->"Component id 1"),
-				    		'_label-> "컴포넌트 : ")
+				    		'_label-> "컴포넌트 : ",
+				    		'_showConstraints -> false)
 				    	@select(
-				    		issueForm("milestone"), 
-				    		options = options(
-				    					"1"->"v0.1"),
-				    		'_label-> "마일스톤 : ")
+				    		issueForm("milestone.id"), 
+				    		options(Milestone.options),
+				    		'_label-> "마일스톤 : ",'_default -> "-- Choose a milestone --",
+				    		'_showConstraints -> false)
 				</div>		
 	    	</div>
     		<div class="well">
@@ -74,7 +76,8 @@
 				    			"1"->"Windows", 
 				    			"2"->"MacOS", 
 				    			"3"->"Linux"),
-				    		'_label-> "운영체제 : ")
+				    		'_label-> "운영체제 : ",
+				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("browserType"), 
 				    		options = options(
@@ -83,14 +86,16 @@
 				    					"3"->"Chrome",
 				    					"4"->"Opera", 
 				    					"5"->"Safari"),
-				    		'_label-> "브라우저 : ")
+				    		'_label-> "브라우저 : ",
+				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("dbmsType"), 
 				    		options = options(
 				    					"1"->"PostgreSQL", 
 				    					"2"->"CUBRID", 
 				    					"3"->"MySQL"),
-				    		'_label-> "DBMS : ")
+				    		'_label-> "DBMS : ",
+				    		'_showConstraints -> false)
 				</div>
     		</div>
     		<div class="well">
@@ -104,7 +109,8 @@
 						    			"3"->"보통", 
 						    			"4"->"낮음", 
 						    			"5"->"매우낮음"),
-				    		'_label-> "중요도 : ")
+				    		'_label-> "중요도 : ",
+				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("diagnosisResult"), 
 				    		options = options(
@@ -116,7 +122,8 @@
 				    					"6"->"재현불가", 
 				    					"7"->"중복", 
 				    					"8"->"잘동작함"),
-				    		'_label-> "진단유형 : ")
+				    		'_label-> "진단유형 : ",
+				    		'_showConstraints -> false)
 				</div>		
     		</div>
 	<div class="row pull-right">
