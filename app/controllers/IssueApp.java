@@ -11,6 +11,7 @@ import models.*;
 import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.Request;
 import play.mvc.Http.MultipartFormData.FilePart;
 import views.html.issue.*;
 
@@ -32,35 +33,27 @@ public class IssueApp extends Controller {
      */
     public static Result list(int page, String sortBy, String order,
             String filter, int status) {
-        return ok(issueList.render("이슈",
-                Issue.page(page, 10, sortBy, order, filter, status), sortBy,
-                order, filter, status));
+        return ok(issueList.render("이슈", Issue.page(page,
+                Issue.ISSUE_COUNT_PER_PAGE, sortBy, order, filter, status),
+                sortBy, order, filter, status));
     }
 
     public static Result saveIssue() {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
 
         if (issueForm.hasErrors()) {
-            return ok("입력값이 잘못되었습니다.");
+            return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm));
         } else {
-            Issue issue = issueForm.get();
-            issue.userId = UserApp.userId();
-            issue.commentCount = 0;
-            issue.setStatusType(issueForm.get().status);
-
-            MultipartFormData body = request().body().asMultipartFormData();
-
-            FilePart filePart = body.getFile("filePath");
-
-            if (filePart != null) {
-                File saveFile = new File("public/uploadFiles/"
-                        + filePart.getFilename());
-                filePart.getFile().renameTo(saveFile);
-                issue.filePath = filePart.getFilename();
-            }
-            Issue.create(issue);
+            Issue newIssue = issueForm.get();
+            newIssue.userId = UserApp.userId();
+            newIssue.commentCount = 0;
+            newIssue.status = Issue.STATUS_ENROLLED;
+            newIssue.setStatusType(newIssue.status);
+            newIssue.filePath = saveFile(request());
+            Issue.create(newIssue);
         }
-        return redirect(routes.IssueApp.list(1, "id", "DESC", "",
+        return redirect(routes.IssueApp.list(Issue.FIRST_PAGE_NUMBER,
+                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
                 issueForm.get().statusType));
     }
 
@@ -74,7 +67,6 @@ public class IssueApp extends Controller {
                 .findCommentsByIssueId(issueId);
         if (issue == null) {
             return ok(notExistingPage.render("존재하지 않는 게시물"));
-            // return ok(notExistingPage.render("xxxxx"));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
@@ -85,7 +77,9 @@ public class IssueApp extends Controller {
     // TODO 5->0
     public static Result delete(Long issueId) {
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.list(0, "id", "DESC", "", 5));
+        return redirect(routes.IssueApp.list(Issue.FIRST_PAGE_NUMBER,
+                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
+                Issue.STATUS_NONE));
     }
 
     public static Result saveComment(Long issueId) {
@@ -117,11 +111,28 @@ public class IssueApp extends Controller {
             return redirect(routes.IssueApp.issue(issueId));
         }
     }
-    
-    public static Result extractExcelFile(){
+
+    public static Result extractExcelFile() {
         return TODO;
     }
-  
 
+    /**
+     * From BoardApp
+     * 
+     * @param request
+     * @return
+     */
+    private static String saveFile(Request request) {
+        MultipartFormData body = request.body().asMultipartFormData();
 
+        FilePart filePart = body.getFile("filePath");
+
+        if (filePart != null) {
+            File saveFile = new File("public/uploadFiles/"
+                    + filePart.getFilename());
+            filePart.getFile().renameTo(saveFile);
+            return filePart.getFilename();
+        }
+        return null;
+    }
 }

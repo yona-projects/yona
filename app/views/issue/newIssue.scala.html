@@ -1,16 +1,138 @@
-@(title:String, form:Form[Issue])
+@(title:String, issueForm:Form[Issue])
 
-@import helper.twitterBootstrap._
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @main(title) {
-    <h2>"현재 페이지만 연결, 추후 us302 구현 때 TBC"</h2>
-    @helper.form(action=routes.BoardApp.savePost(), 'enctype -> "multipart/form-data"){
-    	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
-    	@helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
-    	@helper.inputFile(form("filePath"))
-    	<input type="submit" class="btn" value="저장"/>
-    	<input type="reset" class="btn" value="다시쓰기"/>
-    }
+	<div class="page-header">
+		<h1>@title</h1>
+	</div>
+    @form(action = routes.IssueApp.saveIssue, 
+    				'enctype -> "multipart/form-data",
+    				'class -> "form-horizontal"){
+    	<fieldset>
+    	@inputText(
+    		issueForm("title"), 
+    		'_showConstraints -> false, 
+    		'_label-> "제목")
+    	@textarea(
+    		issueForm("contents"), 
+    		'_showConstraints -> false,
+    		'_label-> "이슈 내용")
+    	
+    	<a id="fileUpload" data-toggle="modal" href="#askFilePath" class="btn">첨부파일</a>
+
+			<div class="modal hide" id="askFilePath">
+		    	<div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal">×</button>
+			            <h3>첨부파일 선택</h3>
+			    </div>
+			    <div class="modal-body">
+			        <p> 첨부할 파일을 선택해주세요.</p>
+			        @inputFile(issueForm("filePath"))
+			    </div>
+			    <div class="modal-footer">
+			        <a href="#" class="btn" data-dismiss="modal">취소</a>
+			        <a href="" class="btn btn-primary">확인</a>
+			    </div>
+			 </div>
+			<div class="well">
+	    		<h4> 세부정보</h4>
+	    		<div class="well form-inline">
+				  	@select(
+				    		issueForm("diagnosisType"), 
+				    		options = options(
+				    					"1"->"치명결함", 
+				    					"2"->"중결함", 
+				    					"3"->"경결함", 
+				    					"4"->"단순개선", 
+				    					"5"->"권고사항"),
+				    		'_label-> "유형 : ",
+				    		'_showConstraints -> false)
+				    	@select(
+				    		issueForm("responsibleMemeber.id"), 
+				    		options(User.options),
+				    		'_label-> "담당자 : ",
+				    		'_showConstraints -> false)
+				    	@select(
+				    		issueForm("componentName"), 
+				    		options = options(
+				    					"컴포넌트"->"Component id 1"),
+				    		'_label-> "컴포넌트 : ",
+				    		'_showConstraints -> false)
+				    	@select(
+				    		issueForm("milestone.id"), 
+				    		options(Milestone.options),
+				    		'_label-> "마일스톤 : ",'_default -> "-- Choose a milestone --",
+				    		'_showConstraints -> false)
+				</div>		
+	    	</div>
+    		<div class="well">
+    			<h4> 환경</h4>
+    			<div class="well form-inline">
+				    	@select(
+				    		issueForm("osType"), 
+				    		options = options(
+				    			"1"->"Windows", 
+				    			"2"->"MacOS", 
+				    			"3"->"Linux"),
+				    		'_label-> "운영체제 : ",
+				    		'_showConstraints -> false)
+				    	@select(
+				    		issueForm("browserType"), 
+				    		options = options(
+				    					"1"->"IE",
+				    					"2"->"Firefox",
+				    					"3"->"Chrome",
+				    					"4"->"Opera", 
+				    					"5"->"Safari"),
+				    		'_label-> "브라우저 : ",
+				    		'_showConstraints -> false)
+				    	@select(
+				    		issueForm("dbmsType"), 
+				    		options = options(
+				    					"1"->"PostgreSQL", 
+				    					"2"->"CUBRID", 
+				    					"3"->"MySQL"),
+				    		'_label-> "DBMS : ",
+				    		'_showConstraints -> false)
+				</div>
+    		</div>
+    		<div class="well">
+    			<h4> 확인 결과</h4>
+    			<div class="well form-inline">
+				    	@select(
+				    		issueForm("importance"), 
+				    		options = options(
+						    			"1"->"매우중요", 
+						    			"2"->"중요", 
+						    			"3"->"보통", 
+						    			"4"->"낮음", 
+						    			"5"->"매우낮음"),
+				    		'_label-> "중요도 : ",
+				    		'_showConstraints -> false)
+				    	@select(
+				    		issueForm("diagnosisResult"), 
+				    		options = options(
+				    					"1"->"버그확인", 
+				    					"2"->"수정됨", 
+				    					"3"->"수정안함", 
+				    					"4"->"버그아님",
+				    					"5"->"응답대기", 
+				    					"6"->"재현불가", 
+				    					"7"->"중복", 
+				    					"8"->"잘동작함"),
+				    		'_label-> "진단유형 : ",
+				    		'_showConstraints -> false)
+				</div>		
+    		</div>
+	<div class="row pull-right">
+			<div class="actions">
+				<input type="submit" class="btn btn-primary" value="저장"> 
+				<a href="@routes.IssueApp.list()" class="btn">취소</a></a>
+			</div>
+    </div>
+ }
 }
 
             

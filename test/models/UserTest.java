@@ -3,6 +3,8 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import java.util.Map;
+
 import org.junit.Test;
 
 public class UserTest extends ModelTest {
@@ -43,5 +45,14 @@ public class UserTest extends ModelTest {
 	    String name = User.findNameById(1l);
         //Then
 	    assertThat(name).isEqualTo("hobi");
+    }
+	
+	@Test
+    public void options() {
+        // Given
+        // When
+        Map<String, String> userOptions = User.options();
+        // Then
+        assertThat(userOptions).hasSize(4);
     }
 }
