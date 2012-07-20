@@ -142,7 +142,7 @@ public class Issue extends Model {
             String sortBy, String order, String filter, int statusType) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
-            pageIssues = find.where().ilike("title", "%" + filter + "%")
+            pageIssues = find.where().gt("commentCount",0).ilike("title", "%" + filter + "%")
                     .eq("projectId", projectId).orderBy(sortBy + " " + order)
                     .findPagingList(pageSize).getPage(pageNum);
         } else {
