@@ -1,0 +1,5 @@
+@(userId: String, projectId: String = "1")(content: => Html)
+
+@if(utils.RoleCheck.roleCheck(userId, projectId)){
+    @content
+}

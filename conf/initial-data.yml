@@ -162,3 +162,20 @@ milestones:
         numTotalIssues:  3
         projectId:       1
         completionRate:  33
+
+# ProjectRole
+projectRoles:
+    - !!models.ProjectRole
+        name:   manager
+    - !!models.ProjectRole
+        name:   member
+
+# ProjectUser
+projectUsers:
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 1
+        projectRole:    !!models.ProjectRole
+                            id: 1
