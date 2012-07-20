@@ -17,4 +17,21 @@ public class ModelTest {
 	public void stopApp() {
 		Helpers.stop(app);
 	}
+
+    /**
+     * Returns the first user. (id : 1 / name : hobi)
+     * @return User
+     */
+    protected User getTestUser() {
+        return User.findById(1l);
+    }
+
+    /**
+     * Returns user.
+     * @param userId
+     * @return
+     */
+    protected User getTestUser(Long userId) {
+        return User.findById(userId);
+    }
 }

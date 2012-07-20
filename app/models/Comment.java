@@ -1,12 +1,15 @@
 package models;
 
-import java.util.*;
-
-import javax.persistence.*;
-
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 public class Comment extends Model {
@@ -14,13 +17,15 @@ public class Comment extends Model {
 
     @Id
     public Long id;
-    public Long postId;
-    public Long userId;
     @Constraints.Required
     public String contents;
     @Constraints.Required
     public Date date;
     public String filePath;
+    @ManyToOne
+    public User author;
+    @ManyToOne
+    public Post post;
 
     public static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
 
@@ -28,25 +33,39 @@ public class Comment extends Model {
         date = JodaDateUtil.today();
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public static List<Comment> findCommentsByPostId(Long postId) {
-        return find.where().eq("postId", postId).findList();
+        return find.where().eq("post.id", postId).findList();
     }
 
     public static Long write(Comment comment) {
-        Post.countUpCommentCounter(comment.postId);
+        Post.countUpCommentCounter(comment.post);
         comment.save();
         return comment.id;
     }
 
     public static void deleteByPostId(Long postId) {
-        List<Comment> targets = Comment.find.where().eq("postId", "" + postId).findList();
+        List<Comment> comments = Comment.find.where().eq("post.id", "" + postId).findList();
 
         // 루프 돌면서 삭제
+        for (Comment comment : comments) {
+            comment.delete();
+        }
+
+        /* 위의 코드로 개선.
         Iterator<Comment> target = targets.iterator();
         while (target.hasNext()) {
             Comment comment = target.next();
             comment.delete();
         }
+        */
     }
 
     public String calcPassTime() {
@@ -71,9 +90,5 @@ public class Comment extends Model {
         } else {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
-    }
-
-    public String findWriter() {
-        return User.findNameById(userId);
     }
 }

@@ -4,16 +4,18 @@
 
 package controllers;
 
-import java.io.File;
-import java.util.List;
-
-import models.*;
+import models.Comment;
+import models.Post;
 import play.data.Form;
-import play.mvc.*;
+import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Http.Request;
+import play.mvc.Result;
 import views.html.board.*;
+
+import java.io.File;
+import java.util.List;
 
 public class BoardApp extends Controller {
 
@@ -31,10 +33,10 @@ public class BoardApp extends Controller {
 
         if (postForm.hasErrors()) {
             return ok(boardError.render("본문과 제목은 반드시 써야합니다.",
-                    routes.BoardApp.newPost()));
+                routes.BoardApp.newPost()));
         } else {
             Post post = postForm.get();
-            post.userId = UserApp.userId();
+            post.author = UserApp.currentUser();
             post.commentCount = 0;
             post.filePath = saveFile(request());
             Post.write(post);
@@ -61,8 +63,8 @@ public class BoardApp extends Controller {
 
         } else {
             Comment comment = commentForm.get();
-            comment.postId = postId;
-            comment.userId = UserApp.userId();
+            comment.post = Post.findById(postId);
+            comment.author = UserApp.currentUser();
             comment.filePath = saveFile(request());
 
             Comment.write(comment);
@@ -80,7 +82,7 @@ public class BoardApp extends Controller {
         Post exsitPost = Post.findById(postId);
         Form<Post> editForm = new Form<Post>(Post.class).fill(exsitPost);
 
-        if (UserApp.userId() == exsitPost.userId) {
+        if (UserApp.currentUser() == exsitPost.author) {
             return ok(editPost.render("게시물 수정", editForm, postId));
         } else {
             return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(postId)));
@@ -95,7 +97,7 @@ public class BoardApp extends Controller {
         } else {
 
             Post post = postForm.get();
-            post.userId = UserApp.userId();
+            post.author = UserApp.currentUser();
             post.id = postId;
             post.filePath = saveFile(request());
 

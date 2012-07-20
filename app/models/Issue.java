@@ -3,19 +3,16 @@
  */
 package models;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-
+import com.avaje.ebean.Page;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import com.avaje.ebean.Page;
+import javax.persistence.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Issue extends Model {
@@ -54,20 +51,23 @@ public class Issue extends Model {
      */
     @Id
     public Long id;
-    public Long userId; // 글쓴이
     @Constraints.Required
     public String title; // 제목
     @Constraints.Required
     public String body; // 글 내용
-    public Long projectId;
     public int status; // 이슈 상태
     public int statusType;
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date; // 이슈 작성일
+    @ManyToOne
+    public User reporter; // 제보자
+    @ManyToOne
+    public Project project;
+
     // 세부정보
     public int issueType; // 이슈유형
     @ManyToOne
-    public User responsibleMember; // 담당자
+    public User assignee; // 담당자
     public String componentName; // 컴포넌트
     @ManyToOne
     public Milestone milestone; // 적용된 마일스톤
@@ -81,9 +81,20 @@ public class Issue extends Model {
     public String browserType;
     public String dbmsType;
 
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
+    public Set<IssueComment> issueComments;
+
     public Issue() {
         this.date = JodaDateUtil.today();
         this.commentCount = 0;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String status() {
@@ -103,13 +114,13 @@ public class Issue extends Model {
         if (this.status == STATUS_ASSINGED || this.status == STATUS_ENROLLED) {
             this.statusType = STATUS_OPEN;
         } else if (this.status == STATUS_CLOSED
-                || this.status == STATUS_FINISHED) {
+            || this.status == STATUS_FINISHED) {
             this.statusType = STATUS_SOLVED;
         }
     }
 
     private static Finder<Long, Issue> find = new Finder<Long, Issue>(
-            Long.class, Issue.class);
+        Long.class, Issue.class);
 
     public static Long create(Issue issue) {
         issue.save();
@@ -123,32 +134,25 @@ public class Issue extends Model {
 
     /**
      * Return a page of Issues
-     * 
-     * @param pageNum
-     *            Page to display
-     * @param pageSize
-     *            Number of issues per page
-     * @param sortBy
-     *            Computer property used for sorting
-     * @param order
-     *            Sort order (either or asc or desc)
-     * @param filter
-     *            Filter applied on the title column
-     * @param statusType
-     *            status type of issue(OPEN or CLOSED), '0' means ALL
-     * 
+     *
+     * @param pageNum    Page to display
+     * @param pageSize   Number of issues per page
+     * @param sortBy     Computer property used for sorting
+     * @param order      Sort order (either or asc or desc)
+     * @param filter     Filter applied on the title column
+     * @param statusType status type of issue(OPEN or CLOSED), '0' means ALL
      */
     public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
-            String sortBy, String order, String filter, int statusType) {
+                                   String sortBy, String order, String filter, int statusType) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
             pageIssues = find.where().ilike("title", "%" + filter + "%")
-                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
-                    .findPagingList(pageSize).getPage(pageNum);
+                .eq("project.id", projectId).orderBy(sortBy + " " + order)
+                .findPagingList(pageSize).getPage(pageNum);
         } else {
             pageIssues = find.where().eq("statusType", statusType)
-                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
-                    .findPagingList(pageSize).getPage(pageNum);
+                .eq("project.id", projectId).orderBy(sortBy + " " + order)
+                .findPagingList(pageSize).getPage(pageNum);
         }
         return pageIssues;
     }
@@ -171,10 +175,8 @@ public class Issue extends Model {
     // .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     // }
 
-    public static void countUpCommentCounter(Long issueId) {
-        Issue issue = findById(issueId);
+    public static void countUpCommentCounter(Issue issue) {
         issue.commentCount++;
         issue.update();
     }
-
 }

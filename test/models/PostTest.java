@@ -11,13 +11,6 @@ import org.junit.*;
 
 public class PostTest extends ModelTest {
 
-    private User testUser;
-
-    @Before
-    public void setUp() {
-        testUser = User.findByName("hobi");
-    }
-
     @Test
     public void findById() throws Exception {
         // Given
@@ -26,7 +19,7 @@ public class PostTest extends ModelTest {
         // Then
         assertThat(actual).isNotNull();
         assertThat(actual.title).isEqualTo("게시판이 새로 생성되었습니다.");
-        assertThat(actual.userId).isEqualTo(1L);
+        assertThat(actual.author.id).isEqualTo(getTestUser().id);
     }
 
     @Test
@@ -35,7 +28,7 @@ public class PostTest extends ModelTest {
         Post post = new Post();
         post.contents = "new Contents";
         post.title = "new_title";
-        post.userId = testUser.id;
+        post.author = getTestUser();
         // When
         Long id = Post.write(post);
         // Then
@@ -44,7 +37,7 @@ public class PostTest extends ModelTest {
         assertThat(actual.title).isEqualTo(post.title);
         assertThat(actual.contents).isEqualTo(post.contents);
         assertThat(actual.date).isEqualTo(post.date);
-        assertThat(actual.userId).isEqualTo(1l);
+        assertThat(actual.author.id).isEqualTo(getTestUser().id);
         assertThat(actual.id).isEqualTo(id);
     }
 
@@ -58,11 +51,12 @@ public class PostTest extends ModelTest {
     }
 
     @Test
+    @Ignore("The findWriter method was deleted.")
     public void findWriter() throws Exception {
         // Given
         // When
         Post post = Post.findById(1l);
-        String name = post.findWriter();
+        String name = post.author.name;
         // Then
         assertThat(name).isEqualTo("hobi");
     }

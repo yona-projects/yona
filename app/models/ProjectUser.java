@@ -1,14 +1,13 @@
 package models;
 
+import play.db.ebean.Model;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import play.db.ebean.Model;
-
 /**
  * @author "Hwi Ahn"
- *
  */
 @Entity
 public class ProjectUser extends Model {
@@ -24,10 +23,18 @@ public class ProjectUser extends Model {
     public ProjectRole projectRole;
 
     private static Finder<Long, ProjectUser> find = new Finder<Long, ProjectUser>(
-            Long.class, ProjectUser.class);
+        Long.class, ProjectUser.class);
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public static ProjectRole findById(Long userId, Long projectId) {
         return find.where().eq("user.id", userId).eq("project.id", projectId)
-                .findUnique().projectRole;
+            .findUnique().projectRole;
     }
 }
