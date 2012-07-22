@@ -11,6 +11,7 @@ import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -130,6 +131,15 @@ public class Issue extends Model {
     public static void delete(Long id) {
         find.ref(id).delete();
         IssueComment.deleteByIssueId(id);
+    }
+
+    public void add(IssueComment issueComment) {
+        if(this.issueComments == null) {
+            this.issueComments = new HashSet<IssueComment>();
+        }
+
+        this.issueComments.add(issueComment);
+        issueComment.issue = this;
     }
 
     /**

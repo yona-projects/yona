@@ -4,6 +4,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +25,7 @@ import java.util.Set;
 public class Project extends Model {
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Project> find = new Finder<Long, Project>(
-        Long.class, Project.class);
+            Long.class, Project.class);
     public static final String defaultSiteURL = "http://localhost:9000";
 
     @Id
@@ -39,10 +40,12 @@ public class Project extends Model {
     public String logoPath;
     @ManyToOne
     public User owner;
-    @OneToMany(mappedBy = "project", cascade= CascadeType.ALL)
-    public Set<Issue> Issues;
-    @OneToMany(mappedBy = "project", cascade= CascadeType.ALL)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public Set<Issue> issues;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Milestone> milestones;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public Set<ProjectUser> projectUsers;
 
     public Long getId() {
         return id;
@@ -55,7 +58,7 @@ public class Project extends Model {
     public static Long create(Project newProject) {
         newProject.save();
         newProject.url = defaultSiteURL + "/project/"
-            + Long.toString(newProject.id); // Setting a default URL.
+                + Long.toString(newProject.id); // Setting a default URL.
         newProject.update();
         return newProject.id;
     }
@@ -75,5 +78,14 @@ public class Project extends Model {
 
     public static List<Project> findByOwner(Long ownerId) {
         return find.where().eq("owner.id", ownerId).findList();
+    }
+
+    public void add(Issue issue) {
+        if (this.issues == null) {
+            this.issues = new HashSet<Issue>();
+        }
+
+        this.issues.add(issue);
+        issue.project = this;
     }
 }

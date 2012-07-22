@@ -39,7 +39,7 @@ public class Milestone extends Model {
     public int completionRate;
     @ManyToOne
     public Project project;
-    @OneToMany(mappedBy = "milestone", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "milestone")
     public Set<Issue> issues;
 
     public Long getId() {

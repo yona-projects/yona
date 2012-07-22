@@ -5,13 +5,12 @@ package models;
  * 
  */
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
+import java.util.Date;
 import java.util.List;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.fest.assertions.Assertions.assertThat;
 
 public class ProjectTest extends ModelTest {
 
@@ -47,13 +46,12 @@ public class ProjectTest extends ModelTest {
     }
 
     @Test
-    @Ignore("It has to figure it out.")
     public void delete() throws Exception {
         // Given
         // When
         Project.delete(1l);
         // Then
-        assertEquals(null, Project.findById(1l));
+        assertThat(Project.findById(1l)).isNull();
     }
     
     @Test

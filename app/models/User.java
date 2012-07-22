@@ -20,17 +20,17 @@ public class User extends Model {
     public String loginId;
     public String password;
     public String role;
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "owner")
     public Set<Project> projects;
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "author")
     public Set<Post> posts;
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "author")
     public Set<Comment> comments;
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "author")
     public Set<IssueComment> issueComments;
-    @OneToMany(mappedBy = "reporter", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "reporter")
     public Set<Issue> reportedIssues;
-    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "assignee")
     public Set<Issue> assignedIssues;
 
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
