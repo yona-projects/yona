@@ -1,3 +1,7 @@
+/**
+ * @author Taehyun Park
+ * 
+ */
 package models;
 
 import com.avaje.ebean.Page;
@@ -69,4 +73,5 @@ public class IssueTest extends ModelTest {
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
         assertThat(issues.getList().size()).isEqualTo(1);
     }
+
 }

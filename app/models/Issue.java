@@ -3,17 +3,20 @@
  */
 package models;
 
-import com.avaje.ebean.Page;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.*;
+
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import javax.persistence.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.avaje.ebean.Page;
+import com.sun.xml.internal.ws.handler.HandlerProcessor.Direction;
 
 @Entity
 public class Issue extends Model {
@@ -45,6 +48,11 @@ public class Issue extends Model {
 
     public static final int ISSUE_COUNT_PER_PAGE = 25;
 
+    public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
+    public static final int NUMBER_OF_NO_COMMENT = 0;
+
+    private static final String DEFAULT_SORTER = "date";
+
     /**
      * @ userId : 글쓴이 title 제목 body 이슈 내용 status statusType date issueType
      * reponsibleMemberId comp milestone importance diagnosisType commentCount
@@ -56,6 +64,7 @@ public class Issue extends Model {
     public String title; // 제목
     @Constraints.Required
     public String body; // 글 내용
+
     public int status; // 이슈 상태
     public int statusType;
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
@@ -90,14 +99,6 @@ public class Issue extends Model {
         this.commentCount = 0;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String status() {
         if (this.status == STATUS_ENROLLED) {
             return "등록";
@@ -115,13 +116,13 @@ public class Issue extends Model {
         if (this.status == STATUS_ASSINGED || this.status == STATUS_ENROLLED) {
             this.statusType = STATUS_OPEN;
         } else if (this.status == STATUS_CLOSED
-            || this.status == STATUS_FINISHED) {
+                || this.status == STATUS_FINISHED) {
             this.statusType = STATUS_SOLVED;
         }
     }
 
     private static Finder<Long, Issue> find = new Finder<Long, Issue>(
-        Long.class, Issue.class);
+            Long.class, Issue.class);
 
     public static Long create(Issue issue) {
         issue.save();
@@ -134,7 +135,7 @@ public class Issue extends Model {
     }
 
     public void add(IssueComment issueComment) {
-        if(this.issueComments == null) {
+        if (this.issueComments == null) {
             this.issueComments = new HashSet<IssueComment>();
         }
 
@@ -144,29 +145,69 @@ public class Issue extends Model {
 
     /**
      * Return a page of Issues
-     *
-     * @param pageNum    Page to display
-     * @param pageSize   Number of issues per page
-     * @param sortBy     Computer property used for sorting
-     * @param order      Sort order (either or asc or desc)
-     * @param filter     Filter applied on the title column
-     * @param statusType status type of issue(OPEN or CLOSED), '0' means ALL
+     * 
+     * @param pageNum
+     *            Page to display
+     * @param pageSize
+     *            Number of issues per page
+     * @param sortBy
+     *            Computer property used for sorting
+     * @param order
+     *            Sort order (either or asc or desc)
+     * @param filter
+     *            Filter applied on the title column
+     * @param statusType
+     *            status type of issue(OPEN or CLOSED), '0' means ALL
+     * 
      */
+    // TODO 첨부파일 있는 것들 검색도 여기에 붙일것인가? 이게 과연 잘하는 짓일까?
     public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
-                                   String sortBy, String order, String filter, int statusType) {
+            String sortBy, String order, String filter, int statusType,
+            int commentCount) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
             pageIssues = find.where().ilike("title", "%" + filter + "%")
-                .eq("project.id", projectId).orderBy(sortBy + " " + order)
-                .findPagingList(pageSize).getPage(pageNum);
+                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
+                    .findPagingList(pageSize).getPage(pageNum);
         } else {
-            pageIssues = find.where().eq("statusType", statusType)
-                .eq("project.id", projectId).orderBy(sortBy + " " + order)
-                .findPagingList(pageSize).getPage(pageNum);
+            pageIssues = find.where().ilike("title", "%" + filter + "%")
+                    .eq("statusType", statusType).eq("projectId", projectId)
+                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
+                    .getPage(pageNum);
         }
         return pageIssues;
     }
 
+    // public static Page<Issue> pageCommented(Long projectId, int pageNum,
+    // int pageSize, String sortBy, String order, String filter,
+    // int statusType, int commentCount) {
+    //
+    // Page<Issue> pageIssues = null;
+    // if (commentCount == NUMBER_OF_ONE_MORE_COMMENTS) {
+    // pageIssues = find.where().ilike("title", "%" + filter + "%")
+    // .ge("commentCount", 1).eq("projectId", projectId)
+    // .orderBy(sortBy + " " + order).findPagingList(pageSize)
+    // .getPage(pageNum);
+    // }
+    // else
+    // return pageIssues;
+    //
+    // }
+
+    public static Page<Issue> findClosedIssues(Long projectId) {
+        return Issue.findIsses(projectId, state, DEFAULT_SORTER, models.enumeration.Direction.DESC);
+    }
+    
+    
+    
+    public static Page<Issue> findIssues(Long projectId, IssueState state)
+    {
+        return fineMilestones(projectId, state,DEFAULT_SORTER, Direction.DESC);
+    }
+    
+    public static Page<Issue> findIssues(Long projectId, IssueState state, String sort, Direction direction)
+    
+    
     public static Issue findById(Long id) {
         return find.byId(id);
     }
@@ -189,4 +230,5 @@ public class Issue extends Model {
         issue.commentCount++;
         issue.update();
     }
+
 }
