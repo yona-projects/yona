@@ -22,7 +22,7 @@ public class IssueApp extends Controller {
     /**
      * Display the paginated list of issues.
      * 
-     * @param page
+     * @param pageNum
      *            Current page number (starts from 0)
      * @param sortBy
      *            Column to be sorted
@@ -31,18 +31,24 @@ public class IssueApp extends Controller {
      * @param filter
      *            Filter applied on issue names
      */
-    public static Result list(int page, String sortBy, String order,
-            String filter, int status) {
-        return ok(issueList.render("이슈", Issue.page(page,
-                Issue.ISSUE_COUNT_PER_PAGE, sortBy, order, filter, status),
-                sortBy, order, filter, status));
+    public static Result list(Long projectId, int pageNum, String sortBy,
+            String order, String filter, int status, int commentCount) {
+        return ok(issueList.render("이슈 목록 조회", Issue.page(projectId, pageNum,
+                Issue.ISSUE_COUNT_PER_PAGE, sortBy, order, filter, status, commentCount),
+                projectId, sortBy, order, filter, status, commentCount));
     }
 
-    public static Result saveIssue() {
+    public static Result newIssue(Long projectId) {
+        return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class),
+                projectId));
+    }
+
+    public static Result saveIssue(Long projectId) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
 
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm));
+            return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm,
+                    projectId));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.userId = UserApp.userId();
@@ -52,37 +58,34 @@ public class IssueApp extends Controller {
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
-        return redirect(routes.IssueApp.list(Issue.FIRST_PAGE_NUMBER,
-                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
-                issueForm.get().statusType));
+        //TODO statusType 뭔가 이상함
+        return redirect(routes.IssueApp.list(projectId,
+                Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
+                Issue.ORDERBY_DESCENDING, "", issueForm.get().statusType, 0));
     }
 
-    public static Result newIssue() {
-        return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class)));
-    }
-
-    public static Result issue(Long issueId) {
-        Issue issue = Issue.findById(issueId);
+    public static Result issue(Long issueId, Long projectId) {
+        Issue issues= Issue.findById(issueId);
         List<IssueComment> comments = IssueComment
                 .findCommentsByIssueId(issueId);
-        if (issue == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물"));
+        if (issues == null) {
+            return ok(notExistingPage.render("존재하지 않는 게시물", projectId));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
-            return ok(issueDetail.render(issue, comments, commentForm));
+            return ok(issue.render("이슈 상세조회", issues, projectId, comments,
+                    commentForm));
         }
     }
 
-    // TODO 5->0
-    public static Result delete(Long issueId) {
+    public static Result delete(Long issueId, Long projectId) {
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.list(Issue.FIRST_PAGE_NUMBER,
-                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
-                Issue.STATUS_NONE));
+        return redirect(routes.IssueApp.list(projectId,
+                Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
+                Issue.ORDERBY_DESCENDING, "", Issue.STATUS_NONE,0));
     }
 
-    public static Result saveComment(Long issueId) {
+    public static Result saveComment(Long issueId, Long projectId) {
         Form<IssueComment> commentForm = new Form<IssueComment>(
                 IssueComment.class).bindFromRequest();
 
@@ -108,7 +111,7 @@ public class IssueApp extends Controller {
 
             IssueComment.create(comment);
 
-            return redirect(routes.IssueApp.issue(issueId));
+            return redirect(routes.IssueApp.issue(issueId, projectId));
         }
     }
 

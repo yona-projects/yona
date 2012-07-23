@@ -1,4 +1,4 @@
-@(title:String, issueForm:Form[Issue])
+@(title:String, issueForm:Form[Issue], projectId:Long)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
@@ -7,7 +7,7 @@
 	<div class="page-header">
 		<h1>@title</h1>
 	</div>
-    @form(action = routes.IssueApp.saveIssue, 
+    @form(action = routes.IssueApp.saveIssue(projectId), 
     				'enctype -> "multipart/form-data",
     				'class -> "form-horizontal"){
     	<fieldset>
@@ -48,22 +48,26 @@
 				    					"4"->"단순개선", 
 				    					"5"->"권고사항"),
 				    		'_label-> "유형 : ",
+				    		'_default -> "-- 유형을 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("responsibleMemeber.id"), 
-				    		options(User.options),
+				    		options(User.options()),
 				    		'_label-> "담당자 : ",
+				    		'_default -> "-- 담당자를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("componentName"), 
 				    		options = options(
 				    					"컴포넌트"->"Component id 1"),
 				    		'_label-> "컴포넌트 : ",
+				    		'_default -> "-- 컴포넌트를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("milestone.id"), 
-				    		options(Milestone.options),
-				    		'_label-> "마일스톤 : ",'_default -> "-- Choose a milestone --",
+				    		options(Milestone.options(projectId)),
+				    		'_label-> "마일스톤 : ",
+				    		'_default -> "-- 마일스톤을 고르시오 --",
 				    		'_showConstraints -> false)
 				</div>		
 	    	</div>
@@ -77,6 +81,7 @@
 				    			"2"->"MacOS", 
 				    			"3"->"Linux"),
 				    		'_label-> "운영체제 : ",
+				    		'_default -> "-- 운영체제를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("browserType"), 
@@ -87,6 +92,7 @@
 				    					"4"->"Opera", 
 				    					"5"->"Safari"),
 				    		'_label-> "브라우저 : ",
+				    		'_default -> "-- 브라우저를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("dbmsType"), 
@@ -95,6 +101,7 @@
 				    					"2"->"CUBRID", 
 				    					"3"->"MySQL"),
 				    		'_label-> "DBMS : ",
+				    		'_default -> "-- DB를 고르시오 --",
 				    		'_showConstraints -> false)
 				</div>
     		</div>
@@ -110,6 +117,7 @@
 						    			"4"->"낮음", 
 						    			"5"->"매우낮음"),
 				    		'_label-> "중요도 : ",
+				    		'_default -> "-- 중요도를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("diagnosisResult"), 
@@ -123,13 +131,14 @@
 				    					"7"->"중복", 
 				    					"8"->"잘동작함"),
 				    		'_label-> "진단유형 : ",
+				    		'_default -> "-- 진단유형을 고르시오 --",
 				    		'_showConstraints -> false)
 				</div>		
     		</div>
 	<div class="row pull-right">
 			<div class="actions">
 				<input type="submit" class="btn btn-primary" value="저장"> 
-				<a href="@routes.IssueApp.list()" class="btn">취소</a></a>
+				<a href="@routes.IssueApp.list(projectId)" class="btn">취소</a></a>
 			</div>
     </div>
  }

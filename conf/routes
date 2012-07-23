@@ -41,10 +41,10 @@ GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilesto
 
 
 #Issues
-GET     /issueList	                controllers.IssueApp.list(pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 0)
-GET		/issues/new					controllers.IssueApp.newIssue()
-POST	/issues/new					controllers.IssueApp.saveIssue()
-GET     /issues/:id                 controllers.IssueApp.issue(id:Long)
-POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long)
-GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long)
+GET     /issueList	                controllers.IssueApp.list(projectId:Long ?= 1, pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 0, commentCount:Int ?= 0)
+GET		/issues/new					controllers.IssueApp.newIssue(projectId:Long)
+POST	/issues/new					controllers.IssueApp.saveIssue(projectId:Long)
+GET     /issues/:id                 controllers.IssueApp.issue(id:Long, projectId:Long)
+POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long, projectId:Long)
+GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long, projectId:Long)
 GET		/issueList/excel			controllers.IssueApp.extractExcelFile()

@@ -23,12 +23,14 @@ public class Global extends GlobalSettings {
                         .load("initial-data.yml");
 
                 Ebean.save(all.get("users"));
-                Ebean.save(all.get("posts"));
-                Ebean.save(all.get("issues"));
                 Ebean.save(all.get("projects"));
-                Ebean.save(all.get("comments"));
                 Ebean.save(all.get("milestones"));
+                Ebean.save(all.get("issues"));
                 Ebean.save(all.get("issueComments"));
+                Ebean.save(all.get("posts"));
+                Ebean.save(all.get("comments"));
+                Ebean.save(all.get("projectRoles"));
+                Ebean.save(all.get("projectUsers"));
             }
         }
 

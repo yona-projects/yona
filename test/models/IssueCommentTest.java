@@ -22,9 +22,9 @@ public class IssueCommentTest extends ModelTest {
     public void create(){
         // Given
         IssueComment issueComment = new IssueComment();
-        issueComment.issueId    =   1l;
+        issueComment.issue      =   Issue.findById(1l);
         issueComment.contents   =   "create() test";
-        issueComment.userId     =   1l;
+        issueComment.author     =   getTestUser();
         // When
         long id =   IssueComment.create(issueComment);
         // Then
