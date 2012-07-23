@@ -1,19 +1,20 @@
-/**
- * @author Taehyun Park
- * 
- */
 package models;
 
-import com.avaje.ebean.Page;
+import static org.fest.assertions.Assertions.assertThat;
+
+import models.enumeration.Direction;
+import models.enumeration.IssueState;
+
 import org.junit.Test;
+
 import utils.JodaDateUtil;
 
-import static org.fest.assertions.Assertions.assertThat;
+import com.avaje.ebean.Page;
 
 public class IssueTest extends ModelTest {
 
     @Test
-    public void create() {
+    public void create() throws Exception {
         // Given
         Issue issue = new Issue();
         issue.title = "불필요한 로그 출력 코드 제거";
@@ -53,9 +54,9 @@ public class IssueTest extends ModelTest {
     public void page() {
         // Given
         // When
-        Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER, Issue.ISSUE_COUNT_PER_PAGE,
-            Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
-            Issue.STATUS_NONE);
+        Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER,
+                Issue.ISSUE_COUNT_PER_PAGE, Issue.SORTBY_ID,
+                Issue.ORDERBY_DESCENDING, "", Issue.STATUS_NONE);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(2);
         assertThat(issues.getList().size()).isEqualTo(2);
@@ -66,12 +67,41 @@ public class IssueTest extends ModelTest {
     public void pageSearch() {
         // Given
         // When
-        Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER, Issue.ISSUE_COUNT_PER_PAGE,
-            Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "메모리",
-            Issue.STATUS_NONE);
+        Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER,
+                Issue.ISSUE_COUNT_PER_PAGE, Issue.SORTBY_ID,
+                Issue.ORDERBY_DESCENDING, "메모리", Issue.STATUS_NONE);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
         assertThat(issues.getList().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void findOpenIssues() {
+        // Given
+        // When
+        Page<Issue> issues = Issue.findOpenIssues(1l);
+        // Then
+        assertThat(issues.getTotalRowCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void findClosedIssues() {
+        // Given
+        // When
+        Page<Issue> issues = Issue.findClosedIssues(1l);
+        // Then
+        assertThat(issues.getTotalRowCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void findFilterIssues() {
+
+        // Given
+        // When
+        Page<Issue> issues = Issue.findFiltererIssues(1l, "git");
+        // Then
+        assertThat(issues.getTotalRowCount()).isEqualTo(1);
+
     }
 
 }
