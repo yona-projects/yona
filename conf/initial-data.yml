@@ -4,22 +4,18 @@ users:
         loginId:        hobi
         password:       hobi00
         name:           hobi
-        role:           사용자
     - !!models.User
         loginId:        k16wire
         password:       k16wire00
         name:           scott
-        role:           사이트관리자
     - !!models.User
         loginId:        doortts
         password:       doortts00
         name:           suwon
-        role:           프로젝트관리자
     - !!models.User
         loginId:        nori
         password:       nori00
         name:           eungjun
-        role:           프로젝트멤버
         
 # Projects
 projects:
@@ -185,19 +181,43 @@ milestones:
                              id: 1
         completionRate:  33
 
-# ProjectRole
-projectRoles:
-    - !!models.ProjectRole
-        name:   manager
-    - !!models.ProjectRole
-        name:   member
-
-# ProjectUser
-projectUsers:
-    - !!models.ProjectUser
-        user:           !!models.User
-                            id: 1
-        project:        !!models.Project
-                            id: 1
-        projectRole:    !!models.ProjectRole
-                            id: 1
+# Permission
+permissions:
+    - !!models.Permission
+        name:   board
+    - !!models.Permission
+        name:   issue
+    - !!models.Permission
+        name:   milestone
+    - !!models.Permission
+        name:   project.setting
+    - !!models.Permission
+        name:   site.setting    
+            
+# Role
+roles:
+    - !!models.Role
+        name:           manager
+        permissions:
+            - !!models.Permission
+                id:     1
+            - !!models.Permission
+                id:     2
+            - !!models.Permission
+                id:     3
+            - !!models.Permission
+                id:     4
+    - !!models.Role
+        name:           member
+        permissions:
+            - !!models.Permission
+                id:     1
+            - !!models.Permission
+                id:     2
+            - !!models.Permission
+                id:     3
+    - !!models.Role
+        name:           siteManager
+        permissions:
+            - !!models.Permission
+                id:     5

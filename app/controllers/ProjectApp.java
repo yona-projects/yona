@@ -48,7 +48,7 @@ public class ProjectApp extends Controller {
                 filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
-            project.owner = UserApp.currentUser();
+//            project.owner = UserApp.currentUser();
             return redirect(routes.ProjectApp.project(Project.create(project)));
         }
     }

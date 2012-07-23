@@ -44,8 +44,6 @@ public class Project extends Model {
     public Set<Issue> issues;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Milestone> milestones;
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUsers;
 
     public Long getId() {
         return id;
