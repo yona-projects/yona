@@ -221,3 +221,34 @@ roles:
         permissions:
             - !!models.Permission
                 id:     5
+
+# ProjectUser
+projectUsers:
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 1
+        role:       !!models.Role
+                        id: 1
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 2
+        role:       !!models.Role
+                        id: 2                        
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 2
+        project:    !!models.Project
+                        id: 1
+        role:       !!models.Role
+                        id: 2
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 3
+        project:    !!models.Project
+                        id: 2
+        role:       !!models.Role
+                        id: 1

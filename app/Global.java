@@ -35,6 +35,7 @@ public class Global extends GlobalSettings {
                     // Insert the role/permission relation
                     Ebean.saveManyToManyAssociations(role, "permissions");
                 }
+                Ebean.save(all.get("projectUsers"));
             }
         }
 
