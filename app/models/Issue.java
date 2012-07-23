@@ -138,14 +138,20 @@ public class Issue extends Model {
      *            status type of issue(OPEN or CLOSED), '0' means ALL
      * 
      */
+    //TODO 첨부파일 있는 것들 검색도 여기에 붙일것인가? 이게 과연 잘하는 짓일까?
     public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
-            String sortBy, String order, String filter, int statusType) {
+            String sortBy, String order, String filter, int statusType, int commentCount) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
-            pageIssues = find.where().gt("commentCount",0).ilike("title", "%" + filter + "%")
+            pageIssues = find.where().ilike("title", "%" + filter + "%")
                     .eq("projectId", projectId).orderBy(sortBy + " " + order)
                     .findPagingList(pageSize).getPage(pageNum);
-        } else {
+        } 
+        else if(commentCount==1){
+            pageIssues = find.where().ilike("title", "%" + filter + "%").ge("commentCount", 1)
+                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
+                    .findPagingList(pageSize).getPage(pageNum);
+        }else {
             pageIssues = find.where().eq("statusType", statusType)
                     .eq("projectId", projectId).orderBy(sortBy + " " + order)
                     .findPagingList(pageSize).getPage(pageNum);

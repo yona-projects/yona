@@ -32,10 +32,10 @@ public class IssueApp extends Controller {
      *            Filter applied on issue names
      */
     public static Result list(Long projectId, int pageNum, String sortBy,
-            String order, String filter, int status) {
+            String order, String filter, int status, int commentCount) {
         return ok(issueList.render("이슈 목록 조회", Issue.page(projectId, pageNum,
-                Issue.ISSUE_COUNT_PER_PAGE, sortBy, order, filter, status),
-                projectId, sortBy, order, filter, status));
+                Issue.ISSUE_COUNT_PER_PAGE, sortBy, order, filter, status, commentCount),
+                projectId, sortBy, order, filter, status, commentCount));
     }
 
     public static Result newIssue(Long projectId) {
@@ -58,9 +58,10 @@ public class IssueApp extends Controller {
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
+        //TODO statusType 뭔가 이상함
         return redirect(routes.IssueApp.list(projectId,
                 Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", issueForm.get().statusType));
+                Issue.ORDERBY_DESCENDING, "", issueForm.get().statusType, 0));
     }
 
     public static Result issue(Long issueId, Long projectId) {
@@ -81,7 +82,7 @@ public class IssueApp extends Controller {
         Issue.delete(issueId);
         return redirect(routes.IssueApp.list(projectId,
                 Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", Issue.STATUS_NONE));
+                Issue.ORDERBY_DESCENDING, "", Issue.STATUS_NONE,0));
     }
 
     public static Result saveComment(Long issueId, Long projectId) {
