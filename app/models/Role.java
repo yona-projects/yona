@@ -22,19 +22,13 @@ public class Role extends Model {
     @Id
     public Long id;
     public String name;
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    public Set<ProjectUser> projectUser;
     @ManyToMany
     public List<Permission> permissions = new ArrayList<Permission>();
 
     private static Finder<Long, Role> find = new Finder<Long, Role>(
         Long.class, Role.class);
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public static Role findById(Long id) {
         return find.where().eq("id", id).findUnique();

@@ -31,6 +31,8 @@ public class User extends Model {
     public Set<Issue> reportedIssues;
     @OneToMany(mappedBy = "assignee")
     public Set<Issue> assignedIssues;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    public Set<ProjectUser> projectUser;
 
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
         User.class);

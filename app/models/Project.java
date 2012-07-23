@@ -4,6 +4,9 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+
+import controllers.UserApp;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +47,8 @@ public class Project extends Model {
     public Set<Issue> issues;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Milestone> milestones;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public Set<ProjectUser> projectUser;
 
     public Long getId() {
         return id;
@@ -67,6 +72,7 @@ public class Project extends Model {
     }
 
     public static void delete(Long id) {
+        
         Project.findById(id).delete();
     }
 
