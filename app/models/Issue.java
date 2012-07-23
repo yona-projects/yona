@@ -10,13 +10,19 @@ import java.util.Set;
 
 import javax.persistence.*;
 
+import models.enumeration.Direction;
+import models.enumeration.Matching;
+import models.enumeration.IssueState;
+import models.support.FinderTemplatePage;
+import models.support.OrderParams;
+import models.support.SearchParams;
+
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
-import com.sun.xml.internal.ws.handler.HandlerProcessor.Direction;
 
 @Entity
 public class Issue extends Model {
@@ -35,6 +41,7 @@ public class Issue extends Model {
     public static final int STATUS_ASSINGED = 2; // 진행중
     public static final int STATUS_SOLVED = 3; // 해결
     public static final int STATUS_FINISHED = 4; // 닫힘
+
     public static final int STATUS_OPEN = 5; // 미해결
     public static final int STATUS_CLOSED = 6; // 해결
     public static final int STATUS_NONE = 0; // 전체
@@ -160,23 +167,38 @@ public class Issue extends Model {
      *            status type of issue(OPEN or CLOSED), '0' means ALL
      * 
      */
-    // TODO 첨부파일 있는 것들 검색도 여기에 붙일것인가? 이게 과연 잘하는 짓일까?
     public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
-            String sortBy, String order, String filter, int statusType,
-            int commentCount) {
+            String sortBy, String order, String filter, int statusType) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
             pageIssues = find.where().ilike("title", "%" + filter + "%")
-                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
+                    .eq("project.id", projectId).orderBy(sortBy + " " + order)
                     .findPagingList(pageSize).getPage(pageNum);
         } else {
             pageIssues = find.where().ilike("title", "%" + filter + "%")
-                    .eq("statusType", statusType).eq("projectId", projectId)
+                    .eq("statusType", statusType).eq("project.id", projectId)
                     .orderBy(sortBy + " " + order).findPagingList(pageSize)
                     .getPage(pageNum);
         }
         return pageIssues;
     }
+
+    // public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
+    // String sortBy, String order, String filter, int statusType,
+    // int commentCheck) {
+    // Page<Issue> pageIssues = null;
+    // if (statusType == 0) {
+    // pageIssues = find.where().ilike("title", "%" + filter + "%")
+    // .eq("projectId", projectId).orderBy(sortBy + " " + order)
+    // .findPagingList(pageSize).getPage(pageNum);
+    // } else {
+    // pageIssues = find.where().ilike("title", "%" + filter + "%")
+    // .eq("statusType", statusType).eq("projectId", projectId)
+    // .orderBy(sortBy + " " + order).findPagingList(pageSize)
+    // .getPage(pageNum);
+    // }
+    // return pageIssues;
+    // }
 
     // public static Page<Issue> pageCommented(Long projectId, int pageNum,
     // int pageSize, String sortBy, String order, String filter,
@@ -193,21 +215,58 @@ public class Issue extends Model {
     // return pageIssues;
     //
     // }
-
+    /**
+     * 미해결 탭을 눌렀을 때, open 상태의 이슈들을 보여준다.
+     * @param projectId
+     * @return
+     */
+    public static Page<Issue> findOpenIssues(Long projectId) {
+        return Issue.findIssues(projectId, IssueState.OPEN);
+    }
+    
+    /**
+     * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 보여준다.
+     * @param projectId
+     * @return
+     */
     public static Page<Issue> findClosedIssues(Long projectId) {
-        return Issue.findIsses(projectId, state, DEFAULT_SORTER, models.enumeration.Direction.DESC);
+        return Issue.findIssues(projectId, IssueState.CLOSED);
     }
-    
-    
-    
-    public static Page<Issue> findIssues(Long projectId, IssueState state)
-    {
-        return fineMilestones(projectId, state,DEFAULT_SORTER, Direction.DESC);
+
+    public static Page<Issue> findIssues(Long projectId, IssueState state) {
+        return findIssues(projectId, state, DEFAULT_SORTER, Direction.DESC, "");
     }
-    
-    public static Page<Issue> findIssues(Long projectId, IssueState state, String sort, Direction direction)
-    
-    
+
+    public static Page<Issue> findFiltererIssues(Long projectId, String filter) {
+        return findIssues(projectId, IssueState.ALL, DEFAULT_SORTER,
+                Direction.DESC, filter);
+    }
+
+    public static Page<Issue> findIssues(Long projectId, IssueState state,
+            String sort, Direction direction, String filter) {
+
+        OrderParams orderParams = new OrderParams().add(sort, direction);
+
+        SearchParams searchParams = new SearchParams().add("project.id",
+                projectId, Matching.EQUALS);
+        searchParams.add("title", filter, Matching.CONTAINS);
+
+        if (state == null) {
+            state = IssueState.ALL;
+        }
+
+        switch (state) {
+        case OPEN:
+            searchParams.add("statusType", STATUS_OPEN, Matching.EQUALS);
+            break;
+        case CLOSED:
+            searchParams.add("statusType", STATUS_CLOSED, Matching.EQUALS);
+            break;
+        }
+
+        return FinderTemplatePage.findBy(orderParams, searchParams, find);
+    }
+
     public static Issue findById(Long id) {
         return find.byId(id);
     }
