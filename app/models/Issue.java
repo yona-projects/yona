@@ -4,11 +4,11 @@
 package models;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 import play.data.format.Formats;
 import play.data.validation.Constraints;
@@ -16,6 +16,7 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
+import com.sun.xml.internal.ws.handler.HandlerProcessor.Direction;
 
 @Entity
 public class Issue extends Model {
@@ -47,6 +48,11 @@ public class Issue extends Model {
 
     public static final int ISSUE_COUNT_PER_PAGE = 25;
 
+    public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
+    public static final int NUMBER_OF_NO_COMMENT = 0;
+
+    private static final String DEFAULT_SORTER = "date";
+
     /**
      * @ userId : 글쓴이 title 제목 body 이슈 내용 status statusType date issueType
      * reponsibleMemberId comp milestone importance diagnosisType commentCount
@@ -54,20 +60,24 @@ public class Issue extends Model {
      */
     @Id
     public Long id;
-    public Long userId; // 글쓴이
     @Constraints.Required
     public String title; // 제목
     @Constraints.Required
     public String body; // 글 내용
-    public Long projectId;
+
     public int status; // 이슈 상태
     public int statusType;
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date; // 이슈 작성일
+    @ManyToOne
+    public User reporter; // 제보자
+    @ManyToOne
+    public Project project;
+
     // 세부정보
     public int issueType; // 이슈유형
     @ManyToOne
-    public User responsibleMember; // 담당자
+    public User assignee; // 담당자
     public String componentName; // 컴포넌트
     @ManyToOne
     public Milestone milestone; // 적용된 마일스톤
@@ -80,6 +90,9 @@ public class Issue extends Model {
     public String osType;
     public String browserType;
     public String dbmsType;
+
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
+    public Set<IssueComment> issueComments;
 
     public Issue() {
         this.date = JodaDateUtil.today();
@@ -121,6 +134,15 @@ public class Issue extends Model {
         IssueComment.deleteByIssueId(id);
     }
 
+    public void add(IssueComment issueComment) {
+        if (this.issueComments == null) {
+            this.issueComments = new HashSet<IssueComment>();
+        }
+
+        this.issueComments.add(issueComment);
+        issueComment.issue = this;
+    }
+
     /**
      * Return a page of Issues
      * 
@@ -138,27 +160,54 @@ public class Issue extends Model {
      *            status type of issue(OPEN or CLOSED), '0' means ALL
      * 
      */
-    //TODO 첨부파일 있는 것들 검색도 여기에 붙일것인가? 이게 과연 잘하는 짓일까?
+    // TODO 첨부파일 있는 것들 검색도 여기에 붙일것인가? 이게 과연 잘하는 짓일까?
     public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
-            String sortBy, String order, String filter, int statusType, int commentCount) {
+            String sortBy, String order, String filter, int statusType,
+            int commentCount) {
         Page<Issue> pageIssues = null;
         if (statusType == 0) {
             pageIssues = find.where().ilike("title", "%" + filter + "%")
                     .eq("projectId", projectId).orderBy(sortBy + " " + order)
                     .findPagingList(pageSize).getPage(pageNum);
-        } 
-        else if(commentCount==1){
-            pageIssues = find.where().ilike("title", "%" + filter + "%").ge("commentCount", 1)
-                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
-                    .findPagingList(pageSize).getPage(pageNum);
-        }else {
-            pageIssues = find.where().eq("statusType", statusType)
-                    .eq("projectId", projectId).orderBy(sortBy + " " + order)
-                    .findPagingList(pageSize).getPage(pageNum);
+        } else {
+            pageIssues = find.where().ilike("title", "%" + filter + "%")
+                    .eq("statusType", statusType).eq("projectId", projectId)
+                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
+                    .getPage(pageNum);
         }
         return pageIssues;
     }
 
+    // public static Page<Issue> pageCommented(Long projectId, int pageNum,
+    // int pageSize, String sortBy, String order, String filter,
+    // int statusType, int commentCount) {
+    //
+    // Page<Issue> pageIssues = null;
+    // if (commentCount == NUMBER_OF_ONE_MORE_COMMENTS) {
+    // pageIssues = find.where().ilike("title", "%" + filter + "%")
+    // .ge("commentCount", 1).eq("projectId", projectId)
+    // .orderBy(sortBy + " " + order).findPagingList(pageSize)
+    // .getPage(pageNum);
+    // }
+    // else
+    // return pageIssues;
+    //
+    // }
+
+    public static Page<Issue> findClosedIssues(Long projectId) {
+        return Issue.findIsses(projectId, state, DEFAULT_SORTER, models.enumeration.Direction.DESC);
+    }
+    
+    
+    
+    public static Page<Issue> findIssues(Long projectId, IssueState state)
+    {
+        return fineMilestones(projectId, state,DEFAULT_SORTER, Direction.DESC);
+    }
+    
+    public static Page<Issue> findIssues(Long projectId, IssueState state, String sort, Direction direction)
+    
+    
     public static Issue findById(Long id) {
         return find.byId(id);
     }
@@ -177,8 +226,7 @@ public class Issue extends Model {
     // .findPagingList(numIssueOnePage).getPage(pageNum - 1);
     // }
 
-    public static void countUpCommentCounter(Long issueId) {
-        Issue issue = findById(issueId);
+    public static void countUpCommentCounter(Issue issue) {
         issue.commentCount++;
         issue.update();
     }
