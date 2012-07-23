@@ -1,9 +1,13 @@
-@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: Int)
+@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: Int, commentCount: Int)
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @****************************************
 * Helper generating navigation links    *
 ****************************************@
-@link(newPage:Int, newSortBy:String, status:Int) = @{
+@link(projectId:Long, newPage:Int, newSortBy:String, status:Int) = @{
     
     var sortBy = currentSortBy
     var order = currentOrder
@@ -22,7 +26,7 @@
     }
     
     // Generate the link
-    routes.IssueApp.list(projectId, newPage, sortBy, order, currentFilter, status)
+    routes.IssueApp.list(projectId, newPage, sortBy, order, currentFilter, status, commentCount)
     
 }
 
@@ -31,7 +35,7 @@
 ***********************************@
 @header(key:String, title:String) = {
     <th class="@key.replace(".","_") header @if(currentSortBy == key) @{if(currentOrder == "asc") "headerSortDown" else "headerSortUp"}">
-        <a href="@link(0, key, status)">@title</a>
+        <a href="@link(projectId, 0, key, status)">@title</a>
     </th>
 }
 
@@ -39,23 +43,15 @@
 <div class="row">
 	<div span="span12">
 		<div class="pull-right">
-			<form class="form-search form-inline">
-				<label class="control-label" for="selectMilestone"></label>
-<!--TODO Options으로 바꿀것-->
-				<a class="controls">
+<!--TODO 검색 기능에서 currentFilter 변수를 넘겨주면서, 동시에 projectId를 넘겨주지 못함 일단 현재는 route에서 projectId를 기본값을 1로 해줌-->
+			<form class="form-search form-inline" action="@routes.IssueApp.list(projectId, 0, "", "", "name", 0,0)" method="GET" id="searchForm">
 					<select id="selectMilestone">
-						<option>마일스톤</option>
-						<option>마일스톤3</option>
+						<option class="blank" value="">--마일스톤--</option>
+						@Milestone.options(projectId).map { v => <option value="@v._1" >@v._2</option>}
 					</select>
-				</a>
-				<form action="@link(0, "statusType",status)" method="GET">
-					<label class="control-label" for="searchIssueButton">검색</label>
-					<input type="search" id="searchbox" name="f" value="@currentFilter" placeholder="Search by issue title...">
-					<button type="submit" id="searchsubmit" class="btn">
-						<i class="icon-search"></i>
-					</button>
+					<input type="search" class="search-query" name="filter" value="@currentFilter" placeholder="Search by issue title...">
+					<input type="submit" id="searchsubmit" class="btn"> <i class="icon-search"> </i></a>
 					<a class="btn btn-primary" href="@routes.IssueApp.newIssue(projectId)" >새 이슈</a>
-				</form>
 			</form>
 		</div>
 	</div>
@@ -63,36 +59,38 @@
 
 <div>
 	<ul class="nav nav-tabs" id="issue_list">
-		<li class="@if(status.equals(0)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 0)">전체</a></li>
-		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 5)">미해결</a></li>
-		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 6)">해결</a></li>
+		<li class="@if(status.equals(0)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 0, 0)">전체</a></li>
+		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 5, 0)">미해결</a></li>
+		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 6, 0)">해결</a></li>
 	</ul>
 
-	<div class="pull-right">
-          <div class="control-group">
-            <label class="control-label" for="inlineCheckboxes"></label>
-            <div class="controls">
-              <label class="checkbox inline">
-                <input type="checkbox" id="fineOnlyCommented" value="fineOnlyCommented"> 댓글
-              </label>
-              <label class="checkbox inline">
-                <input type="checkbox" id="fineOnlyFileattached" value="fineOnlyFileattached"> 첨부파일
-              </label>
-              <label class="checkbox inline">
-               <a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
-           </label>
-            </div>
-          </div>
-</div>
+	
 
 	@if(currentPage.getTotalRowCount == 0){
 
-		<div class="well">
+		<div class="well span11">
 			<em>등록된 이슈가 없습니다</em>
 		</div>
 
 	}else{
-
+	<div class="pull-right">
+		<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(projectId,0,"","","",status,1)" method="GET">
+	        <div class="control-group">
+	            <label class="control-label" for="inlineCheckboxes"></label>
+	            <div class="controls">
+	              	<label class="checkbox inline">
+	                	<input type="checkbox" id="findOnlyCommented" value="commentChecked"> 댓글
+	             	</label>
+	            	<label class="checkbox inline">
+	                	<input type="checkbox" id="findOnlyFileAttached" value="fileAttachedChecked"> 첨부파일
+	              	</label>
+	            	<label class="checkbox inline">
+	               		<a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
+	           		</label>
+	           </div>
+	        </div>
+	    </form>
+	</div>
 
 		<table class="table">
 			<thead>
@@ -131,7 +129,7 @@
             <ul>
                 @if(currentPage.hasPrev) {
                     <li class="prev">
-                        <a href="@link(currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
+                        <a href="@link(projectId, currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
                     </li>
                 } else {
                     <li class="prev disabled">
@@ -143,7 +141,7 @@
                 </li>
                 @if(currentPage.hasNext) {
                     <li class="next">
-                        <a href="@link(currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
+                        <a href="@link(projectId, currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
                     </li>
                 } else {
                     <li class="next disabled">
@@ -158,6 +156,20 @@
         </div>
 	</div>
 </div>
-	
+}
 
-	} }
+	<script>
+	$(document).ready(function() {
+			$("#findOnlyCommented").bind("change check", function(){
+				if($("#findOnlyCommented").is(":checked")) {
+					
+					return $("form[id='checkboxForm']").submit();
+				}else {
+					alert("not checked");
+					return false;
+				}
+			});	
+		});
+	</script>
+
+}
