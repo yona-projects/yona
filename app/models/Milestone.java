@@ -10,13 +10,9 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Milestone entity managed by Ebean
@@ -26,7 +22,7 @@ public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
-            Long.class, Milestone.class);
+        Long.class, Milestone.class);
     private static String DEFAULT_SORTER = "dueDate";
     @Id
     public Long id;
@@ -37,11 +33,14 @@ public class Milestone extends Model {
     public Date dueDate;
     @Constraints.Required
     public String contents;
-    public Long projectId;
     public int numClosedIssues;
     public int numOpenIssues;
     public int numTotalIssues; /* TODO It should be related issues count. */
     public int completionRate;
+    @ManyToOne
+    public Project project;
+    @OneToMany(mappedBy = "milestone")
+    public Set<Issue> issues;
 
     public Long getId() {
         return id;
@@ -61,7 +60,7 @@ public class Milestone extends Model {
             double closedIssueCount = new Double(milestone.numClosedIssues);
             double numTotalIssues = new Double(milestone.numTotalIssues);
             completionRate = new Double(
-                    (closedIssueCount / numTotalIssues) * 100).intValue();
+                (closedIssueCount / numTotalIssues) * 100).intValue();
         }
         milestone.completionRate = completionRate;
         milestone.update(id);
@@ -77,7 +76,7 @@ public class Milestone extends Model {
 
     /**
      * 해당 프로젝트의 전체 마일스톤들을 찾아줍니다.
-     * 
+     *
      * @param projectId
      * @return
      */
@@ -87,7 +86,7 @@ public class Milestone extends Model {
 
     /**
      * 완료된 마일스톤들을 찾아 줍니다.
-     * 
+     *
      * @param projectId
      * @return
      */
@@ -97,7 +96,7 @@ public class Milestone extends Model {
 
     /**
      * 미완료된 마일스톤들을 찾아 줍니다.
-     * 
+     *
      * @param projectId
      * @return
      */
@@ -107,7 +106,7 @@ public class Milestone extends Model {
 
     /**
      * 완료일을 yyyy-MM-dd 형식의 문자열로 변환시킵니다.
-     * 
+     *
      * @return
      */
     public String getDueDateString() {
@@ -117,19 +116,19 @@ public class Milestone extends Model {
 
     /**
      * sort와 direction이 없을 때는 {@link DEFAULT_SORTER} 기준으로 오른차순으로 정렬합니다.
-     * 
+     *
      * @param projectId
      * @param state
      * @return
      */
     public static List<Milestone> findMilestones(Long projectId,
-            MilestoneState state) {
+                                                 MilestoneState state) {
         return findMilestones(projectId, state, DEFAULT_SORTER, Direction.ASC);
     }
 
     /**
      * OrderParam이 있을 때는 해당 정렬 기준으로 정렬합니다.
-     * 
+     *
      * @param projectId
      * @param state
      * @param sort
@@ -137,19 +136,21 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findMilestones(Long projectId,
-            MilestoneState state, String sort, Direction direction) {
+                                                 MilestoneState state, String sort, Direction direction) {
         OrderParams orderParams = new OrderParams().add(sort, direction);
 
-        SearchParams searchParams = new SearchParams().add("projectId",
-                projectId, Matching.EQUALS);
-
+        SearchParams searchParams = new SearchParams().add("project.id",
+            projectId, Matching.EQUALS);
+        if (state == null) {
+            state = MilestoneState.ALL;
+        }
         switch (state) {
-        case OPEN:
-            searchParams.add("numOpenIssues", 0, Matching.GT);
-            break;
-        case CLOSED:
-            searchParams.add("numOpenIssues", 0, Matching.EQUALS);
-            break;
+            case OPEN:
+                searchParams.add("numOpenIssues", 0, Matching.GT);
+                break;
+            case CLOSED:
+                searchParams.add("numOpenIssues", 0, Matching.EQUALS);
+                break;
         }
         return FinderTemplate.findBy(orderParams, searchParams, find);
     }
@@ -162,13 +163,12 @@ public class Milestone extends Model {
 
     /**
      * 마일스톤의 목록을 제공합니다.
-     * 
+     *
      * @return
      */
     public static Map<String, String> options(Long projectId) {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
-        for (Milestone milestone : Milestone.find.where()
-                .eq("projectId", projectId).orderBy("title").findList()) {
+        for (Milestone milestone : findMilestones(projectId, null, "title", Direction.ASC)) {
             options.put(milestone.id.toString(), milestone.title);
         }
         return options;

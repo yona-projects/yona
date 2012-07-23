@@ -98,7 +98,7 @@
 					@header("id", "#")
 					@header("status", "상태")
 					@header("title", "제목")
-					@header("responsibleMember.name", "담당자")
+					@header("assignee.name", "담당자")
 					@header("date", "작성일")
 				</tr>
 			</thead>
@@ -110,10 +110,10 @@
 						<td>@issue.status()</td>
 						<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title [@issue.commentCount]</a></td>
 						<td>
-							@if(issue.responsibleMember == null){
+							@if(issue.assignee == null){
 							<em>미배정</em>						
 						} else {
-							@issue.responsibleMember.name
+							@issue.assignee.name
 						}
 						</td>
 						<td>@issue.date.format("dd MMM yyyy")</td>

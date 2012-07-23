@@ -4,20 +4,21 @@
 
 package models;
 
-import java.util.*;
-
-import javax.persistence.*;
-
+import com.avaje.ebean.Page;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import com.avaje.ebean.Page;
+import javax.persistence.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Set;
 
 @Entity
 public class Post extends Model {
     private static final long serialVersionUID = 1L;
+    private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
 
     public final static String ORDER_ASCENDING = "asc";
     public final static String ORDER_DESCENDING = "desc";
@@ -28,7 +29,6 @@ public class Post extends Model {
 
     @Id
     public Long id;
-    public Long userId;
     @Constraints.Required
     public String title;
     @Constraints.Required
@@ -38,12 +38,22 @@ public class Post extends Model {
     public Date date;
     public int commentCount;
     public String filePath;
+    @ManyToOne
+    public User author;
+    @OneToMany(mappedBy = "post", cascade= CascadeType.ALL)
+    public Set<Comment> comments;
 
     public Post() {
         this.date = JodaDateUtil.today();
     }
 
-    private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public static Post findById(Long id) {
         return find.byId(id);
@@ -63,8 +73,7 @@ public class Post extends Model {
         Comment.deleteByPostId(id);
     }
 
-    public static void countUpCommentCounter(Long id) {
-        Post post = findById(id);
+    public static void countUpCommentCounter(Post post) {
         post.commentCount++;
         post.update();
     }
@@ -91,10 +100,6 @@ public class Post extends Model {
         } else {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
-    }
-
-    public String findWriter() {
-        return User.findNameById(this.userId);
     }
 
     public static void edit(Post post) {

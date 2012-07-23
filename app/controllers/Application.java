@@ -6,11 +6,11 @@ import play.mvc.Result;
 import views.html.index;
 
 public class Application extends Controller {
-  
+
     public static Result index() {
-    	User loginUser = User.findById(1l);
-    	UserApp.authenticate(loginUser);
+        User loginUser = User.findById(1l);
+        UserApp.authenticate(loginUser);
         return ok(index.render("Your new application is ready."));
     }
-  
+
 }

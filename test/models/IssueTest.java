@@ -1,14 +1,10 @@
 package models;
 
-import static org.fest.assertions.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.avaje.ebean.Page;
-
+import org.junit.Test;
 import utils.JodaDateUtil;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class IssueTest extends ModelTest {
 
@@ -19,7 +15,7 @@ public class IssueTest extends ModelTest {
         issue.title = "불필요한 로그 출력 코드 제거";
         issue.date = JodaDateUtil.today();
         issue.status = Issue.STATUS_ENROLLED;
-        issue.userId = 1l;
+        issue.reporter = getTestUser();
         // When
         // Then
         assertThat(Issue.create(issue)).isEqualTo(5l);
@@ -32,7 +28,7 @@ public class IssueTest extends ModelTest {
         issue.title = "불필요한 로그 출력 코드 제거";
         issue.date = JodaDateUtil.today();
         issue.status = Issue.STATUS_ENROLLED;
-        issue.userId = 1l;
+        issue.reporter = getTestUser();
         Long id = Issue.create(issue);
         // When
         Issue issueTest = Issue.findById(id);
@@ -54,8 +50,8 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER, Issue.ISSUE_COUNT_PER_PAGE,
-                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
-                Issue.STATUS_NONE);
+            Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "",
+            Issue.STATUS_NONE);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(2);
         assertThat(issues.getList().size()).isEqualTo(2);
@@ -67,8 +63,8 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER, Issue.ISSUE_COUNT_PER_PAGE,
-                Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "메모리",
-                Issue.STATUS_NONE);
+            Issue.SORTBY_ID, Issue.ORDERBY_DESCENDING, "메모리",
+            Issue.STATUS_NONE);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
         assertThat(issues.getList().size()).isEqualTo(1);
