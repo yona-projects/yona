@@ -165,4 +165,14 @@ public class Milestone extends Model {
         }
         return options;
     }
+
+    public void add(Issue issue) {
+        if(this.issues == null) {
+            this.issues = new HashSet<Issue>();
+        }
+        issue.milestone = this;
+        this.issues.add(issue);
+        save();
+        issue.save();
+    }
 }

@@ -215,4 +215,22 @@ public class MilestoneTest extends ModelTest {
         assertThat(milestoneOptions).hasSize(3);
     }
 
+    @Test
+    public void addIssue() throws Exception {
+        // GIVEN
+        // WHEN
+        Milestone m1 = Milestone.findById(1l);
+        Issue issue1 = Issue.findById(1l);
+        m1.add(issue1);
+
+        // THEN
+        assertThat(issue1.milestone).isEqualTo(m1);
+        assertThat(m1.issues.contains(issue1)).isTrue();
+
+        // THEN
+        issue1 = Issue.findById(1l);
+        assertThat(issue1.milestone).isEqualTo(m1);
+        m1 = Milestone.findById(1l);
+        assertThat(m1.issues.contains(issue1)).isTrue();
+    }
 }
