@@ -17,6 +17,9 @@ public class FinderTemplate {
             for (SearchParam sp : msp.getSearchParams()) {
                 String field = sp.getField();
                 Object value = sp.getValue();
+                if (value == null) {
+                    continue;
+                }
                 switch (sp.getMatching()) {
                     case EQUALS:
                         el.eq(field, value);
@@ -46,6 +49,9 @@ public class FinderTemplate {
 
         if (!mop.getOrderParams().isEmpty()) {
             for (OrderParam op : mop.getOrderParams()) {
+                if (op.getSort() == null || op.getSort().trim().isEmpty()) {
+                    continue;
+                }
                 switch (op.getDirection()) {
                     case ASC:
                         el.orderBy(op.getSort() + " asc");
