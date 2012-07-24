@@ -63,6 +63,27 @@ public class GitApp extends Controller {
         return ok(byteArrayOutputStream.toByteArray());
     }
 
+    public static Result postUploadPack(String repoPath) throws IOException {
+        // jgit.uploadPackServlet.doPost();
+        // http-backend.c service_rpc();
+        response().setContentType("application/x-git-upload-pack-result");
+
+        Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
+        UploadPack uploadPack = new UploadPack(repository);
+
+        uploadPack.setBiDirectionalPipe(false);
+
+        // FIXME 스트림으로..
+        byte[] buf = request().body().asRaw().asBytes();
+        ByteArrayInputStream in = new ByteArrayInputStream(buf);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        uploadPack.upload(in, out, null);
+        out.close();
+
+        return ok(out.toByteArray());
+    }
 
     public static Result postReceivePack(String repoPath) throws IOException {
         // jgit.uploadPackServlet.doPost();
