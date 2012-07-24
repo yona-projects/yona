@@ -51,6 +51,9 @@ GET		/issueList/excel			controllers.IssueApp.extractExcelFile()
 
 
 #Git
-GET          /git/:repo/info/refs  controllers.GitApp.infoRefs(repo:String)
-GET          /git/*path            controllers.GitApp.get(path:String)
-POST         /git/*path            controllers.GitApp.post(path:String)
+GET         /git/:repo/info/refs        controllers.GitApp.infoRefs(repo:String, service:String)
+POST        /git/:repo/git-receive-pack controllers.GitApp.postReceivePack(repo: String)
+
+
+GET         /git/*path                  controllers.GitApp.get(path:String)
+POST        /git/*path                  controllers.GitApp.post(path:String)
