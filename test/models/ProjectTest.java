@@ -69,13 +69,4 @@ public class ProjectTest extends ModelTest {
         assertThat(project.url).isEqualTo("http://localhost:9000/project/1");
       
     }
-    
-    @Test
-    public void findByOwner() throws Exception {
-        // Given
-        // When
-        List<Project> projectList = Project.findByOwner(1l);
-        // Then
-        assertThat(projectList.size()).isEqualTo(2);      
-    }
 }

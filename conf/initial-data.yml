@@ -25,24 +25,19 @@ projects:
         share_option:   true
         vcs:            GIT
         url:            http://localhost:9000/project/1
-        owner:          !!models.User
-                            id: 1
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
         url:            http://localhost:9000/project/2
-        owner:          !!models.User
-                            id: 1
     - !!models.Project
         name:           네이버 나눔고딕 코딩글꼴
         overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
         share_option:   false
         vcs:            GIT
         url:            http://localhost:9000/project/3
-        owner:          !!models.User
-                            id: 3
+
 # Board
 posts:
     - !!models.Post
@@ -237,7 +232,7 @@ projectUsers:
         project:    !!models.Project
                         id: 2
         role:       !!models.Role
-                        id: 2                        
+                        id: 1                        
     - !!models.ProjectUser
         user:       !!models.User
                         id: 2
@@ -247,8 +242,15 @@ projectUsers:
                         id: 2
     - !!models.ProjectUser
         user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 3
+        role:       !!models.Role
+                        id: 2                        
+    - !!models.ProjectUser
+        user:       !!models.User
                         id: 3
         project:    !!models.Project
-                        id: 2
+                        id: 3
         role:       !!models.Role
                         id: 1

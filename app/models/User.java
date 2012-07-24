@@ -19,8 +19,6 @@ public class User extends Model {
     public String name;
     public String loginId;
     public String password;
-    @OneToMany(mappedBy = "owner")
-    public Set<Project> projects;
     @OneToMany(mappedBy = "author")
     public Set<Post> posts;
     @OneToMany(mappedBy = "author")

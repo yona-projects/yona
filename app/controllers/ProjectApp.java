@@ -6,6 +6,7 @@ import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
+import utils.RoleCheck;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
@@ -48,8 +49,9 @@ public class ProjectApp extends Controller {
                 filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
-//            project.owner = UserApp.currentUser();
-            return redirect(routes.ProjectApp.project(Project.create(project)));
+            Long newProjectId = Project.create(project);
+            RoleCheck.roleGrant(UserApp.currentUser().id, "manager", newProjectId);
+            return redirect(routes.ProjectApp.project(newProjectId));
         }
     }
 
