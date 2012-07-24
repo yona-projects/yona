@@ -320,5 +320,4 @@ public class Issue extends Model {
         issue.commentCount++;
         issue.update();
     }
-
 }

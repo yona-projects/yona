@@ -1,10 +1,5 @@
 package models;
 
-/*
- * @author: Hwi Ahn
- * 
- */
-
 import org.junit.Test;
 
 import controllers.UserApp;
@@ -14,6 +9,10 @@ import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * @author "Hwi Ahn"
+ *
+ */
 public class ProjectTest extends ModelTest {
 
     @Test
@@ -68,14 +67,5 @@ public class ProjectTest extends ModelTest {
         assertThat(project.vcs).isEqualTo("GIT");
         assertThat(project.url).isEqualTo("http://localhost:9000/project/1");
       
-    }
-    
-    @Test
-    public void findByOwner() throws Exception {
-        // Given
-        // When
-        List<Project> projectList = Project.findByOwner(1l);
-        // Then
-        assertThat(projectList.size()).isEqualTo(2);      
     }
 }

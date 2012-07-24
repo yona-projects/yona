@@ -33,14 +33,6 @@ public class Comment extends Model {
         date = JodaDateUtil.today();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public static List<Comment> findCommentsByPostId(Long postId) {
         return find.where().eq("post.id", postId).findList();
     }

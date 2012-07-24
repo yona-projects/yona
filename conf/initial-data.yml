@@ -25,24 +25,25 @@ projects:
         share_option:   true
         vcs:            GIT
         url:            http://localhost:9000/project/1
-        owner:          !!models.User
-                            id: 1
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
         url:            http://localhost:9000/project/2
-        owner:          !!models.User
-                            id: 1
     - !!models.Project
         name:           네이버 나눔고딕 코딩글꼴
         overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
         share_option:   false
         vcs:            GIT
         url:            http://localhost:9000/project/3
-        owner:          !!models.User
-                            id: 3
+    - !!models.Project
+        name:           CUBRID
+        overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/project/4        
+
 # Board
 posts:
     - !!models.Post
@@ -193,7 +194,9 @@ permissions:
     - !!models.Permission
         name:   project.setting
     - !!models.Permission
-        name:   site.setting    
+        name:   site.setting
+    - !!models.Permission
+        name:   code            
             
 # Role
 roles:
@@ -208,6 +211,8 @@ roles:
                 id:     3
             - !!models.Permission
                 id:     4
+            - !!models.Permission
+                id:     6                
     - !!models.Role
         name:           member
         permissions:
@@ -217,6 +222,8 @@ roles:
                 id:     2
             - !!models.Permission
                 id:     3
+            - !!models.Permission
+                id:     6                 
     - !!models.Role
         name:           siteManager
         permissions:
@@ -238,7 +245,7 @@ projectUsers:
         project:    !!models.Project
                         id: 2
         role:       !!models.Role
-                        id: 2                        
+                        id: 1                        
     - !!models.ProjectUser
         user:       !!models.User
                         id: 2
@@ -248,8 +255,22 @@ projectUsers:
                         id: 2
     - !!models.ProjectUser
         user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 3
+        role:       !!models.Role
+                        id: 2                        
+    - !!models.ProjectUser
+        user:       !!models.User
                         id: 3
         project:    !!models.Project
-                        id: 2
+                        id: 3
+        role:       !!models.Role
+                        id: 1
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 3
+        project:    !!models.Project
+                        id: 4
         role:       !!models.Role
                         id: 1
