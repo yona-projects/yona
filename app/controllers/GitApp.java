@@ -41,7 +41,21 @@ public class GitApp extends Controller {
     private static Result uploadPackAdvertise(final String repoPath) throws IOException, ServiceMayNotContinueException {
         response().setContentType("application/x-git-upload-pack-advertisement");
 
-        return TODO;
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PacketLineOut out = new PacketLineOut(byteArrayOutputStream);
+        out.writeString("# service=git-upload-pack\n");
+        out.end();
+
+        Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
+        UploadPack uploadPack = new UploadPack(repository);
+
+        uploadPack.setBiDirectionalPipe(false);
+        uploadPack.sendAdvertisedRefs(new PacketLineOutRefAdvertiser(out));
+
+        Logger.info(request().toString());
+        Logger.info(byteArrayOutputStream.toByteArray().toString());
+
+        return ok(byteArrayOutputStream.toByteArray());
     }
 
     private static Result receivePackAdvertise(String repoPath) throws IOException {
