@@ -6,6 +6,9 @@ import play.db.ebean.Model;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.PagingList;
 
+/**
+ * @deprecated
+ */
 public class FinderTemplatePage {
 
     public static <K, T> PagingList<T> findBy(OrderParams mop,

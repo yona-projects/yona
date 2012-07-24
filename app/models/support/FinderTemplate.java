@@ -2,14 +2,15 @@ package models.support;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-
 import play.db.ebean.Model;
 
 import java.util.List;
 
 public class FinderTemplate {
 
-    public static <K, T> List<T> findBy(OrderParams mop, SearchParams msp, Model.Finder<K, T> finder) {
+    private static <K, T> ExpressionList<T> makeExpressionList(OrderParams mop,
+                                                               SearchParams msp,
+                                                               Model.Finder<K, T> finder) {
         ExpressionList<T> el = finder.where();
 
         if (!msp.getSearchParams().isEmpty()) {
@@ -56,6 +57,19 @@ public class FinderTemplate {
             }
         }
 
-        return el.findList();
-    }   
+        return el;
+    }
+
+    public static <K, T> List<T> findBy(OrderParams mop,
+                                        SearchParams msp,
+                                        Model.Finder<K, T> finder) {
+        return makeExpressionList(mop, msp, finder).findList();
+    }
+
+    public static <K, T> Page<T> getPage(OrderParams mop,
+                                         SearchParams msp,
+                                         Model.Finder<K, T> finder, int pageSize, int page) {
+        return makeExpressionList(mop, msp, finder).findPagingList(pageSize).getPage(page);
+    }
+
 }

@@ -13,6 +13,7 @@ import javax.persistence.*;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.enumeration.IssueState;
+import models.support.FinderTemplate;
 import models.support.FinderTemplatePage;
 import models.support.OrderParams;
 import models.support.SearchParams;
@@ -242,13 +243,13 @@ public class Issue extends Model {
 
     public static Page<Issue> findIssues(Long projectId, IssueState state) {
         return findIssues(projectId, FIRST_PAGE_NUMBER, state, SORTBY_ID,
-                Direction.DESC, "", false, false);
+            Direction.DESC, "", false, false);
     }
 
     // TODO 댓글 및 파일 첨부된 것도 인식하게끔 고쳐야함.
     public static Page<Issue> findFilteredIssues(Long projectId, String filter) {
         return findIssues(projectId, FIRST_PAGE_NUMBER, IssueState.ALL,
-                SORTBY_ID, Direction.DESC, filter, false, false);
+            SORTBY_ID, Direction.DESC, filter, false, false);
     }
 
     // TODO 파일 첨부된 체크박스랑 동시에 기능하도록 고칠것.
@@ -294,8 +295,9 @@ public class Issue extends Model {
             break;
         }
 
-        return FinderTemplatePage.findBy(orderParams, searchParams, find)
-                .getPage(pageNumber);
+        return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE, pageNumber);
+//        return FinderTemplatePage.findBy(orderParams, searchParams, find)
+//                .getPage(pageNumber);
     }
 
     public static Issue findById(Long id) {
