@@ -11,49 +11,49 @@ import play.mvc.*;
 
 public class GitApp extends Controller {
     public static Result post(String path) {
-        Logger.info("post : " + request().toString());
+        Logger.debug("GitApp.post : " + request().toString());
         return TODO;
     }
 
     public static Result get(String path) {
-        Logger.info("get:" + request().toString());
+        Logger.debug("GitApp.get : " + request().toString());
         return TODO;
     }
 
     public static Result advertise(String repoPath, String service) throws IOException {
-        response().setContentType("application/x-"+service+"-advertisement");
+        Logger.debug("GitApp.advertise : " + request().toString());
+
+        response().setContentType("application/x-" + service + "-advertisement");
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         PacketLineOut out = new PacketLineOut(byteArrayOutputStream);
-        out.writeString("# service="+service+"\n");
+        out.writeString("# service=" + service + "\n");
         out.end();
 
         Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
-        if(service.equals("git-upload-pack")) {
+        if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
 
             uploadPack.setBiDirectionalPipe(false);
             uploadPack.sendAdvertisedRefs(new PacketLineOutRefAdvertiser(out));
-        } else if(service.equals("git-receive-pack")){
+        } else if (service.equals("git-receive-pack")) {
             ReceivePack receivePack = new ReceivePack(repository);
 
             receivePack.sendAdvertisedRefs(new PacketLineOutRefAdvertiser(out));
         } else {
             throw new UnsupportedOperationException();
         }
-        
-
-        Logger.info(request().toString());
-        Logger.info(byteArrayOutputStream.toByteArray().toString());
 
         return ok(byteArrayOutputStream.toByteArray());
     }
-    
-    public static Result serviceRpc(String repoPath, String service) throws IOException{
-        response().setContentType("application/x-"+service+"-result");
+
+    public static Result serviceRpc(String repoPath, String service) throws IOException {
+        Logger.debug("GitApp.advertise : " + request().toString());
+
+        response().setContentType("application/x-" + service + "-result");
 
         Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
-        
+
         // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
 
         // FIXME 스트림으로..
@@ -62,20 +62,19 @@ public class GitApp extends Controller {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        if(service.equals("git-upload-pack")) {
+        if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
 
             uploadPack.setBiDirectionalPipe(false);
             uploadPack.upload(in, out, null);
-            
-        } else if(service.equals("git-receive-pack")) {
+
+        } else if (service.equals("git-receive-pack")) {
             ReceivePack receivePack = new ReceivePack(repository);
 
             receivePack.setBiDirectionalPipe(false);
             receivePack.receive(in, out, null);
         }
         out.close();
-
         return ok(out.toByteArray());
     }
 
