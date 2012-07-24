@@ -1,10 +1,5 @@
 package models;
 
-/*
- * @author: Hwi Ahn
- * 
- */
-
 import org.junit.Test;
 
 import controllers.UserApp;
@@ -14,6 +9,10 @@ import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * @author "Hwi Ahn"
+ *
+ */
 public class ProjectTest extends ModelTest {
 
     @Test

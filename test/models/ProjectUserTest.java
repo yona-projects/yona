@@ -5,6 +5,10 @@ import java.util.List;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
+/**
+ * @author "Hwi Ahn"
+ *
+ */
 public class ProjectUserTest extends ModelTest {
     @Test
     public void findByIds() throws Exception {

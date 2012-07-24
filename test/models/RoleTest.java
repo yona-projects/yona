@@ -36,7 +36,7 @@ public class RoleTest extends ModelTest {
         // When
         List<Permission> permissions = role.getPermissions();
         // Then
-        assertThat(permissions.size()).isEqualTo(4);
+        assertThat(permissions.size()).isEqualTo(5);
         assertThat(permissions.get(2).name).isEqualTo("milestone");
     }
 }
