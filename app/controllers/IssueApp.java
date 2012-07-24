@@ -12,6 +12,8 @@ import com.avaje.ebean.Page;
 import models.Issue;
 import models.IssueComment;
 import models.User;
+import models.enumeration.Direction;
+import models.enumeration.IssueState;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -38,12 +40,28 @@ public class IssueApp extends Controller {
      *            Filter applied on issue names
      */
     public static Result list(Long projectId, int pageNum, String sortBy,
-            String order, String filter, int status) {
-        Page<Issue> issues = Issue.page(projectId, pageNum,
-                Issue.ISSUE_COUNT_PER_PAGE, sortBy, order, filter, status);
+            String order, String filter, String status, boolean commentedCheck,
+            boolean fileAttachedCheck) {
+        Page<Issue> issues = Issue.findIssues(projectId, pageNum,
+                IssueState.getValue(status), sortBy, Direction.getValue(order),
+                filter, commentedCheck, fileAttachedCheck);
 
         return ok(issueList.render("이슈 목록 조회", issues, projectId, sortBy,
-                order, filter, status));
+                order, filter, status, commentedCheck, fileAttachedCheck));
+    }
+
+    public static Result issue(Long issueId, Long projectId) {
+        Issue issues = Issue.findById(issueId);
+        List<IssueComment> comments = IssueComment
+                .findCommentsByIssueId(issueId);
+        if (issues == null) {
+            return ok(notExistingPage.render("존재하지 않는 게시물", projectId));
+        } else {
+            Form<IssueComment> commentForm = new Form<IssueComment>(
+                    IssueComment.class);
+            return ok(issue.render("이슈 상세조회", issues, projectId, comments,
+                    commentForm));
+        }
     }
 
     public static Result newIssue(Long projectId) {
@@ -69,28 +87,14 @@ public class IssueApp extends Controller {
         // TODO statusType 뭔가 이상함
         return redirect(routes.IssueApp.list(projectId,
                 Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", issueForm.get().statusType));
-    }
-
-    public static Result issue(Long issueId, Long projectId) {
-        Issue issues = Issue.findById(issueId);
-        List<IssueComment> comments = IssueComment
-                .findCommentsByIssueId(issueId);
-        if (issues == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물", projectId));
-        } else {
-            Form<IssueComment> commentForm = new Form<IssueComment>(
-                    IssueComment.class);
-            return ok(issue.render("이슈 상세조회", issues, projectId, comments,
-                    commentForm));
-        }
+                Issue.ORDERBY_DESCENDING, "", "all", false, false));
     }
 
     public static Result delete(Long issueId, Long projectId) {
         Issue.delete(issueId);
         return redirect(routes.IssueApp.list(projectId,
                 Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", Issue.STATUS_NONE));
+                Issue.ORDERBY_DESCENDING, "", "all", false, false));
     }
 
     public static Result saveComment(Long issueId, Long projectId) {

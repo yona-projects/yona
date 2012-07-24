@@ -72,6 +72,7 @@ issues:
         commentCount:   1
         project:        !!models.Project
                             id: 1
+        filePath:       http://localhost:9000/project/1/issue23/capture.jpg
     - !!models.Issue
         reporter:       !!models.User
                             id: 2

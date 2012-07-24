@@ -90,7 +90,7 @@ public class Issue extends Model {
     public Milestone milestone; // 적용된 마일스톤
     public int importance;// 중요도
     public int diagnosisResult;// 진단유형
-    public int commentCount;
+    // public int commentCount;
     // TODO 첨부 파일이 여러개인경우는?
     public String filePath;
     // TODO 이슈 유형이나 진단유형처럼 int 값을 할지?
@@ -98,12 +98,17 @@ public class Issue extends Model {
     public String browserType;
     public String dbmsType;
 
+    // TODO IssueComment Table이랑 연결 지을 것.
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public Set<IssueComment> issueComments;
+    public int commentCount;
+
+    // public int commentCount = issueComments.size();
 
     public Issue() {
+
         this.date = JodaDateUtil.today();
-        this.commentCount = 0;
+
     }
 
     public String status() {
@@ -217,15 +222,17 @@ public class Issue extends Model {
     // }
     /**
      * 미해결 탭을 눌렀을 때, open 상태의 이슈들을 보여준다.
+     * 
      * @param projectId
      * @return
      */
     public static Page<Issue> findOpenIssues(Long projectId) {
         return Issue.findIssues(projectId, IssueState.OPEN);
     }
-    
+
     /**
      * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 보여준다.
+     * 
      * @param projectId
      * @return
      */
@@ -234,22 +241,45 @@ public class Issue extends Model {
     }
 
     public static Page<Issue> findIssues(Long projectId, IssueState state) {
-        return findIssues(projectId, state, DEFAULT_SORTER, Direction.DESC, "");
+        return findIssues(projectId, FIRST_PAGE_NUMBER, state, SORTBY_ID,
+                Direction.DESC, "", false, false);
     }
 
-    public static Page<Issue> findFiltererIssues(Long projectId, String filter) {
-        return findIssues(projectId, IssueState.ALL, DEFAULT_SORTER,
-                Direction.DESC, filter);
+    // TODO 댓글 및 파일 첨부된 것도 인식하게끔 고쳐야함.
+    public static Page<Issue> findFilteredIssues(Long projectId, String filter) {
+        return findIssues(projectId, FIRST_PAGE_NUMBER, IssueState.ALL,
+                SORTBY_ID, Direction.DESC, filter, false, false);
     }
 
-    public static Page<Issue> findIssues(Long projectId, IssueState state,
-            String sort, Direction direction, String filter) {
+    // TODO 파일 첨부된 체크박스랑 동시에 기능하도록 고칠것.
+    public static Page<Issue> findCommentedIssues(Long projectId, String filter) {
+        return findIssues(projectId, FIRST_PAGE_NUMBER, IssueState.ALL,
+                SORTBY_ID, Direction.DESC, filter, true, false);
+    }
 
-        OrderParams orderParams = new OrderParams().add(sort, direction);
+    public static Page<Issue> findFileAttachedIssues(Long projectId,
+            String filter) {
+        return findIssues(projectId, FIRST_PAGE_NUMBER, IssueState.ALL,
+                SORTBY_ID, Direction.DESC, filter, false, true);
+    }
+
+    public static Page<Issue> findIssues(Long projectId, int pageNumber,
+            IssueState state, String sortBy, Direction order, String filter,
+            boolean commentedCheck, boolean fileAttachedCheck) {
+
+        OrderParams orderParams = new OrderParams().add(sortBy, order);
 
         SearchParams searchParams = new SearchParams().add("project.id",
                 projectId, Matching.EQUALS);
         searchParams.add("title", filter, Matching.CONTAINS);
+
+        if (commentedCheck) {
+            searchParams.add("commentCount", 1, Matching.GE);
+        }
+
+        if (fileAttachedCheck) {
+            searchParams.add("filePath", "", Matching.NOT_EQUALS);
+        }
 
         if (state == null) {
             state = IssueState.ALL;
@@ -264,7 +294,8 @@ public class Issue extends Model {
             break;
         }
 
-        return FinderTemplatePage.findBy(orderParams, searchParams, find);
+        return FinderTemplatePage.findBy(orderParams, searchParams, find)
+                .getPage(pageNumber);
     }
 
     public static Issue findById(Long id) {
