@@ -27,7 +27,7 @@ public class FinderTemplateTest extends ModelTest {
         searchParams.add("completionRate", 100, Matching.LT);
 
         List<Milestone> p2MilestoneList = FinderTemplate.findBy(orderParams, searchParams, find);
-        assertThat(p2MilestoneList.get(0).getId()).isEqualTo(5);
+        assertThat(p2MilestoneList.get(0).id).isEqualTo(5);
 
         orderParams.clean();
         searchParams.clean();
@@ -37,6 +37,6 @@ public class FinderTemplateTest extends ModelTest {
         searchParams.add("completionRate", 100, Matching.EQUALS);
 
         List<Milestone> p1MilestoneList = FinderTemplate.findBy(orderParams, searchParams, find);
-        assertThat(p1MilestoneList.get(0).getId()).isEqualTo(1);
+        assertThat(p1MilestoneList.get(0).id).isEqualTo(1);
     }
 }
