@@ -42,14 +42,6 @@ public class Milestone extends Model {
     @OneToMany(mappedBy = "milestone")
     public Set<Issue> issues;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public static void create(Milestone milestone) {
         milestone.save();
     }

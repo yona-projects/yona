@@ -52,14 +52,6 @@ public class Project extends Model {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public static Long create(Project newProject) {
         newProject.save();
         newProject.url = defaultSiteURL + "/project/"

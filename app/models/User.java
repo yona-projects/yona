@@ -35,14 +35,6 @@ public class User extends Model {
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
         User.class);
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public static User findByName(String name) {
         return find.where().eq("name", name).findUnique();
     }

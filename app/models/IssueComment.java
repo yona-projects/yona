@@ -39,14 +39,6 @@ public class IssueComment extends Model {
         date = JodaDateUtil.today();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(
         Long.class, IssueComment.class);
 
