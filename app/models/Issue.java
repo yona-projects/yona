@@ -3,27 +3,23 @@
  */
 package models;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.persistence.*;
-
+import com.avaje.ebean.Page;
 import models.enumeration.Direction;
-import models.enumeration.Matching;
 import models.enumeration.IssueState;
+import models.enumeration.Matching;
 import models.support.FinderTemplate;
-import models.support.FinderTemplatePage;
 import models.support.OrderParams;
 import models.support.SearchParams;
-
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import com.avaje.ebean.Page;
+import javax.persistence.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Issue extends Model {
