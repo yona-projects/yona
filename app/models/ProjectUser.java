@@ -11,7 +11,7 @@ import play.db.ebean.Model;
 
 /**
  * @author "Hwi Ahn"
- *
+ * 
  */
 @Entity
 public class ProjectUser extends Model {
@@ -39,7 +39,7 @@ public class ProjectUser extends Model {
         return find.where().eq("user.id", userId).eq("project.id", projectId)
                 .findUnique();
     }
-    
+
     public static List<User> findUsersByProject(Long projectId) {
         List<ProjectUser> projectUsers = find.where()
                 .eq("project.id", projectId).findList();
@@ -52,7 +52,7 @@ public class ProjectUser extends Model {
         }
         return users;
     }
-    
+
     public static List<Project> findProjectsByOwner(Long ownerId) {
         List<ProjectUser> projectUsers = find.where().eq("user.id", ownerId)
                 .findList();
@@ -74,16 +74,49 @@ public class ProjectUser extends Model {
         projectUser.save();
     }
 
-    public static void update(Long userId, Long projectId, Long roleId) {
+    public static boolean update(Long userId, Long projectId, Long roleId) {
         ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
-        projectUser.update(ProjectUser.findByIds(userId, projectId).id);
+        ProjectUser oldProjectUser = ProjectUser.findByIds(userId, projectId);
+        boolean returnValue = false;
+        if (oldProjectUser.role.id.equals(1l)) {
+            if (existManager(projectId)) {
+                projectUser.update(oldProjectUser.id);
+                returnValue = true;
+            }
+        } else {
+            projectUser.update(oldProjectUser.id);
+            returnValue = true;
+        }
+        return returnValue;
     }
 
-    public static void delete(Long userId, Long projectId) {
+    public static boolean delete(Long userId, Long projectId) {
         ProjectUser projectUser = ProjectUser.findByIds(userId, projectId);
-        projectUser.delete();
+        boolean returnValue = false;
+        if(projectUser.role.id.equals(1l)) {
+            if (existManager(projectId)){
+                projectUser.delete();
+                returnValue = true;
+            }  
+        } else {
+            projectUser.delete();
+            returnValue = true;
+        }
+        return returnValue;
     }
 
-   
+    public static boolean existManager(Long projectId) {
+        int count = 0;
+        List<ProjectUser> projectUsers = find.where()
+                .eq("project.id", projectId).findList();
+        for (ProjectUser projectUser : projectUsers) {
+            if (projectUser.role.id.equals(1l))
+                count++;
+        }
+        if (count <= 1)
+            return false;
+        else
+            return true;
+    }
 
 }
