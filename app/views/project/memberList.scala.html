@@ -19,7 +19,7 @@
                 <td>@member("loginId").value</td>
                 <td>
 	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, id)" method="post">
-	                    <select id="id" name="@member("id").value" class="role">
+	                    <select id="role" name="id">
 	                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, id))
 	                    </select>
 	                </form>
@@ -43,7 +43,7 @@
     
     <script>  
         $(document).ready(function(){
-            $(".role").change(function(){
+            $("select[id='role']").change(function(){
                 $(this).parent("form").submit();
             });
         })
