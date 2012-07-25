@@ -109,7 +109,7 @@
 						<tr>
 							<td>@issue.id</td>
 							<td>@issue.status()</td>
-							<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title [@issue.commentCount]</a></td>
+							<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assignee == null){
 								<em>미배정</em>						
