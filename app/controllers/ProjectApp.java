@@ -129,4 +129,9 @@ public class ProjectApp extends Controller {
         ProjectUser.delete(userId, projectId);
         return redirect(routes.ProjectApp.memberList(projectId));
     }
+    
+    public static Result updateMember(Long userId, Long projectId) {
+        ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest().get().id);
+        return redirect(routes.ProjectApp.memberList(projectId));
+    }
 }

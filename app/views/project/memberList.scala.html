@@ -18,9 +18,11 @@
             <tr>
                 <td>@member("loginId").value</td>
                 <td>
-                    <select id="role" name="role">
-                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, id))
-                    </select>
+	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, id)" method="post">
+	                    <select id="id" name="@member("id").value" class="role">
+	                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, id))
+	                    </select>
+	                </form>
                 </td>
                 <td>
                     <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, id)">탈퇴</a>
@@ -38,4 +40,12 @@
 	            </td>
             </form>
     </table>
+    
+    <script>  
+        $(document).ready(function(){
+            $(".role").change(function(){
+                $(this).parent("form").submit();
+            });
+        })
+    </script>
 }
