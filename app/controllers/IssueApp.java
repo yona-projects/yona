@@ -12,6 +12,7 @@ import com.avaje.ebean.Page;
 import models.Issue;
 import models.IssueComment;
 import models.User;
+import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import play.data.Form;
@@ -60,7 +61,7 @@ public class IssueApp extends Controller {
                 fileAttachedCheck);
 
         return ok(issueList.render("검색된 이슈", filteredIssues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck));
+                order, filter, status, commentedCheck, fileAttachedCheck, Project.findById(projectId)));
 
     }
 
@@ -80,7 +81,7 @@ public class IssueApp extends Controller {
 
     public static Result newIssue(Long projectId) {
         return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class),
-                projectId));
+                projectId, Project.findById(projectId)));
     }
 
     public static Result saveIssue(Long projectId) {
@@ -88,7 +89,7 @@ public class IssueApp extends Controller {
 
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm,
-                    projectId));
+                    projectId, Project.findById(projectId)));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.reporter = UserApp.currentUser();

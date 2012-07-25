@@ -26,13 +26,13 @@ public class MilestoneApp extends Controller {
     }
 
     public static Result newMilestone(Long projectId) {
-        return ok(create.render("새 마일스톤", new Form<Milestone>(Milestone.class), projectId));
+        return ok(create.render("새 마일스톤", new Form<Milestone>(Milestone.class), projectId, Project.findById(projectId)));
     }
 
     public static Result createMilestone(Long projectId) {
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
         if (milestoneForm.hasErrors()) {
-            return ok(create.render("새 마일스톤", milestoneForm, projectId));
+            return ok(create.render("새 마일스톤", milestoneForm, projectId, Project.findById(projectId)));
         } else {
             Milestone newMilestone = milestoneForm.get();
             newMilestone.project = Project.findById(projectId);

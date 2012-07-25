@@ -6,6 +6,7 @@ package controllers;
 
 import models.Comment;
 import models.Post;
+import models.Project;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -89,7 +90,7 @@ public class BoardApp extends Controller {
         Form<Post> editForm = new Form<Post>(Post.class).fill(exsitPost);
         Project project = Project.findById(1L);
 
-        if (UserApp.userId() == exsitPost.author) {
+        if (UserApp.currentUser() == exsitPost.author) {
             return ok(editPost.render("게시물 수정", editForm, postId, project));
         } else {
             return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(postId), project));
