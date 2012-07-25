@@ -152,38 +152,38 @@ public class Issue extends Model {
         issueComment.issue = this;
     }
 
-    /**
-     * Return a page of Issues
-     * 
-     * @param pageNum
-     *            Page to display
-     * @param pageSize
-     *            Number of issues per page
-     * @param sortBy
-     *            Computer property used for sorting
-     * @param order
-     *            Sort order (either or asc or desc)
-     * @param filter
-     *            Filter applied on the title column
-     * @param statusType
-     *            status type of issue(OPEN or CLOSED), '0' means ALL
-     * 
-     */
-    public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
-            String sortBy, String order, String filter, int statusType) {
-        Page<Issue> pageIssues = null;
-        if (statusType == 0) {
-            pageIssues = find.where().ilike("title", "%" + filter + "%")
-                    .eq("project.id", projectId).orderBy(sortBy + " " + order)
-                    .findPagingList(pageSize).getPage(pageNum);
-        } else {
-            pageIssues = find.where().ilike("title", "%" + filter + "%")
-                    .eq("statusType", statusType).eq("project.id", projectId)
-                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
-                    .getPage(pageNum);
-        }
-        return pageIssues;
-    }
+//    /**
+//     * Return a page of Issues
+//     * 
+//     * @param pageNum
+//     *            Page to display
+//     * @param pageSize
+//     *            Number of issues per page
+//     * @param sortBy
+//     *            Computer property used for sorting
+//     * @param order
+//     *            Sort order (either or asc or desc)
+//     * @param filter
+//     *            Filter applied on the title column
+//     * @param statusType
+//     *            status type of issue(OPEN or CLOSED), '0' means ALL
+//     * 
+//     */
+//    public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
+//            String sortBy, String order, String filter, int statusType) {
+//        Page<Issue> pageIssues = null;
+//        if (statusType == 0) {
+//            pageIssues = find.where().ilike("title", "%" + filter + "%")
+//                    .eq("project.id", projectId).orderBy(sortBy + " " + order)
+//                    .findPagingList(pageSize).getPage(pageNum);
+//        } else {
+//            pageIssues = find.where().ilike("title", "%" + filter + "%")
+//                    .eq("statusType", statusType).eq("project.id", projectId)
+//                    .orderBy(sortBy + " " + order).findPagingList(pageSize)
+//                    .getPage(pageNum);
+//        }
+//        return pageIssues;
+//    }
 
     // public static Page<Issue> page(Long projectId, int pageNum, int pageSize,
     // String sortBy, String order, String filter, int statusType,
@@ -239,13 +239,13 @@ public class Issue extends Model {
 
     public static Page<Issue> findIssues(Long projectId, IssueState state) {
         return findIssues(projectId, FIRST_PAGE_NUMBER, state, SORTBY_ID,
-            Direction.DESC, "", false, false);
+                Direction.DESC, "", false, false);
     }
 
     // TODO 댓글 및 파일 첨부된 것도 인식하게끔 고쳐야함.
-    public static Page<Issue> findFilteredIssues(Long projectId, String filter) {
-        return findIssues(projectId, FIRST_PAGE_NUMBER, IssueState.ALL,
-            SORTBY_ID, Direction.DESC, filter, false, false);
+    public static Page<Issue> findFilteredIssues(Long projectId, String filter, IssueState state, boolean commentedCheck, boolean fileAttachedCheck) {
+        return findIssues(projectId, FIRST_PAGE_NUMBER, state ,
+                SORTBY_ID, Direction.DESC, filter, commentedCheck, fileAttachedCheck);
     }
 
     // TODO 파일 첨부된 체크박스랑 동시에 기능하도록 고칠것.
@@ -291,9 +291,8 @@ public class Issue extends Model {
             break;
         }
 
-        return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE, pageNumber);
-//        return FinderTemplatePage.findBy(orderParams, searchParams, find)
-//                .getPage(pageNumber);
+        return FinderTemplate.getPage(orderParams, searchParams, find,
+                ISSUE_COUNT_PER_PAGE, pageNumber);
     }
 
     public static Issue findById(Long id) {

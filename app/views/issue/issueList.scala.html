@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commetedCheck: Boolean, fileAttachedCheck: Boolean)
+@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean)
 
 @import helper._
 
@@ -70,19 +70,23 @@
 			</div>
 		}else{
 		<div class="pull-right">
-			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(projectId,0,"","","",status, commetedCheck, fileAttachedCheck)" method="GET">
+			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.search(projectId, currentFilter, 0, "date","desc",status, commentedCheck, fileAttachedCheck)" method="GET">
 				<input type="hidden" name="projectId" value="@projectId">
+				<input type="hidden" name="filter" value="@currentFilter">
+				<input type="hidden" name="status" value="@status">
 		        <div class="control-group">
 		            <label class="control-label" for="inlineCheckboxes"></label>
+		            
 		            <div class="controls inline">
 		            	<fieldset>
 		              	<label class="checkbox inline">
-		                	<input type="checkbox" name="commentedCheck" id="commentCheckId" value="@commetedCheck"> 댓글
+		                	<input type="checkbox" name="commentedCheck" id="commentCheckId" value="1"> 댓글
 		             	</label>
 		            	<label class="checkbox inline">
-		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="@fileAttachedCheck"> 첨부파일
+		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1"> 첨부파일
 		              	</label>
 		              	</fieldset>
+		            	
 		            	<a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
 		            	</div>
 		        </div>
@@ -157,11 +161,19 @@
 }
 	<script>
 	$(document).ready(function() {
-			$("#commentCheckId").bind("change check", function(){
-				if($("#commentCheckId").is(":checked")) {
+			$("#checkboxForm").bind("change check", function(){
+				if($("#commentCheckId").is(":checked") && $("#fileAttachedCheckId").is(":checked")) {
+					alert("commentedCheck and fileAttachedCheck");
 					return $("form[id='checkboxForm']").submit();
-				}else {
-					alert("not checked");
+				}
+				else if($("#commentCheckId").is(":checked")) {
+					return $("form[id='checkboxForm']").submit();
+				}
+				else if($("#fileAttachedCheckId").is(":checked")) {
+				
+					return $("form[id='checkboxForm']").submit();
+				} else {
+					alert("unchecked");
 					return false;
 				}
 			});	
