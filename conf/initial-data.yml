@@ -116,9 +116,6 @@ milestones:
         title:           v.0.1
         dueDate:         2012-07-12 10:59:59
         contents:        nFORGE 첫번째 버전.
-        numClosedIssues: 10
-        numOpenIssues:   0
-        numTotalIssues:  10
         project:         !!models.Project
                             id: 1
         completionRate:  100
@@ -126,9 +123,6 @@ milestones:
         title:           v.0.2
         dueDate:         2012-07-19 10:59:59
         contents:        nFORGE 두번째 버전 (Stable).
-        numClosedIssues: 1
-        numOpenIssues:   10
-        numTotalIssues:  11
         project:         !!models.Project
                             id: 1
         completionRate:  9
@@ -136,9 +130,6 @@ milestones:
         title:           v.1.0.0
         dueDate:         2011-08-10 10:59:59
         contents:        Jindo 안정화 버전
-        numClosedIssues: 100
-        numOpenIssues:   0
-        numTotalIssues:  100
         project:         !!models.Project
                             id: 2
         completionRate:  100
@@ -146,9 +137,6 @@ milestones:
         title:           v.2.0.0
         dueDate:         2012-04-11 10:59:59
         contents:        Jindo2
-        numClosedIssues: 88
-        numOpenIssues:   0
-        numTotalIssues:  88
         project:         !!models.Project
                             id: 2
         completionRate:  100
@@ -156,9 +144,6 @@ milestones:
         title:           v.3.0.0
         dueDate:         2012-12-14 10:59:59
         contents:        Jindo3
-        numClosedIssues: 99
-        numOpenIssues:   1
-        numTotalIssues:  100
         project:         !!models.Project
                             id: 2
         completionRate:  99
@@ -166,9 +151,6 @@ milestones:
         title:           v.3.0.1
         dueDate:         2012-12-31 10:59:59
         contents:        Jindo3 안정화버전
-        numClosedIssues: 0
-        numOpenIssues:   5
-        numTotalIssues:  5
         project:         !!models.Project
                             id: 2
         completionRate:  0
@@ -176,9 +158,6 @@ milestones:
         title:           v.0.3
         dueDate:         2012-09-09 10:59:59
         contents:        nFORGE 3번째 버전.
-        numClosedIssues: 1
-        numOpenIssues:   2
-        numTotalIssues:  3
         project:         !!models.Project
                              id: 1
         completionRate:  33

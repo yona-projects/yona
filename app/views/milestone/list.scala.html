@@ -21,7 +21,7 @@
         }
     }
 }
-@project.projectMngMain(message, id, projectInst) {
+-@project.projectMngMain(message, id, projectInst) {
     <div>
         <div style="position: relative;">
             <ul class="nav nav-tabs" id="milestone_list">
@@ -53,9 +53,9 @@
                     @milestone.contents
                 </td>
                 <td>
-                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a>
+                    <a href="@makeIssuesLink(milestone.id,"closed")">@Milestone.currentNumOfIssues(milestone).getNumOfClosedIssues</a>
                     <span>해결</span>
-                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>미해결</span>
+                    <a href="@makeIssuesLink(milestone.id,"open")">@Milestone.currentNumOfIssues(milestone).getNumOfOpenedIssues</a> <span>미해결</span>
                     <div class="progress">
                         <div class="bar" style="width: @milestone.completionRate%;"></div>
                     </div>
