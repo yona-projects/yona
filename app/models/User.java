@@ -19,9 +19,6 @@ public class User extends Model {
     public String name;
     public String loginId;
     public String password;
-    public String role;
-    @OneToMany(mappedBy = "owner")
-    public Set<Project> projects;
     @OneToMany(mappedBy = "author")
     public Set<Post> posts;
     @OneToMany(mappedBy = "author")
@@ -32,17 +29,11 @@ public class User extends Model {
     public Set<Issue> reportedIssues;
     @OneToMany(mappedBy = "assignee")
     public Set<Issue> assignedIssues;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    public Set<ProjectUser> projectUser;
 
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
         User.class);
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public static User findByName(String name) {
         return find.where().eq("name", name).findUnique();
@@ -50,6 +41,10 @@ public class User extends Model {
 
     public static User findById(Long id) {
         return find.byId(id);
+    }
+    
+    public static User findByLoginId(String loginId) {
+        return find.where().eq("loginId", loginId).findUnique();
     }
 
     public static User authenticate(User user) {

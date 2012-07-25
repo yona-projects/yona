@@ -48,11 +48,20 @@ public class UserTest extends ModelTest {
     }
 	
 	@Test
-    public void options() {
+    public void options() throws Exception {
         // Given
         // When
         Map<String, String> userOptions = User.options();
         // Then
         assertThat(userOptions).hasSize(4);
     }
+	
+	@Test
+	public void findByLoginId() throws Exception {
+	    // Given
+	    // When
+	    User user = User.findByLoginId("k16wire");
+	    // Then
+	    assertThat(user.id).isEqualTo(2l);
+	}
 }

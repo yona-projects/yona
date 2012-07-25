@@ -4,20 +4,27 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 /**
  * @param id
  * @param name
- * @param overview     Project explanation. Not mandatory
- * @param share_option 'True' means it can be shared. 'False' means it cannot be shared.
- * @param vcs          Version Control System. At this moment, there are only two options: GIT and Subversion.
- * @param url          Project site URL. It should be started with 'http://'.
- * @param owner        The id of the owner of the project.
- * @param logoPath     The file path for a logo
+ * @param overview
+ *            Project explanation. Not mandatory
+ * @param share_option
+ *            'True' means it can be shared. 'False' means it cannot be shared.
+ * @param vcs
+ *            Version Control System. At this moment, there are only two
+ *            options: GIT and Subversion.
+ * @param url
+ *            Project site URL. It should be started with 'http://'.
+ * @param owner
+ *            The id of the owner of the project.
+ * @param logoPath
+ *            The file path for a logo
  * @author "Hwi Ahn"
  */
 
@@ -38,22 +45,12 @@ public class Project extends Model {
     public String vcs;
     public String url;
     public String logoPath;
-    @ManyToOne
-    public User owner;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Issue> issues;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Milestone> milestones;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUsers;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Set<ProjectUser> projectUser;
 
     public static Long create(Project newProject) {
         newProject.save();
@@ -69,6 +66,7 @@ public class Project extends Model {
     }
 
     public static void delete(Long id) {
+
         Project.findById(id).delete();
     }
 
@@ -76,9 +74,9 @@ public class Project extends Model {
         return find.byId(id);
     }
 
-    public static List<Project> findByOwner(Long ownerId) {
-        return find.where().eq("owner.id", ownerId).findList();
-    }
+//    public static List<Project> findByOwner(Long ownerId) {
+//        return find.where().eq("owner.id", ownerId).findList();
+//    }
 
     public void add(Issue issue) {
         if (this.issues == null) {

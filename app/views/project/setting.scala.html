@@ -103,7 +103,7 @@
     </div>
     
     <script>  
-        window.onload = function(){
+        $(document).ready(function(){
             var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
             $("input[id='logoPath']").change(function(){
                 if (!reg.test($(this).val())) { 
@@ -124,7 +124,7 @@
                     return false;
                 } 
             });
-        }
+        })
         
     </script>    
 }

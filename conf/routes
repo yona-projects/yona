@@ -29,6 +29,9 @@ GET     /project/:id                controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
 POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
 GET 	/project/:id/delete    		controllers.ProjectApp.deleteProject(id:Long)
+GET     /project/:id/memberList     controllers.ProjectApp.memberList(id:Long)
+POST    /project/:id/addMember      controllers.ProjectApp.addMember(id:Long)
+GET     /project/:id/deleteMember   controllers.ProjectApp.deleteMember(userId:Long, id:Long)
 
 #Milestones
 GET     /project/:pId/milestones            controllers.MilestoneApp.milestones(pId:Long, state ?= "open", sort ?= "dueDate", direction ?= "asc")
@@ -39,9 +42,9 @@ POST	/project/:pId/milestones/:id/save	controllers.MilestoneApp.updateMilestone(
 GET		/project/:pId/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(pId:Long, id: Long)
 GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilestone(pId:Long, id: Long)
 
-
 #Issues
-GET     /issueList	                controllers.IssueApp.list(projectId:Long ?= 1, pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 0, commentCount:Int ?= 0)
+GET     /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy:String ?= "id", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+GET     /issueList/search           controllers.IssueApp.search(projectId:Long, filter:String ?="", pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", status:String ?= "all", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
 GET		/issues/new					controllers.IssueApp.newIssue(projectId:Long)
 POST	/issues/new					controllers.IssueApp.saveIssue(projectId:Long)
 GET     /issues/:id                 controllers.IssueApp.issue(id:Long, projectId:Long)

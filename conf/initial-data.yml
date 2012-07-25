@@ -4,22 +4,18 @@ users:
         loginId:        hobi
         password:       hobi00
         name:           hobi
-        role:           사용자
     - !!models.User
         loginId:        k16wire
         password:       k16wire00
         name:           scott
-        role:           사이트관리자
     - !!models.User
         loginId:        doortts
         password:       doortts00
         name:           suwon
-        role:           프로젝트관리자
     - !!models.User
         loginId:        nori
         password:       nori00
         name:           eungjun
-        role:           프로젝트멤버
         
 # Projects
 projects:
@@ -29,24 +25,25 @@ projects:
         share_option:   true
         vcs:            GIT
         url:            http://localhost:9000/project/1
-        owner:          !!models.User
-                            id: 1
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
         url:            http://localhost:9000/project/2
-        owner:          !!models.User
-                            id: 1
     - !!models.Project
         name:           네이버 나눔고딕 코딩글꼴
         overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
         share_option:   false
         vcs:            GIT
         url:            http://localhost:9000/project/3
-        owner:          !!models.User
-                            id: 3
+    - !!models.Project
+        name:           CUBRID
+        overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/project/4        
+
 # Board
 posts:
     - !!models.Post
@@ -76,6 +73,7 @@ issues:
         commentCount:   1
         project:        !!models.Project
                             id: 1
+        filePath:       http://localhost:9000/project/1/issue23/capture.jpg
     - !!models.Issue
         reporter:       !!models.User
                             id: 2
@@ -185,19 +183,94 @@ milestones:
                              id: 1
         completionRate:  33
 
-# ProjectRole
-projectRoles:
-    - !!models.ProjectRole
-        name:   manager
-    - !!models.ProjectRole
-        name:   member
+# Permission
+permissions:
+    - !!models.Permission
+        name:   board
+    - !!models.Permission
+        name:   issue
+    - !!models.Permission
+        name:   milestone
+    - !!models.Permission
+        name:   project.setting
+    - !!models.Permission
+        name:   site.setting
+    - !!models.Permission
+        name:   code            
+            
+# Role
+roles:
+    - !!models.Role
+        name:           manager
+        permissions:
+            - !!models.Permission
+                id:     1
+            - !!models.Permission
+                id:     2
+            - !!models.Permission
+                id:     3
+            - !!models.Permission
+                id:     4
+            - !!models.Permission
+                id:     6                
+    - !!models.Role
+        name:           member
+        permissions:
+            - !!models.Permission
+                id:     1
+            - !!models.Permission
+                id:     2
+            - !!models.Permission
+                id:     3
+            - !!models.Permission
+                id:     6                 
+    - !!models.Role
+        name:           siteManager
+        permissions:
+            - !!models.Permission
+                id:     5
 
 # ProjectUser
 projectUsers:
     - !!models.ProjectUser
-        user:           !!models.User
-                            id: 1
-        project:        !!models.Project
-                            id: 1
-        projectRole:    !!models.ProjectRole
-                            id: 1
+        user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 1
+        role:       !!models.Role
+                        id: 1
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 2
+        role:       !!models.Role
+                        id: 1                        
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 2
+        project:    !!models.Project
+                        id: 1
+        role:       !!models.Role
+                        id: 2
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 1
+        project:    !!models.Project
+                        id: 3
+        role:       !!models.Role
+                        id: 2                        
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 3
+        project:    !!models.Project
+                        id: 3
+        role:       !!models.Role
+                        id: 1
+    - !!models.ProjectUser
+        user:       !!models.User
+                        id: 3
+        project:    !!models.Project
+                        id: 4
+        role:       !!models.Role
+                        id: 1

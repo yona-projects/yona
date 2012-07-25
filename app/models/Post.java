@@ -47,14 +47,6 @@ public class Post extends Model {
         this.date = JodaDateUtil.today();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public static Post findById(Long id) {
         return find.byId(id);
     }

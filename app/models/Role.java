@@ -1,0 +1,55 @@
+package models;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import play.db.ebean.Model;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+
+/**
+ * @author "Hwi Ahn"
+ */
+@Entity
+public class Role extends Model {
+    private static final long serialVersionUID = 1L;
+
+    @Id
+    public Long id;
+    public String name;
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    public Set<ProjectUser> projectUser;
+    @ManyToMany
+    public List<Permission> permissions = new ArrayList<Permission>();
+
+    private static Finder<Long, Role> find = new Finder<Long, Role>(
+        Long.class, Role.class);
+
+    public static Role findById(Long id) {
+        return find.where().eq("id", id).findUnique();
+    }
+
+    public static Role findByName(String name) {
+        return find.where().eq("name", name).findUnique();
+    }
+    
+    public static List<Role> getAllRoles() {
+        return find.all();
+    }
+    
+    public static List<Role> getAllProjectRoles() {
+        List<Role> projectRoles = find.all();
+        projectRoles.remove(Role.findByName("siteManager"));
+        return projectRoles;
+    }
+    
+    public List<Permission> getPermissions() {
+        return permissions;
+    }
+
+}
