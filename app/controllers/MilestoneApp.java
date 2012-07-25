@@ -22,7 +22,7 @@ public class MilestoneApp extends Controller {
             MilestoneState.getValue(state),
             sort,
             Direction.getValue(direction));
-        return ok(list.render("마일스톤 리스트", milestones, projectId, state, sort, direction));
+        return ok(list.render("마일스톤 리스트", milestones, projectId, state, sort, direction, Project.findById(projectId)));
     }
 
     public static Result newMilestone(Long projectId) {
@@ -46,19 +46,19 @@ public class MilestoneApp extends Controller {
             MilestoneState.ALL,
             sort,
             Direction.getValue(direction));
-        return ok(manage.render("마일스톤 관리", milestones, projectId, sort, direction));
+        return ok(manage.render("마일스톤 관리", milestones, projectId, sort, direction, Project.findById(projectId)));
     }
 
     public static Result editMilestone(Long projectId, Long milestoneId) {
         Milestone milestone = Milestone.findById(milestoneId);
         Form<Milestone> editForm = new Form<Milestone>(Milestone.class).fill(milestone);
-        return ok(edit.render("마일스톤 수정", editForm, projectId, milestoneId));
+        return ok(edit.render("마일스톤 수정", editForm, projectId, milestoneId, Project.findById(projectId)));
     }
 
     public static Result updateMilestone(Long projectId, Long milestoneId) {
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
         if (milestoneForm.hasErrors()) {
-            return ok(edit.render("마일스톤 수정", milestoneForm, projectId, milestoneId));
+            return ok(edit.render("마일스톤 수정", milestoneForm, projectId, milestoneId, Project.findById(projectId)));
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());

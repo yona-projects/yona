@@ -1,4 +1,4 @@
-@(message: String, milestones: List[models.Milestone], pId: Long, sort: String, direction: String)
+@(message: String, milestones: List[models.Milestone], pId: Long, sort: String, direction: String, projectInst:Project)
 @completionRateName(completionRate: Int) = @{
     /* TODO It will be chnaged. */
     if(completionRate == 100) "완료"
@@ -23,7 +23,7 @@
     }
     "/project/%d/milestones/manage?sort=%s&direction=%s".format(pId, _sort, _direction)
 }
-@project.projectMngMain(message, pId) {
+@project.projectMngMain(message, pId, projectInst) {
     <div>
     @if(milestones == null || milestones.isEmpty()){
         <p>등록된 마일스톤이 없습니다.</p>

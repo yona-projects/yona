@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean)
+@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean, project:Project)
 
 @import helper._
 
@@ -39,7 +39,7 @@
     </th>
 }
 
-@main(title){
+@main(title, project){
 <div id = "issue_page">
 	<div class="row">
 		<div span="span6">

@@ -1,3 +1,4 @@
+@(project:Project)
 
 <ul class="nav nav-pills pull-right">
     
@@ -6,7 +7,7 @@
         <li class=""><a href="@routes.BoardApp.boardList(1)">게시판</a></li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, "1"){
-        <li><a href="#">코드</a></li>
+        <li><a href="@routes.CodeApp.view(project.name)">코드</a></li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, "1"){
         <li class=""><a href="@routes.IssueApp.list(1)">이슈</a></li>
