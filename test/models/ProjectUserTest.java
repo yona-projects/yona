@@ -67,4 +67,13 @@ public class ProjectUserTest extends ModelTest {
         // Then
         assertThat(role.name).isEqualTo("manager");
     }
+    
+    @Test
+    public void delete() throws Exception {
+        // Given
+        // When
+        ProjectUser.delete(2l, 1l);
+        // Then
+        assertThat(ProjectUser.findByIds(2l, 1l)).isNull();        
+    }
 }

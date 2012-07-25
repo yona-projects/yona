@@ -48,7 +48,7 @@ public class UserTest extends ModelTest {
     }
 	
 	@Test
-    public void options() {
+    public void options() throws Exception {
         // Given
         // When
         Map<String, String> userOptions = User.options();
@@ -57,7 +57,7 @@ public class UserTest extends ModelTest {
     }
 	
 	@Test
-	public void findByLoginId() {
+	public void findByLoginId() throws Exception {
 	    // Given
 	    // When
 	    User user = User.findByLoginId("k16wire");

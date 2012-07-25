@@ -39,27 +39,7 @@ public class ProjectUser extends Model {
         return find.where().eq("user.id", userId).eq("project.id", projectId)
                 .findUnique();
     }
-
-    public static void create(Long userId, Long projectId, Long roleId) {
-        ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
-        projectUser.save();
-    }
-
-    public static void update(Long userId, Long projectId, Long roleId) {
-        ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
-        projectUser.update(ProjectUser.findByIds(userId, projectId).id);
-    }
-
-    public static List<Project> findProjectsByOwner(Long ownerId) {
-        List<ProjectUser> projectUsers = find.where().eq("user.id", ownerId)
-                .findList();
-        List<Project> projects = new ArrayList<Project>();
-        for (ProjectUser projectUser : projectUsers) {
-            projects.add(Project.findById(projectUser.project.id));
-        }
-        return projects;
-    }
-
+    
     public static List<User> findUsersByProject(Long projectId) {
         List<ProjectUser> projectUsers = find.where()
                 .eq("project.id", projectId).findList();
@@ -72,11 +52,38 @@ public class ProjectUser extends Model {
         }
         return users;
     }
+    
+    public static List<Project> findProjectsByOwner(Long ownerId) {
+        List<ProjectUser> projectUsers = find.where().eq("user.id", ownerId)
+                .findList();
+        List<Project> projects = new ArrayList<Project>();
+        for (ProjectUser projectUser : projectUsers) {
+            projects.add(Project.findById(projectUser.project.id));
+        }
+        return projects;
+    }
 
     public static Role findRoleByIds(Long userId, Long projectId) {
         Long roleId = find.where().eq("user.id", userId)
                 .eq("project.id", projectId).findUnique().role.id;
         return Role.findById(roleId);
     }
+
+    public static void create(Long userId, Long projectId, Long roleId) {
+        ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
+        projectUser.save();
+    }
+
+    public static void update(Long userId, Long projectId, Long roleId) {
+        ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
+        projectUser.update(ProjectUser.findByIds(userId, projectId).id);
+    }
+
+    public static void delete(Long userId, Long projectId) {
+        ProjectUser projectUser = ProjectUser.findByIds(userId, projectId);
+        projectUser.delete();
+    }
+
+   
 
 }

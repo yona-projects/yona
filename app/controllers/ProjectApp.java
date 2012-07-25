@@ -124,4 +124,9 @@ public class ProjectApp extends Controller {
         ProjectUser.create(user.id, id, Role.findByName("member").id);
         return redirect(routes.ProjectApp.memberList(id));
     }
+    
+    public static Result deleteMember(Long userId, Long projectId) {
+        ProjectUser.delete(userId, projectId);
+        return redirect(routes.ProjectApp.memberList(projectId));
+    }
 }

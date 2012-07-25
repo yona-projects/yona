@@ -23,7 +23,7 @@
                     </select>
                 </td>
                 <td>
-                    <a class="btn btn-danger" href="#">탈퇴</a>
+                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, id)">탈퇴</a>
                 </td>
             </tr>
         }
@@ -38,7 +38,4 @@
 	            </td>
             </form>
     </table>
-    
-    
-	    
 }
