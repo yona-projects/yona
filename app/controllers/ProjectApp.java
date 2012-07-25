@@ -1,6 +1,8 @@
 package controllers;
 
 import models.Project;
+import models.ProjectUser;
+import models.User;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -10,8 +12,10 @@ import utils.RoleCheck;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
+import views.html.project.memberList;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author "Hwi Ahn"
@@ -21,6 +25,7 @@ public class ProjectApp extends Controller {
     public static final String PROJECT_HOME = "프로젝트 홈";
     public static final String NEW_PROJECT = "새 프로젝트 생성";
     public static final String SETTING = "프로젝트 설정";
+    public static final String MEMBER_LIST = "맴버";
 
     public static Result project(Long id) {
         return ok(projectHome.render(PROJECT_HOME, Project.findById(id)));
@@ -99,5 +104,10 @@ public class ProjectApp extends Controller {
     public static Result deleteProject(Long id) {
         Project.delete(id);
         return redirect(routes.Application.index());
+    }
+    
+    public static Result memberList(Long id) {
+        List<User> users = ProjectUser.findUsersByProject(id);
+        return ok(memberList.render(MEMBER_LIST, users, id));
     }
 }
