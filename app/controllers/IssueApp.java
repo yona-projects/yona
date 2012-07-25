@@ -53,7 +53,7 @@ public class IssueApp extends Controller {
     public static Result search(Long projectId, String filter ,int pageNum, String sortBy,
             String order, String status, boolean commentedCheck,
             boolean fileAttachedCheck) {
-        Page<Issue> filteredIssues = Issue.findFilteredIssues(projectId, filter);
+        Page<Issue> filteredIssues = Issue.findFilteredIssues(projectId, filter, IssueState.getValue(status), commentedCheck, fileAttachedCheck);
 
         return ok(issueList.render("검색된 이슈", filteredIssues, projectId, sortBy,
                 order, filter, status, commentedCheck, fileAttachedCheck));
