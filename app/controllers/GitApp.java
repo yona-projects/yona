@@ -12,17 +12,7 @@ import play.mvc.*;
 public class GitApp extends Controller {
     public static final String REPO_PREFIX = "repo/git/";
 
-    public static Result post(String path) {
-        Logger.debug("GitApp.post : " + request().toString());
-        return TODO;
-    }
-
-    public static Result get(String path) {
-        Logger.debug("GitApp.get : " + request().toString());
-        return TODO;
-    }
-
-    public static Result advertise(String repoPath, String service) throws IOException {
+    public static Result advertise(String projectName, String service) throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
 
         response().setContentType("application/x-" + service + "-advertisement");
@@ -33,7 +23,7 @@ public class GitApp extends Controller {
         out.end();
 
         Repository repository = new RepositoryBuilder()
-                .setGitDir(new File(REPO_PREFIX + repoPath)).build();
+                .setGitDir(new File(REPO_PREFIX + projectName + ".git")).build();
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
 
@@ -50,12 +40,12 @@ public class GitApp extends Controller {
         return ok(byteArrayOutputStream.toByteArray());
     }
 
-    public static Result serviceRpc(String repoPath, String service) throws IOException {
+    public static Result serviceRpc(String projectName, String service) throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
 
         response().setContentType("application/x-" + service + "-result");
 
-        Repository repository = new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + repoPath))
+        Repository repository = new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + projectName + ".git"))
                 .build();
 
         // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
