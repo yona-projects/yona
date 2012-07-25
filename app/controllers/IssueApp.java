@@ -18,6 +18,8 @@ import com.avaje.ebean.Page;
 
 public class IssueApp extends Controller {
 
+    public static final Project project = Project.findById(1L);
+
     /**
      * Display the paginated list of issues.
      * 
@@ -34,7 +36,7 @@ public class IssueApp extends Controller {
             String filter, int status) {
         return ok(issueList.render("이슈",
                 Issue.page(page, 10, sortBy, order, filter, status), sortBy,
-                order, filter, status));
+                order, filter, status, project));
     }
 
     public static Result saveIssue() {
@@ -65,7 +67,7 @@ public class IssueApp extends Controller {
     }
 
     public static Result newIssue() {
-        return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class)));
+        return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class), project));
     }
 
     public static Result issue(Long issueId) {
@@ -73,12 +75,12 @@ public class IssueApp extends Controller {
         List<IssueComment> comments = IssueComment
                 .findCommentsByIssueId(issueId);
         if (issue == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물"));
+            return ok(notExistingPage.render("존재하지 않는 게시물", project));
             // return ok(notExistingPage.render("xxxxx"));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
-            return ok(issueDetail.render(issue, comments, commentForm));
+            return ok(issueDetail.render(issue, comments, commentForm, project));
         }
     }
 

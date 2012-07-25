@@ -34,7 +34,7 @@ public class ProjectApp extends Controller {
 
     public static Result setting(Long id) {
         Form<Project> projectForm = form(Project.class).fill(Project.findById(id));
-        return ok(setting.render(SETTING, projectForm, id));
+        return ok(setting.render(SETTING, projectForm, id, Project.findById(id)));
     }
 
     public static Result saveProject() throws IOException {
@@ -92,7 +92,7 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render(SETTING, filledUpdatedProjectForm, id));
+            return badRequest(setting.render(SETTING, filledUpdatedProjectForm, id, Project.findById(id)));
         } else {
             return redirect(routes.ProjectApp.setting(Project.update(project, id)));
         }

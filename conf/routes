@@ -54,3 +54,5 @@ GET		/issueList/excel			controllers.IssueApp.extractExcelFile()
 GET     /:projectName/info/refs                                        controllers.GitApp.advertise(projectName:String, service:String)
 POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(projectName:String, service:String)
 
+#
+GET     /:projectName/code                                             controllers.CodeApp.view(projectName:String)

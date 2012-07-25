@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title:String, project:Project)(content: Html)
 
 @layout(title) {
     @views.html.navbar()      
@@ -8,7 +8,7 @@
 		            <h3>nForge4 Java</h3>
 		        </div>
 		        <div class="span10">
-		            @views.html.topmenu()
+		            @views.html.topmenu(project)
 		        </div>
 		    </div>
 		    

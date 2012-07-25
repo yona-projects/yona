@@ -1,8 +1,8 @@
-@(title:String, form:Form[Issue])
+@(title:String, form:Form[Issue], project:Project)
 
 @import helper.twitterBootstrap._
 
-@main(title) {
+@main(title, project) {
     <h2>"현재 페이지만 연결, 추후 us302 구현 때 TBC"</h2>
     @helper.form(action=routes.BoardApp.savePost(), 'enctype -> "multipart/form-data"){
     	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")

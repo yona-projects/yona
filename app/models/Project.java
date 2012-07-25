@@ -65,4 +65,8 @@ public class Project extends Model {
     public static List<Project> findByOwner(Long owner) {
         return find.where().eq("owner", owner).findList();
     }
+
+    public static Project findByName(String projectName) {
+        return find.where().eq("name", projectName).findUnique();
+    }
 }

@@ -1,6 +1,6 @@
-@(title: String, id: Long)(content: Html)
+@(title: String, id: Long, projectInst:Project)(content: Html)
 
-@main(title) {
+@main(title, projectInst) {
 <div class="row-fluid">
     <div class="span2">
         @views.html.project.sidebar(title,id)

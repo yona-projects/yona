@@ -1,6 +1,6 @@
-@(message:String, returnURL:Call)
+@(message:String, returnURL:Call, project:Project)
 
-@main("Warnning!"){
+@main("Warnning!", project){
 	<div class="alert alert-error">
 	@message
 	</div>

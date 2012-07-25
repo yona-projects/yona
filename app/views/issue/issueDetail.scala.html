@@ -1,6 +1,6 @@
-@(issue:Issue, comments:List[IssueComment], commentForm:Form[IssueComment])
+@(issue:Issue, comments:List[IssueComment], commentForm:Form[IssueComment], project:Project)
 
-@main("이슈 상세조회"){
+@main("이슈 상세조회", project){
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
