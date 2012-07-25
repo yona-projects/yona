@@ -40,129 +40,125 @@
 }
 
 @main(title){
-<div class="row">
-	<div span="span12">
-		<div class="pull-right">
-			<!-- 검색 기능 재구현할것-->
-			<form class="form-search form-inline" action="@routes.IssueApp.list(projectId, 0, "date", "desc", currentFilter, "all", false, false)" method="POST" id="searchForm">
-					<select id="selectMilestone">
-						<option class="blank" value="">--마일스톤--</option>
-						@Milestone.options(projectId).map { v => <option value="@v._1" >@v._2</option>}
-					</select>
-					<input type="search" class="search-query" name="filter" value="@currentFilter" placeholder="Search by issue title...">
-					<input type="submit" id="searchsubmit" class="btn"> <i class="icon-search"> </i></a>
-					<a class="btn btn-primary" href="@routes.IssueApp.newIssue(projectId)" >새 이슈</a>
-			</form>
-		</div>
-	</div>
-</div>
-
-<div>
-	<ul class="nav nav-tabs" id="issue_list">
-		<li class="@if(status.equals("all")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "all", false, false)">전체</a></li>
-		<li class="@if(status.equals("open")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
-		<li class="@if(status.equals("closed")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
-	</ul>
-
-	
-
-	@if(currentPage.getTotalRowCount == 0){
-
-		<div class="well span11">
-			<em>등록된 이슈가 없습니다</em>
-		</div>
-
-	}else{
-	<div class="pull-right">
-		<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(projectId,0,"","","",status, false, false)" method="GET">
-	        <div class="control-group">
-	            <label class="control-label" for="inlineCheckboxes"></label>
-	            <div class="controls">
-	              	<label class="checkbox inline">
-	                	<input type="checkbox" id="findOnlyCommented" value="commentChecked"> 댓글
-	             	</label>
-	            	<label class="checkbox inline">
-	                	<input type="checkbox" id="findOnlyFileAttached" value="fileAttachedChecked"> 첨부파일
-	              	</label>
-	            	<label class="checkbox inline">
-	               		<a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
-	           		</label>
-	           </div>
-	        </div>
-	    </form>
-	</div>
-
-		<table class="table">
-			<thead>
-				<tr>
-					@header("id", "#")
-					@header("status", "상태")
-					@header("title", "제목")
-					@header("assignee.name", "담당자")
-					@header("date", "작성일")
-				</tr>
-			</thead>
-			<tbody>
-			
-				@for(issue <- currentPage.getList()){
-					<tr>
-						<td>@issue.id</td>
-						<td>@issue.status()</td>
-						<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title [@issue.commentCount]</a></td>
-						<td>
-							@if(issue.assignee == null){
-							<em>미배정</em>						
-						} else {
-							@issue.assignee.name
-						}
-						</td>
-						<td>@issue.date.format("dd MMM yyyy")</td>
-
-			</tr>
-			}
-		</tbody>
-	</table>
-
+<div id = "issue_page">
 	<div class="row">
-		<div class="span6 offset4">
-			<div id="pagination" class="pagination">
-            <ul>
-                @if(currentPage.hasPrev) {
-                    <li class="prev">
-                        <a href="@link(projectId, currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
-                    </li>
-                } else {
-                    <li class="prev disabled">
-                        <a>&larr; Previous</a>
-                    </li>
-                }
-                <li class="current">
-                    <a>Displaying @currentPage.getDisplayXtoYofZ(" to "," of ")</a>
-                </li>
-                @if(currentPage.hasNext) {
-                    <li class="next">
-                        <a href="@link(projectId, currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
-                    </li>
-                } else {
-                    <li class="next disabled">
-                        <a>Next &rarr;</a>
-                    </li>
-                }
-            </ul>
-        	</div>
-   		</div>
-		<div class="span2">
-            <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
-        </div>
+		<div span="span6">
+			<div class="pull-right">
+				<!-- 검색 기능 재구현할것-->
+				<select id="selectMilestone">
+							<option class="blank" value="">--마일스톤--</option>
+							@Milestone.options(projectId).map { v => <option value="@v._1" >@v._2</option>}
+				</select>
+				<form class="form-search" action="@routes.IssueApp.search(projectId, currentFilter)" method="GET" id="searchForm">
+					<input type="text" name="filter" value="@currentFilter" placeholder="이슈 검색..">
+					<input type="hidden" name="projectId" value="@projectId">
+					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
+				</form>
+				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(projectId)" >새 이슈</a>
+			</div>
+		</div>
+	</div>
+	<div>
+		<ul class="nav nav-tabs" id="issue_list">
+			<li class="@if(status.equals("all")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "all", false, false)">전체</a></li>
+			<li class="@if(status.equals("open")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
+			<li class="@if(status.equals("closed")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
+		</ul>
+		@if(currentPage.getTotalRowCount == 0){
+			<div class="well span11">
+				<em>등록된 이슈가 없습니다</em>
+			</div>
+		}else{
+		<div class="pull-right">
+			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(projectId,0,"","","",status, commetedCheck, fileAttachedCheck)" method="GET">
+				<input type="hidden" name="projectId" value="@projectId">
+		        <div class="control-group">
+		            <label class="control-label" for="inlineCheckboxes"></label>
+		            <div class="controls inline">
+		            	<fieldset>
+		              	<label class="checkbox inline">
+		                	<input type="checkbox" name="commentedCheck" id="commentCheckId" value="@commetedCheck"> 댓글
+		             	</label>
+		            	<label class="checkbox inline">
+		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="@fileAttachedCheck"> 첨부파일
+		              	</label>
+		              	</fieldset>
+		            	<a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
+		            	</div>
+		        </div>
+		    </form>
+		</div>
+
+			<table class="table">
+				<thead>
+					<tr>
+						@header("id", "#")
+						@header("status", "상태")
+						@header("title", "제목")
+						@header("assignee.name", "담당자")
+						@header("date", "작성일")
+					</tr>
+				</thead>
+				<tbody>
+				
+					@for(issue <- currentPage.getList()){
+						<tr>
+							<td>@issue.id</td>
+							<td>@issue.status()</td>
+							<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title [@issue.commentCount]</a></td>
+							<td>
+								@if(issue.assignee == null){
+								<em>미배정</em>						
+							} else {
+								@issue.assignee.name
+							}
+							</td>
+							<td>@issue.date.format("dd MMM yyyy")</td>
+
+				</tr>
+				}
+			</tbody>
+		</table>
+
+		<div class="row">
+			<div class="span6 offset4">
+				<div id="pagination" class="pagination">
+	            <ul>
+	                @if(currentPage.hasPrev) {
+	                    <li class="prev">
+	                        <a href="@link(projectId, currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
+	                    </li>
+	                } else {
+	                    <li class="prev disabled">
+	                        <a>&larr; Previous</a>
+	                    </li>
+	                }
+	                <li class="current">
+	                    <a>Displaying @currentPage.getDisplayXtoYofZ(" to "," of ")</a>
+	                </li>
+	                @if(currentPage.hasNext) {
+	                    <li class="next">
+	                        <a href="@link(projectId, currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
+	                    </li>
+	                } else {
+	                    <li class="next disabled">
+	                        <a>Next &rarr;</a>
+	                    </li>
+	                }
+	            </ul>
+	        	</div>
+	   		</div>
+			<div class="span2">
+	            <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
+	        </div>
+		</div>
 	</div>
 </div>
 }
-
 	<script>
 	$(document).ready(function() {
-			$("#findOnlyCommented").bind("change check", function(){
-				if($("#findOnlyCommented").is(":checked")) {
-					
+			$("#commentCheckId").bind("change check", function(){
+				if($("#commentCheckId").is(":checked")) {
 					return $("form[id='checkboxForm']").submit();
 				}else {
 					alert("not checked");

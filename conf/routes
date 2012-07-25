@@ -43,8 +43,7 @@ GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilesto
 
 #Issues
 GET     /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy:String ?= "id", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-POST    /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy:String ?= "id", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-
+GET     /issueList/search           controllers.IssueApp.search(projectId:Long, filter:String ?="", pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", status:String ?= "all", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
 GET		/issues/new					controllers.IssueApp.newIssue(projectId:Long)
 POST	/issues/new					controllers.IssueApp.saveIssue(projectId:Long)
 GET     /issues/:id                 controllers.IssueApp.issue(id:Long, projectId:Long)
