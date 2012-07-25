@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: Int)
+@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commetedCheck: Boolean, fileAttachedCheck: Boolean)
 
 @import helper._
 
@@ -7,7 +7,7 @@
 @****************************************
 * Helper generating navigation links    *
 ****************************************@
-@link(projectId:Long, newPage:Int, newSortBy:String, status:Int) = @{
+@link(projectId:Long, newPage:Int, newSortBy:String, status:String) = @{
     
     var sortBy = currentSortBy
     var order = currentOrder
@@ -43,7 +43,8 @@
 <div class="row">
 	<div span="span12">
 		<div class="pull-right">
-			<form class="form-search form-inline" action="@routes.IssueApp.list(projectId, 0, "", "", "name", 0)" method="GET" id="searchForm">
+			<!-- 검색 기능 재구현할것-->
+			<form class="form-search form-inline" action="@routes.IssueApp.list(projectId, 0, "date", "desc", currentFilter, "all", false, false)" method="POST" id="searchForm">
 					<select id="selectMilestone">
 						<option class="blank" value="">--마일스톤--</option>
 						@Milestone.options(projectId).map { v => <option value="@v._1" >@v._2</option>}
@@ -58,9 +59,9 @@
 
 <div>
 	<ul class="nav nav-tabs" id="issue_list">
-		<li class="@if(status.equals(0)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 0)">전체</a></li>
-		<li class="@if(status.equals(5)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 5)">미해결</a></li>
-		<li class="@if(status.equals(6)){active}"><a href="@routes.IssueApp.list(projectId, 0, "", "", "", 6)">해결</a></li>
+		<li class="@if(status.equals("all")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "all", false, false)">전체</a></li>
+		<li class="@if(status.equals("open")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
+		<li class="@if(status.equals("closed")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
 	</ul>
 
 	
@@ -73,7 +74,7 @@
 
 	}else{
 	<div class="pull-right">
-		<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(projectId,0,"","","",status)" method="GET">
+		<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(projectId,0,"","","",status, false, false)" method="GET">
 	        <div class="control-group">
 	            <label class="control-label" for="inlineCheckboxes"></label>
 	            <div class="controls">

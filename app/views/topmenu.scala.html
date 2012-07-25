@@ -9,10 +9,10 @@
         <li><a href="#">코드</a></li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, "1"){
-        <li class=""><a href="@routes.IssueApp.list(1, 0, "", "", "", 5)">이슈</a></li>
+        <li class=""><a href="@routes.IssueApp.list(1)">이슈</a></li>
     }
     
-    <li><a href="#">위키</a></li>
+   <li><a href="#">위키</a></li>
 
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, "1"){
         <li><a href="@routes.ProjectApp.setting(1)">프로젝트 관리</a></li>

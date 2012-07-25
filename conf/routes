@@ -40,9 +40,10 @@ POST	/project/:pId/milestones/:id/save	controllers.MilestoneApp.updateMilestone(
 GET		/project/:pId/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(pId:Long, id: Long)
 GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilestone(pId:Long, id: Long)
 
-
 #Issues
-GET     /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy ?= "id", order ?= "desc", filter ?= "", status:Int ?= 0)
+GET     /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy:String ?= "id", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+POST    /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy:String ?= "id", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+
 GET		/issues/new					controllers.IssueApp.newIssue(projectId:Long)
 POST	/issues/new					controllers.IssueApp.saveIssue(projectId:Long)
 GET     /issues/:id                 controllers.IssueApp.issue(id:Long, projectId:Long)
