@@ -98,7 +98,7 @@ public class IssueTest extends ModelTest {
 
         // Given
         // When
-        Page<Issue> issues = Issue.findFilteredIssues(1l, "git");
+        Page<Issue> issues = Issue.findFilteredIssues(1l, "로그", IssueState.OPEN, true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
