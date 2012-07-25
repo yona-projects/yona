@@ -10,6 +10,8 @@ import play.Logger;
 import play.mvc.*;
 
 public class GitApp extends Controller {
+    public static final String REPO_PREFIX = "repo/git/";
+
     public static Result post(String path) {
         Logger.debug("GitApp.post : " + request().toString());
         return TODO;
@@ -30,7 +32,8 @@ public class GitApp extends Controller {
         out.writeString("# service=" + service + "\n");
         out.end();
 
-        Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
+        Repository repository = new RepositoryBuilder()
+                .setGitDir(new File(REPO_PREFIX + repoPath)).build();
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
 
@@ -41,7 +44,7 @@ public class GitApp extends Controller {
 
             receivePack.sendAdvertisedRefs(new PacketLineOutRefAdvertiser(out));
         } else {
-            throw new UnsupportedOperationException();
+            return forbidden("Unsuppoted service: '" + service + "'");
         }
 
         return ok(byteArrayOutputStream.toByteArray());
@@ -52,7 +55,8 @@ public class GitApp extends Controller {
 
         response().setContentType("application/x-" + service + "-result");
 
-        Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
+        Repository repository = new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + repoPath))
+                .build();
 
         // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
 
@@ -73,6 +77,8 @@ public class GitApp extends Controller {
 
             receivePack.setBiDirectionalPipe(false);
             receivePack.receive(in, out, null);
+        } else {
+            return forbidden("Unsuppoted service: '" + service + "'");
         }
         out.close();
         return ok(out.toByteArray());
