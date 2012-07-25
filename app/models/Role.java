@@ -38,6 +38,16 @@ public class Role extends Model {
         return find.where().eq("name", name).findUnique();
     }
     
+    public static List<Role> getAllRoles() {
+        return find.all();
+    }
+    
+    public static List<Role> getAllProjectRoles() {
+        List<Role> projectRoles = find.all();
+        projectRoles.remove(Role.findByName("siteManager"));
+        return projectRoles;
+    }
+    
     public List<Permission> getPermissions() {
         return permissions;
     }

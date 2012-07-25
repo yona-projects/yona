@@ -55,4 +55,13 @@ public class UserTest extends ModelTest {
         // Then
         assertThat(userOptions).hasSize(4);
     }
+	
+	@Test
+	public void findByLoginId() {
+	    // Given
+	    // When
+	    User user = User.findByLoginId("k16wire");
+	    // Then
+	    assertThat(user.id).isEqualTo(2l);
+	}
 }

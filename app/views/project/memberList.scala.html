@@ -1,9 +1,44 @@
-@(message: String, members: List[User])(id: Long)
+@(message: String, members: List[Form[User]])(id: Long)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
+@memberRole(member: Form[User], id: Long, userRole: Role) = {
+    <option selected="selected" value="@userRole.id">@userRole.name</option>
+    @for(role <- Role.getAllProjectRoles()){
+        @if(!role.equals(userRole)){
+            <option value="@role.id">@role.name</option>
+        }
+    }
+}
 
 @projectMngMain(message, id) {
-    TODO
+    <table class="table">
+        @for(member <- members){
+            <tr>
+                <td>@member("loginId").value</td>
+                <td>
+                    <select id="role" name="role">
+                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, id))
+                    </select>
+                </td>
+                <td>
+                    <a class="btn btn-danger" href="#">탈퇴</a>
+                </td>
+            </tr>
+        }
+        <tr>
+            <form action="@routes.ProjectApp.addMember(id)" method="post" id="addNewMember">
+	            <td colspan="2">
+	                <input type="text" id="loginId" name="loginId" 
+	                placeholder="새로운 맴버의 ID를 입력하세요...">
+	            </td>
+	            <td>
+	                <input type="submit" class="btn btn-primary" value="추가">
+	            </td>
+            </form>
+    </table>
+    
+    
+	    
 }

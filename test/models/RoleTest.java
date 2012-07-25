@@ -39,4 +39,24 @@ public class RoleTest extends ModelTest {
         assertThat(permissions.size()).isEqualTo(5);
         assertThat(permissions.get(2).name).isEqualTo("milestone");
     }
+    
+    @Test
+    public void getAllRoles() {
+        // Given
+        // When
+        List<Role> roles = Role.getAllRoles();
+        // Then
+        assertThat(roles.contains(Role.findByName("siteManager"))).isEqualTo(true);
+        assertThat(roles.contains(Role.findByName("manager"))).isEqualTo(true);
+    }
+    
+    @Test
+    public void getAllProjectRoles() {
+        // Given
+        // When
+        List<Role> roles = Role.getAllProjectRoles();
+        // Then
+        assertThat(roles.contains(Role.findByName("siteManager"))).isEqualTo(false);
+        assertThat(roles.contains(Role.findByName("manager"))).isEqualTo(true);
+    }
 }

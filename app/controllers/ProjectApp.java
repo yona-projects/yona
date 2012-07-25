@@ -2,6 +2,7 @@ package controllers;
 
 import models.Project;
 import models.ProjectUser;
+import models.Role;
 import models.User;
 import play.data.Form;
 import play.mvc.Controller;
@@ -15,6 +16,7 @@ import views.html.project.setting;
 import views.html.project.memberList;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,13 +39,13 @@ public class ProjectApp extends Controller {
 
     public static Result setting(Long id) {
         Form<Project> projectForm = form(Project.class).fill(
-            Project.findById(id));
+                Project.findById(id));
         return ok(setting.render(SETTING, projectForm, id));
     }
 
     public static Result saveProject() {
         Form<Project> filledNewProjectForm = form(Project.class)
-            .bindFromRequest();
+                .bindFromRequest();
 
         if (!"true".equals(filledNewProjectForm.field("accept").value())) {
             filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
@@ -51,11 +53,12 @@ public class ProjectApp extends Controller {
 
         if (filledNewProjectForm.hasErrors()) {
             return badRequest(newProject.render(NEW_PROJECT,
-                filledNewProjectForm));
+                    filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             Long newProjectId = Project.create(project);
-            RoleCheck.roleGrant(UserApp.currentUser().id, "manager", newProjectId);
+            RoleCheck.roleGrant(UserApp.currentUser().id, "manager",
+                    newProjectId);
             return redirect(routes.ProjectApp.project(newProjectId));
         }
     }
@@ -63,27 +66,27 @@ public class ProjectApp extends Controller {
     public static Result saveSetting(Long id) {
 
         Form<Project> filledUpdatedProjectForm = form(Project.class)
-            .bindFromRequest();
+                .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
 
         if (!filledUpdatedProjectForm.field("url").value()
-            .startsWith("http://")) {
+                .startsWith("http://")) {
             filledUpdatedProjectForm.reject("url",
-                "사이트 URL은 http://로 시작하여야 합니다.");
+                    "사이트 URL은 http://로 시작하여야 합니다.");
         }
 
         if (filePart != null) {
             if (filePart.getFile().length() > 1048576) {
                 filledUpdatedProjectForm.reject("logoPath",
-                    "이미지 용량은 1MB 이하여야 합니다.");
+                        "이미지 용량은 1MB 이하여야 합니다.");
             } else {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
                 File file = new File("public/uploadFiles/" + Long.toString(id)
-                    + string);
+                        + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
@@ -94,10 +97,10 @@ public class ProjectApp extends Controller {
 
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
-                id));
+                    id));
         } else {
             return redirect(routes.ProjectApp.setting(Project.update(project,
-                id)));
+                    id)));
         }
     }
 
@@ -105,9 +108,20 @@ public class ProjectApp extends Controller {
         Project.delete(id);
         return redirect(routes.Application.index());
     }
-    
+
     public static Result memberList(Long id) {
         List<User> users = ProjectUser.findUsersByProject(id);
-        return ok(memberList.render(MEMBER_LIST, users, id));
+        List<Form<User>> usersList = new ArrayList<Form<User>>();
+        for (User user : users) {
+            usersList.add(form(User.class).fill(user));
+        }
+        return ok(memberList.render(MEMBER_LIST, usersList, id));
+    }
+
+    public static Result addMember(Long id) {
+        User user = User
+                .findByLoginId(form(User.class).bindFromRequest().get().loginId);
+        ProjectUser.create(user.id, id, Role.findByName("member").id);
+        return redirect(routes.ProjectApp.memberList(id));
     }
 }

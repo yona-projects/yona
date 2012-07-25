@@ -30,6 +30,7 @@ GET     /project/:id/setting        controllers.ProjectApp.setting(id:Long)
 POST    /project/:id/setting   		controllers.ProjectApp.saveSetting(id:Long)
 GET 	/project/:id/delete    		controllers.ProjectApp.deleteProject(id:Long)
 GET     /project/:id/memberList     controllers.ProjectApp.memberList(id:Long)
+POST    /project/:id/addMember      controllers.ProjectApp.addMember(id:Long)
 
 #Milestones
 GET     /project/:pId/milestones            controllers.MilestoneApp.milestones(pId:Long, state ?= "open", sort ?= "dueDate", direction ?= "asc")
