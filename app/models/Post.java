@@ -9,6 +9,7 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
+import views.html.board.post;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -40,7 +41,7 @@ public class Post extends Model {
     public String filePath;
     @ManyToOne
     public User author;
-    @OneToMany(mappedBy = "post", cascade= CascadeType.ALL)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     public Set<Comment> comments;
 
     public Post() {
@@ -52,7 +53,18 @@ public class Post extends Model {
     }
 
     public static Page<Post> findOnePage(int pageNum, String order, String key) {
-        return find.orderBy(key + " " + order).findPagingList(10).getPage(pageNum - 1);
+        return find
+                .orderBy(key + " " + order)
+                .findPagingList(10)
+                .getPage(pageNum - 1);
+    }
+
+    public static Page<Post> findOnePage(int pageNum, String order, String key, String filter) {
+        return find.where()
+                .ilike("title", filter)
+                .orderBy(key + " " + order)
+                .findPagingList(10)
+                .getPage(pageNum - 1);
     }
 
     public static Long write(Post post) {

@@ -31,7 +31,7 @@
   <div class="row">
     <div class="span12">
       <div class="pull-right">
-        <form class="form-search form-inline">
+        <form id="search-form" class="form-search form-inline" method="get">
           <input type="text" class="search-query">
             <button type="submit" class="btn"><i class="icon-search"></i></button>
             <a class="btn btn-primary" href="@routes.BoardApp.newPost()" >새글</a>
@@ -74,12 +74,20 @@
     </div>
   </div>
 
-    <div class="row">  
-        <div class="span6 offset4">
-	       @pagination(page, 5, routes.BoardApp.boardList, order, currentKey)
-        </div>
-        <div class="span2">
-            <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
-        </div>
+  <div class="row">  
+    <div class="span6 offset4">
+    @pagination(page, 5, routes.BoardApp.boardList, order, currentKey)
     </div>
+    <div class="span2">
+        <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
+    </div>
+  </div>
+  <script>
+  $("#search-form").submit(function(){
+	  if($(this).find("input").val() === "")
+		  return false;
+	  
+  })
+  </script>
+  
 }
