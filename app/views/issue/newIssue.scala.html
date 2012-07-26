@@ -1,9 +1,9 @@
-@(title:String, issueForm:Form[Issue], projectId:Long)
+@(title:String, issueForm:Form[Issue], projectId:Long, project:Project)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
-@main(title) {
+@main(title, project) {
 	<div class="page-header">
 		<h1>@title</h1>
 	</div>

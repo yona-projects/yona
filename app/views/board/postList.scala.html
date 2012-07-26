@@ -1,4 +1,4 @@
-@(title:String, page:Page[Post], order:String, currentKey:String)
+@(title:String, page:Page[Post], order:String, currentKey:String,  project:Project)
 
 @header(label:String, key:String) = {
     <th>
@@ -27,7 +27,7 @@
     routes.BoardApp.boardList(page.getPageIndex+ 1, gOrder, newKey)
 }
 
-@main(title) {
+@main(title, project) {
   <div class="row">
     <div class="span12">
       <div class="pull-right">

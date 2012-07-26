@@ -1,6 +1,6 @@
-@(title:String, issue:Issue, projectId:Long, comments:List[IssueComment], commentForm:Form[IssueComment])
+@(title:String, issue:Issue, projectId:Long, comments:List[IssueComment], commentForm:Form[IssueComment], project:Project)
 
-@main(title){
+@main(title, project){
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">

@@ -33,9 +33,6 @@ public class Milestone extends Model {
     public Date dueDate;
     @Constraints.Required
     public String contents;
-    public int numClosedIssues;
-    public int numOpenIssues;
-    public int numTotalIssues; /* TODO It should be related issues count. */
     public int completionRate;
     @ManyToOne
     public Project project;
@@ -47,15 +44,26 @@ public class Milestone extends Model {
     }
 
     public static void update(Milestone milestone, Long id) {
-        int completionRate = 0;
-        if (milestone.numTotalIssues != 0) {
-            double closedIssueCount = new Double(milestone.numClosedIssues);
-            double numTotalIssues = new Double(milestone.numTotalIssues);
-            completionRate = new Double(
-                (closedIssueCount / numTotalIssues) * 100).intValue();
-        }
-        milestone.completionRate = completionRate;
+        NumOfIssues numOfIssues = currentNumOfIssues(milestone);
+        milestone.completionRate = numOfIssues.completionRate();
         milestone.update(id);
+    }
+
+    public static NumOfIssues currentNumOfIssues(Milestone milestone) {
+        int numOfTotalIssues = 0;
+        int numOfClosedIssues = 0;
+        int numOfOpenedIssues = 0;
+
+        for(Issue issue : milestone.issues) {
+            numOfTotalIssues++;
+            if (issue.statusType == Issue.STATUS_CLOSED) {
+                numOfClosedIssues++;
+            } else {
+                numOfOpenedIssues++;
+            }
+        }
+
+        return new NumOfIssues(numOfTotalIssues, numOfOpenedIssues, numOfClosedIssues);
     }
 
     public static void delete(Long id) {
@@ -138,10 +146,10 @@ public class Milestone extends Model {
         }
         switch (state) {
             case OPEN:
-                searchParams.add("numOpenIssues", 0, Matching.GT);
+                searchParams.add("completionRate", 100, Matching.LT);
                 break;
             case CLOSED:
-                searchParams.add("numOpenIssues", 0, Matching.EQUALS);
+                searchParams.add("completionRate", 100, Matching.EQUALS);
                 break;
         }
         return FinderTemplate.findBy(orderParams, searchParams, find);
@@ -172,7 +180,50 @@ public class Milestone extends Model {
         }
         issue.milestone = this;
         this.issues.add(issue);
-        save();
         issue.save();
+    }
+
+    static class NumOfIssues {
+
+        private int numOfTotalIssues;
+        private int numOfClosedIssues;
+        private int numOfOpenedIssues;
+
+        NumOfIssues(int numOfTotalIssues, int numOfOpenedIssues, int numOfClosedIssues) {
+            this.numOfTotalIssues = numOfTotalIssues;
+            this.numOfOpenedIssues = numOfOpenedIssues;
+            this.numOfClosedIssues = numOfClosedIssues;
+        }
+
+        public int getNumOfTotalIssues() {
+            return numOfTotalIssues;
+        }
+
+        public int getNumOfClosedIssues() {
+            return numOfClosedIssues;
+        }
+
+        public int getNumOfOpenedIssues() {
+            return numOfOpenedIssues;
+        }
+
+        public int completionRate() {
+            if(this.numOfTotalIssues == 0 || this.numOfClosedIssues == 0) {
+                return 0;
+            }
+
+            double closedIssueCount = new Double(this.numOfClosedIssues);
+            double numTotalIssues = new Double(this.numOfTotalIssues);
+            return new Double((closedIssueCount / numTotalIssues) * 100).intValue();
+        }
+
+        @Override
+        public String toString() {
+            return "NumOfIssues{" +
+                    "numOfOpenedIssues=" + numOfOpenedIssues +
+                    ", numOfClosedIssues=" + numOfClosedIssues +
+                    ", numOfTotalIssues=" + numOfTotalIssues +
+                    '}';
+        }
     }
 }

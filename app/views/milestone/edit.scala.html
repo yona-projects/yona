@@ -1,8 +1,8 @@
-@(title:String, form:Form[Milestone], projectId:Long, milestoneId:Long)
+@(title:String, form:Form[Milestone], projectId:Long, milestoneId:Long, project:Project)
 
 @import helper.twitterBootstrap._
 
-@main(title) {
+@main(title, project) {
     @helper.form(action=routes.MilestoneApp.updateMilestone(projectId, milestoneId)){
         @helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
         @helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
