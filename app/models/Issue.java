@@ -79,14 +79,14 @@ public class Issue extends Model {
     public Project project;
 
     // 세부정보
-    public int issueType; // 이슈유형
+    public String issueType; // 이슈유형
     @ManyToOne
     public User assignee; // 담당자
     public String componentName; // 컴포넌트
     @ManyToOne
     public Milestone milestone; // 적용된 마일스톤
-    public int importance;// 중요도
-    public int diagnosisResult;// 진단유형
+    public String importance;// 중요도
+    public String diagnosisResult;// 진단유형
     // public int commentCount;
     // TODO 첨부 파일이 여러개인경우는?
     public String filePath;

@@ -50,7 +50,8 @@ public class IssueApp extends Controller {
                 filter, commentedCheck, fileAttachedCheck);
 
         return ok(issueList.render("이슈 목록 조회", issues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck, project));
+                order, filter, status, commentedCheck, fileAttachedCheck,
+                project));
     }
 
     public static Result search(Long projectId, String filter, int pageNum,
@@ -61,7 +62,8 @@ public class IssueApp extends Controller {
                 fileAttachedCheck);
 
         return ok(issueList.render("검색된 이슈", filteredIssues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck, Project.findById(projectId)));
+                order, filter, status, commentedCheck, fileAttachedCheck,
+                Project.findById(projectId)));
 
     }
 
@@ -81,18 +83,19 @@ public class IssueApp extends Controller {
 
     public static Result newIssue(Long projectId) {
         return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class),
-                projectId, Project.findById(projectId)));
+                Project.findById(projectId)));
     }
 
     public static Result saveIssue(Long projectId) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
 
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm,
-                    projectId, Project.findById(projectId)));
+            return badRequest(newIssue.render(issueForm.errors().toString(), issueForm,
+                    Project.findById(projectId)));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.reporter = UserApp.currentUser();
+            newIssue.project = Project.findById(projectId);
             // newIssue.commentCount = 0;
             newIssue.status = Issue.STATUS_ENROLLED;
             newIssue.setStatusType(newIssue.status);
@@ -102,14 +105,14 @@ public class IssueApp extends Controller {
         // TODO statusType 뭔가 이상함
         return redirect(routes.IssueApp.list(projectId,
                 Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", "all", false, false));
+                Issue.ORDERBY_DESCENDING, "", "", false, false));
     }
 
     public static Result delete(Long issueId, Long projectId) {
         Issue.delete(issueId);
         return redirect(routes.IssueApp.list(projectId,
                 Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", "all", false, false));
+                Issue.ORDERBY_DESCENDING, "", "", false, false));
     }
 
     public static Result saveComment(Long issueId, Long projectId) {

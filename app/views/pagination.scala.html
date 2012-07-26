@@ -1,10 +1,9 @@
-@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(Int, String, String) => Call, order:String, key:String)
+@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(String, Int, String, String) => Call, order:String, key:String, projectName:String)
 
 @{
     var currentPageNum = page.getPageIndex + 1
     var lastPageNum = page.getTotalPageCount()
     var str = ""
-    
     
     if(currentPageNum <= pageNum/2) {
         currentPageNum = pageNum/2 +1
@@ -15,27 +14,32 @@
     str += "<div class='pagination'><ul>"
     
     if(page.hasPrev){
-        str +=  "<li><a href=\"" + func(page.getPageIndex, order, key) + "\">prev</a></li>"
+        str +=  makeLink("Prev", page.getPageIndex)
     } else {
-        str += <li class="disabled"><a>prev</a></li>
+        str += <li class="disabled"><a>Prev</a></li>
     }
     
     if(lastPageNum < pageNum){
         for(x <- (1 to lastPageNum)){
-            str += "<li><a href=\"" + func(x, order, key) + "\">" + x + "</a></li>"
+            str += makeLink(x + "", x)
         }
     } else {
         for( x <- (currentPageNum - pageNum/2 to currentPageNum + pageNum/2)){
-           str += "<li><a href=\"" + func(x, order, key) + "\">" + x + "</a></li>"
+           str += makeLink(x + "", x)
         }
     }
     
     if(page.hasNext){
-           str += "<li><a href=\"" + func(page.getPageIndex + 2, order, key)+ "\">Next</a></li>"
+           str += makeLink("Next",page.getPageIndex + 2)
     } else {
            str += <li class="disabled"><a>Next</a></li>
     }
     
     str += "</ul></div>"
+    
     Html(str)
+}
+
+@makeLink(title:String, index:Int) = {
+    <li><a href="@func(projectName, index, order, key)">@title</a></li>
 }

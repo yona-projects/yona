@@ -1,11 +1,15 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+
+import models.enumeration.Direction;
 
 import play.db.ebean.Model;
 
@@ -93,11 +97,11 @@ public class ProjectUser extends Model {
     public static boolean delete(Long userId, Long projectId) {
         ProjectUser projectUser = ProjectUser.findByIds(userId, projectId);
         boolean returnValue = false;
-        if(projectUser.role.id.equals(1l)) {
-            if (existManager(projectId)){
+        if (projectUser.role.id.equals(1l)) {
+            if (existManager(projectId)) {
                 projectUser.delete();
                 returnValue = true;
-            }  
+            }
         } else {
             projectUser.delete();
             returnValue = true;
@@ -117,6 +121,19 @@ public class ProjectUser extends Model {
             return false;
         else
             return true;
+    }
+
+    /**
+     * 해당 프로젝트에 참가하고 있는 유저의 목록을 제공합니다.
+     * 
+     * @return
+     */
+    public static Map<String, String> options(Long projectId) {
+        LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
+        for (User user : findUsersByProject(projectId)) {
+            options.put(user.id.toString(), user.loginId);
+        }
+        return options;
     }
 
 }

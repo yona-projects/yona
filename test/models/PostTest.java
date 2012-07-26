@@ -9,6 +9,8 @@ import static org.junit.Assert.*;
 
 import org.junit.*;
 
+import com.avaje.ebean.Page;
+
 public class PostTest extends ModelTest {
 
     @Test
@@ -20,6 +22,15 @@ public class PostTest extends ModelTest {
         assertThat(actual).isNotNull();
         assertThat(actual.title).isEqualTo("게시판이 새로 생성되었습니다.");
         assertThat(actual.author.id).isEqualTo(getTestUser().id);
+    }
+    
+    @Test
+    public void findOnePage() throws Exception {
+        //Given
+        //When
+        Page<Post> page = Post.findOnePage(1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID);
+        //Then
+        assertThat(page.getList()).hasSize(1);
     }
 
     @Test

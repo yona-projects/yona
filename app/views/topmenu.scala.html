@@ -4,7 +4,7 @@
     
     <li class=""><a href="@routes.ProjectApp.project(project.id)">홈</a></li>
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
-        <li class=""><a href="@routes.BoardApp.boardList(1)">게시판</a></li>
+        <li class=""><a href="@routes.BoardApp.boardList(project.name,1)">게시판</a></li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
         <li><a href="@routes.CodeApp.view(project.name)">코드</a></li>
