@@ -114,7 +114,7 @@
 								@if(issue.assignee == null){
 								<em>미배정</em>						
 							} else {
-								@issue.assignee.name
+								<em>@issue.assignee.name</em>
 							}
 							</td>
 							<td>@issue.date.format("dd MMM yyyy")</td>
