@@ -98,8 +98,6 @@ public class Issue extends Model {
     @ManyToOne
     public User reporter;
     @ManyToOne
-    public Project project;
-    @ManyToOne
     public Milestone milestone;
     public String issueType;
     @ManyToOne
