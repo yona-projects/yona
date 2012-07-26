@@ -54,7 +54,7 @@ public class IssueTest extends ModelTest {
     public void findOpenIssues() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findOpenIssues(1l);
+        Page<Issue> issues = Issue.findOpenIssues("nForge4java");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }
@@ -63,7 +63,7 @@ public class IssueTest extends ModelTest {
     public void findClosedIssues() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findClosedIssues(1l);
+        Page<Issue> issues = Issue.findClosedIssues("nForge4java");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }
@@ -73,7 +73,7 @@ public class IssueTest extends ModelTest {
 
         // Given
         // When
-        Page<Issue> issues = Issue.findFilteredIssues(1l, "로그",
+        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그",
                 IssueState.OPEN, true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
@@ -84,7 +84,7 @@ public class IssueTest extends ModelTest {
     public void findCommentedIssue() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findCommentedIssues(1l, "");
+        Page<Issue> issues = Issue.findCommentedIssues("nForge4java", "");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }
@@ -93,7 +93,7 @@ public class IssueTest extends ModelTest {
     public void findFileAttachedIssue() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findFileAttachedIssues(1l, "");
+        Page<Issue> issues = Issue.findFileAttachedIssues("nForge4java", "");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }
