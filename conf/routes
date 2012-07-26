@@ -29,7 +29,7 @@ GET     /project/:id                    controllers.ProjectApp.project(id:Long)
 GET     /project/:id/setting            controllers.ProjectApp.setting(id:Long)
 POST    /project/:id/setting   	        controllers.ProjectApp.saveSetting(id:Long)
 GET     /project/:id/delete    	        controllers.ProjectApp.deleteProject(id:Long)
-GET     /project/:id/memberList         controllers.ProjectApp.memberList(id:Long)
+GET     /project/:id/memberList         controllers.ProjectApp.memberList(id:Long, noError:Boolean ?= true)
 POST    /project/:id/memberList         controllers.ProjectApp.updateMember(userId:Long, id:Long)
 POST    /project/:id/addMember          controllers.ProjectApp.addMember(id:Long)
 GET     /project/:id/deleteMember       controllers.ProjectApp.deleteMember(userId:Long, id:Long)
@@ -44,14 +44,14 @@ GET		/project/:pId/milestones/:id/delete controllers.MilestoneApp.deleteMileston
 GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilestone(pId:Long, id: Long)
 
 #Issues
-GET     /issueList	                controllers.IssueApp.list(projectId:Long, pageNum:Int ?= 0, sortBy:String ?= "id", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-GET     /issueList/search           controllers.IssueApp.search(projectId:Long, filter:String ?="", pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", status:String ?= "all", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-GET		/issues/new					controllers.IssueApp.newIssue(projectId:Long)
-POST	/issues/new					controllers.IssueApp.saveIssue(projectId:Long)
-GET     /issues/:id                 controllers.IssueApp.issue(id:Long, projectId:Long)
-POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long, projectId:Long)
-GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long, projectId:Long)
-GET		/issueList/excel			controllers.IssueApp.extractExcelFile()
+GET     /:projectName/issueList	                controllers.IssueApp.list(projectName:String, pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+GET     /:projectName/issueList/:pageNum        controllers.IssueApp.list(projectName:String, pageNum:Int, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+GET		/:projectName/issues/new		        controllers.IssueApp.newIssue(projectName:String)
+POST	/:projectName/issues/new				controllers.IssueApp.saveIssue(projectName:String)
+GET     /:projectName/issues/:id                controllers.IssueApp.issue(projectName:String, id:Long)
+POST    /:projectName/issue/:id/reply          controllers.IssueApp.saveComment(projectName:String, id:Long)
+GET     /:projectName/issue/:id/delete          controllers.IssueApp.delete(projectName:String, id:Long)
+GET		/:projectName/issueList/excel			controllers.IssueApp.extractExcelFile(projectName:String)
 
 
 #Git

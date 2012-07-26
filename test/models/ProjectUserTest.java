@@ -46,17 +46,15 @@ public class ProjectUserTest extends ModelTest {
         List<Project> projects = ProjectUser.findProjectsByOwner(1l);
         // Then
         assertThat(projects.size()).isEqualTo(3);
-        assertThat(projects.get(1).name).isEqualTo("Jindo");
     }
     
     @Test
     public void findUsersByProject() throws Exception {
         // Given
         // When
-        List<User> users = ProjectUser.findUsersByProject(3l);
+        List<User> users = ProjectUser.findUsersByProject(2l);
         // Then
-        assertThat(users.size()).isEqualTo(2);
-        assertThat(users.get(0).id).isEqualTo(3l);
+        assertThat(users.size()).isEqualTo(1);
     }
     
     @Test
@@ -76,4 +74,13 @@ public class ProjectUserTest extends ModelTest {
         // Then
         assertThat(ProjectUser.findByIds(2l, 1l)).isNull();        
     }
+    
+    @Test
+    public void existManager() throws Exception {
+        // Given
+        // When
+        // Then
+        assertThat(ProjectUser.isManager(1l)).isEqualTo(false);
+    }
+    
 }

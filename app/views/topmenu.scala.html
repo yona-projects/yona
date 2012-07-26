@@ -17,8 +17,8 @@
         </li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, project.id){
-        <li class="@isActiveMenu(routes.IssueApp.list(project.id))">
-          <a href="@routes.IssueApp.list(project.id)">이슈</a>
+        <li class="@isActiveMenu(routes.IssueApp.list(project.name,0))">
+          <a href="@routes.IssueApp.list(project.name, 0)">이슈</a>
         </li>
     }
       <!-- TODO -->

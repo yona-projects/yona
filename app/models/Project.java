@@ -74,10 +74,6 @@ public class Project extends Model {
         return find.byId(id);
     }
 
-//    public static List<Project> findByOwner(Long ownerId) {
-//        return find.where().eq("owner.id", ownerId).findList();
-//    }
-
     public void add(Issue issue) {
         if (this.issues == null) {
             this.issues = new HashSet<Issue>();
@@ -87,7 +83,7 @@ public class Project extends Model {
         issue.project = this;
     }
 
-    public static Project findByName(String projectName) {
-        return find.where().eq("name", projectName).findUnique();
+    public static Project findByName(String name) {
+        return find.where().eq("name", name).findUnique();
     }
 }

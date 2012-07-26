@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean, project:Project)
+@(title: String, currentPage: Page[Issue], currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean, project:Project)
 
 @import helper._
 
@@ -26,7 +26,7 @@
     }
     
     // Generate the link
-    routes.IssueApp.list(projectId, newPage, sortBy, order, currentFilter, status)
+    routes.IssueApp.list(project.name, newPage, sortBy, order, currentFilter, status, commentedCheck, fileAttachedCheck)
     
 }
 
@@ -35,7 +35,7 @@
 ***********************************@
 @header(key:String, title:String) = {
     <th class="@key.replace(".","_") header @if(currentSortBy == key) @{if(currentOrder == "asc") "headerSortDown" else "headerSortUp"}">
-        <a href="@link(projectId, 0, key, status)">@title</a>
+        <a href="@link(project.id, 0, key, status)">@title</a>
     </th>
 }
 
@@ -44,25 +44,24 @@
 	<div class="row">
 		<div span="span6">
 			<div class="pull-right">
-				<!-- 검색 기능 재구현할것-->
 				<select id="selectMilestone">
 							<option class="blank" value="">--마일스톤--</option>
-							@Milestone.options(projectId).map { v => <option value="@v._1" >@v._2</option>}
+							@Milestone.options(project.id).map { v => <option value="@v._1" >@v._2</option>}
 				</select>
-				<form class="form-search" action="@routes.IssueApp.search(projectId, currentFilter)" method="GET" id="searchForm">
+				<form class="form-search" action="@routes.IssueApp.list(project.name, 0, "date","desc", currentFilter, "all", false, false)" method="GET" id="searchForm">
 					<input type="text" name="filter" value="@currentFilter" placeholder="이슈 검색..">
-					<input type="hidden" name="projectId" value="@projectId">
+					<input type="hidden" name="status" value="all">
 					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
 				</form>
-				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(projectId)" >새 이슈</a>
+				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.name)" >새 이슈</a>
 			</div>
 		</div>
 	</div>
 	<div>
 		<ul class="nav nav-tabs" id="issue_list">
-			<li class="@if(status.equals("all")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "all", false, false)">전체</a></li>
-			<li class="@if(status.equals("open")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
-			<li class="@if(status.equals("closed")){active}"><a href="@routes.IssueApp.list(projectId, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
+			<li class="@if(status.equals("all")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "all", false, false)">전체</a></li>
+			<li class="@if(status.equals("open")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
+			<li class="@if(status.equals("closed")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
 		</ul>
 		@if(currentPage.getTotalRowCount == 0){
 			<div class="well span11">
@@ -70,8 +69,8 @@
 			</div>
 		}else{
 		<div class="pull-right">
-			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.search(projectId, currentFilter, 0, "date","desc",status, commentedCheck, fileAttachedCheck)" method="GET">
-				<input type="hidden" name="projectId" value="@projectId">
+			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(project.name, 0, "date","desc", currentFilter, status, commentedCheck, fileAttachedCheck)" method="GET">
+				
 				<input type="hidden" name="filter" value="@currentFilter">
 				<input type="hidden" name="status" value="@status">
 		        <div class="control-group">
@@ -87,7 +86,7 @@
 		              	</label>
 		              	</fieldset>
 		            	
-		            	<a href="@routes.IssueApp.extractExcelFile()"><i class ="icon-download-alt"></i>EXCEL</a>
+		            	<a href="@routes.IssueApp.extractExcelFile(project.name)"><i class ="icon-download-alt"></i>EXCEL</a>
 		            	</div>
 		        </div>
 		    </form>
@@ -109,18 +108,18 @@
 						<tr>
 							<td>@issue.id</td>
 							<td>@issue.status()</td>
-							<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
+							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assignee == null){
 								<em>미배정</em>						
 							} else {
-								<em>@issue.assignee.name</em>
+								<em>@issue.assignee.loginId</em>
 							}
 							</td>
 							<td>@issue.date.format("dd MMM yyyy")</td>
 
-				</tr>
-				}
+						</tr>
+					}
 			</tbody>
 		</table>
 
@@ -130,7 +129,7 @@
 	            <ul>
 	                @if(currentPage.hasPrev) {
 	                    <li class="prev">
-	                        <a href="@link(projectId, currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
+	                        <a href="@link(project.id, currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
 	                    </li>
 	                } else {
 	                    <li class="prev disabled">
@@ -142,7 +141,7 @@
 	                </li>
 	                @if(currentPage.hasNext) {
 	                    <li class="next">
-	                        <a href="@link(projectId, currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
+	                        <a href="@link(project.id, currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
 	                    </li>
 	                } else {
 	                    <li class="next disabled">
@@ -158,7 +157,7 @@
 		</div>
 	</div>
 </div>
-}
+
 	<script>
 	$(document).ready(function() {
 			$("#checkboxForm").bind("change check", function(){
@@ -179,5 +178,4 @@
 			});	
 		});
 	</script>
-
-}
+}}
