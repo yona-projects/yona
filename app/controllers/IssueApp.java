@@ -12,6 +12,7 @@ import com.avaje.ebean.Page;
 import models.Issue;
 import models.IssueComment;
 import models.User;
+import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import play.data.Form;
@@ -26,6 +27,8 @@ import views.html.issue.newIssue;
 import views.html.issue.notExistingPage;
 
 public class IssueApp extends Controller {
+
+    public static final Project project = Project.findById(1L);
 
     /**
      * Display the paginated list of issues.
@@ -47,16 +50,18 @@ public class IssueApp extends Controller {
                 filter, commentedCheck, fileAttachedCheck);
 
         return ok(issueList.render("이슈 목록 조회", issues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck));
+                order, filter, status, commentedCheck, fileAttachedCheck, project));
     }
 
-    public static Result search(Long projectId, String filter ,int pageNum, String sortBy,
-            String order, String status, boolean commentedCheck,
+    public static Result search(Long projectId, String filter, int pageNum,
+            String sortBy, String order, String status, boolean commentedCheck,
             boolean fileAttachedCheck) {
-        Page<Issue> filteredIssues = Issue.findFilteredIssues(projectId, filter, IssueState.getValue(status), commentedCheck, fileAttachedCheck);
+        Page<Issue> filteredIssues = Issue.findFilteredIssues(projectId,
+                filter, IssueState.getValue(status), commentedCheck,
+                fileAttachedCheck);
 
         return ok(issueList.render("검색된 이슈", filteredIssues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck));
+                order, filter, status, commentedCheck, fileAttachedCheck, Project.findById(projectId)));
 
     }
 
@@ -65,18 +70,18 @@ public class IssueApp extends Controller {
         List<IssueComment> comments = IssueComment
                 .findCommentsByIssueId(issueId);
         if (issues == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물", projectId));
+            return ok(notExistingPage.render("존재하지 않는 게시물", projectId, project));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
             return ok(issue.render("이슈 상세조회", issues, projectId, comments,
-                    commentForm));
+                    commentForm, project));
         }
     }
 
     public static Result newIssue(Long projectId) {
         return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class),
-                projectId));
+                projectId, Project.findById(projectId)));
     }
 
     public static Result saveIssue(Long projectId) {
@@ -84,7 +89,7 @@ public class IssueApp extends Controller {
 
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render("ERRRRRRORRRRR!!!!", issueForm,
-                    projectId));
+                    projectId, Project.findById(projectId)));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.reporter = UserApp.currentUser();

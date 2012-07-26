@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean)
+@(title: String, currentPage: Page[Issue], projectId: Long, currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean, project:Project)
 
 @import helper._
 
@@ -39,7 +39,7 @@
     </th>
 }
 
-@main(title){
+@main(title, project){
 <div id = "issue_page">
 	<div class="row">
 		<div span="span6">
@@ -109,7 +109,7 @@
 						<tr>
 							<td>@issue.id</td>
 							<td>@issue.status()</td>
-							<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title [@issue.commentCount]</a></td>
+							<td><a href="@routes.IssueApp.issue(issue.id, projectId)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assignee == null){
 								<em>미배정</em>						

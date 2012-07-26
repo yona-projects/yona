@@ -1,4 +1,4 @@
-@(message: String, members: List[Form[User]], id: Long)
+@(message: String, members: List[Form[User]])(id: Long, project:Project)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
@@ -12,7 +12,8 @@
     }
 }
 
-@projectMngMain(message, id) {
+@projectMngMain(message, id, project) {
+
     <table class="table">
         @for(member <- members){
             <tr>

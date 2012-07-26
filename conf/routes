@@ -52,3 +52,11 @@ GET     /issues/:id                 controllers.IssueApp.issue(id:Long, projectI
 POST    /issue/:id/replay           controllers.IssueApp.saveComment(id:Long, projectId:Long)
 GET     /issue/:id/delete           controllers.IssueApp.delete(id:Long, projectId:Long)
 GET		/issueList/excel			controllers.IssueApp.extractExcelFile()
+
+
+#Git
+GET     /:projectName/info/refs                                        controllers.GitApp.advertise(projectName:String, service:String)
+POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(projectName:String, service:String)
+
+#
+GET     /:projectName/code                                             controllers.CodeApp.view(projectName:String)

@@ -86,4 +86,8 @@ public class Project extends Model {
         this.issues.add(issue);
         issue.project = this;
     }
+
+    public static Project findByName(String projectName) {
+        return find.where().eq("name", projectName).findUnique();
+    }
 }

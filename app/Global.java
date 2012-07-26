@@ -1,3 +1,4 @@
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +9,8 @@ import com.avaje.ebean.Ebean;
 import play.Application;
 import play.GlobalSettings;
 import play.libs.Yaml;
+import play.mvc.Action;
+import play.mvc.Http.Request;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
@@ -38,7 +41,6 @@ public class Global extends GlobalSettings {
                 Ebean.save(all.get("projectUsers"));
             }
         }
-
     }
 
     public void onStop(Application app) {

@@ -1,6 +1,6 @@
-@(post:Post, comments:List[Comment], commentForm:Form[Comment])
+@(post:Post, comments:List[Comment], commentForm:Form[Comment],  project:Project)
 
-@main("상세보기"){
+@main("상세보기", project){
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
