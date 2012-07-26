@@ -4,8 +4,8 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 
-@projectMngMain(message, id, projectInst) {
-       @form(action = routes.ProjectApp.saveSetting(id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
+@projectMngMain(message, projectInst) {
+       @form(action = routes.ProjectApp.saveSetting(projectInst.id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>                
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
@@ -62,7 +62,7 @@
         </div>
         <div class="row">
             <div class="actions">
-                <input type="submit" class="btn btn-primary" value="저장">
+                <input type="submit" class="btn btn-primary" value="저장" id="save">
             </div>
         </div>
     }
@@ -98,13 +98,14 @@
         </div>
         <div class="modal-footer">
             <a href="#" class="btn" data-dismiss="modal">아니오</a>
-            <a href="@routes.ProjectApp.deleteProject(id)" class="btn btn-danger">예, 삭제하겠습니다.</a>
+            <a href="@routes.ProjectApp.deleteProject(projectInst.id)" class="btn btn-danger">예, 삭제하겠습니다.</a>
         </div>
     </div>
     
     <script>  
         $(document).ready(function(){
             var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
+            var reg_name = /^[a-zA-Z0-9_]*$/;
             $("input[id='logoPath']").change(function(){
                 if (!reg.test($(this).val())) { 
                     alert('이미지 파일이 아닙니다.');
@@ -113,6 +114,15 @@
                     return $("form[id='saveSetting']").submit(); 
                 }     
             });
+            $("#save").click(function() {
+                if(!reg_name.test($("input[id='name']").val())) {
+                    alert('특수문자 및 한글은 이름에 사용될 수 없습니다.');
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+            
             $("#project_name").popover();
             $("#share_option_explanation").popover();
             $("#terms").popover();

@@ -11,8 +11,8 @@ public class RoleCheckTest extends ModelTest{
     public void roleCheck() {
         // Given
         // When
-        boolean result1 = RoleCheck.roleCheck("1", RoleCheck.PERMISSION_PROJ_SETTING, "4");
-        boolean result2 = RoleCheck.roleCheck("4", RoleCheck.PERMISSION_MILESTONE, "1");
+        boolean result1 = RoleCheck.roleCheck("1", RoleCheck.PERMISSION_PROJ_SETTING, 4l);
+        boolean result2 = RoleCheck.roleCheck("4", RoleCheck.PERMISSION_MILESTONE, 1l);
         // Then
         assertThat(result1).isEqualTo(false);
         assertThat(result2).isEqualTo(true);

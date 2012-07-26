@@ -17,30 +17,31 @@ public class RoleCheck {
     public static String PERMISSION_MILESTONE = "milestone";
     public static String PERMISSION_PROJ_SETTING = "project.setting";
     public static String PERMISSION_SITE_SETTING = "site.setting";
-    public static String PERMISSION_CODE = "code";    
-    
+    public static String PERMISSION_CODE = "code";
+
     public static boolean roleCheck(String userId, String permissionChecked,
-            String projectId) {
+            Long projectId) {
         boolean returnValue = false;
-        
-        if (Project.findById(Long.parseLong(projectId)).share_option
+
+        if (Project.findById(projectId).share_option
                 && !permissionChecked.equals(PERMISSION_PROJ_SETTING))
             return !returnValue;
-        
+
         ProjectUser projectUser = ProjectUser.findByIds(Long.parseLong(userId),
-                Long.parseLong(projectId));
-        
+                projectId);
+
         if (projectUser == null)
             return returnValue;
         else {
             Role role = ProjectUser.findRoleByIds(Long.parseLong(userId),
-                    Long.parseLong(projectId));
+                    projectId);
             List<Permission> permissions = role.getPermissions();
-            for(Permission permission : permissions) {
-                if(permission.name.equals(permissionChecked)) returnValue = true;
+            for (Permission permission : permissions) {
+                if (permission.name.equals(permissionChecked))
+                    returnValue = true;
             }
         }
-        
+
         return returnValue;
     }
 
