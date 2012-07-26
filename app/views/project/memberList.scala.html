@@ -13,10 +13,12 @@
 }
 
 @projectMngMain(message, project) {
-    <div class="alert alert-error alert-block">
-        <a class="close" data-dismiss="alert" href="#">×</a>
-        <h4>최소한 1명 이상의 관리자가 있어야 합니다.</h4>
-    </div>
+    @if(!noError){
+	    <div class="alert alert-error alert-block">
+	        <a class="close" data-dismiss="alert" href="#">×</a>
+	        <h4>최소한 1명 이상의 관리자가 있어야 합니다.</h4>
+	    </div>
+    }
     
     <table class="table">
         @for(member <- members){
