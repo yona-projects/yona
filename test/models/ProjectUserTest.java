@@ -82,6 +82,6 @@ public class ProjectUserTest extends ModelTest {
         // Given
         // When
         // Then
-        assertThat(ProjectUser.existManager(1l)).isEqualTo(false);
+        assertThat(ProjectUser.isManager(1l)).isEqualTo(false);
     }
 }
