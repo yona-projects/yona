@@ -21,18 +21,18 @@
         }
     }
 }
--@project.projectMngMain(message, id, projectInst) {
+-@project.projectMngMain(message, projectInst) {
     <div>
         <div style="position: relative;">
             <ul class="nav nav-tabs" id="milestone_list">
                 <li class="@if(state.equals("all")){active}">
-                <a href="/project/@id/milestones?state=all">전체</a>
+                <a href="/project/@projectInst.id/milestones?state=all">전체</a>
                 </li>
                 <li class="@if(state.equals("open")){active}">
-                <a href="/project/@id/milestones?state=open">미완료</a>
+                <a href="/project/@projectInst.id/milestones?state=open">미완료</a>
                 </li>
                 <li class="@if(state.equals("closed")){active}">
-                <a href="/project/@id/milestones?state=closed">완료</a>
+                <a href="/project/@projectInst.id/milestones?state=closed">완료</a>
                 </li>
             </ul>
             <div style="position: absolute; top: 10px; right: 0;">

@@ -12,26 +12,26 @@
     }
 }
 
-@projectMngMain(message, id, project) {
+@projectMngMain(message, project) {
 
     <table class="table">
         @for(member <- members){
             <tr>
                 <td>@member("loginId").value</td>
                 <td>
-	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, id)" method="post">
+	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, project.id)" method="post">
 	                    <select id="role" name="id">
-	                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, id))
+	                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, project.id))
 	                    </select>
 	                </form>
                 </td>
                 <td>
-                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, id)">탈퇴</a>
+                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, project.id)">탈퇴</a>
                 </td>
             </tr>
         }
         <tr>
-            <form action="@routes.ProjectApp.addMember(id)" method="post" id="addNewMember">
+            <form action="@routes.ProjectApp.addMember(project.id)" method="post" id="addNewMember">
 	            <td colspan="2">
 	                <input type="text" id="loginId" name="loginId" 
 	                placeholder="새로운 맴버의 ID를 입력하세요...">

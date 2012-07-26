@@ -23,7 +23,7 @@
     }
     "/project/%d/milestones/manage?sort=%s&direction=%s".format(pId, _sort, _direction)
 }
-@project.projectMngMain(message, pId, projectInst) {
+@project.projectMngMain(message, projectInst) {
     <div>
     @if(milestones == null || milestones.isEmpty()){
         <p>등록된 마일스톤이 없습니다.</p>
@@ -48,19 +48,19 @@
             @for(milestone <- milestones){
                 <tr>
                     <td>
-                        <a href="@routes.MilestoneApp.editMilestone(pId, milestone.id)">@milestone.title</a>
+                        <a href="@routes.MilestoneApp.editMilestone(projectInst.id, milestone.id)">@milestone.title</a>
                     </td>
                     <td>@milestone.contents</td>
                     <td>@milestone.getDueDateString</td>
                     <td>@completionRateName(milestone.completionRate)</td>
-                    <td><a href="@routes.MilestoneApp.deleteMilestone(pId, milestone.id)">삭제</a></td>
+                    <td><a href="@routes.MilestoneApp.deleteMilestone(projectInst.id, milestone.id)">삭제</a></td>
                 </tr>
         }
             </tbody>
         </table>
     </div>
     <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(pId)" >새 마일스톤</a>
+        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(projectInst.id)" >새 마일스톤</a>
     </div>
     }
 }
