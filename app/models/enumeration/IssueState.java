@@ -1,7 +1,7 @@
 package models.enumeration;
 
 public enum IssueState {
-    OPEN("open"), CLOSED("closed"), ALL("all");
+    ENROLLED("enrolled"), ASSIGNED("assigned"), SOLVED("solved"), FINISHED("finished");
     private String state;
 
     IssueState(String state) {
@@ -18,6 +18,6 @@ public enum IssueState {
                 return issueState;
             }
         }
-        return IssueState.ALL;
+        return IssueState.ENROLLED;
     }
 }
