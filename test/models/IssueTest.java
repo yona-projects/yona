@@ -50,31 +50,6 @@ public class IssueTest extends ModelTest {
         assertThat(Issue.findById(4l)).isNull();
     }
 
-    // @Test
-    // public void page() {
-    // // Given
-    // // When
-    // Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER,
-    // Issue.ISSUE_COUNT_PER_PAGE, Issue.SORTBY_ID,
-    // Issue.ORDERBY_DESCENDING, "", Issue.STATUS_NONE);
-    // // Then
-    // assertThat(issues.getTotalRowCount()).isEqualTo(2);
-    // assertThat(issues.getList().size()).isEqualTo(2);
-    //
-    // }
-    //
-    // @Test
-    // public void pageSearch() {
-    // // Given
-    // // When
-    // Page<Issue> issues = Issue.page(1l, Issue.FIRST_PAGE_NUMBER,
-    // Issue.ISSUE_COUNT_PER_PAGE, Issue.SORTBY_ID,
-    // Issue.ORDERBY_DESCENDING, "메모리", Issue.STATUS_NONE);
-    // // Then
-    // assertThat(issues.getTotalRowCount()).isEqualTo(1);
-    // assertThat(issues.getList().size()).isEqualTo(1);
-    // }
-
     @Test
     public void findOpenIssues() throws Exception {
         // Given
