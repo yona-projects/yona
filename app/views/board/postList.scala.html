@@ -24,7 +24,7 @@
     } else {
         gOrder = "desc"
     }
-    routes.BoardApp.boardList(page.getPageIndex+ 1, gOrder, newKey)
+    routes.BoardApp.boardList(project.name, page.getPageIndex+ 1, gOrder, newKey)
 }
 
 @main(title, project) {
@@ -34,7 +34,7 @@
         <form id="search-form" class="form-search form-inline" method="get">
           <input type="text" class="search-query">
             <button type="submit" class="btn"><i class="icon-search"></i></button>
-            <a class="btn btn-primary" href="@routes.BoardApp.newPost()" >새글</a>
+            <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.name)" >새글</a>
         </form>
       </div>    
     </div>  
@@ -63,7 +63,7 @@
 	    		@for(post <- page.getList()){
 	    		<tr>
 	    			<td>@post.id</td>
-	    			<td><a href="@routes.BoardApp.post(post.id)">@post.title [@post.commentCount]</a></td>
+	    			<td><a href="@routes.BoardApp.post(project.name, post.id)">@post.title [@post.commentCount]</a></td>
 	    			<td>@post.author.name</td>
 	    			<td>@post.calcPassTime()</td>
 	    		</tr>
@@ -76,7 +76,7 @@
 
   <div class="row">  
     <div class="span6 offset4">
-    @pagination(page, 5, routes.BoardApp.boardList, order, currentKey)
+    @pagination(page, 5, routes.BoardApp.boardList, order, currentKey,project.name)
     </div>
     <div class="span2">
         <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>

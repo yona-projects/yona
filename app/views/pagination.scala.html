@@ -1,4 +1,4 @@
-@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(Int, String, String) => Call, order:String, key:String)
+@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, func:(String, Int, String, String) => Call, order:String, key:String, projectName:String)
 
 @{
     var currentPageNum = page.getPageIndex + 1
@@ -41,5 +41,5 @@
 }
 
 @makeLink(title:String, index:Int) = {
-    <li><a href="@func(index, order, key)">@title</a></li>
+    <li><a href="@func(projectName, index, order, key)">@title</a></li>
 }
