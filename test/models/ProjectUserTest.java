@@ -76,4 +76,12 @@ public class ProjectUserTest extends ModelTest {
         // Then
         assertThat(ProjectUser.findByIds(2l, 1l)).isNull();        
     }
+    
+    @Test
+    public void existManager() throws Exception {
+        // Given
+        // When
+        // Then
+        assertThat(ProjectUser.existManager(1l)).isEqualTo(false);
+    }
 }
