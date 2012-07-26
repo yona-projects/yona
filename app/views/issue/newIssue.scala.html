@@ -7,7 +7,7 @@
 	<div class="page-header">
 		<h1>@title</h1>
 	</div>
-    @form(action = routes.IssueApp.saveIssue(project.id), 
+    @form(action = routes.IssueApp.saveIssue(project.name), 
     				'enctype -> "multipart/form-data",
     				'class -> "form-horizontal"){
     	<fieldset>
@@ -144,7 +144,7 @@
 	<div class="row pull-right">
 			<div class="actions">
 				<input type="submit" class="btn btn-primary" value="저장"> 
-				<a href="@routes.IssueApp.list(project.id)" class="btn">취소</a>
+				<a href="@routes.IssueApp.list(project.name, 0)" class="btn">취소</a>
 			</div>
     </div>
  }
