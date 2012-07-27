@@ -1,6 +1,7 @@
 package models;
 
 import models.enumeration.Direction;
+import models.enumeration.IssueStateType;
 import models.enumeration.Matching;
 import models.enumeration.MilestoneState;
 import models.support.FinderTemplate;
@@ -56,7 +57,7 @@ public class Milestone extends Model {
 
         for(Issue issue : milestone.issues) {
             numOfTotalIssues++;
-            if (issue.statusType == Issue.STATUS_CLOSED) {
+            if (issue.stateType == IssueStateType.CLOSED) {
                 numOfClosedIssues++;
             } else {
                 numOfOpenedIssues++;

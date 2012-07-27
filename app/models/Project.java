@@ -80,7 +80,7 @@ public class Project extends Model {
         }
 
         this.issues.add(issue);
-        issue.project = this;
+        //issue.project = this;
     }
 
     public static Project findByName(String name) {

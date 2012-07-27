@@ -15,6 +15,7 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
+import models.enumeration.IssueStateType;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -54,7 +55,7 @@ public class IssueApp extends Controller {
             boolean fileAttachedCheck) {
         Project project = Project.findByName(projectName);
         Page<Issue> issues = Issue.findIssues(projectName, pageNum,
-                IssueState.getValue(status), sortBy, Direction.getValue(order),
+                IssueStateType.getValue(status), sortBy, Direction.getValue(order),
                 filter, commentedCheck, fileAttachedCheck);
 
         return ok(issueList.render("이슈 목록", issues, sortBy, order, filter,
@@ -91,15 +92,15 @@ public class IssueApp extends Controller {
         } else {
             Issue newIssue = issueForm.get();
             newIssue.reporter = UserApp.currentUser();
-            newIssue.project = Project.findByName(projectName);
-            newIssue.status = Issue.STATUS_ENROLLED;
-            newIssue.setStatusType(newIssue.status);
+     //       newIssue.project = Project.findByName(projectName);
+            newIssue.state = IssueState.ENROLLED;
+            newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
         return redirect(routes.IssueApp.list(project.name,
                 Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
-                Direction.DESC.name(), "", IssueState.ALL.name(), false, false));
+                Direction.DESC.name(), "", IssueStateType.ALL.name(), false, false));
     }
 
     public static Result delete(String projectName, Long issueId) {

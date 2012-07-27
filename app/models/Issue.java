@@ -3,6 +3,7 @@ package models;
 import com.avaje.ebean.Page;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
+import models.enumeration.IssueStateType;
 import models.enumeration.Matching;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
@@ -68,18 +69,18 @@ public class Issue extends Model {
             Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
-    public static final int STATUS_ENROLLED = 1;
-    public static final int STATUS_ASSINGED = 2;
-    public static final int STATUS_SOLVED = 3;
-    public static final int STATUS_FINISHED = 4;
-    public static final int STATUS_OPEN = 5;
-    public static final int STATUS_CLOSED = 6;
-    public static final int STATUS_NONE = 0;
-    public static final int DEFECTTYPE_WORST = 1;
-    public static final int DEFECTTYPE_WORSE = 2;
-    public static final int DEFECTTYPE_BAD = 3;
-    public static final int DEFECTTYPE_SIMPLEIMPROVEMENT = 4;
-    public static final int DEFECTTYPE_RECOMMENDATION = 5;
+//    public static final int STATUS_ENROLLED = 1;
+//    public static final int STATUS_ASSINGED = 2;
+//    public static final int STATUS_SOLVED = 3;
+//    public static final int STATUS_FINISHED = 4;
+//    public static final int STATUS_OPEN = 5;
+//    public static final int STATUS_CLOSED = 6;
+//    public static final int STATUS_NONE = 0;
+//    public static final int DEFECTTYPE_WORST = 1;
+//    public static final int DEFECTTYPE_WORSE = 2;
+//    public static final int DEFECTTYPE_BAD = 3;
+//    public static final int DEFECTTYPE_SIMPLEIMPROVEMENT = 4;
+//    public static final int DEFECTTYPE_RECOMMENDATION = 5;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
     public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
     public static final int NUMBER_OF_NO_COMMENT = 0;
@@ -91,17 +92,13 @@ public class Issue extends Model {
     public String title;
     @Constraints.Required
     public String body;
-    public int status;
-    public int statusType;
+    public IssueState state;
+    public IssueStateType stateType;
+//    public int status;
+//    public int statusType;
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date date;
-    @ManyToOne
-    public User reporter;
-    @ManyToOne
-    public Milestone milestone;
     public String issueType;
-    @ManyToOne
-    public User assignee;
     public String componentName;
     // TODO 첨부 파일이 여러개인경우는?
     public String filePath;
@@ -110,6 +107,14 @@ public class Issue extends Model {
     public String dbmsType;
     public String importance;
     public String diagnosisResult;
+    @ManyToOne
+    public Project project;
+    @ManyToOne
+    public User reporter;
+    @ManyToOne
+    public User assignee;
+    @ManyToOne
+    public Milestone milestone;
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public Set<IssueComment> issueComments;
     public int commentCount;
@@ -126,13 +131,13 @@ public class Issue extends Model {
      * @return
      */
     public String status() {
-        if (this.status == STATUS_ENROLLED) {
+        if (this.state == IssueState.ENROLLED) {
             return "등록";
-        } else if (this.status == STATUS_ASSINGED) {
+        } else if (this.state == IssueState.ASSIGNED) {
             return "진행중";
-        } else if (this.status == STATUS_SOLVED) {
+        } else if (this.state == IssueState.SOLVED) {
             return "해결";
-        } else if (this.status == STATUS_FINISHED) {
+        } else if (this.state == IssueState.FINISHED) {
             return "닫힘";
         } else
             return "등록";
@@ -144,12 +149,12 @@ public class Issue extends Model {
      * @param status
      */
 
-    public void setStatusType(int status) {
-        if (this.status == STATUS_ASSINGED || this.status == STATUS_ENROLLED) {
-            this.statusType = STATUS_OPEN;
-        } else if (this.status == STATUS_CLOSED
-                || this.status == STATUS_FINISHED) {
-            this.statusType = STATUS_SOLVED;
+    public void updateStatusType(IssueState state) {
+        if (this.state == IssueState.ASSIGNED || this.state == IssueState.ENROLLED) {
+            this.stateType = IssueStateType.OPEN;
+        } else if (this.state == IssueState.SOLVED
+                || this.state == IssueState.FINISHED) {
+            this.stateType = IssueStateType.CLOSED;
         }
     }
 
@@ -181,7 +186,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findOpenIssues(String projectName) {
-        return Issue.findIssues(projectName, IssueState.OPEN);
+        return Issue.findIssues(projectName, IssueStateType.OPEN);
     }
 
     /**
@@ -191,7 +196,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findClosedIssues(String projectName) {
-        return Issue.findIssues(projectName, IssueState.CLOSED);
+        return Issue.findIssues(projectName, IssueStateType.CLOSED);
     }
 
     /**
@@ -201,7 +206,7 @@ public class Issue extends Model {
      * @param state
      * @return
      */
-    public static Page<Issue> findIssues(String projectName, IssueState state) {
+    public static Page<Issue> findIssues(String projectName, IssueStateType state) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
                 DEFAULT_SORTER, Direction.DESC, "", false, false);
     }
@@ -217,7 +222,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findFilteredIssues(String projectName,
-            String filter, IssueState state, boolean commentedCheck,
+            String filter, IssueStateType state, boolean commentedCheck,
             boolean fileAttachedCheck) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
                 DEFAULT_SORTER, Direction.DESC, filter, commentedCheck,
@@ -234,7 +239,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findCommentedIssues(String projectName,
             String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueState.ALL,
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
                 DEFAULT_SORTER, Direction.DESC, filter, true, false);
     }
 
@@ -248,7 +253,7 @@ public class Issue extends Model {
 
     public static Page<Issue> findFileAttachedIssues(String projectName,
             String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueState.ALL,
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
                 DEFAULT_SORTER, Direction.DESC, filter, false, true);
     }
 
@@ -276,7 +281,7 @@ public class Issue extends Model {
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
     public static Page<Issue> findIssues(String projectName, int pageNumber,
-            IssueState state, String sortBy, Direction order, String filter,
+            IssueStateType state, String sortBy, Direction order, String filter,
             boolean commentedCheck, boolean fileAttachedCheck) {
 
         OrderParams orderParams = new OrderParams().add(sortBy, order);
@@ -291,14 +296,14 @@ public class Issue extends Model {
             searchParams.add("filePath", "", Matching.NOT_EQUALS);
         }
         if (state == null) {
-            state = IssueState.ALL;
+            state = IssueStateType.ALL;
         }
         switch (state) {
         case OPEN:
-            searchParams.add("statusType", STATUS_OPEN, Matching.EQUALS);
+            searchParams.add("stateType", IssueStateType.OPEN, Matching.EQUALS);
             break;
         case CLOSED:
-            searchParams.add("statusType", STATUS_CLOSED, Matching.EQUALS);
+            searchParams.add("stateType", IssueStateType.CLOSED, Matching.EQUALS);
             break;
         }
         return FinderTemplate.getPage(orderParams, searchParams, find,

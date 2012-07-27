@@ -49,7 +49,7 @@ GET     /:projectName/issueList/:pageNum        controllers.IssueApp.list(projec
 GET		/:projectName/issues/new		        controllers.IssueApp.newIssue(projectName:String)
 POST	/:projectName/issues/new				controllers.IssueApp.saveIssue(projectName:String)
 GET     /:projectName/issues/:id                controllers.IssueApp.issue(projectName:String, id:Long)
-POST    /:projectName/issue/:id/reply          controllers.IssueApp.saveComment(projectName:String, id:Long)
+POST    /:projectName/issue/:id/reply           controllers.IssueApp.saveComment(projectName:String, id:Long)
 GET     /:projectName/issue/:id/delete          controllers.IssueApp.delete(projectName:String, id:Long)
 GET		/:projectName/issueList/excel			controllers.IssueApp.extractExcelFile(projectName:String)
 
