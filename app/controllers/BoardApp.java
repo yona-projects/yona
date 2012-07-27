@@ -6,7 +6,9 @@ package controllers;
 
 import models.Comment;
 import models.Post;
+import models.Post.Param;
 import models.Project;
+import play.Logger;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -16,8 +18,6 @@ import play.mvc.Result;
 import views.html.board.*;
 import org.eclipse.jgit.http.server.*;
 
-import com.jcraft.jsch.Logger;
-
 import java.io.File;
 import java.util.List;
 
@@ -25,9 +25,14 @@ public class BoardApp extends Controller {
 
     public static Result boardList(String projectName, int pageNum, String order, String key) {
 
+        Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
+        Param postParam = postParamForm.bindFromRequest().get();
+        Logger.debug("BoardApp : boardList - postParam.pageNum = " + postParam.pageNum);
+        Logger.debug("BoardApp : boardList - postParam.ordder = " + postParam.order);
         Project project = Project.findByName(projectName);
-        return ok(postList
-                .render("게시판", Post.findOnePage(project.name, pageNum, order, key), order, key, project));
+        return ok(postList.render("게시판", project,
+                Post.findOnePage(project.name, postParam.pageNum, postParam.order, postParam.key),
+                postParam.order, postParam.key));
     }
 
     public static Result newPost(String projectName) {

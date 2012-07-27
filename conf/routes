@@ -12,8 +12,7 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /users/login                controllers.UserApp.login()
 
 # Boards
-GET     /:projectName/boardList             controllers.BoardApp.boardList(projectName:String, pageNum:Int = 1, order:String ?= "desc", key ?= "id")
-GET     /:projectName/boardList/:pageNum    controllers.BoardApp.boardList(projectName:String, pageNum:Int, order:String ?= "desc", key ?= "id")
+GET     /:projectName/boardList             controllers.BoardApp.boardList(projectName:String, pageNum:Int ?= 1, order:String ?= "desc", key ?= "id")
 GET     /:projectName/boards/new            controllers.BoardApp.newPost(projectName:String)
 POST    /:projectName/boards/new            controllers.BoardApp.savePost(projectName:String)
 GET     /:projectName/board/:id             controllers.BoardApp.post(projectName:String, id:Long)

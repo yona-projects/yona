@@ -9,7 +9,6 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
-import views.html.board.post;
 
 import javax.persistence.*;
 import java.util.Calendar;
@@ -139,5 +138,18 @@ public class Post extends Model {
             post.filePath = beforePost.filePath;
         }
         post.update();
+    }
+    
+    public static class Param {
+    	public Param() {
+			this.order = ORDER_DESCENDING;
+			this.key = ORDERING_KEY_ID;
+			this.filter = "";
+			this.pageNum = 1;
+		}
+    	public String order;
+    	public String key;
+    	public String filter;
+    	public int pageNum;
     }
 }
