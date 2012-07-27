@@ -1,19 +1,22 @@
-@(message: String, members: List[Form[User]])(id: Long, project:Project)
+@(message: String, members: List[Form[User]], id: Long, project:Project, roles: List[Role], noError: Boolean)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @memberRole(member: Form[User], id: Long, userRole: Role) = {
-    <option selected="selected" value="@userRole.id">@userRole.name</option>
     @for(role <- Role.getAllProjectRoles()){
-        @if(!role.equals(userRole)){
-            <option value="@role.id">@role.name</option>
-        }
+        <option value="@role.id" @(if(role.equals(userRole)) "selected" else "")>@role.name</option>
     }
 }
 
 @projectMngMain(message, project) {
-
+    @if(!noError){
+	    <div class="alert alert-error alert-block">
+	        <a class="close" data-dismiss="alert" href="#">×</a>
+	        <h4>최소한 1명 이상의 관리자가 있어야 합니다.</h4>
+	    </div>
+    }
+    
     <table class="table">
         @for(member <- members){
             <tr>

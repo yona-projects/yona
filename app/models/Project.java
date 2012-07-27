@@ -48,8 +48,6 @@ public class Project extends Model {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Issue> issues;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Milestone> milestones;
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
 
     public static Long create(Project newProject) {
@@ -74,20 +72,16 @@ public class Project extends Model {
         return find.byId(id);
     }
 
-//    public static List<Project> findByOwner(Long ownerId) {
-//        return find.where().eq("owner.id", ownerId).findList();
-//    }
-
     public void add(Issue issue) {
         if (this.issues == null) {
             this.issues = new HashSet<Issue>();
         }
 
         this.issues.add(issue);
-        issue.project = this;
+        //issue.project = this;
     }
 
-    public static Project findByName(String projectName) {
-        return find.where().eq("name", projectName).findUnique();
+    public static Project findByName(String name) {
+        return find.where().eq("name", name).findUnique();
     }
 }

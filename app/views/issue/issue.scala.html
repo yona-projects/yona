@@ -1,4 +1,4 @@
-@(title:String, issue:Issue, projectId:Long, comments:List[IssueComment], commentForm:Form[IssueComment], project:Project)
+@(title:String, issue:Issue, comments:List[IssueComment], commentForm:Form[IssueComment], project:Project)
 
 @main(title, project){
 <div class="row">
@@ -6,7 +6,7 @@
 	    <div id="board_btn_panel">
 	        <a class="btn btn-primary" href="">수정</a>
 	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
-	        <a class="btn" href="@routes.IssueApp.list(projectId, 0, "", "", "", "all", false, false)">목록</a>
+	        <a class="btn" href="@routes.IssueApp.list(project.name, 0, "", "", "", "all", false, false)">목록</a>
 	    </div>
 	</div>
 </div>
@@ -53,7 +53,7 @@
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div class="row">
-	@helper.form(routes.IssueApp.saveComment(issue.id, projectId), 'enctype -> "multipart/form-data"){
+	@helper.form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype -> "multipart/form-data"){
 		<div class="span12">@helper.textarea(commentForm("contents"))</div>
 		<div class="span6">@helper.inputFile(commentForm("filePath"))</div>		
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
@@ -63,17 +63,17 @@
 
 
 <!--삭제확인상자-->
-<div class="modal hide fade" id="deleteConfirm">
+<div class="modal hide" id="deleteConfirm">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>확인</h3>
+    <h3>이슈 삭제</h3>
   </div>
   <div class="modal-body">
-    <p>게시글이 삭제되며 영원히 복구할수 없습니다.</p>
+    <p>게시된 이슈가 삭제되며 영원히 복구할수 없습니다.</p>
     <p>그래도 삭제하시겠습니까?</p>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="@routes.IssueApp.delete(issue.id, projectId)">예</a>
+    <a class="btn btn-danger" href="@routes.IssueApp.delete(project.name, issue.id)">예</a>
     <a href="#" class="btn" data-dismiss="modal">아니오</a>
   </div>
 </div>

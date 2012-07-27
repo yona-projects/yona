@@ -15,6 +15,7 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
+import models.enumeration.IssueStateType;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -28,124 +29,109 @@ import views.html.issue.notExistingPage;
 
 public class IssueApp extends Controller {
 
-    public static final Project project = Project.findById(1L);
-
     /**
-     * Display the paginated list of issues.
+     * 페이지 처리된 이슈들의 리스트를 보여준다.
      * 
+     * @param projectName
+     *            프로젝트 이름
      * @param pageNum
-     *            Current page number (starts from 0)
+     *            보여줄 페이지 번호
      * @param sortBy
-     *            Column to be sorted
+     *            이슈 정렬 기준(Column)
      * @param order
-     *            Sort order (either asc or desc)
+     *            이슈 정렬 방향(오름차순, 내림차순)
      * @param filter
-     *            Filter applied on issue names
+     *            이슈 제목에 적용될 검색 필터
+     * @param status
+     *            이슈 해결 상태
+     * @param commentedCheck
+     *            이슈 댓글 달림 유무
+     * @param fileAttachedheck
+     *            이슈 파일 첨부 유무
+     * @return
      */
-    public static Result list(Long projectId, int pageNum, String sortBy,
+    public static Result list(String projectName, int pageNum, String sortBy,
             String order, String filter, String status, boolean commentedCheck,
             boolean fileAttachedCheck) {
-        Page<Issue> issues = Issue.findIssues(projectId, pageNum,
-                IssueState.getValue(status), sortBy, Direction.getValue(order),
-                filter, commentedCheck, fileAttachedCheck);
-
-        return ok(issueList.render("이슈 목록 조회", issues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck,
-                project));
-    }
-
-    public static Result search(Long projectId, String filter, int pageNum,
-            String sortBy, String order, String status, boolean commentedCheck,
-            boolean fileAttachedCheck) {
-        Page<Issue> filteredIssues = Issue.findFilteredIssues(projectId,
-                filter, IssueState.getValue(status), commentedCheck,
+        Project project = Project.findByName(projectName);
+        Page<Issue> issues = Issue.findIssues(projectName, pageNum,
+                IssueStateType.getValue(status), sortBy,
+                Direction.getValue(order), filter, commentedCheck,
                 fileAttachedCheck);
 
-        return ok(issueList.render("검색된 이슈", filteredIssues, projectId, sortBy,
-                order, filter, status, commentedCheck, fileAttachedCheck,
-                Project.findById(projectId)));
-
+        return ok(issueList.render("이슈 목록", issues, sortBy, order, filter,
+                status, commentedCheck, fileAttachedCheck, project));
     }
 
-    public static Result issue(Long issueId, Long projectId) {
+    public static Result issue(String projectName, Long issueId) {
+        Project project = Project.findByName(projectName);
         Issue issues = Issue.findById(issueId);
         List<IssueComment> comments = IssueComment
                 .findCommentsByIssueId(issueId);
         if (issues == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물", projectId, project));
+            return ok(notExistingPage.render("존재하지 않는 게시물", project));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
-            return ok(issue.render("이슈 상세조회", issues, projectId, comments,
-                    commentForm, project));
+            return ok(issue.render("이슈 상세조회", issues, comments, commentForm,
+                    project));
         }
     }
 
-    public static Result newIssue(Long projectId) {
-        return ok(newIssue.render("새 이슈", new Form<Issue>(Issue.class),
-                Project.findById(projectId)));
+    public static Result newIssue(String projectName) {
+        Project project = Project.findByName(projectName);
+        return ok(newIssue
+                .render("새 이슈", new Form<Issue>(Issue.class), project));
     }
 
-    public static Result saveIssue(Long projectId) {
+    public static Result saveIssue(String projectName) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
-
+        Project project = Project.findByName(projectName);
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render(issueForm.errors().toString(), issueForm,
-                    Project.findById(projectId)));
+            return badRequest(newIssue.render("Errors!", issueForm, project));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.reporter = UserApp.currentUser();
-            newIssue.project = Project.findById(projectId);
-            // newIssue.commentCount = 0;
-            newIssue.status = Issue.STATUS_ENROLLED;
-            newIssue.setStatusType(newIssue.status);
+            // newIssue.project = Project.findByName(projectName);
+            newIssue.state = IssueState.ENROLLED;
+            newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
-        // TODO statusType 뭔가 이상함
-        return redirect(routes.IssueApp.list(projectId,
-                Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", "", false, false));
+        return redirect(routes.IssueApp.list(project.name,
+                Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
+                Direction.DESC.direction(), "", IssueStateType.ALL.stateType(), false,
+                false));
     }
 
-    public static Result delete(Long issueId, Long projectId) {
+    public static Result delete(String projectName, Long issueId) {
+        Project project = Project.findByName(projectName);
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.list(projectId,
-                Issue.FIRST_PAGE_NUMBER, Issue.SORTBY_ID,
-                Issue.ORDERBY_DESCENDING, "", "", false, false));
+        return redirect(routes.IssueApp.list(project.name,
+                Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
+                Direction.DESC.name(), "", "", false, false));
     }
 
-    public static Result saveComment(Long issueId, Long projectId) {
+    public static Result saveComment(String projectName, Long issueId) {
         Form<IssueComment> commentForm = new Form<IssueComment>(
                 IssueComment.class).bindFromRequest();
 
+        Project project = Project.findByName(projectName);
         if (commentForm.hasErrors()) {
             return TODO;
 
         } else {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
-            comment.author = User.findByName("hobi");
-
-            MultipartFormData body = request().body().asMultipartFormData();
-
-            FilePart filePart = body.getFile("filePath");
-
-            if (filePart != null) {
-                File saveFile = new File("public/uploadFiles/"
-                        + filePart.getFilename());
-                filePart.getFile().renameTo(saveFile);
-
-                comment.filePath = filePart.getFilename();
-            }
-
+            comment.author = UserApp.currentUser();
+            comment.filePath = saveFile(request());
             IssueComment.create(comment);
 
-            return redirect(routes.IssueApp.issue(issueId, projectId));
+            return redirect(routes.IssueApp.issue(project.name, issueId));
         }
     }
 
-    public static Result extractExcelFile() {
+    public static Result extractExcelFile(String projectName) {
         return TODO;
     }
 

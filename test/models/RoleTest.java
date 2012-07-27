@@ -41,16 +41,6 @@ public class RoleTest extends ModelTest {
     }
     
     @Test
-    public void getAllRoles() throws Exception {
-        // Given
-        // When
-        List<Role> roles = Role.getAllRoles();
-        // Then
-        assertThat(roles.contains(Role.findByName("siteManager"))).isEqualTo(true);
-        assertThat(roles.contains(Role.findByName("manager"))).isEqualTo(true);
-    }
-    
-    @Test
     public void getAllProjectRoles() throws Exception {
         // Given
         // When

@@ -1,7 +1,9 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import play.db.ebean.Model;
@@ -38,13 +40,12 @@ public class Role extends Model {
         return find.where().eq("name", name).findUnique();
     }
     
-    public static List<Role> getAllRoles() {
-        return find.all();
-    }
-    
+    /**
+     * 프로젝트와 관련된 롤들의 목록을 제공합니다.
+     * @return
+     */
     public static List<Role> getAllProjectRoles() {
-        List<Role> projectRoles = find.all();
-        projectRoles.remove(Role.findByName("siteManager"));
+        List<Role> projectRoles = find.where().ne("name", "siteManager").findList();
         return projectRoles;
     }
     

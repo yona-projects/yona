@@ -31,6 +31,7 @@ public class ProjectApp extends Controller {
     public static final String NEW_PROJECT = "새 프로젝트 생성";
     public static final String SETTING = "프로젝트 설정";
     public static final String MEMBER_LIST = "맴버";
+    public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
 
     public static Result project(Long id) {
         return ok(projectHome.render(PROJECT_HOME, Project.findById(id)));
@@ -41,19 +42,23 @@ public class ProjectApp extends Controller {
     }
 
     public static Result setting(Long id) {
-        Form<Project> projectForm = form(Project.class).fill(Project.findById(id));
-        return ok(setting.render(SETTING, projectForm, id, Project.findById(id)));
+        Form<Project> projectForm = form(Project.class).fill(
+                Project.findById(id));
+        return ok(setting
+                .render(SETTING, projectForm, id, Project.findById(id)));
     }
 
     public static Result saveProject() throws IOException {
-        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
+        Form<Project> filledNewProjectForm = form(Project.class)
+                .bindFromRequest();
 
         if (!"true".equals(filledNewProjectForm.field("accept").value())) {
             filledNewProjectForm.reject("accept", "반드시 이용 약관에 동의하여야 합니다.");
         }
 
         if (filledNewProjectForm.hasErrors()) {
-            return badRequest(newProject.render(NEW_PROJECT, filledNewProjectForm));
+            return badRequest(newProject.render(NEW_PROJECT,
+                    filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             Long newProjectId = Project.create(project);
@@ -63,9 +68,10 @@ public class ProjectApp extends Controller {
             // create Repository
             if (project.vcs.equals("GIT")) {
                 Repository repository = new RepositoryBuilder().setGitDir(
-                        new File(GitApp.REPO_PREFIX + project.name + ".git")).build();
+                        new File(GitApp.REPO_PREFIX + project.name + ".git"))
+                        .build();
                 boolean bare = true;
-                repository.create(bare); // create bare repository 
+                repository.create(bare); // create bare repository
             } else {
                 throw new UnsupportedOperationException("only support git!");
             }
@@ -75,24 +81,28 @@ public class ProjectApp extends Controller {
     }
 
     public static Result saveSetting(Long id) {
-
-        Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
+        Form<Project> filledUpdatedProjectForm = form(Project.class)
+                .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
 
-        if (!filledUpdatedProjectForm.field("url").value().startsWith("http://")) {
-            filledUpdatedProjectForm.reject("url", "사이트 URL은 http://로 시작하여야 합니다.");
+        if (!filledUpdatedProjectForm.field("url").value()
+                .startsWith("http://")) {
+            filledUpdatedProjectForm.reject("url",
+                    "사이트 URL은 http://로 시작하여야 합니다.");
         }
 
         if (filePart != null) {
             if (filePart.getFile().length() > 1048576) {
-                filledUpdatedProjectForm.reject("logoPath", "이미지 용량은 1MB 이하여야 합니다.");
+                filledUpdatedProjectForm.reject("logoPath",
+                        "이미지 용량은 1MB 이하여야 합니다.");
             } else {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File("public/uploadFiles/" + Long.toString(id) + string);
+                File file = new File(DEFAULT_LOGO_PATH + Long.toString(id)
+                        + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
@@ -102,9 +112,11 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render(SETTING, filledUpdatedProjectForm, id, Project.findById(id)));
+            return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
+                    id, Project.findById(id)));
         } else {
-            return redirect(routes.ProjectApp.setting(Project.update(project, id)));
+            return redirect(routes.ProjectApp.setting(Project.update(project,
+                    id)));
         }
     }
 
@@ -113,29 +125,46 @@ public class ProjectApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result memberList(Long id) {
+    public static Result memberList(Long id, boolean noError) {
         List<User> users = ProjectUser.findUsersByProject(id);
         List<Form<User>> usersList = new ArrayList<Form<User>>();
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
-        return ok(memberList.render(MEMBER_LIST, usersList, id, Project.findById(id)));
+        return ok(memberList.render(MEMBER_LIST, usersList, id,
+                Project.findById(id), Role.getAllProjectRoles(), noError));
     }
 
     public static Result addMember(Long id) {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         ProjectUser.create(user.id, id, Role.findByName("member").id);
-        return redirect(routes.ProjectApp.memberList(id));
+        return redirect(routes.ProjectApp.memberList(id, true));
     }
-    
+
     public static Result deleteMember(Long userId, Long projectId) {
-        ProjectUser.delete(userId, projectId);
-        return redirect(routes.ProjectApp.memberList(projectId));
+        if(isManager(userId, projectId)) {
+            ProjectUser.delete(userId, projectId);
+            return redirect(routes.ProjectApp.memberList(projectId, true));
+        } else 
+            return redirect(routes.ProjectApp.memberList(projectId, false));
+        
+    }
+
+    public static Result updateMember(Long userId, Long projectId) {
+        if(isManager(userId, projectId)) {
+            ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest()
+                    .get().id);
+            return redirect(routes.ProjectApp.memberList(projectId, true));
+        } else
+            return redirect(routes.ProjectApp.memberList(projectId, false));
+        
     }
     
-    public static Result updateMember(Long userId, Long projectId) {
-        ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest().get().id);
-        return redirect(routes.ProjectApp.memberList(projectId));
+    public static boolean isManager(Long userId, Long projectId) {
+        if(ProjectUser.findByIds(userId, projectId).role.id.equals(1l))
+            return ProjectUser.isManager(projectId);
+        else
+            return true;
     }
 }

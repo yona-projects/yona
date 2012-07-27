@@ -1,4 +1,4 @@
-@(message: String, milestones: List[models.Milestone], pId: Long, sort: String, direction: String, projectInst:Project)
+@(message: String, milestones: List[models.Milestone], projectName: String, sort: String, direction: String, projectInst: Project)
 @completionRateName(completionRate: Int) = @{
     /* TODO It will be chnaged. */
     if(completionRate == 100) "완료"
@@ -21,7 +21,7 @@
             _direction = "desc"
         }
     }
-    "/project/%d/milestones/manage?sort=%s&direction=%s".format(pId, _sort, _direction)
+    routes.MilestoneApp.manageMilestones(projectName, _sort, _direction)
 }
 @project.projectMngMain(message, projectInst) {
     <div>
@@ -36,7 +36,7 @@
                     </td>
                     <td>내용</td>
                     <td>
-                        <a href="@makeSortLink("dueDate")">완료일 @sortMark("dueDateString")</a>
+                        <a href="@makeSortLink("dueDate")">완료일 @sortMark("dueDate")</a>
                     </td>
                     <td>
                         <a href="@makeSortLink("completionRate")">상태 @sortMark("completionRate")</a>
@@ -48,19 +48,19 @@
             @for(milestone <- milestones){
                 <tr>
                     <td>
-                        <a href="@routes.MilestoneApp.editMilestone(projectInst.id, milestone.id)">@milestone.title</a>
+                        <a href="@routes.MilestoneApp.editMilestone(projectName, milestone.id)">@milestone.title</a>
                     </td>
                     <td>@milestone.contents</td>
                     <td>@milestone.getDueDateString</td>
                     <td>@completionRateName(milestone.completionRate)</td>
-                    <td><a href="@routes.MilestoneApp.deleteMilestone(projectInst.id, milestone.id)">삭제</a></td>
+                    <td><a href="@routes.MilestoneApp.deleteMilestone(projectName, milestone.id)">삭제</a></td>
                 </tr>
         }
             </tbody>
         </table>
     </div>
     <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(projectInst.id)" >새 마일스톤</a>
+        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(projectName)" >새 마일스톤</a>
     </div>
     }
 }

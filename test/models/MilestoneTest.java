@@ -16,7 +16,10 @@ public class MilestoneTest extends ModelTest {
         Milestone newMilestone = new Milestone();
         newMilestone.dueDate = new Date();
         newMilestone.contents = "테스트 마일스톤";
-        newMilestone.project = Project.findById(1l);
+        newMilestone.projectId = 1l;
+        newMilestone.numClosedIssues = 0;
+        newMilestone.numOpenIssues = 0;
+        newMilestone.numTotalIssues = 0;
         newMilestone.title = "0.1";
         newMilestone.completionRate = 0;
         // When
@@ -47,7 +50,10 @@ public class MilestoneTest extends ModelTest {
         assertThat(expactDueDate.get(Calendar.DAY_OF_MONTH)).isEqualTo(
                 dueDate.get(Calendar.DAY_OF_MONTH));
 
-        assertThat(firstMilestone.project).isEqualTo(Project.findById(1l));
+        assertThat(firstMilestone.numClosedIssues).isEqualTo(10);
+        assertThat(firstMilestone.numOpenIssues).isEqualTo(0);
+        assertThat(firstMilestone.numTotalIssues).isEqualTo(10);
+        assertThat(firstMilestone.projectId).isEqualTo(1l);
         assertThat(firstMilestone.completionRate).isEqualTo(100);
     }
 
@@ -69,6 +75,10 @@ public class MilestoneTest extends ModelTest {
         Milestone updateMilestone = new Milestone();
         updateMilestone.contents = "엔포지 첫번째 버전.";
         updateMilestone.title = "1.0.0-SNAPSHOT";
+        updateMilestone.numClosedIssues = 10;
+        updateMilestone.numOpenIssues = 1;
+        updateMilestone.numTotalIssues = 11;
+
         // When
         Milestone.update(updateMilestone, 2l);
         // Then
@@ -76,6 +86,10 @@ public class MilestoneTest extends ModelTest {
         assertThat(actualMilestone.contents)
                 .isEqualTo(updateMilestone.contents);
         assertThat(actualMilestone.title).isEqualTo(updateMilestone.title);
+        assertThat(actualMilestone.numClosedIssues).isEqualTo(10);
+        assertThat(actualMilestone.numOpenIssues).isEqualTo(1);
+        assertThat(actualMilestone.numTotalIssues).isEqualTo(11);
+        assertThat(actualMilestone.completionRate).isEqualTo(90);
     }
 
     @Test
@@ -117,7 +131,7 @@ public class MilestoneTest extends ModelTest {
         // When
         List<Milestone> p2Milestones = Milestone.findClosedMilestones(2l);
         // Then
-        assertThat(p2Milestones.size()).isEqualTo(2);
+        assertThat(p2Milestones.size()).isEqualTo(3);
     }
 
     @Test
@@ -134,7 +148,7 @@ public class MilestoneTest extends ModelTest {
         List<Milestone> p2Milestones = Milestone.findOpenMilestones(2l);
 
         // Then
-        assertThat(p2Milestones.size()).isEqualTo(2);
+        assertThat(p2Milestones.size()).isEqualTo(1);
     }
 
     @Test
@@ -151,7 +165,7 @@ public class MilestoneTest extends ModelTest {
         List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l,
                 MilestoneState.CLOSED);
         // Then
-        assertThat(p2CompletedMilestones.size()).isEqualTo(2);
+        assertThat(p2CompletedMilestones.size()).isEqualTo(3);
 
         // Given
         // When
@@ -212,50 +226,8 @@ public class MilestoneTest extends ModelTest {
 
         // THEN
         assertThat(issue1.milestone).isEqualTo(m1);
-        assertThat(m1.issues.contains(issue1)).isTrue();
 
-        // THEN
         issue1 = Issue.findById(1l);
         assertThat(issue1.milestone).isEqualTo(m1);
-        m1 = Milestone.findById(1l);
-        assertThat(m1.issues.contains(issue1)).isTrue();
-    }
-
-    @Test
-    public void currentNumOfIssues() {
-        // GIVEN
-        // WHEN
-        Milestone m1 = Milestone.findById(1l);
-        Issue issue1 = Issue.findById(1l); // Issue.STATUS_OPEN
-        m1.add(issue1);
-        Milestone.NumOfIssues numOfIssues = Milestone.currentNumOfIssues(m1);
-
-        // THEN
-        checkNumOfIsses(numOfIssues, 1, 1, 0, 0);
-
-        // GIVEN
-        // WHEN
-        Issue issue2 = Issue.findById(2l); // Issue.STATUS_OPEN
-        m1.add(issue2);
-        numOfIssues = Milestone.currentNumOfIssues(m1);
-
-        // THEN
-        checkNumOfIsses(numOfIssues, 2, 2, 0, 0);
-
-        // GIVEN
-        // WHEN
-        Issue issue3 = Issue.findById(3l); // STATUS_CLOSED
-        m1.add(issue3);
-        numOfIssues = Milestone.currentNumOfIssues(m1);
-
-        // THEN
-        checkNumOfIsses(numOfIssues, 3, 2, 1, 33);
-    }
-
-    private void checkNumOfIsses(Milestone.NumOfIssues numOfIssues, int numOfTotalIssues, int numOfOpenedIssues, int numOfClosedIssues, int completionRate) {
-        assertThat(numOfIssues.getNumOfTotalIssues()).isEqualTo(numOfTotalIssues);
-        assertThat(numOfIssues.getNumOfOpenedIssues()).isEqualTo(numOfOpenedIssues);
-        assertThat(numOfIssues.getNumOfClosedIssues()).isEqualTo(numOfClosedIssues);
-        assertThat(numOfIssues.completionRate()).isEqualTo(completionRate);
     }
 }
