@@ -1,21 +1,34 @@
 @(project:Project)
-
+@isActiveMenu(call: Call) = @{
+  if(request().uri().toString().equals(call.toString())){"active"}
+}
 <ul class="nav nav-pills pull-right">
-    
-    <li class=""><a href="@routes.ProjectApp.project(project.id)">홈</a></li>
+    <li class="@isActiveMenu(routes.ProjectApp.project(project.id))">
+      <a href="@routes.ProjectApp.project(project.id)">홈</a>
+    </li>
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
-        <li class=""><a href="@routes.BoardApp.boardList(project.name,1)">게시판</a></li>
+        <li class="@isActiveMenu(routes.BoardApp.boardList(project.name,1))">
+          <a href="@routes.BoardApp.boardList(project.name,1)">게시판</a>
+        </li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
-        <li><a href="@routes.CodeApp.view(project.name)">코드</a></li>
+        <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
+          <a href="@routes.CodeApp.view(project.name)">코드</a>
+        </li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, project.id){
-        <li class=""><a href="@routes.IssueApp.list(project.name, 0)">이슈</a></li>
+        <li class="@isActiveMenu(routes.IssueApp.list(project.name,0))">
+          <a href="@routes.IssueApp.list(project.name, 0)">이슈</a>
+        </li>
     }
-    
-   <li><a href="#">위키</a></li>
+      <!-- TODO -->
+       <li class="@isActiveMenu(routes.ProjectApp.newProject())">
+         <a href="#">위키</a>
+       </li>
 
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, project.id){
-        <li><a href="@routes.ProjectApp.setting(project.id)">프로젝트 관리</a></li>
+        <li class="@isActiveMenu(routes.ProjectApp.setting(project.id))">
+          <a href="@routes.ProjectApp.setting(project.id)">프로젝트 관리</a>
+        </li>
     }
 </ul>

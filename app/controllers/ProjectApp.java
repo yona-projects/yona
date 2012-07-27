@@ -143,13 +143,28 @@ public class ProjectApp extends Controller {
     }
 
     public static Result deleteMember(Long userId, Long projectId) {
-        return redirect(routes.ProjectApp.memberList(projectId,
-                ProjectUser.delete(userId, projectId)));
+        if(isManager(userId, projectId)) {
+            ProjectUser.delete(userId, projectId);
+            return redirect(routes.ProjectApp.memberList(projectId, true));
+        } else 
+            return redirect(routes.ProjectApp.memberList(projectId, false));
+        
     }
 
     public static Result updateMember(Long userId, Long projectId) {
-        return redirect(routes.ProjectApp.memberList(projectId, 
-                ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest()
-                        .get().id)));
+        if(isManager(userId, projectId)) {
+            ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest()
+                    .get().id);
+            return redirect(routes.ProjectApp.memberList(projectId, true));
+        } else
+            return redirect(routes.ProjectApp.memberList(projectId, false));
+        
+    }
+    
+    public static boolean isManager(Long userId, Long projectId) {
+        if(ProjectUser.findByIds(userId, projectId).role.id.equals(1l))
+            return ProjectUser.isManager(projectId);
+        else
+            return true;
     }
 }
