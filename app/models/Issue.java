@@ -69,18 +69,6 @@ public class Issue extends Model {
             Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
-//    public static final int STATUS_ENROLLED = 1;
-//    public static final int STATUS_ASSINGED = 2;
-//    public static final int STATUS_SOLVED = 3;
-//    public static final int STATUS_FINISHED = 4;
-//    public static final int STATUS_OPEN = 5;
-//    public static final int STATUS_CLOSED = 6;
-//    public static final int STATUS_NONE = 0;
-//    public static final int DEFECTTYPE_WORST = 1;
-//    public static final int DEFECTTYPE_WORSE = 2;
-//    public static final int DEFECTTYPE_BAD = 3;
-//    public static final int DEFECTTYPE_SIMPLEIMPROVEMENT = 4;
-//    public static final int DEFECTTYPE_RECOMMENDATION = 5;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
     public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
     public static final int NUMBER_OF_NO_COMMENT = 0;
@@ -94,8 +82,6 @@ public class Issue extends Model {
     public String body;
     public IssueState state;
     public IssueStateType stateType;
-//    public int status;
-//    public int statusType;
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date date;
     public String issueType;
@@ -118,8 +104,6 @@ public class Issue extends Model {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public Set<IssueComment> issueComments;
     public int commentCount;
-
-    // public int commentCount = issueComments.size();
 
     public Issue() {
         this.date = JodaDateUtil.today();
@@ -150,7 +134,8 @@ public class Issue extends Model {
      */
 
     public void updateStatusType(IssueState state) {
-        if (this.state == IssueState.ASSIGNED || this.state == IssueState.ENROLLED) {
+        if (this.state == IssueState.ASSIGNED
+                || this.state == IssueState.ENROLLED) {
             this.stateType = IssueStateType.OPEN;
         } else if (this.state == IssueState.SOLVED
                 || this.state == IssueState.FINISHED) {
@@ -206,7 +191,8 @@ public class Issue extends Model {
      * @param state
      * @return
      */
-    public static Page<Issue> findIssues(String projectName, IssueStateType state) {
+    public static Page<Issue> findIssues(String projectName,
+            IssueStateType state) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
                 DEFAULT_SORTER, Direction.DESC, "", false, false);
     }
@@ -229,7 +215,6 @@ public class Issue extends Model {
                 fileAttachedCheck);
     }
 
-    // TODO 파일 첨부된 체크박스랑 동시에 기능하도록 고칠것.
     /**
      * 댓글이 달린 이슈들만 찾아준다.
      * 
@@ -281,8 +266,8 @@ public class Issue extends Model {
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
     public static Page<Issue> findIssues(String projectName, int pageNumber,
-            IssueStateType state, String sortBy, Direction order, String filter,
-            boolean commentedCheck, boolean fileAttachedCheck) {
+            IssueStateType state, String sortBy, Direction order,
+            String filter, boolean commentedCheck, boolean fileAttachedCheck) {
 
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name",
@@ -303,7 +288,8 @@ public class Issue extends Model {
             searchParams.add("stateType", IssueStateType.OPEN, Matching.EQUALS);
             break;
         case CLOSED:
-            searchParams.add("stateType", IssueStateType.CLOSED, Matching.EQUALS);
+            searchParams.add("stateType", IssueStateType.CLOSED,
+                    Matching.EQUALS);
             break;
         }
         return FinderTemplate.getPage(orderParams, searchParams, find,
