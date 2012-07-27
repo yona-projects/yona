@@ -52,6 +52,9 @@ posts:
         author:         !!models.User
                             id: 1
         commentCount:   1
+        project:        !!models.Project
+                            id: 1
+        
         
 comments:
     - !!models.Comment

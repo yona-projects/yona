@@ -16,6 +16,8 @@ import play.mvc.Result;
 import views.html.board.*;
 import org.eclipse.jgit.http.server.*;
 
+import com.jcraft.jsch.Logger;
+
 import java.io.File;
 import java.util.List;
 
@@ -24,7 +26,8 @@ public class BoardApp extends Controller {
     public static Result boardList(String projectName, int pageNum, String order, String key) {
 
         Project project = Project.findByName(projectName);
-        return ok(postList.render("게시판", Post.findOnePage(pageNum, order, key), order, key, project));
+        return ok(postList
+                .render("게시판", Post.findOnePage(project.name, pageNum, order, key), order, key, project));
     }
 
     public static Result newPost(String projectName) {
@@ -37,16 +40,18 @@ public class BoardApp extends Controller {
         Project project = Project.findByName(projectName);
         if (postForm.hasErrors()) {
             return ok(boardError.render("본문과 제목은 반드시 써야합니다.",
-                routes.BoardApp.newPost(project.name), project));
+                    routes.BoardApp.newPost(project.name), project));
         } else {
             Post post = postForm.get();
             post.author = UserApp.currentUser();
             post.commentCount = 0;
             post.filePath = saveFile(request());
+            post.project = project;
             Post.write(post);
         }
 
-        return redirect(routes.BoardApp.boardList(project.name, 1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID));
+        return redirect(routes.BoardApp.boardList(project.name, 1, Post.ORDER_DESCENDING,
+                Post.ORDERING_KEY_ID));
     }
 
     public static Result post(String projectName, Long postId) {
@@ -66,7 +71,8 @@ public class BoardApp extends Controller {
 
         Project project = Project.findByName(projectName);
         if (commentForm.hasErrors()) {
-            return ok(boardError.render("본문은 반드시 쓰셔야 합니다.", routes.BoardApp.post(project.name, postId), project));
+            return ok(boardError.render("본문은 반드시 쓰셔야 합니다.",
+                    routes.BoardApp.post(project.name, postId), project));
 
         } else {
             Comment comment = commentForm.get();
@@ -83,7 +89,8 @@ public class BoardApp extends Controller {
     public static Result delete(String projectName, Long postId) {
         Project project = Project.findByName(projectName);
         Post.delete(postId);
-        return redirect(routes.BoardApp.boardList(project.name,1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID));
+        return redirect(routes.BoardApp.boardList(project.name, 1, Post.ORDER_DESCENDING,
+                Post.ORDERING_KEY_ID));
     }
 
     public static Result editPost(String projectName, Long postId) {
@@ -91,10 +98,11 @@ public class BoardApp extends Controller {
         Form<Post> editForm = new Form<Post>(Post.class).fill(exsitPost);
         Project project = Project.findByName(projectName);
 
-        if (UserApp.currentUser() == exsitPost.author) {
+        if (UserApp.currentUser().id == exsitPost.author.id) {
             return ok(editPost.render("게시물 수정", editForm, postId, project));
         } else {
-            return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(project.name, postId), project));
+            return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(project.name, postId),
+                    project));
         }
     }
 
@@ -110,11 +118,13 @@ public class BoardApp extends Controller {
             post.author = UserApp.currentUser();
             post.id = postId;
             post.filePath = saveFile(request());
+            post.project = projcet;
 
             Post.edit(post);
         }
-        
-        return redirect(routes.BoardApp.boardList(projcet .name, 1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID));
+
+        return redirect(routes.BoardApp.boardList(projcet.name, 1, Post.ORDER_DESCENDING,
+                Post.ORDERING_KEY_ID));
     }
 
     private static String saveFile(Request request) {

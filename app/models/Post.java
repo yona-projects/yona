@@ -30,19 +30,28 @@ public class Post extends Model {
 
     @Id
     public Long id;
+    
     @Constraints.Required
     public String title;
+    
     @Constraints.Required
     public String contents;
+    
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date;
+    
     public int commentCount;
     public String filePath;
+    
     @ManyToOne
     public User author;
+    
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     public Set<Comment> comments;
+    
+    @ManyToOne
+    public Project project;
 
     public Post() {
         this.date = JodaDateUtil.today();
@@ -52,13 +61,30 @@ public class Post extends Model {
         return find.byId(id);
     }
 
-    public static Page<Post> findOnePage(int pageNum, String order, String key) {
-        return find
-                .orderBy(key + " " + order)
+    /**
+     * ! FIXME untested
+     * @param projectName
+     * @param pageNum
+     * @param order
+     * @param key
+     * @return
+     */
+    public static Page<Post> findOnePage(String projectName, int pageNum, String order, String key) {
+        return find.where()
+                .eq("project.name", projectName)
+                .orderBy(key + " " +order)
                 .findPagingList(10)
                 .getPage(pageNum - 1);
     }
-
+    
+    /**
+     * ! FIXME unused, untested
+     * @param pageNum 페이지 번호
+     * @param order   오름차순(asc), 내림차순(decs)
+     * @param key     오름차순과 내림차수를 결정하는 기준
+     * @param filter  검색어
+     * @return 
+     */
     public static Page<Post> findOnePage(int pageNum, String order, String key, String filter) {
         return find.where()
                 .ilike("title", filter)

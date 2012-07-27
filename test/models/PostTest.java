@@ -26,9 +26,9 @@ public class PostTest extends ModelTest {
     
     @Test
     public void findOnePage() throws Exception {
-        //Given
+        //Given        
         //When
-        Page<Post> page = Post.findOnePage(1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID);
+        Page<Post> page = Post.findOnePage("nForge4java",1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID);
         //Then
         assertThat(page.getList()).hasSize(1);
     }
