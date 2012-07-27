@@ -1,14 +1,11 @@
-@(message: String, members: List[Form[User]], id: Long, project:Project, noError: Boolean)
+@(message: String, members: List[Form[User]], id: Long, project:Project, roles: List[Role], noError: Boolean)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @memberRole(member: Form[User], id: Long, userRole: Role) = {
-    <option selected="selected" value="@userRole.id">@userRole.name</option>
     @for(role <- Role.getAllProjectRoles()){
-        @if(!role.equals(userRole)){
-            <option value="@role.id">@role.name</option>
-        }
+        <option value="@role.id" @(if(role.equals(userRole)) "selected" else "")>@role.name</option>
     }
 }
 

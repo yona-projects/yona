@@ -31,6 +31,7 @@ public class ProjectApp extends Controller {
     public static final String NEW_PROJECT = "새 프로젝트 생성";
     public static final String SETTING = "프로젝트 설정";
     public static final String MEMBER_LIST = "맴버";
+    public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
 
     public static Result project(Long id) {
         return ok(projectHome.render(PROJECT_HOME, Project.findById(id)));
@@ -80,7 +81,6 @@ public class ProjectApp extends Controller {
     }
 
     public static Result saveSetting(Long id) {
-
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
@@ -101,7 +101,7 @@ public class ProjectApp extends Controller {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File("public/uploadFiles/" + Long.toString(id)
+                File file = new File(DEFAULT_LOGO_PATH + Long.toString(id)
                         + string);
                 if (file.exists())
                     file.delete();
@@ -132,7 +132,7 @@ public class ProjectApp extends Controller {
             usersList.add(form(User.class).fill(user));
         }
         return ok(memberList.render(MEMBER_LIST, usersList, id,
-                Project.findById(id), noError));
+                Project.findById(id), Role.getAllProjectRoles(), noError));
     }
 
     public static Result addMember(Long id) {
