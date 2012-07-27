@@ -16,7 +16,6 @@ import utils.JodaDateUtil;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -114,10 +113,8 @@ public class Issue extends Model {
      * 
      * @return
      */
-    public String status() {
-        if (this.state == IssueState.ENROLLED) {
-            return "등록";
-        } else if (this.state == IssueState.ASSIGNED) {
+    public String state() {
+        if (this.state == IssueState.ASSIGNED) {
             return "진행중";
         } else if (this.state == IssueState.SOLVED) {
             return "해결";
