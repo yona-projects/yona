@@ -11,9 +11,13 @@ import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Milestone entity managed by Ebean
@@ -23,8 +27,8 @@ public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
-        Long.class, Milestone.class);
-    private static String DEFAULT_SORTER = "dueDate";
+            Long.class, Milestone.class);
+    public static String DEFAULT_SORTER = "dueDate";
     @Id
     public Long id;
     @Constraints.Required
@@ -34,37 +38,26 @@ public class Milestone extends Model {
     public Date dueDate;
     @Constraints.Required
     public String contents;
+    public int numClosedIssues;
+    public int numOpenIssues;
+    public int numTotalIssues;
     public int completionRate;
-    @ManyToOne
-    public Project project;
-    @OneToMany(mappedBy = "milestone")
-    public Set<Issue> issues;
+    public Long projectId;
 
     public static void create(Milestone milestone) {
         milestone.save();
     }
 
     public static void update(Milestone milestone, Long id) {
-        NumOfIssues numOfIssues = currentNumOfIssues(milestone);
-        milestone.completionRate = numOfIssues.completionRate();
-        milestone.update(id);
-    }
-
-    public static NumOfIssues currentNumOfIssues(Milestone milestone) {
-        int numOfTotalIssues = 0;
-        int numOfClosedIssues = 0;
-        int numOfOpenedIssues = 0;
-
-        for(Issue issue : milestone.issues) {
-            numOfTotalIssues++;
-            if (issue.stateType == IssueStateType.CLOSED) {
-                numOfClosedIssues++;
-            } else {
-                numOfOpenedIssues++;
-            }
+        int completionRate = 0;
+        if (milestone.numTotalIssues != 0) {
+            double closedIssueCount = new Double(milestone.numClosedIssues);
+            double numTotalIssues = new Double(milestone.numTotalIssues);
+            completionRate = new Double(
+                    (closedIssueCount / numTotalIssues) * 100).intValue();
         }
-
-        return new NumOfIssues(numOfTotalIssues, numOfOpenedIssues, numOfClosedIssues);
+        milestone.completionRate = completionRate;
+        milestone.update(id);
     }
 
     public static void delete(Long id) {
@@ -116,7 +109,7 @@ public class Milestone extends Model {
     }
 
     /**
-     * sort와 direction이 없을 때는 {@link DEFAULT_SORTER} 기준으로 오른차순으로 정렬합니다.
+     * sort와 direction이 없을 때는 DEFAULT_SORTER 기준으로 오른차순으로 정렬합니다.
      *
      * @param projectId
      * @param state
@@ -139,18 +132,16 @@ public class Milestone extends Model {
     public static List<Milestone> findMilestones(Long projectId,
                                                  MilestoneState state, String sort, Direction direction) {
         OrderParams orderParams = new OrderParams().add(sort, direction);
-
-        SearchParams searchParams = new SearchParams().add("project.id",
-            projectId, Matching.EQUALS);
+        SearchParams searchParams = new SearchParams().add("projectId", projectId, Matching.EQUALS);
         if (state == null) {
             state = MilestoneState.ALL;
         }
         switch (state) {
             case OPEN:
-                searchParams.add("completionRate", 100, Matching.LT);
+                searchParams.add("numOpenIssues", 0, Matching.GT);
                 break;
             case CLOSED:
-                searchParams.add("completionRate", 100, Matching.EQUALS);
+                searchParams.add("numOpenIssues", 0, Matching.EQUALS);
                 break;
         }
         return FinderTemplate.findBy(orderParams, searchParams, find);
@@ -176,55 +167,7 @@ public class Milestone extends Model {
     }
 
     public void add(Issue issue) {
-        if(this.issues == null) {
-            this.issues = new HashSet<Issue>();
-        }
         issue.milestone = this;
-        this.issues.add(issue);
         issue.save();
-    }
-
-    static class NumOfIssues {
-
-        private int numOfTotalIssues;
-        private int numOfClosedIssues;
-        private int numOfOpenedIssues;
-
-        NumOfIssues(int numOfTotalIssues, int numOfOpenedIssues, int numOfClosedIssues) {
-            this.numOfTotalIssues = numOfTotalIssues;
-            this.numOfOpenedIssues = numOfOpenedIssues;
-            this.numOfClosedIssues = numOfClosedIssues;
-        }
-
-        public int getNumOfTotalIssues() {
-            return numOfTotalIssues;
-        }
-
-        public int getNumOfClosedIssues() {
-            return numOfClosedIssues;
-        }
-
-        public int getNumOfOpenedIssues() {
-            return numOfOpenedIssues;
-        }
-
-        public int completionRate() {
-            if(this.numOfTotalIssues == 0 || this.numOfClosedIssues == 0) {
-                return 0;
-            }
-
-            double closedIssueCount = new Double(this.numOfClosedIssues);
-            double numTotalIssues = new Double(this.numOfTotalIssues);
-            return new Double((closedIssueCount / numTotalIssues) * 100).intValue();
-        }
-
-        @Override
-        public String toString() {
-            return "NumOfIssues{" +
-                    "numOfOpenedIssues=" + numOfOpenedIssues +
-                    ", numOfClosedIssues=" + numOfClosedIssues +
-                    ", numOfTotalIssues=" + numOfTotalIssues +
-                    '}';
-        }
     }
 }

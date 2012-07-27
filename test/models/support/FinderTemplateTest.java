@@ -23,7 +23,7 @@ public class FinderTemplateTest extends ModelTest {
         SearchParams searchParams = new SearchParams();
 
         orderParams.add("dueDate", Direction.ASC);
-        searchParams.add("project.id", 2l, Matching.EQUALS);
+        searchParams.add("projectId", 2l, Matching.EQUALS);
         searchParams.add("completionRate", 100, Matching.LT);
 
         List<Milestone> p2MilestoneList = FinderTemplate.findBy(orderParams, searchParams, find);
@@ -33,7 +33,7 @@ public class FinderTemplateTest extends ModelTest {
         searchParams.clean();
 
         orderParams.add("dueDate", Direction.DESC);
-        searchParams.add("project.id", 1l, Matching.EQUALS);
+        searchParams.add("projectId", 1l, Matching.EQUALS);
         searchParams.add("completionRate", 100, Matching.EQUALS);
 
         List<Milestone> p1MilestoneList = FinderTemplate.findBy(orderParams, searchParams, find);

@@ -1,31 +1,36 @@
-@(currPage: String,id: Long)
-@chooseMenu(targets: String*) = @{
-    var menuState =""
-    for(target <- targets)  {
-        if(target.equals(currPage)){
+@(currPage: String, projectInst: Project)
+@isActiveMenu(calls: Call*) = @{
+    var menuState = ""
+    for(call <- calls) {
+        if(call.toString().equals(request().path().toString())) {
             menuState = "active"
         }
     }
     menuState
 }
-<div class="well" style="padding: 8px 0;">
-    <ul class="nav nav-list">
-        <li class="nav-header">프로젝트 관리</li>
-        <li class="@chooseMenu("프로젝트 설정")">
-            <a href="@routes.ProjectApp.setting(id)"><i class="icon-cog"></i>설정</a>
-        </li>
-        <li class="@chooseMenu("맴버")">
-            <a href="@routes.ProjectApp.memberList(id)"><i class="icon-user"></i>맴버</a>
-        </li>
-        <li class="@chooseMenu("마일스톤 리스트","마일스톤 관리")">
-            <a href="@routes.MilestoneApp.milestones(id)"><i class="icon-gift"></i>마일스톤</a>
-        </li>
-        <li class="@chooseMenu("플러그인")">
-            <a href="#"><i class="icon-wrench"></i>플러그인</a>
-        </li>
-        <li class="divider"></li>
-        <li class="@chooseMenu("Help")">
-            <a href="#"><i class="icon-book"></i>Help</a>
-        </li>
-    </ul>
-</div> <!-- /well -->
+@defining(projectInst.id+ " " + projectInst.id) { fullName =>
+    <div>Hello @fullName</div>
+}
+@defining((projectInst.id,projectInst.name)){ case (projectId, projectName)=>
+    <div class="well" style="padding: 8px 0;">
+        <ul class="nav nav-list">
+            <li class="nav-header">프로젝트 관리</li>
+            <li class="@isActiveMenu(routes.ProjectApp.setting(projectId))">
+                <a href="@routes.ProjectApp.setting(projectId)"><i class="icon-cog"></i>설정</a>
+            </li>
+            <li class="@isActiveMenu(routes.ProjectApp.memberList(projectId))">
+                <a href="@routes.ProjectApp.memberList(projectId)"><i class="icon-user"></i>맴버</a>
+            </li>
+            <li class="@isActiveMenu(routes.MilestoneApp.milestones(projectName),routes.MilestoneApp.manageMilestones(projectName))">
+                <a href="@routes.MilestoneApp.milestones(projectName)"><i class="icon-gift"></i>마일스톤</a>
+            </li>
+            <li class="@isActiveMenu(routes.Application.index())">
+                <a href="#"><i class="icon-wrench"></i>플러그인</a>
+            </li>
+            <li class="divider"></li>
+            <li class="@isActiveMenu(routes.Application.index())">
+                <a href="#"><i class="icon-book"></i>Help</a>
+            </li>
+        </ul>
+    </div> <!-- /well -->
+}
