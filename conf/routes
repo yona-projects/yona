@@ -35,21 +35,21 @@ POST    /project/:id/addMember          controllers.ProjectApp.addMember(id:Long
 GET     /project/:id/deleteMember       controllers.ProjectApp.deleteMember(userId:Long, id:Long)
 
 #Milestones
-GET     /project/:pId/milestones            controllers.MilestoneApp.milestones(pId:Long, state ?= "open", sort ?= "dueDate", direction ?= "asc")
-GET     /project/:pId/milestones/manage     controllers.MilestoneApp.manageMilestones(pId:Long, sort ?= "dueDate", direction ?= "asc")
-GET		/project/:pId/milestones/new        controllers.MilestoneApp.newMilestone(pId:Long)
-POST	/project/:pId/milestones/new		controllers.MilestoneApp.createMilestone(pId:Long)
-POST	/project/:pId/milestones/:id/save	controllers.MilestoneApp.updateMilestone(pId:Long, id: Long)
-GET		/project/:pId/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(pId:Long, id: Long)
-GET	    /project/:pId/milestones/:id/edit   controllers.MilestoneApp.editMilestone(pId:Long, id: Long)
+GET     /:projectName/milestones            controllers.MilestoneApp.milestones(projectName:String, state ?= "open", sort ?= "dueDate", direction ?= "asc")
+GET     /:projectName/milestones/manage     controllers.MilestoneApp.manageMilestones(projectName:String, sort ?= "dueDate", direction ?= "asc")
+GET		/:projectName/milestones/new        controllers.MilestoneApp.newMilestone(projectName:String)
+POST	/:projectName/milestones/new		controllers.MilestoneApp.createMilestone(projectName:String)
+POST	/:projectName/milestones/:id/save	controllers.MilestoneApp.updateMilestone(projectName:String, id: Long)
+GET		/:projectName/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(projectName:String, id: Long)
+GET	    /:projectName/milestones/:id/edit   controllers.MilestoneApp.editMilestone(projectName:String, id: Long)
 
 #Issues
-GET     /:projectName/issueList	                controllers.IssueApp.list(projectName:String, pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-GET     /:projectName/issueList/:pageNum        controllers.IssueApp.list(projectName:String, pageNum:Int, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", status:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+GET     /:projectName/issueList	                controllers.IssueApp.list(projectName:String, pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", stateType:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
+GET     /:projectName/issueList/:pageNum        controllers.IssueApp.list(projectName:String, pageNum:Int, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", state:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
 GET		/:projectName/issues/new		        controllers.IssueApp.newIssue(projectName:String)
 POST	/:projectName/issues/new				controllers.IssueApp.saveIssue(projectName:String)
 GET     /:projectName/issues/:id                controllers.IssueApp.issue(projectName:String, id:Long)
-POST    /:projectName/issue/:id/reply          controllers.IssueApp.saveComment(projectName:String, id:Long)
+POST    /:projectName/issue/:id/reply           controllers.IssueApp.saveComment(projectName:String, id:Long)
 GET     /:projectName/issue/:id/delete          controllers.IssueApp.delete(projectName:String, id:Long)
 GET		/:projectName/issueList/excel			controllers.IssueApp.extractExcelFile(projectName:String)
 

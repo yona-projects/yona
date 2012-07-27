@@ -68,8 +68,8 @@ issues:
                             id: 1
         title:          불필요한 로그 출력 코드 제거
         body:           내용 불필요한~
-        status:         1
-        statusType:     5
+        state:          ENROLLED
+        stateType:      OPEN
         commentCount:   1
         project:        !!models.Project
                             id: 1
@@ -79,8 +79,8 @@ issues:
                             id: 2
         title:          다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
-        status:         2
-        statusType:     5
+        state:          ASSIGNED
+        stateType:      OPEN
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -88,8 +88,8 @@ issues:
                             id: 3
         title:          gittracker.php의 메모리 제한 에러
         body:           내용 gittracker.php의 메모리 제한 에러
-        status:         3
-        statusType:     6
+        state:          SOLVED
+        stateType:      CLOSED
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -97,8 +97,8 @@ issues:
                             id: 3
         title:          git/hg 코드 브라우저에 i18n이 적용되지 않음
         body:           내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
-        status:         4
-        statusType:     6
+        state:          FINISHED
+        stateType:      CLOSED
         project:        !!models.Project
                             id: 2
         
@@ -116,51 +116,65 @@ milestones:
         title:           v.0.1
         dueDate:         2012-07-12 10:59:59
         contents:        nFORGE 첫번째 버전.
-        project:         !!models.Project
-                            id: 1
+        numClosedIssues: 10
+        numOpenIssues:   0
+        numTotalIssues:  10
         completionRate:  100
+        projectId     :  1
     - !!models.Milestone
         title:           v.0.2
         dueDate:         2012-07-19 10:59:59
         contents:        nFORGE 두번째 버전 (Stable).
-        project:         !!models.Project
-                            id: 1
+        numClosedIssues: 1
+        numOpenIssues:   10
+        numTotalIssues:  11
         completionRate:  9
+        projectId     :  1
     - !!models.Milestone
         title:           v.1.0.0
         dueDate:         2011-08-10 10:59:59
         contents:        Jindo 안정화 버전
-        project:         !!models.Project
-                            id: 2
+        numClosedIssues: 100
+        numOpenIssues:   0
+        numTotalIssues:  100
         completionRate:  100
+        projectId     :  2
     - !!models.Milestone
         title:           v.2.0.0
         dueDate:         2012-04-11 10:59:59
         contents:        Jindo2
-        project:         !!models.Project
-                            id: 2
+        numClosedIssues: 88
+        numOpenIssues:   0
+        numTotalIssues:  88
         completionRate:  100
+        projectId     :  2
     - !!models.Milestone
         title:           v.3.0.0
         dueDate:         2012-12-14 10:59:59
         contents:        Jindo3
-        project:         !!models.Project
-                            id: 2
+        numClosedIssues: 99
+        numOpenIssues:   0
+        numTotalIssues:  100
         completionRate:  99
+        projectId     :  2
     - !!models.Milestone
         title:           v.3.0.1
         dueDate:         2012-12-31 10:59:59
         contents:        Jindo3 안정화버전
-        project:         !!models.Project
-                            id: 2
+        numClosedIssues: 0
+        numOpenIssues:   5
+        numTotalIssues:  5
         completionRate:  0
+        projectId     :  2
     - !!models.Milestone
         title:           v.0.3
         dueDate:         2012-09-09 10:59:59
         contents:        nFORGE 3번째 버전.
-        project:         !!models.Project
-                             id: 1
+        numClosedIssues: 1
+        numOpenIssues:   2
+        numTotalIssues:  3
         completionRate:  33
+        projectId     :  1
 
 # Permission
 permissions:

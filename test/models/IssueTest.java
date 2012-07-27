@@ -4,6 +4,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
+import models.enumeration.IssueStateType;
 
 import org.junit.Test;
 
@@ -17,9 +18,9 @@ public class IssueTest extends ModelTest {
     public void create() throws Exception {
         // Given
         Issue issue = new Issue();
-        issue.title = "불필요한 로그 출력 코드 제거";
+        issue.title = "불필요한 로그 출력 코드 제거test";
         issue.date = JodaDateUtil.today();
-        issue.status = Issue.STATUS_ENROLLED;
+        issue.state = IssueState.ASSIGNED;
         issue.reporter = getTestUser();
         // When
         // Then
@@ -32,7 +33,7 @@ public class IssueTest extends ModelTest {
         Issue issue = new Issue();
         issue.title = "불필요한 로그 출력 코드 제거";
         issue.date = JodaDateUtil.today();
-        issue.status = Issue.STATUS_ENROLLED;
+        issue.state = IssueState.FINISHED;;
         issue.reporter = getTestUser();
         Long id = Issue.create(issue);
         // When
@@ -74,7 +75,7 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그",
-                IssueState.OPEN, true, true);
+                IssueStateType.OPEN, true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 

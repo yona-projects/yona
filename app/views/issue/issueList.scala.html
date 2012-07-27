@@ -1,4 +1,4 @@
-@(title: String, currentPage: Page[Issue], currentSortBy: String, currentOrder: String, currentFilter: String, status: String, commentedCheck: Boolean, fileAttachedCheck: Boolean, project:Project)
+@(title: String, currentPage: Page[Issue], currentSortBy: String, currentOrder: String, currentFilter: String, stateType: String, commentedCheck: Boolean, fileAttachedCheck: Boolean, project:Project)
 
 @import helper._
 
@@ -7,7 +7,7 @@
 @****************************************
 * Helper generating navigation links    *
 ****************************************@
-@link(projectId:Long, newPage:Int, newSortBy:String, status:String) = @{
+@link(projectId:Long, newPage:Int, newSortBy:String, state:String) = @{
     
     var sortBy = currentSortBy
     var order = currentOrder
@@ -26,7 +26,7 @@
     }
     
     // Generate the link
-    routes.IssueApp.list(project.name, newPage, sortBy, order, currentFilter, status, commentedCheck, fileAttachedCheck)
+    routes.IssueApp.list(project.name, newPage, sortBy, order, currentFilter, state, commentedCheck, fileAttachedCheck)
     
 }
 
@@ -35,7 +35,7 @@
 ***********************************@
 @header(key:String, title:String) = {
     <th class="@key.replace(".","_") header @if(currentSortBy == key) @{if(currentOrder == "asc") "headerSortDown" else "headerSortUp"}">
-        <a href="@link(project.id, 0, key, status)">@title</a>
+        <a href="@link(project.id, 0, key, stateType)">@title</a>
     </th>
 }
 
@@ -48,9 +48,9 @@
 							<option class="blank" value="">--마일스톤--</option>
 							@Milestone.options(project.id).map { v => <option value="@v._1" >@v._2</option>}
 				</select>
-				<form class="form-search" action="@routes.IssueApp.list(project.name, 0, "date","desc", currentFilter, "all", false, false)" method="GET" id="searchForm">
+				<form class="form-search" action="@routes.IssueApp.list(project.name, 0, "date","desc", currentFilter, stateType, false, false)" method="GET" id="searchForm">
 					<input type="text" name="filter" value="@currentFilter" placeholder="이슈 검색..">
-					<input type="hidden" name="status" value="all">
+					<input type="hidden" name="stateType" value="all">
 					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
 				</form>
 				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.name)" >새 이슈</a>
@@ -59,9 +59,9 @@
 	</div>
 	<div>
 		<ul class="nav nav-tabs" id="issue_list">
-			<li class="@if(status.equals("all")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "all", false, false)">전체</a></li>
-			<li class="@if(status.equals("open")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
-			<li class="@if(status.equals("closed")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
+			<li class="@if(stateType.equals("all")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "all", false, false)">전체</a></li>
+			<li class="@if(stateType.equals("open")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "open", false, false)">미해결</a></li>
+			<li class="@if(stateType.equals("closed")){active}"><a href="@routes.IssueApp.list(project.name, 0, "date", "desc", "", "closed", false, false)">해결</a></li>
 		</ul>
 		@if(currentPage.getTotalRowCount == 0){
 			<div class="well span11">
@@ -69,10 +69,10 @@
 			</div>
 		}else{
 		<div class="pull-right">
-			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(project.name, 0, "date","desc", currentFilter, status, commentedCheck, fileAttachedCheck)" method="GET">
+			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(project.name, 0, "date","desc", currentFilter, stateType, commentedCheck, fileAttachedCheck)" method="GET">
 				
 				<input type="hidden" name="filter" value="@currentFilter">
-				<input type="hidden" name="status" value="@status">
+				<input type="hidden" name="stateType" value="@stateType">
 		        <div class="control-group">
 		            <label class="control-label" for="inlineCheckboxes"></label>
 		            
@@ -96,7 +96,7 @@
 				<thead>
 					<tr>
 						@header("id", "#")
-						@header("status", "상태")
+						@header("state", "상태")
 						@header("title", "제목")
 						@header("assignee.name", "담당자")
 						@header("date", "작성일")
@@ -107,7 +107,7 @@
 					@for(issue <- currentPage.getList()){
 						<tr>
 							<td>@issue.id</td>
-							<td>@issue.status()</td>
+							<td>@issue.state()</td>
 							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assignee == null){
@@ -129,7 +129,7 @@
 	            <ul>
 	                @if(currentPage.hasPrev) {
 	                    <li class="prev">
-	                        <a href="@link(project.id, currentPage.getPageIndex - 1, null,status)">&larr; Previous</a>
+	                        <a href="@link(project.id, currentPage.getPageIndex - 1, null,stateType)">&larr; Previous</a>
 	                    </li>
 	                } else {
 	                    <li class="prev disabled">
@@ -141,7 +141,7 @@
 	                </li>
 	                @if(currentPage.hasNext) {
 	                    <li class="next">
-	                        <a href="@link(project.id, currentPage.getPageIndex + 1, null,status)">Next &rarr;</a>
+	                        <a href="@link(project.id, currentPage.getPageIndex + 1, null,stateType)">Next &rarr;</a>
 	                    </li>
 	                } else {
 	                    <li class="next disabled">
