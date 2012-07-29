@@ -49,7 +49,7 @@ public class MilestoneApp extends Controller {
             return ok(create.render("새 마일스톤", milestoneForm, projectName, project));
         } else {
             Milestone newMilestone = milestoneForm.get();
-            newMilestone.projectId = project.id;
+            newMilestone.project = project;
             Milestone.create(newMilestone);
             return redirect(routes.MilestoneApp.manageMilestones(projectName, "dueDate", Direction.ASC.name()));
         }
@@ -97,7 +97,7 @@ public class MilestoneApp extends Controller {
             return notFound();
         }
 
-        if(project.id != Milestone.findById(id).projectId) {
+        if(project.id != Milestone.findById(id).project.id) {
             return internalServerError();
         }
         Milestone.delete(id);

@@ -123,7 +123,8 @@ milestones:
         numOpenIssues:   0
         numTotalIssues:  10
         completionRate:  100
-        projectId     :  1
+        project:         !!models.Project
+                             id: 1
     - !!models.Milestone
         title:           v.0.2
         dueDate:         2012-07-19 10:59:59
@@ -132,7 +133,8 @@ milestones:
         numOpenIssues:   10
         numTotalIssues:  11
         completionRate:  9
-        projectId     :  1
+        project:         !!models.Project
+                             id: 1
     - !!models.Milestone
         title:           v.1.0.0
         dueDate:         2011-08-10 10:59:59
@@ -141,7 +143,8 @@ milestones:
         numOpenIssues:   0
         numTotalIssues:  100
         completionRate:  100
-        projectId     :  2
+        project:         !!models.Project
+                             id: 2
     - !!models.Milestone
         title:           v.2.0.0
         dueDate:         2012-04-11 10:59:59
@@ -150,7 +153,8 @@ milestones:
         numOpenIssues:   0
         numTotalIssues:  88
         completionRate:  100
-        projectId     :  2
+        project:         !!models.Project
+                             id: 2
     - !!models.Milestone
         title:           v.3.0.0
         dueDate:         2012-12-14 10:59:59
@@ -159,7 +163,8 @@ milestones:
         numOpenIssues:   0
         numTotalIssues:  100
         completionRate:  99
-        projectId     :  2
+        project:         !!models.Project
+                             id: 2
     - !!models.Milestone
         title:           v.3.0.1
         dueDate:         2012-12-31 10:59:59
@@ -168,7 +173,8 @@ milestones:
         numOpenIssues:   5
         numTotalIssues:  5
         completionRate:  0
-        projectId     :  2
+        project:         !!models.Project
+                             id: 2
     - !!models.Milestone
         title:           v.0.3
         dueDate:         2012-09-09 10:59:59
@@ -177,7 +183,8 @@ milestones:
         numOpenIssues:   2
         numTotalIssues:  3
         completionRate:  33
-        projectId     :  1
+        project:         !!models.Project
+                             id: 1
 
 # Permission
 permissions:
