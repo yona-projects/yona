@@ -1,7 +1,6 @@
 package models;
 
 import models.enumeration.Direction;
-import models.enumeration.IssueStateType;
 import models.enumeration.Matching;
 import models.enumeration.MilestoneState;
 import models.support.FinderTemplate;
@@ -13,6 +12,7 @@ import play.db.ebean.Model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -42,7 +42,8 @@ public class Milestone extends Model {
     public int numOpenIssues;
     public int numTotalIssues;
     public int completionRate;
-    public Long projectId;
+    @ManyToOne
+    public Project project;
 
     public static void create(Milestone milestone) {
         milestone.save();
@@ -132,7 +133,7 @@ public class Milestone extends Model {
     public static List<Milestone> findMilestones(Long projectId,
                                                  MilestoneState state, String sort, Direction direction) {
         OrderParams orderParams = new OrderParams().add(sort, direction);
-        SearchParams searchParams = new SearchParams().add("projectId", projectId, Matching.EQUALS);
+        SearchParams searchParams = new SearchParams().add("project.id", projectId, Matching.EQUALS);
         if (state == null) {
             state = MilestoneState.ALL;
         }
