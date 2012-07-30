@@ -30,8 +30,8 @@ public class BoardApp extends Controller {
 
         Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
         Param postParam = postParamForm.bindFromRequest().get();
-        Logger.debug("BoardApp : boardList - postParam.pageNum = " + postParam.pageNum);
-        Logger.debug("BoardApp : boardList - postParam.ordder = " + postParam.order);
+        //Logger.debug("BoardApp : boardList - postParam.pageNum = " + postParam.pageNum);
+        //Logger.debug("BoardApp : boardList - postParam.ordder = " + postParam.order);
         Project project = Project.findByName(projectName);
         return ok(postList.render("게시판", project,
                 Post.findOnePage(project.name, postParam.pageNum, postParam.order, postParam.key),
