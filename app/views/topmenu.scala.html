@@ -4,21 +4,21 @@
 }
 <ul class="nav nav-pills pull-right">
     <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
-      <a href="@routes.ProjectApp.project(project.name)">홈</a>
+      <a href="@routes.ProjectApp.project(project.name)">@Messages("menu.home")</a>
     </li>
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
         <li class="@isActiveMenu(routes.BoardApp.boardList(project.name))">
-          <a href="@routes.BoardApp.boardList(project.name)">게시판</a>
+          <a href="@routes.BoardApp.boardList(project.name)">@Messages("menu.board")</a>
         </li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
         <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
-          <a href="@routes.CodeApp.view(project.name)">코드</a>
+          <a href="@routes.CodeApp.view(project.name)">@Messages("menu.code")</a>
         </li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, project.id){
         <li class="@isActiveMenu(routes.IssueApp.list(project.name,0))">
-          <a href="@routes.IssueApp.list(project.name, 0)">이슈</a>
+          <a href="@routes.IssueApp.list(project.name, 0)">@Messages("menu.issue")</a>
         </li>
     }
       <!-- TODO -->
@@ -28,7 +28,7 @@
 
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, project.id){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
-          <a href="@routes.ProjectApp.setting(project.name)">프로젝트 관리</a>
+          <a href="@routes.ProjectApp.setting(project.name)">@Messages("menu.admin")</a>
         </li>
     }
 </ul>

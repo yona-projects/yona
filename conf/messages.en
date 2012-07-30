@@ -12,3 +12,4 @@ label.contents = Contents
 
 button.save = Save
 button.cancel = Cancel
+button.reset = Reset

@@ -12,3 +12,4 @@ label.contents = 내용
 
 button.save = 저장
 button.cancel = 취소
+button.reset = 다시쓰기
