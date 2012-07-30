@@ -80,9 +80,8 @@ public class ProjectUser extends Model {
      * @return
      */
     public static Role findRoleByIds(Long userId, Long projectId) {
-        Long roleId = find.where().eq("user.id", userId)
-                .eq("project.id", projectId).findUnique().role.id;
-        return Role.findById(roleId);
+        return find.where().eq("user.id", userId)
+                .eq("project.id", projectId).findUnique().role;
     }
 
     public static void create(Long userId, Long projectId, Long roleId) {

@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-public class IssueCommentTest extends ModelTest {
+public class IssueCommentTest extends ModelTest<IssueComment> {
 
     @Test
     public void findCommentsByIssueId() {

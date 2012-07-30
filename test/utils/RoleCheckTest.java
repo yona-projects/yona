@@ -6,7 +6,7 @@ import models.ModelTest;
 import models.ProjectUser;
 import models.Role;
 
-public class RoleCheckTest extends ModelTest{
+public class RoleCheckTest extends ModelTest<Role>{
     @Test
     public void roleCheck() {
         // Given

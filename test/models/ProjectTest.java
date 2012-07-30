@@ -13,7 +13,7 @@ import static org.fest.assertions.Assertions.assertThat;
  * @author "Hwi Ahn"
  *
  */
-public class ProjectTest extends ModelTest {
+public class ProjectTest extends ModelTest<Project> {
 
     @Test
     public void create() throws Exception {
@@ -51,6 +51,7 @@ public class ProjectTest extends ModelTest {
         // Given
         // When
         Project.delete(1l);
+        flush(1l);
         // Then
         assertThat(Project.findById(1l)).isNull();
     }

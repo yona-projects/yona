@@ -4,7 +4,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import org.junit.*;
 
-public class CommentTest extends ModelTest {
+public class CommentTest extends ModelTest<Comment> {
 
     @Test
     public void deleteByPostId() throws Exception {

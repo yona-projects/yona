@@ -131,8 +131,9 @@ public class ProjectApp extends Controller {
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
-        return ok(memberList.render(MEMBER_LIST, usersList, id,
-                Project.findById(id), Role.getAllProjectRoles(), noError));
+        return  notFound();
+//        return ok(memberList.render(MEMBER_LIST, usersList, id,
+//                Project.findById(id), Role.getAllProjectRoles(), noError));
     }
 
     public static Result addMember(Long id) {

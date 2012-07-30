@@ -127,7 +127,7 @@ public class Issue extends Model {
     /**
      * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다. !!! 코드 리팩토링 대상
      * 
-     * @param status
+     * @param state
      */
 
     public void updateStatusType(IssueState state) {
@@ -157,7 +157,7 @@ public class Issue extends Model {
      * @param id
      */
     public static void delete(Long id) {
-        find.ref(id).delete();
+        find.byId(id).delete();
         IssueComment.deleteByIssueId(id);
     }
 

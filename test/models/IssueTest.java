@@ -12,7 +12,7 @@ import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
 
-public class IssueTest extends ModelTest {
+public class IssueTest extends ModelTest<Issue> {
 
     @Test
     public void create() throws Exception {
@@ -47,6 +47,7 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Issue.delete(4l);
+        flush(4l);
         // Then
         assertThat(Issue.findById(4l)).isNull();
     }

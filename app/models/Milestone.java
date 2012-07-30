@@ -26,18 +26,23 @@ import java.util.Map;
 public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
+    public static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
             Long.class, Milestone.class);
     public static String DEFAULT_SORTER = "dueDate";
+
     @Id
     public Long id;
+
     @Constraints.Required
     public String title;
+
     @Constraints.Required
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
+
     @Constraints.Required
     public String contents;
+
     public int numClosedIssues;
     public int numOpenIssues;
     public int numTotalIssues;
@@ -61,8 +66,8 @@ public class Milestone extends Model {
         milestone.update(id);
     }
 
-    public static void delete(Long id) {
-        find.ref(id).delete();
+    public static void delete(Milestone milestone) {
+        milestone.delete();
     }
 
     public static Milestone findById(Long id) {

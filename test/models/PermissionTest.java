@@ -3,7 +3,7 @@ package models;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;import static org.fest.assertions.Assertions.assertThat;
 
-public class PermissionTest extends ModelTest {
+public class PermissionTest extends ModelTest<Permission> {
     @Test
     public void findByName() {
         // Given

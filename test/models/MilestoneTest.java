@@ -1,5 +1,6 @@
 package models;
 
+import com.avaje.ebean.Ebean;
 import models.enumeration.Direction;
 import models.enumeration.MilestoneState;
 import org.junit.Test;
@@ -8,7 +9,7 @@ import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class MilestoneTest extends ModelTest {
+public class MilestoneTest extends ModelTest<Milestone> {
 
     @Test
     public void create() throws Exception {
@@ -63,8 +64,11 @@ public class MilestoneTest extends ModelTest {
         Milestone firstMilestone = Milestone.findById(1l);
         assertThat(firstMilestone).isNotNull();
         // When
-        Milestone.delete(firstMilestone.id);
-        // Then
+        Milestone.delete(firstMilestone);
+        flush(firstMilestone);
+
+        //Then
+//        firstMilestone._ebean_intercept().getPersistenceContext().clear();
         firstMilestone = Milestone.findById(1l);
         assertThat(firstMilestone).isNull();
     }

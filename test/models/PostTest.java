@@ -11,7 +11,7 @@ import org.junit.*;
 
 import com.avaje.ebean.Page;
 
-public class PostTest extends ModelTest {
+public class PostTest extends ModelTest<Post> {
 
     @Test
     public void findById() throws Exception {
@@ -57,6 +57,7 @@ public class PostTest extends ModelTest {
         // Given
         // When
         Post.delete(1l);
+        flush(1l);
         // Then
         assertThat(Post.findById(1l)).isNull();
     }
@@ -80,7 +81,8 @@ public class PostTest extends ModelTest {
         post.id = 1l;
         // When
         Post.edit(post);
-        // Then
+        flush(1l);
+//        Then
         Post actual = Post.findById(1l);
         assertThat(actual.contents).isEqualTo("수정되었습니다.");
         assertThat(actual.commentCount).isEqualTo(1);

@@ -12,7 +12,7 @@ import java.util.List;
 import static org.fest.assertions.Assertions.assertThat;
 
 
-public class FinderTemplateTest extends ModelTest {
+public class FinderTemplateTest extends ModelTest<Milestone> {
 
     private static Model.Finder<Long, Milestone> find = new Model.Finder<Long, Milestone>(
             Long.class, Milestone.class);

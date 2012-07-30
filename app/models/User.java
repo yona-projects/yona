@@ -63,4 +63,8 @@ public class User extends Model {
         }
         return options;
     }
+
+    public User getName() {
+        return this;
+    }
 }

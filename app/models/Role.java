@@ -33,7 +33,7 @@ public class Role extends Model {
         Long.class, Role.class);
 
     public static Role findById(Long id) {
-        return find.where().eq("id", id).findUnique();
+        return find.byId(id);
     }
 
     public static Role findByName(String name) {
