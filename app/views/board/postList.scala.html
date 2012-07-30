@@ -1,10 +1,10 @@
-@(title:String, page:Page[Post], order:String, currentKey:String,  project:Project)
+@(title:String, project:Project, page:Page[Post], param:Post.Param)
 
 @header(label:String, key:String) = {
     <th>
-        <a href="@link(key)")">@label</a>
-        @if(key == currentKey){
-        @if(order == "desc"){
+        <a key="@key" href="@routes.BoardApp.boardList(project.name)">@label</a>
+        @if(key == param.key){
+        @if(param.order == "desc"){
         <i class="icon-chevron-down"></i>
         } else {
         <i class="icon-chevron-up"></i>
@@ -13,28 +13,16 @@
     </th>
 }
 
-@link(newKey:String) = @{
-    var gOrder = ""
-    if(currentKey == newKey){
-        if(order == "asc"){
-            gOrder = "desc"
-        } else {
-            gOrder = "asc"
-        }
-    } else {
-        gOrder = "desc"
-    }
-    routes.BoardApp.boardList(project.name, page.getPageIndex+ 1, gOrder, newKey)
-}
-
 @main(title, project) {
   <div class="row">
     <div class="span12">
       <div class="pull-right">
         <form id="search-form" class="form-search form-inline" method="get">
-          <input type="text" class="search-query">
-            <button type="submit" class="btn"><i class="icon-search"></i></button>
-            <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.name)" >새글</a>
+          <input type="hidden" name="key" value="@param.key">
+          <input type="hidden" name="order" value="@param.order">
+          <input type="text" name="filter" class="search-query">
+          <button type="submit" class="btn"><i class="icon-search"></i></button>
+          <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.name)" >새글</a>
         </form>
       </div>    
     </div>  
@@ -52,7 +40,7 @@
 	    }else{
 	    <table class="table table-striped">
 	    	<thead>
-	    		<tr>
+	    		<tr id="board_header">
 	    		    @header("#", "id")
 	    		    @header("제목", "title")
 	    		    @header("글쓴이", "userId")
@@ -76,18 +64,40 @@
 
   <div class="row">  
     <div class="span6 offset4">
-    @pagination(page, 5, routes.BoardApp.boardList, order, currentKey,project.name)
+        @pagination(page, 5, "pagination");
     </div>
     <div class="span2">
         <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
     </div>
   </div>
   <script>
+  
+  $("th a").click(function(){
+    var key = $(this).attr("key");
+    var $input = $("#search-form input[name=key]");
+    if(key !== $input.val())
+    {
+        $input.val(key)
+    }
+    else
+    {
+        $input = $("#search-form input[name=order]");
+        if($input.val() === "desc")
+            $input.val("asc");
+        else if($input.val() === "asc")
+            $input.val("desc");
+    }    
+    $("#search-form").submit();
+    return false;
+  });
+  
+  $("pagination").onclick(function(){
+  
+  });
+  
   $("#search-form").submit(function(){
-	  if($(this).find("input").val() === "")
-		  return false;
 	  
-  })
+  });
   </script>
   
 }

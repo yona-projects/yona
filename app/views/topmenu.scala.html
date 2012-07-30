@@ -7,8 +7,8 @@
       <a href="@routes.ProjectApp.project(project.name)">홈</a>
     </li>
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
-        <li class="@isActiveMenu(routes.BoardApp.boardList(project.name,1))">
-          <a href="@routes.BoardApp.boardList(project.name,1)">게시판</a>
+        <li class="@isActiveMenu(routes.BoardApp.boardList(project.name))">
+          <a href="@routes.BoardApp.boardList(project.name)">게시판</a>
         </li>
     }
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
