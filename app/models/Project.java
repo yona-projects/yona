@@ -49,6 +49,10 @@ public class Project extends Model {
     public Set<Issue> issues;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public Set<Post> posts;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public Set<Milestone> milestones;
 
     public static Long create(Project newProject) {
         newProject.save();

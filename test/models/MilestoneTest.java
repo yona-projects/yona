@@ -16,7 +16,7 @@ public class MilestoneTest extends ModelTest {
         Milestone newMilestone = new Milestone();
         newMilestone.dueDate = new Date();
         newMilestone.contents = "테스트 마일스톤";
-        newMilestone.projectId = 1l;
+        newMilestone.project = Project.findById(1l);
         newMilestone.numClosedIssues = 0;
         newMilestone.numOpenIssues = 0;
         newMilestone.numTotalIssues = 0;
@@ -53,7 +53,7 @@ public class MilestoneTest extends ModelTest {
         assertThat(firstMilestone.numClosedIssues).isEqualTo(10);
         assertThat(firstMilestone.numOpenIssues).isEqualTo(0);
         assertThat(firstMilestone.numTotalIssues).isEqualTo(10);
-        assertThat(firstMilestone.projectId).isEqualTo(1l);
+        assertThat(firstMilestone.project).isEqualTo(Project.findById(1l));
         assertThat(firstMilestone.completionRate).isEqualTo(100);
     }
 
