@@ -1,0 +1,14 @@
+# Messages
+
+menu.home = Home
+menu.board = Board
+menu.code = Code
+menu.issue = Issue
+menu.wiki = Wiki
+menu.admin = Administrator
+
+label.title = Title
+label.contents = Contents
+
+button.save = Save
+button.cancel = Cancel

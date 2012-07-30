@@ -1,0 +1,14 @@
+# Messages
+
+menu.home = 홈
+menu.board = 게시판
+menu.code = 코드
+menu.issue = 이슈
+menu.wiki = 위키
+menu.admin = 프로젝트 관리
+
+label.title = 제목
+label.contents = 내용
+
+button.save = 저장
+button.cancel = 취소
