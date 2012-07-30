@@ -4,9 +4,11 @@ import models.Project;
 import models.ProjectUser;
 import models.Role;
 import models.User;
+import play.Logger;
 import play.data.Form;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
+import org.tigris.subversion.javahl.ClientException;
 
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -45,7 +47,7 @@ public class ProjectApp extends Controller {
         return ok(setting.render(SETTING, projectForm, id, Project.findById(id)));
     }
 
-    public static Result saveProject() throws IOException {
+    public static Result saveProject() throws IOException, ClientException {
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
         if (!"true".equals(filledNewProjectForm.field("accept").value())) {
@@ -57,15 +59,17 @@ public class ProjectApp extends Controller {
         } else {
             Project project = filledNewProjectForm.get();
             Long newProjectId = Project.create(project);
-            RoleCheck.roleGrant(UserApp.currentUser().id, "manager",
-                    newProjectId);
+            RoleCheck.roleGrant(UserApp.currentUser().id, "manager", newProjectId);
 
             // create Repository
             if (project.vcs.equals("GIT")) {
                 Repository repository = new RepositoryBuilder().setGitDir(
                         new File(GitApp.REPO_PREFIX + project.name + ".git")).build();
                 boolean bare = true;
-                repository.create(bare); // create bare repository 
+                repository.create(bare); // create bare repository
+            } else if (project.vcs.equals("Subversion")) {
+                String svnPath = new File(SvnApp.REPO_PREFIX + project.name).getAbsolutePath();
+                new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
             } else {
                 throw new UnsupportedOperationException("only support git!");
             }

@@ -60,3 +60,12 @@ POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controlle
 
 #
 GET     /:projectName/code                                             controllers.CodeApp.view(projectName:String)
+
+#SVN
+HEAD        /svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
+GET         /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
+POST        /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
+OPTIONS     /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
+DELETE      /svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
+PUT			/svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
+POST        /!svn-fake/sevice/                                   controllers.SvnApp.service()
