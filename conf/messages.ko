@@ -13,3 +13,11 @@ label.contents = 내용
 button.save = 저장
 button.cancel = 취소
 button.reset = 다시쓰기
+
+#Milestone
+milestone.state.all = 전체
+milestone.state.open = 미완료
+milestone.state.closed = 완료
+milestone.is.empty = 등록된 마일스톤이 없습니다.
+milestone.menu.manage = 마일스톤 관리
+milestone.menu.new = 새 마일스톤

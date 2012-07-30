@@ -13,3 +13,12 @@ label.contents = Contents
 button.save = Save
 button.cancel = Cancel
 button.reset = Reset
+
+
+#Milestone
+milestone.state.all = All
+milestone.state.open = Open
+milestone.state.closed = Closed
+milestone.is.empty = There is no milestone.
+milestone.menu.manage = Manage
+milestone.menu.new = New
