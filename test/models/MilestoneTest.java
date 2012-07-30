@@ -225,9 +225,9 @@ public class MilestoneTest extends ModelTest {
         m1.add(issue1);
 
         // THEN
-        assertThat(issue1.milestone).isEqualTo(m1);
+        assertThat(issue1.milestoneId).isEqualTo(m1.id);
 
         issue1 = Issue.findById(1l);
-        assertThat(issue1.milestone).isEqualTo(m1);
+        assertThat(issue1.milestoneId).isEqualTo(m1.id);
     }
 }

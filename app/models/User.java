@@ -19,21 +19,18 @@ public class User extends Model {
     public String name;
     public String loginId;
     public String password;
+
     @OneToMany(mappedBy = "author")
     public Set<Post> posts;
+
     @OneToMany(mappedBy = "author")
     public Set<Comment> comments;
-    @OneToMany(mappedBy = "author")
-    public Set<IssueComment> issueComments;
-    @OneToMany(mappedBy = "reporter")
-    public Set<Issue> reportedIssues;
-    @OneToMany(mappedBy = "assignee")
-    public Set<Issue> assignedIssues;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
 
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
-        User.class);
+            User.class);
 
     public static User findByName(String name) {
         return find.where().eq("name", name).findUnique();
@@ -42,18 +39,22 @@ public class User extends Model {
     public static User findById(Long id) {
         return find.byId(id);
     }
-    
+
     public static User findByLoginId(String loginId) {
         return find.where().eq("loginId", loginId).findUnique();
     }
 
     public static User authenticate(User user) {
         return find.where().eq("loginId", user.loginId)
-            .eq("password", user.password).findUnique();
+                .eq("password", user.password).findUnique();
     }
 
     public static String findNameById(long id) {
         return find.byId(id).name;
+    }
+
+    public static String findLoginIdById(long id) {
+        return find.byId(id).loginId;
     }
 
     public static Map<String, String> options() {

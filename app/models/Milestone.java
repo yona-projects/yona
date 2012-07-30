@@ -168,7 +168,7 @@ public class Milestone extends Model {
     }
 
     public void add(Issue issue) {
-        issue.milestone = this;
+        //issue.milestone = this;
         issue.save();
     }
 }

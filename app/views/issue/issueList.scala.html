@@ -110,10 +110,10 @@
 							<td>@issue.state()</td>
 							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
-								@if(issue.assignee == null){
+								@if(issue.assigneeId == null){
 								<em>미배정</em>						
 							} else {
-								<em>@issue.assignee.loginId</em>
+								<em>@User.findLoginIdById(issue.assigneeId)</em>
 							}
 							</td>
 							<td>@issue.date.format("dd MMM yyyy")</td>

@@ -29,8 +29,7 @@ public class IssueComment extends Model {
     @Constraints.Required
     public Date date;
     public String filePath;
-    @ManyToOne
-    public User author;
+    public Long authorId;
     @ManyToOne
     public Issue issue;
 

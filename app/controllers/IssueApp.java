@@ -11,6 +11,7 @@ import com.avaje.ebean.Page;
 
 import models.Issue;
 import models.IssueComment;
+import models.Milestone;
 import models.User;
 import models.Project;
 import models.enumeration.Direction;
@@ -54,6 +55,9 @@ public class IssueApp extends Controller {
             String order, String filter, String status, boolean commentedCheck,
             boolean fileAttachedCheck) {
         Project project = Project.findByName(projectName);
+        if (project == null) {
+            return notFound();
+        }
         Page<Issue> issues = Issue.findIssues(projectName, pageNum,
                 IssueStateType.getValue(status), sortBy,
                 Direction.getValue(order), filter, commentedCheck,
@@ -65,6 +69,9 @@ public class IssueApp extends Controller {
 
     public static Result issue(String projectName, Long issueId) {
         Project project = Project.findByName(projectName);
+        if (project == null) {
+            return notFound();
+        }
         Issue issues = Issue.findById(issueId);
         List<IssueComment> comments = IssueComment
                 .findCommentsByIssueId(issueId);
@@ -80,6 +87,9 @@ public class IssueApp extends Controller {
 
     public static Result newIssue(String projectName) {
         Project project = Project.findByName(projectName);
+        if (project == null) {
+            return notFound();
+        }
         return ok(newIssue
                 .render("새 이슈", new Form<Issue>(Issue.class), project));
     }
@@ -87,12 +97,18 @@ public class IssueApp extends Controller {
     public static Result saveIssue(String projectName) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = Project.findByName(projectName);
+
+        if (project == null) {
+            return notFound();
+        }
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render("Errors!", issueForm, project));
+            return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
         } else {
             Issue newIssue = issueForm.get();
-            newIssue.reporter = UserApp.currentUser();
-            // newIssue.project = Project.findByName(projectName);
+            newIssue.reporterId = UserApp.currentUser().id;
+            newIssue.project = project;
+            // TODO 추후에 초기값(미분류된 이슈를 담는 마일스톤)으로 연결
+            //newIssue.milestone = Milestone.findById(1l);
             newIssue.state = IssueState.ENROLLED;
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
@@ -100,12 +116,15 @@ public class IssueApp extends Controller {
         }
         return redirect(routes.IssueApp.list(project.name,
                 Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
-                Direction.DESC.direction(), "", IssueStateType.ALL.stateType(), false,
-                false));
+                Direction.DESC.direction(), "", IssueStateType.ALL.stateType(),
+                false, false));
     }
 
     public static Result delete(String projectName, Long issueId) {
         Project project = Project.findByName(projectName);
+        if (project == null) {
+            return notFound();
+        }
         Issue.delete(issueId);
         return redirect(routes.IssueApp.list(project.name,
                 Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
@@ -123,7 +142,7 @@ public class IssueApp extends Controller {
         } else {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
-            comment.author = UserApp.currentUser();
+            comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
 
