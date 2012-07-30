@@ -24,25 +24,25 @@ projects:
         overview:       nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
         share_option:   true
         vcs:            GIT
-        url:            http://localhost:9000/project/1
+        url:            http://localhost:9000/nForge4java
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
-        url:            http://localhost:9000/project/2
+        url:            http://localhost:9000/Jindo
     - !!models.Project
         name:           네이버 나눔고딕 코딩글꼴
         overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
         share_option:   false
         vcs:            GIT
-        url:            http://localhost:9000/project/3
+        url:            http://localhost:9000/네이버%20나눔고딕%20코딩글꼴
     - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
         vcs:            GIT
-        url:            http://localhost:9000/project/4        
+        url:            http://localhost:9000/CUBRID 
 
 # Board
 posts:

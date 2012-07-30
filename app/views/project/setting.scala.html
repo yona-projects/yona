@@ -1,11 +1,11 @@
-@(message: String)(projectForm: Form[Project], id: Long, projectInst:Project)
+@(message: String)(projectForm: Form[Project], projectInst:Project)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 
 @projectMngMain(message, projectInst) {
-       @form(action = routes.ProjectApp.saveSetting(projectInst.id), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
+       @form(action = routes.ProjectApp.saveSetting(projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>                
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
@@ -98,7 +98,7 @@
         </div>
         <div class="modal-footer">
             <a href="#" class="btn" data-dismiss="modal">아니오</a>
-            <a href="@routes.ProjectApp.deleteProject(projectInst.id)" class="btn btn-danger">예, 삭제하겠습니다.</a>
+            <a href="@routes.ProjectApp.deleteProject(projectInst.name)" class="btn btn-danger">예, 삭제하겠습니다.</a>
         </div>
     </div>
     

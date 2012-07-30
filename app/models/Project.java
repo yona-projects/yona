@@ -6,7 +6,6 @@ import play.db.ebean.Model;
 import javax.persistence.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -56,19 +55,18 @@ public class Project extends Model {
 
     public static Long create(Project newProject) {
         newProject.save();
-        newProject.url = defaultSiteURL + "/project/"
-                + Long.toString(newProject.id); // Setting a default URL.
+        newProject.url = defaultSiteURL + "/"
+                + newProject.name; // Setting a default URL.
         newProject.update();
         return newProject.id;
     }
 
-    public static Long update(Project updatedProject, Long id) {
-        updatedProject.update(id);
-        return id;
+    public static String update(Project updatedProject, String projectName) {
+        updatedProject.update(Project.findByName(projectName).id);
+        return updatedProject.name;
     }
 
     public static void delete(Long id) {
-
         Project.findById(id).delete();
     }
 

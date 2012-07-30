@@ -3,8 +3,8 @@
   if(request().uri().toString().equals(call.toString())){"active"}
 }
 <ul class="nav nav-pills pull-right">
-    <li class="@isActiveMenu(routes.ProjectApp.project(project.id))">
-      <a href="@routes.ProjectApp.project(project.id)">홈</a>
+    <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
+      <a href="@routes.ProjectApp.project(project.name)">홈</a>
     </li>
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
         <li class="@isActiveMenu(routes.BoardApp.boardList(project.name,1))">
@@ -27,8 +27,8 @@
        </li>
 
     @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, project.id){
-        <li class="@isActiveMenu(routes.ProjectApp.setting(project.id))">
-          <a href="@routes.ProjectApp.setting(project.id)">프로젝트 관리</a>
+        <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
+          <a href="@routes.ProjectApp.setting(project.name)">프로젝트 관리</a>
         </li>
     }
 </ul>

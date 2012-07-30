@@ -25,14 +25,14 @@ POST    /:projectName/boards/:id/edit       controllers.BoardApp.updatePost(proj
 # Projects
 GET	    /projects/new                   controllers.ProjectApp.newProject()
 POST    /projects/new                   controllers.ProjectApp.saveProject()
-GET     /project/:id                    controllers.ProjectApp.project(id:Long)
-GET     /project/:id/setting            controllers.ProjectApp.setting(id:Long)
-POST    /project/:id/setting   	        controllers.ProjectApp.saveSetting(id:Long)
-GET     /project/:id/delete    	        controllers.ProjectApp.deleteProject(id:Long)
-GET     /project/:id/memberList         controllers.ProjectApp.memberList(id:Long, noError:Boolean ?= true)
-POST    /project/:id/memberList         controllers.ProjectApp.updateMember(userId:Long, id:Long)
-POST    /project/:id/addMember          controllers.ProjectApp.addMember(id:Long)
-GET     /project/:id/deleteMember       controllers.ProjectApp.deleteMember(userId:Long, id:Long)
+GET     /:projectName                   controllers.ProjectApp.project(projectName:String)
+GET     /:projectName/setting           controllers.ProjectApp.setting(projectName:String)
+POST    /:projectName/setting   	    controllers.ProjectApp.saveSetting(projectName:String)
+GET     /:projectName/delete    	    controllers.ProjectApp.deleteProject(projectName:String)
+GET     /:projectName/memberList        controllers.ProjectApp.memberList(projectName:String, noError:Boolean ?= true)
+POST    /:projectName/memberList        controllers.ProjectApp.updateMember(userId:Long, projectName:String)
+POST    /:projectName/addMember         controllers.ProjectApp.addMember(projectName:String)
+GET     /:projectName/deleteMember      controllers.ProjectApp.deleteMember(userId:Long, projectName:String)
 
 #Milestones
 GET     /:projectName/milestones            controllers.MilestoneApp.milestones(projectName:String, state ?= "open", sort ?= "dueDate", direction ?= "asc")
