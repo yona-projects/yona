@@ -4,7 +4,7 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @memberRole(member: Form[User], userRole: Role) = {
-    @for(role <- Role.getAllProjectRoles()){
+    @for(role <- roles){
         <option value="@role.id" @(if(role.equals(userRole)) "selected" else "")>@role.name</option>
     }
 }
