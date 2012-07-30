@@ -4,6 +4,9 @@
 
 package controllers;
 
+import java.io.File;
+import java.util.List;
+
 import models.Comment;
 import models.Post;
 import models.Post.Param;
@@ -15,15 +18,15 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Http.Request;
 import play.mvc.Result;
-import views.html.board.*;
-import org.eclipse.jgit.http.server.*;
-
-import java.io.File;
-import java.util.List;
+import views.html.board.boardError;
+import views.html.board.editPost;
+import views.html.board.newPost;
+import views.html.board.notExsitPage;
+import views.html.board.postList;
 
 public class BoardApp extends Controller {
 
-    public static Result boardList(String projectName, int pageNum, String order, String key) {
+    public static Result boardList(String projectName) {
 
         Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
         Param postParam = postParamForm.bindFromRequest().get();
@@ -32,7 +35,7 @@ public class BoardApp extends Controller {
         Project project = Project.findByName(projectName);
         return ok(postList.render("게시판", project,
                 Post.findOnePage(project.name, postParam.pageNum, postParam.order, postParam.key),
-                postParam.order, postParam.key));
+                postParam));
     }
 
     public static Result newPost(String projectName) {
@@ -55,8 +58,7 @@ public class BoardApp extends Controller {
             Post.write(post);
         }
 
-        return redirect(routes.BoardApp.boardList(project.name, 1, Post.ORDER_DESCENDING,
-                Post.ORDERING_KEY_ID));
+        return redirect(routes.BoardApp.boardList(project.name));
     }
 
     public static Result post(String projectName, Long postId) {
@@ -94,8 +96,7 @@ public class BoardApp extends Controller {
     public static Result delete(String projectName, Long postId) {
         Project project = Project.findByName(projectName);
         Post.delete(postId);
-        return redirect(routes.BoardApp.boardList(project.name, 1, Post.ORDER_DESCENDING,
-                Post.ORDERING_KEY_ID));
+        return redirect(routes.BoardApp.boardList(project.name));
     }
 
     public static Result editPost(String projectName, Long postId) {
@@ -128,8 +129,7 @@ public class BoardApp extends Controller {
             Post.edit(post);
         }
 
-        return redirect(routes.BoardApp.boardList(projcet.name, 1, Post.ORDER_DESCENDING,
-                Post.ORDERING_KEY_ID));
+        return redirect(routes.BoardApp.boardList(projcet.name));
     }
 
     private static String saveFile(Request request) {
