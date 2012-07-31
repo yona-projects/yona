@@ -30,17 +30,6 @@ public class RoleTest extends ModelTest {
     }
     
     @Test
-    public void getPermission() throws Exception {
-        // Given
-        Role role = Role.findById(1l);
-        // When
-        List<Permission> permissions = role.getPermissions();
-        // Then
-        assertThat(permissions.size()).isEqualTo(5);
-        assertThat(permissions.get(2).name).isEqualTo("milestone");
-    }
-    
-    @Test
     public void getAllProjectRoles() throws Exception {
         // Given
         // When

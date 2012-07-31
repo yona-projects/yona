@@ -25,9 +25,7 @@ public class Role extends Model {
     public Long id;
     public String name;
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUser;
-    @ManyToMany
-    public List<Permission> permissions = new ArrayList<Permission>();
+    public Set<RolePermission> rolePermissions;
 
     private static Finder<Long, Role> find = new Finder<Long, Role>(
         Long.class, Role.class);
@@ -48,9 +46,4 @@ public class Role extends Model {
         List<Role> projectRoles = find.where().ne("name", "siteManager").findList();
         return projectRoles;
     }
-    
-    public List<Permission> getPermissions() {
-        return permissions;
-    }
-
 }

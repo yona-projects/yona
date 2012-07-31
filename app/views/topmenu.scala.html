@@ -6,17 +6,17 @@
     <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
       <a href="@routes.ProjectApp.project(project.name)">홈</a>
     </li>
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
+    @roleCheck(session.get("userId"), "board", project.id){
         <li class="@isActiveMenu(routes.BoardApp.boardList(project.name))">
           <a href="@routes.BoardApp.boardList(project.name)">게시판</a>
         </li>
     }
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
+    @roleCheck(session.get("userId"), "code", project.id){
         <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
           <a href="@routes.CodeApp.view(project.name)">코드</a>
         </li>
     }
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, project.id){
+    @roleCheck(session.get("userId"), "issue", project.id){
         <li class="@isActiveMenu(routes.IssueApp.list(project.name,0))">
           <a href="@routes.IssueApp.list(project.name, 0)">이슈</a>
         </li>
@@ -26,7 +26,7 @@
          <a href="#">위키</a>
        </li>
 
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, project.id){
+    @roleCheck(session.get("userId"), "setting", project.id){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
           <a href="@routes.ProjectApp.setting(project.name)">프로젝트 관리</a>
         </li>

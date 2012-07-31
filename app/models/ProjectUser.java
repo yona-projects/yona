@@ -1,14 +1,17 @@
 package models;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.FetchConfig;
 
 import play.db.ebean.Model;
 
@@ -27,27 +30,70 @@ public class ProjectUser extends Model {
     @ManyToOne
     public Project project;
     @ManyToOne
-    public Role role;
+    public RolePermission rolePermission;
 
-    public ProjectUser(Long userId, Long projectId, Long roleId) {
+    public ProjectUser(Long userId, Long projectId, Long rolePermissionId) {
         this.user = User.findById(userId);
         this.project = Project.findById(projectId);
-        this.role = Role.findById(roleId);
+        this.rolePermission = RolePermission.findById(rolePermissionId);
     }
 
     private static Finder<Long, ProjectUser> find = new Finder<Long, ProjectUser>(
             Long.class, ProjectUser.class);
 
+    public static void create(Long userId, Long projectId, Long rolePermissionId) {
+        ProjectUser projectUser = new ProjectUser(userId, projectId,
+                rolePermissionId);
+        projectUser.save();
+    }
+
     /**
-     * User의 id와 Project의 id로 ProjectUser 오브젝트를 제공합니다.
+     * 해당 프로젝트에 가입된 해당 유저를 프로젝트에서 탈퇴시킵니다.
+     * 
+     * @param userId
+     * @param projectId
+     */
+    public static void deleteProjectUser(Long userId, Long projectId) {
+        for (ProjectUser projectUser : find.where().eq("user.id", userId)
+                .eq("project.id", projectId).findList()) {
+            projectUser.delete();
+        }
+    }
+
+    /**
+     * 유저에게 기존의 롤을 삭제하고 새로운 롤을 부여합니다.
+     * 
+     * @param userId
+     * @param projectId
+     * @param roleId
+     */
+    public static void assignRole(Long userId, Long projectId, Long roleId) {
+        if (find.where().eq("user.id", userId).eq("project.id", projectId)
+                .findRowCount() != 0) {
+            for (ProjectUser projectUser : find.where().eq("user.id", userId)
+                    .eq("project.id", projectId).findList()) {
+                projectUser.delete();
+            }
+        }
+
+        List<RolePermission> rolePermissions = RolePermission
+                .findByRole(roleId);
+        for (RolePermission rolePermission : rolePermissions) {
+            ProjectUser.create(userId, projectId, rolePermission.id);
+        }
+    }
+
+    /**
+     * 해당 유저, 프로젝트, 롤-퍼미션 값을 갖는 ProjectUser 오브젝트를 반환합니다.
      * 
      * @param userId
      * @param projectId
      * @return
      */
-    public static ProjectUser findByIds(Long userId, Long projectId) {
+    public static ProjectUser findByIds(Long userId, Long projectId,
+            Long rolePermissionId) {
         return find.where().eq("user.id", userId).eq("project.id", projectId)
-                .findUnique();
+                .eq("rolePermission.id", rolePermissionId).findUnique();
     }
 
     /**
@@ -80,24 +126,29 @@ public class ProjectUser extends Model {
      * @return
      */
     public static Role findRoleByIds(Long userId, Long projectId) {
-        Long roleId = find.where().eq("user.id", userId)
-                .eq("project.id", projectId).findUnique().role.id;
-        return Role.findById(roleId);
+        return find.fetch("rolePermission").fetch("rolePermission.role")
+                .where().eq("user.id", userId).eq("project.id", projectId)
+                .findList().get(0).rolePermission.role;
     }
 
-    public static void create(Long userId, Long projectId, Long roleId) {
-        ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
-        projectUser.save();
-    }
+    /**
+     * 해당 유저가 해당 프로젝트에서 가지고 있는 퍼미션들의 리스트를 제공합니다.
+     * 
+     * @param userId
+     * @param projectId
+     * @return
+     */
+    public static List<Permission> findPermissionsByIds(Long userId,
+            Long projectId) {
+        List<ProjectUser> projectUsers = find.fetch("rolePermission")
+                .fetch("rolePermission.permission").where()
+                .eq("user.id", userId).eq("project.id", projectId).findList();
 
-    public static void update(Long userId, Long projectId, Long roleId) {
-        new ProjectUser(userId, projectId, roleId).update(ProjectUser
-                .findByIds(userId, projectId).id);
-    }
-
-    public static void delete(Long userId, Long projectId) {
-        ProjectUser.findByIds(userId, projectId).delete();
-
+        List<Permission> permissions = new ArrayList<Permission>();
+        for (ProjectUser projectUser : projectUsers) {
+            permissions.add(projectUser.rolePermission.permission);
+        }
+        return permissions;
     }
 
     /**
@@ -107,8 +158,9 @@ public class ProjectUser extends Model {
      * @return
      */
     public static boolean isManager(Long projectId) {
-        int findRowCount = find.where().eq("project.id", projectId)
-                .eq("role.id", 1l).findRowCount();
+        int findRowCount = Ebean.find(User.class).where()
+                .eq("projectUser.project.id", projectId)
+                .eq("projectUser.rolePermission.role.id", 1l).findSet().size();
         return (findRowCount > 1) ? true : false;
     }
 

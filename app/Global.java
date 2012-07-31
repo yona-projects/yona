@@ -1,4 +1,3 @@
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -9,8 +8,6 @@ import com.avaje.ebean.Ebean;
 import play.Application;
 import play.GlobalSettings;
 import play.libs.Yaml;
-import play.mvc.Action;
-import play.mvc.Http.Request;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
@@ -34,10 +31,7 @@ public class Global extends GlobalSettings {
                 Ebean.save(all.get("comments"));
                 Ebean.save(all.get("permissions"));
                 Ebean.save(all.get("roles"));
-                for(Object role: all.get("roles")) {
-                    // Insert the role/permission relation
-                    Ebean.saveManyToManyAssociations(role, "permissions");
-                }
+                Ebean.save(all.get("rolePermissions"));
                 Ebean.save(all.get("projectUsers"));
             }
         }
