@@ -20,14 +20,18 @@ public class User extends Model {
     public String loginId;
     public String password;
 
-    @OneToMany(mappedBy = "author")
-    public Set<Post> posts;
+//    @OneToMany(mappedBy = "author")
+//    public Set<Post> posts;
 
-    @OneToMany(mappedBy = "author")
-    public Set<Comment> comments;
+//    @OneToMany(mappedBy = "author")
+//    public Set<Comment> comments;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
+    
+    public String getName() {
+    	return this.name;
+    }
 
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
             User.class);
