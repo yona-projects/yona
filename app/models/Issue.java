@@ -130,7 +130,7 @@ public class Issue extends Model {
     }
 
     /**
-     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다. !!! 코드 리팩토링 대상
+     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다.
      * 
      * @param status
      */
@@ -334,4 +334,23 @@ public class Issue extends Model {
         return find.where().eq("id", issueId).findUnique().assigneeId;
     }
 
+    // public static class Param extends Post.Param {
+    // public Param() {
+    // this.orderBy = Direction.DESC.direction();
+    // this.sortBy = "date";
+    // this.filter = "";
+    // this.pageNum = 0;
+    // this.stateType = IssueStateType.OPEN.name();
+    // this.commentedCheck = false;
+    // this.fileAttachedCheck = false;
+    // }
+    //
+    // public String orderBy;
+    // public String sortBy;
+    // public String filter;
+    // public int pageNum;
+    // public String stateType;
+    // public boolean commentedCheck;
+    // public boolean fileAttachedCheck;
+    // }
 }

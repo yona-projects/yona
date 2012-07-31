@@ -14,31 +14,31 @@
     	@inputText(
     		issueForm("title"), 
     		'_showConstraints -> false, 
-    		'_label-> "제목")
+    		'_label-> Messages("label.title"))
     	@textarea(
     		issueForm("body"), 
     		'_showConstraints -> false,
-    		'_label-> "이슈 내용")
+    		'_label-> Messages("label.contents"))
     	</fieldset>
-    	<i class = "icon-file"></i>첨부파일 <a id="fileUpload" data-toggle="modal" href="#askFilePath" class="btn">파일 선택</a>
+    	<i class = "icon-file"></i>@Messages("post.new.fileAttach") <a id="fileUpload" data-toggle="modal" href="#askFilePath" class="btn">@Messages("button.selectFile")</a>
 		<div class="modal hide" id="askFilePath">
 		    	<div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal">×</button>
-			            <h3>첨부파일 선택</h3>
+			        <button type="button" class="close" data-dismiss="modal">@Messages("button.popup.exit")</button>
+			            <h3>@Messages("post.popup.fileAttach.title")</h3>
 			    </div>
 			    <div class="modal-body">
-			        <p> 첨부할 파일을 선택해주세요.</p>
+			        <p> @Messages("post.popup.fileAttach.contents")</p>
 			        @inputFile(issueForm("filePath"))
 			    </div>
 			    <div class="modal-footer">
-			        <a href="#" class="btn" data-dismiss="modal">취소</a>
-			        <a href="#" class="btn btn-primary" data-dismiss="modal">확인</a>
+			        <a href="#" class="btn" data-dismiss="modal">@Messages("button.cancel")</a>
+			        <a href="#" class="btn btn-primary" data-dismiss="modal">@Messages("button.confirm")</a>
 			    </div>
 			 </div>
 		<fieldset>
 		</br></br>
 			<div class="well">
-	    		<h4> 세부정보</h4>
+	    		<h4>@Messages("issue.new.detailInfo")</h4>
 	    		<div class="well form-inline">
 				  	@select(
 				    		issueForm("issueType"), 
@@ -48,26 +48,26 @@
 				    					"3"->"경결함", 
 				    					"4"->"단순개선", 
 				    					"5"->"권고사항"),
-				    		'_label-> "유형 : ",
+				    		'_label-> Messages("issue.new.detailInfo.issueType"),
 				    		'_default -> "-- 유형을 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("assigneeId"), 
 				    		options(ProjectUser.options(project.id)),
-				    		'_label-> "담당자 : ",
+				    		'_label-> Messages("issue.new.detailInfo.assignee"),
 				    		'_default -> "-- 담당자를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("componentName"), 
 				    		options = options(
 				    					"컴포넌트"->"Component id 1"),
-				    		'_label-> "컴포넌트 : ",
+				    		'_label-> Messages("issue.new.detailInfo.component"),
 				    		'_default -> "-- 컴포넌트를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("milestone.id"), 
 				    		options(Milestone.options(project.id)),
-				    		'_label-> "마일스톤 : ",
+				    		'_label-> Messages("issue.new.detailInfo.milestone"),
 				    		'_default -> "-- 마일스톤을 고르시오 --",
 				    		'_showConstraints -> false)
 				</div>		
@@ -75,7 +75,7 @@
 	    </fieldset>
 	    <fieldset>
     		<div class="well">
-    			<h4> 환경</h4>
+    			<h4> @Messages("issue.new.environment")</h4>
     			<div class="well form-inline">
 				    	@select(
 				    		issueForm("osType"), 
@@ -83,7 +83,7 @@
 				    			"1"->"Windows", 
 				    			"2"->"MacOS", 
 				    			"3"->"Linux"),
-				    		'_label-> "운영체제 : ",
+				    		'_label-> Messages("issue.new.environment.osType"),
 				    		'_default -> "-- 운영체제를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
@@ -94,7 +94,7 @@
 				    					"Chrome"->"Chrome",
 				    					"Opera"->"Opera", 
 				    					"Safari"->"Safari"),
-				    		'_label-> "브라우저 : ",
+				    		'_label-> Messages("issue.new.environment.browserType"),
 				    		'_default -> "-- 브라우저를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
@@ -103,7 +103,7 @@
 				    					"PostgreSQL"->"PostgreSQL", 
 				    					"CUBRID"->"CUBRID", 
 				    					"MySQL"->"MySQL"),
-				    		'_label-> "DBMS : ",
+				    		'_label-> Messages("issue.new.environment.dbmsType"),
 				    		'_default -> "-- DB를 고르시오 --",
 				    		'_showConstraints -> false)
 				</div>
@@ -111,7 +111,7 @@
     	</fieldset>
     	<fieldset>
     		<div class="well">
-    			<h4> 확인 결과</h4>
+    			<h4> @Messages("issue.new.result")</h4>
     			<div class="well form-inline">
 				    	@select(
 				    		issueForm("importance"), 
@@ -121,7 +121,7 @@
 						    			"3"->"보통", 
 						    			"4"->"낮음", 
 						    			"5"->"매우낮음"),
-				    		'_label-> "중요도 : ",
+				    		'_label-> Messages("issue.new.result.importance"),
 				    		'_default -> "-- 중요도를 고르시오 --",
 				    		'_showConstraints -> false)
 				    	@select(
@@ -135,7 +135,7 @@
 				    					"6"->"재현불가", 
 				    					"7"->"중복", 
 				    					"8"->"잘동작함"),
-				    		'_label-> "진단유형 : ",
+				    		'_label-> Messages("issue.new.result.diagnosisResult"),
 				    		'_default -> "-- 진단유형을 고르시오 --",
 				    		'_showConstraints -> false)
 				</div>		
@@ -143,8 +143,8 @@
     	</fieldset>
 	<div class="row pull-right">
 			<div class="actions">
-				<input type="submit" class="btn btn-primary" value="저장"> 
-				<a href="@routes.IssueApp.list(project.name, 0,"date", "desc", "", "all", false, false)" class="btn">취소</a>
+				<input type="submit" class="btn btn-primary" value="@Messages("button.save")"> 
+				<a href="@routes.IssueApp.list(project.name, "all")" class="btn">@Messages("button.cancel")</a>
 			</div>
     </div>
  }

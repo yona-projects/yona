@@ -17,6 +17,8 @@ import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import models.enumeration.IssueStateType;
+import models.support.SearchCondition;
+import play.Logger;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -51,20 +53,22 @@ public class IssueApp extends Controller {
      *            이슈 파일 첨부 유무
      * @return
      */
-    public static Result list(String projectName, int pageNum, String sortBy,
-            String order, String filter, String status, boolean commentedCheck,
-            boolean fileAttachedCheck) {
+    public static Result list(String projectName, String stateType) {
         Project project = Project.findByName(projectName);
+        Form<SearchCondition> issueParamForm = new Form<SearchCondition>(
+                SearchCondition.class);
+        SearchCondition issueParam = issueParamForm.bindFromRequest().get();
+        Logger.debug("IssueApp : list - issueParam.sortBy = " + issueParam.sortBy);
+        Logger.debug("IssueApp : list - issueParam.orderBy = " + Direction.getValue(issueParam.orderBy).direction());
         if (project == null) {
             return notFound();
         }
-        Page<Issue> issues = Issue.findIssues(projectName, pageNum,
-                IssueStateType.getValue(status), sortBy,
-                Direction.getValue(order), filter, commentedCheck,
-                fileAttachedCheck);
+        Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
+                IssueStateType.getValue(stateType), issueParam.sortBy,
+                Direction.getValue(issueParam.orderBy), issueParam.filter,
+                issueParam.commentedCheck, issueParam.fileAttachedCheck);
 
-        return ok(issueList.render("이슈 목록", issues, sortBy, order, filter,
-                status, commentedCheck, fileAttachedCheck, project));
+        return ok(issueList.render("이슈 목록", issues, issueParam, project));
     }
 
     public static Result issue(String projectName, Long issueId) {
@@ -102,22 +106,21 @@ public class IssueApp extends Controller {
             return notFound();
         }
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
+            return badRequest(newIssue.render(issueForm.errors().toString(),
+                    issueForm, project));
         } else {
             Issue newIssue = issueForm.get();
             newIssue.reporterId = UserApp.currentUser().id;
             newIssue.project = project;
             // TODO 추후에 초기값(미분류된 이슈를 담는 마일스톤)으로 연결
-            //newIssue.milestone = Milestone.findById(1l);
+            // newIssue.milestone = Milestone.findById(1l);
             newIssue.state = IssueState.ENROLLED;
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
         return redirect(routes.IssueApp.list(project.name,
-                Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
-                Direction.DESC.direction(), "", IssueStateType.ALL.stateType(),
-                false, false));
+                IssueStateType.ALL.stateType()));
     }
 
     public static Result delete(String projectName, Long issueId) {
@@ -127,8 +130,7 @@ public class IssueApp extends Controller {
         }
         Issue.delete(issueId);
         return redirect(routes.IssueApp.list(project.name,
-                Issue.FIRST_PAGE_NUMBER, Issue.DEFAULT_SORTER,
-                Direction.DESC.name(), "", "", false, false));
+                IssueStateType.ALL.stateType()));
     }
 
     public static Result saveComment(String projectName, Long issueId) {
