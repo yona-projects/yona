@@ -9,10 +9,21 @@ menu.admin = 프로젝트 관리
 
 label.title = 제목
 label.contents = 내용
+label.state = 상태
+label.assignee == 담당자
+label.date = 작성일
 
 button.save = 저장
 button.cancel = 취소
 button.reset = 다시쓰기
+button.edit = 수정
+button.delete = 삭제
+button.selectFile = 파일 선택
+button.comment.new = 댓글 입력
+button.autoNotification = 자동알림
+button.excelDownload = Excel
+checkbox.commented = 댓글
+checkbox.fileAttached = 첨부파일
 
 #Milestone
 milestone.state.all = 전체
@@ -21,3 +32,26 @@ milestone.state.closed = 완료
 milestone.is.empty = 등록된 마일스톤이 없습니다.
 milestone.menu.manage = 마일스톤 관리
 milestone.menu.new = 새 마일스톤
+
+#Issue
+issue.state.all = 전체
+issue.state.open = 미해결
+issue.state.closed = 해결
+issue.is.empty = 등록된 이슈가 없습니다. 
+issue.menu.searchDefault = 이슈 검색
+issue.menu.milestoneSelectDefault = 마일스톤 선택
+issue.menu.new = 새 이슈
+issue.new.detailInfo = 세부정보
+issue.new.detailInfo.issueType = 유형
+issue.new.detailInfo.assignee = 담당자
+issue.new.detailInfo.component = 컴포넌트
+issue.new.detailInfo.milestone = 마일스톤
+issue.new.environment = 환경
+issue.new.result = 확인결과
+
+#Post
+post.title = 제목
+post.save = 저장
+post.edit = 수정
+post.delete = 삭제
+post.menu.search = 검색

@@ -9,11 +9,21 @@ menu.admin = Administrator
 
 label.title = Title
 label.contents = Contents
+label.state = State
+label.assignee = Assignee
+label.date = Date
 
 button.save = Save
 button.cancel = Cancel
 button.reset = Reset
-
+button.edit = Edit
+button.delete = Delete
+button.selectFile = Select File
+button.comment.new = Add Comment
+button.autoNotification = Auto Notification
+button.excelDownload = Excel
+checkbox.commented = Comment
+checkbox.fileAttached = File Attached
 
 #Milestone
 milestone.state.all = All
@@ -22,3 +32,23 @@ milestone.state.closed = Closed
 milestone.is.empty = There is no milestone.
 milestone.menu.manage = Manage
 milestone.menu.new = New
+
+#Issue
+issue.state.all = All
+issue.state.open = Open
+issue.state.closed = Closed
+issue.is.empty = There is no Issue. 
+issue.menu.searchDefault = Search Issue(s)
+issue.menu.milestoneSelectDefault = Select Milestone
+issue.menu.new = New
+issue.new.detailInfo = Detail Information
+issue.new.detailInfo.issueType =  Type
+issue.new.detailInfo.assignee = Assignee
+issue.new.detailInfo.component = Component
+issue.new.detailInfo.milestone = Milestone
+issue.new.environment = Environment
+issue.new.result = Result
+
+#Post
+post.new.title = Title
+post.menu.search = Search
