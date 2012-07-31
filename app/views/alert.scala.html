@@ -1,20 +1,20 @@
 	    @if(flash.containsKey("warning")) {
 				<div class="alert">
 			  	  <a class="close" data-dismiss="alert">×</a>
-				  <strong>Warning!</strong> @flash.get("warning")
+				    <strong>@Messages("message.warning")</strong> @Messages(flash.get("warning"))
 				</div>
 	    }
 		
 		  @if(flash.containsKey("success")) {
 			  <div class="alert alert-success">
 		  	    <a class="close" data-dismiss="alert">&times;</a>
-			    <strong>Well done!</strong> @flash.get("success")
+            <strong>@Messages("message.success")</strong> @Messages(flash.get("success"))
 			  </div>
       }
         
       @if(flash.containsKey("info")) {
 	      <div class="alert alert-info">
 	        <a class="close" data-dismiss="alert">×</a>
-	        <strong>Info!</strong> @flash.get("info")
+	        <strong>@Messages("message.info")</strong> @Messages(flash.get("info"))
 	      </div>
 	    }
