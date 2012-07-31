@@ -24,7 +24,7 @@ public class IssueCommentTest extends ModelTest {
         IssueComment issueComment = new IssueComment();
         issueComment.issue      =   Issue.findById(1l);
         issueComment.contents   =   "create() test";
-        issueComment.author     =   getTestUser();
+        issueComment.authorId     =   getTestUser().id;
         // When
         long id =   IssueComment.create(issueComment);
         // Then

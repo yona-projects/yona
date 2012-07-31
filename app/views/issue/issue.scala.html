@@ -4,9 +4,9 @@
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
-	        <a class="btn btn-primary" href="">수정</a>
-	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
-	        <a class="btn" href="@routes.IssueApp.list(project.name, 0, "", "", "", "all", false, false)">목록</a>
+	        <a class="btn btn-primary" href="">@Messages("button.edit")</a>
+	        <a data-toggle="modal" href="#deleteConfirm" class="btn">@Messages("button.delete")</a>
+	        <a class="btn" href="@routes.IssueApp.list(project.name,"open")">@Messages("button.list")</a>
 	    </div>
 	</div>
 </div>
@@ -17,7 +17,7 @@
 		<div class="span11">
 			<h1>@issue.title</h1>
 			<div>
-				<span>@issue.date</span>
+				<span>@User.findLoginIdById(issue.reporterId)이 @issue.date에 작성함</span>
 			</div>
 		</div>
 	</div>
@@ -31,7 +31,7 @@
 				}
 			</div>
 		</div>
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
+        <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
 	</div>
 </div>
 <!-- 여기서 부터 덧글 -->
@@ -41,7 +41,7 @@
 	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
 	<div class="span11">
 		<div>
-			<span>@comment.date</span>
+			<span>@User.findLoginIdById(comment.authorId)이 @comment.date에 작성함</span>
 		</div>
 		<p>@comment.contents<p>
 		@if(comment.filePath != null){
@@ -56,7 +56,7 @@
 	@helper.form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype -> "multipart/form-data"){
 		<div class="span12">@helper.textarea(commentForm("contents"))</div>
 		<div class="span6">@helper.inputFile(commentForm("filePath"))</div>		
-		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
+		<div class="span6"><input class="btn pull-right" type="submit" value=@Messages("button.comment.new")/></div>
 	}
 	</div>
 </div>
@@ -66,15 +66,14 @@
 <div class="modal hide" id="deleteConfirm">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>이슈 삭제</h3>
+    <h3>@Messages("issue.delete.window")</h3>
   </div>
   <div class="modal-body">
-    <p>게시된 이슈가 삭제되며 영원히 복구할수 없습니다.</p>
-    <p>그래도 삭제하시겠습니까?</p>
+    <p>@Messages("post.delete.confirm")</p>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-danger" href="@routes.IssueApp.delete(project.name, issue.id)">예</a>
-    <a href="#" class="btn" data-dismiss="modal">아니오</a>
+    <a class="btn btn-danger" href="@routes.IssueApp.delete(project.name, issue.id)">@Messages("button.yes")</a>
+    <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
   </div>
 </div>
 }

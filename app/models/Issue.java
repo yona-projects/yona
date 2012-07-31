@@ -1,6 +1,14 @@
 package models;
 
-import com.avaje.ebean.Page;
+import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import models.enumeration.IssueStateType;
@@ -13,10 +21,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import javax.persistence.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.avaje.ebean.Page;
 
 /**
  * @author Taehyun Park
@@ -79,6 +84,7 @@ public class Issue extends Model {
     public String title;
     @Constraints.Required
     public String body;
+
     public IssueState state;
     public IssueStateType stateType;
     @Formats.DateTime(pattern = "yyyy-MM-dd")
@@ -92,14 +98,13 @@ public class Issue extends Model {
     public String dbmsType;
     public String importance;
     public String diagnosisResult;
+    public Long milestoneId;
+    public Long assigneeId;
+    public Long reporterId;
+
     @ManyToOne
     public Project project;
-    @ManyToOne
-    public User reporter;
-    @ManyToOne
-    public User assignee;
-    @ManyToOne
-    public Milestone milestone;
+
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public Set<IssueComment> issueComments;
     public int commentCount;
@@ -125,7 +130,7 @@ public class Issue extends Model {
     }
 
     /**
-     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다. !!! 코드 리팩토링 대상
+     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다.
      * 
      * @param status
      */
@@ -172,7 +177,7 @@ public class Issue extends Model {
     }
 
     /**
-     * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 찾아준다..
+     * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 찾아준다.
      * 
      * @param projectName
      * @return
@@ -320,10 +325,32 @@ public class Issue extends Model {
      * @param issueComment
      */
     public void addIssueComment(IssueComment issueComment) {
-        if (this.issueComments == null) {
-            this.issueComments = new HashSet<IssueComment>();
-        }
-        this.issueComments.add(issueComment);
         issueComment.issue = this;
+        issueComment.save();
+
     }
+
+    public static Long findAssigneeIdByIssueId(Long projectId, Long issueId) {
+        return find.where().eq("id", issueId).findUnique().assigneeId;
+    }
+
+    // public static class Param extends Post.Param {
+    // public Param() {
+    // this.orderBy = Direction.DESC.direction();
+    // this.sortBy = "date";
+    // this.filter = "";
+    // this.pageNum = 0;
+    // this.stateType = IssueStateType.OPEN.name();
+    // this.commentedCheck = false;
+    // this.fileAttachedCheck = false;
+    // }
+    //
+    // public String orderBy;
+    // public String sortBy;
+    // public String filter;
+    // public int pageNum;
+    // public String stateType;
+    // public boolean commentedCheck;
+    // public boolean fileAttachedCheck;
+    // }
 }

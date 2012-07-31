@@ -1,0 +1,72 @@
+# Messages
+
+menu.home = 홈
+menu.board = 게시판
+menu.code = 코드
+menu.issue = 이슈
+menu.wiki = 위키
+menu.admin = 프로젝트 관리
+
+label.title = 제목
+label.contents = 내용
+label.state = 상태
+label.assignee == 담당자
+label.date = 작성일
+label.id = #
+
+button.save = 저장
+button.confirm = 확인
+button.cancel = 취소
+button.reset = 다시쓰기
+button.edit = 수정
+button.delete = 삭제
+button.list = 목록
+button.selectFile = 파일 선택
+button.comment.new = 댓글 입력
+button.autoNotification = 자동알림
+button.excelDownload = Excel
+button.yes = 예
+button.no = 아니요
+button.popup.exit = x
+
+checkbox.commented = 댓글
+checkbox.fileAttached = 첨부파일
+
+#Milestone
+milestone.state.all = 전체
+milestone.state.open = 미완료
+milestone.state.closed = 완료
+milestone.is.empty = 등록된 마일스톤이 없습니다.
+milestone.menu.manage = 마일스톤 관리
+milestone.menu.new = 새 마일스톤
+
+#Issue
+issue.stateType.all = 전체
+issue.stateType.open = 미해결
+issue.stateType.closed = 해결
+issue.is.empty = 등록된 이슈가 없습니다. 
+issue.menu.searchDefault = 이슈 검색
+issue.menu.milestoneSelectDefault = 마일스톤 선택
+issue.menu.new = 새 이슈
+issue.new.detailInfo = 세부정보
+issue.new.detailInfo.issueType = 유형
+issue.new.detailInfo.assignee = 담당자
+issue.new.detailInfo.component = 컴포넌트
+issue.new.detailInfo.milestone = 마일스톤
+issue.new.environment = 환경
+issue.new.environment.osType = 운영체제
+issue.new.environment.browserType = 브라우져
+issue.new.environment.dbmsType = DBMS
+issue.new.result = 확인결과
+issue.new.result.importance = 중요도
+issue.new.result.diagnosisResult = 진단 결과
+issue.no.assignee = 미배정
+issue.delete.window = 이슈 삭제
+
+#Post
+post.new.title = 제목
+post.menu.search = 검색
+post.delete.confirm = 해당 게시물이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
+post.new.fileAttach = 첨부파일
+post.popup.fileAttach.title = 첨부파일 선택
+post.popup.fileAttach.contents = 첨부할 파일을 선택해주세요.

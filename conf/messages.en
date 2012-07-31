@@ -1,0 +1,72 @@
+# Messages
+
+menu.home = Home
+menu.board = Board
+menu.code = Code
+menu.issue = Issue
+menu.wiki = Wiki
+menu.admin = Administrator
+
+label.title = Title
+label.contents = Contents
+label.state = State
+label.assignee = Assignee
+label.date = Date
+label.id = #
+
+button.save = Save
+button.confirm = Confirm
+button.cancel = Cancel
+button.reset = Reset
+button.edit = Edit
+button.delete = Delete
+button.list = list
+button.selectFile = Select File
+button.comment.new = Add Comment
+button.autoNotification = Auto Notification
+button.excelDownload = Excel
+button.yes = Yes
+button.no = No
+button.popup.exit = x
+
+checkbox.commented = Comment
+checkbox.fileAttached = File Attached
+
+#Milestone
+milestone.state.all = All
+milestone.state.open = Open
+milestone.state.closed = Closed
+milestone.is.empty = There is no milestone.
+milestone.menu.manage = Manage
+milestone.menu.new = New
+
+#Issue
+issue.stateType.all = All
+issue.stateType.open = Open
+issue.stateType.closed = Closed
+issue.is.empty = There is no Issue. 
+issue.menu.searchDefault = Search Issue(s)
+issue.menu.milestoneSelectDefault = Select Milestone
+issue.menu.new = New
+issue.new.detailInfo = Detail Information
+issue.new.detailInfo.issueType =  Type
+issue.new.detailInfo.assignee = Assignee
+issue.new.detailInfo.component = Component
+issue.new.detailInfo.milestone = Milestone
+issue.new.environment = Environment
+issue.new.environment.osType = Operating System
+issue.new.environment.browserType = Browser
+issue.new.environment.dbmsType = DBMS
+issue.new.result = Result
+issue.new.result.importance = Importance
+issue.new.result.diagnosisResult = Diagnosis Result
+issue.no.assignee = TBA
+issue.delete.window = Delete Issue
+
+#Post
+post.new.title = Title
+post.menu.search = Search
+post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
+post.new.fileAttach = Attach File
+post.popup.fileAttach.title = Select file
+post.popup.fileAttach.contents = Please, select file to attach
