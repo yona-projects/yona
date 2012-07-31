@@ -23,6 +23,9 @@ import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
 
+import static models.enumeration.IssueState.ASSIGNED;
+import static models.enumeration.IssueState.ENROLLED;
+
 /**
  * @author Taehyun Park
  * 
@@ -119,7 +122,7 @@ public class Issue extends Model {
      * @return
      */
     public String state() {
-        if (this.state == IssueState.ASSIGNED) {
+        if (this.state == ASSIGNED) {
             return "진행중";
         } else if (this.state == IssueState.SOLVED) {
             return "해결";
@@ -136,7 +139,7 @@ public class Issue extends Model {
      */
 
     public void updateStatusType(IssueState state) {
-        if (this.state == IssueState.ASSIGNED
+        if (this.state == ASSIGNED
                 || this.state == IssueState.ENROLLED) {
             this.stateType = IssueStateType.OPEN;
         } else if (this.state == IssueState.SOLVED
@@ -153,6 +156,10 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
+        if(issue.milestoneId != null) {
+            Milestone milestone = Milestone.findById(issue.milestoneId);
+            milestone.add(issue);
+        }
         return issue.id;
     }
 
@@ -162,7 +169,12 @@ public class Issue extends Model {
      * @param id
      */
     public static void delete(Long id) {
-        find.ref(id).delete();
+        Issue issue = find.byId(id);
+        if(issue.milestoneId != null) {
+            Milestone milestone = Milestone.findById(issue.milestoneId);
+            milestone.delete(issue);
+        }
+        issue.delete();
         IssueComment.deleteByIssueId(id);
     }
 
@@ -353,4 +365,8 @@ public class Issue extends Model {
     // public boolean commentedCheck;
     // public boolean fileAttachedCheck;
     // }
+
+    public boolean isOpen() {
+        return (this.state.equals(ASSIGNED) || this.state.equals(ENROLLED));
+    }
 }

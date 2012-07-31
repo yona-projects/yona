@@ -73,7 +73,7 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그",
-                IssueStateType.OPEN, true, true);
+            IssueStateType.OPEN, true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -115,6 +115,16 @@ public class IssueTest extends ModelTest {
         // assertThat(assignee.loginId).isEqualTo("hobi");
         // assertThat(assignee.name).isEqualTo("hobi");
 
+    }
+
+    @Test
+    public void isOpen() {
+        //Given
+        Issue issue = Issue.findById(1l);
+
+        //When
+        //Then
+        assertThat(issue.isOpen()).isTrue();
     }
 
 }
