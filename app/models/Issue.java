@@ -341,7 +341,7 @@ public class Issue extends Model {
      * @param issueComment
      */
     public void addIssueComment(IssueComment issueComment) {
-        //issueComment.issue = this;
+
         issueComment.save();
 
     }
