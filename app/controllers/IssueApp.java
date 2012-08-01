@@ -52,7 +52,8 @@ public class IssueApp extends Controller {
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
                 IssueStateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter,
-                issueParam.commentedCheck, issueParam.fileAttachedCheck);
+                issueParam.milestone, issueParam.commentedCheck,
+                issueParam.fileAttachedCheck);
 
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
@@ -101,6 +102,9 @@ public class IssueApp extends Controller {
             // TODO 추후에 초기값(미분류된 이슈를 담는 마일스톤)으로 연결
             // newIssue.milestone = Milestone.findById(1l);
             newIssue.state = IssueState.ENROLLED;
+            if (issueForm.get().milestoneId == null) {
+                newIssue.milestoneId = "none";
+            }
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
@@ -137,7 +141,7 @@ public class IssueApp extends Controller {
             return redirect(routes.IssueApp.issue(project.name, issueId));
         }
     }
-    
+
     public static Result extractExcelFile(String projectName) {
         return TODO;
     }

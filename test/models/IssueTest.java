@@ -20,6 +20,7 @@ public class IssueTest extends ModelTest {
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
         issue.reporterId = User.findById(1l).id;
+        issue.milestoneId = "4";
         // When
         // Then
         assertThat(Issue.create(issue)).isEqualTo(5l);
@@ -33,6 +34,7 @@ public class IssueTest extends ModelTest {
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.FINISHED;
         issue.reporterId = User.findById(1l).id;
+        issue.milestoneId = "none";
         Long id = Issue.create(issue);
         // When
         Issue issueTest = Issue.findById(id);
@@ -73,7 +75,7 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그",
-            IssueStateType.OPEN, true, true);
+                IssueStateType.OPEN, true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -100,31 +102,29 @@ public class IssueTest extends ModelTest {
     @Test
     public void findAssigneeByIssueId() {
         // Given
-        Issue issueT = new Issue();
-        issueT.id = 10l;
-        issueT.project = Project.findById(1l);
-        issueT.body = "test";
-        issueT.title = "test";
-        issueT.assigneeId = 1l;
-
         // When
         Long assignee = Issue.findAssigneeIdByIssueId(1l, 1l);
         // Then
-
         assertThat(assignee).isEqualTo(1l);
-        // assertThat(assignee.loginId).isEqualTo("hobi");
-        // assertThat(assignee.name).isEqualTo("hobi");
-
     }
 
     @Test
     public void isOpen() {
-        //Given
+        // Given
         Issue issue = Issue.findById(1l);
-
-        //When
-        //Then
+        // When
+        // Then
         assertThat(issue.isOpen()).isTrue();
+    }
+    
+    @Test
+    public void findIssuesByMilestoneId() throws Exception {
+        // Given
+        // When
+        Page<Issue> issues = Issue.findIssuesByMilestoneId("nForge4java", "1");
+        // Then
+        assertThat(issues.getTotalRowCount()).isEqualTo(1);
+        
     }
 
 }

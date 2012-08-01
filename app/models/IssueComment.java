@@ -33,11 +33,7 @@ public class IssueComment extends Model {
     
     public Long authorId;
     public String filePath;
-    
-    @ManyToOne
-    public Issue issue;
-
-    
+        
 
     public IssueComment() {
         date = JodaDateUtil.today();

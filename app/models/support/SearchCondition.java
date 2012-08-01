@@ -17,13 +17,14 @@ public class SearchCondition {
     public String stateType;
     public Boolean commentedCheck;
     public Boolean fileAttachedCheck;
-    public long milestoneId;
+    public String milestone;
 
     public SearchCondition() {
         filter = "";
         sortBy = "date";
         orderBy = Direction.DESC.direction();
         pageNum = 0;
+        milestone = "none";
         stateType = IssueStateType.OPEN.name();
         commentedCheck = false;
         fileAttachedCheck = false;
