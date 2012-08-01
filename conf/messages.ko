@@ -1,5 +1,9 @@
 # Messages
 
+title.newIssue = 새 이슈
+title.issueList = 이슈 목록
+title.issueDetail = 이슈 상세조회
+
 menu.home = 홈
 menu.board = 게시판
 menu.code = 코드

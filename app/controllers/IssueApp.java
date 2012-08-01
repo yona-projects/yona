@@ -54,7 +54,7 @@ public class IssueApp extends Controller {
                 Direction.getValue(issueParam.orderBy), issueParam.filter,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
 
-        return ok(issueList.render("이슈 목록", issues, issueParam, project));
+        return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
     public static Result issue(String projectName, Long issueId) {
@@ -70,7 +70,7 @@ public class IssueApp extends Controller {
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
-            return ok(issue.render("이슈 상세조회", issues, comments, commentForm,
+            return ok(issue.render("title.issueDetail", issues, comments, commentForm,
                     project));
         }
     }
@@ -81,7 +81,7 @@ public class IssueApp extends Controller {
             return notFound();
         }
         return ok(newIssue
-                .render("새 이슈", new Form<Issue>(Issue.class), project));
+                .render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
     public static Result saveIssue(String projectName) {

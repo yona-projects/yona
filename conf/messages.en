@@ -1,5 +1,9 @@
 # Messages
 
+title.newIssue = New Issue
+title.issueList = Issue List
+title.issueDetail = Issue
+
 menu.home = Home
 menu.board = Board
 menu.code = Code
