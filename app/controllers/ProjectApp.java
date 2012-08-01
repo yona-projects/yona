@@ -135,11 +135,13 @@ public class ProjectApp extends Controller {
     }
 
     public static Result addMember(String projectName) {
-        // TODO: 이미 가입되어있는지 여부는 view에서 Javascript로 처리
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        ProjectUser.assignRole(user.id, Project.findByName(projectName).id,
-                Role.MEMBER);
+        Project project = Project.findByName(projectName);
+        if(!ProjectUser.isMember(user.id, project.id))
+            ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
+        else
+            flash(Constants.WARNING, "project.member.alreadyMember");
         return redirect(routes.ProjectApp.memberList(projectName));
     }
 

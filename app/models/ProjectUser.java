@@ -148,6 +148,22 @@ public class ProjectUser extends Model {
                 .findRowCount();
         return (findRowCount > 1) ? true : false;
     }
+    
+    /**
+     * 해당 유저가 해당 프로젝트에 가입되어 있는지 확인합니다.
+     * 
+     * @param userId
+     * @param projectId
+     * @return
+     */
+    public static boolean isMember(Long userId, Long projectId) {
+        int findRowCount = find
+                .where()
+                    .eq("user.id", userId)
+                    .eq("project.id", projectId)
+                .findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
 
     /**
      * 해당 프로젝트에 참가하고 있는 유저의 목록을 제공합니다.
@@ -163,6 +179,15 @@ public class ProjectUser extends Model {
     }
     
     
+    /**
+     * 해당 유저가 해당 프로젝트에서 해당 리소스와 오퍼레이션을 위한 퍼미션을 가지고 있는지 확인합니다.
+     * 
+     * @param userId
+     * @param projectId
+     * @param resource
+     * @param operation
+     * @return
+     */
     public static boolean permissionCheck(Long userId, Long projectId, String resource, String operation) {
         int findRowCount = Ebean.find(Permission.class)
                                 .where()

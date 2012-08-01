@@ -10,14 +10,14 @@ import static org.fest.assertions.Assertions.assertThat;
  *
  */
 public class ProjectUserTest extends ModelTest {
-//    @Test
-//    public void findByIds() throws Exception {
-//        // Given
-//        // When
-//        Role role = ProjectUser.findByIds(1l, 1l).role;
-//        // Then
-//        assertThat(role.id).isEqualTo(1l);
-//    }
+    @Test
+    public void findByIds() throws Exception {
+        // Given
+        // When
+        Role role = ProjectUser.findByIds(1l, 1l).role;
+        // Then
+        assertThat(role.id).isEqualTo(1l);
+    }
 
     @Test
     public void create() throws Exception {
@@ -75,6 +75,15 @@ public class ProjectUserTest extends ModelTest {
         // Then
         assertThat(ProjectUser.isManager(1l)).isEqualTo(false);
         assertThat(ProjectUser.isManager(3l)).isEqualTo(true);
+    }
+    
+    @Test
+    public void isMember() throws Exception {
+        // Given
+        // When
+        // Then
+        assertThat(ProjectUser.isMember(1l, 2l)).isEqualTo(true);
+        assertThat(ProjectUser.isMember(1l, 3l)).isEqualTo(false);
     }
     
     @Test

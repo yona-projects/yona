@@ -98,6 +98,7 @@ project.name.rule = Naming Rule
 project.info = Project Information
 project.members = Project Members
 project.member.isManager = The project should have one manager at least.
+project.member.alreadyMember = This user already participated in this project.
 project.sidebar = Project Management
 project.sidebar.setting = Setting
 project.sidebar.memberList = Member

@@ -98,6 +98,7 @@ project.name.rule = 이름 규칙
 project.info = 프로젝트 정보
 project.members = 프로젝트 인원
 project.member.isManager = 프로젝트는 최소한 1명 이상의 관리자를 가져야 합니다.
+project.member.alreadyMember = 이미 프로젝트에 가입되어 있는 맴버입니다.
 project.sidebar = 프로젝트 관리
 project.sidebar.setting = 설정
 project.sidebar.memberList = 맴버
