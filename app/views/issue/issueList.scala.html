@@ -22,8 +22,8 @@
 		<div span="span6">
 			<div class="pull-right">
 				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.list(project.name, param.stateType)" method="GET" >
-					<select id="selectMilestone" class="selectMilestone">
-						<option class="blank" value="">--마일스톤--</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
+					<select id="milestone" name="milestone">
+						<option class="blank" value="none">--마일스톤--</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
 					</select>
 					<input type="hidden" name="sortBy" value="@param.sortBy">
           			<input type="hidden" name="orderBy" value="@param.orderBy">
@@ -121,7 +121,6 @@
 	<script>
 		$("#checkboxForm").bind("change check", function(){
 				if($("#commentCheckId").is(":checked") && $("#fileAttachedCheckId").is(":checked")) {
-					alert("commentedCheck and fileAttachedCheck");
 					return $("form[id='checkboxForm']").submit();
 				}
 				else if($("#commentCheckId").is(":checked")) {
@@ -131,7 +130,6 @@
 				
 					return $("form[id='checkboxForm']").submit();
 				} else {
-					alert("unchecked");
 					return false;
 				}
 			});	
@@ -161,10 +159,8 @@
 		$("#searchForm").submit(function(){
 				  
 			});
-		$("#selectMilestone").change(function(){
-				if($("option#changeMilestone").is(":selected")){
-					return $("form[id='searchForm']").submit();
-				}
+		$("select[id='milestone']").change(function(){
+				$(this).parent("form[id='searchForm']").submit();
 			});
 	</script>
 }

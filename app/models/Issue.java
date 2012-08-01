@@ -292,16 +292,16 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssues(String projectName, int pageNumber,
             IssueStateType state, String sortBy, Direction order,
-            String filter, String milestoneId, boolean commentedCheck,
+            String filter, String milestone, boolean commentedCheck,
             boolean fileAttachedCheck) {
 
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name",
                 projectName, Matching.EQUALS);
         searchParams.add("title", filter, Matching.CONTAINS);
-        if (milestoneId != "none") {
-            searchParams.add("milestoneId", Long.valueOf(milestoneId),
-                    Matching.EQUALS);
+        if (!milestone.equals("none")) {
+            searchParams.add("milestoneId", Long.valueOf(milestone),
+                    Matching.EQUALS); 
         }
         if (commentedCheck) {
             searchParams.add("numOfIssueComments", 1, Matching.GE);
