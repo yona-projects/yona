@@ -3,6 +3,10 @@
 title.newIssue = New Issue
 title.issueList = Issue List
 title.issueDetail = Issue
+title.newMilestone = New Milestone
+title.milestoneList = Milestone List
+title.editMilestone = Edit Milestone
+title.milestoneManage = Milestone Manage
 
 menu.home = Home
 menu.board = Board
