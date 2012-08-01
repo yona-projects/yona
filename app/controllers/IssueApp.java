@@ -129,7 +129,6 @@ public class IssueApp extends Controller {
 
         } else {
             IssueComment comment = commentForm.get();
-            comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
