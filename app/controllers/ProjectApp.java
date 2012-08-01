@@ -130,6 +130,7 @@ public class ProjectApp extends Controller {
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
+        flash(Constants.WARNING, "project.member.isManager");
         return ok(memberList.render(MEMBER_LIST, usersList, project,
                 Role.getAllProjectRoles(), noError));
     }

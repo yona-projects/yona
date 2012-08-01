@@ -1,5 +1,13 @@
 # Messages
 
+title.newIssue = 새 이슈
+title.issueList = 이슈 목록
+title.issueDetail = 이슈 상세조회
+title.newMilestone = 새 마일스톤
+title.milestoneList = 마일스톤 리스트
+title.editMilestone = 마일스톤 수정
+title.milestoneManage = 마일스톤 관리
+
 menu.home = 홈
 menu.board = 게시판
 menu.code = 코드
@@ -89,6 +97,7 @@ project.agreement = 이용 약관
 project.name.rule = 이름 규칙
 project.info = 프로젝트 정보
 project.members = 프로젝트 인원
+project.member.isManager = 프로젝트는 최소한 1명 이상의 관리자를 가져야 합니다.
 project.sidebar = 프로젝트 관리
 project.sidebar.setting = 설정
 project.sidebar.memberList = 맴버

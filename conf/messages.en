@@ -1,5 +1,13 @@
 # Messages
 
+title.newIssue = New Issue
+title.issueList = Issue List
+title.issueDetail = Issue
+title.newMilestone = New Milestone
+title.milestoneList = Milestone List
+title.editMilestone = Edit Milestone
+title.milestoneManage = Milestone Manage
+
 menu.home = Home
 menu.board = Board
 menu.code = Code
@@ -89,6 +97,7 @@ project.agreement = User Agreement
 project.name.rule = Naming Rule
 project.info = Project Information
 project.members = Project Members
+project.member.isManager = The project should have one manager at least.
 project.sidebar = Project Management
 project.sidebar.setting = Setting
 project.sidebar.memberList = Member
