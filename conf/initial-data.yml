@@ -55,6 +55,8 @@ comments:
         contents:       게시판이 너무 기대됩니다. 많은 글이 필요합니다. 
         author:         !!models.User
                             id: 1
+        post:           !!models.Post
+                            id: 1
 
         
 # Issues
@@ -103,6 +105,8 @@ issueComments:
     - !!models.IssueComment
         contents:       코드를 수정했습니다
         authorId:       1
+        issue:          !!models.Issue
+                            id: 1
         
         
 # Milestone

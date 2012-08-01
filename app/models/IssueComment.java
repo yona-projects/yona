@@ -4,15 +4,17 @@
 
 package models;
 
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
 @Entity
 public class IssueComment extends Model {
@@ -31,6 +33,9 @@ public class IssueComment extends Model {
 
     public Long authorId;
     public String filePath;
+    
+    @ManyToOne
+    public Issue issue;
 
     public IssueComment() {
         date = JodaDateUtil.today();
