@@ -6,27 +6,28 @@
     <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
       <a href="@routes.ProjectApp.project(project.name)">@Messages("menu.home")</a>
     </li>
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
+    @roleCheck(session.get("userId"), project.id, "board", "read"){
         <li class="@isActiveMenu(routes.BoardApp.boardList(project.name))">
           <a href="@routes.BoardApp.boardList(project.name)">@Messages("menu.board")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
+    @roleCheck(session.get("userId"), project.id, "code", "read"){
         <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
           <a href="@routes.CodeApp.view(project.name)">@Messages("menu.code")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, project.id){
+    @roleCheck(session.get("userId"), project.id, "issue", "read"){
         <li class="@isActiveMenu(routes.IssueApp.list(project.name,"open"))">
           <a href="@routes.IssueApp.list(project.name,"open")">@Messages("menu.issue")</a>
         </li>
     }
+    @roleCheck(session.get("userId"), project.id, "wiki", "read"){    
       <!-- TODO -->
        <li class="@isActiveMenu(routes.ProjectApp.newProject())">
          <a href="#">위키</a>
        </li>
-
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, project.id){
+    }
+    @roleCheck(session.get("userId"), project.id, "project", "setting"){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
           <a href="@routes.ProjectApp.setting(project.name)">@Messages("menu.admin")</a>
         </li>
