@@ -17,6 +17,7 @@ public class SearchCondition {
     public String stateType;
     public Boolean commentedCheck;
     public Boolean fileAttachedCheck;
+    public long milestoneId;
 
     public SearchCondition() {
         filter = "";
@@ -26,5 +27,6 @@ public class SearchCondition {
         stateType = IssueStateType.OPEN.name();
         commentedCheck = false;
         fileAttachedCheck = false;
+        
     }
 }

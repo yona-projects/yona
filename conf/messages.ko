@@ -10,7 +10,7 @@ menu.admin = 프로젝트 관리
 label.title = 제목
 label.contents = 내용
 label.state = 상태
-label.assignee == 담당자
+label.assignee = 담당자
 label.date = 작성일
 label.id = #
 

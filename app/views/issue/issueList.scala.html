@@ -21,18 +21,18 @@
 	<div class="row">
 		<div span="span6">
 			<div class="pull-right">
-				<select id="selectMilestone">
-							<option class="blank" value="">--마일스톤--</option>
-							@Milestone.options(project.id).map { v => <option value="@v._1" >@v._2</option>}
-				</select>
 				<form id="searchForm" class="form-search form-inline" method="GET" >
+					<select id="selectMilestone">
+						<option class="blank" value="@param.milestoneId">--마일스톤--</option>@Milestone.options(project.id).map { v => <option value="@v._1" >@v._2</option>}
+					</select>
 					<input type="hidden" name="sortBy" value="@param.sortBy">
           			<input type="hidden" name="orderBy" value="@param.orderBy">
 					<input type="text" name="filter" value="@param.filter" placeholder="이슈 검색..">
 					<input type="hidden" name="stateType" value="@param.stateType">
 					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
-				</form>
+				
 				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.name)" >@Messages("issue.menu.new")</a>
+				</form>
 			</div>
 		</div>
 	</div>
@@ -67,10 +67,9 @@
 		            	<label class="checkbox inline">
 		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1"> @Messages("checkbox.fileAttached")
 		              	</label>
-		              	</fieldset>
-		            	
-		            	<a href="@routes.IssueApp.extractExcelFile(project.name)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
-		            	</div>
+		              	<a href="@routes.IssueApp.extractExcelFile(project.name)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
+		            	</fieldset>
+		            </div>
 		        </div>
 		    </form>
 		</div>
@@ -91,7 +90,7 @@
 						<tr>
 							<td>@issue.id</td>
 							<td>@issue.state()</td>
-							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.commentCount > 0){[@issue.commentCount]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
+							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.numOfIssueComments > 0){[@issue.numOfIssueComments]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assigneeId == null){
 								<em>@Messages("issue.no.assignee")</em>						

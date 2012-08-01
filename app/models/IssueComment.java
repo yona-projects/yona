@@ -24,15 +24,20 @@ public class IssueComment extends Model {
     private static final long serialVersionUID = 1L;
     @Id
     public Long id;
+    
     @Constraints.Required
     public String contents;
+    
     @Constraints.Required
     public Date date;
-    public String filePath;
+    
     public Long authorId;
+    public String filePath;
+    
     @ManyToOne
     public Issue issue;
 
+    
 
     public IssueComment() {
         date = JodaDateUtil.today();
@@ -46,7 +51,6 @@ public class IssueComment extends Model {
     }
 
     public static Long create(IssueComment issueComment) {
-        Issue.countUpCommentCounter(issueComment.issue);
         issueComment.save();
         return issueComment.id;
     }
