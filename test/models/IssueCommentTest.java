@@ -22,13 +22,12 @@ public class IssueCommentTest extends ModelTest {
     public void create(){
         // Given
         IssueComment issueComment = new IssueComment();
-        issueComment.issue      =   Issue.findById(1l);
         issueComment.contents   =   "create() test";
         issueComment.authorId     =   getTestUser().id;
         // When
         long id =   IssueComment.create(issueComment);
         // Then
-        assertThat(IssueComment.find.byId(id)).isNotNull();
+        assertThat(IssueComment.findCommentsByIssueId(id)).isNotNull();
     }
     
     @Test
