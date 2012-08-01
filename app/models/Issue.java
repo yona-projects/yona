@@ -93,7 +93,7 @@ public class Issue extends Model {
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date date;
 
-    public Long milestoneId;
+    public String milestoneId;
     public Long assigneeId;
     public Long reporterId;
     public IssueState state;
@@ -159,8 +159,9 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
-        if (issue.milestoneId != null) {
-            Milestone milestone = Milestone.findById(issue.milestoneId);
+        if (issue.milestoneId != "none") {
+            Milestone milestone = Milestone.findById(Long
+                    .valueOf(issue.milestoneId));
             milestone.add(issue);
         }
         return issue.id;
@@ -173,8 +174,9 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = find.byId(id);
-        if (issue.milestoneId != null) {
-            Milestone milestone = Milestone.findById(issue.milestoneId);
+        if (issue.milestoneId != "none") {
+            Milestone milestone = Milestone.findById(Long
+                    .valueOf(issue.milestoneId));
             milestone.delete(issue);
         }
         issue.delete();
@@ -211,7 +213,7 @@ public class Issue extends Model {
     public static Page<Issue> findIssues(String projectName,
             IssueStateType state) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
-                DEFAULT_SORTER, Direction.DESC, "", false, false);
+                DEFAULT_SORTER, Direction.DESC, "", "none", false, false);
     }
 
     /**
@@ -228,7 +230,7 @@ public class Issue extends Model {
             String filter, IssueStateType state, boolean commentedCheck,
             boolean fileAttachedCheck) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
-                DEFAULT_SORTER, Direction.DESC, filter, commentedCheck,
+                DEFAULT_SORTER, Direction.DESC, filter, "none", commentedCheck,
                 fileAttachedCheck);
     }
 
@@ -242,7 +244,7 @@ public class Issue extends Model {
     public static Page<Issue> findCommentedIssues(String projectName,
             String filter) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, filter, true, false);
+                DEFAULT_SORTER, Direction.DESC, filter, "none", true, false);
     }
 
     /**
@@ -256,7 +258,13 @@ public class Issue extends Model {
     public static Page<Issue> findFileAttachedIssues(String projectName,
             String filter) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, filter, false, true);
+                DEFAULT_SORTER, Direction.DESC, filter, "none", false, true);
+    }
+
+    public static Page<Issue> findIssuesByMilestoneId(String projectName,
+            String milestoneId) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
+                DEFAULT_SORTER, Direction.DESC, "", milestoneId, false, false);
     }
 
     /**
@@ -284,13 +292,17 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssues(String projectName, int pageNumber,
             IssueStateType state, String sortBy, Direction order,
-            String filter, boolean commentedCheck, boolean fileAttachedCheck) {
+            String filter, String milestoneId, boolean commentedCheck,
+            boolean fileAttachedCheck) {
 
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name",
                 projectName, Matching.EQUALS);
         searchParams.add("title", filter, Matching.CONTAINS);
-
+        if (milestoneId != "none") {
+            searchParams.add("milestoneId", Long.valueOf(milestoneId),
+                    Matching.EQUALS);
+        }
         if (commentedCheck) {
             searchParams.add("numOfIssueComments", 1, Matching.GE);
         }
@@ -329,6 +341,7 @@ public class Issue extends Model {
      * @param issueComment
      */
     public void addIssueComment(IssueComment issueComment) {
+
         issueComment.save();
 
     }

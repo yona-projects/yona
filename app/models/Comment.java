@@ -35,32 +35,27 @@ public class Comment extends Model {
         date = JodaDateUtil.today();
     }
 
-    public static List<Comment> findCommentsByPostId(Long postId) {
-        return find.where().eq("post.id", postId).findList();
+    public static void deleteByPostId(Long postId) {
+        List<Comment> comments = Comment.find.where().eq("post.id", "" + postId).findList();
+        // 루프 돌면서 삭제
+        for (Comment comment : comments) {
+            comment.delete();
+        }
     }
 
     public static Long write(Comment comment) {
         comment.save();
         return comment.id;
     }
-
-    public static void deleteByPostId(Long postId) {
-        List<Comment> comments = Comment.find.where().eq("post.id", "" + postId).findList();
-
-        // 루프 돌면서 삭제
-        for (Comment comment : comments) {
-            comment.delete();
-        }
-
-        /* 위의 코드로 개선.
-        Iterator<Comment> target = targets.iterator();
-        while (target.hasNext()) {
-            Comment comment = target.next();
-            comment.delete();
-        }
-        */
+    
+    public static Comment findById(Long id) {
+    	return find.byId(id);
     }
 
+    public static List<Comment> findCommentsByPostId(Long postId) {
+        return find.where().eq("post.id", postId).findList();
+    }
+    
     public String calcPassTime() {
         // TODO 경계값 검사하면 망할함수. 나중에 라이브러리 쓸예정
         Calendar today = Calendar.getInstance();
