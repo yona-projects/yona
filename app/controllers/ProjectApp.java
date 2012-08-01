@@ -4,6 +4,8 @@ import models.Project;
 import models.ProjectUser;
 import models.Role;
 import models.User;
+import utils.Constants;
+
 import play.data.Form;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
@@ -26,26 +28,22 @@ import java.util.List;
  */
 public class ProjectApp extends Controller {
 
-    public static final String PROJECT_HOME = "프로젝트 홈";
-    public static final String NEW_PROJECT = "새 프로젝트 생성";
-    public static final String SETTING = "프로젝트 설정";
-    public static final String MEMBER_LIST = "맴버";
-    public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
+
 
 
     public static Result project(String projectName) {
-        return ok(projectHome.render(PROJECT_HOME,
+        return ok(projectHome.render(Constants.PROJECT_HOME,
                 Project.findByName(projectName)));
     }
 
     public static Result newProject() {
-        return ok(newProject.render(NEW_PROJECT, form(Project.class)));
+        return ok(newProject.render(Constants.NEW_PROJECT, form(Project.class)));
     }
 
     public static Result setting(String projectName) {
         Form<Project> projectForm = form(Project.class).fill(
                 Project.findByName(projectName));
-        return ok(setting.render(SETTING, projectForm,
+        return ok(setting.render(Constants.SETTING, projectForm,
                 Project.findByName(projectName)));
     }
 
@@ -58,12 +56,12 @@ public class ProjectApp extends Controller {
         }
 
         if (filledNewProjectForm.hasErrors()) {
-            return badRequest(newProject.render(NEW_PROJECT,
+            return badRequest(newProject.render(Constants.NEW_PROJECT,
                     filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             ProjectUser.assignRole(UserApp.currentUser().id,
-                    Project.create(project), Role.DEFAULT_MANAGER_ROLE);
+                    Project.create(project), Role.MANAGER);
 
             // create Repository
             if (project.vcs.equals("GIT")) {
@@ -101,7 +99,7 @@ public class ProjectApp extends Controller {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File(DEFAULT_LOGO_PATH + projectName + string);
+                File file = new File(Constants.DEFAULT_LOGO_PATH + projectName + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
@@ -111,7 +109,7 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
+            return badRequest(setting.render(Constants.SETTING, filledUpdatedProjectForm,
                     Project.findByName(projectName)));
         } else {
             return redirect(routes.ProjectApp.setting(Project.update(project,
@@ -131,7 +129,7 @@ public class ProjectApp extends Controller {
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
-        return ok(memberList.render(MEMBER_LIST, usersList, project,
+        return ok(memberList.render(Constants.MEMBER_LIST, usersList, project,
                 Role.getAllProjectRoles(), noError));
     }
 
@@ -140,7 +138,7 @@ public class ProjectApp extends Controller {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         ProjectUser.assignRole(user.id, Project.findByName(projectName).id,
-                Role.DEFAULT_MEMBER_ROLE);
+                Role.MEMBER);
         return redirect(routes.ProjectApp.memberList(projectName, true));
     }
 
@@ -166,7 +164,7 @@ public class ProjectApp extends Controller {
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.DEFAULT_MANAGER_ROLE))
+        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
             return ProjectUser.isManager(projectId);
         else
             return true;

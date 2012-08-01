@@ -6,28 +6,28 @@
     <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
       <a href="@routes.ProjectApp.project(project.name)">@Messages("menu.home")</a>
     </li>
-    @roleCheck(session.get("userId"), project.id, "board", "read"){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.BOARD.resource(), models.enumeration.PermissionOperation.READ.operation()){
         <li class="@isActiveMenu(routes.BoardApp.boardList(project.name))">
           <a href="@routes.BoardApp.boardList(project.name)">@Messages("menu.board")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, "code", "read"){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.CODE.resource(), models.enumeration.PermissionOperation.READ.operation()){
         <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
           <a href="@routes.CodeApp.view(project.name)">@Messages("menu.code")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, "issue", "read"){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.ISSUE.resource(), models.enumeration.PermissionOperation.READ.operation()){
         <li class="@isActiveMenu(routes.IssueApp.list(project.name,"open"))">
           <a href="@routes.IssueApp.list(project.name,"open")">@Messages("menu.issue")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, "wiki", "read"){    
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.WIKI.resource(), models.enumeration.PermissionOperation.READ.operation()){    
       <!-- TODO -->
        <li class="@isActiveMenu(routes.ProjectApp.newProject())">
          <a href="#">위키</a>
        </li>
     }
-    @roleCheck(session.get("userId"), project.id, "project", "setting"){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.PROJECT.resource(), models.enumeration.PermissionOperation.SETTING.operation()){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
           <a href="@routes.ProjectApp.setting(project.name)">@Messages("menu.admin")</a>
         </li>

@@ -9,6 +9,7 @@ import javax.persistence.ManyToOne;
 
 import com.avaje.ebean.Ebean;
 import play.db.ebean.Model;
+import utils.Constants;
 
 /**
  * @author "Hwi Ahn"
@@ -142,7 +143,7 @@ public class ProjectUser extends Model {
     public static boolean isManager(Long projectId) {
         int findRowCount = find
                 .where()
-                    .eq("role.id", Role.DEFAULT_MANAGER_ROLE)
+                    .eq("role.id", Role.MANAGER)
                     .eq("project.id", projectId)
                 .findRowCount();
         return (findRowCount > 1) ? true : false;
