@@ -4,15 +4,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 import com.avaje.ebean.Ebean;
-import com.avaje.ebean.FetchConfig;
-
 import play.db.ebean.Model;
 
 /**
