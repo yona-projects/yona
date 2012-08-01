@@ -123,16 +123,15 @@ public class ProjectApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result memberList(String projectName, boolean noError) {
+    public static Result memberList(String projectName) {
         Project project = Project.findByName(projectName);
         List<User> users = ProjectUser.findUsersByProject(project.id);
         List<Form<User>> usersList = new ArrayList<Form<User>>();
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
-        flash(Constants.WARNING, "project.member.isManager");
         return ok(memberList.render(MEMBER_LIST, usersList, project,
-                Role.getAllProjectRoles(), noError));
+                Role.getAllProjectRoles()));
     }
 
     public static Result addMember(String projectName) {
@@ -141,17 +140,18 @@ public class ProjectApp extends Controller {
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         ProjectUser.assignRole(user.id, Project.findByName(projectName).id,
                 Role.MEMBER);
-        return redirect(routes.ProjectApp.memberList(projectName, true));
+        return redirect(routes.ProjectApp.memberList(projectName));
     }
 
     public static Result deleteMember(Long userId, String projectName) {
         Long projectId = Project.findByName(projectName).id;
         if (isManager(userId, projectId)) {
             ProjectUser.delete(userId, projectId);
-            return redirect(routes.ProjectApp.memberList(projectName, true));
-        } else
-            return redirect(routes.ProjectApp.memberList(projectName, false));
-
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.memberList(projectName));
+        }
     }
 
     public static Result updateMember(Long userId, String projectName) {
@@ -160,9 +160,11 @@ public class ProjectApp extends Controller {
              ProjectUser.assignRole(userId, projectId,
              form(Role.class).bindFromRequest()
              .get().id);
-            return redirect(routes.ProjectApp.memberList(projectName, true));
-        } else
-            return redirect(routes.ProjectApp.memberList(projectName, false));
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } 
     }
 
     public static boolean isManager(Long userId, Long projectId) {

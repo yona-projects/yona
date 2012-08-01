@@ -28,7 +28,7 @@ GET     /:projectName                       controllers.ProjectApp.project(proje
 GET     /:projectName/setting               controllers.ProjectApp.setting(projectName:String)
 POST    /:projectName/setting   	          controllers.ProjectApp.saveSetting(projectName:String)
 GET     /:projectName/delete    	          controllers.ProjectApp.deleteProject(projectName:String)
-GET     /:projectName/memberList            controllers.ProjectApp.memberList(projectName:String, noError:Boolean ?= true)
+GET     /:projectName/memberList            controllers.ProjectApp.memberList(projectName:String)
 POST    /:projectName/memberList            controllers.ProjectApp.updateMember(userId:Long, projectName:String)
 POST    /:projectName/addMember             controllers.ProjectApp.addMember(projectName:String)
 GET     /:projectName/deleteMember          controllers.ProjectApp.deleteMember(userId:Long, projectName:String)

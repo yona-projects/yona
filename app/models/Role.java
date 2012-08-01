@@ -18,7 +18,7 @@ public class Role extends Model {
     private static final long serialVersionUID = 1L;
     public static final Long MANAGER = 1l;
     public static final Long MEMBER = 2l;
-    public static final Long SITEMANAGER = 2l;
+    public static final Long SITEMANAGER = 3l;
     
     @Id
     public Long id;
