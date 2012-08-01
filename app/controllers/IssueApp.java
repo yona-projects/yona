@@ -37,20 +37,8 @@ public class IssueApp extends Controller {
      * 
      * @param projectName
      *            프로젝트 이름
-     * @param pageNum
-     *            보여줄 페이지 번호
-     * @param sortBy
-     *            이슈 정렬 기준(Column)
-     * @param order
-     *            이슈 정렬 방향(오름차순, 내림차순)
-     * @param filter
-     *            이슈 제목에 적용될 검색 필터
-     * @param status
+     * @param statusType
      *            이슈 해결 상태
-     * @param commentedCheck
-     *            이슈 댓글 달림 유무
-     * @param fileAttachedheck
-     *            이슈 파일 첨부 유무
      * @return
      */
     public static Result list(String projectName, String stateType) {
@@ -58,8 +46,6 @@ public class IssueApp extends Controller {
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(
                 SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        Logger.debug("IssueApp : list - issueParam.sortBy = " + issueParam.sortBy);
-        Logger.debug("IssueApp : list - issueParam.orderBy = " + Direction.getValue(issueParam.orderBy).direction());
         if (project == null) {
             return notFound();
         }
@@ -151,7 +137,7 @@ public class IssueApp extends Controller {
             return redirect(routes.IssueApp.issue(project.name, issueId));
         }
     }
-
+    
     public static Result extractExcelFile(String projectName) {
         return TODO;
     }

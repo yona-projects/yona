@@ -37,9 +37,9 @@ import static models.enumeration.IssueState.ENROLLED;
  * @param body
  *            이슈 내용
  * @param status
- *            이슈 상태(등록, 진행중, 해결, 닫힘), !코드 리팩토링 대상
+ *            이슈 상태(등록, 진행중, 해결, 닫힘)
  * @param statusType
- *            이슈 상태, !코드 리팩토링 대상
+ *            이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
  * @param date
  *            등록된 날짜
  * @param reporter
@@ -83,15 +83,21 @@ public class Issue extends Model {
 
     @Id
     public Long id;
+
     @Constraints.Required
     public String title;
+
     @Constraints.Required
     public String body;
 
-    public IssueState state;
-    public IssueStateType stateType;
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date date;
+
+    public Long milestoneId;
+    public Long assigneeId;
+    public Long reporterId;
+    public IssueState state;
+    public IssueStateType stateType;
     public String issueType;
     public String componentName;
     // TODO 첨부 파일이 여러개인경우는?
@@ -101,19 +107,17 @@ public class Issue extends Model {
     public String dbmsType;
     public String importance;
     public String diagnosisResult;
-    public Long milestoneId;
-    public Long assigneeId;
-    public Long reporterId;
 
     @ManyToOne
     public Project project;
 
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public Set<IssueComment> issueComments;
-    public int commentCount;
+    public int numOfIssueComments;
 
     public Issue() {
         this.date = JodaDateUtil.today();
+        this.numOfIssueComments = issueComments.size();
     }
 
     /**
@@ -139,8 +143,7 @@ public class Issue extends Model {
      */
 
     public void updateStatusType(IssueState state) {
-        if (this.state == ASSIGNED
-                || this.state == IssueState.ENROLLED) {
+        if (this.state == ASSIGNED || this.state == IssueState.ENROLLED) {
             this.stateType = IssueStateType.OPEN;
         } else if (this.state == IssueState.SOLVED
                 || this.state == IssueState.FINISHED) {
@@ -156,7 +159,7 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
-        if(issue.milestoneId != null) {
+        if (issue.milestoneId != null) {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.add(issue);
         }
@@ -170,7 +173,7 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = find.byId(id);
-        if(issue.milestoneId != null) {
+        if (issue.milestoneId != null) {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
         }
@@ -289,7 +292,7 @@ public class Issue extends Model {
         searchParams.add("title", filter, Matching.CONTAINS);
 
         if (commentedCheck) {
-            searchParams.add("commentCount", 1, Matching.GE);
+            searchParams.add("numOfIssueComments", 1, Matching.GE);
         }
         if (fileAttachedCheck) {
             searchParams.add("filePath", "", Matching.NOT_EQUALS);
@@ -321,17 +324,6 @@ public class Issue extends Model {
     }
 
     /**
-     * 이슈에 대한 댓글이 달렸을 경우, 코멘트의 갯수를 올려준다. 하지만 코드 리팩토리 대상
-     * 
-     * @param issue
-     */
-
-    public static void countUpCommentCounter(Issue issue) {
-        issue.commentCount++;
-        issue.update();
-    }
-
-    /**
      * 이슈 상세 조회시에, 이슈에 달린 코멘트를 제공한다.
      * 
      * @param issueComment
@@ -346,27 +338,8 @@ public class Issue extends Model {
         return find.where().eq("id", issueId).findUnique().assigneeId;
     }
 
-    // public static class Param extends Post.Param {
-    // public Param() {
-    // this.orderBy = Direction.DESC.direction();
-    // this.sortBy = "date";
-    // this.filter = "";
-    // this.pageNum = 0;
-    // this.stateType = IssueStateType.OPEN.name();
-    // this.commentedCheck = false;
-    // this.fileAttachedCheck = false;
-    // }
-    //
-    // public String orderBy;
-    // public String sortBy;
-    // public String filter;
-    // public int pageNum;
-    // public String stateType;
-    // public boolean commentedCheck;
-    // public boolean fileAttachedCheck;
-    // }
-
     public boolean isOpen() {
         return (this.state.equals(ASSIGNED) || this.state.equals(ENROLLED));
     }
+
 }
