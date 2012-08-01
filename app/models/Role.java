@@ -16,8 +16,9 @@ import javax.persistence.OneToMany;
 @Entity
 public class Role extends Model {
     private static final long serialVersionUID = 1L;
-    public static final Long DEFAULT_MANAGER_ROLE = 1l;
-    public static final Long DEFAULT_MEMBER_ROLE = 2l;
+    public static final Long MANAGER = 1l;
+    public static final Long MEMBER = 2l;
+    public static final Long SITEMANAGER = 3l;
     
     @Id
     public Long id;
@@ -30,8 +31,6 @@ public class Role extends Model {
     private static Finder<Long, Role> find = new Finder<Long, Role>(Long.class,
             Role.class);
 
-    
-    
     public static Role findById(Long id) {
         return find.where().eq("id", id).findUnique();
     }
@@ -46,7 +45,7 @@ public class Role extends Model {
      * @return
      */
     public static List<Role> getAllProjectRoles() {
-        List<Role> projectRoles = find.where().ne("name", "siteManager")
+        List<Role> projectRoles = find.where().ne("id", SITEMANAGER)
                 .findList();
         return projectRoles;
     }

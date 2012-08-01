@@ -4,6 +4,8 @@ import models.Project;
 import models.ProjectUser;
 import models.Role;
 import models.User;
+import utils.Constants;
+
 import play.data.Form;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
@@ -25,13 +27,10 @@ import java.util.List;
  * @author "Hwi Ahn"
  */
 public class ProjectApp extends Controller {
-
     public static final String PROJECT_HOME = "프로젝트 홈";
     public static final String NEW_PROJECT = "새 프로젝트 생성";
     public static final String SETTING = "프로젝트 설정";
     public static final String MEMBER_LIST = "맴버";
-    public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
-
 
     public static Result project(String projectName) {
         return ok(projectHome.render(PROJECT_HOME,
@@ -63,7 +62,7 @@ public class ProjectApp extends Controller {
         } else {
             Project project = filledNewProjectForm.get();
             ProjectUser.assignRole(UserApp.currentUser().id,
-                    Project.create(project), Role.DEFAULT_MANAGER_ROLE);
+                    Project.create(project), Role.MANAGER);
 
             // create Repository
             if (project.vcs.equals("GIT")) {
@@ -101,7 +100,7 @@ public class ProjectApp extends Controller {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File(DEFAULT_LOGO_PATH + projectName + string);
+                File file = new File(Constants.DEFAULT_LOGO_PATH + projectName + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
@@ -124,7 +123,7 @@ public class ProjectApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result memberList(String projectName, boolean noError) {
+    public static Result memberList(String projectName) {
         Project project = Project.findByName(projectName);
         List<User> users = ProjectUser.findUsersByProject(project.id);
         List<Form<User>> usersList = new ArrayList<Form<User>>();
@@ -132,7 +131,7 @@ public class ProjectApp extends Controller {
             usersList.add(form(User.class).fill(user));
         }
         return ok(memberList.render(MEMBER_LIST, usersList, project,
-                Role.getAllProjectRoles(), noError));
+                Role.getAllProjectRoles()));
     }
 
     public static Result addMember(String projectName) {
@@ -140,18 +139,19 @@ public class ProjectApp extends Controller {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         ProjectUser.assignRole(user.id, Project.findByName(projectName).id,
-                Role.DEFAULT_MEMBER_ROLE);
-        return redirect(routes.ProjectApp.memberList(projectName, true));
+                Role.MEMBER);
+        return redirect(routes.ProjectApp.memberList(projectName));
     }
 
     public static Result deleteMember(Long userId, String projectName) {
         Long projectId = Project.findByName(projectName).id;
         if (isManager(userId, projectId)) {
             ProjectUser.delete(userId, projectId);
-            return redirect(routes.ProjectApp.memberList(projectName, true));
-        } else
-            return redirect(routes.ProjectApp.memberList(projectName, false));
-
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.memberList(projectName));
+        }
     }
 
     public static Result updateMember(Long userId, String projectName) {
@@ -160,13 +160,15 @@ public class ProjectApp extends Controller {
              ProjectUser.assignRole(userId, projectId,
              form(Role.class).bindFromRequest()
              .get().id);
-            return redirect(routes.ProjectApp.memberList(projectName, true));
-        } else
-            return redirect(routes.ProjectApp.memberList(projectName, false));
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } 
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.DEFAULT_MANAGER_ROLE))
+        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
             return ProjectUser.isManager(projectId);
         else
             return true;

@@ -2,6 +2,7 @@ package utils;
 
 import models.Project;
 import models.ProjectUser;
+import models.enumeration.PermissionOperation;
 
 /**
  * @author "Hwi Ahn"
@@ -20,7 +21,7 @@ public class RoleCheck {
     public static boolean roleCheck(String userId, Long projectId,
             String resource, String operation) {
         if (Project.findById(projectId).share_option
-                && operation.equals("read"))
+                && operation.equals(PermissionOperation.READ))
             return true;
 
         return ProjectUser.permissionCheck(Long.parseLong(userId), projectId,
