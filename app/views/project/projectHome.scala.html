@@ -38,9 +38,6 @@
                 <ul>
                 @for(member <- ProjectUser.findUsersByProject(project.id)){
                     <li>
-                    @if(ProjectUser.findByIds(member.id, project.id).role.id.equals(1l)){
-                        <i class="icon-user"></i>
-                    }
                     @member.loginId </li>
                 }</ul>
             </div>

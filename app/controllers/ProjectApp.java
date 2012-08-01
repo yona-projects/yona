@@ -12,7 +12,6 @@ import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
-import utils.RoleCheck;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
@@ -33,8 +32,10 @@ public class ProjectApp extends Controller {
     public static final String MEMBER_LIST = "맴버";
     public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
 
+
     public static Result project(String projectName) {
-        return ok(projectHome.render(PROJECT_HOME, Project.findByName(projectName)));
+        return ok(projectHome.render(PROJECT_HOME,
+                Project.findByName(projectName)));
     }
 
     public static Result newProject() {
@@ -44,8 +45,8 @@ public class ProjectApp extends Controller {
     public static Result setting(String projectName) {
         Form<Project> projectForm = form(Project.class).fill(
                 Project.findByName(projectName));
-        return ok(setting
-                .render(SETTING, projectForm, Project.findByName(projectName)));
+        return ok(setting.render(SETTING, projectForm,
+                Project.findByName(projectName)));
     }
 
     public static Result saveProject() throws IOException {
@@ -61,8 +62,8 @@ public class ProjectApp extends Controller {
                     filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
-            RoleCheck.roleGrant(UserApp.currentUser().id, "manager",
-                    Project.create(project));
+            ProjectUser.assignRole(UserApp.currentUser().id,
+                    Project.create(project), Role.DEFAULT_MANAGER_ROLE);
 
             // create Repository
             if (project.vcs.equals("GIT")) {
@@ -100,8 +101,7 @@ public class ProjectApp extends Controller {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File(DEFAULT_LOGO_PATH + projectName
-                        + string);
+                File file = new File(DEFAULT_LOGO_PATH + projectName + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
@@ -111,9 +111,11 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render(SETTING, filledUpdatedProjectForm, Project.findByName(projectName)));
+            return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
+                    Project.findByName(projectName)));
         } else {
-            return redirect(routes.ProjectApp.setting(Project.update(project, projectName)));
+            return redirect(routes.ProjectApp.setting(Project.update(project,
+                    projectName)));
         }
     }
 
@@ -129,41 +131,45 @@ public class ProjectApp extends Controller {
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
-        return ok(memberList.render(MEMBER_LIST, usersList, 
-                project, Role.getAllProjectRoles(), noError));
+        return ok(memberList.render(MEMBER_LIST, usersList, project,
+                Role.getAllProjectRoles(), noError));
     }
 
     public static Result addMember(String projectName) {
+        // TODO: 이미 가입되어있는지 여부는 view에서 Javascript로 처리
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        ProjectUser.create(user.id, Project.findByName(projectName).id, Role.findByName("member").id);
+        ProjectUser.assignRole(user.id, Project.findByName(projectName).id,
+                Role.DEFAULT_MEMBER_ROLE);
         return redirect(routes.ProjectApp.memberList(projectName, true));
     }
 
     public static Result deleteMember(Long userId, String projectName) {
         Long projectId = Project.findByName(projectName).id;
-        if(isManager(userId, projectId)) {
+        if (isManager(userId, projectId)) {
             ProjectUser.delete(userId, projectId);
             return redirect(routes.ProjectApp.memberList(projectName, true));
-        } else 
+        } else
             return redirect(routes.ProjectApp.memberList(projectName, false));
-        
+
     }
 
     public static Result updateMember(Long userId, String projectName) {
         Long projectId = Project.findByName(projectName).id;
-        if(isManager(userId, projectId)) {
-            ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest()
-                    .get().id);
+        if (isManager(userId, projectId)) {
+             ProjectUser.assignRole(userId, projectId,
+             form(Role.class).bindFromRequest()
+             .get().id);
             return redirect(routes.ProjectApp.memberList(projectName, true));
         } else
             return redirect(routes.ProjectApp.memberList(projectName, false));
     }
-    
+
     public static boolean isManager(Long userId, Long projectId) {
-        if(ProjectUser.findByIds(userId, projectId).role.id.equals(1l))
+        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.DEFAULT_MANAGER_ROLE))
             return ProjectUser.isManager(projectId);
         else
             return true;
+        
     }
 }

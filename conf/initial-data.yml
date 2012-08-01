@@ -32,12 +32,6 @@ projects:
         vcs:            Subversion
         url:            http://localhost:9000/Jindo
     - !!models.Project
-        name:           네이버 나눔고딕 코딩글꼴
-        overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
-        share_option:   false
-        vcs:            GIT
-        url:            http://localhost:9000/네이버%20나눔고딕%20코딩글꼴
-    - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
@@ -187,91 +181,198 @@ milestones:
 # Permission
 permissions:
     - !!models.Permission
-        name:   board
+        resource:   board
+        operation:  read
     - !!models.Permission
-        name:   issue
+        resource:   board
+        operation:  write        
     - !!models.Permission
-        name:   milestone
+        resource:   issue
+        operation:  read  
     - !!models.Permission
-        name:   project.setting
+        resource:   issue
+        operation:  write               
     - !!models.Permission
-        name:   site.setting
+        resource:   milestone
+        operation:  read   
     - !!models.Permission
-        name:   code            
-            
+        resource:   milestone
+        operation:  write                    
+    - !!models.Permission
+        resource:   code
+        operation:  read
+    - !!models.Permission
+        resource:   code
+        operation:  write        
+    - !!models.Permission
+        resource:   wiki                  
+        operation:  read
+    - !!models.Permission
+        resource:   wiki                  
+        operation:  write        
+    - !!models.Permission
+        resource:   project
+        operation:  setting        
+    - !!models.Permission
+        resource:   site
+        operation:  setting         
+                    
 # Role
 roles:
     - !!models.Role
-        name:           manager
-        permissions:
-            - !!models.Permission
-                id:     1
-            - !!models.Permission
-                id:     2
-            - !!models.Permission
-                id:     3
-            - !!models.Permission
-                id:     4
-            - !!models.Permission
-                id:     6                
+        name:           manager    
     - !!models.Role
-        name:           member
-        permissions:
-            - !!models.Permission
-                id:     1
-            - !!models.Permission
-                id:     2
-            - !!models.Permission
-                id:     3
-            - !!models.Permission
-                id:     6                 
+        name:           member           
     - !!models.Role
         name:           siteManager
-        permissions:
-            - !!models.Permission
-                id:     5
+
+# RolePermission
+rolePermissions:
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 1
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 2
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 3
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 4
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 5
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 6
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 7
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 8
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 9
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 10
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 11
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 1
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 2
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 3
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 4
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 5
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 6
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 7
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 8
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 9
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 10
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 12  
 
 # ProjectUser
 projectUsers:
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 1
-        project:    !!models.Project
-                        id: 1
-        role:       !!models.Role
-                        id: 1
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 1
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 1
-        project:    !!models.Project
-                        id: 2
-        role:       !!models.Role
-                        id: 1                        
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 2
+        role:           !!models.Role
+                            id: 2
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 2
-        project:    !!models.Project
-                        id: 1
-        role:       !!models.Role
-                        id: 2
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 2
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 1
-        project:    !!models.Project
-                        id: 3
-        role:       !!models.Role
-                        id: 2                        
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 2
+        role:           !!models.Role
+                            id: 1
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 3
-        project:    !!models.Project
-                        id: 3
-        role:       !!models.Role
-                        id: 1
-    - !!models.ProjectUser
-        user:       !!models.User
-                        id: 3
-        project:    !!models.Project
-                        id: 4
-        role:       !!models.Role
-                        id: 1
+        user:           !!models.User
+                            id: 3
+        project:        !!models.Project
+                            id: 3
+        role:           !!models.Role
+                            id: 1
