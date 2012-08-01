@@ -23,10 +23,10 @@ public class ProjectUserTest extends ModelTest {
     public void create() throws Exception {
         // Given
         // When
-        ProjectUser.create(2l, 3l, 34l);
+        ProjectUser.create(2l, 3l, 2l);
         // Then
-        assertThat(ProjectUser.findByIds(2l, 3l, 34l).id)
-                .isEqualTo(54l);
+        assertThat(ProjectUser.findByIds(2l, 3l).role.id)
+                .isEqualTo(2l);
     }
     
     @Test
@@ -34,8 +34,10 @@ public class ProjectUserTest extends ModelTest {
         // Given
         // When
         ProjectUser.assignRole(1l, 1l, 2l);
+        ProjectUser.assignRole(1l, 3l, 2l);
         // Then
-        assertThat(ProjectUser.findPermissionsByIds(1l, 1l).size()).isEqualTo(10);
+        assertThat(ProjectUser.findByIds(1l, 1l).role.id).isEqualTo(2l);
+        assertThat(ProjectUser.findByIds(1l, 3l).role.id).isEqualTo(2l);
     }
 
     @Test
@@ -68,8 +70,8 @@ public class ProjectUserTest extends ModelTest {
     @Test
     public void isManager() throws Exception {
         // Given
-        // When
         ProjectUser.assignRole(1l, 3l, 1l);
+        // When
         // Then
         assertThat(ProjectUser.isManager(1l)).isEqualTo(false);
         assertThat(ProjectUser.isManager(3l)).isEqualTo(true);
@@ -90,5 +92,14 @@ public class ProjectUserTest extends ModelTest {
         // When
         // Then
         assertThat(ProjectUser.options(1l).containsValue("k16wire")).isEqualTo(true);
+    }
+    
+    @Test
+    public void permissionCheck() throws Exception {
+        // Given
+        // When
+        // Then
+        assertThat(ProjectUser.permissionCheck(1l, 1l, "project", "setting")).isEqualTo(true);
+        assertThat(ProjectUser.permissionCheck(1l, 2l, "project", "setting")).isEqualTo(false);
     }
 }

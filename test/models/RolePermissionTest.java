@@ -17,15 +17,6 @@ public class RolePermissionTest extends ModelTest {
     }
     
     @Test
-    public void findRolesByPermission() throws Exception {
-        // Given
-        // When
-        List<Role> roles = RolePermission.findRolesByPermission(1l);
-        // Then
-        assertThat(roles.size()).isEqualTo(2);
-    }
-    
-    @Test
     public void findById() throws Exception {
         // Given
         // When

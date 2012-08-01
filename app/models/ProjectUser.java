@@ -1,6 +1,5 @@
 package models;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,20 +25,19 @@ public class ProjectUser extends Model {
     @ManyToOne
     public Project project;
     @ManyToOne
-    public RolePermission rolePermission;
+    public Role role;
 
-    public ProjectUser(Long userId, Long projectId, Long rolePermissionId) {
+    public ProjectUser(Long userId, Long projectId, Long roleId) {
         this.user = User.findById(userId);
         this.project = Project.findById(projectId);
-        this.rolePermission = RolePermission.findById(rolePermissionId);
+        this.role = Role.findById(roleId);
     }
 
     private static Finder<Long, ProjectUser> find = new Finder<Long, ProjectUser>(
             Long.class, ProjectUser.class);
 
-    public static void create(Long userId, Long projectId, Long rolePermissionId) {
-        ProjectUser projectUser = new ProjectUser(userId, projectId,
-                rolePermissionId);
+    public static void create(Long userId, Long projectId, Long roleId) {
+        ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
         projectUser.save();
     }
 
@@ -49,15 +47,12 @@ public class ProjectUser extends Model {
      * @param userId
      * @param projectId
      */
-    public static void deleteProjectUser(Long userId, Long projectId) {
-        for (ProjectUser projectUser : find.where().eq("user.id", userId)
-                .eq("project.id", projectId).findList()) {
-            projectUser.delete();
-        }
+    public static void delete(Long userId, Long projectId) {
+        ProjectUser.findByIds(userId, projectId).delete();
     }
 
     /**
-     * 유저에게 기존의 롤을 삭제하고 새로운 롤을 부여합니다.
+     * 유저에게 새로운 롤을 부여합니다.
      * 
      * @param userId
      * @param projectId
@@ -65,31 +60,24 @@ public class ProjectUser extends Model {
      */
     public static void assignRole(Long userId, Long projectId, Long roleId) {
         if (find.where().eq("user.id", userId).eq("project.id", projectId)
-                .findRowCount() != 0) {
-            for (ProjectUser projectUser : find.where().eq("user.id", userId)
-                    .eq("project.id", projectId).findList()) {
-                projectUser.delete();
-            }
-        }
-
-        List<RolePermission> rolePermissions = RolePermission
-                .findByRole(roleId);
-        for (RolePermission rolePermission : rolePermissions) {
-            ProjectUser.create(userId, projectId, rolePermission.id);
+                .findRowCount() == 0) {
+            ProjectUser.create(userId, projectId, roleId);
+        } else {
+            new ProjectUser(userId, projectId, roleId).update(ProjectUser
+                    .findByIds(userId, projectId).id);
         }
     }
 
     /**
-     * 해당 유저, 프로젝트, 롤-퍼미션 값을 갖는 ProjectUser 오브젝트를 반환합니다.
+     * 해당 유저, 프로젝트 값을 갖는 ProjectUser 오브젝트를 반환합니다.
      * 
      * @param userId
      * @param projectId
      * @return
      */
-    public static ProjectUser findByIds(Long userId, Long projectId,
-            Long rolePermissionId) {
+    public static ProjectUser findByIds(Long userId, Long projectId) {
         return find.where().eq("user.id", userId).eq("project.id", projectId)
-                .eq("rolePermission.id", rolePermissionId).findUnique();
+                .findUnique();
     }
 
     /**
@@ -99,8 +87,10 @@ public class ProjectUser extends Model {
      * @return
      */
     public static List<User> findUsersByProject(Long projectId) {
-        return Ebean.find(User.class).where()
-                .eq("projectUser.project.id", projectId).findList();
+        return Ebean.find(User.class)
+                .where()
+                    .eq("projectUser.project.id", projectId)
+                .findList();
     }
 
     /**
@@ -110,8 +100,10 @@ public class ProjectUser extends Model {
      * @return
      */
     public static List<Project> findProjectsByOwner(Long ownerId) {
-        return Ebean.find(Project.class).where()
-                .eq("projectUser.user.id", ownerId).findList();
+        return Ebean.find(Project.class)
+                .where()
+                    .eq("projectUser.user.id", ownerId)
+                .findList();
     }
 
     /**
@@ -122,9 +114,11 @@ public class ProjectUser extends Model {
      * @return
      */
     public static Role findRoleByIds(Long userId, Long projectId) {
-        return find.fetch("rolePermission").fetch("rolePermission.role")
-                .where().eq("user.id", userId).eq("project.id", projectId)
-                .findList().get(0).rolePermission.role;
+        return Ebean.find(Role.class)
+                .where()
+                    .eq("projectUsers.user.id", userId)
+                    .eq("projectUsers.project.id", projectId)
+                .findUnique();
     }
 
     /**
@@ -136,15 +130,7 @@ public class ProjectUser extends Model {
      */
     public static List<Permission> findPermissionsByIds(Long userId,
             Long projectId) {
-        List<ProjectUser> projectUsers = find.fetch("rolePermission")
-                .fetch("rolePermission.permission").where()
-                .eq("user.id", userId).eq("project.id", projectId).findList();
-
-        List<Permission> permissions = new ArrayList<Permission>();
-        for (ProjectUser projectUser : projectUsers) {
-            permissions.add(projectUser.rolePermission.permission);
-        }
-        return permissions;
+        return Role.findPermissionsById(ProjectUser.findRoleByIds(userId, projectId).id);
     }
 
     /**
@@ -154,9 +140,11 @@ public class ProjectUser extends Model {
      * @return
      */
     public static boolean isManager(Long projectId) {
-        int findRowCount = Ebean.find(User.class).where()
-                .eq("projectUser.project.id", projectId)
-                .eq("projectUser.rolePermission.role.id", 1l).findSet().size();
+        int findRowCount = find
+                .where()
+                    .eq("role.id", Role.DEFAULT_MANAGER_ROLE)
+                    .eq("project.id", projectId)
+                .findRowCount();
         return (findRowCount > 1) ? true : false;
     }
 
@@ -172,5 +160,16 @@ public class ProjectUser extends Model {
         }
         return options;
     }
-
+    
+    
+    public static boolean permissionCheck(Long userId, Long projectId, String resource, String operation) {
+        int findRowCount = Ebean.find(Permission.class)
+                                .where()
+                                    .eq("rolePermissions.role.projectUsers.user.id", userId)
+                                    .eq("rolePermissions.role.projectUsers.project.id", projectId)
+                                    .eq("resource", resource)
+                                    .eq("operation", operation)
+                                .findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
 }

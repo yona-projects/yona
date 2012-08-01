@@ -12,7 +12,6 @@ import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
-import utils.RoleCheck;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
@@ -32,8 +31,7 @@ public class ProjectApp extends Controller {
     public static final String SETTING = "프로젝트 설정";
     public static final String MEMBER_LIST = "맴버";
     public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
-    public static final Long DEFAULT_MANAGER_ROLE = 1l;
-    public static final Long DEFAULT_MEMBER_ROLE = 2l;
+
 
     public static Result project(String projectName) {
         return ok(projectHome.render(PROJECT_HOME,
@@ -65,7 +63,7 @@ public class ProjectApp extends Controller {
         } else {
             Project project = filledNewProjectForm.get();
             ProjectUser.assignRole(UserApp.currentUser().id,
-                    Project.create(project), DEFAULT_MANAGER_ROLE);
+                    Project.create(project), Role.DEFAULT_MANAGER_ROLE);
 
             // create Repository
             if (project.vcs.equals("GIT")) {
@@ -142,14 +140,14 @@ public class ProjectApp extends Controller {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         ProjectUser.assignRole(user.id, Project.findByName(projectName).id,
-                DEFAULT_MEMBER_ROLE);
+                Role.DEFAULT_MEMBER_ROLE);
         return redirect(routes.ProjectApp.memberList(projectName, true));
     }
 
     public static Result deleteMember(Long userId, String projectName) {
         Long projectId = Project.findByName(projectName).id;
         if (isManager(userId, projectId)) {
-            ProjectUser.deleteProjectUser(userId, projectId);
+            ProjectUser.delete(userId, projectId);
             return redirect(routes.ProjectApp.memberList(projectName, true));
         } else
             return redirect(routes.ProjectApp.memberList(projectName, false));
@@ -168,7 +166,7 @@ public class ProjectApp extends Controller {
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(DEFAULT_MANAGER_ROLE))
+        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.DEFAULT_MANAGER_ROLE))
             return ProjectUser.isManager(projectId);
         else
             return true;
