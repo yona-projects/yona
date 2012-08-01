@@ -100,6 +100,42 @@ issues:
         milestoneId:    2
         project:        !!models.Project
                             id: 2
+    - !!models.Issue
+        reporterId:     3
+        title:          CUBRID 설치 문제
+        body:           IOS는 설치 못하나요?
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    0
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        reporterId:     3
+        title:          메모리 누수 현상
+        body:           메모리가 너무 누수가 되는듯.
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    9
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        reporterId:     3
+        title:          Client application for Mac.
+        body:           Please make it.
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    8
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        reporterId:     3
+        title:          CPU 무한 점유울 문제.
+        body:           CPU를 무한사용 중이에요.
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    8
+        project:        !!models.Project
+                            id: 3
         
 issueComments:
     - !!models.IssueComment
@@ -107,7 +143,6 @@ issueComments:
         authorId:       1
         issue:          !!models.Issue
                             id: 1
-        
         
 # Milestone
 milestones:
@@ -181,6 +216,26 @@ milestones:
         completionRate:  33
         project:         !!models.Project
                              id: 1
+    - !!models.Milestone
+        title:           v.0.1
+        dueDate:         2012-12-31 10:59:59
+        contents:        CUBRID v.0.1
+        numClosedIssues: 0
+        numOpenIssues:   0
+        numTotalIssues:  0
+        completionRate:  0
+        project:         !!models.Project
+                             id: 3
+    - !!models.Milestone
+        title:           v.0.2
+        dueDate:         2013-11-09 10:59:59
+        contents:        CUBRID v.0.2
+        numClosedIssues: 1
+        numOpenIssues:   0
+        numTotalIssues:  1
+        completionRate:  0
+        project:         !!models.Project
+                             id: 3
 
 # Permission
 permissions:
@@ -189,44 +244,44 @@ permissions:
         operation:  read
     - !!models.Permission
         resource:   board
-        operation:  write        
+        operation:  write
     - !!models.Permission
         resource:   issue
         operation:  read  
     - !!models.Permission
         resource:   issue
-        operation:  write               
+        operation:  write
     - !!models.Permission
         resource:   milestone
         operation:  read   
     - !!models.Permission
         resource:   milestone
-        operation:  write                    
+        operation:  write
     - !!models.Permission
         resource:   code
         operation:  read
     - !!models.Permission
         resource:   code
-        operation:  write        
+        operation:  write
     - !!models.Permission
-        resource:   wiki                  
+        resource:   wiki
         operation:  read
     - !!models.Permission
-        resource:   wiki                  
-        operation:  write        
+        resource:   wiki
+        operation:  write
     - !!models.Permission
         resource:   project
-        operation:  setting        
+        operation:  setting
     - !!models.Permission
         resource:   site
-        operation:  setting         
+        operation:  setting
                     
 # Role
 roles:
     - !!models.Role
-        name:           manager    
+        name:           manager
     - !!models.Role
-        name:           member           
+        name:           member
     - !!models.Role
         name:           siteManager
 

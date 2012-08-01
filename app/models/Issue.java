@@ -1,6 +1,7 @@
 package models;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -350,8 +351,24 @@ public class Issue extends Model {
         return find.where().eq("id", issueId).findUnique().assigneeId;
     }
 
+    /**
+     * 이슈의 오픈 상태를 확인한다.
+     * @return boolean
+     */
     public boolean isOpen() {
-        return (this.state.equals(ASSIGNED) || this.state.equals(ENROLLED));
+        return IssueStateType.OPEN.equals(this.stateType);
+    }
+
+    /**
+     * 해당 마일스톤아이디로 관련 이슈를 검색한다.
+     * @param milestoneId
+     * @return
+     */
+    public static List<Issue> findByMilestoneId(Long milestoneId) {
+        SearchParams searchParams = new SearchParams()
+            .add("milestoneId", milestoneId, Matching.EQUALS);
+
+        return FinderTemplate.findBy(null, searchParams ,find);
     }
 
 }

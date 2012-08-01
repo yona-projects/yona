@@ -10,6 +10,8 @@ import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
 
+import java.util.List;
+
 public class IssueTest extends ModelTest {
 
     @Test
@@ -23,7 +25,7 @@ public class IssueTest extends ModelTest {
         issue.milestoneId = "4";
         // When
         // Then
-        assertThat(Issue.create(issue)).isEqualTo(5l);
+        assertThat(Issue.create(issue)).isEqualTo(9l);
     }
 
     @Test
@@ -121,10 +123,20 @@ public class IssueTest extends ModelTest {
     public void findIssuesByMilestoneId() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findIssuesByMilestoneId("nForge4java", "1");
+        Page<Issue> issues = Issue.findIssuesByMilestoneId("CUBRID", "9");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
         
+    }
+
+    @Test
+    public void findByMilestoneId() throws Exception {
+        //Give
+        //When
+        List<Issue> issues = Issue.findByMilestoneId(9l);
+
+        //Then
+        assertThat(issues.size()).isEqualTo(1);
     }
 
 }
