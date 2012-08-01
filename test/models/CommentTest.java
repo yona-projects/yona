@@ -25,16 +25,6 @@ public class CommentTest extends ModelTest {
         // When
         long id = Comment.write(comment);
         // Then
-        assertThat(Comment.find.byId(id)).isNotNull();
-    }
-
-    @Test
-    @Ignore("The findWriter method was deleted.")
-    public void findWriter() throws Exception {
-        // Given
-        // When
-        String name = Comment.find.byId(1l).author.name;
-//        Then
-        assertThat(name).isEqualTo("hobi");
+        assertThat(Comment.findById(id)).isNotNull();
     }
 }
