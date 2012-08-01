@@ -32,6 +32,9 @@ button.popup.exit = x
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
 
+input.mandatory = Mandatory
+input.optional = Optional
+
 #Milestone
 milestone.state.all = All
 milestone.state.open = Open
@@ -70,3 +73,37 @@ post.delete.confirm = If this is deleted, then it cannot be recovered. Is it oka
 post.new.fileAttach = Attach File
 post.popup.fileAttach.title = Select file
 post.popup.fileAttach.contents = Please, select file to attach
+
+#Project
+project.create = Create this project
+project.name = Project Name
+project.name.alert = Special characters cannot be used to define the name of a project.
+project.description = Description
+project.shareOption = Share Option
+project.shareOption.public = Public
+project.shareOption.private = Private
+project.shareOption.private.description = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project. 
+project.vcs = Repository
+project.new.agreement = I read nForge4's user agreement and accept it.
+project.agreement = User Agreement
+project.name.rule = Naming Rule
+project.info = Project Information
+project.members = Project Members
+project.sidebar = Project Management
+project.sidebar.setting = Setting
+project.sidebar.memberList = Member
+project.sidebar.milestone = Milestone
+project.sidebar.plugin = Plugin
+project.sidebar.help = Help
+project.logo.type = File type: bmp, jpg, gif, png
+project.logo.fileSize = File size: less than 1.00 MB
+project.logo.size = Image size: 234px * 168px
+project.logo = Logo
+project.logo.alert = This is not an image.
+project.url = Site URL
+project.delete = Delete this project
+project.delete.description = If this project is deleted, all data related to this project are deleted and they cannot be recovered.
+project.delete.accept = I agree with deleting this project.
+project.delete.requestion = Do you want to delete this project?
+project.delete.reaccept = Are you sure?
+project.delete.alert = You should agree with deleting this project.

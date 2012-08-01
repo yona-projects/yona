@@ -17,15 +17,15 @@
         </div>
         <div class="span4">
             <div class="well">
-                <h3>프로젝트 정보</h3>
+                <h3>@Messages("project.info")</h3>
                 <ul>
                     <li>@project.overview</li>
                     <li>@project.vcs</li>
                     <li>@project.url</li>
                     <li>@if(project.share_option){
-                        공개 프로젝트</li>
+                        @Messages("project.shareOption.public")</li>
                         } else {
-                        비공개 프로젝트</li>
+                        @Messages("project.shareOption.private")</li>
                         }
                 </ul>
                 
@@ -34,7 +34,7 @@
         </div>
         <div class="span4">
             <div class="well">
-                <h3>프로젝트 인원</h3>
+                <h3>@Messages("project.members")</h3>
                 <ul>
                 @for(member <- ProjectUser.findUsersByProject(project.id)){
                     <li>

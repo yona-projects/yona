@@ -32,6 +32,9 @@ button.popup.exit = x
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
 
+input.mandatory = 필수 입력 사항
+input.optional = 선택 입력 사항
+
 #Milestone
 milestone.state.all = 전체
 milestone.state.open = 미완료
@@ -70,3 +73,37 @@ post.delete.confirm = 해당 게시물이 삭제되면 영원히 복구할 수 �
 post.new.fileAttach = 첨부파일
 post.popup.fileAttach.title = 첨부파일 선택
 post.popup.fileAttach.contents = 첨부할 파일을 선택해주세요.
+
+#Project
+project.create = 프로젝트 생성
+project.name = 프로젝트 이름
+project.name.alert = 특수문자 및 한글은 이름에 사용될 수 없습니다.
+project.description = 설명
+project.shareOption = 공개 설정
+project.shareOption.public = 공개
+project.shareOption.private = 비공개
+project.shareOption.private.description = 비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼수 있습니다.
+project.vcs = 코드관리시스템
+project.new.agreement = 본인은 약관에 대한 안내를 읽었으며 동의합니다.
+project.agreement = 이용 약관
+project.name.rule = 이름 규칙
+project.info = 프로젝트 정보
+project.members = 프로젝트 인원
+project.sidebar = 프로젝트 관리
+project.sidebar.setting = 설정
+project.sidebar.memberList = 맴버
+project.sidebar.milestone = 마일스톤
+project.sidebar.plugin = 플러그인
+project.sidebar.help = 도움말
+project.logo.type = 파일형식: bmp, jpg, gif, png
+project.logo.fileSize = 파일크기: 1.00 MB 이하
+project.logo.size = 사이즈: 234px * 168px
+project.logo = 로고
+project.logo.alert = 이미지 파일이 아닙니다.
+project.url = 사이트 주소
+project.delete = 프로젝트 삭제
+project.delete.description = 프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다.
+project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
+project.delete.requestion = 프로젝트를 삭제하시겠습니까?
+project.delete.reaccept = 정말로 삭제하시겠습니까?
+project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.
