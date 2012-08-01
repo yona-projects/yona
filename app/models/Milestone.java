@@ -1,7 +1,6 @@
 package models;
 
 import models.enumeration.Direction;
-import models.enumeration.IssueState;
 import models.enumeration.Matching;
 import models.enumeration.MilestoneState;
 import models.support.FinderTemplate;

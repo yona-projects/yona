@@ -3,9 +3,9 @@
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
-@main(title, project) {
+@main(Messages(title), project) {
 	<div class="page-header">
-		<h1>@title</h1>
+		<h1>@Messages(title)</h1>
 	</div>
     @form(action = routes.IssueApp.saveIssue(project.name), 
     				'enctype -> "multipart/form-data",

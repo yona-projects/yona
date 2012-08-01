@@ -14,20 +14,22 @@ import java.util.List;
 @Entity
 public class Comment extends Model {
     private static final long serialVersionUID = 1L;
-
+    private static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
+    
     @Id
     public Long id;
+    
     @Constraints.Required
     public String contents;
+    
     @Constraints.Required
     public Date date;
+    
     public String filePath;
     @ManyToOne
     public User author;
     @ManyToOne
     public Post post;
-
-    public static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
 
     public Comment() {
         date = JodaDateUtil.today();
@@ -38,7 +40,6 @@ public class Comment extends Model {
     }
 
     public static Long write(Comment comment) {
-        Post.countUpCommentCounter(comment.post);
         comment.save();
         return comment.id;
     }

@@ -10,18 +10,16 @@ import utils.JodaDateUtil;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 @Entity
 public class IssueComment extends Model {
-
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
+    private static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(
+            Long.class, IssueComment.class);
+    
     @Id
     public Long id;
     
@@ -34,17 +32,9 @@ public class IssueComment extends Model {
     public Long authorId;
     public String filePath;
     
-    @ManyToOne
-    public Issue issue;
-
-    
-
     public IssueComment() {
         date = JodaDateUtil.today();
     }
-
-    public static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(
-        Long.class, IssueComment.class);
 
     public static List<IssueComment> findCommentsByIssueId(Long issueId) {
         return find.where().eq("issue.id", issueId).findList();

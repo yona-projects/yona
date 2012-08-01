@@ -1,4 +1,4 @@
-@(message: String, milestones: List[models.Milestone], projectName: String, state: String, sort: String, direction: String, projectInst:Project)
+@(title: String, milestones: List[models.Milestone], projectName: String, state: String, sort: String, direction: String, projectInst:Project)
 @makeSortLink(_sort:String) = @{
     var _direction = "asc";
     if(sort.equals(_sort)) {
@@ -21,7 +21,7 @@
         }
     }
 }
--@project.projectMngMain(message, projectInst) {
+@project.projectMngMain(Messages(title), projectInst) {
     <div>
         <div style="position: relative;">
             <ul class="nav nav-tabs" id="milestone_list">

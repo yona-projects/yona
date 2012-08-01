@@ -88,7 +88,8 @@ public class BoardApp extends Controller {
             comment.filePath = saveFile(request());
 
             Comment.write(comment);
-
+            Post.countUpCommentCounter(postId);
+            
             return redirect(routes.BoardApp.post(project.name, postId));
         }
     }
