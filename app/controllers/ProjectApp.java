@@ -111,12 +111,7 @@ public class ProjectApp extends Controller {
 
     public static Result memberList(String projectName) {
         Project project = Project.findByName(projectName);
-        List<User> users = ProjectUser.findUsersByProject(project.id);
-        List<Form<User>> usersList = new ArrayList<Form<User>>();
-        for (User user : users) {
-            usersList.add(form(User.class).fill(user));
-        }
-        return ok(memberList.render("title.memberList", usersList, project,
+        return ok(memberList.render("title.memberList", ProjectUser.findMemberListByProject(project.id), project,
                 Role.getAllProjectRoles()));
     }
 

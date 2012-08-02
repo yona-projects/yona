@@ -111,4 +111,16 @@ public class ProjectUserTest extends ModelTest {
         assertThat(ProjectUser.permissionCheck(1l, 1l, "project", "setting")).isEqualTo(true);
         assertThat(ProjectUser.permissionCheck(1l, 2l, "project", "setting")).isEqualTo(false);
     }
+    
+    @Test
+    public void findMemberListByProject() throws Exception {
+        // Given
+        // When
+        List<ProjectUser> projectUsers = ProjectUser.findMemberListByProject(1l);
+        // Then
+        assertThat(projectUsers.size()).isEqualTo(2);
+        assertThat(projectUsers.get(0).user.id).isEqualTo(1l);
+        assertThat(projectUsers.get(0).user.loginId).isEqualTo("hobi");
+        assertThat(projectUsers.get(0).role.name).isEqualTo("manager");
+    }
 }

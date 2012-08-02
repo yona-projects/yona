@@ -40,6 +40,7 @@ button.excelDownload = Excel
 button.yes = Yes
 button.no = No
 button.popup.exit = x
+button.add = Add
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -101,6 +102,7 @@ project.agreement = User Agreement
 project.name.rule = Naming Rule
 project.info = Project Information
 project.members = Project Members
+project.members.addMember = Add a new member...
 project.member.isManager = The project should have one manager at least.
 project.member.alreadyMember = This user already participated in this project.
 project.sidebar = Project Management

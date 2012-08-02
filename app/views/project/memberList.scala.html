@@ -1,11 +1,11 @@
-@(message: String, members: List[Form[User]], project:Project, roles: List[Role])
+@(message: String, members: List[ProjectUser], project:Project, roles: List[Role])
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
-@memberRole(member: Form[User], userRole: Role) = {
+@memberRole(userRole: String) = {
     @for(role <- roles){
-        <option value="@role.id" @(if(role.equals(userRole)) "selected" else "")>@role.name</option>
+        <option value="@role.id" @(if(role.name.equals(userRole)) "selected" else "")>@role.name</option>
     }
 }
 
@@ -13,16 +13,16 @@
     <table class="table">
         @for(member <- members){
             <tr>
-                <td>@member("loginId").value</td>
+                <td>@member.user.loginId</td>
                 <td>
-	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, project.name)" method="post">
+	                <form action="@routes.ProjectApp.updateMember(member.user.id, project.name)" method="post">
 	                    <select id="role" name="id">
-	                        @memberRole(member, ProjectUser.findRoleByIds(member("id").value.toLong, project.id))
+	                        @memberRole(member.role.name)
 	                    </select>
 	                </form>
                 </td>
                 <td>
-                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, project.name)">탈퇴</a>
+                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member.user.id, project.name)">@Messages("button.delete")</a>
                 </td>
             </tr>
         }
@@ -30,10 +30,10 @@
             <form action="@routes.ProjectApp.addMember(project.name)" method="post" id="addNewMember">
 	            <td colspan="2">
 	                <input type="text" id="loginId" name="loginId" 
-	                placeholder="새로운 맴버의 ID를 입력하세요...">
+	                placeholder="@Messages("project.members.addMember")">
 	            </td>
 	            <td>
-	                <input type="submit" class="btn btn-primary" value="추가">
+	                <input type="submit" class="btn btn-primary" value="@Messages("button.add")">
 	            </td>
             </form>
     </table>

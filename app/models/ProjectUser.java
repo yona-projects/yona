@@ -133,6 +133,15 @@ public class ProjectUser extends Model {
             Long projectId) {
         return Role.findPermissionsById(ProjectUser.findRoleByIds(userId, projectId).id);
     }
+    
+    public static List<ProjectUser> findMemberListByProject(Long projectId) {
+        return find
+            .fetch("user", "loginId")
+            .fetch("role", "name")
+            .where()
+                .eq("project.id", projectId)
+            .findList();
+    }
 
     /**
      * 해당 프로젝트에 최소 1명 이상의 관리자가 남아있는지 확인합니다.

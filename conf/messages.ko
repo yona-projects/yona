@@ -40,6 +40,7 @@ button.excelDownload = Excel
 button.yes = 예
 button.no = 아니요
 button.popup.exit = x
+button.add = 추가
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
@@ -101,6 +102,7 @@ project.agreement = 이용 약관
 project.name.rule = 이름 규칙
 project.info = 프로젝트 정보
 project.members = 프로젝트 인원
+project.members.addMember = 새로운 맴버의 아이디를 입력하세요...
 project.member.isManager = 프로젝트는 최소한 1명 이상의 관리자를 가져야 합니다.
 project.member.alreadyMember = 이미 프로젝트에 가입되어 있는 맴버입니다.
 project.sidebar = 프로젝트 관리
