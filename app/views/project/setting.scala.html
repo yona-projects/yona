@@ -64,6 +64,10 @@
                     '_label -> Messages("project.url"),
                     '_showConstraints -> false
                 )
+                <div class="alert alert-danger hide" id="urlAlert">
+                    <a class="close" data-dismiss="alert">×</a>
+                    <strong>@Messages("project.url.alert")</strong>
+                </div>
             </fieldset>
         </div>
         <div class="row">
@@ -115,6 +119,7 @@
         $(document).ready(function(){
             var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
             var reg_name = /^[a-zA-Z0-9_]*$/;
+            var reg_url = /^http?:\/\//;
             $("input[id='logoPath']").change(function(){
                 if (!reg.test($(this).val())) {
                     $("#logoTypeAlert").show(); 
@@ -127,9 +132,12 @@
                 if(!reg_name.test($("input[id='name']").val())) {
                     $("#nameAlert").show();
                     return false;
-                } else {
-                    return true;
                 }
+                if(!reg_url.test($("input[id='url']").val())) {
+                    $("#urlAlert").show();
+                    return false;
+                }
+                return true;
             });
             
             $("#project_name").popover();
