@@ -1,5 +1,8 @@
 @(title:String, issue:Issue, commentForm:Form[IssueComment], project:Project)
 
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
 @main(Messages(title), project){
 <div class="row">
     <div class="span2 offset10">
@@ -53,9 +56,9 @@
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div class="row">
-	@helper.form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype -> "multipart/form-data"){
-		<div class="span12">@helper.textarea(commentForm("contents"))</div>
-		<div class="span6">@helper.inputFile(commentForm("filePath"))</div>		
+	@form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype -> "multipart/form-data"){
+		<div class="span12">@textarea(commentForm("contents"))</div>
+		<div class="span6">@inputFile(commentForm("filePath"))</div>		
 		<div class="span6"><input class="btn pull-right" type="submit" value=@Messages("button.comment.new")/></div>
 	}
 	</div>
