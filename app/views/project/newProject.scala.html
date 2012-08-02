@@ -21,6 +21,10 @@
                     '_label -> Messages("project.name"),
                     '_help -> Messages("input.mandatory")
                 )
+                <div class="alert alert-danger hide" id="nameAlert">
+                    <a class="close" data-dismiss="alert">×</a>
+                    <strong>@Messages("project.name.alert")</strong>
+                </div>
                 
                 @textarea(
                     newProjectForm("overview"),
@@ -56,20 +60,40 @@
                     '_text -> Messages("project.new.agreement"),
                     '_showConstraints -> false
                       )
+                <div class="alert alert-danger hide" id="acceptAlert">
+                    <a class="close" data-dismiss="alert">×</a>
+                    <strong>@Messages("project.delete.alert")</strong>
+                </div>
             </fieldset>
         </div>
         <div class="row">
             <div class="actions">
-                <center><input type="submit" class="btn btn-primary" value="@Messages("project.create")"></center>
+                <center><input type="submit" class="btn btn-primary" value="@Messages("project.create")" id="save"></center>
             </div>
         </div>
     }
     <script>  
-        window.onload = function(){
+        $(document).ready(function(){
+            var reg_name = /^[a-zA-Z0-9_]*$/;
+            $("#save").click(function() {
+                if(!reg_name.test($("input[id='name']").val())) {
+                    $("#nameAlert").show();
+                    return false;
+                }
+                
+                if($("#accept").is(":not(:checked)")) {
+                    $("#acceptAlert").show();
+                    return false;
+                }
+                
+                return true;
+            });
+                
+            
             $("#project_name").popover();
             $("#share_option_explanation").popover();
             $("#terms").popover();
-        }
+        })
     </script> 
 
     

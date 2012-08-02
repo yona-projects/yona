@@ -5,7 +5,7 @@
 
 
 @projectMngMain(message, projectInst) {
-       @form(action = routes.ProjectApp.saveSetting(projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
+    @form(action = routes.ProjectApp.saveSetting(projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>                
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
@@ -17,6 +17,10 @@
                     '_label -> Messages("project.name"),
                     '_help -> Messages("input.mandatory")
                 )
+                <div class="alert alert-danger hide" id="nameAlert">
+                    <a class="close" data-dismiss="alert">×</a>
+                    <strong>@Messages("project.name.alert")</strong>
+                </div>
                 
                 @textarea(
                     projectForm("overview"),
@@ -40,6 +44,10 @@
                     projectForm("logoPath"),
                     '_label -> Messages("project.logo")
                 )
+                <div class="alert alert-danger hide" id="logoTypeAlert">
+                    <a class="close" data-dismiss="alert">×</a>
+                    <strong>@Messages("project.logo.alert")</strong>
+                </div>
                 
                 <div class="icon-question-sign" href = "#" id="share_option_explanation" rel="popover"
                     data-content="@Messages("project.shareOption.private.description")"
@@ -65,7 +73,10 @@
         </div>
     }
     
-   
+    <div class="alert alert-danger hide" id="deleteAcceptAlert">
+        <a class="close" data-dismiss="alert">×</a>
+        <strong>@Messages("project.delete.alert")</strong>
+    </div>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -105,8 +116,8 @@
             var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
             var reg_name = /^[a-zA-Z0-9_]*$/;
             $("input[id='logoPath']").change(function(){
-                if (!reg.test($(this).val())) { 
-                    alert('@Messages("project.logo.alert")');
+                if (!reg.test($(this).val())) {
+                    $("#logoTypeAlert").show(); 
                     $(this).val('');
                 } else { 
                     return $("form[id='saveSetting']").submit(); 
@@ -114,7 +125,7 @@
             });
             $("#save").click(function() {
                 if(!reg_name.test($("input[id='name']").val())) {
-                    alert('@Messages("project.name.alert")');
+                    $("#nameAlert").show();
                     return false;
                 } else {
                     return true;
@@ -128,7 +139,7 @@
                 if($("#acceptDeletion").is(":checked")) {
                     return true;    
                 }else {
-                    alert('@Messages("project.delete.alert")');
+                    $("#deleteAcceptAlert").show();
                     return false;
                 } 
             });
