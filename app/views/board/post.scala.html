@@ -1,4 +1,4 @@
-@(post:Post, comments:List[Comment], commentForm:Form[Comment],  project:Project)
+@(post:Post, commentForm:Form[Comment],  project:Project)
 
 @main("상세보기", project){
 <div class="row">
@@ -36,7 +36,7 @@
 	</div>
 </div>
 <!-- 여기서 부터 덧글 -->
-@for(comment <-comments){
+@for(comment <-post.comments){
 <hr/>
 <div class="row">
 	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>

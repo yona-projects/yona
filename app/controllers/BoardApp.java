@@ -63,7 +63,7 @@ public class BoardApp extends Controller {
 
     public static Result post(String projectName, Long postId) {
         Post post = Post.findById(postId);
-        List<Comment> comments = Comment.findCommentsByPostId(postId);
+        //List<Comment> comments = Comment.findCommentsByPostId(postId);
         Project project = Project.findByName(projectName);
         if (post == null) {
             return ok(notExsitPage.render("존재하지 않는 게시물", project));
@@ -71,7 +71,7 @@ public class BoardApp extends Controller {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
             Logger.debug(post.author.name);
             
-            return ok(views.html.board.post.render(post, comments, commentForm, project));
+            return ok(views.html.board.post.render(post, commentForm, project));
         }
     }
 

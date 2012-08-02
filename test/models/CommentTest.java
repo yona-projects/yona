@@ -7,6 +7,14 @@ import org.junit.*;
 public class CommentTest extends ModelTest {
 
     @Test
+    public void findById() {
+        // Given
+        // When
+        // Then
+        assertThat(Comment.findById(1l).author.id).isEqualTo(1l);
+    }
+
+    @Test
     public void deleteByPostId() throws Exception {
         // Given
         // When

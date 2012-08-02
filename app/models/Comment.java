@@ -14,17 +14,18 @@ import java.util.List;
 @Entity
 public class Comment extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
-    
+    private static Finder<Long, Comment> find = new Finder<Long, Comment>(
+            Long.class, Comment.class);
+
     @Id
     public Long id;
-    
+
     @Constraints.Required
     public String contents;
-    
+
     @Constraints.Required
     public Date date;
-    
+
     public String filePath;
     @ManyToOne
     public User author;
@@ -35,8 +36,13 @@ public class Comment extends Model {
         date = JodaDateUtil.today();
     }
 
+    public static Comment findById(Long id) {
+        return find.byId(id);
+    }
+
     public static void deleteByPostId(Long postId) {
-        List<Comment> comments = Comment.find.where().eq("post.id", "" + postId).findList();
+        List<Comment> comments = Comment.find.where()
+                .eq("post.id", "" + postId).findList();
         // 루프 돌면서 삭제
         for (Comment comment : comments) {
             comment.delete();
@@ -47,15 +53,11 @@ public class Comment extends Model {
         comment.save();
         return comment.id;
     }
-    
-    public static Comment findById(Long id) {
-    	return find.byId(id);
-    }
 
     public static List<Comment> findCommentsByPostId(Long postId) {
         return find.where().eq("post.id", postId).findList();
     }
-    
+
     public String calcPassTime() {
         // TODO 경계값 검사하면 망할함수. 나중에 라이브러리 쓸예정
         Calendar today = Calendar.getInstance();
@@ -79,6 +81,7 @@ public class Comment extends Model {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
     }
+
     public String authorName() {
         return author.name;
     }

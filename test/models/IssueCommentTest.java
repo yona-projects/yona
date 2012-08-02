@@ -15,14 +15,14 @@ public class IssueCommentTest extends ModelTest {
     }
 
     @Test
-    public void create(){
+    public void create() {
         // Given
         IssueComment issueComment = new IssueComment();
         issueComment.contents = "create() test";
         issueComment.authorId = getTestUser().id;
         issueComment.issue = Issue.findById(1l);
         // When
-        long id =   IssueComment.create(issueComment);
+        long id = IssueComment.create(issueComment);
         // Then
         assertThat(IssueComment.findById(id)).isNotNull();
     }
