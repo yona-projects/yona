@@ -31,6 +31,23 @@ public class ProjectTest extends ModelTest {
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
     }
+    
+    @Test
+    public void findMilestonesById() throws Exception {
+        // Given
+        // When
+        Project sut = Project.findById(1l);
+        // Then
+        assertThat(sut.milestones.size()).isEqualTo(3);
+    }
+    @Test
+    public void findIssuessById() throws Exception {
+        // Given
+        // When
+        Project sut = Project.findById(1l);
+        // Then
+        assertThat(sut.issues.size()).isEqualTo(2);
+    }
 
     @Test
     public void update() throws Exception {
