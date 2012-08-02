@@ -1,8 +1,10 @@
 package models;
 
+import static models.enumeration.IssueState.ASSIGNED;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -23,9 +25,6 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
-
-import static models.enumeration.IssueState.ASSIGNED;
-import static models.enumeration.IssueState.ENROLLED;
 
 /**
  * @author Taehyun Park
@@ -67,7 +66,7 @@ import static models.enumeration.IssueState.ENROLLED;
  *            이슈 상세정보의 브라우저 유형
  * @param dbmsType
  *            이슈 상세정보의 DBMS 유형
- * @param issueComments
+ * @param comments
  *            이슈에 등록된 댓글의 갯수 !코드 리팩토링 예정
  */
 @Entity
@@ -113,12 +112,13 @@ public class Issue extends Model {
     public Project project;
 
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
-    public Set<IssueComment> issueComments;
+    public List<IssueComment> comments = new ArrayList<IssueComment>();
+    
     public int numOfIssueComments;
 
     public Issue() {
         this.date = JodaDateUtil.today();
-        this.numOfIssueComments = issueComments.size();
+        this.numOfIssueComments = comments.size();
     }
 
     /**

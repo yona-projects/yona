@@ -34,7 +34,6 @@ public class IssueComment extends Model {
 
     @Constraints.Required
     public Date date;
-
      
     public Long authorId;
     public String filePath;
@@ -42,9 +41,9 @@ public class IssueComment extends Model {
     public IssueComment() {
         date = JodaDateUtil.today();
     }
-
-    public static List<IssueComment> findCommentsByIssueId(Long issueId) {
-        return find.where().eq("issue.id", issueId).findList();
+        
+    public static IssueComment findById(Long id) {
+    	return find.byId(id);
     }
 
     public static Long create(IssueComment issueComment) {

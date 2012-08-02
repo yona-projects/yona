@@ -1,4 +1,4 @@
-@(title:String, issue:Issue, comments:List[IssueComment], commentForm:Form[IssueComment], project:Project)
+@(title:String, issue:Issue, commentForm:Form[IssueComment], project:Project)
 
 @main(Messages(title), project){
 <div class="row">
@@ -35,7 +35,7 @@
 	</div>
 </div>
 <!-- 여기서 부터 덧글 -->
-@for(comment <-comments){
+@for(comment <- issue.comments){
 <hr/>
 <div class="row">
 	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>

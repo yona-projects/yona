@@ -63,16 +63,13 @@ public class IssueApp extends Controller {
         if (project == null) {
             return notFound();
         }
-        Issue issues = Issue.findById(issueId);
-        List<IssueComment> comments = IssueComment
-                .findCommentsByIssueId(issueId);
-        if (issues == null) {
+        Issue issueInfo = Issue.findById(issueId);
+        if (issueInfo == null) {
             return ok(notExistingPage.render("존재하지 않는 게시물", project));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(
                     IssueComment.class);
-            return ok(issue.render("title.issueDetail", issues, comments, commentForm,
-                    project));
+            return ok(issue.render("title.issueDetail", issueInfo, commentForm, project));
         }
     }
 

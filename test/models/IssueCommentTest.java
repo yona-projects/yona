@@ -2,34 +2,29 @@ package models;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.util.List;
-
 import org.junit.Test;
 
 public class IssueCommentTest extends ModelTest {
 
     @Test
-    public void findCommentsByIssueId() {
+    public void findById() {
         // Given
         // When
-        List<IssueComment> issueCommentTest = IssueComment
-                .findCommentsByIssueId(1l);
         // Then
-        assertThat(issueCommentTest.size()).isEqualTo(1);
-
+        assertThat(IssueComment.findById(1l).authorId).isEqualTo(1l);
     }
 
     @Test
-    public void create(){
+    public void create() {
         // Given
         IssueComment issueComment = new IssueComment();
         issueComment.contents = "create() test";
         issueComment.authorId = getTestUser().id;
         issueComment.issue = Issue.findById(1l);
         // When
-        long id =   IssueComment.create(issueComment);
+        long id = IssueComment.create(issueComment);
         // Then
-        assertThat(IssueComment.findCommentsByIssueId(id)).isNotNull();
+        assertThat(IssueComment.findById(id)).isNotNull();
     }
 
     @Test
@@ -38,7 +33,7 @@ public class IssueCommentTest extends ModelTest {
         // When
         IssueComment.deleteByIssueId(1l);
         // Then
-        assertThat(IssueComment.findCommentsByIssueId(1l)).isEmpty();
+        assertThat(IssueComment.findById(1l)).isNull();
     }
 
 }
