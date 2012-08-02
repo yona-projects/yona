@@ -45,6 +45,15 @@ public class IssueTest extends ModelTest {
     }
 
     @Test
+    public void findCommentsById() throws Exception {
+        // Given
+        // When
+        Issue issueTest = Issue.findById(1l);
+        // Then
+        assertThat(issueTest.comments.size()).isEqualTo(1);
+    }
+    
+    @Test
     public void delete() {
         // Given
         // When
