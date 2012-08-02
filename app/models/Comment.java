@@ -83,4 +83,7 @@ public class Comment extends Model {
             return dTime.get(Calendar.YEAR) + "년 전";
         }
     }
+    public String authorName() {
+        return author.name;
+    }
 }

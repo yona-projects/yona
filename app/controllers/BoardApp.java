@@ -69,6 +69,8 @@ public class BoardApp extends Controller {
             return ok(notExsitPage.render("존재하지 않는 게시물", project));
         } else {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
+            Logger.debug(post.author.name);
+            
             return ok(views.html.board.post.render(post, comments, commentForm, project));
         }
     }
