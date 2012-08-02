@@ -2,29 +2,15 @@ package models;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import utils.Constants;
 
 import javax.persistence.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * @param id
- * @param name
- * @param overview
- *            Project explanation. Not mandatory
- * @param share_option
- *            'True' means it can be shared. 'False' means it cannot be shared.
- * @param vcs
- *            Version Control System. At this moment, there are only two
- *            options: GIT and Subversion.
- * @param url
- *            Project site URL. It should be started with 'http://'.
- * @param owner
- *            The id of the owner of the project.
- * @param logoPath
- *            The file path for a logo
+ * 
  * @author "Hwi Ahn"
  */
 
@@ -33,7 +19,6 @@ public class Project extends Model {
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Project> find = new Finder<Long, Project>(
             Long.class, Project.class);
-    public static final String defaultSiteURL = "http://localhost:9000";
 
     @Id
     public Long id;
@@ -56,24 +41,27 @@ public class Project extends Model {
 
     public static Long create(Project newProject) {
         newProject.save();
-        newProject.url = defaultSiteURL + "/project/"
-                + Long.toString(newProject.id); // Setting a default URL.
+        newProject.url = Constants.DEFAULT_SITE_URL + "/"
+                + newProject.name; // Setting a default URL.
         newProject.update();
         return newProject.id;
     }
 
-    public static Long update(Project updatedProject, Long id) {
-        updatedProject.update(id);
-        return id;
+    public static String update(Project updatedProject, String projectName) {
+        updatedProject.update(Project.findByName(projectName).id);
+        return updatedProject.name;
     }
 
     public static void delete(Long id) {
-
         Project.findById(id).delete();
     }
 
     public static Project findById(Long id) {
         return find.byId(id);
+    }
+
+    public static Project findByName(String name) {
+        return find.where().eq("name", name).findUnique();
     }
 
     public void add(Issue issue) {
@@ -83,9 +71,5 @@ public class Project extends Model {
 
         this.issues.add(issue);
         //issue.project = this;
-    }
-
-    public static Project findByName(String name) {
-        return find.where().eq("name", name).findUnique();
     }
 }

@@ -27,7 +27,7 @@ public class MilestoneApp extends Controller {
                 MilestoneState.getValue(state),
                 sort,
                 Direction.getValue(direction));
-        return ok(list.render("마일스톤 리스트", milestones, projectName, state, sort, direction, project));
+        return ok(list.render("title.milestoneList", milestones, projectName, state, sort, direction, project));
     }
 
     public static Result newMilestone(String projectName) {
@@ -36,7 +36,7 @@ public class MilestoneApp extends Controller {
             return notFound();
         }
 
-        return ok(create.render("새 마일스톤", new Form<Milestone>(Milestone.class), projectName, project));
+        return ok(create.render("title.newMilestone", new Form<Milestone>(Milestone.class), projectName, project));
     }
 
     public static Result createMilestone(String projectName) {
@@ -46,7 +46,7 @@ public class MilestoneApp extends Controller {
             return internalServerError();
         }
         if (milestoneForm.hasErrors()) {
-            return ok(create.render("새 마일스톤", milestoneForm, projectName, project));
+            return ok(create.render("title.newMilestone", milestoneForm, projectName, project));
         } else {
             Milestone newMilestone = milestoneForm.get();
             newMilestone.project = project;
@@ -65,7 +65,7 @@ public class MilestoneApp extends Controller {
                 MilestoneState.ALL,
                 sort,
                 Direction.getValue(direction));
-        return ok(manage.render("마일스톤 관리", milestones, projectName, sort, direction, project));
+        return ok(manage.render("title.milestoneManage", milestones, projectName, sort, direction, project));
     }
 
     public static Result editMilestone(String projectName, Long milestoneId) {
@@ -76,13 +76,13 @@ public class MilestoneApp extends Controller {
 
         Milestone milestone = Milestone.findById(milestoneId);
         Form<Milestone> editForm = new Form<Milestone>(Milestone.class).fill(milestone);
-        return ok(edit.render("마일스톤 수정", editForm, projectName, milestoneId, project));
+        return ok(edit.render("title.editMilestone", editForm, projectName, milestoneId, project));
     }
 
     public static Result updateMilestone(String projectName, Long milestoneId) {
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
         if (milestoneForm.hasErrors()) {
-            return ok(edit.render("마일스톤 수정", milestoneForm, projectName, milestoneId, Project.findByName(projectName)));
+            return ok(edit.render("title.editMilestone", milestoneForm, projectName, milestoneId, Project.findByName(projectName)));
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());

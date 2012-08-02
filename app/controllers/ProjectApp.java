@@ -4,6 +4,8 @@ import models.Project;
 import models.ProjectUser;
 import models.Role;
 import models.User;
+import utils.Constants;
+
 import play.data.Form;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
@@ -12,7 +14,6 @@ import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
-import utils.RoleCheck;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
@@ -26,26 +27,25 @@ import java.util.List;
  * @author "Hwi Ahn"
  */
 public class ProjectApp extends Controller {
-
     public static final String PROJECT_HOME = "프로젝트 홈";
     public static final String NEW_PROJECT = "새 프로젝트 생성";
     public static final String SETTING = "프로젝트 설정";
     public static final String MEMBER_LIST = "맴버";
-    public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
 
-    public static Result project(Long id) {
-        return ok(projectHome.render(PROJECT_HOME, Project.findById(id)));
+    public static Result project(String projectName) {
+        return ok(projectHome.render(PROJECT_HOME,
+                Project.findByName(projectName)));
     }
 
     public static Result newProject() {
         return ok(newProject.render(NEW_PROJECT, form(Project.class)));
     }
 
-    public static Result setting(Long id) {
+    public static Result setting(String projectName) {
         Form<Project> projectForm = form(Project.class).fill(
-                Project.findById(id));
-        return ok(setting
-                .render(SETTING, projectForm, id, Project.findById(id)));
+                Project.findByName(projectName));
+        return ok(setting.render(SETTING, projectForm,
+                Project.findByName(projectName)));
     }
 
     public static Result saveProject() throws IOException {
@@ -61,9 +61,8 @@ public class ProjectApp extends Controller {
                     filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
-            Long newProjectId = Project.create(project);
-            RoleCheck.roleGrant(UserApp.currentUser().id, "manager",
-                    newProjectId);
+            ProjectUser.assignRole(UserApp.currentUser().id,
+                    Project.create(project), Role.MANAGER);
 
             // create Repository
             if (project.vcs.equals("GIT")) {
@@ -76,11 +75,11 @@ public class ProjectApp extends Controller {
                 throw new UnsupportedOperationException("only support git!");
             }
 
-            return redirect(routes.ProjectApp.project(newProjectId));
+            return redirect(routes.ProjectApp.project(project.name));
         }
     }
 
-    public static Result saveSetting(Long id) {
+    public static Result saveSetting(String projectName) {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
@@ -101,70 +100,80 @@ public class ProjectApp extends Controller {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File(DEFAULT_LOGO_PATH + Long.toString(id)
-                        + string);
+                File file = new File(Constants.DEFAULT_LOGO_PATH + projectName + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
 
-                project.logoPath = Long.toString(id) + string;
+                project.logoPath = projectName + string;
             }
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render(SETTING, filledUpdatedProjectForm,
-                    id, Project.findById(id)));
+                    Project.findByName(projectName)));
         } else {
             return redirect(routes.ProjectApp.setting(Project.update(project,
-                    id)));
+                    projectName)));
         }
     }
 
-    public static Result deleteProject(Long id) {
-        Project.delete(id);
+    public static Result deleteProject(String projectName) {
+        Project.delete(Project.findByName(projectName).id);
         return redirect(routes.Application.index());
     }
 
-    public static Result memberList(Long id, boolean noError) {
-        List<User> users = ProjectUser.findUsersByProject(id);
+    public static Result memberList(String projectName) {
+        Project project = Project.findByName(projectName);
+        List<User> users = ProjectUser.findUsersByProject(project.id);
         List<Form<User>> usersList = new ArrayList<Form<User>>();
         for (User user : users) {
             usersList.add(form(User.class).fill(user));
         }
-        return ok(memberList.render(MEMBER_LIST, usersList, id,
-                Project.findById(id), Role.getAllProjectRoles(), noError));
+        return ok(memberList.render(MEMBER_LIST, usersList, project,
+                Role.getAllProjectRoles()));
     }
 
-    public static Result addMember(Long id) {
+    public static Result addMember(String projectName) {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        ProjectUser.create(user.id, id, Role.findByName("member").id);
-        return redirect(routes.ProjectApp.memberList(id, true));
+        Project project = Project.findByName(projectName);
+        if(!ProjectUser.isMember(user.id, project.id))
+            ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
+        else
+            flash(Constants.WARNING, "project.member.alreadyMember");
+        return redirect(routes.ProjectApp.memberList(projectName));
     }
 
-    public static Result deleteMember(Long userId, Long projectId) {
-        if(isManager(userId, projectId)) {
+    public static Result deleteMember(Long userId, String projectName) {
+        Long projectId = Project.findByName(projectName).id;
+        if (isManager(userId, projectId)) {
             ProjectUser.delete(userId, projectId);
-            return redirect(routes.ProjectApp.memberList(projectId, true));
-        } else 
-            return redirect(routes.ProjectApp.memberList(projectId, false));
-        
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.memberList(projectName));
+        }
     }
 
-    public static Result updateMember(Long userId, Long projectId) {
-        if(isManager(userId, projectId)) {
-            ProjectUser.update(userId, projectId, form(Role.class).bindFromRequest()
-                    .get().id);
-            return redirect(routes.ProjectApp.memberList(projectId, true));
-        } else
-            return redirect(routes.ProjectApp.memberList(projectId, false));
-        
+    public static Result updateMember(Long userId, String projectName) {
+        Long projectId = Project.findByName(projectName).id;
+        if (isManager(userId, projectId)) {
+             ProjectUser.assignRole(userId, projectId,
+             form(Role.class).bindFromRequest()
+             .get().id);
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.memberList(projectName));
+        } 
     }
-    
+
     public static boolean isManager(Long userId, Long projectId) {
-        if(ProjectUser.findByIds(userId, projectId).role.id.equals(1l))
+        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
             return ProjectUser.isManager(projectId);
         else
             return true;
+        
     }
 }

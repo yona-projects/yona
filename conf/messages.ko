@@ -1,0 +1,119 @@
+# Messages
+
+title.newIssue = 새 이슈
+title.issueList = 이슈 목록
+title.issueDetail = 이슈 상세조회
+title.newMilestone = 새 마일스톤
+title.milestoneList = 마일스톤 리스트
+title.editMilestone = 마일스톤 수정
+title.milestoneManage = 마일스톤 관리
+
+menu.home = 홈
+menu.board = 게시판
+menu.code = 코드
+menu.issue = 이슈
+menu.wiki = 위키
+menu.admin = 프로젝트 관리
+
+label.title = 제목
+label.contents = 내용
+label.state = 상태
+label.assignee = 담당자
+label.date = 작성일
+label.id = #
+
+button.save = 저장
+button.confirm = 확인
+button.cancel = 취소
+button.reset = 다시쓰기
+button.edit = 수정
+button.delete = 삭제
+button.list = 목록
+button.selectFile = 파일 선택
+button.comment.new = 댓글 입력
+button.autoNotification = 자동알림
+button.excelDownload = Excel
+button.yes = 예
+button.no = 아니요
+button.popup.exit = x
+
+checkbox.commented = 댓글
+checkbox.fileAttached = 첨부파일
+
+input.mandatory = 필수 입력 사항
+input.optional = 선택 입력 사항
+
+#Milestone
+milestone.state.all = 전체
+milestone.state.open = 미완료
+milestone.state.closed = 완료
+milestone.is.empty = 등록된 마일스톤이 없습니다.
+milestone.menu.manage = 마일스톤 관리
+milestone.menu.new = 새 마일스톤
+
+#Issue
+issue.stateType.all = 전체
+issue.stateType.open = 미해결
+issue.stateType.closed = 해결
+issue.is.empty = 등록된 이슈가 없습니다. 
+issue.menu.searchDefault = 이슈 검색
+issue.menu.milestoneSelectDefault = 마일스톤 선택
+issue.menu.new = 새 이슈
+issue.new.detailInfo = 세부정보
+issue.new.detailInfo.issueType = 유형
+issue.new.detailInfo.assignee = 담당자
+issue.new.detailInfo.component = 컴포넌트
+issue.new.detailInfo.milestone = 마일스톤
+issue.new.environment = 환경
+issue.new.environment.osType = 운영체제
+issue.new.environment.browserType = 브라우져
+issue.new.environment.dbmsType = DBMS
+issue.new.result = 확인결과
+issue.new.result.importance = 중요도
+issue.new.result.diagnosisResult = 진단 결과
+issue.no.assignee = 미배정
+issue.delete.window = 이슈 삭제
+
+#Post
+post.new.title = 제목
+post.menu.search = 검색
+post.delete.confirm = 해당 게시물이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
+post.new.fileAttach = 첨부파일
+post.popup.fileAttach.title = 첨부파일 선택
+post.popup.fileAttach.contents = 첨부할 파일을 선택해주세요.
+
+#Project
+project.create = 프로젝트 생성
+project.name = 프로젝트 이름
+project.name.alert = 특수문자 및 한글은 이름에 사용될 수 없습니다.
+project.description = 설명
+project.shareOption = 공개 설정
+project.shareOption.public = 공개
+project.shareOption.private = 비공개
+project.shareOption.private.description = 비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼수 있습니다.
+project.vcs = 코드관리시스템
+project.new.agreement = 본인은 약관에 대한 안내를 읽었으며 동의합니다.
+project.agreement = 이용 약관
+project.name.rule = 이름 규칙
+project.info = 프로젝트 정보
+project.members = 프로젝트 인원
+project.member.isManager = 프로젝트는 최소한 1명 이상의 관리자를 가져야 합니다.
+project.member.alreadyMember = 이미 프로젝트에 가입되어 있는 맴버입니다.
+project.sidebar = 프로젝트 관리
+project.sidebar.setting = 설정
+project.sidebar.memberList = 맴버
+project.sidebar.milestone = 마일스톤
+project.sidebar.plugin = 플러그인
+project.sidebar.help = 도움말
+project.logo.type = 파일형식: bmp, jpg, gif, png
+project.logo.fileSize = 파일크기: 1.00 MB 이하
+project.logo.size = 사이즈: 234px * 168px
+project.logo = 로고
+project.logo.alert = 이미지 파일이 아닙니다.
+project.url = 사이트 주소
+project.delete = 프로젝트 삭제
+project.delete.description = 프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다.
+project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
+project.delete.requestion = 프로젝트를 삭제하시겠습니까?
+project.delete.reaccept = 정말로 삭제하시겠습니까?
+project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.

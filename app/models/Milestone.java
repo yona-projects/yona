@@ -29,15 +29,20 @@ public class Milestone extends Model {
     private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
             Long.class, Milestone.class);
     public static String DEFAULT_SORTER = "dueDate";
+
     @Id
     public Long id;
+
     @Constraints.Required
     public String title;
+
     @Constraints.Required
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
+
     @Constraints.Required
     public String contents;
+
     public int numClosedIssues;
     public int numOpenIssues;
     public int numTotalIssues;
@@ -52,13 +57,15 @@ public class Milestone extends Model {
     public static void update(Milestone milestone, Long id) {
         int completionRate = 0;
         if (milestone.numTotalIssues != 0) {
-            double closedIssueCount = new Double(milestone.numClosedIssues);
-            double numTotalIssues = new Double(milestone.numTotalIssues);
-            completionRate = new Double(
-                    (closedIssueCount / numTotalIssues) * 100).intValue();
+            completionRate =
+                calculateCompletionRate(milestone.numTotalIssues, milestone.numClosedIssues);
         }
         milestone.completionRate = completionRate;
         milestone.update(id);
+    }
+
+    private static int calculateCompletionRate(int numTotalIssues, int numClosedIssues) {
+        return new Double(((double)numClosedIssues / (double)numTotalIssues) * 100).intValue();
     }
 
     public static void delete(Long id) {
@@ -168,7 +175,27 @@ public class Milestone extends Model {
     }
 
     public void add(Issue issue) {
-        issue.milestone = this;
-        issue.save();
+        this.numTotalIssues += 1;
+        if(issue.isOpen()) {
+            this.numOpenIssues += 1;
+        }else {
+            this.numClosedIssues += 1;
+        }
+        this._save();
+    }
+
+    public void delete(Issue issue) {
+        this.numTotalIssues -= 1;
+        if(issue.isOpen()) {
+            this.numOpenIssues -= 1;
+        }else {
+            this.numClosedIssues -= 1;
+        }
+        this._save();
+    }
+
+    private void _save() {
+        this.completionRate = calculateCompletionRate(this.numTotalIssues, this.numClosedIssues);
+        this.save();
     }
 }

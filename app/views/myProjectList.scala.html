@@ -1,8 +1,6 @@
 @if(session.contains("userId")){
     @for(singleProject <- ProjectUser.findProjectsByOwner(session.get("userId").toLong)){
-        <li><a href="@routes.ProjectApp.project(singleProject.id)">@singleProject.name</a></li>
+        <li><a href="@routes.ProjectApp.project(singleProject.name)">@singleProject.name</a></li>
     }
-}else {
-    <li>Login to see your projects</li>
 }
-<li><a href="@routes.ProjectApp.project(4l)">CUBRID *Test*</a></li>
+<li><a href="@routes.ProjectApp.project("CUBRID")>CUBRID *Test*</a></li>

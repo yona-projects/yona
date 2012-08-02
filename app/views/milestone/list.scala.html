@@ -1,4 +1,4 @@
-@(message: String, milestones: List[models.Milestone], projectName: String, state: String, sort: String, direction: String, projectInst:Project)
+@(title: String, milestones: List[models.Milestone], projectName: String, state: String, sort: String, direction: String, projectInst:Project)
 @makeSortLink(_sort:String) = @{
     var _direction = "asc";
     if(sort.equals(_sort)) {
@@ -21,27 +21,27 @@
         }
     }
 }
--@project.projectMngMain(message, projectInst) {
+@project.projectMngMain(Messages(title), projectInst) {
     <div>
         <div style="position: relative;">
             <ul class="nav nav-tabs" id="milestone_list">
                 <li class="@if(state.equals("all")){active}">
-                <a href="@routes.MilestoneApp.milestones(projectName,"all")">전체</a>
+                <a href="@routes.MilestoneApp.milestones(projectName,"all")">@Messages("milestone.state.all")</a>
                 </li>
                 <li class="@if(state.equals("open")){active}">
-                <a href="@routes.MilestoneApp.milestones(projectName,"open")">미완료</a>
+                <a href="@routes.MilestoneApp.milestones(projectName,"open")">@Messages("milestone.state.open")</a>
                 </li>
                 <li class="@if(state.equals("closed")){active}">
-                <a href="@routes.MilestoneApp.milestones(projectName,"closed")">완료</a>
+                <a href="@routes.MilestoneApp.milestones(projectName,"closed")">@Messages("milestone.state.closed")</a>
                 </li>
             </ul>
             <div style="position: absolute; top: 10px; right: 0;">
-                <a href="@makeSortLink("dueDate")">완료일순 @sortMark("dueDate")</a>
-                <a href="@makeSortLink("completionRate")">완료율순 @sortMark("completionRate")</a>
+                <a href="@makeSortLink("dueDate")">@Messages("sort.by.dueDate") @sortMark("dueDate")</a>
+                <a href="@makeSortLink("completionRate")">@Messages("sort.by.completionRate")@sortMark("completionRate")</a>
             </div>
         </div>
     @if(milestones == null || milestones.isEmpty()){
-        <p>등록된 마일스톤이 없습니다.</p>
+        <p>@Messages("milestone.is.empty")</p>
     }else{
     <table class="table">
         <tbody>
@@ -49,12 +49,12 @@
             <tr>
                 <td>
                     <h3><a href="@makeIssuesLink(milestone.id,"all")">@milestone.title</a><br /></h3>
-                    완료일 @milestone.getDueDateString<br />
+                    @Messages("label.dueDate") @milestone.getDueDateString<br />
                     @milestone.contents
                 </td>
                 <td>
-                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a><span>해결</span>
-                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>미해결</span>
+                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a><span>@Messages("issue.state.closed")</span>
+                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>@Messages("issue.state.open")</span>
                     <div class="progress">
                         <div class="bar" style="width: @milestone.completionRate%;"></div>
                     </div>
@@ -65,7 +65,7 @@
     </table>
     </div>
     <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.manageMilestones(projectName)" >마일스톤 관리</a>
+        <a class="btn btn-primary" href="@routes.MilestoneApp.manageMilestones(projectName)" >@Messages("milestone.menu.manage")</a>
     </div>
     }
 }

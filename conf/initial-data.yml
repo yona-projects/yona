@@ -24,25 +24,19 @@ projects:
         overview:       nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
         share_option:   true
         vcs:            GIT
-        url:            http://localhost:9000/project/1
+        url:            http://localhost:9000/nForge4java
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
-        url:            http://localhost:9000/project/2
-    - !!models.Project
-        name:           네이버 나눔고딕 코딩글꼴
-        overview:       나눔고딕코딩체는 지난 2008년 10월 9일 발표된 나눔고딕을 바탕으로 개발자들의 코딩 환경에 최적화시킨 글꼴입니다.
-        share_option:   false
-        vcs:            GIT
-        url:            http://localhost:9000/project/3
+        url:            http://localhost:9000/Jindo
     - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
         vcs:            GIT
-        url:            http://localhost:9000/project/4        
+        url:            http://localhost:9000/CUBRID 
 
 # Board
 posts:
@@ -63,53 +57,90 @@ comments:
                             id: 1
         post:           !!models.Post
                             id: 1
+
         
 # Issues
 issues:
     - !!models.Issue
-        reporter:       !!models.User
-                            id: 1
+        reporterId:     1       
+        assigneeId:     1
         title:          불필요한 로그 출력 코드 제거
         body:           내용 불필요한~
         state:          ENROLLED
         stateType:      OPEN
-        commentCount:   1
+        milestoneId:    1
+        numOfIssueComments:   1
         project:        !!models.Project
                             id: 1
         filePath:       http://localhost:9000/project/1/issue23/capture.jpg
     - !!models.Issue
-        reporter:       !!models.User
-                            id: 2
+        reporterId:     2
         title:          다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         state:          ASSIGNED
         stateType:      OPEN
+        milestoneId:    2
         project:        !!models.Project
                             id: 2
     - !!models.Issue
-        reporter:       !!models.User
-                            id: 3
+        reporterId:     3
         title:          gittracker.php의 메모리 제한 에러
         body:           내용 gittracker.php의 메모리 제한 에러
         state:          SOLVED
         stateType:      CLOSED
+        milestoneId:    2
         project:        !!models.Project
                             id: 1
     - !!models.Issue
-        reporter:       !!models.User
-                            id: 3
+        reporterId:     3
         title:          git/hg 코드 브라우저에 i18n이 적용되지 않음
         body:           내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         state:          FINISHED
         stateType:      CLOSED
+        milestoneId:    2
         project:        !!models.Project
                             id: 2
+    - !!models.Issue
+        reporterId:     3
+        title:          CUBRID 설치 문제
+        body:           IOS는 설치 못하나요?
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    0
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        reporterId:     3
+        title:          메모리 누수 현상
+        body:           메모리가 너무 누수가 되는듯.
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    9
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        reporterId:     3
+        title:          Client application for Mac.
+        body:           Please make it.
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    8
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        reporterId:     3
+        title:          CPU 무한 점유울 문제.
+        body:           CPU를 무한사용 중이에요.
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    8
+        project:        !!models.Project
+                            id: 3
         
 issueComments:
     - !!models.IssueComment
         contents:       코드를 수정했습니다
-        author:         !!models.User
-                            id: 1
+        authorId:       1
         issue:          !!models.Issue
                             id: 1
         
@@ -185,95 +216,222 @@ milestones:
         completionRate:  33
         project:         !!models.Project
                              id: 1
+    - !!models.Milestone
+        title:           v.0.1
+        dueDate:         2012-12-31 10:59:59
+        contents:        CUBRID v.0.1
+        numClosedIssues: 0
+        numOpenIssues:   0
+        numTotalIssues:  0
+        completionRate:  0
+        project:         !!models.Project
+                             id: 3
+    - !!models.Milestone
+        title:           v.0.2
+        dueDate:         2013-11-09 10:59:59
+        contents:        CUBRID v.0.2
+        numClosedIssues: 1
+        numOpenIssues:   0
+        numTotalIssues:  1
+        completionRate:  0
+        project:         !!models.Project
+                             id: 3
 
 # Permission
 permissions:
     - !!models.Permission
-        name:   board
+        resource:   board
+        operation:  read
     - !!models.Permission
-        name:   issue
+        resource:   board
+        operation:  write
     - !!models.Permission
-        name:   milestone
+        resource:   issue
+        operation:  read  
     - !!models.Permission
-        name:   project.setting
+        resource:   issue
+        operation:  write
     - !!models.Permission
-        name:   site.setting
+        resource:   milestone
+        operation:  read   
     - !!models.Permission
-        name:   code            
-            
+        resource:   milestone
+        operation:  write
+    - !!models.Permission
+        resource:   code
+        operation:  read
+    - !!models.Permission
+        resource:   code
+        operation:  write
+    - !!models.Permission
+        resource:   wiki
+        operation:  read
+    - !!models.Permission
+        resource:   wiki
+        operation:  write
+    - !!models.Permission
+        resource:   project
+        operation:  setting
+    - !!models.Permission
+        resource:   site
+        operation:  setting
+                    
 # Role
 roles:
     - !!models.Role
         name:           manager
-        permissions:
-            - !!models.Permission
-                id:     1
-            - !!models.Permission
-                id:     2
-            - !!models.Permission
-                id:     3
-            - !!models.Permission
-                id:     4
-            - !!models.Permission
-                id:     6                
     - !!models.Role
         name:           member
-        permissions:
-            - !!models.Permission
-                id:     1
-            - !!models.Permission
-                id:     2
-            - !!models.Permission
-                id:     3
-            - !!models.Permission
-                id:     6                 
     - !!models.Role
         name:           siteManager
-        permissions:
-            - !!models.Permission
-                id:     5
+
+# RolePermission
+rolePermissions:
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 1
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 2
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 3
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 4
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 5
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 6
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 7
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 8
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 9
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 10
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 1
+        permission: !!models.Permission
+                        id: 11
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 1
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 2
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 3
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 4
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 5
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 6
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 7
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 8
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 9
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 2
+        permission: !!models.Permission
+                        id: 10
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 12  
 
 # ProjectUser
 projectUsers:
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 1
-        project:    !!models.Project
-                        id: 1
-        role:       !!models.Role
-                        id: 1
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 1
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 1
-        project:    !!models.Project
-                        id: 2
-        role:       !!models.Role
-                        id: 1                        
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 2
+        role:           !!models.Role
+                            id: 2
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 2
-        project:    !!models.Project
-                        id: 1
-        role:       !!models.Role
-                        id: 2
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 2
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 1
-        project:    !!models.Project
-                        id: 3
-        role:       !!models.Role
-                        id: 2                        
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 2
+        role:           !!models.Role
+                            id: 1
     - !!models.ProjectUser
-        user:       !!models.User
-                        id: 3
-        project:    !!models.Project
-                        id: 3
-        role:       !!models.Role
-                        id: 1
-    - !!models.ProjectUser
-        user:       !!models.User
-                        id: 3
-        project:    !!models.Project
-                        id: 4
-        role:       !!models.Role
-                        id: 1
+        user:           !!models.User
+                            id: 3
+        project:        !!models.Project
+                            id: 3
+        role:           !!models.Role
+                            id: 1

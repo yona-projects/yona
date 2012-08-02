@@ -4,12 +4,12 @@
 
 @main(title, project) {
     @helper.form(action=routes.MilestoneApp.createMilestone(projectName)){
-        @helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
-        @helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
-        @helper.input(form("dueDate"), '_showConstraints -> false, '_label->"완료일") { (id, name, value, args) =>
+        @helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("label.title"))
+        @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("label.contents"))
+        @helper.input(form("dueDate"), '_showConstraints -> false, '_label-> Messages("label.dueDate")) { (id, name, value, args) =>
             <input type="text" name="@name" value="@value" id="dueDate" />
         }
-        <a href="@routes.MilestoneApp.manageMilestones(projectName)" class="btn">취소</a>
-        <input type="submit" class="btn btn-primary" value="추가"/>
+        <a href="@routes.MilestoneApp.manageMilestones(projectName)" class="btn">@Messages("button.cancel")</a>
+        <input type="submit" class="btn btn-primary" value="@Messages("button.add")"/>
     }
 }

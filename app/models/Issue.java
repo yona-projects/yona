@@ -1,6 +1,15 @@
 package models;
 
-import com.avaje.ebean.Page;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import models.enumeration.IssueStateType;
@@ -13,10 +22,10 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import javax.persistence.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.avaje.ebean.Page;
+
+import static models.enumeration.IssueState.ASSIGNED;
+import static models.enumeration.IssueState.ENROLLED;
 
 /**
  * @author Taehyun Park
@@ -29,9 +38,9 @@ import java.util.Set;
  * @param body
  *            이슈 내용
  * @param status
- *            이슈 상태(등록, 진행중, 해결, 닫힘), !코드 리팩토링 대상
+ *            이슈 상태(등록, 진행중, 해결, 닫힘)
  * @param statusType
- *            이슈 상태, !코드 리팩토링 대상
+ *            이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
  * @param date
  *            등록된 날짜
  * @param reporter
@@ -75,14 +84,21 @@ public class Issue extends Model {
 
     @Id
     public Long id;
+
     @Constraints.Required
     public String title;
+
     @Constraints.Required
     public String body;
-    public IssueState state;
-    public IssueStateType stateType;
+
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date date;
+
+    public String milestoneId;
+    public Long assigneeId;
+    public Long reporterId;
+    public IssueState state;
+    public IssueStateType stateType;
     public String issueType;
     public String componentName;
     // TODO 첨부 파일이 여러개인경우는?
@@ -92,20 +108,17 @@ public class Issue extends Model {
     public String dbmsType;
     public String importance;
     public String diagnosisResult;
+
     @ManyToOne
     public Project project;
-    @ManyToOne
-    public User reporter;
-    @ManyToOne
-    public User assignee;
-    @ManyToOne
-    public Milestone milestone;
+
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public Set<IssueComment> issueComments;
-    public int commentCount;
+    public int numOfIssueComments;
 
     public Issue() {
         this.date = JodaDateUtil.today();
+        this.numOfIssueComments = issueComments.size();
     }
 
     /**
@@ -114,7 +127,7 @@ public class Issue extends Model {
      * @return
      */
     public String state() {
-        if (this.state == IssueState.ASSIGNED) {
+        if (this.state == ASSIGNED) {
             return "진행중";
         } else if (this.state == IssueState.SOLVED) {
             return "해결";
@@ -125,14 +138,13 @@ public class Issue extends Model {
     }
 
     /**
-     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다. !!! 코드 리팩토링 대상
+     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다.
      * 
      * @param status
      */
 
     public void updateStatusType(IssueState state) {
-        if (this.state == IssueState.ASSIGNED
-                || this.state == IssueState.ENROLLED) {
+        if (this.state == ASSIGNED || this.state == IssueState.ENROLLED) {
             this.stateType = IssueStateType.OPEN;
         } else if (this.state == IssueState.SOLVED
                 || this.state == IssueState.FINISHED) {
@@ -148,6 +160,11 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
+        if (issue.milestoneId != "none") {
+            Milestone milestone = Milestone.findById(Long
+                    .valueOf(issue.milestoneId));
+            milestone.add(issue);
+        }
         return issue.id;
     }
 
@@ -157,7 +174,13 @@ public class Issue extends Model {
      * @param id
      */
     public static void delete(Long id) {
-        find.ref(id).delete();
+        Issue issue = find.byId(id);
+        if (issue.milestoneId != "none") {
+            Milestone milestone = Milestone.findById(Long
+                    .valueOf(issue.milestoneId));
+            milestone.delete(issue);
+        }
+        issue.delete();
         IssueComment.deleteByIssueId(id);
     }
 
@@ -172,7 +195,7 @@ public class Issue extends Model {
     }
 
     /**
-     * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 찾아준다..
+     * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 찾아준다.
      * 
      * @param projectName
      * @return
@@ -191,7 +214,7 @@ public class Issue extends Model {
     public static Page<Issue> findIssues(String projectName,
             IssueStateType state) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
-                DEFAULT_SORTER, Direction.DESC, "", false, false);
+                DEFAULT_SORTER, Direction.DESC, "", "none", false, false);
     }
 
     /**
@@ -208,7 +231,7 @@ public class Issue extends Model {
             String filter, IssueStateType state, boolean commentedCheck,
             boolean fileAttachedCheck) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state,
-                DEFAULT_SORTER, Direction.DESC, filter, commentedCheck,
+                DEFAULT_SORTER, Direction.DESC, filter, "none", commentedCheck,
                 fileAttachedCheck);
     }
 
@@ -222,7 +245,7 @@ public class Issue extends Model {
     public static Page<Issue> findCommentedIssues(String projectName,
             String filter) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, filter, true, false);
+                DEFAULT_SORTER, Direction.DESC, filter, "none", true, false);
     }
 
     /**
@@ -236,7 +259,13 @@ public class Issue extends Model {
     public static Page<Issue> findFileAttachedIssues(String projectName,
             String filter) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, filter, false, true);
+                DEFAULT_SORTER, Direction.DESC, filter, "none", false, true);
+    }
+
+    public static Page<Issue> findIssuesByMilestoneId(String projectName,
+            String milestoneId) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
+                DEFAULT_SORTER, Direction.DESC, "", milestoneId, false, false);
     }
 
     /**
@@ -264,15 +293,19 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssues(String projectName, int pageNumber,
             IssueStateType state, String sortBy, Direction order,
-            String filter, boolean commentedCheck, boolean fileAttachedCheck) {
+            String filter, String milestone, boolean commentedCheck,
+            boolean fileAttachedCheck) {
 
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name",
                 projectName, Matching.EQUALS);
         searchParams.add("title", filter, Matching.CONTAINS);
-
+        if (!milestone.equals("none")) {
+            searchParams.add("milestoneId", Long.valueOf(milestone),
+                    Matching.EQUALS); 
+        }
         if (commentedCheck) {
-            searchParams.add("commentCount", 1, Matching.GE);
+            searchParams.add("numOfIssueComments", 1, Matching.GE);
         }
         if (fileAttachedCheck) {
             searchParams.add("filePath", "", Matching.NOT_EQUALS);
@@ -304,26 +337,38 @@ public class Issue extends Model {
     }
 
     /**
-     * 이슈에 대한 댓글이 달렸을 경우, 코멘트의 갯수를 올려준다. 하지만 코드 리팩토리 대상
-     * 
-     * @param issue
-     */
-
-    public static void countUpCommentCounter(Issue issue) {
-        issue.commentCount++;
-        issue.update();
-    }
-
-    /**
      * 이슈 상세 조회시에, 이슈에 달린 코멘트를 제공한다.
      * 
      * @param issueComment
      */
     public void addIssueComment(IssueComment issueComment) {
-        if (this.issueComments == null) {
-            this.issueComments = new HashSet<IssueComment>();
-        }
-        this.issueComments.add(issueComment);
-        issueComment.issue = this;
+
+        issueComment.save();
+
     }
+
+    public static Long findAssigneeIdByIssueId(Long projectId, Long issueId) {
+        return find.where().eq("id", issueId).findUnique().assigneeId;
+    }
+
+    /**
+     * 이슈의 오픈 상태를 확인한다.
+     * @return boolean
+     */
+    public boolean isOpen() {
+        return IssueStateType.OPEN.equals(this.stateType);
+    }
+
+    /**
+     * 해당 마일스톤아이디로 관련 이슈를 검색한다.
+     * @param milestoneId
+     * @return
+     */
+    public static List<Issue> findByMilestoneId(Long milestoneId) {
+        SearchParams searchParams = new SearchParams()
+            .add("milestoneId", milestoneId, Matching.EQUALS);
+
+        return FinderTemplate.findBy(null, searchParams ,find);
+    }
+
 }

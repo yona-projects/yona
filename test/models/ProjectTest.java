@@ -38,7 +38,7 @@ public class ProjectTest extends ModelTest {
         Project prj = new Project();
         prj.name = "modifiedProjectName";
         // When
-        Project.update(prj, 1l);
+        Project.update(prj,"nForge4java");
         // Then
         Project actualProject = Project.findById(1l);
 
@@ -65,7 +65,7 @@ public class ProjectTest extends ModelTest {
         assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
         assertThat(project.share_option).isEqualTo(true);
         assertThat(project.vcs).isEqualTo("GIT");
-        assertThat(project.url).isEqualTo("http://localhost:9000/project/1");
+        assertThat(project.url).isEqualTo("http://localhost:9000/nForge4java");
       
     }
 }

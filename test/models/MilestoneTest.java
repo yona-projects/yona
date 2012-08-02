@@ -220,14 +220,12 @@ public class MilestoneTest extends ModelTest {
     public void addIssue() throws Exception {
         // GIVEN
         // WHEN
-        Milestone m1 = Milestone.findById(1l);
+        Milestone m1 = Milestone.findById(8l);
         Issue issue1 = Issue.findById(1l);
+        int totalNumber = m1.numTotalIssues;
         m1.add(issue1);
 
         // THEN
-        assertThat(issue1.milestone).isEqualTo(m1);
-
-        issue1 = Issue.findById(1l);
-        assertThat(issue1.milestone).isEqualTo(m1);
+        assertThat(m1.numTotalIssues).isEqualTo(totalNumber+1);
     }
 }

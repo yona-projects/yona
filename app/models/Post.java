@@ -102,7 +102,8 @@ public class Post extends Model {
         Comment.deleteByPostId(id);
     }
 
-    public static void countUpCommentCounter(Post post) {
+    public static void countUpCommentCounter(Long id) {
+    	Post post = find.ref(id);
         post.commentCount++;
         post.update();
     }

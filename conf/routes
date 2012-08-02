@@ -3,13 +3,13 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index()
+GET     /                                   controllers.Application.index()
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file                       controllers.Assets.at(path="/public", file)
 
 # User
-GET     /users/login                controllers.UserApp.login()
+GET     /users/login                        controllers.UserApp.login()
 
 # Boards
 GET     /:projectName/boardList             controllers.BoardApp.boardList(projectName:String)
@@ -22,40 +22,39 @@ GET     /:projectName/boards/:id/edit       controllers.BoardApp.editPost(projec
 POST    /:projectName/boards/:id/edit       controllers.BoardApp.updatePost(projectName:String, id:Long)
 
 # Projects
-GET	    /projects/new                   controllers.ProjectApp.newProject()
-POST    /projects/new                   controllers.ProjectApp.saveProject()
-GET     /project/:id                    controllers.ProjectApp.project(id:Long)
-GET     /project/:id/setting            controllers.ProjectApp.setting(id:Long)
-POST    /project/:id/setting   	        controllers.ProjectApp.saveSetting(id:Long)
-GET     /project/:id/delete    	        controllers.ProjectApp.deleteProject(id:Long)
-GET     /project/:id/memberList         controllers.ProjectApp.memberList(id:Long, noError:Boolean ?= true)
-POST    /project/:id/memberList         controllers.ProjectApp.updateMember(userId:Long, id:Long)
-POST    /project/:id/addMember          controllers.ProjectApp.addMember(id:Long)
-GET     /project/:id/deleteMember       controllers.ProjectApp.deleteMember(userId:Long, id:Long)
+GET	    /projects/new                       controllers.ProjectApp.newProject()
+POST    /projects/new                       controllers.ProjectApp.saveProject()
+GET     /:projectName                       controllers.ProjectApp.project(projectName:String)
+GET     /:projectName/setting               controllers.ProjectApp.setting(projectName:String)
+POST    /:projectName/setting   	          controllers.ProjectApp.saveSetting(projectName:String)
+GET     /:projectName/delete    	          controllers.ProjectApp.deleteProject(projectName:String)
+GET     /:projectName/memberList            controllers.ProjectApp.memberList(projectName:String)
+POST    /:projectName/memberList            controllers.ProjectApp.updateMember(userId:Long, projectName:String)
+POST    /:projectName/addMember             controllers.ProjectApp.addMember(projectName:String)
+GET     /:projectName/deleteMember          controllers.ProjectApp.deleteMember(userId:Long, projectName:String)
 
-#Milestones
+# Milestones
 GET     /:projectName/milestones            controllers.MilestoneApp.milestones(projectName:String, state ?= "open", sort ?= "dueDate", direction ?= "asc")
 GET     /:projectName/milestones/manage     controllers.MilestoneApp.manageMilestones(projectName:String, sort ?= "dueDate", direction ?= "asc")
-GET		/:projectName/milestones/new        controllers.MilestoneApp.newMilestone(projectName:String)
-POST	/:projectName/milestones/new		controllers.MilestoneApp.createMilestone(projectName:String)
-POST	/:projectName/milestones/:id/save	controllers.MilestoneApp.updateMilestone(projectName:String, id: Long)
-GET		/:projectName/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(projectName:String, id: Long)
+GET		  /:projectName/milestones/new        controllers.MilestoneApp.newMilestone(projectName:String)
+POST	  /:projectName/milestones/new		    controllers.MilestoneApp.createMilestone(projectName:String)
+POST	  /:projectName/milestones/:id/save	  controllers.MilestoneApp.updateMilestone(projectName:String, id: Long)
+GET		  /:projectName/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(projectName:String, id: Long)
 GET	    /:projectName/milestones/:id/edit   controllers.MilestoneApp.editMilestone(projectName:String, id: Long)
 
-#Issues
-GET     /:projectName/issueList	                controllers.IssueApp.list(projectName:String, pageNum:Int ?= 0, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", stateType:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-GET     /:projectName/issueList/:pageNum        controllers.IssueApp.list(projectName:String, pageNum:Int, sortBy:String ?= "date", order:String ?= "desc", filter:String ?= "", state:String ?= "open", commentedCheck:Boolean ?= false, fileAttachedCheck:Boolean ?= false)
-GET		/:projectName/issues/new		        controllers.IssueApp.newIssue(projectName:String)
-POST	/:projectName/issues/new				controllers.IssueApp.saveIssue(projectName:String)
-GET     /:projectName/issues/:id                controllers.IssueApp.issue(projectName:String, id:Long)
-POST    /:projectName/issue/:id/reply           controllers.IssueApp.saveComment(projectName:String, id:Long)
-GET     /:projectName/issue/:id/delete          controllers.IssueApp.delete(projectName:String, id:Long)
-GET		/:projectName/issueList/excel			controllers.IssueApp.extractExcelFile(projectName:String)
+# Issues
+GET     /:projectName/issueList	            controllers.IssueApp.list(projectName:String, stateType:String)
+GET		  /:projectName/issues/new		        controllers.IssueApp.newIssue(projectName:String)
+POST	  /:projectName/issues/new				    controllers.IssueApp.saveIssue(projectName:String)
+GET     /:projectName/issues/:id            controllers.IssueApp.issue(projectName:String, id:Long)
+POST    /:projectName/issue/:id/reply       controllers.IssueApp.saveComment(projectName:String, id:Long)
+GET     /:projectName/issue/:id/delete      controllers.IssueApp.delete(projectName:String, id:Long)
+GET		  /:projectName/issueList/excel			  controllers.IssueApp.extractExcelFile(projectName:String)
 
 
-#Git
-GET     /:projectName/info/refs                                         controllers.GitApp.advertise(projectName:String, service:String)
+# Git
+GET     /:projectName/info/refs                                        controllers.GitApp.advertise(projectName:String, service:String)
 POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(projectName:String, service:String)
 
-#
+# Code
 GET     /:projectName/code                                             controllers.CodeApp.view(projectName:String)

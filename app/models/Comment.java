@@ -14,52 +14,48 @@ import java.util.List;
 @Entity
 public class Comment extends Model {
     private static final long serialVersionUID = 1L;
-
+    private static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
+    
     @Id
     public Long id;
+    
     @Constraints.Required
     public String contents;
+    
     @Constraints.Required
     public Date date;
+    
     public String filePath;
     @ManyToOne
     public User author;
     @ManyToOne
     public Post post;
 
-    public static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
-
     public Comment() {
         date = JodaDateUtil.today();
+    }
+
+    public static void deleteByPostId(Long postId) {
+        List<Comment> comments = Comment.find.where().eq("post.id", "" + postId).findList();
+        // 루프 돌면서 삭제
+        for (Comment comment : comments) {
+            comment.delete();
+        }
+    }
+
+    public static Long write(Comment comment) {
+        comment.save();
+        return comment.id;
+    }
+    
+    public static Comment findById(Long id) {
+    	return find.byId(id);
     }
 
     public static List<Comment> findCommentsByPostId(Long postId) {
         return find.where().eq("post.id", postId).findList();
     }
-
-    public static Long write(Comment comment) {
-        Post.countUpCommentCounter(comment.post);
-        comment.save();
-        return comment.id;
-    }
-
-    public static void deleteByPostId(Long postId) {
-        List<Comment> comments = Comment.find.where().eq("post.id", "" + postId).findList();
-
-        // 루프 돌면서 삭제
-        for (Comment comment : comments) {
-            comment.delete();
-        }
-
-        /* 위의 코드로 개선.
-        Iterator<Comment> target = targets.iterator();
-        while (target.hasNext()) {
-            Comment comment = target.next();
-            comment.delete();
-        }
-        */
-    }
-
+    
     public String calcPassTime() {
         // TODO 경계값 검사하면 망할함수. 나중에 라이브러리 쓸예정
         Calendar today = Calendar.getInstance();

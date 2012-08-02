@@ -3,32 +3,33 @@
   if(request().uri().toString().equals(call.toString())){"active"}
 }
 <ul class="nav nav-pills pull-right">
-    <li class="@isActiveMenu(routes.ProjectApp.project(project.id))">
-      <a href="@routes.ProjectApp.project(project.id)">홈</a>
+    <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
+      <a href="@routes.ProjectApp.project(project.name)">@Messages("menu.home")</a>
     </li>
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_BOARD, project.id){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.BOARD.resource(), models.enumeration.PermissionOperation.READ.operation()){
         <li class="@isActiveMenu(routes.BoardApp.boardList(project.name))">
-          <a href="@routes.BoardApp.boardList(project.name)">게시판</a>
+          <a href="@routes.BoardApp.boardList(project.name)">@Messages("menu.board")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_CODE, project.id){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.CODE.resource(), models.enumeration.PermissionOperation.READ.operation()){
         <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
-          <a href="@routes.CodeApp.view(project.name)">코드</a>
+          <a href="@routes.CodeApp.view(project.name)">@Messages("menu.code")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_ISSUE, project.id){
-        <li class="@isActiveMenu(routes.IssueApp.list(project.name,0))">
-          <a href="@routes.IssueApp.list(project.name, 0)">이슈</a>
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.ISSUE.resource(), models.enumeration.PermissionOperation.READ.operation()){
+        <li class="@isActiveMenu(routes.IssueApp.list(project.name,"open"))">
+          <a href="@routes.IssueApp.list(project.name,"open")">@Messages("menu.issue")</a>
         </li>
     }
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.WIKI.resource(), models.enumeration.PermissionOperation.READ.operation()){    
       <!-- TODO -->
        <li class="@isActiveMenu(routes.ProjectApp.newProject())">
          <a href="#">위키</a>
        </li>
-
-    @roleCheck(session.get("userId"), utils.RoleCheck.PERMISSION_PROJ_SETTING, project.id){
-        <li class="@isActiveMenu(routes.ProjectApp.setting(project.id))">
-          <a href="@routes.ProjectApp.setting(project.id)">프로젝트 관리</a>
+    }
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.PROJECT.resource(), models.enumeration.PermissionOperation.SETTING.operation()){
+        <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
+          <a href="@routes.ProjectApp.setting(project.name)">@Messages("menu.admin")</a>
         </li>
     }
 </ul>

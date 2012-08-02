@@ -26,20 +26,20 @@
 @project.projectMngMain(message, projectInst) {
     <div>
     @if(milestones == null || milestones.isEmpty()){
-        <p>등록된 마일스톤이 없습니다.</p>
+        <p>@Messages("milestone.is.empty")</p>
     }else{
         <table class="table table-striped table-bordered">
             <thead>
                 <tr>
                     <td>
-                        <a href="@makeSortLink("title")">제목 @sortMark("title")</a>
+                        <a href="@makeSortLink("title")">@Messages("label.title") @sortMark("title")</a>
                     </td>
-                    <td>내용</td>
+                    <td>@Messages("label.contents")</td>
                     <td>
-                        <a href="@makeSortLink("dueDate")">완료일 @sortMark("dueDate")</a>
+                        <a href="@makeSortLink("dueDate")">@Messages("label.dueDate") @sortMark("dueDate")</a>
                     </td>
                     <td>
-                        <a href="@makeSortLink("completionRate")">상태 @sortMark("completionRate")</a>
+                        <a href="@makeSortLink("completionRate")">@Messages("label.state") @sortMark("completionRate")</a>
                     </td>
                     <td>&nbsp;</td>
                 </tr>
@@ -53,14 +53,14 @@
                     <td>@milestone.contents</td>
                     <td>@milestone.getDueDateString</td>
                     <td>@completionRateName(milestone.completionRate)</td>
-                    <td><a href="@routes.MilestoneApp.deleteMilestone(projectName, milestone.id)">삭제</a></td>
+                    <td><a href="@routes.MilestoneApp.deleteMilestone(projectName, milestone.id)">@Messages("button.delete")</a></td>
                 </tr>
         }
             </tbody>
         </table>
     </div>
     <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(projectName)" >새 마일스톤</a>
+        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(projectName)" >@Messages("milestone.menu.new")</a>
     </div>
     }
 }

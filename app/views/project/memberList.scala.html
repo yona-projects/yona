@@ -1,40 +1,33 @@
-@(message: String, members: List[Form[User]], id: Long, project:Project, roles: List[Role], noError: Boolean)
+@(message: String, members: List[Form[User]], project:Project, roles: List[Role])
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
-@memberRole(member: Form[User], id: Long, userRole: Role) = {
-    @for(role <- Role.getAllProjectRoles()){
+@memberRole(member: Form[User], userRole: Role) = {
+    @for(role <- roles){
         <option value="@role.id" @(if(role.equals(userRole)) "selected" else "")>@role.name</option>
     }
 }
 
 @projectMngMain(message, project) {
-    @if(!noError){
-	    <div class="alert alert-error alert-block">
-	        <a class="close" data-dismiss="alert" href="#">×</a>
-	        <h4>최소한 1명 이상의 관리자가 있어야 합니다.</h4>
-	    </div>
-    }
-    
     <table class="table">
         @for(member <- members){
             <tr>
                 <td>@member("loginId").value</td>
                 <td>
-	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, project.id)" method="post">
+	                <form action="@routes.ProjectApp.updateMember(member("id").value.toLong, project.name)" method="post">
 	                    <select id="role" name="id">
-	                        @memberRole(member, id, ProjectUser.findRoleByIds(member("id").value.toLong, project.id))
+	                        @memberRole(member, ProjectUser.findRoleByIds(member("id").value.toLong, project.id))
 	                    </select>
 	                </form>
                 </td>
                 <td>
-                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, project.id)">탈퇴</a>
+                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member("id").value.toLong, project.name)">탈퇴</a>
                 </td>
             </tr>
         }
         <tr>
-            <form action="@routes.ProjectApp.addMember(project.id)" method="post" id="addNewMember">
+            <form action="@routes.ProjectApp.addMember(project.name)" method="post" id="addNewMember">
 	            <td colspan="2">
 	                <input type="text" id="loginId" name="loginId" 
 	                placeholder="새로운 맴버의 ID를 입력하세요...">

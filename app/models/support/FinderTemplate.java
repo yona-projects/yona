@@ -13,7 +13,7 @@ public class FinderTemplate {
                                                                Model.Finder<K, T> finder) {
         ExpressionList<T> el = finder.where();
 
-        if (!msp.getSearchParams().isEmpty()) {
+        if (msp != null && !msp.getSearchParams().isEmpty()) {
             for (SearchParam sp : msp.getSearchParams()) {
                 String field = sp.getField();
                 Object value = sp.getValue();
@@ -47,7 +47,7 @@ public class FinderTemplate {
             }
         }
 
-        if (!mop.getOrderParams().isEmpty()) {
+        if (mop != null && !mop.getOrderParams().isEmpty()) {
             for (OrderParam op : mop.getOrderParams()) {
                 if (op.getSort() == null || op.getSort().trim().isEmpty()) {
                     continue;
