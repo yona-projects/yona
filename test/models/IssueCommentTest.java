@@ -18,18 +18,20 @@ public class IssueCommentTest extends ModelTest {
         assertThat(issueCommentTest.size()).isEqualTo(1);
 
     }
+
     @Test
     public void create(){
         // Given
         IssueComment issueComment = new IssueComment();
-        issueComment.contents   =   "create() test";
-        issueComment.authorId     =   getTestUser().id;
+        issueComment.contents = "create() test";
+        issueComment.authorId = getTestUser().id;
+        issueComment.issue = Issue.findById(1l);
         // When
         long id =   IssueComment.create(issueComment);
         // Then
         assertThat(IssueComment.findCommentsByIssueId(id)).isNotNull();
     }
-    
+
     @Test
     public void deleteByIssueId() throws Exception {
         // Given
@@ -38,5 +40,5 @@ public class IssueCommentTest extends ModelTest {
         // Then
         assertThat(IssueComment.findCommentsByIssueId(1l)).isEmpty();
     }
-    
+
 }

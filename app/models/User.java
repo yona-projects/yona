@@ -19,12 +19,13 @@ public class User extends Model {
     public String name;
     public String loginId;
     public String password;
+    public String profileFilePath;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
-    
+
     public String getName() {
-    	return this.name;
+        return this.name;
     }
 
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,

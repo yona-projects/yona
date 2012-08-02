@@ -153,4 +153,8 @@ public class Post extends Model {
     	public String filter;
     	public int pageNum;
     }
+    
+    public String authorName() {
+        return author.name;
+    }
 }

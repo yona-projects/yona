@@ -20,6 +20,7 @@
         <form id="search-form" class="form-search form-inline" method="get">
           <input type="hidden" name="key" value="@param.key">
           <input type="hidden" name="order" value="@param.order">
+          <input type="hidden" name="pageNum" value="@param.pageNum">
           <input type="text" name="filter" class="search-query">
           <button type="submit" class="btn"><i class="icon-search"></i></button>
           <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.name)" >새글</a>
@@ -52,7 +53,7 @@
 	    		<tr>
 	    			<td>@post.id</td>
 	    			<td><a href="@routes.BoardApp.post(project.name, post.id)">@post.title [@post.commentCount]</a></td>
-	    			<td>@post.author.name</td>
+	    			<td>@post.authorName</td>
 	    			<td>@post.calcPassTime()</td>
 	    		</tr>
 	    		}
@@ -91,12 +92,11 @@
     return false;
   });
   
-  $("pagination").onclick(function(){
-  
-  });
-  
-  $("#search-form").submit(function(){
-	  
+  $("pagination a").onclick(function(){
+	  var $input = $("#search-form input[name=pageNum]");
+	  $input.val($(this).attr("pageNum"));
+	  $("#search-form").submit();
+	  return false;
   });
   </script>
   

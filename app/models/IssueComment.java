@@ -25,17 +25,19 @@ public class IssueComment extends Model {
     @Id
     public Long id;
 
+    @ManyToOne
+    @Constraints.Required
+    public Issue issue;
+
     @Constraints.Required
     public String contents;
 
     @Constraints.Required
     public Date date;
 
+     
     public Long authorId;
     public String filePath;
-    
-    @ManyToOne
-    public Issue issue;
 
     public IssueComment() {
         date = JodaDateUtil.today();
