@@ -101,6 +101,11 @@ public class IssueApp extends Controller {
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
+            
+            Logger.debug("IssueApp : saveIssue - milestoneId:"+newIssue.milestoneId);
+            Logger.debug("IssueApp : saveIssue - state:"+newIssue.state);
+            Logger.debug("IssueApp : saveIssue - stateType:"+newIssue.stateType);
+            Logger.debug("IssueApp : saveIssue - assigneeId:"+newIssue.assigneeId);
         }
         return redirect(routes.IssueApp.list(project.name, IssueStateType.ALL.stateType()));
     }
