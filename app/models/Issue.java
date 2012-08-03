@@ -72,8 +72,7 @@ import com.avaje.ebean.Page;
 @Entity
 public class Issue extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Issue> find = new Finder<Long, Issue>(
-            Long.class, Issue.class);
+    private static Finder<Long, Issue> find = new Finder<Long, Issue>(Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
@@ -113,7 +112,7 @@ public class Issue extends Model {
 
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public List<IssueComment> comments = new ArrayList<IssueComment>();
-    
+
     public int numOfIssueComments;
 
     public Issue() {
@@ -146,8 +145,7 @@ public class Issue extends Model {
     public void updateStatusType(IssueState state) {
         if (this.state == ASSIGNED || this.state == IssueState.ENROLLED) {
             this.stateType = IssueStateType.OPEN;
-        } else if (this.state == IssueState.SOLVED
-                || this.state == IssueState.FINISHED) {
+        } else if (this.state == IssueState.SOLVED || this.state == IssueState.FINISHED) {
             this.stateType = IssueStateType.CLOSED;
         }
     }
@@ -161,8 +159,7 @@ public class Issue extends Model {
     public static Long create(Issue issue) {
         issue.save();
         if (!issue.milestoneId.equals("none")) {
-            Milestone milestone = Milestone.findById(Long
-                    .valueOf(issue.milestoneId));
+            Milestone milestone = Milestone.findById(Long.valueOf(issue.milestoneId));
             milestone.add(issue);
         }
         return issue.id;
@@ -176,8 +173,7 @@ public class Issue extends Model {
     public static void delete(Long id) {
         Issue issue = find.byId(id);
         if (!issue.milestoneId.equals("none")) {
-            Milestone milestone = Milestone.findById(Long
-                    .valueOf(issue.milestoneId));
+            Milestone milestone = Milestone.findById(Long.valueOf(issue.milestoneId));
             milestone.delete(issue);
         }
         issue.delete();
@@ -211,10 +207,9 @@ public class Issue extends Model {
      * @param state
      * @return
      */
-    public static Page<Issue> findIssues(String projectName,
-            IssueStateType state) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, state,
-                DEFAULT_SORTER, Direction.DESC, "", "none", false, false);
+    public static Page<Issue> findIssues(String projectName, IssueStateType state) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+                "", "none", false, false);
     }
 
     /**
@@ -227,12 +222,10 @@ public class Issue extends Model {
      * @param fileAttachedCheck
      * @return
      */
-    public static Page<Issue> findFilteredIssues(String projectName,
-            String filter, IssueStateType state, boolean commentedCheck,
-            boolean fileAttachedCheck) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, state,
-                DEFAULT_SORTER, Direction.DESC, filter, "none", commentedCheck,
-                fileAttachedCheck);
+    public static Page<Issue> findFilteredIssues(String projectName, String filter,
+            IssueStateType state, boolean commentedCheck, boolean fileAttachedCheck) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+                filter, "none", commentedCheck, fileAttachedCheck);
     }
 
     /**
@@ -242,10 +235,9 @@ public class Issue extends Model {
      * @param filter
      * @return
      */
-    public static Page<Issue> findCommentedIssues(String projectName,
-            String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, filter, "none", true, false);
+    public static Page<Issue> findCommentedIssues(String projectName, String filter) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL, DEFAULT_SORTER,
+                Direction.DESC, filter, "none", true, false);
     }
 
     /**
@@ -256,16 +248,14 @@ public class Issue extends Model {
      * @return
      */
 
-    public static Page<Issue> findFileAttachedIssues(String projectName,
-            String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, filter, "none", false, true);
+    public static Page<Issue> findFileAttachedIssues(String projectName, String filter) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL, DEFAULT_SORTER,
+                Direction.DESC, filter, "none", false, true);
     }
 
-    public static Page<Issue> findIssuesByMilestoneId(String projectName,
-            String milestoneId) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL,
-                DEFAULT_SORTER, Direction.DESC, "", milestoneId, false, false);
+    public static Page<Issue> findIssuesByMilestoneId(String projectName, String milestoneId) {
+        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL, DEFAULT_SORTER,
+                Direction.DESC, "", milestoneId, false, false);
     }
 
     /**
@@ -291,18 +281,16 @@ public class Issue extends Model {
      *            필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
-    public static Page<Issue> findIssues(String projectName, int pageNumber,
-            IssueStateType state, String sortBy, Direction order,
-            String filter, String milestone, boolean commentedCheck,
-            boolean fileAttachedCheck) {
+    public static Page<Issue> findIssues(String projectName, int pageNumber, IssueStateType state,
+            String sortBy, Direction order, String filter, String milestone,
+            boolean commentedCheck, boolean fileAttachedCheck) {
 
         OrderParams orderParams = new OrderParams().add(sortBy, order);
-        SearchParams searchParams = new SearchParams().add("project.name",
-                projectName, Matching.EQUALS);
+        SearchParams searchParams = new SearchParams().add("project.name", projectName,
+                Matching.EQUALS);
         searchParams.add("title", filter, Matching.CONTAINS);
         if (!milestone.equals("none")) {
-            searchParams.add("milestoneId", Long.valueOf(milestone),
-                    Matching.EQUALS); 
+            searchParams.add("milestoneId", Long.valueOf(milestone), Matching.EQUALS);
         }
         if (commentedCheck) {
             searchParams.add("numOfIssueComments", 1, Matching.GE);
@@ -313,17 +301,17 @@ public class Issue extends Model {
         if (state == null) {
             state = IssueStateType.ALL;
         }
-        switch (state) {
-        case OPEN:
-            searchParams.add("stateType", IssueStateType.OPEN, Matching.EQUALS);
-            break;
-        case CLOSED:
-            searchParams.add("stateType", IssueStateType.CLOSED,
-                    Matching.EQUALS);
-            break;
-        }
-        return FinderTemplate.getPage(orderParams, searchParams, find,
-                ISSUE_COUNT_PER_PAGE, pageNumber);
+        switch (state)
+            {
+            case OPEN:
+                searchParams.add("stateType", IssueStateType.OPEN, Matching.EQUALS);
+                break;
+            case CLOSED:
+                searchParams.add("stateType", IssueStateType.CLOSED, Matching.EQUALS);
+                break;
+            }
+        return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE,
+                pageNumber);
     }
 
     /**
@@ -353,6 +341,7 @@ public class Issue extends Model {
 
     /**
      * 이슈의 오픈 상태를 확인한다.
+     * 
      * @return boolean
      */
     public boolean isOpen() {
@@ -361,14 +350,23 @@ public class Issue extends Model {
 
     /**
      * 해당 마일스톤아이디로 관련 이슈를 검색한다.
+     * 
      * @param milestoneId
      * @return
      */
     public static List<Issue> findByMilestoneId(Long milestoneId) {
-        SearchParams searchParams = new SearchParams()
-            .add("milestoneId", String.valueOf(milestoneId), Matching.EQUALS);
+        SearchParams searchParams = new SearchParams().add("milestoneId",
+                String.valueOf(milestoneId), Matching.EQUALS);
+        return FinderTemplate.findBy(null, searchParams, find);
+    }
 
-        return FinderTemplate.findBy(null, searchParams ,find);
+    public static void edit(Issue issue) {
+        Issue previousIssue = findById(issue.id);
+        // /issue.commentCount = previousIssue.commentCount;
+        if (issue.filePath == null) {
+            issue.filePath = previousIssue.filePath;
+        }
+        issue.update();
     }
 
 }

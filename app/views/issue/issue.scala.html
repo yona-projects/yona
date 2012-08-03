@@ -1,22 +1,24 @@
-@(title:String, issue:Issue, commentForm:Form[IssueComment], project:Project)
-
-@import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
-
-@main(Messages(title), project){
+@(title:String, issue:Issue, commentForm:Form[IssueComment],project:Project) 
+@import helper._ 
+@implicitFieldConstructor = @{FieldConstructor(twitterBootstrapInput.render) } 
+@main(Messages(title),project){
 <div class="row">
-    <div class="span2 offset10">
-	    <div id="board_btn_panel">
-	        <a class="btn btn-primary" href="">@Messages("button.edit")</a>
-	        <a data-toggle="modal" href="#deleteConfirm" class="btn">@Messages("button.delete")</a>
-	        <a class="btn" href="@routes.IssueApp.list(project.name,"open")">@Messages("button.list")</a>
-	    </div>
+	<div class="span2 offset10">
+		<div id="board_btn_panel">
+			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.name, issue.id)">@Messages("button.edit")</a> <a
+				data-toggle="modal" href="#deleteConfirm" class="btn">@Messages("button.delete")</a>
+			<a class="btn" href="@routes.IssueApp.list(project.name,"open")">@Messages("button.list")</a>
+		</div>
 	</div>
 </div>
 <!-- 메인 글 -->
 <div>
 	<div class="row">
-		<div class="span1"><span class="badge">#@issue.id</span></div>
+		<div class="span1">
+			<span class="badge">#@issue.id</span>
+			<span class="badge">@issue.state</span>
+		</div>
+
 		<div class="span11">
 			<h1>@issue.title</h1>
 			<div>
@@ -25,59 +27,74 @@
 		</div>
 	</div>
 	<div class="row">
-		<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
+		<div class="span1">
+			<img class="pull-right" src="http://placehold.it/50x50" />
+		</div>
 		<div class="span11">
 			<div class="well">
 				<p>@issue.body</p>
 				@if(issue.filePath != null){
-				<p><a href='@routes.Assets.at("uploadFiles/" + issue.filePath)'><i class="icon-download"></i>@issue.filePath</a></p>
+				<p>
+					<a href='@routes.Assets.at("uploadFiles/" + issue.filePath)'><i
+						class="icon-download"></i>@issue.filePath</a>
+				</p>
 				}
 			</div>
 		</div>
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+		<a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
 	</div>
 </div>
 <!-- 여기서 부터 덧글 -->
 @for(comment <- issue.comments){
-<hr/>
+<hr />
 <div class="row">
-	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
+	<div class="span1">
+		<img class="pull-right" src="http://placehold.it/50x50" />
+	</div>
 	<div class="span11">
 		<div>
-			<span>@User.findLoginIdById(comment.authorId)이 @comment.date에 작성함</span>
+			<span>@User.findLoginIdById(comment.authorId)이 @comment.date에
+				작성함</span>
 		</div>
-		<p>@comment.contents<p>
-		@if(comment.filePath != null){
-		<p><a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i class="icon-download"></i>@comment.filePath</a></p>
+		<p>@comment.contents
+		<p>@if(comment.filePath != null){
+		<p>
+			<a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i
+				class="icon-download"></i>@comment.filePath</a>
+		</p>
 		}
 	</div>
 </div>
 }
 <!-- 댓글 입력 폼 -->
-<hr/>
+<hr />
 <div class="row">
-	@form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype -> "multipart/form-data"){
-		<div class="span12">@textarea(commentForm("contents"))</div>
-		<div class="span6">@inputFile(commentForm("filePath"))</div>		
-		<div class="span6"><input class="btn pull-right" type="submit" value=@Messages("button.comment.new")/></div>
-	}
+	@form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype ->
+	"multipart/form-data"){
+	<div class="span12">@textarea(commentForm("contents"))</div>
+	<div class="span6">@inputFile(commentForm("filePath"))</div>
+	<div class="span6">
+		<input class="btn pull-right" type="submit" value=@Messages( "button.comment.new")/>
 	</div>
+	}
+</div>
 </div>
 
 
 <!--삭제확인상자-->
 <div class="modal hide" id="deleteConfirm">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal">×</button>
-    <h3>@Messages("issue.delete.window")</h3>
-  </div>
-  <div class="modal-body">
-    <p>@Messages("post.delete.confirm")</p>
-  </div>
-  <div class="modal-footer">
-    <a class="btn btn-danger" href="@routes.IssueApp.delete(project.name, issue.id)">@Messages("button.yes")</a>
-    <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-  </div>
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">×</button>
+		<h3>@Messages("issue.delete.window")</h3>
+	</div>
+	<div class="modal-body">
+		<p>@Messages("post.delete.confirm")</p>
+	</div>
+	<div class="modal-footer">
+		<a class="btn btn-danger"
+			href="@routes.IssueApp.delete(project.name, issue.id)">@Messages("button.yes")</a>
+		<a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+	</div>
 </div>
 }
-            
+

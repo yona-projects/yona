@@ -3,6 +3,7 @@
 title.newIssue = New Issue
 title.issueList = Issue List
 title.issueDetail = Issue
+title.editIssue = Edit Issue
 title.newMilestone = New Milestone
 title.milestoneList = Milestone List
 title.editMilestone = Edit Milestone
@@ -81,11 +82,13 @@ issue.delete.window = Delete Issue
 
 #Post
 post.new.title = Title
+post.new.contents = Contents
 post.menu.search = Search
 post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 post.new.fileAttach = Attach File
 post.popup.fileAttach.title = Select file
 post.popup.fileAttach.contents = Please, select file to attach
+post.update.error = Errors on Input Value
 
 #Project
 project.create = Create this project

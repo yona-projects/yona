@@ -83,6 +83,6 @@ public class Comment extends Model {
     }
 
     public String authorName() {
-        return author.name;
+        return author.loginId;
     }
 }

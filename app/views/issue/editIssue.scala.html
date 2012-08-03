@@ -1,0 +1,33 @@
+@(title:String, issueForm:Form[Issue], issueId:Long,  project:Project)
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@main(Messages(title), project) {
+
+    @form( action = routes.IssueApp.updateIssue(project.name, issueId), 
+            'enctype -> "multipart/form-data",
+            'class -> "form-horizontal"){
+            <fieldset>
+    	@inputText(
+    	   issueForm("title"), 
+    	   '_showConstraints -> false, 
+    	   '_label-> Messages("post.new.title"))
+
+    	@textarea(
+    	   issueForm("body"), 
+    	   '_showConstraints -> false, 
+    	   '_label-> Messages("post.new.contents"))
+
+    	@inputFile(issueForm("filePath"))
+    	</fieldset>
+    	
+    	
+    	<input type="submit" class="btn" value=@Messages("button.save") />
+    	<input type="reset" class="btn" value=@Messages("button.reset") />
+    }
+
+    @board.postVaildate()
+
+}
+
+            
