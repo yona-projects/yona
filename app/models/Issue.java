@@ -160,7 +160,7 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
-        if (issue.milestoneId != "none") {
+        if (!issue.milestoneId.equals("none")) {
             Milestone milestone = Milestone.findById(Long
                     .valueOf(issue.milestoneId));
             milestone.add(issue);
@@ -175,7 +175,7 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = find.byId(id);
-        if (issue.milestoneId != "none") {
+        if (!issue.milestoneId.equals("none")) {
             Milestone milestone = Milestone.findById(Long
                     .valueOf(issue.milestoneId));
             milestone.delete(issue);
@@ -366,7 +366,7 @@ public class Issue extends Model {
      */
     public static List<Issue> findByMilestoneId(Long milestoneId) {
         SearchParams searchParams = new SearchParams()
-            .add("milestoneId", milestoneId, Matching.EQUALS);
+            .add("milestoneId", String.valueOf(milestoneId), Matching.EQUALS);
 
         return FinderTemplate.findBy(null, searchParams ,find);
     }

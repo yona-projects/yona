@@ -136,6 +136,7 @@ issues:
         milestoneId:    8
         project:        !!models.Project
                             id: 3
+
         
 issueComments:
     - !!models.IssueComment
@@ -221,10 +222,10 @@ milestones:
         title:           v.0.1
         dueDate:         2012-12-31 10:59:59
         contents:        CUBRID v.0.1
-        numClosedIssues: 0
-        numOpenIssues:   0
-        numTotalIssues:  0
-        completionRate:  0
+        numClosedIssues: 1
+        numOpenIssues:   1
+        numTotalIssues:  2
+        completionRate:  50
         project:         !!models.Project
                              id: 3
     - !!models.Milestone
@@ -234,7 +235,7 @@ milestones:
         numClosedIssues: 1
         numOpenIssues:   0
         numTotalIssues:  1
-        completionRate:  0
+        completionRate:  100
         project:         !!models.Project
                              id: 3
 

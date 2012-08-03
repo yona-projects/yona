@@ -27,7 +27,7 @@ public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
-            Long.class, Milestone.class);
+        Long.class, Milestone.class);
     public static String DEFAULT_SORTER = "dueDate";
 
     @Id
@@ -65,7 +65,7 @@ public class Milestone extends Model {
     }
 
     private static int calculateCompletionRate(int numTotalIssues, int numClosedIssues) {
-        return new Double(((double)numClosedIssues / (double)numTotalIssues) * 100).intValue();
+        return new Double(((double) numClosedIssues / (double) numTotalIssues) * 100).intValue();
     }
 
     public static void delete(Long id) {
@@ -175,20 +175,35 @@ public class Milestone extends Model {
     }
 
     public void add(Issue issue) {
-        this.numTotalIssues += 1;
-        if(issue.isOpen()) {
+        findIssuesNUpdateTotalCount();
+        if (issue.isOpen()) {
             this.numOpenIssues += 1;
-        }else {
+        } else {
             this.numClosedIssues += 1;
         }
         this._save();
     }
 
+    public void update() {
+        List<Issue> issues = findIssuesNUpdateTotalCount();
+
+        this.numOpenIssues = 0;
+        this.numClosedIssues = 0;
+
+        for(Issue _issue : issues ) {
+            if(_issue.isOpen()) {
+                this.numOpenIssues += 1;
+            } else {
+                this.numClosedIssues += 1;
+            }
+        }
+    }
+
     public void delete(Issue issue) {
         this.numTotalIssues -= 1;
-        if(issue.isOpen()) {
+        if (issue.isOpen()) {
             this.numOpenIssues -= 1;
-        }else {
+        } else {
             this.numClosedIssues -= 1;
         }
         this._save();
@@ -197,5 +212,15 @@ public class Milestone extends Model {
     private void _save() {
         this.completionRate = calculateCompletionRate(this.numTotalIssues, this.numClosedIssues);
         this.save();
+    }
+
+    /**
+     * 마일스톤에 연결된 이슈들을 찾아주며 해당 마일스톤에 할당된 이슈의 총 갯수를 update 해준다.
+     * @return
+     */
+    private List<Issue> findIssuesNUpdateTotalCount() {
+        List<Issue> issues = Issue.findByMilestoneId(this.id);
+        this.numTotalIssues = issues.size();
+        return issues;
     }
 }
