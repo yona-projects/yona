@@ -1,5 +1,6 @@
 package models;
 
+import com.avaje.ebean.Ebean;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import models.enumeration.IssueStateType;
@@ -11,7 +12,7 @@ import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class MilestoneTest extends ModelTest {
+public class MilestoneTest extends ModelTest<Milestone> {
 
     @Test
     public void create() throws Exception {
@@ -66,8 +67,10 @@ public class MilestoneTest extends ModelTest {
         Milestone firstMilestone = Milestone.findById(1l);
         assertThat(firstMilestone).isNotNull();
         // When
-        Milestone.delete(firstMilestone.id);
-        // Then
+        Milestone.delete(firstMilestone);
+        flush();
+
+        //Then
         firstMilestone = Milestone.findById(1l);
         assertThat(firstMilestone).isNull();
     }
@@ -245,9 +248,10 @@ public class MilestoneTest extends ModelTest {
     @Test
     public void updateIssue() throws Exception {
         //Given
-        Issue issue = Issue.findById(6l);
+        Issue issue = new Issue();
         issue.updateStatusType(IssueState.ENROLLED);
         issue.milestoneId = "9";
+        issue.update(5l);
 
         Long milestoneId = Long.valueOf(issue.milestoneId);
         Milestone m9 = Milestone.findById(milestoneId);
@@ -255,14 +259,13 @@ public class MilestoneTest extends ModelTest {
         assertThat(m9.completionRate).isEqualTo(100);
 
         //When
-        issue.save();
-        m9.update();
+        m9.updateIssueInfo();
 
         //Then
         m9 = Milestone.findById(milestoneId);
-        assertThat(m9.numOpenIssues).isEqualTo(0); //TODO fix.
+        assertThat(m9.numOpenIssues).isEqualTo(1); //TODO fix.
         assertThat(m9.numClosedIssues).isEqualTo(1);
-        assertThat(m9.completionRate).isEqualTo(100);
+        assertThat(m9.completionRate).isEqualTo(50);
     }
 
     @Test

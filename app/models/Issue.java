@@ -36,7 +36,7 @@ import com.avaje.ebean.Page;
  *            이슈 제목
  * @param body
  *            이슈 내용
- * @param status
+ * @param state
  *            이슈 상태(등록, 진행중, 해결, 닫힘)
  * @param statusType
  *            이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
@@ -140,7 +140,7 @@ public class Issue extends Model {
     /**
      * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다.
      * 
-     * @param status
+     * @param state
      */
 
     public void updateStatusType(IssueState state) {

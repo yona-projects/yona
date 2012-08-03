@@ -1,10 +1,11 @@
 package utils;
 
+import models.Role;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 import models.ModelTest;
 
-public class RoleCheckTest extends ModelTest{
+public class RoleCheckTest extends ModelTest<Role>{
     @Test
     public void roleCheck() throws Exception {
         // Given

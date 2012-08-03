@@ -28,6 +28,7 @@ public class Milestone extends Model {
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
         Long.class, Milestone.class);
+
     public static String DEFAULT_SORTER = "dueDate";
 
     @Id
@@ -68,8 +69,8 @@ public class Milestone extends Model {
         return new Double(((double) numClosedIssues / (double) numTotalIssues) * 100).intValue();
     }
 
-    public static void delete(Long id) {
-        find.ref(id).delete();
+    public static void delete(Milestone milestone) {
+        milestone.delete();
     }
 
     public static Milestone findById(Long id) {
@@ -184,7 +185,7 @@ public class Milestone extends Model {
         this._save();
     }
 
-    public void update() {
+    public void updateIssueInfo() {
         List<Issue> issues = findIssuesNUpdateTotalCount();
 
         this.numOpenIssues = 0;
@@ -197,6 +198,8 @@ public class Milestone extends Model {
                 this.numClosedIssues += 1;
             }
         }
+        this.completionRate = calculateCompletionRate(this.numTotalIssues, this.numClosedIssues);
+        update(this.id);
     }
 
     public void delete(Issue issue) {

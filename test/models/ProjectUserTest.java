@@ -9,7 +9,7 @@ import static org.fest.assertions.Assertions.assertThat;
  * @author "Hwi Ahn"
  *
  */
-public class ProjectUserTest extends ModelTest {
+public class ProjectUserTest extends ModelTest<ProjectUser> {
     @Test
     public void findByIds() throws Exception {
         // Given
@@ -35,6 +35,7 @@ public class ProjectUserTest extends ModelTest {
         // When
         ProjectUser.assignRole(1l, 1l, 2l);
         ProjectUser.assignRole(1l, 3l, 2l);
+        flush();
         // Then
         assertThat(ProjectUser.findByIds(1l, 1l).role.id).isEqualTo(2l);
         assertThat(ProjectUser.findByIds(1l, 3l).role.id).isEqualTo(2l);
@@ -63,8 +64,9 @@ public class ProjectUserTest extends ModelTest {
         // Given
         // When
         Role role = ProjectUser.findRoleByIds(1l, 1l);
+
         // Then
-        assertThat(role.name).isEqualTo("manager");
+        assertThat(role).isNotNull();
     }
 
     @Test
