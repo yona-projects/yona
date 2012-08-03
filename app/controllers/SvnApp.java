@@ -18,7 +18,6 @@ import utils.PlayServletRequest;
 import utils.PlayServletResponse;
 import utils.PlayServletSession;
 import utils.PlayServletContext;
-import utils.PlayServletConfig;
 
 public class SvnApp extends Controller{
     static DAVServlet davServlet;
