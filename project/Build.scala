@@ -19,7 +19,7 @@ object ApplicationBuild extends Build {
       // svnkit-dav
       "sonia.svnkit" % "svnkit-dav" % "1.7.5-1",
       // javahl
-	  "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5"
+	    "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
@@ -27,11 +27,6 @@ object ApplicationBuild extends Build {
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
-      lessEntryPoints << baseDirectory(customLessEntryPoints)
+      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less")
     )
-
-    def customLessEntryPoints(base: File): PathFinder = (
-      (base / "app" / "assets" / "stylesheets" * "*.less")
-    )
-
 }

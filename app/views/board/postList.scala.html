@@ -92,7 +92,7 @@
     return false;
   });
   
-  $("pagination a").onclick(function(){
+  $("pagination a").click(function(){
 	  var $input = $("#search-form input[name=pageNum]");
 	  $input.val($(this).attr("pageNum"));
 	  $("#search-form").submit();
