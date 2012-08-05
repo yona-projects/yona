@@ -1,8 +1,8 @@
 @(message: String, milestones: List[models.Milestone], projectName: String, sort: String, direction: String, projectInst: Project)
 @completionRateName(completionRate: Int) = @{
     /* TODO It will be chnaged. */
-    if(completionRate == 100) "완료"
-    else "미완료"
+    if(completionRate == 100) Messages("milestone.state.closed")
+    else Messages("milestone.state.open")
 }
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */

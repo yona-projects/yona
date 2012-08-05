@@ -26,6 +26,7 @@ label.state = 상태
 label.assignee = 담당자
 label.date = 작성일
 label.id = #
+label.dueDate = 완료일
 
 button.save = 저장
 button.confirm = 확인
@@ -56,6 +57,8 @@ milestone.state.closed = 완료
 milestone.is.empty = 등록된 마일스톤이 없습니다.
 milestone.menu.manage = 마일스톤 관리
 milestone.menu.new = 새 마일스톤
+sort.by.dueDate = 완료일순
+sort.by.completionRate = 완료울순
 
 #Issue
 issue.stateType.all = 전체
