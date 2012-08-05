@@ -26,7 +26,12 @@ object ApplicationBuild extends Build {
       // Add your own project settings here
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
-      resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public"
+      resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
+      lessEntryPoints << baseDirectory(customLessEntryPoints)
+    )
+
+    def customLessEntryPoints(base: File): PathFinder = (
+      (base / "app" / "assets" / "stylesheets" * "*.less")
     )
 
 }

@@ -6,10 +6,10 @@
             _direction = "desc"
         }
     }
-    "/%s/milestones?state=%s&sort=%s&direction=%s".format(projectName, state, _sort, _direction)
+    routes.MilestoneApp.milestones(projectName, state, _sort, _direction)
 }
 @makeIssuesLink(mId: Long, _state: String) = @{
-    "/issueList?milestone=%d&state=%s".format(mId, _state)
+    routes.IssueApp.list(projectName, _state)+"&milestone="+mId
 }
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */
