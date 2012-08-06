@@ -142,7 +142,7 @@ public class IssueApp extends Controller {
         return redirect(routes.IssueApp.issues(projcet.name, IssueStateType.ALL.name()));
     }
 
-    public static Result delete(String projectName, Long issueId) {
+    public static Result deleteIssue(String projectName, Long issueId) {
         Project project = Project.findByName(projectName);
         if (project == null) {
             return notFound();

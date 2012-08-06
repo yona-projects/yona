@@ -48,19 +48,19 @@ GET		/:projectName/issues/new		    controllers.IssueApp.newIssue(projectName:Str
 POST	/:projectName/issues/new			controllers.IssueApp.saveIssue(projectName:String)
 GET     /:projectName/issues/:id            controllers.IssueApp.issue(projectName:String, id:Long)
 POST    /:projectName/issue/:id/reply       controllers.IssueApp.saveComment(projectName:String, id:Long)
-GET     /:projectName/issue/:id/delete      controllers.IssueApp.delete(projectName:String, id:Long)
+GET     /:projectName/issue/:id/delete      controllers.IssueApp.deleteIssue(projectName:String, id:Long)
 GET		/:projectName/issueList/excel		controllers.IssueApp.extractExcelFile(projectName:String)
 GET     /:projectName/issues/:id/edit       controllers.IssueApp.editIssue(projectName:String, id:Long)
 POST    /:projectName/issues/:id/edit       controllers.IssueApp.updateIssue(projectName:String, id:Long)
+
+# Code
+GET     /:projectName/code                  controllers.CodeApp.view(projectName:String)
 
 # Git
 GET     /:projectName/info/refs                                        controllers.GitApp.advertise(projectName:String, service:String)
 POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(projectName:String, service:String)
 
-# Code
-GET     /:projectName/code                                             controllers.CodeApp.view(projectName:String)
-
-#SVN
+# SVN
 HEAD        /svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
 GET         /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
 POST        /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
