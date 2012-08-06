@@ -1,18 +1,16 @@
 package models;
 
-import static org.fest.assertions.Assertions.assertThat;
+import com.avaje.ebean.Page;
 import models.enumeration.IssueState;
 import models.enumeration.IssueStateType;
-
 import org.junit.Test;
-
 import utils.JodaDateUtil;
-
-import com.avaje.ebean.Page;
 
 import java.util.List;
 
-public class IssueTest extends ModelTest {
+import static org.fest.assertions.Assertions.assertThat;
+
+public class IssueTest extends ModelTest<Issue> {
 
     @Test
     public void create() throws Exception {
@@ -52,12 +50,13 @@ public class IssueTest extends ModelTest {
         // Then
         assertThat(issueTest.comments.size()).isEqualTo(1);
     }
-    
+
     @Test
     public void delete() {
         // Given
         // When
         Issue.delete(4l);
+        flush();
         // Then
         assertThat(Issue.findById(4l)).isNull();
     }
@@ -86,7 +85,7 @@ public class IssueTest extends ModelTest {
         // Given
         // When
         Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그",
-                IssueStateType.OPEN, true, true);
+            IssueStateType.OPEN, true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -127,7 +126,7 @@ public class IssueTest extends ModelTest {
         // Then
         assertThat(issue.isOpen()).isTrue();
     }
-    
+
     @Test
     public void findIssuesByMilestoneId() throws Exception {
         // Given
@@ -135,7 +134,7 @@ public class IssueTest extends ModelTest {
         Page<Issue> issues = Issue.findIssuesByMilestoneId("CUBRID", "9");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
-        
+
     }
 
     @Test

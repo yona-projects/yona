@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
-public class RolePermissionTest extends ModelTest {
+public class RolePermissionTest extends ModelTest<RolePermission> {
     @Test
     public void findPermissionsByRole() throws Exception {
         // Given

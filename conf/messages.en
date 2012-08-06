@@ -3,6 +3,7 @@
 title.newIssue = New Issue
 title.issueList = Issue List
 title.issueDetail = Issue
+title.editIssue = Edit Issue
 title.newMilestone = New Milestone
 title.milestoneList = Milestone List
 title.editMilestone = Edit Milestone
@@ -27,6 +28,7 @@ label.state = State
 label.assignee = Assignee
 label.date = Date
 label.id = #
+label.dueDate = Due Date
 
 button.save = Save
 button.confirm = Confirm
@@ -57,6 +59,8 @@ milestone.state.closed = Closed
 milestone.is.empty = There is no milestone.
 milestone.menu.manage = Manage
 milestone.menu.new = New
+sort.by.dueDate = Due Date
+sort.by.completionRate = Completeness
 
 #Issue
 issue.stateType.all = All
@@ -83,11 +87,13 @@ issue.delete.window = Delete Issue
 
 #Post
 post.new.title = Title
+post.new.contents = Contents
 post.menu.search = Search
 post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 post.new.fileAttach = Attach File
 post.popup.fileAttach.title = Select file
 post.popup.fileAttach.contents = Please, select file to attach
+post.update.error = Errors on Input Value
 
 #Project
 project.create = Create this project

@@ -97,10 +97,10 @@ public class MilestoneApp extends Controller {
             return notFound();
         }
 
-        if(project.id != Milestone.findById(id).project.id) {
+        if(project.id.equals(Milestone.findById(id).project.id)) {
             return internalServerError();
         }
-        Milestone.delete(id);
+        Milestone.delete(Milestone.findById(id));
         return redirect(routes.MilestoneApp.manageMilestones(projectName, "dueDate", Direction.ASC.name()));
     }
 }

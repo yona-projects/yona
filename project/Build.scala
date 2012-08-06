@@ -13,14 +13,20 @@ object ApplicationBuild extends Build {
       // Core Library
       "org.eclipse.jgit" % "org.eclipse.jgit" % "2.0.0.201206130900-r",
       // Smart HTTP Servlet
-      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "2.0.0.201206130900-r"
+      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "2.0.0.201206130900-r",
+      // svnkit
+      "sonia.svnkit" % "svnkit" % "1.7.5-1",
+      // svnkit-dav
+      "sonia.svnkit" % "svnkit-dav" % "1.7.5-1",
+      // javahl
+	    "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
       // Add your own project settings here
-      resolvers += (
-      "jgit-repository" at "http://download.eclipse.org/jgit/maven"
-      )
+      resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
+      resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
+      resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
+      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less")
     )
-
 }

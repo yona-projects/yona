@@ -3,6 +3,7 @@
 title.newIssue = 새 이슈
 title.issueList = 이슈 목록
 title.issueDetail = 이슈 상세조회
+title.editIssue = 이슈 수정
 title.newMilestone = 새 마일스톤
 title.milestoneList = 마일스톤 리스트
 title.editMilestone = 마일스톤 수정
@@ -27,6 +28,7 @@ label.state = 상태
 label.assignee = 담당자
 label.date = 작성일
 label.id = #
+label.dueDate = 완료일
 
 button.save = 저장
 button.confirm = 확인
@@ -57,6 +59,8 @@ milestone.state.closed = 완료
 milestone.is.empty = 등록된 마일스톤이 없습니다.
 milestone.menu.manage = 마일스톤 관리
 milestone.menu.new = 새 마일스톤
+sort.by.dueDate = 완료일순
+sort.by.completionRate = 완료울순
 
 #Issue
 issue.stateType.all = 전체
@@ -83,11 +87,14 @@ issue.delete.window = 이슈 삭제
 
 #Post
 post.new.title = 제목
+post.new.contents = 내용
 post.menu.search = 검색
 post.delete.confirm = 해당 게시물이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
 post.new.fileAttach = 첨부파일
 post.popup.fileAttach.title = 첨부파일 선택
 post.popup.fileAttach.contents = 첨부할 파일을 선택해주세요.
+post.edit.rejectNotAuthor = 글쓴이가 아닙니다.
+post.update.error = 입력값 오류
 
 #Project
 project.create = 프로젝트 생성

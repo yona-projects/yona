@@ -13,6 +13,7 @@ import utils.JodaDateUtil;
 import javax.persistence.*;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -47,7 +48,7 @@ public class Post extends Model {
     public User author;
     
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    public Set<Comment> comments;
+    public List<Comment> comments;
     
     @ManyToOne
     public Project project;

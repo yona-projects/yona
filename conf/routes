@@ -11,12 +11,6 @@ GET     /assets/*file                       controllers.Assets.at(path="/public"
 # User
 GET     /users/login                        controllers.UserApp.login()
 
-# Site
-GET     /siteMgn/setting                    controllers.SiteApp.setting()
-GET     /siteMgn/userList                   controllers.SiteApp.userList()
-GET     /siteMgn/projectList                controllers.SiteApp.projectList()
-GET     /siteMgn/softwareMap                controllers.SiteApp.softwareMap()
-
 # Boards
 GET     /:projectName/boardList             controllers.BoardApp.boardList(projectName:String)
 GET     /:projectName/boards/new            controllers.BoardApp.newPost(projectName:String)
@@ -32,8 +26,8 @@ GET	    /projects/new                       controllers.ProjectApp.newProject()
 POST    /projects/new                       controllers.ProjectApp.saveProject()
 GET     /:projectName                       controllers.ProjectApp.project(projectName:String)
 GET     /:projectName/setting               controllers.ProjectApp.setting(projectName:String)
-POST    /:projectName/setting   	          controllers.ProjectApp.saveSetting(projectName:String)
-GET     /:projectName/delete    	          controllers.ProjectApp.deleteProject(projectName:String)
+POST    /:projectName/setting   	        controllers.ProjectApp.saveSetting(projectName:String)
+GET     /:projectName/delete    	        controllers.ProjectApp.deleteProject(projectName:String)
 GET     /:projectName/memberList            controllers.ProjectApp.memberList(projectName:String)
 POST    /:projectName/memberList            controllers.ProjectApp.updateMember(userId:Long, projectName:String)
 POST    /:projectName/addMember             controllers.ProjectApp.addMember(projectName:String)
@@ -42,20 +36,22 @@ GET     /:projectName/deleteMember          controllers.ProjectApp.deleteMember(
 # Milestones
 GET     /:projectName/milestones            controllers.MilestoneApp.milestones(projectName:String, state ?= "open", sort ?= "dueDate", direction ?= "asc")
 GET     /:projectName/milestones/manage     controllers.MilestoneApp.manageMilestones(projectName:String, sort ?= "dueDate", direction ?= "asc")
-GET		  /:projectName/milestones/new        controllers.MilestoneApp.newMilestone(projectName:String)
-POST	  /:projectName/milestones/new		    controllers.MilestoneApp.createMilestone(projectName:String)
-POST	  /:projectName/milestones/:id/save	  controllers.MilestoneApp.updateMilestone(projectName:String, id: Long)
-GET		  /:projectName/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(projectName:String, id: Long)
+GET		/:projectName/milestones/new        controllers.MilestoneApp.newMilestone(projectName:String)
+POST	/:projectName/milestones/new		controllers.MilestoneApp.createMilestone(projectName:String)
+POST	/:projectName/milestones/:id/save	controllers.MilestoneApp.updateMilestone(projectName:String, id: Long)
+GET		/:projectName/milestones/:id/delete controllers.MilestoneApp.deleteMilestone(projectName:String, id: Long)
 GET	    /:projectName/milestones/:id/edit   controllers.MilestoneApp.editMilestone(projectName:String, id: Long)
 
 # Issues
 GET     /:projectName/issueList	            controllers.IssueApp.list(projectName:String, stateType:String)
-GET		  /:projectName/issues/new		        controllers.IssueApp.newIssue(projectName:String)
-POST	  /:projectName/issues/new				    controllers.IssueApp.saveIssue(projectName:String)
+GET		/:projectName/issues/new		    controllers.IssueApp.newIssue(projectName:String)
+POST	/:projectName/issues/new			controllers.IssueApp.saveIssue(projectName:String)
 GET     /:projectName/issues/:id            controllers.IssueApp.issue(projectName:String, id:Long)
 POST    /:projectName/issue/:id/reply       controllers.IssueApp.saveComment(projectName:String, id:Long)
 GET     /:projectName/issue/:id/delete      controllers.IssueApp.delete(projectName:String, id:Long)
-GET		  /:projectName/issueList/excel			  controllers.IssueApp.extractExcelFile(projectName:String)
+GET		/:projectName/issueList/excel		controllers.IssueApp.extractExcelFile(projectName:String)
+GET     /:projectName/issues/:id/edit       controllers.IssueApp.editIssue(projectName:String, id:Long)
+POST    /:projectName/issues/:id/edit       controllers.IssueApp.updateIssue(projectName:String, id:Long)
 
 
 # Git
@@ -64,3 +60,12 @@ POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controlle
 
 # Code
 GET     /:projectName/code                                             controllers.CodeApp.view(projectName:String)
+
+#SVN
+HEAD        /svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
+GET         /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
+POST        /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
+OPTIONS     /svn/*path                                           controllers.SvnApp.serviceWithPath(path:String)
+DELETE      /svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
+PUT			/svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
+POST        /!svn-fake/sevice/                                   controllers.SvnApp.service()

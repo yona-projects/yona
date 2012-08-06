@@ -6,10 +6,10 @@
             _direction = "desc"
         }
     }
-    "/%s/milestones?state=%s&sort=%s&direction=%s".format(projectName, state, _sort, _direction)
+    routes.MilestoneApp.milestones(projectName, state, _sort, _direction)
 }
 @makeIssuesLink(mId: Long, _state: String) = @{
-    "/issueList?milestone=%d&state=%s".format(mId, _state)
+    routes.IssueApp.list(projectName, _state)+"&milestone="+mId
 }
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */
@@ -53,8 +53,8 @@
                     @milestone.contents
                 </td>
                 <td>
-                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a><span>@Messages("issue.state.closed")</span>
-                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>@Messages("issue.state.open")</span>
+                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a> <span>@Messages("issue.stateType.closed")</span>
+                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>@Messages("issue.stateType.open")</span>
                     <div class="progress">
                         <div class="bar" style="width: @milestone.completionRate%;"></div>
                     </div>

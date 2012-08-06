@@ -26,7 +26,6 @@ public class IssueComment extends Model {
     public Long id;
 
     @ManyToOne
-    @Constraints.Required
     public Issue issue;
 
     @Constraints.Required

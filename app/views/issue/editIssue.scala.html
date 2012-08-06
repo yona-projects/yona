@@ -1,0 +1,141 @@
+@(title:String, issueForm:Form[Issue], issueId:Long,  project:Project)
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@main(Messages(title), project) {
+
+    @form( action = routes.IssueApp.updateIssue(project.name, issueId), 
+            'enctype -> "multipart/form-data",
+            'class -> "form-horizontal"){
+            <fieldset>
+    	@inputText(
+    	   issueForm("title"), 
+    	   '_showConstraints -> false, 
+    	   '_label-> Messages("post.new.title"))
+
+    	@textarea(
+    	   issueForm("body"), 
+    	   '_showConstraints -> false, 
+    	   '_label-> Messages("post.new.contents"))
+
+    	@inputFile(
+    	   issueForm("filePath")
+    	
+    	
+    	)
+    	</fieldset>
+    	</br></br>
+            <div class="well">
+                <h4>@Messages("issue.new.detailInfo")</h4>
+                <div class="well form-inline">
+                    @select(
+                            issueForm("issueType"), 
+                            options = options(
+                                        "1"->"치명결함", 
+                                        "2"->"중결함", 
+                                        "3"->"경결함", 
+                                        "4"->"단순개선", 
+                                        "5"->"권고사항"),
+                            '_label-> Messages("issue.new.detailInfo.issueType"),
+                            '_default -> "-- 유형을 고르시오 --",
+                            '_showConstraints -> false)
+                        @select(
+                            issueForm("assigneeId"), 
+                            options(ProjectUser.options(project.id)),
+                            '_label-> Messages("issue.new.detailInfo.assignee"),
+                            '_default -> "-- 담당자를 고르시오 --",
+                            '_showConstraints -> false)
+                        @select(
+                            issueForm("componentName"), 
+                            options = options(
+                                        "컴포넌트"->"Component id 1"),
+                            '_label-> Messages("issue.new.detailInfo.component"),
+                            '_default -> "-- 컴포넌트를 고르시오 --",
+                            '_showConstraints -> false)
+                        @select(
+                            issueForm("milestoneId"), 
+                            options(Milestone.options(project.id)),
+                            '_label-> Messages("issue.new.detailInfo.milestone"),
+                            '_default -> "-- 마일스톤을 고르시오 --",
+                            '_showConstraints -> false)
+                </div>      
+            </div>
+        </fieldset>
+        <fieldset>
+            <div class="well">
+                <h4> @Messages("issue.new.environment")</h4>
+                <div class="well form-inline">
+                        @select(
+                            issueForm("osType"), 
+                            options = options(
+                                "1"->"Windows", 
+                                "2"->"MacOS", 
+                                "3"->"Linux"),
+                            '_label-> Messages("issue.new.environment.osType"),
+                            '_default -> "-- 운영체제를 고르시오 --",
+                            '_showConstraints -> false)
+                        @select(
+                            issueForm("browserType"), 
+                            options = options(
+                                        "IE"->"IE",
+                                        "Firefox"->"Firefox",
+                                        "Chrome"->"Chrome",
+                                        "Opera"->"Opera", 
+                                        "Safari"->"Safari"),
+                            '_label-> Messages("issue.new.environment.browserType"),
+                            '_default -> "-- 브라우저를 고르시오 --",
+                            '_showConstraints -> false)
+                        @select(
+                            issueForm("dbmsType"), 
+                            options = options(
+                                        "PostgreSQL"->"PostgreSQL", 
+                                        "CUBRID"->"CUBRID", 
+                                        "MySQL"->"MySQL"),
+                            '_label-> Messages("issue.new.environment.dbmsType"),
+                            '_default -> "-- DB를 고르시오 --",
+                            '_showConstraints -> false)
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <div class="well">
+                <h4> @Messages("issue.new.result")</h4>
+                <div class="well form-inline">
+                        @select(
+                            issueForm("importance"), 
+                            options = options(
+                                        "1"->"매우중요", 
+                                        "2"->"중요", 
+                                        "3"->"보통", 
+                                        "4"->"낮음", 
+                                        "5"->"매우낮음"),
+                            '_label-> Messages("issue.new.result.importance"),
+                            '_default -> "-- 중요도를 고르시오 --",
+                            '_showConstraints -> false)
+                        @select(
+                            issueForm("diagnosisResult"), 
+                            options = options(
+                                        "1"->"버그확인", 
+                                        "2"->"수정됨", 
+                                        "3"->"수정안함", 
+                                        "4"->"버그아님",
+                                        "5"->"응답대기", 
+                                        "6"->"재현불가", 
+                                        "7"->"중복", 
+                                        "8"->"잘동작함"),
+                            '_label-> Messages("issue.new.result.diagnosisResult"),
+                            '_default -> "-- 진단유형을 고르시오 --",
+                            '_showConstraints -> false)
+                </div>      
+            </div>
+        </fieldset>
+    	
+    	<input type="submit" class="btn" value=@Messages("button.save") />
+    	<input type="reset" class="btn" value=@Messages("button.reset") />
+    }
+
+    @board.postVaildate()
+
+}
+
+            

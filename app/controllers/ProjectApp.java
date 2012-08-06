@@ -9,6 +9,7 @@ import utils.Constants;
 import play.data.Form;
 import java.io.*;
 import org.eclipse.jgit.lib.*;
+import org.tigris.subversion.javahl.ClientException;
 
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -44,7 +45,7 @@ public class ProjectApp extends Controller {
                 Project.findByName(projectName)));
     }
 
-    public static Result saveProject() throws IOException {
+    public static Result saveProject() throws IOException, ClientException {
         Form<Project> filledNewProjectForm = form(Project.class)
                 .bindFromRequest();
 
@@ -63,6 +64,9 @@ public class ProjectApp extends Controller {
                         .build();
                 boolean bare = true;
                 repository.create(bare); // create bare repository
+            } else if (project.vcs.equals("Subversion")) {
+                String svnPath = new File(SvnApp.REPO_PREFIX + project.name).getAbsolutePath();
+                new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
             } else {
                 throw new UnsupportedOperationException("only support git!");
             }

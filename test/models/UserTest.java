@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-public class UserTest extends ModelTest {
+public class UserTest extends ModelTest<User> {
 
 	@Test
 	public void authenticate() throws Exception {

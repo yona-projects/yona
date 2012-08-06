@@ -4,7 +4,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import org.junit.Test;
 
-public class IssueCommentTest extends ModelTest {
+public class IssueCommentTest extends ModelTest<IssueComment> {
 
     @Test
     public void findById() {
@@ -32,6 +32,7 @@ public class IssueCommentTest extends ModelTest {
         // Given
         // When
         IssueComment.deleteByIssueId(1l);
+        flush();
         // Then
         assertThat(IssueComment.findById(1l)).isNull();
     }
