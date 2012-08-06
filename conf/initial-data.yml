@@ -1,21 +1,21 @@
 # Users
 users:
     - !!models.User
+        name:           Hobi
         loginId:        hobi
         password:       hobi00
-        name:           hobi
     - !!models.User
+        name:           scott
         loginId:        k16wire
         password:       k16wire00
-        name:           scott
     - !!models.User
+        name:           suwon
         loginId:        doortts
         password:       doortts00
-        name:           suwon
     - !!models.User
+        name:           eungjun
         loginId:        nori
         password:       nori00
-        name:           eungjun
         
 # Projects
 projects:

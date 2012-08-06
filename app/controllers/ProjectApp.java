@@ -21,8 +21,6 @@ import views.html.project.setting;
 import views.html.project.memberList;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author "Hwi Ahn"
@@ -31,7 +29,7 @@ public class ProjectApp extends Controller {
 
     public static Result project(String projectName) {
         return ok(projectHome.render("title.projectHome",
-                Project.findByName(projectName)));
+        		getProject(projectName)));
     }
 
     public static Result newProject() {
@@ -160,5 +158,9 @@ public class ProjectApp extends Controller {
         else
             return true;
         
+    }
+    
+    public static Project getProject(String projectName) {
+    	return Project.findByName(projectName);
     }
 }
