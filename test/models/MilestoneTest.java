@@ -234,7 +234,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         issue.state = IssueState.ASSIGNED;
         issue.stateType = IssueStateType.OPEN;
         issue.reporterId = User.findById(1l).id;
-        issue.milestoneId = "8";
+        issue.milestoneId = 8l;
 
         // WHEN
         Issue.create(issue);
@@ -250,7 +250,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         //Given
         Issue issue = new Issue();
         issue.updateStatusType(IssueState.ENROLLED);
-        issue.milestoneId = "9";
+        issue.milestoneId = 9l;
         issue.update(5l);
 
         Long milestoneId = Long.valueOf(issue.milestoneId);

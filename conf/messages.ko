@@ -12,6 +12,7 @@ title.projectHome = 프로젝트 홈
 title.newProject = 새 프로젝트 생성
 title.projectSetting = 프로젝트 설정
 title.memberList = 맴버 리스트
+title.post.notExistingPage = 존재하지 않는 게시물
 
 menu.home = 홈
 menu.board = 게시판
@@ -82,6 +83,15 @@ issue.new.result.importance = 중요도
 issue.new.result.diagnosisResult = 진단 결과
 issue.no.assignee = 미배정
 issue.delete.window = 이슈 삭제
+issue.new.selectDefault.milestone = --마일스톤 선택--
+issue.new.selectDefault.issueType = --유형 선택--
+issue.new.selectDefault.assignee = --담당자 선택--
+issue.new.selectDefault.component = --컴포넌트 선택--
+issue.new.selectDefault.osType = --운영체제 종류 선택--
+issue.new.selectDefault.browserType = --브라우져 종류 선택--
+issue.new.selectDefault.dbmsType = --DBMS 선택--
+issue.new.selectDefault.importance = --중요도 선택--
+issue.new.selectDefault.diagnosisResult = --진단결과 선택--
 
 #Post
 post.new.title = 제목

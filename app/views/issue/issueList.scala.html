@@ -23,11 +23,11 @@
 			<div class="pull-right">
 				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.list(project.name, param.stateType)" method="GET" >
 					<select id="milestone" name="milestone">
-						<option class="blank" value="none">--마일스톤--</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
+						<option class="blank" value ="">@Messages("issue.menu.milestoneSelectDefault")</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
 					</select>
 					<input type="hidden" name="sortBy" value="@param.sortBy">
           			<input type="hidden" name="orderBy" value="@param.orderBy">
-					<input type="text" name="filter" value="@param.filter" placeholder="이슈 검색..">
+					<input type="text" name="filter" value="@param.filter" placeholder=@Messages("issue.menu.searchDefault")>
 					<input type="hidden" name="stateType" value="@param.stateType">
 					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
 				
