@@ -45,7 +45,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     public void findProjectsByOwner() throws Exception {
         // Given
         // When
-        List<Project> projects = ProjectUser.findProjectsByOwner(1l);
+        List<Project> projects = ProjectUser.findProjectsByOwner(2l);
         // Then
         assertThat(projects.size()).isEqualTo(2);
     }
@@ -73,6 +73,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     public void isManager() throws Exception {
         // Given
         ProjectUser.assignRole(1l, 3l, 1l);
+        flush();
         // When
         // Then
         assertThat(ProjectUser.isManager(1l)).isEqualTo(false);

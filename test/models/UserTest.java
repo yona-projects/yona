@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.avaje.ebean.Page;
+
 public class UserTest extends ModelTest<User> {
 
 	@Test
@@ -18,7 +20,7 @@ public class UserTest extends ModelTest<User> {
 		// When
 		User authenticate = User.authenticate(user);
 		// Then
-		assertThat(authenticate.name).isEqualTo("hobi");
+		assertThat(authenticate.name).isEqualTo("Hobi");
 	}
 
 	@Test
@@ -27,14 +29,14 @@ public class UserTest extends ModelTest<User> {
 		// When
 		User user = User.findById(1l);
 		// Then
-		assertThat(user.name).isEqualTo("hobi");
+		assertThat(user.name).isEqualTo("Hobi");
 	}
 
 	@Test
 	public void findByName() throws Exception {
 		// Given
 		// When
-		User user = User.findByName("hobi");
+		User user = User.findByName("Hobi");
 		// Then
 		assertThat(user.id).isEqualTo(1l);
 	}
@@ -44,7 +46,7 @@ public class UserTest extends ModelTest<User> {
         //When
 	    String name = User.findNameById(1l);
         //Then
-	    assertThat(name).isEqualTo("hobi");
+	    assertThat(name).isEqualTo("Hobi");
     }
 	
 	@Test
@@ -63,5 +65,16 @@ public class UserTest extends ModelTest<User> {
 	    User user = User.findByLoginId("k16wire");
 	    // Then
 	    assertThat(user.id).isEqualTo(2l);
+	}
+	
+	@Test
+	public void findUsers() throws Exception {
+	    // Given
+	    // When
+	    Page<User> users = User.findUsers(0, null);
+	    Page<User> searchUsers = User.findUsers(0, "ho");
+	    // Then
+	    assertThat(users.getTotalRowCount()).isEqualTo(4);
+	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}
 }

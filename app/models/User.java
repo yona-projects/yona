@@ -6,6 +6,15 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+
+import models.enumeration.Direction;
+import models.enumeration.Matching;
+import models.support.FinderTemplate;
+import models.support.OrderParams;
+import models.support.SearchParams;
+
+import com.avaje.ebean.Page;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -13,13 +22,19 @@ import java.util.Set;
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
-
+    private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
+            User.class);
+    
+    public static final int USER_COUNT_PER_PAGE = 30;
+    
     @Id
     public Long id;
     public String name;
     public String loginId;
     public String password;
     public String profileFilePath;
+    public String email;
+    public boolean isActive;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
@@ -27,9 +42,6 @@ public class User extends Model {
     public String getName() {
         return this.name;
     }
-
-    private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
-            User.class);
 
     public static User findByName(String name) {
         return find.where().eq("name", name).findUnique();
@@ -63,4 +75,11 @@ public class User extends Model {
         }
         return options;
     }
+    
+    public static Page<User> findUsers(int pageNum, String loginId) {
+        OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
+        SearchParams searchParams = new SearchParams();
+        if(loginId != null) searchParams.add("loginId", loginId, Matching.CONTAINS);
+        return FinderTemplate.getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
+    }   
 }

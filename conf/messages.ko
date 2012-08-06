@@ -1,5 +1,4 @@
 # Messages
-
 title.newIssue = 새 이슈
 title.issueList = 이슈 목록
 title.issueDetail = 이슈 상세조회
@@ -13,6 +12,7 @@ title.newProject = 새 프로젝트 생성
 title.projectSetting = 프로젝트 설정
 title.memberList = 맴버 리스트
 title.post.notExistingPage = 존재하지 않는 게시물
+title.siteSetting = 사이트 설정
 
 menu.home = 홈
 menu.board = 게시판

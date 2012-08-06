@@ -1,0 +1,13 @@
+@(title: String)(content: Html)
+
+@home(title) {
+<div class="row-fluid">
+    <div class="span2">
+        @views.html.site.sidebar(title)
+    </div>
+    <div class="span10">
+        @content
+    </div>
+
+</div>
+}

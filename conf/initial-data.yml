@@ -4,18 +4,26 @@ users:
         name:           Hobi
         loginId:        hobi
         password:       hobi00
+        email:          hobi@nhn.com
+        isActive:       true
     - !!models.User
         name:           scott
         loginId:        k16wire
         password:       k16wire00
+        email:          k16wire@naver.com
+        isActive:       true
     - !!models.User
         name:           suwon
         loginId:        doortts
         password:       doortts00
+        email:          sw@korea.com
+        isActive:       false
     - !!models.User
         name:           eungjun
         loginId:        nori
         password:       nori00
+        email:          ejlee@nhn.com
+        isActive:       false
         
 # Projects
 projects:
@@ -36,7 +44,13 @@ projects:
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
         vcs:            GIT
-        url:            http://localhost:9000/CUBRID 
+        url:            http://localhost:9000/CUBRID
+    - !!models.Project
+        name:           SiteDefault
+        overview:       Site 설정을 위한 default 프로젝트입니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/SiteDefault  
 
 # Board
 posts:
@@ -437,3 +451,10 @@ projectUsers:
                             id: 3
         role:           !!models.Role
                             id: 1
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 4
+        role:           !!models.Role
+                            id: 3

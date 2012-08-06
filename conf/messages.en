@@ -13,6 +13,7 @@ title.newProject = Create a New Project
 title.projectSetting = Project Setting
 title.memberList = Member List
 title.post.notExistingPage = Not Existing Page
+title.siteSetting = Site Setting
 
 menu.home = Home
 menu.board = Board

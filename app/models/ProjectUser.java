@@ -70,7 +70,7 @@ public class ProjectUser extends Model {
     }
 
     /**
-     * 해당 유저, 프로젝트 값을 갖는 ProjectUser 오브젝트를 반환합니다.
+     * 해당 유저, 프로젝트 값을 갖는 ProjectUser 오브젝트를 제공합니다.
      * 
      * @param userId
      * @param projectId
@@ -134,6 +134,12 @@ public class ProjectUser extends Model {
         return Role.findPermissionsById(ProjectUser.findRoleByIds(userId, projectId).id);
     }
     
+    /**
+     * 해당 프로젝트에 가입한 맴버들의 Login ID와 그 맴버들의 Role의 이름을 제공합니다.
+     * 
+     * @param projectId
+     * @return
+     */
     public static List<ProjectUser> findMemberListByProject(Long projectId) {
         return find
             .fetch("user", "loginId")
