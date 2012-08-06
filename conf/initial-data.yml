@@ -45,6 +45,12 @@ projects:
         share_option:   false
         vcs:            GIT
         url:            http://localhost:9000/CUBRID
+    - !!models.Project
+        name:           SiteDefault
+        overview:       Site 설정을 위한 default 프로젝트입니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/SiteDefault  
 
 # Board
 posts:
@@ -449,6 +455,6 @@ projectUsers:
         user:           !!models.User
                             id: 1
         project:        !!models.Project
-                            id: 1
+                            id: 4
         role:           !!models.Role
                             id: 3
