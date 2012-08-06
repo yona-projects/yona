@@ -177,7 +177,6 @@ public class Issue extends Model {
             milestone.delete(issue);
         }
         issue.delete();
-        IssueComment.deleteByIssueId(id);
     }
 
     /**

@@ -29,36 +29,35 @@ public class IssueTest extends ModelTest<Issue> {
     @Test
     public void findById() throws Exception {
         // Given
-        Issue issue = new Issue();
-        issue.title = "불필요한 로그 출력 코드 제거";
-        issue.date = JodaDateUtil.today();
-        issue.state = IssueState.FINISHED;
-        issue.reporterId = User.findById(1l).id;
-        // issue.milestoneId = "none";
-        Long id = Issue.create(issue);
         // When
-        Issue issueTest = Issue.findById(id);
+        Issue issue = Issue.findById(1l);
         // Then
-        assertThat(issueTest).isNotNull();
+        assertThat(issue.id).isEqualTo(1l);
+        assertThat(issue.title).isEqualTo("불필요한 로그 출력 코드 제거");
     }
 
     @Test
     public void findCommentsById() throws Exception {
         // Given
         // When
-        Issue issueTest = Issue.findById(1l);
+        Issue issue = Issue.findById(1l);
         // Then
-        assertThat(issueTest.comments.size()).isEqualTo(1);
+        assertThat(issue.comments.size()).isEqualTo(1);
+        
+        IssueComment issueComment = issue.comments.get(0);
+        assertThat(issueComment.id).isEqualTo(1l);
+        assertThat(issueComment.contents).isEqualTo("코드를 수정했습니다");
     }
 
     @Test
     public void delete() {
         // Given
         // When
-        Issue.delete(4l);
+        Issue.delete(1l);
         flush();
         // Then
-        assertThat(Issue.findById(4l)).isNull();
+        assertThat(Issue.findById(1l)).isNull();
+        assertThat(IssueComment.findById(1l)).isNull();
     }
 
     @Test
