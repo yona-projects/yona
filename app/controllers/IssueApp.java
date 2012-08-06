@@ -66,7 +66,7 @@ public class IssueApp extends Controller {
         }
         Issue issueInfo = Issue.findById(issueId);
         if (issueInfo == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물", project));
+            return ok(notExistingPage.render("title.post.notExistingPage", project));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class);
             return ok(issue.render("title.issueDetail", issueInfo, commentForm, project));
@@ -95,17 +95,17 @@ public class IssueApp extends Controller {
             newIssue.reporterId = UserApp.currentUser().id;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-            if (issueForm.get().milestoneId == null) {
-                newIssue.milestoneId = "none";
-            }
+            // if (issueForm.get().milestoneId == null) {
+            // newIssue.milestoneId = "none";
+            // }
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
-            
-            Logger.debug("IssueApp : saveIssue - milestoneId:"+newIssue.milestoneId);
-            Logger.debug("IssueApp : saveIssue - state:"+newIssue.state);
-            Logger.debug("IssueApp : saveIssue - stateType:"+newIssue.stateType);
-            Logger.debug("IssueApp : saveIssue - assigneeId:"+newIssue.assigneeId);
+
+            Logger.debug("IssueApp : saveIssue - milestoneId:" + newIssue.milestoneId);
+            Logger.debug("IssueApp : saveIssue - state:" + newIssue.state);
+            Logger.debug("IssueApp : saveIssue - stateType:" + newIssue.stateType);
+            Logger.debug("IssueApp : saveIssue - assigneeId:" + newIssue.assigneeId);
         }
         return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
     }
