@@ -20,7 +20,7 @@ public class UserTest extends ModelTest<User> {
 		// When
 		User authenticate = User.authenticate(user);
 		// Then
-		assertThat(authenticate.name).isEqualTo("hobi");
+		assertThat(authenticate.name).isEqualTo("Hobi");
 	}
 
 	@Test
@@ -29,14 +29,14 @@ public class UserTest extends ModelTest<User> {
 		// When
 		User user = User.findById(1l);
 		// Then
-		assertThat(user.name).isEqualTo("hobi");
+		assertThat(user.name).isEqualTo("Hobi");
 	}
 
 	@Test
 	public void findByName() throws Exception {
 		// Given
 		// When
-		User user = User.findByName("hobi");
+		User user = User.findByName("Hobi");
 		// Then
 		assertThat(user.id).isEqualTo(1l);
 	}
@@ -46,7 +46,7 @@ public class UserTest extends ModelTest<User> {
         //When
 	    String name = User.findNameById(1l);
         //Then
-	    assertThat(name).isEqualTo("hobi");
+	    assertThat(name).isEqualTo("Hobi");
     }
 	
 	@Test

@@ -19,7 +19,8 @@ object ApplicationBuild extends Build {
       // svnkit-dav
       "sonia.svnkit" % "svnkit-dav" % "1.7.5-1",
       // javahl
-	    "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5"
+	    "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5",
+	    "net.sourceforge.jexcelapi" % "jxl" % "2.6.10"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(

@@ -12,6 +12,7 @@ title.projectHome = 프로젝트 홈
 title.newProject = 새 프로젝트 생성
 title.projectSetting = 프로젝트 설정
 title.memberList = 맴버 리스트
+title.post.notExistingPage = 존재하지 않는 게시물
 title.siteSetting = 사이트 설정
 
 menu.home = 홈
@@ -20,7 +21,6 @@ menu.code = 코드
 menu.issue = 이슈
 menu.wiki = 위키
 menu.admin = 프로젝트 관리
-menu.siteAdmin = 사이트 관리
 
 label.title = 제목
 label.contents = 내용
@@ -84,6 +84,15 @@ issue.new.result.importance = 중요도
 issue.new.result.diagnosisResult = 진단 결과
 issue.no.assignee = 미배정
 issue.delete.window = 이슈 삭제
+issue.new.selectDefault.milestone = --마일스톤 선택--
+issue.new.selectDefault.issueType = --유형 선택--
+issue.new.selectDefault.assignee = --담당자 선택--
+issue.new.selectDefault.component = --컴포넌트 선택--
+issue.new.selectDefault.osType = --운영체제 종류 선택--
+issue.new.selectDefault.browserType = --브라우져 종류 선택--
+issue.new.selectDefault.dbmsType = --DBMS 선택--
+issue.new.selectDefault.importance = --중요도 선택--
+issue.new.selectDefault.diagnosisResult = --진단결과 선택--
 
 #Post
 post.new.title = 제목
@@ -134,18 +143,3 @@ project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
 project.delete.requestion = 프로젝트를 삭제하시겠습니까?
 project.delete.reaccept = 정말로 삭제하시겠습니까?
 project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.
-
-#Site
-site.sidebar = 사이트 관리
-site.sidebar.setting = 사이트 설정
-site.sidebar.userList = 유저
-site.sidebar.projectList = 프로젝트
-site.sidebar.softwareMap = 소프트웨어 맵
-site.sidebar.mailSend = 메일 발송
-
-#User
-user.loginId = ID
-user.name = 이름
-user.email = 이메일
-user.active = 활성
-user.inactive = 비활성

@@ -18,8 +18,8 @@
             <li class="@isActiveMenu(routes.ProjectApp.setting(projectName))">
                 <a href="@routes.ProjectApp.setting(projectName)"><i class="icon-cog"></i>@Messages("project.sidebar.setting")</a>
             </li>
-            <li class="@isActiveMenu(routes.ProjectApp.memberList(projectName))">
-                <a href="@routes.ProjectApp.memberList(projectName)"><i class="icon-user"></i>@Messages("project.sidebar.memberList")</a>
+            <li class="@isActiveMenu(routes.ProjectApp.members(projectName))">
+                <a href="@routes.ProjectApp.members(projectName)"><i class="icon-user"></i>@Messages("project.sidebar.memberList")</a>
             </li>
             <li class="@isActiveMenu(routes.MilestoneApp.milestones(projectName),routes.MilestoneApp.manageMilestones(projectName))">
                 <a href="@routes.MilestoneApp.milestones(projectName)"><i class="icon-gift"></i>@Messages("project.sidebar.milestone")</a>

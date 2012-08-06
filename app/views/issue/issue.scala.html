@@ -7,7 +7,7 @@
 		<div id="board_btn_panel">
 			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.name, issue.id)">@Messages("button.edit")</a> <a
 				data-toggle="modal" href="#deleteConfirm" class="btn">@Messages("button.delete")</a>
-			<a class="btn" href="@routes.IssueApp.list(project.name,"open")">@Messages("button.list")</a>
+			<a class="btn" href="@routes.IssueApp.issues(project.name,"open")">@Messages("button.list")</a>
 		</div>
 	</div>
 </div>
@@ -92,7 +92,7 @@
 	</div>
 	<div class="modal-footer">
 		<a class="btn btn-danger"
-			href="@routes.IssueApp.delete(project.name, issue.id)">@Messages("button.yes")</a>
+			href="@routes.IssueApp.deleteIssue(project.name, issue.id)">@Messages("button.yes")</a>
 		<a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
 	</div>
 </div>

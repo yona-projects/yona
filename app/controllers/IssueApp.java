@@ -44,7 +44,7 @@ public class IssueApp extends Controller {
      *            이슈 해결 상태
      * @return
      */
-    public static Result list(String projectName, String stateType) {
+    public static Result issues(String projectName, String stateType) {
         Project project = Project.findByName(projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
@@ -66,7 +66,7 @@ public class IssueApp extends Controller {
         }
         Issue issueInfo = Issue.findById(issueId);
         if (issueInfo == null) {
-            return ok(notExistingPage.render("존재하지 않는 게시물", project));
+            return ok(notExistingPage.render("title.post.notExistingPage", project));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class);
             return ok(issue.render("title.issueDetail", issueInfo, commentForm, project));
@@ -95,19 +95,19 @@ public class IssueApp extends Controller {
             newIssue.reporterId = UserApp.currentUser().id;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-            if (issueForm.get().milestoneId == null) {
-                newIssue.milestoneId = "none";
-            }
+            // if (issueForm.get().milestoneId == null) {
+            // newIssue.milestoneId = "none";
+            // }
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
-            
-            Logger.debug("IssueApp : saveIssue - milestoneId:"+newIssue.milestoneId);
-            Logger.debug("IssueApp : saveIssue - state:"+newIssue.state);
-            Logger.debug("IssueApp : saveIssue - stateType:"+newIssue.stateType);
-            Logger.debug("IssueApp : saveIssue - assigneeId:"+newIssue.assigneeId);
+
+            Logger.debug("IssueApp : saveIssue - milestoneId:" + newIssue.milestoneId);
+            Logger.debug("IssueApp : saveIssue - state:" + newIssue.state);
+            Logger.debug("IssueApp : saveIssue - stateType:" + newIssue.stateType);
+            Logger.debug("IssueApp : saveIssue - assigneeId:" + newIssue.assigneeId);
         }
-        return redirect(routes.IssueApp.list(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
     }
 
     public static Result editIssue(String projectName, Long id) {
@@ -139,16 +139,16 @@ public class IssueApp extends Controller {
             Issue.edit(issue);
         }
 
-        return redirect(routes.IssueApp.list(projcet.name, IssueStateType.ALL.name()));
+        return redirect(routes.IssueApp.issues(projcet.name, IssueStateType.ALL.name()));
     }
 
-    public static Result delete(String projectName, Long issueId) {
+    public static Result deleteIssue(String projectName, Long issueId) {
         Project project = Project.findByName(projectName);
         if (project == null) {
             return notFound();
         }
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.list(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
     }
 
     public static Result saveComment(String projectName, Long issueId) {

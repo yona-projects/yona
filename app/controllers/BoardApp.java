@@ -26,7 +26,7 @@ import views.html.board.postList;
 
 public class BoardApp extends Controller {
 
-    public static Result boardList(String projectName) {
+    public static Result posts(String projectName) {
 
         Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
         Param postParam = postParamForm.bindFromRequest().get();
@@ -58,7 +58,7 @@ public class BoardApp extends Controller {
             Post.write(post);
         }
 
-        return redirect(routes.BoardApp.boardList(project.name));
+        return redirect(routes.BoardApp.posts(project.name));
     }
 
     public static Result post(String projectName, Long postId) {
@@ -96,10 +96,10 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result delete(String projectName, Long postId) {
+    public static Result deletePost(String projectName, Long postId) {
         Project project = Project.findByName(projectName);
         Post.delete(postId);
-        return redirect(routes.BoardApp.boardList(project.name));
+        return redirect(routes.BoardApp.posts(project.name));
     }
 
     public static Result editPost(String projectName, Long postId) {
@@ -132,7 +132,7 @@ public class BoardApp extends Controller {
             Post.edit(post);
         }
 
-        return redirect(routes.BoardApp.boardList(projcet.name));
+        return redirect(routes.BoardApp.posts(projcet.name));
     }
 
     private static String saveFile(Request request) {

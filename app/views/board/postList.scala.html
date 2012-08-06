@@ -2,7 +2,7 @@
 
 @header(label:String, key:String) = {
     <th>
-        <a key="@key" href="@routes.BoardApp.boardList(project.name)">@label</a>
+        <a key="@key" href="@routes.BoardApp.posts(project.name)">@label</a>
         @if(key == param.key){
         @if(param.order == "desc"){
         <i class="icon-chevron-down"></i>

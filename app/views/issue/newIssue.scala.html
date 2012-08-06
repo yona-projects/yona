@@ -49,26 +49,26 @@
 				    					"4"->"단순개선", 
 				    					"5"->"권고사항"),
 				    		'_label-> Messages("issue.new.detailInfo.issueType"),
-				    		'_default -> "-- 유형을 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.issueType"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("assigneeId"), 
 				    		options(ProjectUser.options(project.id)),
 				    		'_label-> Messages("issue.new.detailInfo.assignee"),
-				    		'_default -> "-- 담당자를 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.assignee"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("componentName"), 
 				    		options = options(
 				    					"컴포넌트"->"Component id 1"),
 				    		'_label-> Messages("issue.new.detailInfo.component"),
-				    		'_default -> "-- 컴포넌트를 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.component"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("milestoneId"), 
 				    		options(Milestone.options(project.id)),
 				    		'_label-> Messages("issue.new.detailInfo.milestone"),
-				    		'_default -> "-- 마일스톤을 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.milestone"),
 				    		'_showConstraints -> false)
 				</div>		
 	    	</div>
@@ -84,7 +84,7 @@
 				    			"2"->"MacOS", 
 				    			"3"->"Linux"),
 				    		'_label-> Messages("issue.new.environment.osType"),
-				    		'_default -> "-- 운영체제를 고르시오 --",
+				    		'_default ->  Messages("issue.new.selectDefault.osType"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("browserType"), 
@@ -95,7 +95,7 @@
 				    					"Opera"->"Opera", 
 				    					"Safari"->"Safari"),
 				    		'_label-> Messages("issue.new.environment.browserType"),
-				    		'_default -> "-- 브라우저를 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.browserType"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("dbmsType"), 
@@ -104,7 +104,7 @@
 				    					"CUBRID"->"CUBRID", 
 				    					"MySQL"->"MySQL"),
 				    		'_label-> Messages("issue.new.environment.dbmsType"),
-				    		'_default -> "-- DB를 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.dbmsType"),
 				    		'_showConstraints -> false)
 				</div>
     		</div>
@@ -122,7 +122,7 @@
 						    			"4"->"낮음", 
 						    			"5"->"매우낮음"),
 				    		'_label-> Messages("issue.new.result.importance"),
-				    		'_default -> "-- 중요도를 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.importance"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("diagnosisResult"), 
@@ -136,7 +136,7 @@
 				    					"7"->"중복", 
 				    					"8"->"잘동작함"),
 				    		'_label-> Messages("issue.new.result.diagnosisResult"),
-				    		'_default -> "-- 진단유형을 고르시오 --",
+				    		'_default -> Messages("issue.new.selectDefault.diagnosisResult"),
 				    		'_showConstraints -> false)
 				</div>		
     		</div>
@@ -144,10 +144,8 @@
 	<div class="row pull-right">
 			<div class="actions">
 				<input type="submit" class="btn btn-primary" value="@Messages("button.save")"> 
-				<a href="@routes.IssueApp.list(project.name, "all")" class="btn">@Messages("button.cancel")</a>
+				<a href="@routes.IssueApp.issues(project.name, "all")" class="btn">@Messages("button.cancel")</a>
 			</div>
     </div>
  }
 }
-
-            

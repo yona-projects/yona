@@ -20,7 +20,7 @@ public class IssueTest extends ModelTest<Issue> {
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
         issue.reporterId = User.findById(1l).id;
-        issue.milestoneId = "4";
+        issue.milestoneId = 4l;
         // When
         // Then
         assertThat(Issue.create(issue)).isEqualTo(9l);
@@ -34,7 +34,7 @@ public class IssueTest extends ModelTest<Issue> {
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.FINISHED;
         issue.reporterId = User.findById(1l).id;
-        issue.milestoneId = "none";
+        // issue.milestoneId = "none";
         Long id = Issue.create(issue);
         // When
         Issue issueTest = Issue.findById(id);
@@ -80,12 +80,12 @@ public class IssueTest extends ModelTest<Issue> {
     }
 
     @Test
-    public void findFilterIssues() throws Exception {
+    public void findFilteredIssues() throws Exception {
 
         // Given
         // When
-        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그",
-            IssueStateType.OPEN, true, true);
+        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그", IssueStateType.OPEN,
+                true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -131,7 +131,7 @@ public class IssueTest extends ModelTest<Issue> {
     public void findIssuesByMilestoneId() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findIssuesByMilestoneId("CUBRID", "9");
+        Page<Issue> issues = Issue.findIssuesByMilestoneId("CUBRID", 9l);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -139,11 +139,11 @@ public class IssueTest extends ModelTest<Issue> {
 
     @Test
     public void findByMilestoneId() throws Exception {
-        //Give
-        //When
+        // Give
+        // When
         List<Issue> issues = Issue.findByMilestoneId(9l);
 
-        //Then
+        // Then
         assertThat(issues.size()).isEqualTo(1);
     }
 

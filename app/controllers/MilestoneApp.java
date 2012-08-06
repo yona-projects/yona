@@ -39,7 +39,7 @@ public class MilestoneApp extends Controller {
         return ok(create.render("title.newMilestone", new Form<Milestone>(Milestone.class), projectName, project));
     }
 
-    public static Result createMilestone(String projectName) {
+    public static Result saveMilestone(String projectName) {
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
         Project project = Project.findByName(projectName);
         if(project == null ) {
