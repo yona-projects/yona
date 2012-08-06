@@ -6,6 +6,9 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+
+import com.avaje.ebean.Page;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +16,9 @@ import java.util.Set;
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
-
+    private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
+            User.class);
+    
     @Id
     public Long id;
     public String name;
@@ -27,9 +32,6 @@ public class User extends Model {
     public String getName() {
         return this.name;
     }
-
-    private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
-            User.class);
 
     public static User findByName(String name) {
         return find.where().eq("name", name).findUnique();
@@ -62,5 +64,12 @@ public class User extends Model {
             options.put(user.id.toString(), user.name);
         }
         return options;
+    }
+    
+    public static Page<User> findUsers(int pageNum, String key, String order, int pageSize) {
+        return find
+                .orderBy(key + " " + order)
+                .findPagingList(pageSize)
+                .getPage(pageNum - 1);
     }
 }

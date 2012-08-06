@@ -11,6 +11,12 @@ GET     /assets/*file                       controllers.Assets.at(path="/public"
 # User
 GET     /users/login                        controllers.UserApp.login()
 
+# Site
+GET     /siteMgn/setting                    controllers.SiteApp.setting()
+GET     /siteMgn/userList                   controllers.SiteApp.userList()
+GET     /siteMgn/projectList                controllers.SiteApp.projectList()
+GET     /siteMgn/softwareMap                controllers.SiteApp.softwareMap()
+
 # Boards
 GET     /:projectName/boardList             controllers.BoardApp.boardList(projectName:String)
 GET     /:projectName/boards/new            controllers.BoardApp.newPost(projectName:String)

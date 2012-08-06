@@ -11,6 +11,7 @@ title.projectHome = 프로젝트 홈
 title.newProject = 새 프로젝트 생성
 title.projectSetting = 프로젝트 설정
 title.memberList = 맴버 리스트
+title.siteSetting = 사이트 설정
 
 menu.home = 홈
 menu.board = 게시판
@@ -18,6 +19,7 @@ menu.code = 코드
 menu.issue = 이슈
 menu.wiki = 위키
 menu.admin = 프로젝트 관리
+menu.siteAdmin = 사이트 관리
 
 label.title = 제목
 label.contents = 내용
@@ -125,3 +127,11 @@ project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
 project.delete.requestion = 프로젝트를 삭제하시겠습니까?
 project.delete.reaccept = 정말로 삭제하시겠습니까?
 project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.
+
+#Site
+site.sidebar = 사이트 관리
+site.sidebar.setting = 사이트 설정
+site.sidebar.userList = 유저
+site.sidebar.projectList = 프로젝트
+site.sidebar.softwareMap = 소프트웨어 맵
+site.sidebar.mailSend = 메일 발송

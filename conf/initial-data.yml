@@ -36,7 +36,7 @@ projects:
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
         vcs:            GIT
-        url:            http://localhost:9000/CUBRID 
+        url:            http://localhost:9000/CUBRID
 
 # Board
 posts:
@@ -436,3 +436,10 @@ projectUsers:
                             id: 3
         role:           !!models.Role
                             id: 1
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 3
