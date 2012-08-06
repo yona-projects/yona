@@ -6,7 +6,7 @@
 	    <div id="board_btn_panel">
 	        <a class="btn btn-primary" href="@routes.BoardApp.editPost(project.name, post.id)">수정</a>
 	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
-	        <a class="btn" href="@routes.BoardApp.boardList(project.name)">목록</a>
+	        <a class="btn" href="@routes.BoardApp.posts(project.name)">목록</a>
 	    </div>
 	</div>
 </div>
@@ -81,7 +81,7 @@
     <p>그래도 삭제하시겠습니까?</p>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="@routes.BoardApp.delete(project.name, post.id)">예</a>
+    <a class="btn btn-primary" href="@routes.BoardApp.deletePost(project.name, post.id)">예</a>
     <a href="#" class="btn" data-dismiss="modal">아니오</a>
   </div>
 </div>

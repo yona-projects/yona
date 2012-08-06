@@ -5,7 +5,7 @@
 
 @header(label:String, sortBy:String) = {
     <th>
-        <a sortBy="@sortBy" href="@routes.IssueApp.list(project.name, param.stateType)">@label</a>
+        <a sortBy="@sortBy" href="@routes.IssueApp.issues(project.name, param.stateType)">@label</a>
         @if(sortBy == param.sortBy){
         @if(param.orderBy == "desc"){
         <i class="icon-chevron-down"></i>
@@ -21,7 +21,7 @@
 	<div class="row">
 		<div span="span6">
 			<div class="pull-right">
-				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.list(project.name, param.stateType)" method="GET" >
+				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.issues(project.name, param.stateType)" method="GET" >
 					<select id="milestone" name="milestone">
 						<option class="blank" value="none">--마일스톤--</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
 					</select>
@@ -39,11 +39,11 @@
 	<div>
 		<ul class="nav nav-tabs" id="issue_list">
 			<li class="@if(param.stateType.equals("all")){active}">
-				<a href="@routes.IssueApp.list(project.name,"all")">@Messages("issue.stateType.all")</a></li>
+				<a href="@routes.IssueApp.issues(project.name,"all")">@Messages("issue.stateType.all")</a></li>
 			<li class="@if(param.stateType.equals("open")){active}">
-				<a href="@routes.IssueApp.list(project.name, "open")">@Messages("issue.stateType.open")</a></li>
+				<a href="@routes.IssueApp.issues(project.name, "open")">@Messages("issue.stateType.open")</a></li>
 			<li class="@if(param.stateType.equals("closed")){active}">
-				<a href="@routes.IssueApp.list(project.name, "closed")">@Messages("issue.stateType.closed")</a></li>
+				<a href="@routes.IssueApp.issues(project.name, "closed")">@Messages("issue.stateType.closed")</a></li>
 		</ul>
 				
 		@if(currentPage.getTotalRowCount == 0){
@@ -52,7 +52,7 @@
 			</div>
 		}else{
 		<div class="pull-right">
-			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.list(project.name, param.stateType)" method="GET">
+			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.issues(project.name, param.stateType)" method="GET">
 				
 				<input type="hidden" name="filter" value="@param.filter">
 				<input type="hidden" name="stateType" value="@param.stateType">

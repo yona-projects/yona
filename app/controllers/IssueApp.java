@@ -44,7 +44,7 @@ public class IssueApp extends Controller {
      *            이슈 해결 상태
      * @return
      */
-    public static Result list(String projectName, String stateType) {
+    public static Result issues(String projectName, String stateType) {
         Project project = Project.findByName(projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
@@ -107,7 +107,7 @@ public class IssueApp extends Controller {
             Logger.debug("IssueApp : saveIssue - stateType:"+newIssue.stateType);
             Logger.debug("IssueApp : saveIssue - assigneeId:"+newIssue.assigneeId);
         }
-        return redirect(routes.IssueApp.list(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
     }
 
     public static Result editIssue(String projectName, Long id) {
@@ -139,7 +139,7 @@ public class IssueApp extends Controller {
             Issue.edit(issue);
         }
 
-        return redirect(routes.IssueApp.list(projcet.name, IssueStateType.ALL.name()));
+        return redirect(routes.IssueApp.issues(projcet.name, IssueStateType.ALL.name()));
     }
 
     public static Result delete(String projectName, Long issueId) {
@@ -148,7 +148,7 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.list(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
     }
 
     public static Result saveComment(String projectName, Long issueId) {

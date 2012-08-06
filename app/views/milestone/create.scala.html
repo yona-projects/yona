@@ -3,7 +3,7 @@
 @import helper.twitterBootstrap._
 
 @main(title, project) {
-    @helper.form(action=routes.MilestoneApp.createMilestone(projectName)){
+    @helper.form(action=routes.MilestoneApp.saveMilestone(projectName)){
         @helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("label.title"))
         @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("label.contents"))
         @helper.input(form("dueDate"), '_showConstraints -> false, '_label-> Messages("label.dueDate")) { (id, name, value, args) =>

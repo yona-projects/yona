@@ -113,13 +113,13 @@ public class ProjectApp extends Controller {
         return redirect(routes.Application.index());
     }
 
-    public static Result memberList(String projectName) {
+    public static Result members(String projectName) {
         Project project = Project.findByName(projectName);
         return ok(memberList.render("title.memberList", ProjectUser.findMemberListByProject(project.id), project,
                 Role.getAllProjectRoles()));
     }
 
-    public static Result addMember(String projectName) {
+    public static Result newMember(String projectName) {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         Project project = Project.findByName(projectName);
@@ -127,17 +127,17 @@ public class ProjectApp extends Controller {
             ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
         else
             flash(Constants.WARNING, "project.member.alreadyMember");
-        return redirect(routes.ProjectApp.memberList(projectName));
+        return redirect(routes.ProjectApp.members(projectName));
     }
 
     public static Result deleteMember(Long userId, String projectName) {
         Long projectId = Project.findByName(projectName).id;
         if (isManager(userId, projectId)) {
             ProjectUser.delete(userId, projectId);
-            return redirect(routes.ProjectApp.memberList(projectName));
+            return redirect(routes.ProjectApp.members(projectName));
         } else {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.memberList(projectName));
+            return redirect(routes.ProjectApp.members(projectName));
         }
     }
 
@@ -147,10 +147,10 @@ public class ProjectApp extends Controller {
              ProjectUser.assignRole(userId, projectId,
              form(Role.class).bindFromRequest()
              .get().id);
-            return redirect(routes.ProjectApp.memberList(projectName));
+            return redirect(routes.ProjectApp.members(projectName));
         } else {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.memberList(projectName));
+            return redirect(routes.ProjectApp.members(projectName));
         } 
     }
 
