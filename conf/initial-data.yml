@@ -4,18 +4,26 @@ users:
         loginId:        hobi
         password:       hobi00
         name:           hobi
+        email:          hobi@nhn.com
+        isActive:       true
     - !!models.User
         loginId:        k16wire
         password:       k16wire00
         name:           scott
+        email:          k16wire@naver.com
+        isActive:       true
     - !!models.User
         loginId:        doortts
         password:       doortts00
         name:           suwon
+        email:          sw@korea.com
+        isActive:       false
     - !!models.User
         loginId:        nori
         password:       nori00
         name:           eungjun
+        email:          ejlee@nhn.com
+        isActive:       false
         
 # Projects
 projects:

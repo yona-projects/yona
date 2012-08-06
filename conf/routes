@@ -11,6 +11,14 @@ GET     /assets/*file                       controllers.Assets.at(path="/public"
 # User
 GET     /users/login                        controllers.UserApp.login()
 
+# Site
+GET     /sites/setting                      controllers.SiteApp.setting()
+GET     /sites/userList                     controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
+POST    /sites/userList                     controllers.SiteApp.searchUser()
+POST    /sites/updateUser                   controllers.SiteApp.updateUser(userId: Long)
+GET     /sites/projectList                  controllers.SiteApp.projectList()
+GET     /sites/softwareMap                  controllers.SiteApp.softwareMap()
+
 # Boards
 GET     /:projectName/boardList             controllers.BoardApp.boardList(projectName:String)
 GET     /:projectName/boards/new            controllers.BoardApp.newPost(projectName:String)

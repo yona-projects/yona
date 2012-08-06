@@ -7,6 +7,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.avaje.ebean.Page;
+
 public class UserTest extends ModelTest<User> {
 
 	@Test
@@ -63,5 +65,16 @@ public class UserTest extends ModelTest<User> {
 	    User user = User.findByLoginId("k16wire");
 	    // Then
 	    assertThat(user.id).isEqualTo(2l);
+	}
+	
+	@Test
+	public void findUsers() throws Exception {
+	    // Given
+	    // When
+	    Page<User> users = User.findUsers(0, null);
+	    Page<User> searchUsers = User.findUsers(0, "ho");
+	    // Then
+	    assertThat(users.getTotalRowCount()).isEqualTo(4);
+	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}
 }

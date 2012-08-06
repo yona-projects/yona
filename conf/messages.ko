@@ -142,3 +142,10 @@ site.sidebar.userList = 유저
 site.sidebar.projectList = 프로젝트
 site.sidebar.softwareMap = 소프트웨어 맵
 site.sidebar.mailSend = 메일 발송
+
+#User
+user.loginId = ID
+user.name = 이름
+user.email = 이메일
+user.active = 활성
+user.inactive = 비활성

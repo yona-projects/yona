@@ -141,3 +141,10 @@ site.sidebar.userList = Users
 site.sidebar.projectList = Projects
 site.sidebar.softwareMap = Software Map
 site.sidebar.mailSend = E-mail
+
+#User
+user.loginId = ID
+user.name = Name
+user.email = E-mail
+user.active = Active
+user.inactive = Inactive 
