@@ -52,8 +52,8 @@ GET	    /:projectName/milestone/:id/edit    controllers.MilestoneApp.editMilesto
 
 # Issues
 GET     /:projectName/issueList	            controllers.IssueApp.issues(projectName:String, stateType:String)
-GET		/:projectName/issues/new		    controllers.IssueApp.newIssue(projectName:String)
-POST	/:projectName/issues/new			controllers.IssueApp.saveIssue(projectName:String)
+GET		/:projectName/issues/new            controllers.IssueApp.newIssue(projectName:String)
+POST	/:projectName/issues/new            controllers.IssueApp.saveIssue(projectName:String)
 GET     /:projectName/issues/:id            controllers.IssueApp.issue(projectName:String, id:Long)
 POST    /:projectName/issue/:id/reply       controllers.IssueApp.saveComment(projectName:String, id:Long)
 GET     /:projectName/issue/:id/delete      controllers.IssueApp.deleteIssue(projectName:String, id:Long)
@@ -61,9 +61,6 @@ GET		/:projectName/issueList/excel		controllers.IssueApp.extractExcelFile(projec
 GET     /:projectName/issues/:id/edit       controllers.IssueApp.editIssue(projectName:String, id:Long)
 POST    /:projectName/issues/:id/edit       controllers.IssueApp.updateIssue(projectName:String, id:Long)
 GET     /:projectName/issueList/autonotify       controllers.IssueApp.enrollAutoNotification(projectName:String)
-
-# Code
-GET     /:projectName/code                  controllers.CodeApp.view(projectName:String)
 
 # Git
 GET     /:projectName/info/refs                                        controllers.GitApp.advertise(projectName:String, service:String)
@@ -77,3 +74,13 @@ OPTIONS     /svn/*path                                           controllers.Svn
 DELETE      /svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
 PUT			/svn/*path											 controllers.SvnApp.serviceWithPath(path:String)
 POST        /!svn-fake/sevice/                                   controllers.SvnApp.service()
+
+# Code
+#for AJAX
+GET     /:projectName/code/!                controllers.CodeApp.ajaxRequest(projectName:String, path = "")
+GET     /:projectName/code/!/               controllers.CodeApp.ajaxRequest(projectName:String, path = "")
+GET     /:projectName/code/!/*path          controllers.CodeApp.ajaxRequest(projectName:String, path:String)
+#for normal
+GET     /:projectName/code                  controllers.CodeApp.view(projectName:String, path:String = "")
+GET     /:projectName/code/                 controllers.CodeApp.view(projectName:String, path:String = "")
+GET     /:projectName/code/*path            controllers.CodeApp.view(projectName:String, path:String)
