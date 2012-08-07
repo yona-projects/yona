@@ -22,7 +22,7 @@
 		<div class="span11">
 			<h1>@issue.title</h1>
 			<div>
-				<span>@User.findLoginIdById(issue.reporterId)이 @issue.date에 작성함</span>
+				<span>@issue.reporterName이 @issue.date에 작성함</span>
 			</div>
 		</div>
 	</div>
@@ -53,7 +53,7 @@
 	</div>
 	<div class="span11">
 		<div>
-			<span>@User.findLoginIdById(comment.authorId)이 @comment.date에
+			<span>@comment.authorName이 @comment.date에
 				작성함</span>
 		</div>
 		<p>@comment.contents

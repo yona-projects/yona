@@ -26,15 +26,4 @@ public class IssueCommentTest extends ModelTest<IssueComment> {
         // Then
         assertThat(IssueComment.findById(id)).isNotNull();
     }
-
-    @Test
-    public void deleteByIssueId() throws Exception {
-        // Given
-        // When
-        IssueComment.deleteByIssueId(1l);
-        flush();
-        // Then
-        assertThat(IssueComment.findById(1l)).isNull();
-    }
-
 }

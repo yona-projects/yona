@@ -72,6 +72,9 @@ public class ProjectTest extends ModelTest<Project> {
         flush();
         // Then
         assertThat(Project.findById(1l)).isNull();
+        assertThat(ProjectUser.findByIds(1l, 1l)).isNull();
+        assertThat(Issue.findById(1l)).isNull();
+        assertThat(Milestone.findById(1l)).isNull();
     }
     
     @Test

@@ -30,26 +30,25 @@ public class Post extends Model {
 
     @Id
     public Long id;
-    
+
     @Constraints.Required
     public String title;
-    
+
     @Constraints.Required
     public String contents;
-    
+
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date;
-    
+
     public int commentCount;
     public String filePath;
-    
-    @ManyToOne
-    public User author;
-    
+
+    public Long authorId;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     public List<Comment> comments;
-    
+
     @ManyToOne
     public Project project;
 
@@ -63,6 +62,7 @@ public class Post extends Model {
 
     /**
      * ! FIXME untested
+     * 
      * @param projectName
      * @param pageNum
      * @param order
@@ -70,26 +70,25 @@ public class Post extends Model {
      * @return
      */
     public static Page<Post> findOnePage(String projectName, int pageNum, String order, String key) {
-        return find.where()
-                .eq("project.name", projectName)
-                .orderBy(key + " " +order)
-                .findPagingList(10)
-                .getPage(pageNum - 1);
+        return find.where().eq("project.name", projectName).orderBy(key + " " + order)
+                .findPagingList(10).getPage(pageNum - 1);
     }
-    
+
     /**
      * ! FIXME unused, untested
-     * @param pageNum 페이지 번호
-     * @param order   오름차순(asc), 내림차순(decs)
-     * @param key     오름차순과 내림차수를 결정하는 기준
-     * @param filter  검색어
-     * @return 
+     * 
+     * @param pageNum
+     *            페이지 번호
+     * @param order
+     *            오름차순(asc), 내림차순(decs)
+     * @param key
+     *            오름차순과 내림차수를 결정하는 기준
+     * @param filter
+     *            검색어
+     * @return
      */
     public static Page<Post> findOnePage(int pageNum, String order, String key, String filter) {
-        return find.where()
-                .ilike("title", filter)
-                .orderBy(key + " " + order)
-                .findPagingList(10)
+        return find.where().ilike("title", filter).orderBy(key + " " + order).findPagingList(10)
                 .getPage(pageNum - 1);
     }
 
@@ -100,11 +99,10 @@ public class Post extends Model {
 
     public static void delete(Long id) {
         find.byId(id).delete();
-        Comment.deleteByPostId(id);
     }
 
     public static void countUpCommentCounter(Long id) {
-    	Post post = find.ref(id);
+        Post post = find.ref(id);
         post.commentCount++;
         post.update();
     }
@@ -141,21 +139,22 @@ public class Post extends Model {
         }
         post.update();
     }
-    
+
     public static class Param {
-    	public Param() {
-			this.order = ORDER_DESCENDING;
-			this.key = ORDERING_KEY_ID;
-			this.filter = "";
-			this.pageNum = 1;
-		}
-    	public String order;
-    	public String key;
-    	public String filter;
-    	public int pageNum;
+        public Param() {
+            this.order = ORDER_DESCENDING;
+            this.key = ORDERING_KEY_ID;
+            this.filter = "";
+            this.pageNum = 1;
+        }
+
+        public String order;
+        public String key;
+        public String filter;
+        public int pageNum;
     }
-    
+
     public String authorName() {
-        return author.name;
+        return User.findNameById(this.authorId);
     }
 }

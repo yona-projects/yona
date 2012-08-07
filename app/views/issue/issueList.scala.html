@@ -95,7 +95,7 @@
 								@if(issue.assigneeId == null){
 								<em>@Messages("issue.no.assignee")</em>						
 							} else {
-								<em>@User.findLoginIdById(issue.assigneeId)</em>
+								<em>@issue.reporterName</em>
 							}
 							</td>
 							<td>@issue.date.format("dd MMM yyyy")</td>

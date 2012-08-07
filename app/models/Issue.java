@@ -5,7 +5,6 @@ import static models.enumeration.IssueState.ASSIGNED;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -35,7 +34,6 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
-import com.jcraft.jsch.Logger;
 
 /**
  * @author Taehyun Park
@@ -392,7 +390,6 @@ public class Issue extends Model {
      */
     public static String excelSave(List<Issue> resultList, String pageName) throws Exception {
         String excelFile = pageName + "_" + JodaDateUtil.today().getTime() + ".xls";
-        // String excelFile = pageName + ".xls";
         String fullPath = "public/uploadFiles/" + excelFile;
 
         WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
@@ -437,5 +434,9 @@ public class Issue extends Model {
         workbook.close();
 
         return excelFile;
+    }
+    
+    public String reporterName() {
+        return User.findNameById(this.reporterId);
     }
 }

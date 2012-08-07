@@ -46,7 +46,7 @@ public class IssueTest extends ModelTest<Issue> {
         Issue issue = Issue.findById(1l);
         // Then
         assertThat(issue.comments.size()).isEqualTo(1);
-        
+
         IssueComment issueComment = issue.comments.get(0);
         assertThat(issueComment.id).isEqualTo(1l);
         assertThat(issueComment.contents).isEqualTo("코드를 수정했습니다");
@@ -152,9 +152,10 @@ public class IssueTest extends ModelTest<Issue> {
     public void excelSave() throws Exception {
         // Given
         // When
-        String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", IssueStateType.ALL).getList(), "testExcelSave");
+        String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", IssueStateType.ALL)
+                .getList(), "testExcelSave");
         // Then
-//        assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
+        // assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
     }
 
 }

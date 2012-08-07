@@ -19,8 +19,8 @@ import utils.JodaDateUtil;
 @Entity
 public class IssueComment extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(
-            Long.class, IssueComment.class);
+    private static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(Long.class,
+            IssueComment.class);
 
     @Id
     public Long id;
@@ -30,34 +30,27 @@ public class IssueComment extends Model {
 
     @Constraints.Required
     public Date date;
-     
+
     public Long authorId;
     public String filePath;
 
     @ManyToOne
     public Issue issue;
-    
+
     public IssueComment() {
         date = JodaDateUtil.today();
     }
-        
+
     public static IssueComment findById(Long id) {
-    	return find.byId(id);
+        return find.byId(id);
     }
 
     public static Long create(IssueComment issueComment) {
         issueComment.save();
         return issueComment.id;
     }
-
-    public static void deleteByIssueId(Long issueId) {
-        List<IssueComment> targets = IssueComment.find.where()
-                .eq("issue.id", "" + issueId).findList();
-
-        Iterator<IssueComment> target = targets.iterator();
-        while (target.hasNext()) {
-            IssueComment issueComment = target.next();
-            issueComment.delete();
-        }
+    
+    public String authorName() {
+        return User.findNameById(this.authorId);
     }
 }
