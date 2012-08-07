@@ -1,7 +1,103 @@
-@(url : String, project:Project)
-
-@main("코드", project){
-    <div class="well">
-        Clone this repository  : git clone @url
+@(url : String, project:Project) @main("코드", project){
+<div class="well">Clone this repository : git clone @url</div>
+<div class="row">
+    <div class="span3">
+        <ul id="codeRoot" class="well nav nav-list">
+            <li id="codeBrowserHeader">코드 탐색기</li>
+            <!-- 
+                <li>
+                    <ul class="nav nav-list">
+                        <li><a href="#"><i class="icon-file"></i>a11</a></li>
+                        <li><a href="#"><i class="icon-file"></i>a21</a></li>
+                    </ul>
+                </li> -->
+        </ul>
     </div>
+    <div class="span9">
+        <div>
+            <span>hobi</span> | <span>7 days ago</span> | <span>fix
+                some bug</span> <span class="pull-right"><a
+                class="btn btn-mini">Raw</a></span>
+        </div>
+        <hr />
+        <div>
+            <textarea class="span9"></textarea>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function(){
+    	
+    	openFolder("code/!", $("#codeBrowserHeader"))
+    	
+    	function makeLink(name, type, prefix)
+        {
+            var $li = $("<li>");
+            var $a = $("<a>");
+            var $icon = $("<i>");
+            if(type ==="folder")
+            {
+                $icon.addClass("icon-folder-close");
+            }
+            else if(type === "file")
+            {
+                $icon.addClass("icon-file");
+            }
+            $a.attr("type", type);
+            $a.append($icon).attr("href", prefix +"/"+ name).append(name);
+            $li.append($a);
+            return $li;
+        }
+
+        $("#codeRoot a").live("click", function(){
+            var target = $(this).attr("href");
+            var type = $(this).attr("type");
+            if(type === "file")
+            {
+                openFile(target);
+            }
+            else if(type === "folder")
+            {
+                if($(this).attr("opend") != "true")
+                {
+                    openFolder(target,$(this));
+                    $(this).attr("opend", "true");
+                }
+                else if ($(this).attr("opend") == "true")
+                {
+                    closeFolder($(this));
+    			    $(this).attr("opend", "false");
+    			}
+            }
+            return false;
+        });
+        function openFile(path)
+        {
+            $.ajax(path, {
+                success : function(data, textStatus, jqXHR){
+                    $("textarea").val(data);
+                }
+            });
+        }
+        function openFolder(path, $parent)
+        {
+            // FIXME 여러단계 내려가기.
+                $.ajax(path, {
+    			success : function(data, textStatus, jqXHR){
+    			    //폴더 구조를 펼치기
+                    var $ul = $("<ul>").addClass("nav nav-list");
+                    for(var name in data)
+                    {
+                        $ul.append(makeLink(name, data[name], path));
+                    }
+                    $parent.after($ul);
+                }
+            });
+        }
+        function closeFolder($parent)
+        {
+            $parent.next().remove();
+        }
+    });
+    </script>
 }

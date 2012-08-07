@@ -12,8 +12,8 @@
         </li>
     }
     @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.CODE.resource(), models.enumeration.PermissionOperation.READ.operation()){
-        <li class="@isActiveMenu(routes.CodeApp.view(project.name))">
-          <a href="@routes.CodeApp.view(project.name)">@Messages("menu.code")</a>
+        <li class="@isActiveMenu(routes.CodeApp.view(project.name, ""))">
+          <a href="@routes.CodeApp.view(project.name, "")">@Messages("menu.code")</a>
         </li>
     }
     @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.ISSUE.resource(), models.enumeration.PermissionOperation.READ.operation()){
