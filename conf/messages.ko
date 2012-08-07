@@ -14,6 +14,7 @@ title.memberList = 맴버 리스트
 title.post.notExistingPage = 존재하지 않는 게시물
 title.siteSetting = 사이트 설정
 title.site.userEdit = 유저 설정
+title.login = 로그인
 
 menu.home = 홈
 menu.board = 게시판
@@ -46,6 +47,7 @@ button.yes = 예
 button.no = 아니요
 button.popup.exit = x
 button.add = 추가
+button.login = 로그인
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
@@ -158,5 +160,8 @@ site.userList.deleteAlert = 프로젝트의 유일한 관리자이므로 사이�
 
 #User
 user.loginId = 로그인 ID
+user.password = 비밀번호
 user.name = 이름
 user.email = 이메일
+user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
+user.logout.success = 성공적으로 로그아웃되었습니다.

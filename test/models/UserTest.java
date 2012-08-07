@@ -15,13 +15,17 @@ public class UserTest extends ModelTest<User> {
 	@Test
 	public void authenticate() throws Exception {
 		// Given
-		User user = new User();
-		user.loginId = "hobi";
-		user.password = "hobi00";
+		User user1 = new User();
+		user1.loginId = "hobi";
+		user1.password = "hobi00";
+		
+		User user2 = new User();
+        user2.loginId = "hobi";
+        user2.password = "hobi";
 		// When
-		User authenticate = User.authenticate(user);
 		// Then
-		assertThat(authenticate.name).isEqualTo("Hobi");
+		assertThat(User.authenticate(user1)).isEqualTo(true);
+		assertThat(User.authenticate(user2)).isEqualTo(false);
 	}
 
 	@Test

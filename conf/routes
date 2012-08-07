@@ -9,7 +9,9 @@ GET     /                                   controllers.Application.index()
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)
 
 # User
-GET     /users/login                        controllers.UserApp.login()
+GET     /login                              controllers.UserApp.login()
+POST    /login                              controllers.UserApp.authenticate()
+GET     /logout                             controllers.UserApp.logout()
 
 # Site
 GET     /sites/setting                      controllers.SiteApp.setting()

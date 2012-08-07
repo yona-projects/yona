@@ -1,0 +1,19 @@
+@(message: String) 
+
+@home(message) {
+<div class="row-fluid">
+  <div class="span4"></div>
+  <div class="span4">
+    <form class="well" action="@routes.UserApp.authenticate()" method="post">
+      <label for="userName">@Messages("user.loginId")</label>
+      <input type="text" class="input" id="userName" name="loginId">
+      
+      <label for="userLoginId">@Messages("user.password")</label>
+      <input type="password" class="input" id="userLoginId" name="password">
+      
+      <label></label>
+      <button type="submit" class="btn btn-primary">@Messages("button.login")</button>
+    </form>
+  </div>
+</div>
+}

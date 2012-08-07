@@ -64,9 +64,11 @@ public class User extends Model {
         return find.where().eq("loginId", loginId).findUnique();
     }
 
-    public static User authenticate(User user) {
-        return find.where().eq("loginId", user.loginId)
-                .eq("password", user.password).findUnique();
+    public static boolean authenticate(User user) {
+        User check = find.where().eq("loginId", user.loginId).findUnique();
+        if(check == null) return false;
+        if(check.password.equals(user.password)) return true;
+        else return false;
     }
 
     public static String findNameById(long id) {
