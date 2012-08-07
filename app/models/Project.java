@@ -31,12 +31,16 @@ public class Project extends Model {
     public String vcs;
     public String url;
     public String logoPath;
+    
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Issue> issues;
+    
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
+    
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Post> posts;
+    
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Milestone> milestones;
 
