@@ -113,4 +113,8 @@ public class User extends Model {
         }
         return projects;
     }
+    
+    public static void delete(Long id){
+        find.byId(id).delete();        
+    }
 }

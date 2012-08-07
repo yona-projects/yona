@@ -14,8 +14,7 @@ import java.util.List;
 @Entity
 public class Comment extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Comment> find = new Finder<Long, Comment>(
-            Long.class, Comment.class);
+    private static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
 
     @Id
     public Long id;
@@ -38,15 +37,6 @@ public class Comment extends Model {
 
     public static Comment findById(Long id) {
         return find.byId(id);
-    }
-
-    public static void deleteByPostId(Long postId) {
-        List<Comment> comments = Comment.find.where()
-                .eq("post.id", "" + postId).findList();
-        // 루프 돌면서 삭제
-        for (Comment comment : comments) {
-            comment.delete();
-        }
     }
 
     public static Long write(Comment comment) {

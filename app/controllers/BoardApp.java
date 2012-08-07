@@ -63,7 +63,6 @@ public class BoardApp extends Controller {
 
     public static Result post(String projectName, Long postId) {
         Post post = Post.findById(postId);
-        //List<Comment> comments = Comment.findCommentsByPostId(postId);
         Project project = Project.findByName(projectName);
         if (post == null) {
             return ok(notExsitPage.render("존재하지 않는 게시물", project));

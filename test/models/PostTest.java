@@ -22,13 +22,14 @@ public class PostTest extends ModelTest<Post> {
         assertThat(actual.title).isEqualTo("게시판이 새로 생성되었습니다.");
         assertThat(actual.author.id).isEqualTo(getTestUser().id);
     }
-    
+
     @Test
     public void findOnePage() throws Exception {
-        //Given        
-        //When
-        Page<Post> page = Post.findOnePage("nForge4java",1, Post.ORDER_DESCENDING, Post.ORDERING_KEY_ID);
-        //Then
+        // Given
+        // When
+        Page<Post> page = Post.findOnePage("nForge4java", 1, Post.ORDER_DESCENDING,
+                Post.ORDERING_KEY_ID);
+        // Then
         assertThat(page.getList()).hasSize(1);
     }
 
@@ -59,17 +60,7 @@ public class PostTest extends ModelTest<Post> {
         flush();
         // Then
         assertThat(Post.findById(1l)).isNull();
-    }
-
-    @Test
-    @Ignore("The findWriter method was deleted.")
-    public void findWriter() throws Exception {
-        // Given
-        // When
-        Post post = Post.findById(1l);
-        String name = post.author.name;
-        // Then
-        assertThat(name).isEqualTo("hobi");
+        assertThat(Comment.findById(1l)).isNull();
     }
 
     @Test
@@ -81,7 +72,7 @@ public class PostTest extends ModelTest<Post> {
         // When
         Post.edit(post);
         flush();
-//        Then
+        // Then
         Post actual = Post.findById(1l);
         assertThat(actual.contents).isEqualTo("수정되었습니다.");
         assertThat(actual.commentCount).isEqualTo(1);

@@ -15,15 +15,6 @@ public class CommentTest extends ModelTest<Comment> {
     }
 
     @Test
-    public void deleteByPostId() throws Exception {
-        // Given
-        // When
-        Comment.deleteByPostId(1l);
-        // Then
-        assertThat(Comment.findCommentsByPostId(1l)).isEmpty();
-    }
-
-    @Test
     public void write() throws Exception {
         // Given
         Comment comment = new Comment();

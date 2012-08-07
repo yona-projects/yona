@@ -100,7 +100,6 @@ public class Post extends Model {
 
     public static void delete(Long id) {
         find.byId(id).delete();
-        Comment.deleteByPostId(id);
     }
 
     public static void countUpCommentCounter(Long id) {

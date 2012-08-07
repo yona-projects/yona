@@ -95,17 +95,9 @@ public class IssueApp extends Controller {
             newIssue.reporterId = UserApp.currentUser().id;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-            // if (issueForm.get().milestoneId == null) {
-            // newIssue.milestoneId = "none";
-            // }
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
-
-            Logger.debug("IssueApp : saveIssue - milestoneId:" + newIssue.milestoneId);
-            Logger.debug("IssueApp : saveIssue - state:" + newIssue.state);
-            Logger.debug("IssueApp : saveIssue - stateType:" + newIssue.stateType);
-            Logger.debug("IssueApp : saveIssue - assigneeId:" + newIssue.assigneeId);
         }
         return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
     }
@@ -129,16 +121,13 @@ public class IssueApp extends Controller {
         if (issueForm.hasErrors()) {
             return badRequest(issueForm.errors().toString());
         } else {
-
             Issue issue = issueForm.get();
             issue.reporterId = UserApp.currentUser().id;
             issue.id = id;
             issue.filePath = saveFile(request());
             issue.project = projcet;
-
             Issue.edit(issue);
         }
-
         return redirect(routes.IssueApp.issues(projcet.name, IssueStateType.ALL.name()));
     }
 
@@ -154,18 +143,15 @@ public class IssueApp extends Controller {
     public static Result saveComment(String projectName, Long issueId) {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
-
         Project project = Project.findByName(projectName);
         if (commentForm.hasErrors()) {
             return TODO;
-
         } else {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
-
             return redirect(routes.IssueApp.issue(project.name, issueId));
         }
     }
