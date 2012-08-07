@@ -7,7 +7,8 @@
 @projectMngMain(message, projectInst) {
     @form(action = routes.ProjectApp.saveSetting(projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
-            <fieldset>                
+            <fieldset>    
+                <input type="hidden" name="id" value="@projectForm("id").value.toLong">            
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
                     data-content="@Messages("project.name.alert")"
                     data-original-title="@Messages("project.name.rule")"

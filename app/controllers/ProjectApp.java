@@ -101,8 +101,8 @@ public class ProjectApp extends Controller {
             return badRequest(setting.render("title.projectSetting", filledUpdatedProjectForm,
                     Project.findByName(projectName)));
         } else {
-            return redirect(routes.ProjectApp.setting(Project.update(project,
-                    projectName)));
+            project.update();
+            return redirect(routes.ProjectApp.setting(project.name));
         }
     }
 

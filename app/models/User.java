@@ -13,9 +13,11 @@ import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
 
+import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +36,6 @@ public class User extends Model {
     public String password;
     public String profileFilePath;
     public String email;
-    public boolean isActive;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;
@@ -89,5 +90,27 @@ public class User extends Model {
         SearchParams searchParams = new SearchParams();
         if(loginId != null) searchParams.add("loginId", loginId, Matching.CONTAINS);
         return FinderTemplate.getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
-    }   
+    }
+    
+    /**
+     * 해당 유저가 속해있는 프로젝트들 중에서 해당 유저가 유일한 Manager인 프로젝트가 있는지 검사하고, 
+     * 있다면 그 프로젝트들의 리스트를 반환합니다.
+     * 
+     * @param userId
+     * @return
+     */
+    public static List<Project> isOnlyManager(Long userId) {
+        List<Project> projects = Ebean.find(Project.class)
+                                        .select("id")
+                                        .select("name")
+                                        .where()
+                                            .eq("projectUser.user.id", userId)
+                                            .eq("projectUser.role.id", Role.MANAGER)
+                                        .findList();
+        for(Project project : projects) {
+            if(ProjectUser.isManager(project.id))
+                projects.remove(project);
+        }
+        return projects;
+    }
 }

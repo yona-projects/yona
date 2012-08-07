@@ -3,6 +3,7 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -86,5 +87,16 @@ public class UserTest extends ModelTest<User> {
 	    // Then
 	    assertThat(user.projectUser.size()).isEqualTo(3);
 	    assertThat(user.projectUser.iterator().next().project.name).isEqualTo("nForge4java");
+	}
+	
+	@Test
+	public void isOnlyManager() throws Exception {
+	    // Given
+	    // When
+	    List<Project> projects_hobi = User.isOnlyManager(1l);
+	    List<Project> projects_eungjun = User.isOnlyManager(4l);
+	    // Then
+	    assertThat(projects_hobi.size()).isEqualTo(1);
+	    assertThat(projects_eungjun.size()).isEqualTo(0);
 	}
 }
