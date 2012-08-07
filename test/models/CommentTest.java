@@ -11,7 +11,7 @@ public class CommentTest extends ModelTest<Comment> {
         // Given
         // When
         // Then
-        assertThat(Comment.findById(1l).author.id).isEqualTo(1l);
+        assertThat(Comment.findById(1l).authorId).isEqualTo(1l);
     }
 
     @Test
@@ -20,7 +20,7 @@ public class CommentTest extends ModelTest<Comment> {
         Comment comment = new Comment();
         comment.post = Post.findById(1l);
         comment.contents = "testThing";
-        comment.author = getTestUser();
+        comment.authorId = getTestUser().id;
         // When
         long id = Comment.write(comment);
         // Then

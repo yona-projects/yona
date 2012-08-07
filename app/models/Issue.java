@@ -435,4 +435,8 @@ public class Issue extends Model {
 
         return excelFile;
     }
+    
+    public String reporterName() {
+        return User.findNameById(this.reporterId);
+    }
 }

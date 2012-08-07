@@ -26,8 +26,7 @@ public class Comment extends Model {
     public Date date;
 
     public String filePath;
-    @ManyToOne
-    public User author;
+    public Long authorId;
     @ManyToOne
     public Post post;
 
@@ -73,6 +72,6 @@ public class Comment extends Model {
     }
 
     public String authorName() {
-        return author.loginId;
+        return User.findNameById(this.authorId);
     }
 }

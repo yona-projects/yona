@@ -20,7 +20,7 @@ public class PostTest extends ModelTest<Post> {
         // Then
         assertThat(actual).isNotNull();
         assertThat(actual.title).isEqualTo("게시판이 새로 생성되었습니다.");
-        assertThat(actual.author.id).isEqualTo(getTestUser().id);
+        assertThat(actual.authorId).isEqualTo(getTestUser().id);
     }
 
     @Test
@@ -39,7 +39,7 @@ public class PostTest extends ModelTest<Post> {
         Post post = new Post();
         post.contents = "new Contents";
         post.title = "new_title";
-        post.author = getTestUser();
+        post.authorId = getTestUser().id;
         // When
         Long id = Post.write(post);
         // Then
@@ -48,7 +48,7 @@ public class PostTest extends ModelTest<Post> {
         assertThat(actual.title).isEqualTo(post.title);
         assertThat(actual.contents).isEqualTo(post.contents);
         assertThat(actual.date).isEqualTo(post.date);
-        assertThat(actual.author.id).isEqualTo(getTestUser().id);
+        assertThat(actual.authorId).isEqualTo(getTestUser().id);
         assertThat(actual.id).isEqualTo(id);
     }
 

@@ -49,4 +49,8 @@ public class IssueComment extends Model {
         issueComment.save();
         return issueComment.id;
     }
+    
+    public String authorName() {
+        return User.findNameById(this.authorId);
+    }
 }
