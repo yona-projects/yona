@@ -1,5 +1,4 @@
 # Messages
-
 title.newIssue = New Issue
 title.issueList = Issue List
 title.issueDetail = Issue
@@ -14,6 +13,7 @@ title.projectSetting = Project Setting
 title.memberList = Member List
 title.post.notExistingPage = Not Existing Page
 title.siteSetting = Site Setting
+title.site.userEdit = Edit a User
 
 menu.home = Home
 menu.board = Board
@@ -21,6 +21,7 @@ menu.code = Code
 menu.issue = Issue
 menu.wiki = Wiki
 menu.admin = Administrator
+menu.siteAdmin = Site Admin
 
 label.title = Title
 label.contents = Contents
@@ -144,3 +145,19 @@ project.delete.accept = I agree with deleting this project.
 project.delete.requestion = Do you want to delete this project?
 project.delete.reaccept = Are you sure?
 project.delete.alert = You should agree with deleting this project.
+
+#Site
+site.sidebar = Site Management
+site.sidebar.setting = Site Setting
+site.sidebar.userList = Users
+site.sidebar.projectList = Projects
+site.sidebar.softwareMap = Software Map
+site.sidebar.mailSend = Send a Email
+site.userList.search = Find a user by his/her login ID...
+
+#User
+user.loginId = Login ID
+user.name = Name
+user.email = E-mail
+user.active = Active
+user.inactive = Inactive

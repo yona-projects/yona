@@ -77,4 +77,14 @@ public class UserTest extends ModelTest<User> {
 	    assertThat(users.getTotalRowCount()).isEqualTo(4);
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}
+	
+	@Test
+	public void findProjectsById() throws Exception {
+	    // Given
+	    // When
+	    User user = User.findProjectsById(1l);
+	    // Then
+	    assertThat(user.projectUser.size()).isEqualTo(3);
+	    assertThat(user.projectUser.iterator().next().project.name).isEqualTo("nForge4java");
+	}
 }

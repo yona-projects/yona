@@ -50,6 +50,14 @@ public class User extends Model {
     public static User findById(Long id) {
         return find.byId(id);
     }
+    
+    public static User findProjectsById(Long id) {
+        return find
+                .fetch("projectUser.project","name")
+                .where()
+                    .eq("id", id)
+                .findUnique();
+    }
 
     public static User findByLoginId(String loginId) {
         return find.where().eq("loginId", loginId).findUnique();

@@ -1,0 +1,13 @@
+@(message: String, userForm: Form[User])
+
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@siteMngMain(message) {
+    @form(action = routes.SiteApp.saveUser(userForm("id").value.toLong), 'class -> "form-horizontal"){
+        @inputText(
+            userForm("name"),
+            '_disabled -> "disabled"
+        )
+    }
+}

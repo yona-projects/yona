@@ -1,6 +1,7 @@
 package controllers;
 
 import models.User;
+import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.site.*;
@@ -18,6 +19,15 @@ public class SiteApp extends Controller {
     public static Result searchUser() {
         String loginId = form(User.class).bindFromRequest().get().loginId;
         return redirect(routes.SiteApp.userList(0, loginId));
+    }
+    
+    public static Result editUser(Long userId) {
+        Form<User> userForm = form(User.class).fill(User.findProjectsById(userId));
+        return ok(userEdit.render("title.site.userEdit", userForm));
+    }
+    
+    public static Result saveUser(Long userId) {
+        return redirect(routes.SiteApp.editUser(userId));
     }
     
     public static Result updateUser(Long userId) {
