@@ -22,11 +22,10 @@ import java.util.Set;
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
-            User.class);
-    
+    private static Finder<Long, User> find = new Finder<Long, User>(Long.class, User.class);
+
     public static final int USER_COUNT_PER_PAGE = 30;
-    
+
     @Id
     public Long id;
     public String name;
@@ -56,12 +55,15 @@ public class User extends Model {
     }
 
     public static User authenticate(User user) {
-        return find.where().eq("loginId", user.loginId)
-                .eq("password", user.password).findUnique();
+        return find.where().eq("loginId", user.loginId).eq("password", user.password).findUnique();
     }
 
     public static String findNameById(long id) {
-        return find.byId(id).name;
+        String userName = find.byId(id).name;
+        if(userName == null){
+            userName = Issue.TO_BE_ASSIGNED;
+        }
+        return userName;
     }
 
     public static String findLoginIdById(long id) {
@@ -75,11 +77,13 @@ public class User extends Model {
         }
         return options;
     }
-    
+
     public static Page<User> findUsers(int pageNum, String loginId) {
         OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
         SearchParams searchParams = new SearchParams();
-        if(loginId != null) searchParams.add("loginId", loginId, Matching.CONTAINS);
-        return FinderTemplate.getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
-    }   
+        if (loginId != null)
+            searchParams.add("loginId", loginId, Matching.CONTAINS);
+        return FinderTemplate
+                .getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
+    }
 }

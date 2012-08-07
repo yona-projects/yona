@@ -2,8 +2,10 @@ package models;
 
 import static models.enumeration.IssueState.ASSIGNED;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -11,6 +13,14 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+
+import jxl.Workbook;
+import jxl.format.*;
+import jxl.write.Label;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
 
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
@@ -25,6 +35,7 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
+import com.jcraft.jsch.Logger;
 
 /**
  * @author Taehyun Park
@@ -79,6 +90,7 @@ public class Issue extends Model {
     public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
     public static final int NUMBER_OF_NO_COMMENT = 0;
     public static final String DEFAULT_SORTER = "date";
+    public static final String TO_BE_ASSIGNED = "TBA";
 
     @Id
     public Long id;
@@ -368,4 +380,62 @@ public class Issue extends Model {
         issue.update();
     }
 
+    /**
+     * JXL 라이브러리를 이용하여 엑셀 파일로 저장하며, 해당 파일이 저장된 주소를 반환한다.
+     * 
+     * @param resultList
+     *            엑셀로 저장하고자 하는 리스트
+     * @param pageName
+     *            엑셀로 저장하고자 하는 목록의 페이지(내용, ex 이슈, 게시물 등) 이름
+     * @return
+     * @throws Exception
+     */
+    public static String excelSave(List<Issue> resultList, String pageName) throws Exception {
+        String excelFile = pageName + "_" + JodaDateUtil.today().getTime() + ".xls";
+        // String excelFile = pageName + ".xls";
+        String fullPath = "public/uploadFiles/" + excelFile;
+
+        WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
+                UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);
+        WritableCellFormat cf1 = new WritableCellFormat(wf1);
+        cf1.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
+        cf1.setAlignment(Alignment.CENTRE);
+
+        WritableFont wf2 = new WritableFont(WritableFont.TAHOMA, 11, WritableFont.NO_BOLD, false,
+                UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
+        WritableCellFormat cf2 = new WritableCellFormat(wf2);
+        cf2.setShrinkToFit(true);
+        cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
+        cf2.setAlignment(Alignment.CENTRE);
+
+        WritableWorkbook workbook = Workbook.createWorkbook(new File(fullPath));
+        WritableSheet sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
+
+        String[] labalArr = { "ID", "STATE", "TITLE", "ASSIGNEE", "DATE" };
+
+        for (int i = 0; i < labalArr.length; i++) {
+            sheet.addCell(new Label(i, 0, labalArr[i], cf1));
+            sheet.setColumnView(i, 20);
+        }
+        int colcnt = 0;
+        String assignee = null;
+        for (int i = 1; i < resultList.size() + 1; i++) {
+            Issue issue = (Issue) resultList.get(i - 1);
+            colcnt = 0;
+            sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
+            if (issue.assigneeId == null) {
+                assignee = TO_BE_ASSIGNED;
+            } else {
+                assignee = User.findNameById(issue.assigneeId);
+            }
+            sheet.addCell(new Label(colcnt++, i, assignee, cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
+        }
+        workbook.write();
+        workbook.close();
+
+        return excelFile;
+    }
 }

@@ -57,9 +57,10 @@ POST	/:projectName/issues/new			controllers.IssueApp.saveIssue(projectName:Strin
 GET     /:projectName/issues/:id            controllers.IssueApp.issue(projectName:String, id:Long)
 POST    /:projectName/issue/:id/reply       controllers.IssueApp.saveComment(projectName:String, id:Long)
 GET     /:projectName/issue/:id/delete      controllers.IssueApp.deleteIssue(projectName:String, id:Long)
-GET		/:projectName/issueList/excel		controllers.IssueApp.extractExcelFile(projectName:String)
+GET		/:projectName/issueList/excel		controllers.IssueApp.extractExcelFile(projectName:String, stateType:String)
 GET     /:projectName/issues/:id/edit       controllers.IssueApp.editIssue(projectName:String, id:Long)
 POST    /:projectName/issues/:id/edit       controllers.IssueApp.updateIssue(projectName:String, id:Long)
+GET     /:projectName/issueList/autonotify       controllers.IssueApp.enrollAutoNotification(projectName:String)
 
 # Code
 GET     /:projectName/code                  controllers.CodeApp.view(projectName:String)

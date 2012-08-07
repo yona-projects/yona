@@ -170,7 +170,24 @@ public class IssueApp extends Controller {
         }
     }
 
-    public static Result extractExcelFile(String projectName) {
+    public static Result extractExcelFile(String projectName, String stateType) throws Exception {
+        Project project = Project.findByName(projectName);
+        Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
+        SearchCondition issueParam = issueParamForm.bindFromRequest().get();
+        if (project == null) {
+            return notFound();
+        }
+        Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
+                IssueStateType.getValue(stateType), issueParam.sortBy,
+                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
+                issueParam.commentedCheck, issueParam.fileAttachedCheck);
+        Issue.excelSave(issues.getList(), project.name + "_" + stateType + "_filter_"
+                + issueParam.filter + "_milestone_" + issueParam.milestone);
+
+        return ok(issueList.render("title.issueList", issues, issueParam, project));
+    }
+
+    public static Result enrollAutoNotification(String projectName) throws Exception {
         return TODO;
     }
 

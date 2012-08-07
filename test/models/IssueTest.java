@@ -4,8 +4,11 @@ import com.avaje.ebean.Page;
 import models.enumeration.IssueState;
 import models.enumeration.IssueStateType;
 import org.junit.Test;
+
+import play.Logger;
 import utils.JodaDateUtil;
 
+import java.io.File;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -138,12 +141,20 @@ public class IssueTest extends ModelTest<Issue> {
 
     @Test
     public void findByMilestoneId() throws Exception {
-        // Give
+        // Given
         // When
         List<Issue> issues = Issue.findByMilestoneId(9l);
-
         // Then
         assertThat(issues.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void excelSave() throws Exception {
+        // Given
+        // When
+        String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", IssueStateType.ALL).getList(), "testExcelSave");
+        // Then
+//        assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
     }
 
 }

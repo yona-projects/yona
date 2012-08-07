@@ -67,7 +67,7 @@
 		            	<label class="checkbox inline">
 		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1"> @Messages("checkbox.fileAttached")
 		              	</label>
-		              	<a href="@routes.IssueApp.extractExcelFile(project.name)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
+		              	<a href="@routes.IssueApp.extractExcelFile(project.name, param.stateType)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
 		            	</fieldset>
 		            </div>
 		        </div>
@@ -110,7 +110,7 @@
         @pagination(currentPage, 5, "pagination");
     </div>
     <div class="span2">
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+        <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
     </div>
   </div>
  
