@@ -38,25 +38,25 @@ public class IssueComment extends Model {
     public IssueComment() {
         date = JodaDateUtil.today();
     }
-    
-    public static int size(){
-        return size();
-    }
-    
+
     public static IssueComment findById(Long id) {
         return find.byId(id);
     }
 
     public static Long create(IssueComment issueComment) {
         issueComment.save();
+        Issue issue = Issue.findById(issueComment.issue.id);
+        issue.numOfComments++;
+        //Issue.updateNumOfComments(issueComment.issue.id);
         return issueComment.id;
     }
-    
+
     public String authorName() {
         return User.findNameById(this.authorId);
     }
-    
+
     public static void delete(Long id) {
+        Issue issue = IssueComment.findById(id).issue;
         find.byId(id).delete();
     }
 }

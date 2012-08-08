@@ -79,7 +79,6 @@ issues:
         milestoneId:    1
         project:        !!models.Project
                             id: 1
-        numOfComments:  1
         filePath:       http://localhost:9000/project/1/issue23/capture.jpg
     - !!models.Issue
         reporterId:     2
@@ -99,6 +98,7 @@ issues:
         milestoneId:    2
         project:        !!models.Project
                             id: 1
+        numOfComments:  1
     - !!models.Issue
         reporterId:     3
         title:          git/hg 코드 브라우저에 i18n이 적용되지 않음
@@ -144,16 +144,12 @@ issues:
         milestoneId:    8
         project:        !!models.Project
                             id: 3
-
-        
 issueComments:
     - !!models.IssueComment
         contents:       코드를 수정했습니다
         authorId:       1
         issue:          !!models.Issue
-                            id: 1
-        
-        
+                            id: 3
 # Milestone
 milestones:
     - !!models.Milestone

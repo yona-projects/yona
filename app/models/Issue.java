@@ -126,9 +126,11 @@ public class Issue extends Model {
 
     public int numOfComments;
 
+    // = comments.size();
+
     public Issue() {
         this.date = JodaDateUtil.today();
-        this.numOfComments = comments.size();
+        // this.numOfComments = comments.size();
     }
 
     /**
@@ -334,16 +336,6 @@ public class Issue extends Model {
                 pageNumber);
     }
 
-    /**
-     * 이슈 상세 조회시에, 이슈에 달린 코멘트를 제공한다.
-     * 
-     * @param issueComment
-     */
-    public void addIssueComment(IssueComment issueComment) {
-        issueComment.issue = this;
-        issueComment.save();
-    }
-
     public static Long findAssigneeIdByIssueId(Long projectId, Long issueId) {
         return find.where().eq("id", issueId).findUnique().assigneeId;
     }
@@ -438,5 +430,14 @@ public class Issue extends Model {
 
     public String reporterName() {
         return User.findNameById(this.reporterId);
+    }
+
+    public static void updateNumOfComments(Long id) {
+
+        Issue issue = Issue.findById(id);
+        issue.numOfComments = issue.comments.size();
+        // Logger.debug("MODEL("+id+")" +
+        // ":updateNumOfComments()//issue.comments.size:"+issue.comments.size()+"//issue_numOfComments:"+issue.numOfComments);
+        issue.update();
     }
 }
