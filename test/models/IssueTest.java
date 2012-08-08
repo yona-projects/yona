@@ -43,7 +43,7 @@ public class IssueTest extends ModelTest<Issue> {
     public void findCommentsById() throws Exception {
         // Given
         // When
-        Issue issue = Issue.findById(1l);
+        Issue issue = Issue.findById(3l);
         // Then
         assertThat(issue.comments.size()).isEqualTo(1);
 
@@ -56,10 +56,10 @@ public class IssueTest extends ModelTest<Issue> {
     public void delete() {
         // Given
         // When
-        Issue.delete(1l);
+        Issue.delete(3l);
         flush();
         // Then
-        assertThat(Issue.findById(1l)).isNull();
+        assertThat(Issue.findById(3l)).isNull();
         assertThat(IssueComment.findById(1l)).isNull();
     }
 
@@ -86,8 +86,8 @@ public class IssueTest extends ModelTest<Issue> {
 
         // Given
         // When
-        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그", StateType.OPEN,
-                true, true);
+        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그", StateType.OPEN, false,
+                true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -156,6 +156,17 @@ public class IssueTest extends ModelTest<Issue> {
                 .getList(), "testExcelSave");
         // Then
         // assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
+    }
+    
+    @Test
+    public void updateNumOfComments() throws Exception {
+        // Given
+        IssueComment.delete(1l);
+        flush();
+        // When
+        Issue.updateNumOfComments(3l);
+        // Then
+        assertThat(Issue.findById(3l).numOfComments).isEqualTo(0);
     }
 
 }

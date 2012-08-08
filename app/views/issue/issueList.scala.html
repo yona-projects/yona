@@ -62,7 +62,12 @@
 		            <div class="controls inline">
 		            	<fieldset>
 		              	<label class="checkbox inline">
-		                	<input type="checkbox" name="commentedCheck" id="commentCheckId" value="1"> @Messages("checkbox.commented")
+		                	@if(param.commentedCheck==true){
+		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1" checked="checked"> @Messages("checkbox.commented")
+		                	} else {
+		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1"> @Messages("checkbox.commented")
+		                	}
+		                	
 		             	</label>
 		            	<label class="checkbox inline">
 		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1"> @Messages("checkbox.fileAttached")
@@ -119,7 +124,7 @@
 </div>
 }
 	<script>
-		$("#checkboxForm").bind("change check", function(){
+		$("#checkboxForm").bind("change", function(){
 				if($("#commentCheckId").is(":checked") && $("#fileAttachedCheckId").is(":checked")) {
 					return $("form[id='checkboxForm']").submit();
 				}
@@ -130,7 +135,7 @@
 				
 					return $("form[id='checkboxForm']").submit();
 				} else {
-					return false;
+					event.preventDefault();
 				}
 			});	
 		$("th a").click(function(){
@@ -154,10 +159,6 @@
 			  
 	    $("pagination").click(function(){
 			  
-			});
-			  
-		$("#searchForm").submit(function(){
-				  
 			});
 		$("select[id='milestone']").change(function(){
 				$(this).parent("form[id='searchForm']").submit();

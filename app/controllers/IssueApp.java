@@ -151,6 +151,8 @@ public class IssueApp extends Controller {
             comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
+            Issue.findById(issueId).numOfComments++;
+            Issue.updateNumOfComments(issueId);
             return redirect(routes.IssueApp.issue(project.name, issueId));
         }
     }
@@ -161,6 +163,7 @@ public class IssueApp extends Controller {
             return notFound();
         }
         IssueComment.delete(commentId);
+        Issue.updateNumOfComments(issueId);
         return redirect(routes.IssueApp.issue(project.name, issueId));
     }
 

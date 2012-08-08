@@ -1,5 +1,6 @@
 package models;
 
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.CascadeType;
@@ -31,11 +32,19 @@ public class User extends Model {
     
     @Id
     public Long id;
+    
     public String name;
+    
+    @Constraints.Required
     public String loginId;
+    
+    @Constraints.Required
     public String password;
-    public String profileFilePath;
+        
+    @Constraints.Pattern("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$")
     public String email;
+    
+    public String profileFilePath;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUser;

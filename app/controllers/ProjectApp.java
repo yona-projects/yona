@@ -33,7 +33,11 @@ public class ProjectApp extends Controller {
     }
 
     public static Result newProject() {
-        return ok(newProject.render("title.newProject", form(Project.class)));
+        if(session().get(UserApp.SESSION_USERID) == null){
+            flash(Constants.WARNING, "user.login.alert");
+            return redirect(routes.Application.index());
+        } else 
+            return ok(newProject.render("title.newProject", form(Project.class)));
     }
 
     public static Result setting(String projectName) {

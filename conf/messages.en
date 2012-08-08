@@ -15,6 +15,8 @@ title.post.notExistingPage = Not Existing Page
 title.siteSetting = Site Setting
 title.site.userEdit = Edit a User
 title.login = Login
+title.logout = Logout
+title.signup = Sign Up
 
 menu.home = Home
 menu.board = Board
@@ -48,6 +50,8 @@ button.no = No
 button.popup.exit = x
 button.add = Add
 button.login = Login
+button.signup = Create an account
+button.newProject = Create your project
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -110,7 +114,7 @@ post.edit.rejectNotAuthor = You don't have permisstion to access.
 post.update.error = Errors on Input Value
 
 #Project
-project.create = Create this project
+project.create = Create a project
 project.name = Project Name
 project.name.alert = Special characters cannot be used to define the name of a project.
 project.description = Description
@@ -120,6 +124,7 @@ project.shareOption.private = Private
 project.shareOption.private.description = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project. 
 project.vcs = Repository
 project.new.agreement = I read nForge4's user agreement and accept it.
+project.new.agreement.alert = You should agree with the user agreement.
 project.agreement = User Agreement
 project.name.rule = Naming Rule
 project.info = Project Information
@@ -161,8 +166,13 @@ site.userList.deleteAlert = Project's unique manager cannot be deleted.
 
 #User
 user.loginId = Login ID
+user.login.alert = Please, login.
 user.password = Password
+user.confirmPassword = Confirm Password
+user.confirmPassword.alert = Password doesn't match the confirmation
+user.wrongPassword.alert = Wrong password!
 user.name = Name
 user.email = E-mail
+user.wrongEmail.alert = Wrong email address.
 user.login.failed = Your login ID or password is not valid.
 user.logout.success = Logout successfully

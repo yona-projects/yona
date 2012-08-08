@@ -121,7 +121,7 @@
             var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
             var reg_name = /^[a-zA-Z0-9_]*$/;
             var reg_url = /^http?:\/\//;
-            $("input[id='logoPath']").change(function(){
+            $("#logoPath").change(function(){
                 if (!reg.test($(this).val())) {
                     $("#logoTypeAlert").show(); 
                     $(this).val('');
