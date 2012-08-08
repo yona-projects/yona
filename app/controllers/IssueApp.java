@@ -17,7 +17,7 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.IssueStateType;
+import models.enumeration.StateType;
 import models.support.SearchCondition;
 import play.Logger;
 import play.data.Form;
@@ -52,10 +52,9 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
-                IssueStateType.getValue(stateType), issueParam.sortBy,
+                StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
-
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
@@ -99,7 +98,7 @@ public class IssueApp extends Controller {
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
-        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, StateType.ALL.stateType()));
     }
 
     public static Result editIssue(String projectName, Long id) {
@@ -128,7 +127,7 @@ public class IssueApp extends Controller {
             issue.project = projcet;
             Issue.edit(issue);
         }
-        return redirect(routes.IssueApp.issues(projcet.name, IssueStateType.ALL.name()));
+        return redirect(routes.IssueApp.issues(projcet.name, StateType.ALL.name()));
     }
 
     public static Result deleteIssue(String projectName, Long issueId) {
@@ -137,7 +136,7 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, StateType.ALL.stateType()));
     }
 
     public static Result saveComment(String projectName, Long issueId) {
@@ -156,6 +155,15 @@ public class IssueApp extends Controller {
         }
     }
 
+    public static Result deleteComment(String projectName, Long issueId, Long commentId) {
+        Project project = Project.findByName(projectName);
+        if (project == null) {
+            return notFound();
+        }
+        IssueComment.delete(commentId);
+        return redirect(routes.IssueApp.issue(project.name, issueId));
+    }
+
     public static Result extractExcelFile(String projectName, String stateType) throws Exception {
         Project project = Project.findByName(projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
@@ -164,7 +172,7 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
-                IssueStateType.getValue(stateType), issueParam.sortBy,
+                StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
         Issue.excelSave(issues.getList(), project.name + "_" + stateType + "_filter_"

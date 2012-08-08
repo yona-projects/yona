@@ -77,9 +77,9 @@ issues:
         state:          ENROLLED
         stateType:      OPEN
         milestoneId:    1
-        numOfIssueComments:   1
         project:        !!models.Project
                             id: 1
+        numOfComments:  1
         filePath:       http://localhost:9000/project/1/issue23/capture.jpg
     - !!models.Issue
         reporterId:     2

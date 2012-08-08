@@ -1,10 +1,10 @@
 package models.enumeration;
 
-public enum IssueStateType {
+public enum StateType {
     ALL("all"), OPEN("open"), CLOSED("closed");
     private String stateType;
 
-    IssueStateType(String stateType) {
+    StateType(String stateType) {
         this.stateType = stateType;
     }
 
@@ -12,13 +12,13 @@ public enum IssueStateType {
         return this.stateType;
     }
 
-    public static IssueStateType getValue(String value) {
-        for (IssueStateType issueStateType : IssueStateType.values()) {
+    public static StateType getValue(String value) {
+        for (StateType issueStateType : StateType.values()) {
             if (issueStateType.stateType().equals(value)) {
                 return issueStateType;
             }
         }
-        return IssueStateType.OPEN;
+        return StateType.OPEN;
     }
 }
 

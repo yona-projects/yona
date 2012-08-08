@@ -13,9 +13,9 @@
                 </li> -->
         </ul>
     </div>
-    <div class="span9">
+    <div class="span9"><!-- 교환가능하야 한다. -->
         <div>
-            <span>hobi</span> | <span>7 days ago</span> | <span>fix
+            <span id="commiter">hobi</span> | <span id="commitDate">7 days ago</span> | <span id="commitMessage">fix
                 some bug</span> <span class="pull-right"><a
                 class="btn btn-mini">Raw</a></span>
         </div>
@@ -61,12 +61,10 @@
                 if($(this).attr("opend") != "true")
                 {
                     openFolder(target,$(this));
-                    $(this).attr("opend", "true");
                 }
                 else if ($(this).attr("opend") == "true")
                 {
                     closeFolder($(this));
-    			    $(this).attr("opend", "false");
     			}
             }
             return false;
@@ -75,7 +73,10 @@
         {
             $.ajax(path, {
                 success : function(data, textStatus, jqXHR){
-                    $("textarea").val(data);
+                	$("#commiter").text(data.commiter);
+                	$("#commitMessage").text(data.commitMessage);
+                	$("#commitDate").text(data.commitDate);
+                    $("textarea").val(data.data);
                 }
             });
         }
@@ -88,16 +89,19 @@
                     var $ul = $("<ul>").addClass("nav nav-list");
                     for(var name in data)
                     {
-                        $ul.append(makeLink(name, data[name], path));
+                        $ul.append(makeLink(name, data[name].type, path));
                     }
                     $parent.after($ul);
+                    $parent.attr("opend", "true");
                 }
             });
         }
         function closeFolder($parent)
         {
             $parent.next().remove();
+            $(this).attr("opend", "false");
         }
+        
     });
     </script>
 }

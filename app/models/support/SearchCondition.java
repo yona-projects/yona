@@ -1,7 +1,7 @@
 package models.support;
 
 import models.enumeration.Direction;
-import models.enumeration.IssueStateType;
+import models.enumeration.StateType;
 /**
  * 
  * @author Taehyun Park
@@ -25,7 +25,7 @@ public class SearchCondition {
         orderBy = Direction.DESC.direction();
         pageNum = 0;
         milestone = null;
-        stateType = IssueStateType.OPEN.name();
+        stateType = StateType.OPEN.name();
         commentedCheck = false;
         fileAttachedCheck = false;
         

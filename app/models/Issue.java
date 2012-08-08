@@ -23,11 +23,12 @@ import jxl.write.WritableWorkbook;
 
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.IssueStateType;
+import models.enumeration.StateType;
 import models.enumeration.Matching;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
+import play.Logger;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -106,7 +107,7 @@ public class Issue extends Model {
     public Long assigneeId;
     public Long reporterId;
     public IssueState state;
-    public IssueStateType stateType;
+    public StateType stateType;
     public String issueType;
     public String componentName;
     // TODO 첨부 파일이 여러개인경우는?
@@ -123,11 +124,11 @@ public class Issue extends Model {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public List<IssueComment> comments = new ArrayList<IssueComment>();
 
-    public int numOfIssueComments;
+    public int numOfComments;
 
     public Issue() {
         this.date = JodaDateUtil.today();
-        this.numOfIssueComments = comments.size();
+        this.numOfComments = comments.size();
     }
 
     /**
@@ -154,10 +155,20 @@ public class Issue extends Model {
 
     public void updateStatusType(IssueState state) {
         if (this.state == ASSIGNED || this.state == IssueState.ENROLLED) {
-            this.stateType = IssueStateType.OPEN;
+            this.stateType = StateType.OPEN;
         } else if (this.state == IssueState.SOLVED || this.state == IssueState.FINISHED) {
-            this.stateType = IssueStateType.CLOSED;
+            this.stateType = StateType.CLOSED;
         }
+    }
+
+    /**
+     * 이슈 id로 이슈를 찾아준다.
+     * 
+     * @param id
+     * @return
+     */
+    public static Issue findById(Long id) {
+        return find.byId(id);
     }
 
     /**
@@ -196,7 +207,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findOpenIssues(String projectName) {
-        return Issue.findIssues(projectName, IssueStateType.OPEN);
+        return Issue.findIssues(projectName, StateType.OPEN);
     }
 
     /**
@@ -206,7 +217,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findClosedIssues(String projectName) {
-        return Issue.findIssues(projectName, IssueStateType.CLOSED);
+        return Issue.findIssues(projectName, StateType.CLOSED);
     }
 
     /**
@@ -216,7 +227,7 @@ public class Issue extends Model {
      * @param state
      * @return
      */
-    public static Page<Issue> findIssues(String projectName, IssueStateType state) {
+    public static Page<Issue> findIssues(String projectName, StateType state) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 "", null, false, false);
     }
@@ -232,7 +243,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findFilteredIssues(String projectName, String filter,
-            IssueStateType state, boolean commentedCheck, boolean fileAttachedCheck) {
+            StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 filter, null, commentedCheck, fileAttachedCheck);
     }
@@ -245,7 +256,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findCommentedIssues(String projectName, String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL, DEFAULT_SORTER,
+        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, true, false);
     }
 
@@ -258,12 +269,12 @@ public class Issue extends Model {
      */
 
     public static Page<Issue> findFileAttachedIssues(String projectName, String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL, DEFAULT_SORTER,
+        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, false, true);
     }
 
     public static Page<Issue> findIssuesByMilestoneId(String projectName, Long milestoneId) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, IssueStateType.ALL, DEFAULT_SORTER,
+        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, "", milestoneId, false, false);
     }
 
@@ -290,7 +301,7 @@ public class Issue extends Model {
      *            필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
-    public static Page<Issue> findIssues(String projectName, int pageNumber, IssueStateType state,
+    public static Page<Issue> findIssues(String projectName, int pageNumber, StateType state,
             String sortBy, Direction order, String filter, Long milestoneId,
             boolean commentedCheck, boolean fileAttachedCheck) {
 
@@ -302,35 +313,25 @@ public class Issue extends Model {
             searchParams.add("milestoneId", milestoneId, Matching.EQUALS);
         }
         if (commentedCheck) {
-            searchParams.add("numOfIssueComments", 1, Matching.GE);
+            searchParams.add("numOfComments", 1, Matching.GE);
         }
         if (fileAttachedCheck) {
             searchParams.add("filePath", "", Matching.NOT_EQUALS);
         }
         if (state == null) {
-            state = IssueStateType.ALL;
+            state = StateType.ALL;
         }
         switch (state)
             {
             case OPEN:
-                searchParams.add("stateType", IssueStateType.OPEN, Matching.EQUALS);
+                searchParams.add("stateType", StateType.OPEN, Matching.EQUALS);
                 break;
             case CLOSED:
-                searchParams.add("stateType", IssueStateType.CLOSED, Matching.EQUALS);
+                searchParams.add("stateType", StateType.CLOSED, Matching.EQUALS);
                 break;
             }
         return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE,
                 pageNumber);
-    }
-
-    /**
-     * 이슈 id로 이슈를 찾아준다.
-     * 
-     * @param id
-     * @return
-     */
-    public static Issue findById(Long id) {
-        return find.byId(id);
     }
 
     /**
@@ -341,7 +342,6 @@ public class Issue extends Model {
     public void addIssueComment(IssueComment issueComment) {
         issueComment.issue = this;
         issueComment.save();
-
     }
 
     public static Long findAssigneeIdByIssueId(Long projectId, Long issueId) {
@@ -354,7 +354,7 @@ public class Issue extends Model {
      * @return boolean
      */
     public boolean isOpen() {
-        return IssueStateType.OPEN.equals(this.stateType);
+        return StateType.OPEN.equals(this.stateType);
     }
 
     /**
@@ -371,7 +371,6 @@ public class Issue extends Model {
 
     public static void edit(Issue issue) {
         Issue previousIssue = findById(issue.id);
-        // /issue.commentCount = previousIssue.commentCount;
         if (issue.filePath == null) {
             issue.filePath = previousIssue.filePath;
         }
@@ -406,7 +405,8 @@ public class Issue extends Model {
         cf2.setAlignment(Alignment.CENTRE);
 
         WritableWorkbook workbook = Workbook.createWorkbook(new File(fullPath));
-        WritableSheet sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
+        WritableSheet sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()),
+                0);
 
         String[] labalArr = { "ID", "STATE", "TITLE", "ASSIGNEE", "DATE" };
 
@@ -435,7 +435,7 @@ public class Issue extends Model {
 
         return excelFile;
     }
-    
+
     public String reporterName() {
         return User.findNameById(this.reporterId);
     }

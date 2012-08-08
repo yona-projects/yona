@@ -2,7 +2,7 @@ package models;
 
 import models.enumeration.Direction;
 import models.enumeration.Matching;
-import models.enumeration.MilestoneState;
+import models.enumeration.StateType;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
@@ -84,7 +84,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findByProjectId(Long projectId) {
-        return Milestone.findMilestones(projectId, MilestoneState.ALL);
+        return Milestone.findMilestones(projectId, StateType.ALL);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findClosedMilestones(Long projectId) {
-        return Milestone.findMilestones(projectId, MilestoneState.CLOSED);
+        return Milestone.findMilestones(projectId, StateType.CLOSED);
     }
 
     /**
@@ -104,7 +104,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findOpenMilestones(Long projectId) {
-        return Milestone.findMilestones(projectId, MilestoneState.OPEN);
+        return Milestone.findMilestones(projectId, StateType.OPEN);
     }
 
     /**
@@ -125,7 +125,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findMilestones(Long projectId,
-                                                 MilestoneState state) {
+                                                 StateType state) {
         return findMilestones(projectId, state, DEFAULT_SORTER, Direction.ASC);
     }
 
@@ -139,11 +139,11 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findMilestones(Long projectId,
-                                                 MilestoneState state, String sort, Direction direction) {
+                                                 StateType state, String sort, Direction direction) {
         OrderParams orderParams = new OrderParams().add(sort, direction);
         SearchParams searchParams = new SearchParams().add("project.id", projectId, Matching.EQUALS);
         if (state == null) {
-            state = MilestoneState.ALL;
+            state = StateType.ALL;
         }
         switch (state) {
             case OPEN:
@@ -169,7 +169,7 @@ public class Milestone extends Model {
      */
     public static Map<String, String> options(Long projectId) {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
-        for (Milestone milestone : findMilestones(projectId, MilestoneState.ALL, "title", Direction.ASC)) {
+        for (Milestone milestone : findMilestones(projectId, StateType.ALL, "title", Direction.ASC)) {
             options.put(milestone.id.toString(), milestone.title);
         }
         return options;

@@ -2,8 +2,9 @@ package controllers;
 
 import java.io.IOException;
 
+import org.eclipse.jgit.api.errors.*;
+
 import models.Project;
-import play.Logger;
 import play.mvc.*;
 import views.html.code.*;
 
@@ -18,7 +19,7 @@ public class CodeApp extends Controller {
         }
     }
     
-    public static Result ajaxRequest(String projectName, String path) throws IOException {
+    public static Result ajaxRequest(String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         return GitApp.ajaxRequest(projectName, path);
     }
 }
