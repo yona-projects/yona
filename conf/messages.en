@@ -14,6 +14,7 @@ title.memberList = Member List
 title.post.notExistingPage = Not Existing Page
 title.siteSetting = Site Setting
 title.site.userEdit = Edit a User
+title.login = Login
 
 menu.home = Home
 menu.board = Board
@@ -46,6 +47,7 @@ button.yes = Yes
 button.no = No
 button.popup.exit = x
 button.add = Add
+button.login = Login
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -159,5 +161,8 @@ site.userList.deleteAlert = Project's unique manager cannot be deleted.
 
 #User
 user.loginId = Login ID
+user.password = Password
 user.name = Name
 user.email = E-mail
+user.login.failed = Your login ID or password is not valid.
+user.logout.success = Logout successfully

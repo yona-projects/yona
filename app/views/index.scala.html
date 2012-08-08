@@ -16,13 +16,15 @@
   <div class="row-fluid">
     <div class="span9">
     </div>
-    <div class="span3">    
-      <ul class="nav nav-list">
-        <li class="nav-header">
-          My projects
-        </li>
-          @views.html.myProjectList()
-      </ul>
+    <div class="span3">
+      @if(session.contains("userId")){    
+        <ul class="nav nav-list">
+          <li class="nav-header">
+            My projects
+          </li>
+            @views.html.myProjectList()
+        </ul>
+      }
     </div>
   </div>
   
