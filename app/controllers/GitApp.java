@@ -6,6 +6,8 @@ import java.util.*;
 import models.*;
 
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
@@ -18,6 +20,7 @@ import play.Logger;
 import play.libs.Json;
 import play.mvc.*;
 
+import utils.JodaDateUtil;
 import views.html.code.*;
 
 public class GitApp extends Controller {
@@ -110,12 +113,13 @@ public class GitApp extends Controller {
                 Project.findByName(projectName)));
     }
 
-    public static Result ajaxRequest(String projectName, String path) throws IOException {
+    public static Result ajaxRequest(String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         Repository repository = new RepositoryBuilder().setGitDir(
                 new File(REPO_PREFIX + projectName + ".git")).build();
         RevTree tree = new RevWalk(repository).parseTree(repository.resolve("HEAD"));
         TreeWalk treeWalk = new TreeWalk(repository);
         treeWalk.addTree(tree);
+        
 
         // XXX 수많은 리팩토링이 필요함.
         if (path.equals("")) {
@@ -136,23 +140,44 @@ public class GitApp extends Controller {
         if (treeWalk.isSubtree()) {
             treeWalk.enterSubtree();
             return listingDirectory(treeWalk);
+            
         } else {
             // FIXME 파일 타잎을 추론해서 내려줘야 함.
-            response().setContentType("text/plain");
-            return ok(repository.open(treeWalk.getObjectId(0)).getBytes());
+            // 대부분의 경우에는 text로 내려주되 이미지나 동영상 같은 경우에는 알맞은 걸로 내려준다.
+            //RevCommit
+            ObjectId objectId = treeWalk.getObjectId(0);
+            
+            Git git = new Git(repository);
+            Iterator<RevCommit> commits = git.log().addPath(path).call().iterator();
+            RevCommit commit = commits.next();
+            
+            ObjectNode result = Json.newObject();
+            result.put("commitMessage", commit.getShortMessage());
+            result.put("commiter", commit.getAuthorIdent().getName());
+            // TODO 날짜 계산해서 넣어야함. 날짜가 부정확함.
+            result.put("commitDate", new Date(commit.getCommitTime() * 1000).toString());
+            
+            
+            String str = new String(repository.open(objectId).getBytes());
+            result.put("data", str);
+            
+            return ok(result);
         }
     }
 
     private static Result listingDirectory(TreeWalk treeWalk) throws MissingObjectException,
             IncorrectObjectTypeException, CorruptObjectException, IOException {
+        
         // JSON으로 응답내려주기
         ObjectNode result = Json.newObject();
-
         while (treeWalk.next()) {
+            ObjectNode data = Json.newObject();
             String type = treeWalk.isSubtree() ? "folder" : "file";
-            result.put(treeWalk.getNameString(), type);
+            data.put("type", type);
+            data.put("commitMessage", "test");
+            data.put("CommitData", JodaDateUtil.today().toLocaleString());
+            result.put(treeWalk.getNameString(), data);
         }
         return ok(result);
     }
-
 }
