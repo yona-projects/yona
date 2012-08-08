@@ -16,7 +16,7 @@
                         <li class=""><a href="@routes.SiteApp.setting()">@Messages("menu.siteAdmin")</a></li>
                     }
                     <li class=""><a href="#">@session.get("userName")</a></li>
-                    <li class=""><a href="@routes.UserApp.logout()">LogOut</a></li>
+                    <li class=""><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
                 }else {
                     <li class=""><a href="@routes.UserApp.signup()">@Messages("title.signup")</a></li>
                     <li class=""><a href="@routes.UserApp.login()">@Messages("title.login")</a></li>
