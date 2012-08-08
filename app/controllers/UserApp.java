@@ -32,6 +32,10 @@ public class UserApp extends Controller {
             return redirect(routes.UserApp.login());
         }
     }
+    
+    public static Result signup() {
+        return TODO;
+    }
 
     public static void setUserInfoInSession(User user) {
         if(user.id == null) user = User.findByLoginId(user.loginId);
