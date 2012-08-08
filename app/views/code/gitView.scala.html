@@ -92,8 +92,7 @@
         }
         function openFolder(path, $parent)
         {
-            // FIXME 여러단계 내려가기.
-                $.ajax(path, {
+            $.ajax(path, {
     			success : function(data, textStatus, jqXHR){
     			    //폴더 구조를 펼치기
                     var $ul = $("<ul>").addClass("nav nav-list");
@@ -136,8 +135,7 @@
                     $("#codeView").hide();
                 }
             });
-        }
-        
+        } 
     });
     </script>
 }

@@ -143,7 +143,6 @@ public class GitApp extends Controller {
         } else {
             // FIXME 파일 타잎을 추론해서 내려줘야 함.
             // 대부분의 경우에는 text로 내려주되 이미지나 동영상 같은 경우에는 알맞은 걸로 내려준다.
-            //RevCommit
             ObjectId objectId = treeWalk.getObjectId(0);
             
             Git git = new Git(repository);
