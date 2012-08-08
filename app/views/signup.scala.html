@@ -1,0 +1,83 @@
+@(message: String, newUserForm: Form[User]) 
+
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+
+@home(message) {
+<div class="page-header">
+  <h1>@Messages(message)</h1>
+</div>
+<div class="row-fluid">
+  <div class="span3"></div>
+  <div class="span6">
+    <div class="alert alert-danger hide" id="confirmPasswordAlert">
+      <a class="close" data-dismiss="alert">×</a>
+      <strong>@Messages("user.confirmPassword.alert")</strong>
+    </div>
+    <div class="alert alert-danger hide" id="wrongPasswordAlert">
+      <a class="close" data-dismiss="alert">×</a>
+      <strong>@Messages("user.wrongPassword.alert")</strong>
+    </div>
+    <div class="alert alert-danger hide" id="wrongEmailAlert">
+      <a class="close" data-dismiss="alert">×</a>
+      <strong>@Messages("user.wrongEmail.alert")</strong>
+    </div>
+    @form(action = routes.UserApp.saveUser, 'class -> "well form-horizontal"){
+      <fieldset>
+        @inputText(
+          newUserForm("loginId"),
+          '_label -> Messages("user.loginId")
+        )
+        
+        @inputPassword(
+          newUserForm("password"),
+          '_label -> Messages("user.password")
+        )
+        
+        <div class="control-group">
+          <label class="control-label" for="confirmPassword">@Messages("user.confirmPassword")&nbsp;&nbsp;</label>
+          <div class="controls">
+            <input type="password" id="confirmPassword" name="confirmPassword">
+          </div>
+        </div>
+        
+        @inputText(
+          newUserForm("name"),
+          '_label -> Messages("user.name")
+        )
+        
+        @inputText(
+          newUserForm("email"),
+          '_label -> Messages("user.email"),
+          '_showConstraints -> false
+        )
+      </fieldset>
+      <button type="submit" class="btn btn-primary" id="signup">@Messages("button.signup")</button>
+    }
+  </div>
+</div>
+<script>
+  $(document).ready(function(){
+    var reg_email = /[0-9a-zA-Z]+(.[_a-z0-9-]+)*@@(?:\w+\.)+\w+$/;
+    
+    $("#signup").click(function(){
+      if($("#password").val() == ""){
+        $("#wrongPasswordAlert").show();
+        return false;
+      }
+      
+      if($("#password").val() != ($("#confirmPassword").val())){
+        $("#confirmPasswordAlert").show();
+        return false;
+      }
+      
+      if(!reg_email.test($("#email").val())){
+        $("#wrongEmailAlert").show();
+        return false;
+      }
+      
+      return true;
+    });
+  })
+</script>
+}

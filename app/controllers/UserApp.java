@@ -1,11 +1,12 @@
 package controllers;
 
 import models.User;
+import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import views.html.index;
 import views.html.login;
+import views.html.signup;
 
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
@@ -34,7 +35,21 @@ public class UserApp extends Controller {
     }
     
     public static Result signup() {
-        return TODO;
+        return ok(signup.render("title.signup", form(User.class)));
+    }
+    
+    public static Result saveUser() {
+        Form<User> newUserForm = form(User.class).bindFromRequest();
+        
+        
+        if(newUserForm.hasErrors())
+            return badRequest(signup.render("title.signup", newUserForm));
+        else {
+            User user = newUserForm.get();
+            user.save();
+            setUserInfoInSession(user);
+            return redirect(routes.Application.index());
+        }
     }
 
     public static void setUserInfoInSession(User user) {

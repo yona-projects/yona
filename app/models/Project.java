@@ -23,9 +23,11 @@ public class Project extends Model {
 
     @Id
     public Long id;
+    
     @Constraints.Required
     @Constraints.Pattern("^[a-zA-Z0-9_]*$")
     public String name;
+    
     public String overview;
     public boolean share_option;
     public String vcs;
