@@ -1,10 +1,8 @@
 package models;
 
-import com.avaje.ebean.Ebean;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.IssueStateType;
-import models.enumeration.MilestoneState;
+import models.enumeration.StateType;
 import org.junit.Test;
 import utils.JodaDateUtil;
 
@@ -162,35 +160,35 @@ public class MilestoneTest extends ModelTest<Milestone> {
         // Given
         // When
         List<Milestone> p1InCmpleteMilestones = Milestone.findMilestones(1l,
-            MilestoneState.OPEN);
+            StateType.OPEN);
         // Then
         assertThat(p1InCmpleteMilestones.size()).isEqualTo(2);
 
         // Given
         // When
         List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l,
-            MilestoneState.CLOSED);
+            StateType.CLOSED);
         // Then
         assertThat(p2CompletedMilestones.size()).isEqualTo(3);
 
         // Given
         // When
         List<Milestone> p2Milestones = Milestone.findMilestones(2l,
-            MilestoneState.ALL);
+            StateType.ALL);
         // Then
         assertThat(p2Milestones.size()).isEqualTo(4);
 
         // Given
         // When
         List<Milestone> p1MilestonesASCDirection = Milestone.findMilestones(1l,
-            MilestoneState.ALL, "completionRate", Direction.ASC);
+            StateType.ALL, "completionRate", Direction.ASC);
         // Then
         assertThat(p1MilestonesASCDirection.get(0).completionRate).isEqualTo(9);
 
         // Given
         // When
         List<Milestone> p2MilestonesDESCDirection = Milestone.findMilestones(
-            2l, MilestoneState.ALL, "completionRate", Direction.DESC);
+            2l, StateType.ALL, "completionRate", Direction.DESC);
         // Then
         assertThat(p2MilestonesDESCDirection.get(0).completionRate).isEqualTo(
             100);
@@ -232,7 +230,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         issue.title = "불필요한 로그 출력 코드 제거test";
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
-        issue.stateType = IssueStateType.OPEN;
+        issue.stateType = StateType.OPEN;
         issue.reporterId = User.findById(1l).id;
         issue.milestoneId = 8l;
 

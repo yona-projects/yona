@@ -5,8 +5,6 @@
 package models;
 
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -40,7 +38,11 @@ public class IssueComment extends Model {
     public IssueComment() {
         date = JodaDateUtil.today();
     }
-
+    
+    public static int size(){
+        return size();
+    }
+    
     public static IssueComment findById(Long id) {
         return find.byId(id);
     }
@@ -52,5 +54,9 @@ public class IssueComment extends Model {
     
     public String authorName() {
         return User.findNameById(this.authorId);
+    }
+    
+    public static void delete(Long id) {
+        find.byId(id).delete();
     }
 }

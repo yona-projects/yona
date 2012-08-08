@@ -2,7 +2,7 @@ package models;
 
 import com.avaje.ebean.Page;
 import models.enumeration.IssueState;
-import models.enumeration.IssueStateType;
+import models.enumeration.StateType;
 import org.junit.Test;
 
 import play.Logger;
@@ -86,7 +86,7 @@ public class IssueTest extends ModelTest<Issue> {
 
         // Given
         // When
-        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그", IssueStateType.OPEN,
+        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그", StateType.OPEN,
                 true, true);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
@@ -152,7 +152,7 @@ public class IssueTest extends ModelTest<Issue> {
     public void excelSave() throws Exception {
         // Given
         // When
-        String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", IssueStateType.ALL)
+        String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", StateType.ALL)
                 .getList(), "testExcelSave");
         // Then
         // assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
