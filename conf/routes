@@ -9,13 +9,15 @@ GET     /                                   controllers.Application.index()
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)
 
 # User
-GET     /users/login                        controllers.UserApp.login()
+GET     /login                              controllers.UserApp.login()
+POST    /login                              controllers.UserApp.authenticate()
+GET     /logout                             controllers.UserApp.logout()
 
 # Site
 GET     /sites/setting                      controllers.SiteApp.setting()
 GET     /sites/userList                     controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
 POST    /sites/userList                     controllers.SiteApp.searchUser()
-POST    /sites/updateUser                   controllers.SiteApp.updateUser(userId: Long)
+GET     /sites/user/delete                  controllers.SiteApp.deleteUser(userId: Long)
 GET     /sites/projectList                  controllers.SiteApp.projectList()
 GET     /sites/softwareMap                  controllers.SiteApp.softwareMap()
 
@@ -57,6 +59,7 @@ POST    /:projectName/issues/new                controllers.IssueApp.saveIssue(p
 GET     /:projectName/issues/:id                controllers.IssueApp.issue(projectName:String, id:Long)
 POST    /:projectName/issue/:id/reply           controllers.IssueApp.saveComment(projectName:String, id:Long)
 GET     /:projectName/issue/:id/delete          controllers.IssueApp.deleteIssue(projectName:String, id:Long)
+GET     /:projectName/issue/:id/deleteComment   controllers.IssueApp.deleteComment(projectName:String, id:Long, commentId:Long)
 GET     /:projectName/issueList/excel           controllers.IssueApp.extractExcelFile(projectName:String, stateType:String)
 GET     /:projectName/issues/:id/edit           controllers.IssueApp.editIssue(projectName:String, id:Long)
 POST    /:projectName/issues/:id/edit           controllers.IssueApp.updateIssue(projectName:String, id:Long)

@@ -90,12 +90,12 @@
 						<tr>
 							<td>@issue.id</td>
 							<td>@issue.state()</td>
-							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.numOfIssueComments > 0){[@issue.numOfIssueComments]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
+							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assigneeId == null){
 								<em>@Messages("issue.no.assignee")</em>						
 							} else {
-								<em>@User.findLoginIdById(issue.assigneeId)</em>
+								<em>@issue.reporterName</em>
 							}
 							</td>
 							<td>@issue.date.format("dd MMM yyyy")</td>

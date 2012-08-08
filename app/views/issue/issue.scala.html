@@ -6,7 +6,7 @@
 	<div class="span2 offset10">
 		<div id="board_btn_panel">
 			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.name, issue.id)">@Messages("button.edit")</a> <a
-				data-toggle="modal" href="#deleteConfirm" class="btn">@Messages("button.delete")</a>
+				data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
 			<a class="btn" href="@routes.IssueApp.issues(project.name,"open")">@Messages("button.list")</a>
 		</div>
 	</div>
@@ -22,7 +22,7 @@
 		<div class="span11">
 			<h1>@issue.title</h1>
 			<div>
-				<span>@User.findLoginIdById(issue.reporterId)이 @issue.date에 작성함</span>
+				<span>@issue.reporterName이 @issue.date에 작성함</span>
 			</div>
 		</div>
 	</div>
@@ -53,9 +53,32 @@
 	</div>
 	<div class="span11">
 		<div>
-			<span>@User.findLoginIdById(comment.authorId)이 @comment.date에
+			<span>@comment.authorName이 @comment.date에
 				작성함</span>
+				
 		</div>
+		<div class="pull-right"> 
+		      <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
+		</div>
+		
+		
+		<div class="modal hide" id="deleteCommentConfirm">
+		    <div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal">×</button>
+		        <h3>@Messages("issue.delete.window")</h3>
+		    </div>
+		    <div class="modal-body">
+		        <p>@Messages("post.delete.confirm")</p>
+		    </div>
+		    <div class="modal-footer">
+		        <a class="btn btn-danger"
+		            href="@routes.IssueApp.deleteComment(project.name, issue.id, comment.id)">@Messages("button.yes")</a>
+		        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+		    </div>
+        </div>
+		
+		
+		
 		<p>@comment.contents
 		<p>@if(comment.filePath != null){
 		<p>
@@ -82,7 +105,7 @@
 
 
 <!--삭제확인상자-->
-<div class="modal hide" id="deleteConfirm">
+<div class="modal hide" id="deleteIssueConfirm">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal">×</button>
 		<h3>@Messages("issue.delete.window")</h3>

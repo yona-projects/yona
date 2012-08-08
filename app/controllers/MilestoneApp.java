@@ -3,7 +3,7 @@ package controllers;
 import models.Milestone;
 import models.Project;
 import models.enumeration.Direction;
-import models.enumeration.MilestoneState;
+import models.enumeration.StateType;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -24,7 +24,7 @@ public class MilestoneApp extends Controller {
             return notFound();
         }
         List<Milestone> milestones = Milestone.findMilestones(project.id,
-                MilestoneState.getValue(state),
+                StateType.getValue(state),
                 sort,
                 Direction.getValue(direction));
         return ok(list.render("title.milestoneList", milestones, projectName, state, sort, direction, project));
@@ -62,7 +62,7 @@ public class MilestoneApp extends Controller {
         }
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
-                MilestoneState.ALL,
+                StateType.ALL,
                 sort,
                 Direction.getValue(direction));
         return ok(manage.render("title.milestoneManage", milestones, projectName, sort, direction, project));

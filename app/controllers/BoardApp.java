@@ -51,7 +51,7 @@ public class BoardApp extends Controller {
                     routes.BoardApp.newPost(project.name), project));
         } else {
             Post post = postForm.get();
-            post.author = UserApp.currentUser();
+            post.authorId = UserApp.currentUser().id;
             post.commentCount = 0;
             post.filePath = saveFile(request());
             post.project = project;
@@ -63,13 +63,12 @@ public class BoardApp extends Controller {
 
     public static Result post(String projectName, Long postId) {
         Post post = Post.findById(postId);
-        //List<Comment> comments = Comment.findCommentsByPostId(postId);
         Project project = Project.findByName(projectName);
         if (post == null) {
             return ok(notExsitPage.render("존재하지 않는 게시물", project));
         } else {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
-            Logger.debug(post.author.name);
+//            Logger.debug(post.author.name);
             
             return ok(views.html.board.post.render(post, commentForm, project));
         }
@@ -86,7 +85,7 @@ public class BoardApp extends Controller {
         } else {
             Comment comment = commentForm.get();
             comment.post = Post.findById(postId);
-            comment.author = UserApp.currentUser();
+            comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
 
             Comment.write(comment);
@@ -103,11 +102,11 @@ public class BoardApp extends Controller {
     }
 
     public static Result editPost(String projectName, Long postId) {
-        Post exsitPost = Post.findById(postId);
-        Form<Post> editForm = new Form<Post>(Post.class).fill(exsitPost);
+        Post existPost = Post.findById(postId);
+        Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
         Project project = Project.findByName(projectName);
 
-        if (UserApp.currentUser().id == exsitPost.author.id) {
+        if (UserApp.currentUser().id == existPost.authorId) {
             return ok(editPost.render("게시물 수정", editForm, postId, project));
         } else {
             return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(project.name, postId),
@@ -124,7 +123,7 @@ public class BoardApp extends Controller {
         } else {
 
             Post post = postForm.get();
-            post.author = UserApp.currentUser();
+            post.authorId = UserApp.currentUser().id;
             post.id = postId;
             post.filePath = saveFile(request());
             post.project = projcet;

@@ -3,6 +3,7 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -14,13 +15,17 @@ public class UserTest extends ModelTest<User> {
 	@Test
 	public void authenticate() throws Exception {
 		// Given
-		User user = new User();
-		user.loginId = "hobi";
-		user.password = "hobi00";
+		User user1 = new User();
+		user1.loginId = "hobi";
+		user1.password = "hobi00";
+		
+		User user2 = new User();
+        user2.loginId = "hobi";
+        user2.password = "hobi";
 		// When
-		User authenticate = User.authenticate(user);
 		// Then
-		assertThat(authenticate.name).isEqualTo("Hobi");
+		assertThat(User.authenticate(user1)).isEqualTo(true);
+		assertThat(User.authenticate(user2)).isEqualTo(false);
 	}
 
 	@Test
@@ -76,5 +81,26 @@ public class UserTest extends ModelTest<User> {
 	    // Then
 	    assertThat(users.getTotalRowCount()).isEqualTo(4);
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
+	}
+	
+	@Test
+	public void findProjectsById() throws Exception {
+	    // Given
+	    // When
+	    User user = User.findProjectsById(1l);
+	    // Then
+	    assertThat(user.projectUser.size()).isEqualTo(3);
+	    assertThat(user.projectUser.iterator().next().project.name).isEqualTo("nForge4java");
+	}
+	
+	@Test
+	public void isOnlyManager() throws Exception {
+	    // Given
+	    // When
+	    List<Project> projects_hobi = User.isOnlyManager(1l);
+	    List<Project> projects_eungjun = User.isOnlyManager(4l);
+	    // Then
+	    assertThat(projects_hobi.size()).isEqualTo(1);
+	    assertThat(projects_eungjun.size()).isEqualTo(0);
 	}
 }

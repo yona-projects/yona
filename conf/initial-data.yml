@@ -5,25 +5,21 @@ users:
         loginId:        hobi
         password:       hobi00
         email:          hobi@nhn.com
-        isActive:       true
     - !!models.User
         name:           scott
         loginId:        k16wire
         password:       k16wire00
         email:          k16wire@naver.com
-        isActive:       true
     - !!models.User
         name:           suwon
         loginId:        doortts
         password:       doortts00
         email:          sw@korea.com
-        isActive:       false
     - !!models.User
         name:           eungjun
         loginId:        nori
         password:       nori00
         email:          ejlee@nhn.com
-        isActive:       false
         
 # Projects
 projects:
@@ -57,8 +53,7 @@ posts:
     - !!models.Post
         title:          게시판이 새로 생성되었습니다.
         contents:       새로운 게시판에서 많은 활동 부탁드립니다. 
-        author:         !!models.User
-                            id: 1
+        authorId:         1
         commentCount:   1
         project:        !!models.Project
                             id: 1
@@ -67,8 +62,7 @@ posts:
 comments:
     - !!models.Comment
         contents:       게시판이 너무 기대됩니다. 많은 글이 필요합니다. 
-        author:         !!models.User
-                            id: 1
+        authorId:         1
         post:           !!models.Post
                             id: 1
 
@@ -83,9 +77,9 @@ issues:
         state:          ENROLLED
         stateType:      OPEN
         milestoneId:    1
-        numOfIssueComments:   1
         project:        !!models.Project
                             id: 1
+        numOfComments:  1
         filePath:       http://localhost:9000/project/1/issue23/capture.jpg
     - !!models.Issue
         reporterId:     2

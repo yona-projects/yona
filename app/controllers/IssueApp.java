@@ -17,7 +17,7 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.IssueStateType;
+import models.enumeration.StateType;
 import models.support.SearchCondition;
 import play.Logger;
 import play.data.Form;
@@ -52,10 +52,9 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
-                IssueStateType.getValue(stateType), issueParam.sortBy,
+                StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
-
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
@@ -95,19 +94,11 @@ public class IssueApp extends Controller {
             newIssue.reporterId = UserApp.currentUser().id;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-            // if (issueForm.get().milestoneId == null) {
-            // newIssue.milestoneId = "none";
-            // }
             newIssue.updateStatusType(newIssue.state);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
-
-            Logger.debug("IssueApp : saveIssue - milestoneId:" + newIssue.milestoneId);
-            Logger.debug("IssueApp : saveIssue - state:" + newIssue.state);
-            Logger.debug("IssueApp : saveIssue - stateType:" + newIssue.stateType);
-            Logger.debug("IssueApp : saveIssue - assigneeId:" + newIssue.assigneeId);
         }
-        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, StateType.ALL.stateType()));
     }
 
     public static Result editIssue(String projectName, Long id) {
@@ -129,17 +120,14 @@ public class IssueApp extends Controller {
         if (issueForm.hasErrors()) {
             return badRequest(issueForm.errors().toString());
         } else {
-
             Issue issue = issueForm.get();
             issue.reporterId = UserApp.currentUser().id;
             issue.id = id;
             issue.filePath = saveFile(request());
             issue.project = projcet;
-
             Issue.edit(issue);
         }
-
-        return redirect(routes.IssueApp.issues(projcet.name, IssueStateType.ALL.name()));
+        return redirect(routes.IssueApp.issues(projcet.name, StateType.ALL.name()));
     }
 
     public static Result deleteIssue(String projectName, Long issueId) {
@@ -148,26 +136,32 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.issues(project.name, IssueStateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.name, StateType.ALL.stateType()));
     }
 
     public static Result saveComment(String projectName, Long issueId) {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
-
         Project project = Project.findByName(projectName);
         if (commentForm.hasErrors()) {
             return TODO;
-
         } else {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
-
             return redirect(routes.IssueApp.issue(project.name, issueId));
         }
+    }
+
+    public static Result deleteComment(String projectName, Long issueId, Long commentId) {
+        Project project = Project.findByName(projectName);
+        if (project == null) {
+            return notFound();
+        }
+        IssueComment.delete(commentId);
+        return redirect(routes.IssueApp.issue(project.name, issueId));
     }
 
     public static Result extractExcelFile(String projectName, String stateType) throws Exception {
@@ -178,7 +172,7 @@ public class IssueApp extends Controller {
             return notFound();
         }
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
-                IssueStateType.getValue(stateType), issueParam.sortBy,
+                StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
         Issue.excelSave(issues.getList(), project.name + "_" + stateType + "_filter_"

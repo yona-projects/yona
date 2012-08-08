@@ -13,6 +13,8 @@ title.projectSetting = 프로젝트 설정
 title.memberList = 맴버 리스트
 title.post.notExistingPage = 존재하지 않는 게시물
 title.siteSetting = 사이트 설정
+title.site.userEdit = 유저 설정
+title.login = 로그인
 
 menu.home = 홈
 menu.board = 게시판
@@ -20,6 +22,7 @@ menu.code = 코드
 menu.issue = 이슈
 menu.wiki = 위키
 menu.admin = 프로젝트 관리
+menu.siteAdmin = 사이트 관리
 
 label.title = 제목
 label.contents = 내용
@@ -44,6 +47,7 @@ button.yes = 예
 button.no = 아니요
 button.popup.exit = x
 button.add = 추가
+button.login = 로그인
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
@@ -142,3 +146,22 @@ project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
 project.delete.requestion = 프로젝트를 삭제하시겠습니까?
 project.delete.reaccept = 정말로 삭제하시겠습니까?
 project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.
+
+#Site
+site.sidebar = 사이트 관리
+site.sidebar.setting = 설정
+site.sidebar.userList = 유저 관리
+site.sidebar.projectList = 프로젝트 관리
+site.sidebar.softwareMap = 소프트웨어 맵
+site.sidebar.mailSend = 메일 발송
+site.userList.search = 찾고자하는 유저의 ID를 입력하세요...
+site.userList.isActive = 활성 상태
+site.userList.deleteAlert = 프로젝트의 유일한 관리자이므로 사이트에서 삭제할 수 없습니다. 
+
+#User
+user.loginId = 로그인 ID
+user.password = 비밀번호
+user.name = 이름
+user.email = 이메일
+user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
+user.logout.success = 성공적으로 로그아웃되었습니다.
