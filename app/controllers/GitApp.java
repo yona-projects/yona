@@ -20,7 +20,6 @@ import play.Logger;
 import play.libs.Json;
 import play.mvc.*;
 
-import utils.JodaDateUtil;
 import views.html.code.*;
 
 public class GitApp extends Controller {
@@ -123,7 +122,7 @@ public class GitApp extends Controller {
 
         // XXX 수많은 리팩토링이 필요함.
         if (path.equals("")) {
-            return listingDirectory(treeWalk);
+            return listingDirectory(treeWalk, repository);
         } else {
             PathFilter filter = PathFilter.create(path);
             treeWalk.setFilter(filter);
@@ -139,7 +138,7 @@ public class GitApp extends Controller {
 
         if (treeWalk.isSubtree()) {
             treeWalk.enterSubtree();
-            return listingDirectory(treeWalk);
+            return listingDirectory(treeWalk, repository);
             
         } else {
             // FIXME 파일 타잎을 추론해서 내려줘야 함.
@@ -155,7 +154,7 @@ public class GitApp extends Controller {
             result.put("commitMessage", commit.getShortMessage());
             result.put("commiter", commit.getAuthorIdent().getName());
             // TODO 날짜 계산해서 넣어야함. 날짜가 부정확함.
-            result.put("commitDate", new Date(commit.getCommitTime() * 1000).toString());
+            result.put("commitDate", new Date(commit.getCommitTime()).toString());
             
             
             String str = new String(repository.open(objectId).getBytes());
@@ -165,17 +164,21 @@ public class GitApp extends Controller {
         }
     }
 
-    private static Result listingDirectory(TreeWalk treeWalk) throws MissingObjectException,
-            IncorrectObjectTypeException, CorruptObjectException, IOException {
+    private static Result listingDirectory(TreeWalk treeWalk, Repository repository) throws MissingObjectException,
+            IncorrectObjectTypeException, CorruptObjectException, IOException, NoHeadException, GitAPIException {
+        
+        Git git = new Git(repository);
         
         // JSON으로 응답내려주기
         ObjectNode result = Json.newObject();
         while (treeWalk.next()) {
+            RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator().next();
+            
             ObjectNode data = Json.newObject();
-            String type = treeWalk.isSubtree() ? "folder" : "file";
-            data.put("type", type);
-            data.put("commitMessage", "test");
-            data.put("CommitData", JodaDateUtil.today().toLocaleString());
+            data.put("type", treeWalk.isSubtree() ? "folder" : "file");
+            data.put("commitMessage", commit.getShortMessage());
+            data.put("commiter", commit.getAuthorIdent().getName());
+            data.put("commitDate", new Date(commit.getCommitTime()).toString());
             result.put(treeWalk.getNameString(), data);
         }
         return ok(result);

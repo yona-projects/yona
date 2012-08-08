@@ -4,24 +4,32 @@
     <div class="span3">
         <ul id="codeRoot" class="well nav nav-list">
             <li id="codeBrowserHeader">코드 탐색기</li>
-            <!-- 
-                <li>
-                    <ul class="nav nav-list">
-                        <li><a href="#"><i class="icon-file"></i>a11</a></li>
-                        <li><a href="#"><i class="icon-file"></i>a21</a></li>
-                    </ul>
-                </li> -->
         </ul>
     </div>
     <div class="span9"><!-- 교환가능하야 한다. -->
-        <div>
-            <span id="commiter">hobi</span> | <span id="commitDate">7 days ago</span> | <span id="commitMessage">fix
-                some bug</span> <span class="pull-right"><a
-                class="btn btn-mini">Raw</a></span>
+        <div id="folderView">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>FileName</th>
+                        <th>Commit Message</th>
+                        <th>Commit Date</th>
+                        <th>Author</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
-        <hr />
-        <div>
-            <textarea class="span9"></textarea>
+        <div id="codeView" class="hide">
+            <div>
+                <span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span>
+                <span class="pull-right"><a class="btn btn-mini">Raw</a></span>
+            </div>
+            <hr />
+            <div>
+                <textarea class="span9"></textarea>
+            </div>
         </div>
     </div>
 </div>
@@ -58,11 +66,11 @@
             }
             else if(type === "folder")
             {
-                if($(this).attr("opend") != "true")
+                if($(this).attr("opened") !== "true")
                 {
                     openFolder(target,$(this));
                 }
-                else if ($(this).attr("opend") == "true")
+                else if($(this).attr("opened") === "true")
                 {
                     closeFolder($(this));
     			}
@@ -77,6 +85,8 @@
                 	$("#commitMessage").text(data.commitMessage);
                 	$("#commitDate").text(data.commitDate);
                     $("textarea").val(data.data);
+                    $("#folderView").hide();
+                    $("#codeView").show();
                 }
             });
         }
@@ -87,19 +97,45 @@
     			success : function(data, textStatus, jqXHR){
     			    //폴더 구조를 펼치기
                     var $ul = $("<ul>").addClass("nav nav-list");
+                    $("tbody").children().remove();
                     for(var name in data)
                     {
                         $ul.append(makeLink(name, data[name].type, path));
+                        
+                        $("tbody").append($("<tr>")
+                        		.append($("<td>").text(name))
+                        		.append($("<td>").text(data[name].commitMessage))
+                        		.append($("<td>").text(data[name].commitDate))
+                        		.append($("<td>").text(data[name].commiter))
+                        		);
                     }
                     $parent.after($ul);
-                    $parent.attr("opend", "true");
+                    $parent.attr("opened", "true");
+                    $("#folderView").show();
+                    $("#codeView").hide();
                 }
             });
         }
         function closeFolder($parent)
         {
             $parent.next().remove();
-            $(this).attr("opend", "false");
+            $.ajax($parent.attr("href"), {
+                success : function(data, textStatus, jqXHR){
+                	$("tbody").children().remove();
+                    for(var name in data)
+                    {
+                        $("tbody").append($("<tr>")
+                                .append($("<td>").text(name))
+                                .append($("<td>").text(data[name].commitMessage))
+                                .append($("<td>").text(data[name].commitDate))
+                                .append($("<td>").text(data[name].commiter))
+                                );
+                    }
+                    $parent.attr("opened", "false");
+                    $("#folderView").show();
+                    $("#codeView").hide();
+                }
+            });
         }
         
     });
