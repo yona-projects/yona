@@ -13,7 +13,7 @@ public class CodeApp extends Controller {
     public static Result view(String projectName, String path) throws IOException {
         String vcs = Project.findByName(projectName).vcs;
         if (vcs.equals("GIT")) {
-            return GitApp.viewCode(projectName);
+            return GitApp.viewCode(projectName, path);
         } else {
             return status(501, vcs + " is not supported!");
         }
