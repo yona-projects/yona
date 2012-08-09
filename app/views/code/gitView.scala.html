@@ -24,7 +24,7 @@
         <div id="codeView" class="hide">
             <div>
                 <span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span>
-                <span class="pull-right"><a class="btn btn-mini">Raw</a></span>
+                <span class="pull-right"><a id="rawCode" class="btn btn-mini" target="_blank">Raw</a></span>
             </div>
             <hr />
             <div>
@@ -85,6 +85,7 @@
                 	$("#commitMessage").text(data.commitMessage);
                 	$("#commitDate").text(data.commitDate);
                     $("textarea").val(data.data);
+                    $("#rawCode").attr("href", path.replace(/\/!/, ""));
                     $("#folderView").hide();
                     $("#codeView").show();
                 }
@@ -92,8 +93,7 @@
         }
         function openFolder(path, $parent)
         {
-            // FIXME 여러단계 내려가기.
-                $.ajax(path, {
+            $.ajax(path, {
     			success : function(data, textStatus, jqXHR){
     			    //폴더 구조를 펼치기
                     var $ul = $("<ul>").addClass("nav nav-list");
@@ -136,8 +136,7 @@
                     $("#codeView").hide();
                 }
             });
-        }
-        
+        } 
     });
     </script>
 }
