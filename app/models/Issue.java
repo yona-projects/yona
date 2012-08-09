@@ -25,18 +25,22 @@ import jxl.write.WriteException;
 
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
+import models.enumeration.PermissionOperation;
+import models.enumeration.PermissionResource;
 import models.enumeration.StateType;
 import models.enumeration.Matching;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
-import play.Logger;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
+import utils.RoleCheck;
 
 import com.avaje.ebean.Page;
+
+import controllers.UserApp;
 
 /**
  * @author Taehyun Park
@@ -132,7 +136,7 @@ public class Issue extends Model {
     }
 
     /**
-     * View에서 스트링값으로 변환하도록 한다. 
+     * View에서 스트링값으로 변환하도록 한다.
      * 
      * @return
      */
@@ -415,7 +419,6 @@ public class Issue extends Model {
                 sheet.addCell(new Label(i, 0, labalArr[i], cf1));
                 sheet.setColumnView(i, 20);
             }
-            String assignee = null;
             for (int i = 1; i < resultList.size() + 1; i++) {
                 Issue issue = (Issue) resultList.get(i - 1);
                 int colcnt = 0;
@@ -480,4 +483,19 @@ public class Issue extends Model {
         issue.update();
     }
 
+    public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
+
+        boolean authorIs;
+        if (currentUserId == findById(objectId).reporterId
+                || RoleCheck.roleCheck(currentUserId, project.id,
+                        PermissionResource.PROJECT.resource(),
+                        PermissionOperation.WRITE.operation())) {
+            authorIs = true;
+        } else {
+            authorIs = false;
+        }
+
+        return authorIs;
+
+    }
 }

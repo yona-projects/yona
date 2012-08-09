@@ -20,7 +20,7 @@ public class PostTest extends ModelTest<Post> {
         // Then
         assertThat(actual).isNotNull();
         assertThat(actual.title).isEqualTo("게시판이 새로 생성되었습니다.");
-        assertThat(actual.authorId).isEqualTo(getTestUser().id);
+        assertThat(actual.authorId).isEqualTo(2l);
     }
 
     @Test

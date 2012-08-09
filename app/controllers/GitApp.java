@@ -103,13 +103,26 @@ public class GitApp extends Controller {
         // treeWalk.addTree(tree);
 
         // repository.open(treeWalk.getObjectId(0)).getBytes()
+        
 
         return ok();
     }
 
-    public static Result viewCode(String projectName) {
-        return ok(gitView.render("http://localhost:9000/" + projectName,
-                Project.findByName(projectName)));
+    public static Result viewCode(String projectName, String path) throws IOException {
+        if(path.equals("")) {
+            return ok(gitView.render("http://localhost:9000/" + projectName,
+                    Project.findByName(projectName)));
+        } else {
+            Repository repository = new RepositoryBuilder().setGitDir(
+                    new File(REPO_PREFIX + projectName + ".git")).build();
+            RevTree tree = new RevWalk(repository).parseTree(repository.resolve("HEAD"));
+            TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
+            if(treeWalk.isSubtree())
+                return badRequest();
+            else
+                return ok(repository.open(treeWalk.getObjectId(0)).getBytes());
+        }
+       
     }
 
     public static Result ajaxRequest(String projectName, String path) throws IOException, NoHeadException, GitAPIException {

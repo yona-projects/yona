@@ -11,7 +11,7 @@ public class CommentTest extends ModelTest<Comment> {
         // Given
         // When
         // Then
-        assertThat(Comment.findById(1l).authorId).isEqualTo(1l);
+        assertThat(Comment.findById(1l).authorId).isEqualTo(2l);
     }
 
     @Test

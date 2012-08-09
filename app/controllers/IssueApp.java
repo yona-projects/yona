@@ -108,9 +108,12 @@ public class IssueApp extends Controller {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = Project.findByName(projectName);
-        
-        
-        if (UserApp.currentUser().id == targetIssue.reporterId || RoleCheck.roleCheck(UserApp.currentUser().id, project.id, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())) {
+
+        if (UserApp.currentUser().id == targetIssue.reporterId
+                || RoleCheck.roleCheck(UserApp.currentUser().id, project.id,
+                        PermissionResource.PROJECT.resource(),
+                        PermissionOperation.WRITE.operation())) {
+
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
