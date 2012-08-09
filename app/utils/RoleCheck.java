@@ -27,4 +27,14 @@ public class RoleCheck {
         return ProjectUser.permissionCheck(Long.parseLong(userId), projectId,
                 resource, operation);
     }
+    
+    public static boolean roleCheck(Long userId, Long projectId,
+            String resource, String operation) {
+        if (Project.findById(projectId).share_option
+                && operation.equals(PermissionOperation.READ.operation()))
+            return true;
+
+        return ProjectUser.permissionCheck(userId, projectId,
+                resource, operation);
+    }
 }

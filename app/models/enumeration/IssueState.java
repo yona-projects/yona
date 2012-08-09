@@ -1,7 +1,7 @@
 package models.enumeration;
 
 public enum IssueState {
-    ENROLLED("enrolled"), ASSIGNED("assigned"), SOLVED("solved"), FINISHED("finished");
+    ENROLLED("issue.state.enrolled"), ASSIGNED("issue.state.assigned"), SOLVED("issue.state.solved"), FINISHED("issue.state.finished");
     private String state;
 
     IssueState(String state) {

@@ -94,13 +94,13 @@
 					@for(issue <- currentPage.getList()){
 						<tr>
 							<td>@issue.id</td>
-							<td>@issue.state()</td>
+							<td>@Messages(issue.state())</td>
 							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assigneeId == null){
-								<em>@Messages("issue.no.assignee")</em>						
+								<em>@Messages("issue.noAssignee")</em>						
 							} else {
-								<em>@issue.reporterName</em>
+								<em>@issue.assigneeName</em>
 							}
 							</td>
 							<td>@issue.date.format("dd MMM yyyy")</td>
@@ -112,7 +112,7 @@
 
 		<div class="row">  
     <div class="span6 offset4">
-        @pagination(currentPage, 5, "pagination");
+        @pagination(currentPage, 5, "pagination")
     </div>
     <div class="span2">
         <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>

@@ -45,9 +45,6 @@ public class IssueComment extends Model {
 
     public static Long create(IssueComment issueComment) {
         issueComment.save();
-        Issue issue = Issue.findById(issueComment.issue.id);
-        issue.numOfComments++;
-        //Issue.updateNumOfComments(issueComment.issue.id);
         return issueComment.id;
     }
 
@@ -56,7 +53,6 @@ public class IssueComment extends Model {
     }
 
     public static void delete(Long id) {
-        Issue issue = IssueComment.findById(id).issue;
         find.byId(id).delete();
     }
 }

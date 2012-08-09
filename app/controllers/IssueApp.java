@@ -17,8 +17,11 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
+import models.enumeration.PermissionOperation;
+import models.enumeration.PermissionResource;
 import models.enumeration.StateType;
 import models.support.SearchCondition;
+import utils.RoleCheck;
 import play.Logger;
 import play.data.Form;
 import play.mvc.Controller;
@@ -105,7 +108,9 @@ public class IssueApp extends Controller {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = Project.findByName(projectName);
-        if (UserApp.currentUser().id == targetIssue.reporterId) {
+        
+        
+        if (UserApp.currentUser().id == targetIssue.reporterId || RoleCheck.roleCheck(UserApp.currentUser().id, project.id, PermissionResource.PROJECT.resource(), PermissionOperation.SETTING.operation())) {
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
