@@ -28,11 +28,17 @@
             </div>
             <hr />
             <div>
-                <textarea class="span9"></textarea>
+                <pre><code style="overflow:hidden"></code></pre>
             </div>
         </div>
     </div>
 </div>
+<script type="text/javascript" src="/assets/javascripts/hljs.js"></script>
+<script type="text/javascript" src="/assets/javascripts/hljs.jquery.js"></script>
+<script type="text/javascript" src="/assets/javascripts/languages/allinone.js"></script>
+<style>
+@@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
+</style>
 <script>
     $(document).ready(function(){
     	
@@ -81,13 +87,14 @@
         {
             $.ajax(path, {
                 success : function(data, textStatus, jqXHR){
-                	$("#commiter").text(data.commiter);
-                	$("#commitMessage").text(data.commitMessage);
-                	$("#commitDate").text(data.commitDate);
-                    $("textarea").val(data.data);
+                    $("#commiter").text(data.commiter);
+                    $("#commitMessage").text(data.commitMessage);
+                    $("#commitDate").text(data.commitDate);
+                    $("code").text(data.data);
                     $("#rawCode").attr("href", path.replace(/\/!/, ""));
                     $("#folderView").hide();
                     $("#codeView").show();
+                    $("code").highlight();
                 }
             });
         }
