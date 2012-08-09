@@ -26,13 +26,13 @@ public class IssueCommentTest extends ModelTest<IssueComment> {
         // Then
         assertThat(IssueComment.findById(id)).isNotNull();
         assertThat(Issue.findById(1l).comments.size()).isEqualTo(1);
-        assertThat(Issue.findById(1l).numOfComments).isEqualTo(1);
 
     }
 
     @Test
     public void delete() {
         // Given
+        assertThat(IssueComment.findById(1l)).isNotNull();
         // When
         IssueComment.delete(1l);
         flush();
