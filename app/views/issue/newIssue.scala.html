@@ -37,6 +37,7 @@
 			 </div>
 		<fieldset>
 		</br></br>
+        @if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
 			<div class="well">
 	    		<h4>@Messages("issue.new.detailInfo")</h4>
 	    		<div class="well form-inline">
@@ -72,6 +73,7 @@
 				    		'_showConstraints -> false)
 				</div>		
 	    	</div>
+	    }
 	    </fieldset>
 	    <fieldset>
     		<div class="well">
@@ -109,6 +111,7 @@
 				</div>
     		</div>
     	</fieldset>
+    	 @if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
     	<fieldset>
     		<div class="well">
     			<h4> @Messages("issue.new.result")</h4>
@@ -141,6 +144,7 @@
 				</div>		
     		</div>
     	</fieldset>
+    	}
 	<div class="row pull-right">
 			<div class="actions">
 				<input type="submit" class="btn btn-primary" value="@Messages("button.save")"> 
