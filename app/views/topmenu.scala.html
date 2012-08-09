@@ -27,7 +27,7 @@
          <a href="#">위키</a>
        </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.PROJECT.resource(), models.enumeration.PermissionOperation.SETTING.operation()){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.PROJECT.resource(), models.enumeration.PermissionOperation.WRITE.operation()){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
           <a href="@routes.ProjectApp.setting(project.name)">@Messages("menu.admin")</a>
         </li>

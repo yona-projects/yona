@@ -2,6 +2,9 @@ package models;
 
 import java.util.List;
 
+import models.enumeration.PermissionOperation;
+import models.enumeration.PermissionResource;
+
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -14,7 +17,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     public void findByIds() throws Exception {
         // Given
         // When
-        Role role = ProjectUser.findByIds(1l, 1l).role;
+        Role role = ProjectUser.findByIds(2l, 1l).role;
         // Then
         assertThat(role.id).isEqualTo(1l);
     }
@@ -33,12 +36,12 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     public void assignRole() throws Exception {
         // Given
         // When
-        ProjectUser.assignRole(1l, 1l, 2l);
-        ProjectUser.assignRole(1l, 3l, 2l);
+        ProjectUser.assignRole(2l, 1l, 2l);
+        ProjectUser.assignRole(2l, 3l, 2l);
         flush();
         // Then
-        assertThat(ProjectUser.findByIds(1l, 1l).role.id).isEqualTo(2l);
-        assertThat(ProjectUser.findByIds(1l, 3l).role.id).isEqualTo(2l);
+        assertThat(ProjectUser.findByIds(2l, 1l).role.id).isEqualTo(2l);
+        assertThat(ProjectUser.findByIds(2l, 3l).role.id).isEqualTo(2l);
     }
 
     @Test
@@ -56,7 +59,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // When
         List<User> users = ProjectUser.findUsersByProject(2l);
         // Then
-        assertThat(users.size()).isEqualTo(2);
+        assertThat(users.size()).isEqualTo(3);
     }
     
     @Test
@@ -72,7 +75,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     @Test
     public void isManager() throws Exception {
         // Given
-        ProjectUser.assignRole(1l, 3l, 1l);
+        ProjectUser.assignRole(2l, 3l, 1l);
         flush();
         // When
         // Then
@@ -85,15 +88,15 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Given
         // When
         // Then
-        assertThat(ProjectUser.isMember(1l, 2l)).isEqualTo(true);
-        assertThat(ProjectUser.isMember(1l, 3l)).isEqualTo(false);
+        assertThat(ProjectUser.isMember(2l, 2l)).isEqualTo(true);
+        assertThat(ProjectUser.isMember(2l, 3l)).isEqualTo(false);
     }
     
     @Test
     public void findPermissionsByIds() throws Exception {
         // Given
         // When
-        List<Permission> permission = ProjectUser.findPermissionsByIds(1l, 1l);
+        List<Permission> permission = ProjectUser.findPermissionsByIds(2l, 1l);
         // Then
         assertThat(permission.size()).isEqualTo(11);
     }
@@ -111,8 +114,8 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Given
         // When
         // Then
-        assertThat(ProjectUser.permissionCheck(1l, 1l, "project", "setting")).isEqualTo(true);
-        assertThat(ProjectUser.permissionCheck(1l, 2l, "project", "setting")).isEqualTo(false);
+        assertThat(ProjectUser.permissionCheck(2l, 1l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(true);
+        assertThat(ProjectUser.permissionCheck(2l, 2l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(false);
     }
     
     @Test
@@ -122,7 +125,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         List<ProjectUser> projectUsers = ProjectUser.findMemberListByProject(1l);
         // Then
         assertThat(projectUsers.size()).isEqualTo(2);
-        assertThat(projectUsers.get(0).user.id).isEqualTo(1l);
+        assertThat(projectUsers.get(0).user.id).isEqualTo(2l);
         assertThat(projectUsers.get(0).user.loginId).isEqualTo("hobi");
         assertThat(projectUsers.get(0).role.name).isEqualTo("manager");
     }

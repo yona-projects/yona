@@ -1,7 +1,7 @@
 package models.enumeration;
 
 public enum PermissionOperation {
-    READ("read"), WRITE("write"), SETTING("setting");
+    READ("read"), WRITE("write");
     private String operation;
     
     PermissionOperation(String operation) {

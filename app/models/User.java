@@ -29,6 +29,7 @@ public class User extends Model {
             User.class);
     
     public static final int USER_COUNT_PER_PAGE = 30;
+    public static final Long SITE_MANAGER_ID = 1l;
     
     @Id
     public Long id;
@@ -96,9 +97,16 @@ public class User extends Model {
         return options;
     }
     
+    /**
+     * Site manager를 제외한 사이트에 가입된 유저들의 리스트를 Page 형태로 반환합니다.
+     * 
+     * @param pageNum
+     * @param loginId
+     * @return
+     */
     public static Page<User> findUsers(int pageNum, String loginId) {
         OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
-        SearchParams searchParams = new SearchParams();
+        SearchParams searchParams = new SearchParams().add("id", 1l, Matching.NOT_EQUALS);
         if(loginId != null) searchParams.add("loginId", loginId, Matching.CONTAINS);
         return FinderTemplate.getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
     }
