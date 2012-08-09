@@ -1,10 +1,7 @@
 package controllers;
 
-import java.util.List;
-
 import models.Project;
 import models.User;
-import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
@@ -26,7 +23,7 @@ public class SiteApp extends Controller {
     }
     
     public static Result deleteUser(Long userId) {
-        if(User.isOnlyManager(userId).size() == 0)
+        if(Project.isOnlyManager(userId).size() == 0)
             User.findById(userId).delete();
         else
             flash(Constants.WARNING, "site.userList.deleteAlert");

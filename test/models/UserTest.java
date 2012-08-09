@@ -45,6 +45,7 @@ public class UserTest extends ModelTest<User> {
 		// Then
 		assertThat(user.id).isEqualTo(2l);
 	}
+	
 	@Test
     public void findNameById() throws Exception {
         //Given
@@ -94,13 +95,11 @@ public class UserTest extends ModelTest<User> {
 	}
 	
 	@Test
-	public void isOnlyManager() throws Exception {
-	    // Given
-	    // When
-	    List<Project> projects_hobi = User.isOnlyManager(2l);
-	    List<Project> projects_eungjun = User.isOnlyManager(5l);
-	    // Then
-	    assertThat(projects_hobi.size()).isEqualTo(1);
-	    assertThat(projects_eungjun.size()).isEqualTo(0);
-	}
+    public void findUsersByProject() throws Exception {
+        // Given
+        // When
+        List<User> users = User.findUsersByProject(2l);
+        // Then
+        assertThat(users.size()).isEqualTo(3);
+    }
 }

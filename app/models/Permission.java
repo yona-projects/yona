@@ -9,6 +9,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import com.avaje.ebean.Ebean;
+
 import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
 
@@ -19,39 +21,45 @@ import play.db.ebean.Model.Finder;
 @Entity
 public class Permission extends Model{
     private static final long serialVersionUID = 1L;
-    
-    @Id
-    public Long id;
-    public String resource;
-    public String operation;
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
-    public Set<RolePermission> rolePermissions;
-    
     private static Finder<Long, Permission> find = new Finder<Long, Permission>(
             Long.class, Permission.class);
     
-    public static Permission findById(Long id) {
-        return find.where().eq("id", id).findUnique();
-    }
+    @Id
+    public Long id;
+    
+    public String resource;
+    public String operation;
+    
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
+    public Set<RolePermission> rolePermissions;
     
     /**
-     * 해당 리소스와 오퍼레이션을 갖는 퍼미션을 반환합니다.
+     * 해당 유저가 해당 프로젝트에서 해당 리소스와 오퍼레이션을 위한 퍼미션을 가지고 있는지 확인합니다.
      * 
+     * @param userId
+     * @param projectId
      * @param resource
      * @param operation
      * @return
      */
-    public static Long findIdByResOp(String resource, String operation) {
-        return find.where().eq("resource", resource).eq("operation", operation).findUnique().id;
+    public static boolean permissionCheck(Long userId, Long projectId,
+            String resource, String operation) {
+        int findRowCount = find.where()
+                .eq("rolePermissions.role.projectUsers.user.id", userId)
+                .eq("rolePermissions.role.projectUsers.project.id", projectId)
+                .eq("resource", resource).eq("operation", operation)
+                .findRowCount();
+        return (findRowCount != 0) ? true : false;
     }
     
     /**
-     * 해당 리소스를 갖는 퍼미션들의 리스트를 반환합니다.
+     * 해당 롤이 가지고 있는 퍼미션들의 리스트를 반환합니다.
      * 
-     * @param resource
+     * @param roleId
      * @return
      */
-    public static List<Permission> findByResource(String resource) {
-        return find.where().eq("resource", resource).findList();
+    public static List<Permission> findPermissionsByRole(Long roleId) {
+        return find.where()
+                .eq("rolePermissions.role.id", roleId).findList();
     }
 }

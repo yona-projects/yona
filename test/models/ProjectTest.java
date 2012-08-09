@@ -30,6 +30,7 @@ public class ProjectTest extends ModelTest<Project> {
         
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
+        assertThat(actualProject.url).isEqualTo("http://localhost:9000/prj_test");
     }
     
     @Test
@@ -89,5 +90,25 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(project.vcs).isEqualTo("GIT");
         assertThat(project.url).isEqualTo("http://localhost:9000/nForge4java");
       
+    }
+    
+    @Test
+    public void isOnlyManager() throws Exception {
+        // Given
+        // When
+        List<Project> projects_hobi = Project.isOnlyManager(2l);
+        List<Project> projects_eungjun = Project.isOnlyManager(5l);
+        // Then
+        assertThat(projects_hobi.size()).isEqualTo(1);
+        assertThat(projects_eungjun.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void findProjectsByOwner() throws Exception {
+        // Given
+        // When
+        List<Project> projects = Project.findProjectsByOwner(2l);
+        // Then
+        assertThat(projects.size()).isEqualTo(2);
     }
 }

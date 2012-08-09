@@ -6,7 +6,10 @@ import utils.Constants;
 
 import javax.persistence.*;
 
+import com.avaje.ebean.Ebean;
+
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -47,10 +50,8 @@ public class Project extends Model {
     public Set<Milestone> milestones;
 
     public static Long create(Project newProject) {
-//        newProject.save();
         newProject.url = Constants.DEFAULT_SITE_URL + "/"
-                + newProject.name; // Setting a default URL.
-//        newProject.update();
+                + newProject.name;
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, Role.SITEMANAGER);
         return newProject.id;
@@ -72,13 +73,41 @@ public class Project extends Model {
     public static Project findByName(String name) {
         return find.where().eq("name", name).findUnique();
     }
-
-    public void add(Issue issue) {
-        if (this.issues == null) {
-            this.issues = new HashSet<Issue>();
+    
+    /**
+     * 해당 유저가 속해있는 프로젝트들 중에서 해당 유저가 유일한 Manager인 프로젝트가 있는지 검사하고, 
+     * 있다면 그 프로젝트들의 리스트를 반환합니다.
+     * 
+     * @param userId
+     * @return
+     */
+    public static List<Project> isOnlyManager(Long userId) {
+        List<Project> projects = find
+                                    .select("id")
+                                    .select("name")
+                                    .where()
+                                        .eq("projectUser.user.id", userId)
+                                        .eq("projectUser.role.id", Role.MANAGER)
+                                    .findList();
+        
+        Iterator<Project> iterator = projects.iterator();
+        while(iterator.hasNext()){
+            Project project = iterator.next();
+            if(ProjectUser.isManager(project.id))
+                projects.remove(project);
         }
-
-        this.issues.add(issue);
-        //issue.project = this;
+        
+        return projects;
+    }
+    
+    /**
+     * 해당 유저가 속해있는 프로젝트들의 리스트를 제공합니다.
+     * 
+     * @param ownerId
+     * @return
+     */
+    public static List<Project> findProjectsByOwner(Long ownerId) {
+        return find.where()
+                .eq("projectUser.user.id", ownerId).findList();
     }
 }

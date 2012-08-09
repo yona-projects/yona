@@ -36,7 +36,7 @@
             <div class="well">
                 <h3>@Messages("project.members")</h3>
                 <ul>
-                @for(member <- ProjectUser.findUsersByProject(project.id)){
+                @for(member <- User.findUsersByProject(project.id)){
                     <li>
                     @member.loginId </li>
                 }</ul>

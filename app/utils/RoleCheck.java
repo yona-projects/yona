@@ -1,7 +1,7 @@
 package utils;
 
+import models.Permission;
 import models.Project;
-import models.ProjectUser;
 import models.enumeration.PermissionOperation;
 
 /**
@@ -24,7 +24,7 @@ public class RoleCheck {
                 && operation.equals(PermissionOperation.READ.operation()))
             return true;
 
-        return ProjectUser.permissionCheck(Long.parseLong(userId), projectId,
+        return Permission.permissionCheck(Long.parseLong(userId), projectId,
                 resource, operation);
     }
     
@@ -34,7 +34,7 @@ public class RoleCheck {
                 && operation.equals(PermissionOperation.READ.operation()))
             return true;
 
-        return ProjectUser.permissionCheck(userId, projectId,
+        return Permission.permissionCheck(userId, projectId,
                 resource, operation);
     }
 }

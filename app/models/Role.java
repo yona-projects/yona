@@ -16,21 +16,25 @@ import javax.persistence.OneToMany;
 @Entity
 public class Role extends Model {
     private static final long serialVersionUID = 1L;
+    private static Finder<Long, Role> find = new Finder<Long, Role>(Long.class,
+            Role.class);
+    
     public static final Long MANAGER = 1l;
     public static final Long MEMBER = 2l;
     public static final Long SITEMANAGER = 3l;
     
     @Id
     public Long id;
+    
     public String name;
+    
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     public Set<RolePermission> rolePermissions;
+    
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     public Set<ProjectUser> projectUsers;
 
-    private static Finder<Long, Role> find = new Finder<Long, Role>(Long.class,
-            Role.class);
-
+    
     public static Role findById(Long id) {
         return find.byId(id);
     }
@@ -49,14 +53,17 @@ public class Role extends Model {
                 .findList();
         return projectRoles;
     }
-
+    
     /**
-     * 해당 롤에 관련된 퍼미션들의 리스트를 반환합니다.
+     * 해당 유저가 해당 프로젝트에서 가지고 있는 롤을 제공합니다.
      * 
-     * @param id
+     * @param userId
+     * @param projectId
      * @return
      */
-    public static List<Permission> findPermissionsById(Long id) {
-        return RolePermission.findPermissionsByRole(id);
+    public static Role findRoleByIds(Long userId, Long projectId) {
+        return find.where()
+                .eq("projectUsers.user.id", userId)
+                .eq("projectUsers.project.id", projectId).findUnique();
     }
 }

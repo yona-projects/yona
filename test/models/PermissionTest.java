@@ -1,37 +1,26 @@
 package models;
 
-import java.util.List;
+import models.enumeration.PermissionOperation;
+import models.enumeration.PermissionResource;
 
 import org.junit.Test;
-import static org.fest.assertions.Assertions.assertThat;import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Assertions.assertThat;
 
-public class PermissionTest extends ModelTest<Permission> {
+public class PermissionTest extends ModelTest<Permission> {    
     @Test
-    public void findById() throws Exception {
+    public void permissionCheck() throws Exception {
         // Given
         // When
-        Permission permission = Permission.findById(1l);
         // Then
-        assertThat(permission.resource).isEqualTo("board");
-        assertThat(permission.operation).isEqualTo("read");
+        assertThat(Permission.permissionCheck(2l, 1l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(true);
+        assertThat(Permission.permissionCheck(2l, 2l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(false);
     }
     
     @Test
-    public void findIdByResOp() throws Exception {
+    public void findPermissionsByRole() throws Exception {
         // Given
         // When
-        Long id = Permission.findIdByResOp("board", "write");
         // Then
-        assertThat(id).isEqualTo(2l);
-    }
-    
-    @Test
-    public void findByResource() throws Exception {
-        // Given
-        // When
-        List<Permission> permissions = Permission.findByResource("wiki");
-        // Then
-        assertThat(permissions.size()).isEqualTo(2);
-        assertThat(permissions.get(0).operation).isEqualTo("read");
+        assertThat(Permission.findPermissionsByRole(1l).size()).isEqualTo(11);
     }
 }

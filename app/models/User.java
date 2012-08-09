@@ -14,7 +14,6 @@ import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
 
-import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
 
 import java.util.LinkedHashMap;
@@ -75,10 +74,16 @@ public class User extends Model {
     }
 
     public static boolean authenticate(User user) {
-        User check = find.where().eq("loginId", user.loginId).findUnique();
-        if(check == null) return false;
-        if(check.password.equals(user.password)) return true;
-        else return false;
+        User check = findByLoginId(user.loginId);
+        if(check == null){
+            return false;
+        }
+        
+        if(check.password.equals(user.password)){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public static String findNameById(long id) {
@@ -107,29 +112,24 @@ public class User extends Model {
     public static Page<User> findUsers(int pageNum, String loginId) {
         OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
         SearchParams searchParams = new SearchParams().add("id", 1l, Matching.NOT_EQUALS);
-        if(loginId != null) searchParams.add("loginId", loginId, Matching.CONTAINS);
+        
+        if(loginId != null){
+            searchParams.add("loginId", loginId, Matching.CONTAINS);
+        }
+        
         return FinderTemplate.getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
     }
     
     /**
-     * 해당 유저가 속해있는 프로젝트들 중에서 해당 유저가 유일한 Manager인 프로젝트가 있는지 검사하고, 
-     * 있다면 그 프로젝트들의 리스트를 반환합니다.
+     * 해당 프로젝트에 속하는 유저들의 리스트를 제공합니다.
+     * (Site manager는 hidden role로서 반환되지 않습니다.)
      * 
-     * @param userId
+     * @param projectId
      * @return
      */
-    public static List<Project> isOnlyManager(Long userId) {
-        List<Project> projects = Ebean.find(Project.class)
-                                        .select("id")
-                                        .select("name")
-                                        .where()
-                                            .eq("projectUser.user.id", userId)
-                                            .eq("projectUser.role.id", Role.MANAGER)
-                                        .findList();
-        for(Project project : projects) {
-            if(ProjectUser.isManager(project.id))
-                projects.remove(project);
-        }
-        return projects;
+    public static List<User> findUsersByProject(Long projectId) {
+        return find.where()
+                .eq("projectUser.project.id", projectId)
+                .ne("projectUser.role.id", Role.SITEMANAGER).findList();
     }
 }

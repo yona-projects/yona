@@ -43,35 +43,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         assertThat(ProjectUser.findByIds(2l, 1l).role.id).isEqualTo(2l);
         assertThat(ProjectUser.findByIds(2l, 3l).role.id).isEqualTo(2l);
     }
-
-    @Test
-    public void findProjectsByOwner() throws Exception {
-        // Given
-        // When
-        List<Project> projects = ProjectUser.findProjectsByOwner(2l);
-        // Then
-        assertThat(projects.size()).isEqualTo(2);
-    }
     
-    @Test
-    public void findUsersByProject() throws Exception {
-        // Given
-        // When
-        List<User> users = ProjectUser.findUsersByProject(2l);
-        // Then
-        assertThat(users.size()).isEqualTo(3);
-    }
-    
-    @Test
-    public void findRoleByIds() throws Exception {
-        // Given
-        // When
-        Role role = ProjectUser.findRoleByIds(1l, 1l);
-
-        // Then
-        assertThat(role).isNotNull();
-    }
-
     @Test
     public void isManager() throws Exception {
         // Given
@@ -93,29 +65,11 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     }
     
     @Test
-    public void findPermissionsByIds() throws Exception {
-        // Given
-        // When
-        List<Permission> permission = ProjectUser.findPermissionsByIds(2l, 1l);
-        // Then
-        assertThat(permission.size()).isEqualTo(11);
-    }
-    
-    @Test
     public void options() throws Exception {
         // Given
         // When
         // Then
         assertThat(ProjectUser.options(1l).containsValue("k16wire")).isEqualTo(true);
-    }
-    
-    @Test
-    public void permissionCheck() throws Exception {
-        // Given
-        // When
-        // Then
-        assertThat(ProjectUser.permissionCheck(2l, 1l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(true);
-        assertThat(ProjectUser.permissionCheck(2l, 2l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(false);
     }
     
     @Test

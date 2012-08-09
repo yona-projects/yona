@@ -157,7 +157,7 @@ public class ProjectApp extends Controller {
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        if(ProjectUser.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
+        if(Role.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
             return ProjectUser.isManager(projectId);
         else
             return true;

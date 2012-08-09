@@ -7,9 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
-import com.avaje.ebean.Ebean;
 import play.db.ebean.Model;
-import utils.Constants;
 
 /**
  * @author "Hwi Ahn"
@@ -18,13 +16,18 @@ import utils.Constants;
 @Entity
 public class ProjectUser extends Model {
     private static final long serialVersionUID = 1L;
-
+    private static Finder<Long, ProjectUser> find = new Finder<Long, ProjectUser>(
+            Long.class, ProjectUser.class);
+    
     @Id
     public Long id;
+    
     @ManyToOne
     public User user;
+    
     @ManyToOne
     public Project project;
+    
     @ManyToOne
     public Role role;
 
@@ -33,10 +36,7 @@ public class ProjectUser extends Model {
         this.project = Project.findById(projectId);
         this.role = Role.findById(roleId);
     }
-
-    private static Finder<Long, ProjectUser> find = new Finder<Long, ProjectUser>(
-            Long.class, ProjectUser.class);
-
+    
     public static void create(Long userId, Long projectId, Long roleId) {
         ProjectUser projectUser = new ProjectUser(userId, projectId, roleId);
         projectUser.save();
@@ -79,56 +79,6 @@ public class ProjectUser extends Model {
      */
     public static ProjectUser findByIds(Long userId, Long projectId) {
         return find.where().eq("user.id", userId).eq("project.id", projectId).ne("role.id", Role.SITEMANAGER).findUnique();
-    }
-
-    /**
-     * 해당 프로젝트에 속하는 유저들의 리스트를 제공합니다.
-     * (Site manager는 hidden role로서 반환되지 않습니다.)
-     * 
-     * @param projectId
-     * @return
-     */
-    public static List<User> findUsersByProject(Long projectId) {
-        return Ebean.find(User.class).where()
-                .eq("projectUser.project.id", projectId)
-                .ne("projectUser.role.id", Role.SITEMANAGER).findList();
-    }
-
-    /**
-     * 해당 유저가 속해있는 프로젝트들의 리스트를 제공합니다.
-     * 
-     * @param ownerId
-     * @return
-     */
-    public static List<Project> findProjectsByOwner(Long ownerId) {
-        return Ebean.find(Project.class).where()
-                .eq("projectUser.user.id", ownerId).findList();
-    }
-
-    /**
-     * 해당 유저가 해당 프로젝트에서 가지고 있는 롤을 제공합니다.
-     * 
-     * @param userId
-     * @param projectId
-     * @return
-     */
-    public static Role findRoleByIds(Long userId, Long projectId) {
-        return Ebean.find(Role.class).where()
-                .eq("projectUsers.user.id", userId)
-                .eq("projectUsers.project.id", projectId).findUnique();
-    }
-
-    /**
-     * 해당 유저가 해당 프로젝트에서 가지고 있는 퍼미션들의 리스트를 제공합니다.
-     * 
-     * @param userId
-     * @param projectId
-     * @return
-     */
-    public static List<Permission> findPermissionsByIds(Long userId,
-            Long projectId) {
-        return Role.findPermissionsById(ProjectUser.findRoleByIds(userId,
-                projectId).id);
     }
 
     /**
@@ -176,28 +126,9 @@ public class ProjectUser extends Model {
      */
     public static Map<String, String> options(Long projectId) {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
-        for (User user : findUsersByProject(projectId)) {
+        for (User user : User.findUsersByProject(projectId)) {
             options.put(user.id.toString(), user.loginId);
         }
         return options;
-    }
-
-    /**
-     * 해당 유저가 해당 프로젝트에서 해당 리소스와 오퍼레이션을 위한 퍼미션을 가지고 있는지 확인합니다.
-     * 
-     * @param userId
-     * @param projectId
-     * @param resource
-     * @param operation
-     * @return
-     */
-    public static boolean permissionCheck(Long userId, Long projectId,
-            String resource, String operation) {
-        int findRowCount = Ebean.find(Permission.class).where()
-                .eq("rolePermissions.role.projectUsers.user.id", userId)
-                .eq("rolePermissions.role.projectUsers.project.id", projectId)
-                .eq("resource", resource).eq("operation", operation)
-                .findRowCount();
-        return (findRowCount != 0) ? true : false;
     }
 }
