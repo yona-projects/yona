@@ -3,6 +3,7 @@ package models;
 import static models.enumeration.IssueState.ASSIGNED;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +21,7 @@ import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
@@ -87,7 +89,6 @@ public class Issue extends Model {
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
     public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
-    public static final int NUMBER_OF_NO_COMMENT = 0;
     public static final String DEFAULT_SORTER = "date";
     public static final String TO_BE_ASSIGNED = "TBA";
 
@@ -126,31 +127,28 @@ public class Issue extends Model {
 
     public int numOfComments;
 
-    // = comments.size();
-
     public Issue() {
         this.date = JodaDateUtil.today();
-        // this.numOfComments = comments.size();
     }
 
     /**
-     * View에서 스트링값으로 변환하도록 한다. !!! 코드 리팩토링 대상
+     * View에서 스트링값으로 변환하도록 한다. 
      * 
      * @return
      */
     public String state() {
         if (this.state == ASSIGNED) {
-            return "진행중";
+            return IssueState.ASSIGNED.state();
         } else if (this.state == IssueState.SOLVED) {
-            return "해결";
+            return IssueState.SOLVED.state();
         } else if (this.state == IssueState.FINISHED) {
-            return "닫힘";
+            return IssueState.FINISHED.state();
         } else
-            return "등록";
+            return IssueState.ENROLLED.state();
     }
 
     /**
-     * 해당 이슈에 따라서 해결인지 미해결인지 값을 결정해준다.
+     * 해당 이슈의 상태(state) 따라서 탭 기능에서 구분 짖는(stateType) 것이 해결인지 미해결인지 값을 결정해준다.
      * 
      * @param state
      */
@@ -195,7 +193,7 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = find.byId(id);
-        if (!issue.milestoneId.equals(0l) || !issue.milestoneId.equals(null)) {
+        if (!issue.milestoneId.equals(0l) || issue.milestoneId != null) {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
         }
@@ -275,13 +273,20 @@ public class Issue extends Model {
                 Direction.DESC, filter, null, false, true);
     }
 
+    /**
+     * 마일스톤 Id에 의거해서 해당 마일스톤에 속한 이슈들을 찾아준다.
+     * 
+     * @param projectName
+     * @param milestoneId
+     * @return
+     */
     public static Page<Issue> findIssuesByMilestoneId(String projectName, Long milestoneId) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, "", milestoneId, false, false);
     }
 
     /**
-     * Return a page of Issues
+     * 이슈들을 아래의 parameter들의 조건에 의거하여 Page형태로 반환한다.
      * 
      * @param projectName
      *            project ID to find issues
@@ -315,7 +320,7 @@ public class Issue extends Model {
             searchParams.add("milestoneId", milestoneId, Matching.EQUALS);
         }
         if (commentedCheck) {
-            searchParams.add("numOfComments", 1, Matching.GE);
+            searchParams.add("numOfComments", NUMBER_OF_ONE_MORE_COMMENTS, Matching.GE);
         }
         if (fileAttachedCheck) {
             searchParams.add("filePath", "", Matching.NOT_EQUALS);
@@ -336,8 +341,8 @@ public class Issue extends Model {
                 pageNumber);
     }
 
-    public static Long findAssigneeIdByIssueId(Long projectId, Long issueId) {
-        return find.where().eq("id", issueId).findUnique().assigneeId;
+    public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
+        return find.byId(issueId).assigneeId;
     }
 
     /**
@@ -382,48 +387,58 @@ public class Issue extends Model {
     public static String excelSave(List<Issue> resultList, String pageName) throws Exception {
         String excelFile = pageName + "_" + JodaDateUtil.today().getTime() + ".xls";
         String fullPath = "public/uploadFiles/" + excelFile;
+        WritableWorkbook workbook = null;
+        WritableSheet sheet = null;
 
-        WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
-                UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);
-        WritableCellFormat cf1 = new WritableCellFormat(wf1);
-        cf1.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
-        cf1.setAlignment(Alignment.CENTRE);
+        try {
+            WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
+                    UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);
+            WritableCellFormat cf1 = new WritableCellFormat(wf1);
 
-        WritableFont wf2 = new WritableFont(WritableFont.TAHOMA, 11, WritableFont.NO_BOLD, false,
-                UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
-        WritableCellFormat cf2 = new WritableCellFormat(wf2);
-        cf2.setShrinkToFit(true);
-        cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
-        cf2.setAlignment(Alignment.CENTRE);
+            cf1.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
 
-        WritableWorkbook workbook = Workbook.createWorkbook(new File(fullPath));
-        WritableSheet sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()),
-                0);
+            cf1.setAlignment(Alignment.CENTRE);
 
-        String[] labalArr = { "ID", "STATE", "TITLE", "ASSIGNEE", "DATE" };
+            WritableFont wf2 = new WritableFont(WritableFont.TAHOMA, 11, WritableFont.NO_BOLD,
+                    false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
+            WritableCellFormat cf2 = new WritableCellFormat(wf2);
+            cf2.setShrinkToFit(true);
+            cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
+            cf2.setAlignment(Alignment.CENTRE);
 
-        for (int i = 0; i < labalArr.length; i++) {
-            sheet.addCell(new Label(i, 0, labalArr[i], cf1));
-            sheet.setColumnView(i, 20);
-        }
-        int colcnt = 0;
-        String assignee = null;
-        for (int i = 1; i < resultList.size() + 1; i++) {
-            Issue issue = (Issue) resultList.get(i - 1);
-            colcnt = 0;
-            sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
-            if (issue.assigneeId == null) {
-                assignee = TO_BE_ASSIGNED;
-            } else {
-                assignee = User.findNameById(issue.assigneeId);
+            workbook = Workbook.createWorkbook(new File(fullPath));
+            sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
+
+            String[] labalArr = { "ID", "STATE", "TITLE", "ASSIGNEE", "DATE" };
+
+            for (int i = 0; i < labalArr.length; i++) {
+                sheet.addCell(new Label(i, 0, labalArr[i], cf1));
+                sheet.setColumnView(i, 20);
             }
-            sheet.addCell(new Label(colcnt++, i, assignee, cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
+            String assignee = null;
+            for (int i = 1; i < resultList.size() + 1; i++) {
+                Issue issue = (Issue) resultList.get(i - 1);
+                int colcnt = 0;
+                sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
+                sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
+                sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
+                sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assigneeId), cf2));
+                sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
+            }
+            workbook.write();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            try {
+                if (workbook != null)
+                    workbook.close();
+            } catch (WriteException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        workbook.write();
-        workbook.close();
 
         return excelFile;
     }
@@ -432,12 +447,37 @@ public class Issue extends Model {
         return User.findNameById(this.reporterId);
     }
 
+    /**
+     * issueList, issue view에서 assignee의 이름을 출력해준다. 아래의 getAssigneeName과 합쳐질 수
+     * 있을듯.
+     */
+    public String assigneeName() {
+
+        return (this.assigneeId != null ? User.findNameById(this.assigneeId) : "issue.noAssignee");
+    }
+
+    /**
+     * excelSave에서 assignee를 리턴해준다.
+     * 
+     * @param uId
+     * @return
+     */
+    private static String getAssigneeName(Long uId) {
+        return (uId != null ? User.findNameById(uId) : TO_BE_ASSIGNED);
+    }
+
+    /**
+     * comment가 delete되거나 create될 때, numOfComment와 comment.size()를 동기화 시켜준다. 현재는
+     * 이것이 없이도 동작하므로, 추후에 제거하겠음.
+     * 
+     * @param id
+     *            Issue Id
+     */
     public static void updateNumOfComments(Long id) {
 
         Issue issue = Issue.findById(id);
         issue.numOfComments = issue.comments.size();
-        // Logger.debug("MODEL("+id+")" +
-        // ":updateNumOfComments()//issue.comments.size:"+issue.comments.size()+"//issue_numOfComments:"+issue.numOfComments);
         issue.update();
     }
+
 }

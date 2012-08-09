@@ -32,7 +32,7 @@ public class UserTest extends ModelTest<User> {
 	public void findById() throws Exception {
 		// Given
 		// When
-		User user = User.findById(1l);
+		User user = User.findById(2l);
 		// Then
 		assertThat(user.name).isEqualTo("Hobi");
 	}
@@ -43,13 +43,13 @@ public class UserTest extends ModelTest<User> {
 		// When
 		User user = User.findByName("Hobi");
 		// Then
-		assertThat(user.id).isEqualTo(1l);
+		assertThat(user.id).isEqualTo(2l);
 	}
 	@Test
     public void findNameById() throws Exception {
         //Given
         //When
-	    String name = User.findNameById(1l);
+	    String name = User.findNameById(2l);
         //Then
 	    assertThat(name).isEqualTo("Hobi");
     }
@@ -60,7 +60,7 @@ public class UserTest extends ModelTest<User> {
         // When
         Map<String, String> userOptions = User.options();
         // Then
-        assertThat(userOptions).hasSize(4);
+        assertThat(userOptions).hasSize(5);
     }
 	
 	@Test
@@ -69,7 +69,7 @@ public class UserTest extends ModelTest<User> {
 	    // When
 	    User user = User.findByLoginId("k16wire");
 	    // Then
-	    assertThat(user.id).isEqualTo(2l);
+	    assertThat(user.id).isEqualTo(3l);
 	}
 	
 	@Test
@@ -97,8 +97,8 @@ public class UserTest extends ModelTest<User> {
 	public void isOnlyManager() throws Exception {
 	    // Given
 	    // When
-	    List<Project> projects_hobi = User.isOnlyManager(1l);
-	    List<Project> projects_eungjun = User.isOnlyManager(4l);
+	    List<Project> projects_hobi = User.isOnlyManager(2l);
+	    List<Project> projects_eungjun = User.isOnlyManager(5l);
 	    // Then
 	    assertThat(projects_hobi.size()).isEqualTo(1);
 	    assertThat(projects_eungjun.size()).isEqualTo(0);

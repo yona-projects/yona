@@ -1,6 +1,11 @@
 # Users
 users:
     - !!models.User
+        name:           Site admin
+        loginId:        admin
+        password:       admin00
+        email:          admin@nhn.com
+    - !!models.User
         name:           Hobi
         loginId:        hobi
         password:       hobi00
@@ -41,12 +46,6 @@ projects:
         share_option:   false
         vcs:            GIT
         url:            http://localhost:9000/CUBRID
-    - !!models.Project
-        name:           SiteDefault
-        overview:       Site 설정을 위한 default 프로젝트입니다.
-        share_option:   false
-        vcs:            GIT
-        url:            http://localhost:9000/SiteDefault  
 
 # Board
 posts:
@@ -277,11 +276,10 @@ permissions:
         operation:  write
     - !!models.Permission
         resource:   project
-        operation:  setting
+        operation:  write
     - !!models.Permission
         resource:   site
-        operation:  setting
-                    
+        operation:  write
 # Role
 roles:
     - !!models.Role
@@ -402,6 +400,61 @@ rolePermissions:
         role:       !!models.Role
                         id: 3
         permission: !!models.Permission
+                        id: 1
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 2
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 3
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 4
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 5
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 6
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 7
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 8
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 9
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 10
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
+                        id: 11
+    - !!models.RolePermission
+        role:       !!models.Role
+                        id: 3
+        permission: !!models.Permission
                         id: 12  
 
 # ProjectUser
@@ -412,39 +465,60 @@ projectUsers:
         project:        !!models.Project
                             id: 1
         role:           !!models.Role
-                            id: 1
+                            id: 3
     - !!models.ProjectUser
         user:           !!models.User
                             id: 1
         project:        !!models.Project
                             id: 2
         role:           !!models.Role
-                            id: 2
+                            id: 3
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 3
+        role:           !!models.Role
+                            id: 3
     - !!models.ProjectUser
         user:           !!models.User
                             id: 2
         project:        !!models.Project
                             id: 1
         role:           !!models.Role
-                            id: 2
+                            id: 1
     - !!models.ProjectUser
         user:           !!models.User
                             id: 2
         project:        !!models.Project
                             id: 2
         role:           !!models.Role
-                            id: 1
+                            id: 2
     - !!models.ProjectUser
         user:           !!models.User
                             id: 3
         project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 2
+    - !!models.ProjectUser
+        user:           !!models.User
                             id: 3
+        project:        !!models.Project
+                            id: 2
         role:           !!models.Role
                             id: 1
     - !!models.ProjectUser
         user:           !!models.User
-                            id: 1
-        project:        !!models.Project
                             id: 4
+        project:        !!models.Project
+                            id: 2
         role:           !!models.Role
+                            id: 2
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 4
+        project:        !!models.Project
                             id: 3
+        role:           !!models.Role
+                            id: 1

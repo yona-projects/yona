@@ -24,8 +24,8 @@ public class UserApp extends Controller {
     
     public static Result authenticate() {
         User user = form(User.class).bindFromRequest().get();
-        
         if(User.authenticate(user)){
+            if(user.id == null) user = User.findByLoginId(user.loginId);
             setUserInfoInSession(user);
             return redirect(routes.Application.index());
         } else {
@@ -40,8 +40,6 @@ public class UserApp extends Controller {
     
     public static Result saveUser() {
         Form<User> newUserForm = form(User.class).bindFromRequest();
-        
-        
         if(newUserForm.hasErrors())
             return badRequest(signup.render("title.signup", newUserForm));
         else {
@@ -53,7 +51,6 @@ public class UserApp extends Controller {
     }
 
     public static void setUserInfoInSession(User user) {
-        if(user.id == null) user = User.findByLoginId(user.loginId);
         session(SESSION_USERID, String.valueOf(user.id));
         session(SESSION_USERNAME, user.name);
     }
