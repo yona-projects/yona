@@ -488,8 +488,8 @@ public class Issue extends Model {
         boolean authorIs;
         if (currentUserId == findById(objectId).reporterId
                 || RoleCheck.roleCheck(currentUserId, project.id,
-                        PermissionResource.PROJECT.resource(),
-                        PermissionOperation.WRITE.operation())) {
+                        PermissionResource.PROJECT,
+                        PermissionOperation.WRITE)) {
             authorIs = true;
         } else {
             authorIs = false;

@@ -111,8 +111,8 @@ public class IssueApp extends Controller {
 
         if (UserApp.currentUser().id == targetIssue.reporterId
                 || RoleCheck.roleCheck(UserApp.currentUser().id, project.id,
-                        PermissionResource.PROJECT.resource(),
-                        PermissionOperation.WRITE.operation())) {
+                        PermissionResource.PROJECT,
+                        PermissionOperation.WRITE)) {
 
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
