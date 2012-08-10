@@ -56,6 +56,7 @@ public class ProjectApp extends Controller {
                     filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
+            project.owner = UserApp.currentUser().loginId;
             ProjectUser.assignRole(UserApp.currentUser().id,
                     Project.create(project), Role.MANAGER);
 
@@ -127,7 +128,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByName(projectName);
         if(!ProjectUser.isMember(user.id, project.id))
             ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
-        else
+        else    
             flash(Constants.WARNING, "project.member.alreadyMember");
         return redirect(routes.ProjectApp.members(projectName));
     }

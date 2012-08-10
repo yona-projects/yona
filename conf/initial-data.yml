@@ -34,18 +34,21 @@ projects:
         share_option:   true
         vcs:            GIT
         url:            http://localhost:9000/nForge4java
+        owner:          hobi
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
         url:            http://localhost:9000/Jindo
+        owner:          k16wire
     - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
         vcs:            GIT
         url:            http://localhost:9000/CUBRID
+        owner:          doortts
 
 # Board
 posts:

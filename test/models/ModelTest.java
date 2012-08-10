@@ -47,12 +47,12 @@ public class ModelTest<T> {
     }
 
     /**
-     * Returns the first user. (id : 1 / name : hobi)
+     * Returns the first user. (id : 2 / name : hobi)
      *
      * @return User
      */
     protected User getTestUser() {
-        return User.findById(1l);
+        return User.findById(2l);
     }
 
     /**

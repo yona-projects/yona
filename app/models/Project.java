@@ -4,6 +4,8 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import javax.persistence.*;
 
+import controllers.UserApp;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +33,7 @@ public class Project extends Model {
     public String vcs;
     public String url;
     public String logoPath;
+    public String owner;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public Set<Issue> issues;
@@ -49,11 +52,6 @@ public class Project extends Model {
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, Role.SITEMANAGER);
         return newProject.id;
-    }
-
-    public static String update(Project updatedProject, String projectName) {
-        updatedProject.update(Project.findByName(projectName).id);
-        return updatedProject.name;
     }
 
     public static void delete(Long id) {
