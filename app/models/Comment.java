@@ -7,6 +7,9 @@ import utils.JodaDateUtil;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+
+import org.joda.time.Duration;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -31,7 +34,7 @@ public class Comment extends Model {
     public Post post;
 
     public Comment() {
-        date = JodaDateUtil.today();
+        date = JodaDateUtil.now();
     }
 
     public static Comment findById(Long id) {
@@ -48,26 +51,17 @@ public class Comment extends Model {
     }
 
     public String calcPassTime() {
-        // TODO 경계값 검사하면 망할함수. 나중에 라이브러리 쓸예정
-        Calendar today = Calendar.getInstance();
-
-        long dTimeMili = today.getTime().getTime() - this.date.getTime();
-
-        Calendar dTime = Calendar.getInstance();
-        dTime.setTimeInMillis(dTimeMili);
-
-        if (dTimeMili < 60 * 1000) {
-            return "방금 전";
-        } else if (dTimeMili < 60 * 1000 * 60) {
-            return dTime.get(Calendar.MINUTE) + "분 전";
-        } else if (dTimeMili < 60 * 1000 * 60 * 24) {
-            return dTime.get(Calendar.HOUR) + "시간 전";
-        } else if (dTimeMili < 60 * 1000 * 60 * 24 * 30) {
-            return dTime.get(Calendar.DATE) + "일 전";
-        } else if (dTimeMili < 60 * 1000 * 60 * 24 * 30 * 12) {
-            return dTime.get(Calendar.MONDAY) + "달 전";
+        Duration dur = JodaDateUtil.ago(this.date);
+        if (dur.getStandardDays() > 0) {
+            return dur.getStandardDays() + "일 전";
+        } else if (dur.getStandardHours() > 0) {
+            return dur.getStandardHours() + "시간 전";
+        } else if (dur.getStandardMinutes() > 0) {
+            return dur.getStandardMinutes() + "분 전";
+        } else if (dur.getStandardSeconds() > 0) {
+            return dur.getStandardSeconds() + "초 전";
         } else {
-            return dTime.get(Calendar.YEAR) + "년 전";
+            return "방금 전";
         }
     }
 

@@ -11,10 +11,15 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
+
+import org.joda.time.Duration;
+
+import models.enumeration.*;
+import models.support.*;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 public class Post extends Model {
@@ -53,7 +58,7 @@ public class Post extends Model {
     public Project project;
 
     public Post() {
-        this.date = JodaDateUtil.today();
+        this.date = JodaDateUtil.now();
     }
 
     public static Post findById(Long id) {
@@ -61,35 +66,21 @@ public class Post extends Model {
     }
 
     /**
-     * ! FIXME untested
-     * 
      * @param projectName
-     * @param pageNum
-     * @param order
-     * @param key
-     * @return
-     */
-    public static Page<Post> findOnePage(String projectName, int pageNum, String order, String key) {
-        return find.where().eq("project.name", projectName).orderBy(key + " " + order)
-                .findPagingList(10).getPage(pageNum - 1);
-    }
-
-    /**
-     * ! FIXME unused, untested
-     * 
+     *            프로젝트이름
      * @param pageNum
      *            페이지 번호
      * @param order
      *            오름차순(asc), 내림차순(decs)
      * @param key
      *            오름차순과 내림차수를 결정하는 기준
-     * @param filter
-     *            검색어
      * @return
      */
-    public static Page<Post> findOnePage(int pageNum, String order, String key, String filter) {
-        return find.where().ilike("title", filter).orderBy(key + " " + order).findPagingList(10)
-                .getPage(pageNum - 1);
+    public static Page<Post> findOnePage(String projectName, int pageNum, String order, String key) {
+        SearchParams searchParam = new SearchParams().add("project.name", projectName,
+                Matching.EQUALS);
+        OrderParams orderParams = new OrderParams().add(key, Direction.getValue(order));
+        return FinderTemplate.getPage(orderParams, searchParam, find, 10, pageNum - 1);
     }
 
     public static Long write(Post post) {
@@ -102,32 +93,23 @@ public class Post extends Model {
     }
 
     public static void countUpCommentCounter(Long id) {
-        Post post = find.ref(id);
+        Post post = find.byId(id);
         post.commentCount++;
         post.update();
     }
 
     public String calcPassTime() {
-        // TODO 경계값 검사하면 망할함수. 나중에 라이브러리 쓸예정
-        Calendar today = Calendar.getInstance();
-
-        long dTimeMili = today.getTime().getTime() - this.date.getTime();
-
-        Calendar dTime = Calendar.getInstance();
-        dTime.setTimeInMillis(dTimeMili);
-
-        if (dTimeMili < 60 * 1000) {
-            return "방금 전";
-        } else if (dTimeMili < 60 * 1000 * 60) {
-            return dTime.get(Calendar.MINUTE) + "분 전";
-        } else if (dTimeMili < 60 * 1000 * 60 * 24) {
-            return dTime.get(Calendar.HOUR) + "시간 전";
-        } else if (dTimeMili < 60 * 1000 * 60 * 24 * 30) {
-            return dTime.get(Calendar.DATE) + "일 전";
-        } else if (dTimeMili < 60 * 1000 * 60 * 24 * 30 * 12) {
-            return dTime.get(Calendar.MONDAY) + "달 전";
+        Duration dur = JodaDateUtil.ago(this.date);
+        if (dur.getStandardDays() > 0) {
+            return dur.getStandardDays() + "일 전";
+        } else if (dur.getStandardHours() > 0) {
+            return dur.getStandardHours() + "시간 전";
+        } else if (dur.getStandardMinutes() > 0) {
+            return dur.getStandardMinutes() + "분 전";
+        } else if (dur.getStandardSeconds() > 0) {
+            return dur.getStandardSeconds() + "초 전";
         } else {
-            return dTime.get(Calendar.YEAR) + "년 전";
+            return "방금 전";
         }
     }
 
