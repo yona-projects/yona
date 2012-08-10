@@ -1,4 +1,4 @@
-@(userId: String, projectId: Long, resource: String, operation: String)(content: => Html)
+@(userId: String, projectId: Long, resource: PermissionResource, operation: PermissionOperation)(content: => Html)
 
 @if(utils.RoleCheck.roleCheck(userId, projectId, resource, operation)){
     @content

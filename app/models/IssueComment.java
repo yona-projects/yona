@@ -66,8 +66,8 @@ public class IssueComment extends Model {
         boolean authorIs;
         if (currentUserId == findById(objectId).authorId
                 || RoleCheck.roleCheck(currentUserId, project.id,
-                        PermissionResource.PROJECT.resource(),
-                        PermissionOperation.WRITE.operation())) {
+                        PermissionResource.PROJECT,
+                        PermissionOperation.WRITE)) {
             authorIs = true;
         } else {
             authorIs = false;

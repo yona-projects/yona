@@ -28,6 +28,7 @@ object ApplicationBuild extends Build {
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
+      templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less")
     )
 }
