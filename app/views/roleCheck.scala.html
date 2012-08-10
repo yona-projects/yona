@@ -1,4 +1,4 @@
-@(userId: String, projectId: Long, resource: PermissionResource, operation: PermissionOperation)(content: => Html)
+@(userId: String, projectId: Long, resource: models.enumeration.PermissionResource, operation: models.enumeration.PermissionOperation)(content: => Html)
 
 @if(utils.RoleCheck.roleCheck(userId, projectId, resource, operation)){
     @content

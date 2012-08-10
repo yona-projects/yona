@@ -12,7 +12,7 @@
             <div class="nav-collapse collapse">
                 <ul class="nav pull-right">
                 @if(session.contains("userId")){
-                    @roleCheck(session.get("userId"), 1l, PermissionResource.SITE, PermissionOperation.WRITE){
+                    @roleCheck(session.get("userId"), 1l, models.enumeration.PermissionResource.SITE, models.enumeration.PermissionOperation.WRITE){
                         <li class=""><a href="@routes.SiteApp.setting()">@Messages("menu.siteAdmin")</a></li>
                     }
                     <li class=""><a href="#">@session.get("userName")</a></li>

@@ -12,8 +12,8 @@ public class PermissionTest extends ModelTest<Permission> {
         // Given
         // When
         // Then
-        assertThat(Permission.permissionCheck(2l, 1l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(true);
-        assertThat(Permission.permissionCheck(2l, 2l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation())).isEqualTo(false);
+        assertThat(Permission.permissionCheck(2l, 1l, PermissionResource.PROJECT, PermissionOperation.WRITE)).isEqualTo(true);
+        assertThat(Permission.permissionCheck(2l, 2l, PermissionResource.PROJECT, PermissionOperation.WRITE)).isEqualTo(false);
     }
     
     @Test
