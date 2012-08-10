@@ -29,9 +29,6 @@ public class Role extends Model {
     
     public String name;
     
-//    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-//    public Set<RolePermission> rolePermissions;
-    
     @ManyToMany(cascade = CascadeType.ALL)
     public List<Permission> permissions;
     

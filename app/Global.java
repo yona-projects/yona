@@ -55,11 +55,12 @@ public class Global extends GlobalSettings {
                 Ebean.save(all.get("comments"));
                 Ebean.save(all.get("permissions"));
                 
-                Ebean.save(all.get("roles"));
-                for(Object role: all.get("roles")) {
-                    Ebean.saveManyToManyAssociations(role, "permissions");                    
-                }
-                Ebean.save(all.get("projectUsers"));
+//                Ebean.save(all.get("roles"));
+//                for(Object role: all.get("roles")) {
+//                    Ebean.saveManyToManyAssociations(role, "permissions");                    
+//                }
+//                
+//                Ebean.save(all.get("projectUsers"));
             }
         }
     }

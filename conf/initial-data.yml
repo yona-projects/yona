@@ -307,8 +307,7 @@ roles:
             - !!models.Permission
                 id: 10
             - !!models.Permission
-                id: 11
-                
+                id: 11                
     - !!models.Role
         name:           member
         permissions:    
@@ -331,8 +330,7 @@ roles:
             - !!models.Permission
                 id: 9
             - !!models.Permission
-                id: 10
-                
+                id: 10                
     - !!models.Role
         name:           siteManager
         permissions:    

@@ -31,9 +31,6 @@ public class Permission extends Model{
     public String resource;
     public String operation;
     
-//    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
-//    public Set<RolePermission> rolePermissions;
-    
     @ManyToMany(cascade = CascadeType.ALL)
     public List<Role> roles;
     
@@ -49,8 +46,8 @@ public class Permission extends Model{
     public static boolean permissionCheck(Long userId, Long projectId,
             String resource, String operation) {
         int findRowCount = find.where()
-                .eq("rolePermissions.role.projectUsers.user.id", userId)
-                .eq("rolePermissions.role.projectUsers.project.id", projectId)
+                .eq("roles.projectUsers.user.id", userId)
+                .eq("roles.projectUsers.project.id", projectId)
                 .eq("resource", resource).eq("operation", operation)
                 .findRowCount();
         return (findRowCount != 0) ? true : false;
@@ -64,6 +61,6 @@ public class Permission extends Model{
      */
     public static List<Permission> findPermissionsByRole(Long roleId) {
         return find.where()
-                .eq("rolePermissions.role.id", roleId).findList();
+                .eq("roles.id", roleId).findList();
     }
 }
