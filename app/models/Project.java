@@ -50,8 +50,7 @@ public class Project extends Model {
     public Set<Milestone> milestones;
 
     public static Long create(Project newProject) {
-        newProject.url = Constants.DEFAULT_SITE_URL + "/"
-                + newProject.name;
+        newProject.url = "/" + newProject.name;
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, Role.SITEMANAGER);
         return newProject.id;
