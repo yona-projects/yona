@@ -6,28 +6,28 @@
     <li class="@isActiveMenu(routes.ProjectApp.project(project.name))">
       <a href="@routes.ProjectApp.project(project.name)">@Messages("menu.home")</a>
     </li>
-    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.BOARD.resource(), models.enumeration.PermissionOperation.READ.operation()){
+    @roleCheck(session.get("userId"), project.id, PermissionResource.BOARD, PermissionOperation.READ){
         <li class="@isActiveMenu(routes.BoardApp.posts(project.name))">
           <a href="@routes.BoardApp.posts(project.name)">@Messages("menu.board")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.CODE.resource(), models.enumeration.PermissionOperation.READ.operation()){
+    @roleCheck(session.get("userId"), project.id, PermissionResource.CODE, PermissionOperation.READ){
         <li class="@isActiveMenu(routes.CodeApp.view(project.name, ""))">
           <a href="@routes.CodeApp.view(project.name, "")">@Messages("menu.code")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.ISSUE.resource(), models.enumeration.PermissionOperation.READ.operation()){
+    @roleCheck(session.get("userId"), project.id, PermissionResource.ISSUE, PermissionOperation.READ){
         <li class="@isActiveMenu(routes.IssueApp.issues(project.name,"open"))">
           <a href="@routes.IssueApp.issues(project.name,"open")">@Messages("menu.issue")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.WIKI.resource(), models.enumeration.PermissionOperation.READ.operation()){    
+    @roleCheck(session.get("userId"), project.id, PermissionResource.WIKI, PermissionOperation.READ){
       <!-- TODO -->
        <li class="@isActiveMenu(routes.ProjectApp.newProject())">
          <a href="#">위키</a>
        </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.PROJECT.resource(), models.enumeration.PermissionOperation.WRITE.operation()){
+    @roleCheck(session.get("userId"), project.id, PermissionResource.PROJECT, PermissionOperation.WRITE){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.name))">
           <a href="@routes.ProjectApp.setting(project.name)">@Messages("menu.admin")</a>
         </li>

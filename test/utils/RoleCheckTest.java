@@ -12,8 +12,8 @@ public class RoleCheckTest extends ModelTest<Role>{
     public void roleCheck() throws Exception {
         // Given
         // When
-        boolean result1 = RoleCheck.roleCheck("1", 1l, PermissionResource.PROJECT.resource(), PermissionOperation.WRITE.operation());
-        boolean result2 = RoleCheck.roleCheck("2", 3l, PermissionResource.BOARD.resource(), PermissionOperation.READ.operation());
+        boolean result1 = RoleCheck.roleCheck("1", 1l, PermissionResource.PROJECT, PermissionOperation.WRITE);
+        boolean result2 = RoleCheck.roleCheck("2", 3l, PermissionResource.BOARD, PermissionOperation.READ);
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
