@@ -287,7 +287,7 @@ roles:
         name:           manager
         permissions:    
             - !!models.Permission
-                id: 1 
+                id: 1
             - !!models.Permission
                 id: 2
             - !!models.Permission
@@ -312,7 +312,7 @@ roles:
         name:           member
         permissions:    
             - !!models.Permission
-                id: 1 
+                id: 1
             - !!models.Permission
                 id: 2
             - !!models.Permission
@@ -335,7 +335,7 @@ roles:
         name:           siteManager
         permissions:    
             - !!models.Permission
-                id: 1 
+                id: 1
             - !!models.Permission
                 id: 2
             - !!models.Permission

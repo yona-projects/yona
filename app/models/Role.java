@@ -29,7 +29,7 @@ public class Role extends Model {
     
     public String name;
     
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany
     public List<Permission> permissions;
     
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
