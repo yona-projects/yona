@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
@@ -30,8 +31,11 @@ public class Permission extends Model{
     public String resource;
     public String operation;
     
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
-    public Set<RolePermission> rolePermissions;
+//    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
+//    public Set<RolePermission> rolePermissions;
+    
+    @ManyToMany(cascade = CascadeType.ALL)
+    public List<Role> roles;
     
     /**
      * 해당 유저가 해당 프로젝트에서 해당 리소스와 오퍼레이션을 위한 퍼미션을 가지고 있는지 확인합니다.
