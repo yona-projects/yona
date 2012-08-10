@@ -6,5 +6,4 @@ public class Constants {
 	public static final String SUCCESS = "success";
     
     public static final String DEFAULT_LOGO_PATH = "public/uploadFiles/";
-    public static final String DEFAULT_SITE_URL = "http://localhost:9000";
 }

@@ -2,13 +2,8 @@ package models;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
-import utils.Constants;
-
 import javax.persistence.*;
 
-import com.avaje.ebean.Ebean;
-
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -50,8 +45,7 @@ public class Project extends Model {
     public Set<Milestone> milestones;
 
     public static Long create(Project newProject) {
-        newProject.url = Constants.DEFAULT_SITE_URL + "/"
-                + newProject.name;
+        newProject.url = "http://localhost:9000/" + newProject.name;
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, Role.SITEMANAGER);
         return newProject.id;
