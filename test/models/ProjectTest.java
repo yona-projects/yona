@@ -38,7 +38,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project sut = Project.findById(1l);
         // Then
-        assertThat(sut.milestones.size()).isEqualTo(3);
+        assertThat(sut.milestones.size()).isEqualTo(2);
     }
     @Test
     public void findIssuessById() throws Exception {
@@ -46,7 +46,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project sut = Project.findById(1l);
         // Then
-        assertThat(sut.issues.size()).isEqualTo(2);
+        assertThat(sut.issues.size()).isEqualTo(4);
     }
 
     @Test

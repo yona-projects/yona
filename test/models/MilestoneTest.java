@@ -52,11 +52,11 @@ public class MilestoneTest extends ModelTest<Milestone> {
         assertThat(expactDueDate.get(Calendar.DAY_OF_MONTH)).isEqualTo(
             dueDate.get(Calendar.DAY_OF_MONTH));
 
-        assertThat(firstMilestone.numClosedIssues).isEqualTo(10);
-        assertThat(firstMilestone.numOpenIssues).isEqualTo(0);
-        assertThat(firstMilestone.numTotalIssues).isEqualTo(10);
+        assertThat(firstMilestone.numClosedIssues).isEqualTo(2);
+        assertThat(firstMilestone.numOpenIssues).isEqualTo(2);
+        assertThat(firstMilestone.numTotalIssues).isEqualTo(4);
         assertThat(firstMilestone.project).isEqualTo(Project.findById(1l));
-        assertThat(firstMilestone.completionRate).isEqualTo(100);
+        assertThat(firstMilestone.completionRate).isEqualTo(50);
     }
 
     @Test
@@ -102,17 +102,15 @@ public class MilestoneTest extends ModelTest<Milestone> {
         // When
         List<Milestone> firstProjectMilestones = Milestone.findByProjectId(1l);
         // Then
-        assertThat(firstProjectMilestones.size()).isEqualTo(3);
-        checkIfTheMilestoneIsBelongToTheProject(firstProjectMilestones, 1l, 2l,
-            7l);
+        assertThat(firstProjectMilestones.size()).isEqualTo(2);
+        checkIfTheMilestoneIsBelongToTheProject(firstProjectMilestones, 1l, 2l);
 
         // Given
         // When
         List<Milestone> secondProjectMilestones = Milestone.findByProjectId(2l);
         // Then
-        assertThat(secondProjectMilestones.size()).isEqualTo(4);
-        checkIfTheMilestoneIsBelongToTheProject(secondProjectMilestones, 3l,
-            4l, 5l, 6l);
+        assertThat(secondProjectMilestones.size()).isEqualTo(2);
+        checkIfTheMilestoneIsBelongToTheProject(secondProjectMilestones, 3l, 4l);
     }
 
     private void checkIfTheMilestoneIsBelongToTheProject(
@@ -129,13 +127,13 @@ public class MilestoneTest extends ModelTest<Milestone> {
         // When
         List<Milestone> p1Milestones = Milestone.findClosedMilestones(1l);
         // Then
-        assertThat(p1Milestones.size()).isEqualTo(1);
+        assertThat(p1Milestones.size()).isEqualTo(0);
 
         // Given
         // When
         List<Milestone> p2Milestones = Milestone.findClosedMilestones(2l);
         // Then
-        assertThat(p2Milestones.size()).isEqualTo(3);
+        assertThat(p2Milestones.size()).isEqualTo(1);
     }
 
     @Test
@@ -169,21 +167,21 @@ public class MilestoneTest extends ModelTest<Milestone> {
         List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l,
             StateType.CLOSED);
         // Then
-        assertThat(p2CompletedMilestones.size()).isEqualTo(3);
+        assertThat(p2CompletedMilestones.size()).isEqualTo(1);
 
         // Given
         // When
         List<Milestone> p2Milestones = Milestone.findMilestones(2l,
             StateType.ALL);
         // Then
-        assertThat(p2Milestones.size()).isEqualTo(4);
+        assertThat(p2Milestones.size()).isEqualTo(2);
 
         // Given
         // When
         List<Milestone> p1MilestonesASCDirection = Milestone.findMilestones(1l,
             StateType.ALL, "completionRate", Direction.ASC);
         // Then
-        assertThat(p1MilestonesASCDirection.get(0).completionRate).isEqualTo(9);
+        assertThat(p1MilestonesASCDirection.get(0).completionRate).isEqualTo(50);
 
         // Given
         // When
@@ -217,30 +215,30 @@ public class MilestoneTest extends ModelTest<Milestone> {
         // When
         Map<String, String> milestoneOptions = Milestone.options(1l);
         // Then
-        assertThat(milestoneOptions).hasSize(3);
+        assertThat(milestoneOptions).hasSize(2);
     }
 
     @Test
     public void addIssue() throws Exception {
         // GIVEN
-        Milestone m8 = Milestone.findById(8l);
-        int totalNumber = m8.numTotalIssues;
-        int openNumber = m8.numOpenIssues;
+        Milestone m5 = Milestone.findById(5l);
+        int totalNumber = m5.numTotalIssues;
+        int openNumber = m5.numOpenIssues;
         Issue issue = new Issue();
         issue.title = "불필요한 로그 출력 코드 제거test";
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
         issue.stateType = StateType.OPEN;
         issue.reporterId = User.findById(1l).id;
-        issue.milestoneId = 8l;
+        issue.milestoneId = 5l;
 
         // WHEN
         Issue.create(issue);
 
         // THEN
-        m8 = Milestone.findById(8l);
-        assertThat(m8.numTotalIssues).isEqualTo(totalNumber + 1);
-        assertThat(m8.numOpenIssues).isEqualTo(openNumber + 1);
+        m5 = Milestone.findById(5l);
+        assertThat(m5.numTotalIssues).isEqualTo(totalNumber + 1);
+        assertThat(m5.numOpenIssues).isEqualTo(openNumber + 1);
     }
 
     @Test
@@ -248,41 +246,46 @@ public class MilestoneTest extends ModelTest<Milestone> {
         //Given
         Issue issue = new Issue();
         issue.updateStatusType(IssueState.ENROLLED);
-        issue.milestoneId = 9l;
+        issue.milestoneId = 6l;
         issue.update(5l);
 
-        Long milestoneId = Long.valueOf(issue.milestoneId);
-        Milestone m9 = Milestone.findById(milestoneId);
-        assertThat(m9.numOpenIssues).isEqualTo(0);
-        assertThat(m9.completionRate).isEqualTo(100);
+        Long milestoneId = issue.milestoneId;
+        Milestone m6 = Milestone.findById(milestoneId);
+        assertThat(m6.numOpenIssues).isEqualTo(0);
+        assertThat(m6.numClosedIssues).isEqualTo(1);
+        assertThat(m6.numTotalIssues).isEqualTo(1);
+        assertThat(m6.completionRate).isEqualTo(100);
 
         //When
-        m9.updateIssueInfo();
+        m6.updateIssueInfo();
+        flush();
 
         //Then
-        m9 = Milestone.findById(milestoneId);
-        assertThat(m9.numOpenIssues).isEqualTo(1); //TODO fix.
-        assertThat(m9.numClosedIssues).isEqualTo(1);
-        assertThat(m9.completionRate).isEqualTo(50);
+        m6 = Milestone.findById(milestoneId);
+        assertThat(m6.numOpenIssues).isEqualTo(1);
+        assertThat(m6.numClosedIssues).isEqualTo(1);
+        assertThat(m6.numTotalIssues).isEqualTo(2);
+        assertThat(m6.completionRate).isEqualTo(50);
     }
 
     @Test
     public void deleteIssue() throws Exception {
         //Given
-        Issue issue = Issue.findById(6l);
-        Milestone m9 = Milestone.findById(Long.valueOf(issue.milestoneId));
-        assertThat(m9.numClosedIssues).isEqualTo(1);
-        assertThat(m9.numTotalIssues).isEqualTo(1);
-        assertThat(m9.completionRate).isEqualTo(100);
+        Issue issue = Issue.findById(7l);
+        Milestone m5 = Milestone.findById(issue.milestoneId);
+        assertThat(m5.numOpenIssues).isEqualTo(1);
+        assertThat(m5.numClosedIssues).isEqualTo(1);
+        assertThat(m5.numTotalIssues).isEqualTo(2);
+        assertThat(m5.completionRate).isEqualTo(50);
 
         //When
         issue.delete();
-        m9.delete(issue);
+        m5.delete(issue);
 
         //Then
-        assertThat(m9.numOpenIssues).isEqualTo(0);
-        assertThat(m9.numClosedIssues).isEqualTo(0);
-        assertThat(m9.numTotalIssues).isEqualTo(0);
-        assertThat(m9.completionRate).isEqualTo(0);
+        assertThat(m5.numOpenIssues).isEqualTo(0);
+        assertThat(m5.numClosedIssues).isEqualTo(1);
+        assertThat(m5.numTotalIssues).isEqualTo(1);
+        assertThat(m5.completionRate).isEqualTo(100);
     }
 }

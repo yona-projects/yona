@@ -2,13 +2,13 @@ package models;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
-import javax.persistence.*;
 
-import controllers.UserApp;
-
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 
@@ -36,16 +36,16 @@ public class Project extends Model {
     public String owner;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Issue> issues;
+    public List<Issue> issues;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUser;
+    public List<ProjectUser> projectUser;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Post> posts;
+    public List<Post> posts;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Milestone> milestones;
+    public List<Milestone> milestones;
 
     public static Long create(Project newProject) {
         newProject.url = "http://localhost:9000/" + newProject.name;
@@ -85,8 +85,9 @@ public class Project extends Model {
         Iterator<Project> iterator = projects.iterator();
         while(iterator.hasNext()){
             Project project = iterator.next();
-            if(ProjectUser.isManager(project.id))
+            if(ProjectUser.isManager(project.id)) {
                 projects.remove(project);
+            }
         }
         
         return projects;

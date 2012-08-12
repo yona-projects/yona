@@ -1,34 +1,14 @@
 package models;
 
-import static models.enumeration.IssueState.ASSIGNED;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
+import com.avaje.ebean.Page;
 import jxl.Workbook;
+import jxl.format.Alignment;
+import jxl.format.Border;
+import jxl.format.BorderLineStyle;
+import jxl.format.Colour;
 import jxl.format.*;
-import jxl.write.Label;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-
-import models.enumeration.Direction;
-import models.enumeration.IssueState;
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
-import models.enumeration.StateType;
-import models.enumeration.Matching;
+import jxl.write.*;
+import models.enumeration.*;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
@@ -38,9 +18,14 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 import utils.RoleCheck;
 
-import com.avaje.ebean.Page;
+import javax.persistence.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
-import controllers.UserApp;
+import static models.enumeration.IssueState.ASSIGNED;
 
 /**
  * @author Taehyun Park
@@ -249,7 +234,7 @@ public class Issue extends Model {
     public static Page<Issue> findFilteredIssues(String projectName, String filter,
             StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                filter, null, commentedCheck, fileAttachedCheck);
+            filter, null, commentedCheck, fileAttachedCheck);
     }
 
     /**
@@ -261,7 +246,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findCommentedIssues(String projectName, String filter) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
-                Direction.DESC, filter, null, true, false);
+            Direction.DESC, filter, null, true, false);
     }
 
     /**
@@ -319,7 +304,10 @@ public class Issue extends Model {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name", projectName,
                 Matching.EQUALS);
-        searchParams.add("title", filter, Matching.CONTAINS);
+
+        if(filter != null && !filter.isEmpty()) {
+            searchParams.add("title", filter, Matching.CONTAINS);
+        }
         if (milestoneId != null) {
             searchParams.add("milestoneId", milestoneId, Matching.EQUALS);
         }
@@ -342,7 +330,7 @@ public class Issue extends Model {
                 break;
             }
         return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE,
-                pageNumber);
+            pageNumber);
     }
 
     public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
@@ -480,6 +468,7 @@ public class Issue extends Model {
 
         Issue issue = Issue.findById(id);
         issue.numOfComments = issue.comments.size();
+        System.out.println(issue.numOfComments);
         issue.update();
     }
 

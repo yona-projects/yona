@@ -99,7 +99,7 @@ issues:
         stateType:      CLOSED
         milestoneId:    2
         project:        !!models.Project
-                            id: 1
+                            id: 2
         numOfComments:  1
     - !!models.Issue
         reporterId:     4
@@ -125,7 +125,7 @@ issues:
         body:           메모리가 너무 누수가 되는듯.
         state:          FINISHED
         stateType:      CLOSED
-        milestoneId:    9
+        milestoneId:    6
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -134,7 +134,7 @@ issues:
         body:           Please make it.
         state:          ASSIGNED
         stateType:      OPEN
-        milestoneId:    8
+        milestoneId:    5
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -143,9 +143,81 @@ issues:
         body:           CPU를 무한사용 중이에요.
         state:          FINISHED
         stateType:      CLOSED
-        milestoneId:    8
+        milestoneId:    5
         project:        !!models.Project
                             id: 3
+    - !!models.Issue
+        reporterId:     1
+        title:          Less chained imports causes compile error
+        body:           When using Play, when I chain less files such as a.less imports b.less which in turn imports c.less
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    1
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        reporterId:     1
+        title:          Weird TypeDoesNotMatch exception in RC-3 and final
+        body:           The following code works as expected in RC1-Snapshot, but breaks with an TypeDoesNotMatch exception in RC-3 and 2.0 final.
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    1
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        reporterId:     1
+        title:          Anorm and PostgreSQL - return value not accessible
+        body:           PostgreSQL allows you to insert a row and obtain the id of the new row in one query
+        state:          ENROLLED
+        stateType:      OPEN
+        milestoneId:    1
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        reporterId:     1
+        title:          Update sbt-idea to 1.1.0
+        body:           Create sbt project definition module, if exists, for each subproject (pull 128)
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    3
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        reporterId:     1
+        title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
+        body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
+        state:          FINISHED
+        stateType:      CLOSED
+        milestoneId:    3
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        reporterId:     1
+        title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
+        body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    4
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        reporterId:     1
+        title:          Cookie Expires date
+        body:           With Play 2.0.2, when creating a cookie with response().setCookie, HTTP output is like
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    4
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        reporterId:     1
+        title:          require is not work in windows (Closure Compiler)
+        body:           Test on Play2.1-Snapshot
+        state:          ASSIGNED
+        stateType:      OPEN
+        milestoneId:    4
+        project:        !!models.Project
+                            id: 2
 issueComments:
     - !!models.IssueComment
         contents:       코드를 수정했습니다
@@ -158,29 +230,29 @@ milestones:
         title:           v.0.1
         dueDate:         2012-07-12 10:59:59
         contents:        nFORGE 첫번째 버전.
-        numClosedIssues: 10
-        numOpenIssues:   0
-        numTotalIssues:  10
-        completionRate:  100
+        numClosedIssues: 2
+        numOpenIssues:   2
+        numTotalIssues:  4
+        completionRate:  50
         project:         !!models.Project
                              id: 1
     - !!models.Milestone
         title:           v.0.2
         dueDate:         2012-07-19 10:59:59
         contents:        nFORGE 두번째 버전 (Stable).
-        numClosedIssues: 1
-        numOpenIssues:   10
-        numTotalIssues:  11
-        completionRate:  9
+        numClosedIssues: 2
+        numOpenIssues:   1
+        numTotalIssues:  3
+        completionRate:  66
         project:         !!models.Project
                              id: 1
     - !!models.Milestone
         title:           v.1.0.0
         dueDate:         2011-08-10 10:59:59
         contents:        Jindo 안정화 버전
-        numClosedIssues: 100
+        numClosedIssues: 2
         numOpenIssues:   0
-        numTotalIssues:  100
+        numTotalIssues:  2
         completionRate:  100
         project:         !!models.Project
                              id: 2
@@ -188,42 +260,12 @@ milestones:
         title:           v.2.0.0
         dueDate:         2012-04-11 10:59:59
         contents:        Jindo2
-        numClosedIssues: 88
-        numOpenIssues:   0
-        numTotalIssues:  88
-        completionRate:  100
-        project:         !!models.Project
-                             id: 2
-    - !!models.Milestone
-        title:           v.3.0.0
-        dueDate:         2012-12-14 10:59:59
-        contents:        Jindo3
-        numClosedIssues: 99
-        numOpenIssues:   0
-        numTotalIssues:  100
-        completionRate:  99
-        project:         !!models.Project
-                             id: 2
-    - !!models.Milestone
-        title:           v.3.0.1
-        dueDate:         2012-12-31 10:59:59
-        contents:        Jindo3 안정화버전
         numClosedIssues: 0
-        numOpenIssues:   5
-        numTotalIssues:  5
+        numOpenIssues:   3
+        numTotalIssues:  3
         completionRate:  0
         project:         !!models.Project
                              id: 2
-    - !!models.Milestone
-        title:           v.0.3
-        dueDate:         2012-09-09 10:59:59
-        contents:        nFORGE 3번째 버전.
-        numClosedIssues: 1
-        numOpenIssues:   2
-        numTotalIssues:  3
-        completionRate:  33
-        project:         !!models.Project
-                             id: 1
     - !!models.Milestone
         title:           v.0.1
         dueDate:         2012-12-31 10:59:59
@@ -244,7 +286,6 @@ milestones:
         completionRate:  100
         project:         !!models.Project
                              id: 3
-
 # Permission
 permissions:
     - !!models.Permission
