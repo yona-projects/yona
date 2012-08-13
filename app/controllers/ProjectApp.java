@@ -26,10 +26,13 @@ import java.io.File;
  * @author "Hwi Ahn"
  */
 public class ProjectApp extends Controller {
+    
+    public static Project getProject(String userName, String projectName) {
+        return Project.findByNameAndOwner(userName, projectName);
+    }
 
     public static Result project(String projectName) {
-        return ok(projectHome.render("title.projectHome",
-        		getProject(projectName)));
+        return ok(projectHome.render("title.projectHome", Project.findByName(projectName)));
     }
 
     public static Result newProject() {
@@ -163,9 +166,5 @@ public class ProjectApp extends Controller {
         else
             return true;
         
-    }
-    
-    public static Project getProject(String projectName) {
-    	return Project.findByName(projectName);
     }
 }

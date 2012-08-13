@@ -66,6 +66,10 @@ public class Project extends Model {
         return find.where().eq("name", name).findUnique();
     }
     
+    public static Project findByNameAndOwner(String userName, String projectName) {
+        return find.where().eq("name", projectName).eq("owner", userName).findUnique();
+    }
+    
     /**
      * 해당 유저가 속해있는 프로젝트들 중에서 해당 유저가 유일한 Manager인 프로젝트가 있는지 검사하고, 
      * 있다면 그 프로젝트들의 리스트를 반환합니다.

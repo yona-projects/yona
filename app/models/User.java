@@ -30,11 +30,7 @@ public class User extends Model {
     public Long id;
 
     public String name;
-
-    @Constraints.Required
     public String loginId;
-
-    @Constraints.Required
     public String password;
 
     @Constraints.Pattern("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$")
