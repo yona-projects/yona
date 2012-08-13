@@ -26,6 +26,7 @@ public class Role extends Model {
     public Long id;
     
     public String name;
+    public boolean active;
     
     @ManyToMany
     public List<Permission> permissions;
@@ -47,8 +48,8 @@ public class Role extends Model {
      * 
      * @return
      */
-    public static List<Role> getAllProjectRoles() {
-        List<Role> projectRoles = find.where().ne("id", SITEMANAGER)
+    public static List<Role> getActiveRoles() {
+        List<Role> projectRoles = find.where().eq("active", true)
                 .findList();
         return projectRoles;
     }
