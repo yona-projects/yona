@@ -329,6 +329,7 @@ permissions:
 roles:
     - !!models.Role
         name:           manager
+        active:         true
         permissions:    
             - !!models.Permission
                 id: 1
@@ -354,6 +355,7 @@ roles:
                 id: 11                
     - !!models.Role
         name:           member
+        active:         true
         permissions:    
             - !!models.Permission
                 id: 1
@@ -377,6 +379,7 @@ roles:
                 id: 10                
     - !!models.Role
         name:           siteManager
+        active:         false
         permissions:    
             - !!models.Permission
                 id: 1

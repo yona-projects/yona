@@ -121,7 +121,7 @@ public class ProjectApp extends Controller {
     public static Result members(String userName, String projectName) {
         Project project = getProject(userName, projectName);
         return ok(memberList.render("title.memberList", ProjectUser.findMemberListByProject(project.id), project,
-                Role.getAllProjectRoles()));
+                Role.getActiveRoles()));
     }
 
     public static Result newMember(String userName, String projectName) {
