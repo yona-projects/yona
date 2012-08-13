@@ -101,21 +101,6 @@ public class Post extends Model {
         return JodaDateUtil.ago(this.date);
     }
 
-    public String calcPassTime() {
-        Duration dur = JodaDateUtil.ago(this.date);
-        if (dur.getStandardDays() > 0) {
-            return dur.getStandardDays() + "일 전";
-        } else if (dur.getStandardHours() > 0) {
-            return dur.getStandardHours() + "시간 전";
-        } else if (dur.getStandardMinutes() > 0) {
-            return dur.getStandardMinutes() + "분 전";
-        } else if (dur.getStandardSeconds() > 0) {
-            return dur.getStandardSeconds() + "초 전";
-        } else {
-            return "방금 전";
-        }
-    }
-
     public static void edit(Post post) {
         Post beforePost = findById(post.id);
         post.commentCount = beforePost.commentCount;

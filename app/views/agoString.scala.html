@@ -1,15 +1,15 @@
 @(duration:org.joda.time.Duration)
 
 @if(duration.getStandardDays() > 0) {
-    @duration.getStandardDays() 일 전
+    @duration.getStandardDays() @Messages("time.day")
 } else {@if(duration.getStandardHours() > 0){
-    @duration.getStandardHours() 시간전
+    @duration.getStandardHours() @Messages("time.hour")
 } else {@if(duration.getStandardMinutes() > 0) {
-    @duration.getStandardMinutes() 분전
+    @duration.getStandardMinutes() @Messages("time.minute")
 } else {@if(duration.getStandardSeconds() > 0) {
-    @duration.getStandardSeconds 초전
+    @duration.getStandardSeconds @Messages("time.second")
 } else {
-    방금전
+    @Messages("time.just")
 }}}}
 
 

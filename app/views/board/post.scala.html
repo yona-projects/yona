@@ -4,9 +4,9 @@
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
-	        <a class="btn btn-primary" href="@routes.BoardApp.editPost(project.name, post.id)">수정</a>
+	        <a class="btn btn-primary" href="@routes.BoardApp.editPost(project.owner, project.name, post.id)">수정</a>
 	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
-	        <a class="btn" href="@routes.BoardApp.posts(project.name)">목록</a>
+	        <a class="btn" href="@routes.BoardApp.posts(project.owner, project.name)">목록</a>
 	    </div>
 	</div>
 </div>
@@ -17,7 +17,7 @@
 		<div class="span11">
 			<h1>@post.title</h1>
 			<div>
-				<span>@post.authorName가 @post.calcPassTime()에 작성함<span> |
+				<span>@post.authorName가 @agoString(post.ago())에 작성함<span> |
 				<span>@post.date</span>
 			</div>
 		</div>
@@ -42,7 +42,7 @@
 	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
 	<div class="span11">
 		<div>
-			<span>@comment.authorName가 @comment.calcPassTime()에 작성함</span> |
+			<span>@comment.authorName가 @agoString(comment.ago())에 작성함</span> |
 			<span>@comment.date</span>
 		</div>
 		<p>@comment.contents<p>
@@ -55,7 +55,7 @@
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div class="row">
-	@helper.form(routes.BoardApp.saveComment(project.name, post.id), 'enctype -> "multipart/form-data"){
+	@helper.form(routes.BoardApp.saveComment(project.owner, project.name, post.id), 'enctype -> "multipart/form-data"){
 		<div class="span12">@helper.textarea(commentForm("contents"), '_showConstraints -> false, 'label-> "덧글내용")</div>
 		<div class="span6">@helper.inputFile(commentForm("filePath"), '_showConstraints -> false, 'label->"파일첨부")</div>		
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
@@ -81,7 +81,7 @@
     <p>그래도 삭제하시겠습니까?</p>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="@routes.BoardApp.deletePost(project.name, post.id)">예</a>
+    <a class="btn btn-primary" href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">예</a>
     <a href="#" class="btn" data-dismiss="modal">아니오</a>
   </div>
 </div>

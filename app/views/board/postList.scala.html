@@ -2,7 +2,7 @@
 
 @header(label:String, key:String) = {
     <th>
-        <a key="@key" href="@routes.BoardApp.posts(project.name)">@label</a>
+        <a key="@key" href="@routes.BoardApp.posts(project.owner, project.name)">@label</a>
         @if(key == param.key){
         @if(param.order == "desc"){
         <i class="icon-chevron-down"></i>
@@ -23,7 +23,7 @@
           <input type="hidden" name="pageNum" value="@param.pageNum">
           <input type="text" name="filter" class="search-query">
           <button type="submit" class="btn"><i class="icon-search"></i></button>
-          <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.name)" >새글</a>
+          <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.owner, project.name)" >새글</a>
         </form>
       </div>    
     </div>  
@@ -52,9 +52,9 @@
 	    		@for(post <- page.getList()){
 	    		<tr>
 	    			<td>@post.id</td>
-	    			<td><a href="@routes.BoardApp.post(project.name, post.id)">@post.title [@post.commentCount]</a></td>
+	    			<td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.commentCount]</a></td>
 	    			<td>@post.authorName</td>
-	    			<td>@post.calcPassTime() @agoString(post.ago())</td>
+	    			<td>@agoString(post.ago())</td>
 	    		</tr>
 	    		}
 	    	</tbody>

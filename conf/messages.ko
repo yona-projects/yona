@@ -179,3 +179,10 @@ user.email = 이메일
 user.wrongEmail.alert = 이메일이 잘못되었습니다.
 user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
 user.logout.success = 성공적으로 로그아웃되었습니다.
+
+#Time
+time.just = 방금 전
+time.second = 초 전
+time.minute = 분 전
+time.hour = 시간 전
+time.day = 일 전

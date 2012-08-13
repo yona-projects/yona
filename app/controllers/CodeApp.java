@@ -14,6 +14,7 @@ import play.mvc.*;
 public class CodeApp extends Controller {
 
     public static Result view(String ownerName, String projectName, String path) throws IOException {
+        //FIXME use ownerName
         String vcs = Project.findByName(projectName).vcs;
         if (vcs.equals("GIT")) {
             return GitApp.viewCode(projectName, path);
@@ -24,6 +25,7 @@ public class CodeApp extends Controller {
     
     public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         try {
+            //FIXME use ownerName
             return ok(new GitRepository(projectName).findFileInfo(path));
         } catch (NoHeadException e) {
             return forbidden();

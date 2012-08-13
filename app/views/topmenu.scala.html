@@ -7,8 +7,8 @@
       <a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("menu.home")</a>
     </li>
     @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.BOARD, models.enumeration.PermissionOperation.READ){
-        <li class="@isActiveMenu(routes.BoardApp.posts(project.name))">
-          <a href="@routes.BoardApp.posts(project.name)">@Messages("menu.board")</a>
+        <li class="@isActiveMenu(routes.BoardApp.posts(project.owner, project.name))">
+          <a href="@routes.BoardApp.posts(project.owner, project.name)">@Messages("menu.board")</a>
         </li>
     }
     @roleCheck(session.get("userId"), project.id, models.enumeration.PermissionResource.CODE, models.enumeration.PermissionOperation.READ){

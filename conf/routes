@@ -24,14 +24,14 @@ GET     /sites/projectList                  controllers.SiteApp.projectList()
 GET     /sites/softwareMap                  controllers.SiteApp.softwareMap()
 
 # Boards
-GET     /:projectName/boardList                 controllers.BoardApp.posts(projectName:String)
-GET     /:projectName/boards/new                controllers.BoardApp.newPost(projectName:String)
-POST    /:projectName/boards/new                controllers.BoardApp.savePost(projectName:String)
-GET     /:projectName/board/:id                 controllers.BoardApp.post(projectName:String, id:Long)
-POST    /:projectName/board/:id/replay          controllers.BoardApp.saveComment(projectName:String, id:Long)
-GET     /:projectName/board/:id/delete          controllers.BoardApp.deletePost(projectName:String, id:Long)
-GET     /:projectName/board/:id/edit            controllers.BoardApp.editPost(projectName:String, id:Long)
-POST    /:projectName/board/:id/edit            controllers.BoardApp.updatePost(projectName:String, id:Long)
+GET     /:ownerName/:projectName/boardList                 controllers.BoardApp.posts(ownerName:String, projectName:String)
+GET     /:ownerName/:projectName/boards/new                controllers.BoardApp.newPost(ownerName:String, projectName:String)
+POST    /:ownerName/:projectName/boards/new                controllers.BoardApp.savePost(ownerName:String, projectName:String)
+GET     /:ownerName/:projectName/board/:id                 controllers.BoardApp.post(ownerName:String, projectName:String, id:Long)
+POST    /:ownerName/:projectName/board/:id/replay          controllers.BoardApp.saveComment(ownerName:String, projectName:String, id:Long)
+GET     /:ownerName/:projectName/board/:id/delete          controllers.BoardApp.deletePost(ownerName:String, projectName:String, id:Long)
+GET     /:ownerName/:projectName/board/:id/edit            controllers.BoardApp.editPost(ownerName:String, projectName:String, id:Long)
+POST    /:ownerName/:projectName/board/:id/edit            controllers.BoardApp.updatePost(ownerName:String, projectName:String, id:Long)
 
 # Projects
 GET     /projects/new                           controllers.ProjectApp.newProject()

@@ -1,15 +1,14 @@
 package models;
 
+import java.util.*;
+
+import javax.persistence.*;
+
 import org.joda.time.Duration;
+
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import java.util.Date;
-import java.util.List;
 
 @Entity
 public class Comment extends Model {
@@ -46,20 +45,9 @@ public class Comment extends Model {
     public static List<Comment> findCommentsByPostId(Long postId) {
         return find.where().eq("post.id", postId).findList();
     }
-
-    public String calcPassTime() {
-        Duration dur = JodaDateUtil.ago(this.date);
-        if (dur.getStandardDays() > 0) {
-            return dur.getStandardDays() + "일 전";
-        } else if (dur.getStandardHours() > 0) {
-            return dur.getStandardHours() + "시간 전";
-        } else if (dur.getStandardMinutes() > 0) {
-            return dur.getStandardMinutes() + "분 전";
-        } else if (dur.getStandardSeconds() > 0) {
-            return dur.getStandardSeconds() + "초 전";
-        } else {
-            return "방금 전";
-        }
+    
+    public Duration ago(){
+        return JodaDateUtil.ago(this.date);
     }
 
     public String authorName() {
