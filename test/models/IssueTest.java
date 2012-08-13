@@ -47,7 +47,6 @@ public class IssueTest extends ModelTest<Issue> {
         Issue issue = Issue.findById(3l);
         // Then
         assertThat(issue.comments.size()).isEqualTo(1);
-
         IssueComment issueComment = issue.comments.get(0);
         assertThat(issueComment.id).isEqualTo(1l);
         assertThat(issueComment.contents).isEqualTo("코드를 수정했습니다");
