@@ -31,8 +31,8 @@ public class ProjectApp extends Controller {
         return Project.findByNameAndOwner(userName, projectName);
     }
 
-    public static Result project(String projectName) {
-        return ok(projectHome.render("title.projectHome", Project.findByName(projectName)));
+    public static Result project(String userName, String projectName) {
+        return ok(projectHome.render("title.projectHome", getProject(userName, projectName)));
     }
 
     public static Result newProject() {
@@ -43,11 +43,10 @@ public class ProjectApp extends Controller {
             return ok(newProject.render("title.newProject", form(Project.class)));
     }
 
-    public static Result setting(String projectName) {
-        Form<Project> projectForm = form(Project.class).fill(
-                Project.findByName(projectName));
-        return ok(setting.render("title.projectSetting", projectForm,
-                Project.findByName(projectName)));
+    public static Result setting(String userName, String projectName) {
+        Project project = getProject(userName, projectName);
+        Form<Project> projectForm = form(Project.class).fill(project);
+        return ok(setting.render("title.projectSetting", projectForm, project));
     }
 
     public static Result saveProject() throws IOException, ClientException {
@@ -77,11 +76,11 @@ public class ProjectApp extends Controller {
                 throw new UnsupportedOperationException("only support git!");
             }
 
-            return redirect(routes.ProjectApp.project(project.name));
+            return redirect(routes.ProjectApp.project(project.owner, project.name));
         }
     }
 
-    public static Result saveSetting(String projectName) {
+    public static Result saveSetting(String userName, String projectName) {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
@@ -107,25 +106,25 @@ public class ProjectApp extends Controller {
 
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render("title.projectSetting", filledUpdatedProjectForm,
-                    Project.findByName(projectName)));
+                    Project.findById(project.id)));
         } else {
             project.update();
-            return redirect(routes.ProjectApp.setting(project.name));
+            return redirect(routes.ProjectApp.setting(userName, project.name));
         }
     }
 
-    public static Result deleteProject(String projectName) {
-        Project.delete(Project.findByName(projectName).id);
+    public static Result deleteProject(String userName, String projectName) {
+        Project.delete(getProject(userName, projectName).id);
         return redirect(routes.Application.index());
     }
 
-    public static Result members(String projectName) {
-        Project project = Project.findByName(projectName);
+    public static Result members(String userName, String projectName) {
+        Project project = getProject(userName, projectName);
         return ok(memberList.render("title.memberList", ProjectUser.findMemberListByProject(project.id), project,
                 Role.getAllProjectRoles()));
     }
 
-    public static Result newMember(String projectName) {
+    public static Result newMember(String userName, String projectName) {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         Project project = Project.findByName(projectName);
@@ -133,30 +132,30 @@ public class ProjectApp extends Controller {
             ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
         else    
             flash(Constants.WARNING, "project.member.alreadyMember");
-        return redirect(routes.ProjectApp.members(projectName));
+        return redirect(routes.ProjectApp.members(userName, projectName));
     }
 
-    public static Result deleteMember(Long userId, String projectName) {
-        Long projectId = Project.findByName(projectName).id;
+    public static Result deleteMember(String userName, String projectName, Long userId) {
+        Long projectId = getProject(userName, projectName).id;
         if (isManager(userId, projectId)) {
             ProjectUser.delete(userId, projectId);
-            return redirect(routes.ProjectApp.members(projectName));
+            return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(projectName));
+            return redirect(routes.ProjectApp.members(userName, projectName));
         }
     }
 
-    public static Result updateMember(Long userId, String projectName) {
+    public static Result updateMember(String userName, String projectName, Long userId) {
         Long projectId = Project.findByName(projectName).id;
         if (isManager(userId, projectId)) {
              ProjectUser.assignRole(userId, projectId,
              form(Role.class).bindFromRequest()
              .get().id);
-            return redirect(routes.ProjectApp.members(projectName));
+            return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(projectName));
+            return redirect(routes.ProjectApp.members(userName, projectName));
         } 
     }
 

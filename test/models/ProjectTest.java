@@ -88,11 +88,22 @@ public class ProjectTest extends ModelTest<Project> {
     }
 
     @Test
-    public void findProjectsByOwner() throws Exception {
+    public void findProjectsByMember() throws Exception {
         // Given
         // When
-        List<Project> projects = Project.findProjectsByOwner(2l);
+        List<Project> projects = Project.findProjectsByMember(2l);
         // Then
         assertThat(projects.size()).isEqualTo(2);
+    }
+    
+    @Test
+    public void findByNameAndOwner() throws Exception {
+        // Given
+        String userName = "hobi";
+        String projectName = "nForge4java";
+        // When
+        Project project = Project.findByNameAndOwner(userName, projectName);
+        // Then
+        assertThat(project.id).isEqualTo(1l);
     }
 }

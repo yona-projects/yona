@@ -36,14 +36,14 @@ POST    /:projectName/board/:id/edit            controllers.BoardApp.updatePost(
 # Projects
 GET     /projects/new                           controllers.ProjectApp.newProject()
 POST    /projects/new                           controllers.ProjectApp.saveProject()
-GET     /:projectName                           controllers.ProjectApp.project(projectName:String)
-GET     /:projectName/setting                   controllers.ProjectApp.setting(projectName:String)
-POST    /:projectName/setting                   controllers.ProjectApp.saveSetting(projectName:String)
-GET     /:projectName/delete                    controllers.ProjectApp.deleteProject(projectName:String)
-GET     /:projectName/memberList                controllers.ProjectApp.members(projectName:String)
-POST    /:projectName/members/new               controllers.ProjectApp.newMember(projectName:String)
-POST    /:projectName/member/edit               controllers.ProjectApp.updateMember(userId:Long, projectName:String)
-GET     /:projectName/member/delete             controllers.ProjectApp.deleteMember(userId:Long, projectName:String)
+GET     /:userName/:projectName                 controllers.ProjectApp.project(userName: String, projectName:String)
+GET     /:userName/:projectName/setting         controllers.ProjectApp.setting(userName: String, projectName:String)
+POST    /:userName/:projectName/setting         controllers.ProjectApp.saveSetting(userName: String, projectName:String)
+GET     /:userName/:projectName/delete          controllers.ProjectApp.deleteProject(userName: String, projectName:String)
+GET     /:userName/:projectName/memberList      controllers.ProjectApp.members(userName: String, projectName:String)
+POST    /:userName/:projectName/members/new     controllers.ProjectApp.newMember(userName: String, projectName:String)
+POST    /:userName/:projectName/member/edit     controllers.ProjectApp.updateMember(userName: String, projectName:String, userId:Long)
+GET     /:userName/:projectName/member/delete   controllers.ProjectApp.deleteMember(userName: String, projectName:String, userId:Long)
 
 # Milestones
 GET     /:projectName/milestoneList             controllers.MilestoneApp.milestones(projectName:String, state ?= "open", sort ?= "dueDate", direction ?= "asc")

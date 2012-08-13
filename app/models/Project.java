@@ -103,8 +103,8 @@ public class Project extends Model {
      * @param ownerId
      * @return
      */
-    public static List<Project> findProjectsByOwner(Long ownerId) {
+    public static List<Project> findProjectsByMember(Long userId) {
         return find.where()
-                .eq("projectUser.user.id", ownerId).findList();
+                .eq("projectUser.user.id", userId).findList();
     }
 }

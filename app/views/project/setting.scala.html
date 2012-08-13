@@ -5,7 +5,7 @@
 
 
 @projectMngMain(message, projectInst) {
-    @form(action = routes.ProjectApp.saveSetting(projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
+    @form(action = routes.ProjectApp.saveSetting(projectInst.owner, projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>    
                 <input type="hidden" name="id" value="@projectForm("id").value.toLong">            
@@ -112,7 +112,7 @@
         </div>
         <div class="modal-footer">
             <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-            <a href="@routes.ProjectApp.deleteProject(projectInst.name)" class="btn btn-danger">@Messages("button.yes")</a>
+            <a href="@routes.ProjectApp.deleteProject(projectInst.owner, projectInst.name)" class="btn btn-danger">@Messages("button.yes")</a>
         </div>
     </div>
 
