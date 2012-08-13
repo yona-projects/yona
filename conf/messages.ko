@@ -133,6 +133,7 @@ issue.new.selectDefault.browserType = --브라우져 종류 선택--
 issue.new.selectDefault.dbmsType = --DBMS 선택--
 issue.new.selectDefault.importance = --중요도 선택--
 issue.new.selectDefault.diagnosisResult = --진단결과 선택--
+issue.comment.delete.confirm = 해당 이슈의 댓글이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
 
 #Post
 post.new.title = 제목

@@ -133,6 +133,7 @@ issue.new.selectDefault.browserType = --Select a Type of Browser--
 issue.new.selectDefault.dbmsType = --Select a Type of DBMS--
 issue.new.selectDefault.importance = --Select an Importance--
 issue.new.selectDefault.diagnosisResult = --Select a Diagnosis Result--
+issue.comment.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 
 #Post
 post.new.title = Title
