@@ -4,21 +4,21 @@
 
 package models;
 
-import com.avaje.ebean.Page;
-import models.enumeration.Direction;
-import models.enumeration.Matching;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
+import java.util.*;
+
+import javax.persistence.*;
+
+import models.enumeration.*;
+import models.support.*;
+
 import org.joda.time.Duration;
+
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
-import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
+import com.avaje.ebean.Page;
 
 @Entity
 public class Post extends Model {
@@ -95,6 +95,10 @@ public class Post extends Model {
         Post post = find.byId(id);
         post.commentCount++;
         post.update();
+    }
+    
+    public Duration ago(){
+        return JodaDateUtil.ago(this.date);
     }
 
     public String calcPassTime() {

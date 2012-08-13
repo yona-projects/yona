@@ -13,7 +13,7 @@ import play.mvc.*;
 
 public class CodeApp extends Controller {
 
-    public static Result view(String projectName, String path) throws IOException {
+    public static Result view(String ownerName, String projectName, String path) throws IOException {
         String vcs = Project.findByName(projectName).vcs;
         if (vcs.equals("GIT")) {
             return GitApp.viewCode(projectName, path);
@@ -22,7 +22,7 @@ public class CodeApp extends Controller {
         }
     }
     
-    public static Result ajaxRequest(String projectName, String path) throws IOException, NoHeadException, GitAPIException {
+    public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         try {
             return ok(new GitRepository(projectName).findFileInfo(path));
         } catch (NoHeadException e) {

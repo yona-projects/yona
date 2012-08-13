@@ -1,0 +1,17 @@
+@(duration:org.joda.time.Duration)
+
+@if(duration.getStandardDays() > 0) {
+    @duration.getStandardDays() 일 전
+} else {@if(duration.getStandardHours() > 0){
+    @duration.getStandardHours() 시간전
+} else {@if(duration.getStandardMinutes() > 0) {
+    @duration.getStandardMinutes() 분전
+} else {@if(duration.getStandardSeconds() > 0) {
+    @duration.getStandardSeconds 초전
+} else {
+    방금전
+}}}}
+
+
+
+

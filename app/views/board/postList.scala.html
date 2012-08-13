@@ -54,7 +54,7 @@
 	    			<td>@post.id</td>
 	    			<td><a href="@routes.BoardApp.post(project.name, post.id)">@post.title [@post.commentCount]</a></td>
 	    			<td>@post.authorName</td>
-	    			<td>@post.calcPassTime()</td>
+	    			<td>@post.calcPassTime() @agoString(post.ago())</td>
 	    		</tr>
 	    		}
 	    	</tbody>

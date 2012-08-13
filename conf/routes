@@ -82,10 +82,10 @@ POST    /!svn-fake/sevice/  controllers.SvnApp.service()
 
 # Code
 #for AJAX
-GET     /:projectName/code/!                controllers.CodeApp.ajaxRequest(projectName:String, path = "")
-GET     /:projectName/code/!/               controllers.CodeApp.ajaxRequest(projectName:String, path = "")
-GET     /:projectName/code/!/*path          controllers.CodeApp.ajaxRequest(projectName:String, path:String)
+GET     /:ownerName/:projectName/code/!         controllers.CodeApp.ajaxRequest(ownerName:String, projectName:String, path = "")
+GET     /:ownerName/:projectName/code/!/        controllers.CodeApp.ajaxRequest(ownerName:String, projectName:String, path = "")
+GET     /:ownerName/:projectName/code/!/*path   controllers.CodeApp.ajaxRequest(ownerName:String, projectName:String, path:String)
 #for normal
-GET     /:projectName/code                  controllers.CodeApp.view(projectName:String, path:String = "")
-GET     /:projectName/code/                 controllers.CodeApp.view(projectName:String, path:String = "")
-GET     /:projectName/code/*path            controllers.CodeApp.view(projectName:String, path:String)
+GET     /:ownerName/:projectName/code           controllers.CodeApp.view(ownerName:String, projectName:String, path:String = "")
+GET     /:ownerName/:projectName/code/          controllers.CodeApp.view(ownerName:String, projectName:String, path:String = "")
+GET     /:ownerName/:projectName/code/*path     controllers.CodeApp.view(ownerName:String, projectName:String, path:String)
