@@ -6,6 +6,8 @@ package models;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import models.enumeration.Direction;
+
 import org.junit.*;
 
 import com.avaje.ebean.Page;
@@ -27,7 +29,7 @@ public class PostTest extends ModelTest<Post> {
     public void findOnePage() throws Exception {
         // Given
         // When
-        Page<Post> page = Post.findOnePage("nForge4java", 1, Post.ORDER_DESCENDING,
+        Page<Post> page = Post.findOnePage("nForge4java", 1, Direction.DESC,
                 Post.ORDERING_KEY_ID);
         // Then
         assertThat(page.getList()).hasSize(1);
