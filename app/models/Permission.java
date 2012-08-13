@@ -4,10 +4,10 @@ import models.enumeration.PermissionOperation;
 import models.enumeration.PermissionResource;
 import play.db.ebean.Model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+
+import javax.persistence.ManyToMany;
 import java.util.List;
 
 /**
@@ -24,9 +24,9 @@ public class Permission extends Model {
 
     public String resource;
     public String operation;
-
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL)
-    public List<RolePermission> rolePermissions;
+    
+    @ManyToMany(targetEntity = models.Role.class, mappedBy = "permissions")
+    public List<Role> roles;
 
     /**
      * 해당 유저가 해당 프로젝트에서 해당 리소스와 오퍼레이션을 위한 퍼미션을 가지고 있는지 확인합니다.
@@ -40,10 +40,11 @@ public class Permission extends Model {
     public static boolean permissionCheck(Long userId, Long projectId,
                                           PermissionResource resource, PermissionOperation operation) {
         int findRowCount = find.where()
-            .eq("rolePermissions.role.projectUsers.user.id", userId)
-            .eq("rolePermissions.role.projectUsers.project.id", projectId)
-            .eq("resource", resource.resource()).eq("operation", operation.operation())
-            .findRowCount();
+                .eq("roles.projectUsers.user.id", userId)
+                .eq("roles.projectUsers.project.id", projectId)
+                .eq("resource", resource)
+                .eq("operation", operation)
+                .findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 
@@ -55,6 +56,6 @@ public class Permission extends Model {
      */
     public static List<Permission> findPermissionsByRole(Long roleId) {
         return find.where()
-            .eq("rolePermissions.role.id", roleId).findList();
+                .eq("roles.id", roleId).findList();
     }
 }

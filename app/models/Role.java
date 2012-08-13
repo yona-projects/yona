@@ -5,6 +5,7 @@ import play.db.ebean.Model;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import java.util.List;
 
@@ -26,8 +27,8 @@ public class Role extends Model {
     
     public String name;
     
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    public List<RolePermission> rolePermissions;
+    @ManyToMany
+    public List<Permission> permissions;
     
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUsers;
