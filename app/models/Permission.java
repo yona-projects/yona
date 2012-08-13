@@ -31,7 +31,7 @@ public class Permission extends Model{
     public String resource;
     public String operation;
     
-    @ManyToMany
+    @ManyToMany(targetEntity = models.Role.class, mappedBy = "permissions")
     public List<Role> roles;
     
     /**
