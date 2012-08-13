@@ -42,8 +42,8 @@ public class Permission extends Model {
         int findRowCount = find.where()
                 .eq("roles.projectUsers.user.id", userId)
                 .eq("roles.projectUsers.project.id", projectId)
-                .eq("resource", resource)
-                .eq("operation", operation)
+                .eq("resource", resource.resource())
+                .eq("operation", operation.operation())
                 .findRowCount();
         return (findRowCount != 0) ? true : false;
     }
