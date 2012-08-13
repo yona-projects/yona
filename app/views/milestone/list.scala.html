@@ -9,7 +9,7 @@
     routes.MilestoneApp.milestones(projectName, state, _sort, _direction)
 }
 @makeIssuesLink(mId: Long, _state: String) = @{
-    routes.IssueApp.issues(projectName, _state)+"&milestone="+mId
+    routes.IssueApp.issues(projectInst.owner, projectName, _state)+"&milestone="+mId
 }
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */

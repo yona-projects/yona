@@ -4,7 +4,7 @@
 
 @main(Messages(title), project) {
 
-    @form( action = routes.IssueApp.updateIssue(project.name, issueId), 
+    @form( action = routes.IssueApp.updateIssue(project.owner, project.name, issueId), 
             'enctype -> "multipart/form-data",
             'class -> "form-horizontal"){
             <fieldset>

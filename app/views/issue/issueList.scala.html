@@ -5,7 +5,7 @@
 
 @header(label:String, sortBy:String) = {
     <th>
-        <a sortBy="@sortBy" href="@routes.IssueApp.issues(project.name, param.stateType)">@label</a>
+        <a sortBy="@sortBy" href="@routes.IssueApp.issues(project.owner, project.name, param.stateType)">@label</a>
         @if(sortBy == param.sortBy){
         @if(param.orderBy == "desc"){
         <i class="icon-chevron-down"></i>
@@ -21,7 +21,7 @@
 	<div class="row">
 		<div span="span6">
 			<div class="pull-right">
-				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.issues(project.name, param.stateType)" method="GET" >
+				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.issues(project.owner, project.name, param.stateType)" method="GET" >
 					<select id="milestone" name="milestone">
 						<option class="blank" value ="">@Messages("issue.menu.milestoneSelectDefault")</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
 					</select>
@@ -31,7 +31,7 @@
 					<input type="hidden" name="stateType" value="@param.stateType">
 					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
 				
-				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.name)" >@Messages("issue.menu.new")</a>
+				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.owner, project.name)" >@Messages("issue.menu.new")</a>
 				</form>
 			</div>
 		</div>
@@ -39,11 +39,11 @@
 	<div>
 		<ul class="nav nav-tabs" id="issue_list">
 			<li class="@if(param.stateType.equals("all")){active}">
-				<a href="@routes.IssueApp.issues(project.name,"all")">@Messages("issue.stateType.all")</a></li>
+				<a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("issue.stateType.all")</a></li>
 			<li class="@if(param.stateType.equals("open")){active}">
-				<a href="@routes.IssueApp.issues(project.name, "open")">@Messages("issue.stateType.open")</a></li>
+				<a href="@routes.IssueApp.issues(project.owner, project.name, "open")">@Messages("issue.stateType.open")</a></li>
 			<li class="@if(param.stateType.equals("closed")){active}">
-				<a href="@routes.IssueApp.issues(project.name, "closed")">@Messages("issue.stateType.closed")</a></li>
+				<a href="@routes.IssueApp.issues(project.owner, project.name, "closed")">@Messages("issue.stateType.closed")</a></li>
 		</ul>
 				
 		@if(currentPage.getTotalRowCount == 0){
@@ -52,7 +52,7 @@
 			</div>
 		}else{
 		<div class="pull-right">
-			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.issues(project.name, param.stateType)" method="GET">
+			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.issues(project.owner, project.name, param.stateType)" method="GET">
 				
 				<input type="hidden" name="filter" value="@param.filter">
 				<input type="hidden" name="stateType" value="@param.stateType">
@@ -72,7 +72,7 @@
 		            	<label class="checkbox inline">
 		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1"> @Messages("checkbox.fileAttached")
 		              	</label>
-		              	<a href="@routes.IssueApp.extractExcelFile(project.name, param.stateType)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
+		              	<a href="@routes.IssueApp.extractExcelFile(project.owner, project.name, param.stateType)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
 		            	</fieldset>
 		            </div>
 		        </div>
@@ -95,7 +95,7 @@
 						<tr>
 							<td>@issue.id</td>
 							<td>@Messages(issue.state())</td>
-							<td><a href="@routes.IssueApp.issue(project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
+							<td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file">}</a></td>
 							<td>
 								@if(issue.assigneeId == null){
 								<em>@Messages("issue.noAssignee")</em>						
@@ -115,7 +115,7 @@
         @pagination(currentPage, 5, "pagination")
     </div>
     <div class="span2">
-        <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+        <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.owner, project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
     </div>
   </div>
  
