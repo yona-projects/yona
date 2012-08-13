@@ -60,18 +60,8 @@ public class ProjectApp extends Controller {
                     Project.create(project), Role.MANAGER);
 
             // create Repository
-            if (project.vcs.equals("GIT")) {
-                Repository repository = new RepositoryBuilder().setGitDir(
-                        new File(GitApp.REPO_PREFIX + project.name + ".git"))
-                        .build();
-                boolean bare = true;
-                repository.create(bare); // create bare repository
-            } else if (project.vcs.equals("Subversion")) {
-                String svnPath = new File(SvnApp.REPO_PREFIX + project.name).getAbsolutePath();
-                new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
-            } else {
-                throw new UnsupportedOperationException("only support git!");
-            }
+            // FIXME 이게 과연 CodeApp의 역활인가?
+            CodeApp.createRepository(project.name, project.vcs);
 
             return redirect(routes.ProjectApp.project(project.name));
         }
