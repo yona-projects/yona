@@ -46,7 +46,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project sut = Project.findById(1l);
         // Then
-        assertThat(sut.issues.size()).isEqualTo(4);
+        assertThat(sut.issues.size()).isEqualTo(7);
     }
 
     @Test

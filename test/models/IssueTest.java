@@ -69,7 +69,7 @@ public class IssueTest extends ModelTest<Issue> {
         // When
         Page<Issue> issues = Issue.findOpenIssues("nForge4java");
         // Then
-        assertThat(issues.getTotalRowCount()).isEqualTo(2);
+        assertThat(issues.getTotalRowCount()).isEqualTo(3);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class IssueTest extends ModelTest<Issue> {
         // When
         Page<Issue> issues = Issue.findClosedIssues("nForge4java");
         // Then
-        assertThat(issues.getTotalRowCount()).isEqualTo(2);
+        assertThat(issues.getTotalRowCount()).isEqualTo(4);
     }
 
     @Test
@@ -97,7 +97,7 @@ public class IssueTest extends ModelTest<Issue> {
     public void findCommentedIssue() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findCommentedIssues("Jindo", "");
+        Page<Issue> issues = Issue.findCommentedIssues("nForge4java", "");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }

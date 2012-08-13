@@ -46,13 +46,13 @@ POST    /:userName/:projectName/member/edit     controllers.ProjectApp.updateMem
 GET     /:userName/:projectName/member/delete   controllers.ProjectApp.deleteMember(userName: String, projectName:String, userId:Long)
 
 # Milestones
-GET     /:projectName/milestoneList             controllers.MilestoneApp.milestones(projectName:String, state ?= "open", sort ?= "dueDate", direction ?= "asc")
-GET     /:projectName/milestones/manage         controllers.MilestoneApp.manageMilestones(projectName:String, sort ?= "dueDate", direction ?= "asc")
-GET     /:projectName/milestones/new            controllers.MilestoneApp.newMilestone(projectName:String)
-POST    /:projectName/milestones/new            controllers.MilestoneApp.saveMilestone(projectName:String)
-POST    /:projectName/milestone/:id/edit        controllers.MilestoneApp.updateMilestone(projectName:String, id: Long)
-GET     /:projectName/milestone/:id/delete      controllers.MilestoneApp.deleteMilestone(projectName:String, id: Long)
-GET     /:projectName/milestone/:id/edit        controllers.MilestoneApp.editMilestone(projectName:String, id: Long)
+GET     /:userName/:projectName/milestoneList             controllers.MilestoneApp.milestones(userName: String, projectName:String)
+GET     /:userName/:projectName/milestones/manage         controllers.MilestoneApp.manageMilestones(userName: String, projectName:String)
+GET     /:userName/:projectName/milestones/new            controllers.MilestoneApp.newMilestone(userName: String, projectName:String)
+POST    /:userName/:projectName/milestones/new            controllers.MilestoneApp.saveMilestone(userName: String, projectName:String)
+POST    /:userName/:projectName/milestone/:id/edit        controllers.MilestoneApp.updateMilestone(userName: String, projectName:String, id: Long)
+GET     /:userName/:projectName/milestone/:id/delete      controllers.MilestoneApp.deleteMilestone(userName: String, projectName:String, id: Long)
+GET     /:userName/:projectName/milestone/:id/edit        controllers.MilestoneApp.editMilestone(userName: String, projectName:String, id: Long)
 
 # Issues
 GET     /:user/:project/issueList                 controllers.IssueApp.issues(user:String, project:String, stateType:String)

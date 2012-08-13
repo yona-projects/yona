@@ -1,38 +1,50 @@
-@(title: String, milestones: List[models.Milestone], projectName: String, state: String, sort: String, direction: String, projectInst:Project)
+@(title: String, milestones: List[models.Milestone], projectInst: Project, mCondition: MilestoneApp.MilestoneCondition)
+@import scala.collection.immutable._
+@import utils.TemplateHelper
 @makeSortLink(_sort:String) = @{
     var _direction = "asc";
-    if(sort.equals(_sort)) {
-        if(_direction.equals(direction)) {
+    if(mCondition.sort.equals(_sort)) {
+        if(_direction.equals(mCondition.direction)) {
             _direction = "desc"
         }
     }
-    routes.MilestoneApp.milestones(projectName, state, _sort, _direction)
+    TemplateHelper.buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
+      Map("state"->mCondition.state, "sort"->_sort, "direction"->_direction)
+    )
 }
 @makeIssuesLink(mId: Long, _state: String) = @{
-    routes.IssueApp.issues(projectInst.owner, projectName, _state)+"&milestone="+mId
+  TemplateHelper.buildQueryString(routes.IssueApp.issues(projectInst.owner, projectInst.name, _state),
+    Map("milestone"->mId.toString)
+  )
 }
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */
-    if(sort.equals(_sort)) {
-        if(direction.equals("desc")){
+    if(mCondition.sort.equals(_sort)) {
+        if(mCondition.direction.equals("desc")){
         "▼"
         } else {
         "▲"
         }
     }
 }
+@makeMilestoneListLink(_state: String) = @{
+  TemplateHelper.buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
+    Map("state"->_state)
+  )
+}
+
 @project.projectMngMain(title, projectInst) {
     <div>
         <div style="position: relative;">
             <ul class="nav nav-tabs" id="milestone_list">
-                <li class="@if(state.equals("all")){active}">
-                <a href="@routes.MilestoneApp.milestones(projectName,"all")">@Messages("milestone.state.all")</a>
+                <li class="@if(mCondition.state.equals("all")){active}">
+                <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
                 </li>
-                <li class="@if(state.equals("open")){active}">
-                <a href="@routes.MilestoneApp.milestones(projectName,"open")">@Messages("milestone.state.open")</a>
+                <li class="@if(mCondition.state.equals("open")){active}">
+                <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
                 </li>
-                <li class="@if(state.equals("closed")){active}">
-                <a href="@routes.MilestoneApp.milestones(projectName,"closed")">@Messages("milestone.state.closed")</a>
+                <li class="@if(mCondition.state.equals("closed")){active}">
+                <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
                 </li>
             </ul>
             <div style="position: absolute; top: 10px; right: 0;">
@@ -65,7 +77,7 @@
     </table>
     </div>
     <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.manageMilestones(projectName)" >@Messages("milestone.menu.manage")</a>
+        <a class="btn btn-primary" href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" >@Messages("milestone.menu.manage")</a>
     </div>
     }
 }
