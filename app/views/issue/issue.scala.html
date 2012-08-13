@@ -22,7 +22,7 @@
 		<div class="span11">
 			<h1>@issue.title</h1>
 			<div>
-				<span>@issue.reporterName이 @issue.date에 작성함</span>
+				<span>@issue.reporterName이 @agoString(issue.ago())에 작성함</span>
 			</div>
 		</div>
 	</div>
@@ -53,8 +53,7 @@
 	</div>
 	<div class="span11">
 		<div>
-			<span>@comment.authorName이 @comment.date에
-				작성함</span>
+			<span>@comment.authorName이 @agoString(comment.ago())에 작성함</span>
 				
 		</div>
 		
@@ -70,7 +69,7 @@
 		        <h3>@Messages("issue.delete.window")</h3>
 		    </div>
 		    <div class="modal-body">
-		        <p>@Messages("post.delete.confirm")</p>
+		        <p>@Messages("issue.comment.delete.confirm")</p>
 		    </div>
 		    <div class="modal-footer">
 		        <a class="btn btn-danger"
@@ -82,7 +81,7 @@
 		<p>@if(comment.filePath != null){
 		<p>
 			<a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i
-				class="icon-download"></i>@comment.filePath</a>
+				class="icon-download"> </i> @comment.filePath</a>
 		</p>
 		  }
 		}

@@ -19,6 +19,9 @@ import utils.JodaDateUtil;
 import utils.RoleCheck;
 
 import javax.persistence.*;
+
+import org.joda.time.Duration;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -468,7 +471,6 @@ public class Issue extends Model {
 
         Issue issue = Issue.findById(id);
         issue.numOfComments = issue.comments.size();
-        System.out.println(issue.numOfComments);
         issue.update();
     }
 
@@ -486,5 +488,9 @@ public class Issue extends Model {
 
         return authorIs;
 
+    }
+    
+    public Duration ago(){
+        return JodaDateUtil.ago(this.date);
     }
 }

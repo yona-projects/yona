@@ -14,6 +14,9 @@ import utils.RoleCheck;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+
+import org.joda.time.Duration;
+
 import java.util.Date;
 
 @Entity
@@ -70,6 +73,10 @@ public class IssueComment extends Model {
             || RoleCheck.roleCheck(currentUserId, projectId,
             PermissionResource.PROJECT,
             PermissionOperation.WRITE);
+    }
+    
+    public Duration ago(){
+        return JodaDateUtil.ago(this.date);
     }
 
 }

@@ -88,18 +88,15 @@ public class IssueApp extends Controller {
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
-        return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.owner, project.name,
+                StateType.ALL.stateType()));
     }
 
     public static Result editIssue(String userName, String projectName, Long id) {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (UserApp.currentUser().id == targetIssue.reporterId
-                || RoleCheck.roleCheck(UserApp.currentUser().id, project.id,
-                        PermissionResource.PROJECT,
-                        PermissionOperation.WRITE)) {
-
+        if (UserApp.currentUser().id == targetIssue.reporterId) {
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
@@ -126,7 +123,8 @@ public class IssueApp extends Controller {
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.owner, project.name,
+                StateType.ALL.stateType()));
     }
 
     public static Result saveComment(String userName, String projectName, Long issueId) {
@@ -141,20 +139,21 @@ public class IssueApp extends Controller {
             comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
-            Issue.findById(issueId).numOfComments++;
-            Issue.updateNumOfComments(issueId);
+//            Issue.updateNumOfComments(issueId);
             return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         }
     }
 
-    public static Result deleteComment(String userName, String projectName, Long issueId, Long commentId) {
+    public static Result deleteComment(String userName, String projectName, Long issueId,
+            Long commentId) {
         Project project = ProjectApp.getProject(userName, projectName);
         IssueComment.delete(commentId);
         Issue.updateNumOfComments(issueId);
         return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
     }
 
-    public static Result extractExcelFile(String userName, String projectName, String stateType) throws Exception {
+    public static Result extractExcelFile(String userName, String projectName, String stateType)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
@@ -168,7 +167,8 @@ public class IssueApp extends Controller {
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
-    public static Result enrollAutoNotification(String userName, String projectName) throws Exception {
+    public static Result enrollAutoNotification(String userName, String projectName)
+            throws Exception {
         return TODO;
     }
 
