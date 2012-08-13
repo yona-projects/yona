@@ -69,16 +69,16 @@ public class Post extends Model {
      *            프로젝트이름
      * @param pageNum
      *            페이지 번호
-     * @param order
+     * @param direction
      *            오름차순(asc), 내림차순(decs)
      * @param key
      *            오름차순과 내림차수를 결정하는 기준
      * @return
      */
-    public static Page<Post> findOnePage(String projectName, int pageNum, String order, String key) {
+    public static Page<Post> findOnePage(String projectName, int pageNum, Direction direction, String key) {
         SearchParams searchParam = new SearchParams().add("project.name", projectName,
                 Matching.EQUALS);
-        OrderParams orderParams = new OrderParams().add(key, Direction.getValue(order));
+        OrderParams orderParams = new OrderParams().add(key, direction);
         return FinderTemplate.getPage(orderParams, searchParam, find, 10, pageNum - 1);
     }
 

@@ -1,12 +1,12 @@
 @(url : String, project:Project) @main("코드", project){
 <div class="well">Clone this repository : git clone @url</div>
-<div class="row">
+<div class="row" id="codeBrowser">
     <div class="span3">
         <ul id="codeRoot" class="well nav nav-list">
             <li id="codeBrowserHeader">코드 탐색기</li>
         </ul>
     </div>
-    <div class="span9"><!-- 교환가능하야 한다. -->
+    <div class="span9" ><!-- 교환가능하야 한다. -->
         <div id="folderView">
             <table class="table table-bordered">
                 <thead>
@@ -31,9 +31,18 @@
                 <pre><code style="overflow:hidden"></code></pre>
             </div>
         </div>
-        <div id="codeError" class="hide">
-            <div class="well">Sorry! We attacked some Problem!</div>
-        </div>
+        
+    </div>
+    
+</div>
+<div id="codeError" class="hide row">
+    <div class="well span12">
+        <p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>
+        <pre><code>git clone @url
+touch readme.md
+git add readme.md
+git commit -m "init"
+git push origin master</code></pre>
     </div>
 </div>
 <script type="text/javascript" src="/assets/javascripts/hljs.js"></script>
@@ -106,11 +115,11 @@
             $.ajax(path, {
     			success : function(data, textStatus, jqXHR){
     			    //폴더 구조를 펼치기
-                    var $ul = $("<ul>").addClass("nav nav-list");
+                    var $ul = $("<ul>").addClass("nav nav-list");//<--
                     $("tbody").children().remove();
                     for(var name in data)
                     {
-                        $ul.append(makeLink(name, data[name].type, path));
+                        $ul.append(makeLink(name, data[name].type, path));//<-
                         
                         $("tbody").append($("<tr>")
                         		.append($("<td>").text(name))
@@ -119,15 +128,14 @@
                         		.append($("<td>").text(data[name].commiter))
                         		);
                     }
-                    $parent.after($ul);
+                    $parent.after($ul); //<--
                     $parent.attr("opened", "true");
                     $("#folderView").show();
                     $("#codeView").hide();
                 },
                 error : function(){
                 	$("#codeError").show();
-                	$("#folderView").hide();
-                    $("#codeView").hide();
+                	$("#codeBrowser").hide();
                 }
             });
         }
@@ -136,7 +144,9 @@
             $parent.next().remove();
             $.ajax($parent.attr("href"), {
                 success : function(data, textStatus, jqXHR){
-                	$("tbody").children().remove();
+                	$("tbody").children().remove();//<--
+                	
+
                     for(var name in data)
                     {
                         $("tbody").append($("<tr>")
@@ -151,7 +161,8 @@
                     $("#codeView").hide();
                 }
             });
-        } 
+        }
+        
     });
     </script>
 }

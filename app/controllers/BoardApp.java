@@ -5,13 +5,11 @@
 package controllers;
 
 import java.io.File;
-import java.util.List;
-
 import models.Comment;
 import models.Post;
 import models.Post.Param;
 import models.Project;
-import play.Logger;
+import models.enumeration.Direction;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -31,8 +29,9 @@ public class BoardApp extends Controller {
         Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
         Param postParam = postParamForm.bindFromRequest().get();
         Project project = Project.findByName(projectName);
+        
         return ok(postList.render("게시판", project,
-                Post.findOnePage(project.name, postParam.pageNum, postParam.order, postParam.key),
+                Post.findOnePage(project.name, postParam.pageNum, Direction.getValue(postParam.order), postParam.key),
                 postParam));
     }
 
