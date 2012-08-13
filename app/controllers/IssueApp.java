@@ -47,13 +47,10 @@ public class IssueApp extends Controller {
      *            이슈 해결 상태
      * @return
      */
-    public static Result issues(String projectName, String stateType) {
-        Project project = Project.findByName(projectName);
+    public static Result issues(String userName, String projectName, String stateType) {
+        Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        if (project == null) {
-            return notFound();
-        }
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
@@ -61,11 +58,8 @@ public class IssueApp extends Controller {
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
-    public static Result issue(String projectName, Long issueId) {
-        Project project = Project.findByName(projectName);
-        if (project == null) {
-            return notFound();
-        }
+    public static Result issue(String userName, String projectName, Long issueId) {
+        Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.findById(issueId);
         if (issueInfo == null) {
             return ok(notExistingPage.render("title.post.notExistingPage", project));
@@ -75,21 +69,14 @@ public class IssueApp extends Controller {
         }
     }
 
-    public static Result newIssue(String projectName) {
-        Project project = Project.findByName(projectName);
-        if (project == null) {
-            return notFound();
-        }
+    public static Result newIssue(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
         return ok(newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
-    public static Result saveIssue(String projectName) {
+    public static Result saveIssue(String userName, String projectName) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
-        Project project = Project.findByName(projectName);
-
-        if (project == null) {
-            return notFound();
-        }
+        Project project = ProjectApp.getProject(userName, projectName);
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
         } else {
@@ -101,30 +88,28 @@ public class IssueApp extends Controller {
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
-        return redirect(routes.IssueApp.issues(project.name, StateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.stateType()));
     }
 
-    public static Result editIssue(String projectName, Long id) {
+    public static Result editIssue(String userName, String projectName, Long id) {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
-        Project project = Project.findByName(projectName);
-
+        Project project = ProjectApp.getProject(userName, projectName);
         if (UserApp.currentUser().id == targetIssue.reporterId
                 || RoleCheck.roleCheck(UserApp.currentUser().id, project.id,
-                        PermissionResource.PROJECT.resource(),
-                        PermissionOperation.WRITE.operation())) {
+                        PermissionResource.PROJECT,
+                        PermissionOperation.WRITE)) {
 
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
-                    routes.IssueApp.issue(project.name, id), project));
+                    routes.IssueApp.issue(project.owner, project.name, id), project));
         }
     }
 
-    public static Result updateIssue(String projectName, Long id) {
+    public static Result updateIssue(String userName, String projectName, Long id) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
-        Project projcet = Project.findByName(projectName);
-
+        Project project = ProjectApp.getProject(userName, projectName);
         if (issueForm.hasErrors()) {
             return badRequest(issueForm.errors().toString());
         } else {
@@ -132,25 +117,22 @@ public class IssueApp extends Controller {
             issue.reporterId = UserApp.currentUser().id;
             issue.id = id;
             issue.filePath = saveFile(request());
-            issue.project = projcet;
+            issue.project = project;
             Issue.edit(issue);
         }
-        return redirect(routes.IssueApp.issues(projcet.name, StateType.ALL.name()));
+        return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.name()));
     }
 
-    public static Result deleteIssue(String projectName, Long issueId) {
-        Project project = Project.findByName(projectName);
-        if (project == null) {
-            return notFound();
-        }
+    public static Result deleteIssue(String userName, String projectName, Long issueId) {
+        Project project = ProjectApp.getProject(userName, projectName);
         Issue.delete(issueId);
-        return redirect(routes.IssueApp.issues(project.name, StateType.ALL.stateType()));
+        return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.stateType()));
     }
 
-    public static Result saveComment(String projectName, Long issueId) {
+    public static Result saveComment(String userName, String projectName, Long issueId) {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
-        Project project = Project.findByName(projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
         if (commentForm.hasErrors()) {
             return TODO;
         } else {
@@ -161,27 +143,21 @@ public class IssueApp extends Controller {
             IssueComment.create(comment);
             Issue.findById(issueId).numOfComments++;
             Issue.updateNumOfComments(issueId);
-            return redirect(routes.IssueApp.issue(project.name, issueId));
+            return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         }
     }
 
-    public static Result deleteComment(String projectName, Long issueId, Long commentId) {
-        Project project = Project.findByName(projectName);
-        if (project == null) {
-            return notFound();
-        }
+    public static Result deleteComment(String userName, String projectName, Long issueId, Long commentId) {
+        Project project = ProjectApp.getProject(userName, projectName);
         IssueComment.delete(commentId);
         Issue.updateNumOfComments(issueId);
-        return redirect(routes.IssueApp.issue(project.name, issueId));
+        return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
     }
 
-    public static Result extractExcelFile(String projectName, String stateType) throws Exception {
-        Project project = Project.findByName(projectName);
+    public static Result extractExcelFile(String userName, String projectName, String stateType) throws Exception {
+        Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        if (project == null) {
-            return notFound();
-        }
         Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
@@ -192,7 +168,7 @@ public class IssueApp extends Controller {
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
-    public static Result enrollAutoNotification(String projectName) throws Exception {
+    public static Result enrollAutoNotification(String userName, String projectName) throws Exception {
         return TODO;
     }
 

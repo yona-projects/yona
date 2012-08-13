@@ -4,19 +4,17 @@
 
 package models;
 
-import java.util.Date;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-
 import models.enumeration.PermissionOperation;
 import models.enumeration.PermissionResource;
-
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 import utils.RoleCheck;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import java.util.Date;
 
 @Entity
 public class IssueComment extends Model {
@@ -60,21 +58,18 @@ public class IssueComment extends Model {
         find.byId(id).delete();
     }
 
-    public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
+    public boolean isAuthor(Long currentUserId, String projectName) {
 
         Project project = Project.findByName(projectName);
-        boolean authorIs;
-        if (currentUserId == findById(objectId).authorId
-                || RoleCheck.roleCheck(currentUserId, project.id,
-                        PermissionResource.PROJECT.resource(),
-                        PermissionOperation.WRITE.operation())) {
-            authorIs = true;
-        } else {
-            authorIs = false;
-        }
+        return checkAuthor(currentUserId, project.id);
 
-        return authorIs;
+    }
 
+    private boolean checkAuthor(Long currentUserId, Long projectId) {
+        return currentUserId.equals(this.id)
+            || RoleCheck.roleCheck(currentUserId, projectId,
+            PermissionResource.PROJECT,
+            PermissionOperation.WRITE);
     }
 
 }

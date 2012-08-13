@@ -1,5 +1,11 @@
 package models;
 
+import com.avaje.ebean.Page;
+import models.enumeration.Direction;
+import models.enumeration.Matching;
+import models.support.FinderTemplate;
+import models.support.OrderParams;
+import models.support.SearchParams;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -7,47 +13,33 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
-
-import models.enumeration.Direction;
-import models.enumeration.Matching;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
-
-import com.avaje.ebean.Page;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
     private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
             User.class);
-    
+
     public static final int USER_COUNT_PER_PAGE = 30;
     public static final Long SITE_MANAGER_ID = 1l;
-    
+
     @Id
     public Long id;
-    
+
     public String name;
-    
-    @Constraints.Required
     public String loginId;
-    
-    @Constraints.Required
     public String password;
-        
+
     @Constraints.Pattern("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$")
     public String email;
-    
+
     public String profileFilePath;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUser;
+    public List<ProjectUser> projectUser;
 
     public String getName() {
         return this.name;
@@ -60,10 +52,10 @@ public class User extends Model {
     public static User findById(Long id) {
         return find.byId(id);
     }
-    
+
     public static User findProjectsById(Long id) {
         return find
-                .fetch("projectUser.project","name")
+                .fetch("projectUser.project", "name")
                 .where()
                     .eq("id", id)
                 .findUnique();
@@ -78,7 +70,7 @@ public class User extends Model {
         if(check == null){
             return false;
         }
-        
+
         if(check.password.equals(user.password)){
             return true;
         } else {
@@ -101,10 +93,10 @@ public class User extends Model {
         }
         return options;
     }
-    
+
     /**
      * Site manager를 제외한 사이트에 가입된 유저들의 리스트를 Page 형태로 반환합니다.
-     * 
+     *
      * @param pageNum
      * @param loginId
      * @return
@@ -112,18 +104,18 @@ public class User extends Model {
     public static Page<User> findUsers(int pageNum, String loginId) {
         OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
         SearchParams searchParams = new SearchParams().add("id", 1l, Matching.NOT_EQUALS);
-        
+
         if(loginId != null){
             searchParams.add("loginId", loginId, Matching.CONTAINS);
         }
-        
+
         return FinderTemplate.getPage(orderParams, searchParams, find, USER_COUNT_PER_PAGE, pageNum);
     }
-    
+
     /**
      * 해당 프로젝트에 속하는 유저들의 리스트를 제공합니다.
      * (Site manager는 hidden role로서 반환되지 않습니다.)
-     * 
+     *
      * @param projectId
      * @return
      */

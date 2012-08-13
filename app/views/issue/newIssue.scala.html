@@ -7,7 +7,7 @@
 	<div class="page-header">
 		<h1>@Messages(title)</h1>
 	</div>
-    @form(action = routes.IssueApp.saveIssue(project.name), 
+    @form(action = routes.IssueApp.saveIssue(project.owner, project.name), 
     				'enctype -> "multipart/form-data",
     				'class -> "form-horizontal"){
     	<fieldset>
@@ -148,7 +148,7 @@
 	<div class="row pull-right">
 			<div class="actions">
 				<input type="submit" class="btn btn-primary" value="@Messages("button.save")"> 
-				<a href="@routes.IssueApp.issues(project.name, "all")" class="btn">@Messages("button.cancel")</a>
+				<a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="btn">@Messages("button.cancel")</a>
 			</div>
     </div>
  }

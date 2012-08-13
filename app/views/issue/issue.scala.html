@@ -5,9 +5,9 @@
 <div class="row">
 	<div class="span2 offset10">
 		<div id="board_btn_panel">
-			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.name, issue.id)">@Messages("button.edit")</a> <a
+			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a> <a
 				data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
-			<a class="btn" href="@routes.IssueApp.issues(project.name,"open")">@Messages("button.list")</a>
+			<a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
 		</div>
 	</div>
 </div>
@@ -58,7 +58,7 @@
 				
 		</div>
 		
-		@if(ProjectUser.isMember(session.get("userId").toLong, project.id) || comment.isAuthor(session.get("userId").toLong, comment.id, project.name)){
+		@if(ProjectUser.isMember(session.get("userId").toLong, project.id) || comment.isAuthor(session.get("userId").toLong, project.name)){
 		<div class="pull-right"> 
 		      <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
 		</div>
@@ -74,7 +74,7 @@
 		    </div>
 		    <div class="modal-footer">
 		        <a class="btn btn-danger"
-		            href="@routes.IssueApp.deleteComment(project.name, issue.id, comment.id)">@Messages("button.yes")</a>
+		            href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">@Messages("button.yes")</a>
 		        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
 		    </div>
         </div>
@@ -92,7 +92,7 @@
 <!-- 댓글 입력 폼 -->
 <hr />
 <div class="row">
-	@form(routes.IssueApp.saveComment(project.name, issue.id), 'enctype ->
+	@form(routes.IssueApp.saveComment(project.owner, project.name, issue.id), 'enctype ->
 	"multipart/form-data"){
 	<div class="span12">@textarea(commentForm("contents"))</div>
 	<div class="span6">@inputFile(commentForm("filePath"))</div>
@@ -115,7 +115,7 @@
 	</div>
 	<div class="modal-footer">
 		<a class="btn btn-danger"
-			href="@routes.IssueApp.deleteIssue(project.name, issue.id)">@Messages("button.yes")</a>
+			href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.id)">@Messages("button.yes")</a>
 		<a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
 	</div>
 </div>

@@ -2,11 +2,13 @@ package models;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
-import javax.persistence.*;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 
@@ -31,29 +33,25 @@ public class Project extends Model {
     public String vcs;
     public String url;
     public String logoPath;
+    public String owner;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Issue> issues;
+    public List<Issue> issues;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUser;
+    public List<ProjectUser> projectUser;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Post> posts;
+    public List<Post> posts;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public Set<Milestone> milestones;
+    public List<Milestone> milestones;
 
     public static Long create(Project newProject) {
         newProject.url = "http://localhost:9000/" + newProject.name;
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, Role.SITEMANAGER);
         return newProject.id;
-    }
-
-    public static String update(Project updatedProject, String projectName) {
-        updatedProject.update(Project.findByName(projectName).id);
-        return updatedProject.name;
     }
 
     public static void delete(Long id) {
@@ -66,6 +64,10 @@ public class Project extends Model {
 
     public static Project findByName(String name) {
         return find.where().eq("name", name).findUnique();
+    }
+    
+    public static Project findByNameAndOwner(String userName, String projectName) {
+        return find.where().eq("name", projectName).eq("owner", userName).findUnique();
     }
     
     /**
@@ -87,8 +89,9 @@ public class Project extends Model {
         Iterator<Project> iterator = projects.iterator();
         while(iterator.hasNext()){
             Project project = iterator.next();
-            if(ProjectUser.isManager(project.id))
+            if(ProjectUser.isManager(project.id)) {
                 projects.remove(project);
+            }
         }
         
         return projects;
@@ -100,8 +103,8 @@ public class Project extends Model {
      * @param ownerId
      * @return
      */
-    public static List<Project> findProjectsByOwner(Long ownerId) {
+    public static List<Project> findProjectsByMember(Long userId) {
         return find.where()
-                .eq("projectUser.user.id", ownerId).findList();
+                .eq("projectUser.user.id", userId).findList();
     }
 }

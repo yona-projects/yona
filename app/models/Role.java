@@ -1,14 +1,13 @@
 package models;
 
-import java.util.List;
-import java.util.Set;
-
 import play.db.ebean.Model;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
+import java.util.List;
 
 /**
  * @author "Hwi Ahn"
@@ -28,11 +27,11 @@ public class Role extends Model {
     
     public String name;
     
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    public Set<RolePermission> rolePermissions;
+    @ManyToMany
+    public List<Permission> permissions;
     
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    public Set<ProjectUser> projectUsers;
+    public List<ProjectUser> projectUsers;
 
     
     public static Role findById(Long id) {

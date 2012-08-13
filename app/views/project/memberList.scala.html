@@ -15,19 +15,19 @@
             <tr>
                 <td>@member.user.loginId</td>
                 <td>
-	                <form action="@routes.ProjectApp.updateMember(member.user.id, project.name)" method="post">
+	                <form action="@routes.ProjectApp.updateMember(project.owner, project.name, member.user.id)" method="post">
 	                    <select id="role" name="id">
 	                        @memberRole(member.role.name)
 	                    </select>
 	                </form>
                 </td>
                 <td>
-                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(member.user.id, project.name)">@Messages("button.delete")</a>
+                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)">@Messages("button.delete")</a>
                 </td>
             </tr>
         }
         <tr>
-            <form action="@routes.ProjectApp.newMember(project.name)" method="post" id="addNewMember">
+            <form action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
 	            <td colspan="2">
 	                <input type="text" id="loginId" name="loginId" class="span8"
 	                placeholder="@Messages("project.members.addMember")">

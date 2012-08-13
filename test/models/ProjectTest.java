@@ -2,6 +2,8 @@ package models;
 
 import org.junit.Test;
 
+import controllers.UserApp;
+
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -36,7 +38,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project sut = Project.findById(1l);
         // Then
-        assertThat(sut.milestones.size()).isEqualTo(3);
+        assertThat(sut.milestones.size()).isEqualTo(2);
     }
     @Test
     public void findIssuessById() throws Exception {
@@ -44,22 +46,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project sut = Project.findById(1l);
         // Then
-        assertThat(sut.issues.size()).isEqualTo(2);
-    }
-
-    @Test
-    public void update() throws Exception {
-        // Given
-        Project prj = new Project();
-        prj.name = "modifiedProjectName";
-        // When
-        Project.update(prj,"nForge4java");
-        flush();
-        // Then
-        Project actualProject = Project.findById(1l);
-
-        assertThat(actualProject.name).isEqualTo("modifiedProjectName");
-        assertThat(actualProject.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
+        assertThat(sut.issues.size()).isEqualTo(4);
     }
 
     @Test
@@ -101,11 +88,22 @@ public class ProjectTest extends ModelTest<Project> {
     }
 
     @Test
-    public void findProjectsByOwner() throws Exception {
+    public void findProjectsByMember() throws Exception {
         // Given
         // When
-        List<Project> projects = Project.findProjectsByOwner(2l);
+        List<Project> projects = Project.findProjectsByMember(2l);
         // Then
         assertThat(projects.size()).isEqualTo(2);
+    }
+    
+    @Test
+    public void findByNameAndOwner() throws Exception {
+        // Given
+        String userName = "hobi";
+        String projectName = "nForge4java";
+        // When
+        Project project = Project.findByNameAndOwner(userName, projectName);
+        // Then
+        assertThat(project.id).isEqualTo(1l);
     }
 }
