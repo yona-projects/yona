@@ -2,97 +2,122 @@ package controllers;
 
 import git.GitRepository;
 
-import java.io.IOException;
+import java.io.*;
+
+import models.Project;
+
+import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.*;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
 import play.Logger;
 import play.mvc.*;
 import views.html.code.gitView;
 
-/**
- * 
- * @author Ahn Hyeok Jun
- * @e-mail qa22ahj@google.com
- * 
- * @class git repository에 접근할때의 컨트롤러. push, pull만을 처리하고 코드 브라우저의 접근은 CodeApp에서
- *        처리한다. TODO showRawCode와 showCodeBrowser가 여기 있어야 되는지고려할것
- * 
- */
 public class GitApp extends Controller {
     public static final String REPO_PREFIX = "repo/git/";
-    public static String HOST_URL = "http://localhost:9000/";
 
     /**
      * 클라이언트로 부터 요청을 받아 레파지토리에 push pull 하는 함수.
-     * 
-     * @param projectName
-     *            서비스를 받아야할 프로젝트 이름
-     * @param service
-     *            받는 서비스.
-     * @return 글라이언트에게 줄 응답 몸통
+     * @param projectName       서비스를 받아야할 프로젝트 이름
+     * @param service           받는 서비스. 
+     * @return                  글라이언트에게 줄 응답 몸통
      * @throws IOException
      */
-    public static Result advertise(String ownerName, String projectName, String service)
-            throws IOException {
+    public static Result advertise(String ownerName, String projectName, String service) throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
 
         response().setContentType("application/x-" + service + "-advertisement");
 
-        byte[] buf = GitRepository.getGitRepository(ownerName, projectName).advertise(service);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PacketLineOut out = new PacketLineOut(byteArrayOutputStream);
+        out.writeString("# service=" + service + "\n");
+        out.end();
 
-        if (buf == null)
+        Repository repository = GitRepository.getRepository(ownerName, projectName);
+        if (service.equals("git-upload-pack")) {
+            UploadPack uploadPack = new UploadPack(repository);
+
+            uploadPack.setBiDirectionalPipe(false);
+            uploadPack.sendAdvertisedRefs(new PacketLineOutRefAdvertiser(out));
+        } else if (service.equals("git-receive-pack")) {
+            ReceivePack receivePack = new ReceivePack(repository);
+
+            receivePack.sendAdvertisedRefs(new PacketLineOutRefAdvertiser(out));
+        } else {
             return forbidden("Unsupported service: '" + service + "'");
+        }
 
-        return ok(buf);
+        return ok(byteArrayOutputStream.toByteArray());
     }
 
     /**
      * 서비스의 사용가능 상태를 확인
-     * 
-     * @param projectName
-     *            해당 레파지토리를 가지고 있는 프로젝트명
-     * @param service
-     *            사용하려는 서비스 이름. 두가지 밖에 없음.
-     * @return 클라이언트에게 줄 응답
+     * @param projectName   해당 레파지토리를 가지고 있는 프로젝트명
+     * @param service       사용하려는 서비스 이름. 두가지 밖에 없음.
+     * @return              클라이언트에게 줄 응답
      * @throws IOException
      */
-    public static Result serviceRpc(String ownerName, String projectName, String service)
-            throws IOException {
+    public static Result serviceRpc(String ownerName, String projectName, String service) throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
 
         response().setContentType("application/x-" + service + "-result");
 
-        byte[] requestBody = request().body().asRaw().asBytes();
-        byte[] buf = GitRepository.getGitRepository(ownerName, projectName).serviceRpc(service,
-                requestBody);
+        Repository repository = GitRepository.getRepository(ownerName, projectName);
 
-        return ok(buf);
+        // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+
+        // FIXME 스트림으로..
+        byte[] buf = request().body().asRaw().asBytes();
+        ByteArrayInputStream in = new ByteArrayInputStream(buf);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        if (service.equals("git-upload-pack")) {
+            UploadPack uploadPack = new UploadPack(repository);
+
+            uploadPack.setBiDirectionalPipe(false);
+            uploadPack.upload(in, out, null);
+
+        } else if (service.equals("git-receive-pack")) {
+            ReceivePack receivePack = new ReceivePack(repository);
+
+            receivePack.setBiDirectionalPipe(false);
+            receivePack.receive(in, out, null);
+        } else {
+            return forbidden("Unsupported service: '" + service + "'");
+        }
+        out.close();
+        return ok(out.toByteArray());
     }
 
     /**
-     * Raw포맷으로 소스를 보여주는 코드
-     * TODO 후에 codeApp으로 옯길예정
-     * 
-     * @param userName
+     * Raw포맷으로 소스를 보여주는 코드 
+     * TODO gitRepository로 위치를 옯겨야 한다.
+     * @param ownerName
      * @param projectName
      * @param path
      * @return
      * @throws IOException
      */
-    public static Result showRawCode(String userName, String projectName, String path)
-            throws IOException {
-        return ok(GitRepository.getGitRepository(userName, projectName).getFileByByteArray(path));
+    public static Result viewCode(String ownerName, String projectName, String path) throws IOException {
+        if (path.equals("")) {
+            return ok(gitView.render(getURL(ownerName, projectName),
+                    Project.findByName(projectName)));
+        } else {
+            Repository repository = GitRepository.getRepository(ownerName, projectName);
+            RevTree tree = new RevWalk(repository).parseTree(repository.resolve("HEAD"));
+            TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
+            if (treeWalk.isSubtree())
+                return badRequest();
+            else
+                return ok(repository.open(treeWalk.getObjectId(0)).getBytes());
+        }
     }
-
-    /**
-     * 코드 브라우져를 표시하는 코드 
-     * TODO 후에 codeApp으로 옯길예정
-     * 
-     * @param userName
-     * @param projectName
-     * @return
-     */
-    public static Result showCodeBrowser(String userName, String projectName) {
-        return ok(gitView.render(HOST_URL + projectName,
-                ProjectApp.getProject(userName, projectName)));
+    
+    public static String getURL(String ownerName, String projectName) {
+    	return "http://localhost:9000/" + ownerName + "/" + projectName;
     }
 }

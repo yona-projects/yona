@@ -2,28 +2,23 @@ package controllers;
 
 import git.GitRepository;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
-import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tigris.subversion.javahl.ClientException;
 
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Result;
 
 public class CodeApp extends Controller {
+	public static final String VCS_GIT = "GIT";
 
-    public static Result view(String ownerName, String projectName, String path) throws IOException {
-        //FIXME use ownerName
-        String vcs = ProjectApp.getProject(ownerName, projectName).vcs;
-        if (vcs.equals("GIT")) {
-            return GitApp.showRawCode(ownerName, projectName, path);
-        } else {
-            return status(501, vcs + " is not supported!");
-        }
-    }
-    public static Result showCodeBrowser(String userName, String projectName) {
+    public static Result view(String userName, String projectName, String path) throws IOException {
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
-        if (vcs.equals("GIT")) {
-            return GitApp.showCodeBrowser(userName, projectName);
+        if (VCS_GIT.equals(vcs)) {
+            return GitApp.viewCode(userName, projectName, path);
         } else {
             return status(501, vcs + " is not supported!");
         }
@@ -31,17 +26,16 @@ public class CodeApp extends Controller {
     
     public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         try {
-            return ok(GitRepository.getGitRepository(ownerName, projectName).findFileInfo(path));
+            return ok(new GitRepository(ownerName, projectName).findFileInfo(path));
         } catch (NoHeadException e) {
             return forbidden();
         }
     }
     
     public static void createRepository(String ownerName, String projectName, String type) throws IOException, ClientException {
-        if (type.equals("GIT")) {
+        if (type.equals(VCS_GIT)) {
             GitRepository.createRepository(ownerName, projectName);
         } else if (type.equals("Subversion")) {
-            // TODO svnRepository도 만들것!
             String svnPath = new File(SvnApp.REPO_PREFIX + projectName).getAbsolutePath();
             new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
         } else {
