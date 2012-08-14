@@ -5,49 +5,64 @@
 package controllers;
 
 import java.io.File;
-import models.Comment;
-import models.Post;
-import models.Post.Param;
-import models.Project;
+
+import models.*;
 import models.enumeration.Direction;
 import play.data.Form;
-import play.mvc.Controller;
+import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Http.Request;
-import play.mvc.Result;
-import views.html.board.boardError;
-import views.html.board.editPost;
-import views.html.board.newPost;
-import views.html.board.notExsitPage;
-import views.html.board.postList;
+import utils.Constants;
+import views.html.board.*;
 
 public class BoardApp extends Controller {
+    
+    //TODO 이 클래스는 원래 따로 존재해야 함.
+    public static class SearchCondition{
+        public final static String ORDERING_KEY_ID = "id";
+        public final static String ORDERING_KEY_TITLE = "title";
+        public final static String ORDERING_KEY_AGE = "date";
+        
+        public SearchCondition() {
+            this.order = Direction.DESC.direction();
+            this.key = ORDERING_KEY_ID;
+            this.filter = "";
+            this.pageNum = 1;
+        }
+
+        public String order;
+        public String key;
+        public String filter;
+        public int pageNum;
+    }
+    
 
     public static Result posts(String ownerName, String projectName) {
 
-        Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
-        Param postParam = postParamForm.bindFromRequest().get();
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
+        SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
+        Project project = ProjectApp.getProject(ownerName, projectName);
 
         return ok(postList.render(
                 "게시판",
                 project,
-                Post.findOnePage(project.owner, project.name, postParam.pageNum,
-                        Direction.getValue(postParam.order), postParam.key), postParam));
+                Post.findOnePage(project.owner, project.name, postSearchCondition.pageNum,
+                        Direction.getValue(postSearchCondition.order), postSearchCondition.key), postSearchCondition));
     }
 
     public static Result newPost(String ownerName, String projectName) {
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         return ok(newPost.render("새 게시물", new Form<Post>(Post.class), project));
     }
 
     public static Result savePost(String ownerName, String projectName) {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         if (postForm.hasErrors()) {
-            return ok(boardError.render("본문과 제목은 반드시 써야합니다.",
-                    routes.BoardApp.newPost(project.owner, project.name), project));
+            flash(Constants.WARNING, "board.post.empty");
+            
+            return redirect(routes.BoardApp.newPost(ownerName, projectName));
         } else {
             Post post = postForm.get();
             post.authorId = UserApp.currentUser().id;
@@ -62,9 +77,10 @@ public class BoardApp extends Controller {
 
     public static Result post(String ownerName, String projectName, Long postId) {
         Post post = Post.findById(postId);
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         if (post == null) {
-            return ok(notExsitPage.render("존재하지 않는 게시물", project));
+            flash(Constants.WARNING, "존재하지 않는 게시물");
+            return redirect(routes.BoardApp.posts(project.owner, project.name));
         } else {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
             return ok(views.html.board.post.render(post, commentForm, project));
@@ -74,11 +90,10 @@ public class BoardApp extends Controller {
     public static Result saveComment(String ownerName, String projectName, Long postId) {
         Form<Comment> commentForm = new Form<Comment>(Comment.class).bindFromRequest();
 
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         if (commentForm.hasErrors()) {
-            return ok(boardError.render("본문은 반드시 쓰셔야 합니다.",
-                    routes.BoardApp.post(project.owner, project.name, postId), project));
-
+            flash(Constants.WARNING, "댓글내용은 반드시 쓰셔야 합니다.");
+            return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         } else {
             Comment comment = commentForm.get();
             comment.post = Post.findById(postId);
@@ -93,7 +108,7 @@ public class BoardApp extends Controller {
     }
 
     public static Result deletePost(String ownerName, String projectName, Long postId) {
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         Post.delete(postId);
         return redirect(routes.BoardApp.posts(project.owner, project.name));
     }
@@ -101,22 +116,23 @@ public class BoardApp extends Controller {
     public static Result editPost(String ownerName, String projectName, Long postId) {
         Post existPost = Post.findById(postId);
         Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (UserApp.currentUser().id == existPost.authorId) {
             return ok(editPost.render("게시물 수정", editForm, postId, project));
         } else {
-            return ok(boardError.render("글쓴이가 아닙니다.",
-                    routes.BoardApp.post(project.owner, project.name, postId), project));
+            flash(Constants.WARNING, "글쓴이가 아닙니다.");
+            return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         }
     }
 
     public static Result updatePost(String ownerName, String projectName, Long postId) {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
-        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (postForm.hasErrors()) {
-            return ok("입력값이 잘못되었습니다.");
+            flash(Constants.WARNING, "입력값이 잘못되었습니다.");
+            return redirect(routes.BoardApp.editPost(ownerName, projectName, postId));
         } else {
 
             Post post = postForm.get();

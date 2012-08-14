@@ -25,13 +25,6 @@ public class Post extends Model {
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
 
-    public final static String ORDER_ASCENDING = "asc";
-    public final static String ORDER_DESCENDING = "desc";
-
-    public final static String ORDERING_KEY_ID = "id";
-    public final static String ORDERING_KEY_TITLE = "title";
-    public final static String ORDERING_KEY_AGE = "date";
-
     @Id
     public Long id;
 
@@ -110,21 +103,6 @@ public class Post extends Model {
             post.filePath = beforePost.filePath;
         }
         post.update();
-    }
-
-    @Deprecated
-    public static class Param {
-        public Param() {
-            this.order = ORDER_DESCENDING;
-            this.key = ORDERING_KEY_ID;
-            this.filter = "";
-            this.pageNum = 1;
-        }
-
-        public String order;
-        public String key;
-        public String filter;
-        public int pageNum;
     }
 
     public String authorName() {

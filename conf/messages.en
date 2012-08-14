@@ -216,3 +216,6 @@ time.second = second ago
 time.minute = minute ago
 time.hour = hour ago
 time.day = day ago
+
+#Board
+board.post.empty = you have to write title and contents.
