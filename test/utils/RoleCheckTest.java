@@ -4,8 +4,8 @@ import models.Role;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 import models.ModelTest;
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
 
 public class RoleCheckTest extends ModelTest<Role>{
     @Test
@@ -17,8 +17,8 @@ public class RoleCheckTest extends ModelTest<Role>{
         Long projectId2 = 3l;
         // When
 
-        boolean result1 = RoleCheck.roleCheck(userSessionId1, projectId1, PermissionResource.PROJECT, PermissionOperation.WRITE);
-        boolean result2 = RoleCheck.roleCheck(userSessionId2, projectId2, PermissionResource.BOARD, PermissionOperation.READ);
+        boolean result1 = RoleCheck.permissionCheck(userSessionId1, projectId1, Resource.PROJECT, Operation.WRITE);
+        boolean result2 = RoleCheck.permissionCheck(userSessionId2, projectId2, Resource.BOARD, Operation.READ);
 
         // Then
         assertThat(result1).isEqualTo(true);

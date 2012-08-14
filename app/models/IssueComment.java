@@ -4,8 +4,8 @@
 
 package models;
 
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
@@ -70,9 +70,9 @@ public class IssueComment extends Model {
 
     private boolean checkAuthor(Long currentUserId, Long projectId) {
         return currentUserId.equals(this.id)
-            || RoleCheck.roleCheck(currentUserId, projectId,
-            PermissionResource.PROJECT,
-            PermissionOperation.WRITE);
+            || RoleCheck.permissionCheck(currentUserId, projectId,
+            Resource.PROJECT_SETTING,
+            Operation.WRITE);
     }
     
     public Duration ago(){

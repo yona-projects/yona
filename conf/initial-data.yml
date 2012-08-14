@@ -289,40 +289,196 @@ milestones:
 # Permission
 permissions:
     - !!models.Permission
-        resource:   board
+        resource:   issue_post
         operation:  read
     - !!models.Permission
-        resource:   board
+        resource:   issue_post
         operation:  write
     - !!models.Permission
-        resource:   issue
-        operation:  read  
+        resource:   issue_post
+        operation:  edit  
     - !!models.Permission
-        resource:   issue
-        operation:  write
+        resource:   issue_post
+        operation:  delete
     - !!models.Permission
-        resource:   milestone
+        resource:   issue_comment
         operation:  read   
     - !!models.Permission
+        resource:   issue_comment
+        operation:  write
+    - !!models.Permission
+        resource:   issue_comment
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_comment
+        operation:  delete
+    - !!models.Permission
+        resource:   issue_field
+        operation:  read
+    - !!models.Permission
+        resource:   issue_field
+        operation:  write
+    - !!models.Permission
+        resource:   issue_field
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_assignee
+        operation:  read
+    - !!models.Permission
+        resource:   issue_assignee
+        operation:  write
+    - !!models.Permission
+        resource:   issue_assignee
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_state
+        operation:  read
+    - !!models.Permission
+        resource:   issue_state
+        operation:  write
+    - !!models.Permission
+        resource:   issue_state
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_value
+        operation:  read
+    - !!models.Permission
+        resource:   issue_value
+        operation:  write
+    - !!models.Permission
+        resource:   issue_value
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_category
+        operation:  read
+    - !!models.Permission
+        resource:   issue_category
+        operation:  write
+    - !!models.Permission
+        resource:   issue_category
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_milestone
+        operation:  read
+    - !!models.Permission
+        resource:   issue_milestone
+        operation:  write
+    - !!models.Permission
+        resource:   issue_milestone
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_component
+        operation:  read
+    - !!models.Permission
+        resource:   issue_component
+        operation:  write
+    - !!models.Permission
+        resource:   issue_component
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_diagnosisResult
+        operation:  read
+    - !!models.Permission
+        resource:   issue_diagnosisResult
+        operation:  write
+    - !!models.Permission
+        resource:   issue_diagnosisResult
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_notice
+        operation:  read
+    - !!models.Permission
+        resource:   issue_notice
+        operation:  write
+    - !!models.Permission
+        resource:   issue_notice
+        operation:  edit
+    - !!models.Permission
+        resource:   issue_notice
+        operation:  delete
+    - !!models.Permission
+        resource:   board_post
+        operation:  read
+    - !!models.Permission
+        resource:   board_post
+        operation:  write
+    - !!models.Permission
+        resource:   board_post
+        operation:  edit
+    - !!models.Permission
+        resource:   board_post
+        operation:  delete
+    - !!models.Permission
+        resource:   board_comment
+        operation:  read
+    - !!models.Permission
+        resource:   board_comment
+        operation:  write
+    - !!models.Permission
+        resource:   board_comment
+        operation:  edit
+    - !!models.Permission
+        resource:   board_comment
+        operation:  delete
+    - !!models.Permission
+        resource:   board_category
+        operation:  read
+    - !!models.Permission
+        resource:   board_category
+        operation:  write
+    - !!models.Permission
+        resource:   board_category
+        operation:  edit
+    - !!models.Permission
+        resource:   board_category
+        operation:  delete
+    - !!models.Permission
+        resource:   board_notice
+        operation:  read
+    - !!models.Permission
+        resource:   board_notice
+        operation:  write
+    - !!models.Permission
+        resource:   board_notice
+        operation:  edit
+    - !!models.Permission
+        resource:   board_notice
+        operation:  delete
+    - !!models.Permission
+        resource:   code
+        operation:  read
+    - !!models.Permission
+        resource:   code
+        operation:  write
+    - !!models.Permission
+        resource:   milestone
+        operation:  read
+    - !!models.Permission
         resource:   milestone
         operation:  write
     - !!models.Permission
-        resource:   code
+        resource:   milestone
+        operation:  edit
+    - !!models.Permission
+        resource:   milestone
+        operation:  delete
+    - !!models.Permission
+        resource:   wiki_page
         operation:  read
     - !!models.Permission
-        resource:   code
+        resource:   wiki_page
         operation:  write
     - !!models.Permission
-        resource:   wiki
-        operation:  read
+        resource:   wiki_page
+        operation:  edit
     - !!models.Permission
-        resource:   wiki
+        resource:   wiki_page
+        operation:  delete
+    - !!models.Permission
+        resource:   project_setting
         operation:  write
     - !!models.Permission
-        resource:   project
-        operation:  write
-    - !!models.Permission
-        resource:   site
+        resource:   site_setting
         operation:  write
         
 # Role
@@ -350,13 +506,12 @@ roles:
             - !!models.Permission
                 id: 9
             - !!models.Permission
-                id: 10
-            - !!models.Permission
-                id: 11                
+                id: 10              
     - !!models.Role
         name:           member
         active:         true
         permissions:    
+        permissions:    
             - !!models.Permission
                 id: 1
             - !!models.Permission
@@ -364,22 +519,17 @@ roles:
             - !!models.Permission
                 id: 3
             - !!models.Permission
-                id: 4
-            - !!models.Permission
                 id: 5
             - !!models.Permission
                 id: 6
             - !!models.Permission
-                id: 7
-            - !!models.Permission
-                id: 8
-            - !!models.Permission
                 id: 9
             - !!models.Permission
-                id: 10                
+                id: 10     
     - !!models.Role
         name:           siteManager
         active:         false
+        permissions:    
         permissions:    
             - !!models.Permission
                 id: 1
@@ -401,10 +551,6 @@ roles:
                 id: 9
             - !!models.Permission
                 id: 10
-            - !!models.Permission
-                id: 11
-            - !!models.Permission
-                id: 12
                             
 # ProjectUser
 projectUsers:

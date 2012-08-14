@@ -2,8 +2,8 @@ package utils;
 
 import models.Permission;
 import models.Project;
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
 
 /**
  * @author "Hwi Ahn"
@@ -18,21 +18,15 @@ public class RoleCheck {
      * @param operation
      * @return
      */
-    public static boolean roleCheck(String userId, Long projectId,
-                                    PermissionResource resource, PermissionOperation operation) {
+    public static boolean permissionCheck(Long userId, Long projectId,
+                                    Resource resource, Operation operation) {
+        
+        
         if (Project.findById(projectId).share_option
-            && operation.equals(PermissionOperation.READ))
+            && operation.equals(Operation.READ)) {
             return true;
-
-        return Permission.permissionCheck(Long.parseLong(userId), projectId,
-            resource, operation);
-    }
-
-    public static boolean roleCheck(Long userId, Long projectId,
-                                    PermissionResource resource, PermissionOperation operation) {
-        if (Project.findById(projectId).share_option
-            && operation.equals(PermissionOperation.READ))
-            return true;
+        }
+            
 
         return Permission.permissionCheck(userId, projectId,
             resource, operation);
