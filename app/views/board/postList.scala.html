@@ -23,7 +23,7 @@
           <input type="hidden" name="pageNum" value="@param.pageNum">
           <input type="text" name="filter" class="search-query">
           <button type="submit" class="btn"><i class="icon-search"></i></button>
-          <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.owner, project.name)" >새글</a>
+          <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.owner, project.name)" >@Messages("post.new")</a>
         </form>
       </div>    
     </div>  
@@ -43,9 +43,9 @@
 	    	<thead>
 	    		<tr id="board_header">
 	    		    @header("#", "id")
-	    		    @header("제목", "title")
-	    		    @header("글쓴이", "userId")
-	    		    @header("나이", "date")
+	    		    @header(Messages("post.new.title"), "title")
+	    		    @header(Messages("post.author"), "userId")
+	    		    @header(Messages("post.age"), "date")
 	    		</tr>
 	    	</thead>
 	    	<tbody>
@@ -68,7 +68,7 @@
         @pagination(page, 5, "pagination");
     </div>
     <div class="span2">
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
+        <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
     </div>
   </div>
   <script>

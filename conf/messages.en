@@ -136,8 +136,11 @@ issue.new.selectDefault.diagnosisResult = --Select a Diagnosis Result--
 issue.comment.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 
 #Post
+post.new = New
 post.new.title = Title
 post.new.contents = Contents
+post.author = Author
+post.age = Age
 post.menu.search = Search
 post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 post.new.fileAttach = Attach File
@@ -219,3 +222,8 @@ time.day = day ago
 
 #Board
 board.post.empty = you have to write title and contents.
+board.post.notExist = Not Exsit Post!
+board.post.new = New Post
+board.post.modify = Edit Post
+board.comment.empty = you have to write contents.
+board.notAuthor = You are not author!

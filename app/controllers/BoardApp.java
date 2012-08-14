@@ -45,7 +45,7 @@ public class BoardApp extends Controller {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
         return ok(postList.render(
-                "게시판",
+                "menu.board",
                 project,
                 Post.findOnePage(project.owner, project.name, postSearchCondition.pageNum,
                         Direction.getValue(postSearchCondition.order), postSearchCondition.key), postSearchCondition));
@@ -53,7 +53,7 @@ public class BoardApp extends Controller {
 
     public static Result newPost(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        return ok(newPost.render("새 게시물", new Form<Post>(Post.class), project));
+        return ok(newPost.render("board.post.new", new Form<Post>(Post.class), project));
     }
 
     public static Result savePost(String ownerName, String projectName) {
@@ -79,7 +79,7 @@ public class BoardApp extends Controller {
         Post post = Post.findById(postId);
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (post == null) {
-            flash(Constants.WARNING, "존재하지 않는 게시물");
+            flash(Constants.WARNING, "board.post.notExist");
             return redirect(routes.BoardApp.posts(project.owner, project.name));
         } else {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
@@ -92,7 +92,7 @@ public class BoardApp extends Controller {
 
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (commentForm.hasErrors()) {
-            flash(Constants.WARNING, "댓글내용은 반드시 쓰셔야 합니다.");
+            flash(Constants.WARNING, "board.comment.empty");
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         } else {
             Comment comment = commentForm.get();
@@ -119,9 +119,9 @@ public class BoardApp extends Controller {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (UserApp.currentUser().id == existPost.authorId) {
-            return ok(editPost.render("게시물 수정", editForm, postId, project));
+            return ok(editPost.render("board.post.modify", editForm, postId, project));
         } else {
-            flash(Constants.WARNING, "글쓴이가 아닙니다.");
+            flash(Constants.WARNING, "board.notAuthor");
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         }
     }
@@ -131,7 +131,7 @@ public class BoardApp extends Controller {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (postForm.hasErrors()) {
-            flash(Constants.WARNING, "입력값이 잘못되었습니다.");
+            flash(Constants.WARNING, "board.post.empty");
             return redirect(routes.BoardApp.editPost(ownerName, projectName, postId));
         } else {
 
