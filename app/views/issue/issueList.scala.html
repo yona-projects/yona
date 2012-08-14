@@ -64,7 +64,7 @@
 <!--FIXME view 전문가님이 아래의 if-else문 안의 중복된 코드를 업그레이드 해주시길 바랍니다. -->
 		              	<label class="checkbox inline">
 		                	@if(param.commentedCheck==true){
-		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1" checked="checked"> @Messages("checkbox.commented")
+		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1" checked> @Messages("checkbox.commented")
 		                	} else {
 		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1"> @Messages("checkbox.commented")
 		                	}
@@ -129,7 +129,7 @@
 </div>
 }
 	<script>
-		$("#checkboxForm").bind("change check", function(){
+		$("#checkboxForm").bind("change check uncheck", function(){
 				if($("#commentCheckId").is(":checked") && $("#fileAttachedCheckId").is(":checked")) {
 					return $("form[id='checkboxForm']").submit();
 				}
@@ -165,7 +165,7 @@
 	    $("pagination").click(function(){
 			  
 			});
-		$("select[id='milestone']").change(function(){
+		$("select[id='milestone']").bind("change", function(){
 				$(this).parent("form[id='searchForm']").submit();
 			});
 	</script>

@@ -59,6 +59,11 @@
                     options = options("false"->Messages("project.shareOption.private"), "true"->Messages("project.shareOption.public")),
                     '_label -> Messages("project.shareOption")
                 )
+                @inputRadioGroup(
+                    projectForm("isAuthorEditable"),
+                    options = options("false"->Messages("project.isAuthorEditable.off"), "true"->Messages("project.isAuthorEditable.on")),
+                    '_label -> Messages("project.isAuthorEditable")
+                )
                 
                 @inputText(
                     projectForm("url"),

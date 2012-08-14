@@ -1,26 +1,6 @@
 package models;
 
-import com.avaje.ebean.Page;
-import jxl.Workbook;
-import jxl.format.Alignment;
-import jxl.format.Border;
-import jxl.format.BorderLineStyle;
-import jxl.format.Colour;
-import jxl.format.*;
-import jxl.write.*;
-import models.enumeration.*;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
-import play.data.format.Formats;
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
-import utils.RoleCheck;
-
-import javax.persistence.*;
-
-import org.joda.time.Duration;
+import static models.enumeration.IssueState.ASSIGNED;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +8,41 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static models.enumeration.IssueState.ASSIGNED;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+
+import jxl.Workbook;
+import jxl.format.Alignment;
+import jxl.format.Border;
+import jxl.format.BorderLineStyle;
+import jxl.format.Colour;
+import jxl.format.ScriptStyle;
+import jxl.format.UnderlineStyle;
+import jxl.write.Label;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
+import models.enumeration.Direction;
+import models.enumeration.IssueState;
+import models.enumeration.Matching;
+import models.enumeration.StateType;
+import models.support.FinderTemplate;
+import models.support.OrderParams;
+import models.support.SearchParams;
+
+import org.joda.time.Duration;
+
+import play.data.format.Formats;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
+import utils.JodaDateUtil;
+
+import com.avaje.ebean.Page;
 
 /**
  * @author Taehyun Park
@@ -120,7 +134,7 @@ public class Issue extends Model {
     public int numOfComments;
 
     public Issue() {
-        this.date = JodaDateUtil.today();
+        this.date = JodaDateUtil.now();
     }
 
     /**
@@ -237,7 +251,7 @@ public class Issue extends Model {
     public static Page<Issue> findFilteredIssues(String projectName, String filter,
             StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-            filter, null, commentedCheck, fileAttachedCheck);
+                filter, null, commentedCheck, fileAttachedCheck);
     }
 
     /**
@@ -249,7 +263,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findCommentedIssues(String projectName, String filter) {
         return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
-            Direction.DESC, filter, null, true, false);
+                Direction.DESC, filter, null, true, false);
     }
 
     /**
@@ -308,7 +322,7 @@ public class Issue extends Model {
         SearchParams searchParams = new SearchParams().add("project.name", projectName,
                 Matching.EQUALS);
 
-        if(filter != null && !filter.isEmpty()) {
+        if (filter != null && !filter.isEmpty()) {
             searchParams.add("title", filter, Matching.CONTAINS);
         }
         if (milestoneId != null) {
@@ -333,7 +347,7 @@ public class Issue extends Model {
                 break;
             }
         return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE,
-            pageNumber);
+                pageNumber);
     }
 
     public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
@@ -460,12 +474,13 @@ public class Issue extends Model {
         return (uId != null ? User.findNameById(uId) : TO_BE_ASSIGNED);
     }
 
+    // FIXME 이것이 없이 테스트는 잘 작동하나, view에서 댓글이 달린 이슈들을 필터링하는 라디오버튼을 작동시에 이 메쏘드에서
+    // 시행하는 동기화 작업 없이는 작동을 하지 않는다.
+
     /**
-     * comment가 delete되거나 create될 때, numOfComment와 comment.size()를 동기화 시켜준다. 현재는
-     * 이것이 없이도 동작하므로, 추후에 제거하겠음.
+     * comment가 delete되거나 create될 때, numOfComment와 comment.size()를 동기화 시켜준다.
      * 
      * @param id
-     *            Issue Id
      */
     public static void updateNumOfComments(Long id) {
 
@@ -477,20 +492,15 @@ public class Issue extends Model {
     public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
 
         boolean authorIs;
-        if (currentUserId == findById(objectId).reporterId
-                || RoleCheck.roleCheck(currentUserId, project.id,
-                        PermissionResource.PROJECT,
-                        PermissionOperation.WRITE)) {
+        if (currentUserId == findById(objectId).reporterId) {
             authorIs = true;
         } else {
             authorIs = false;
         }
-
         return authorIs;
-
     }
-    
-    public Duration ago(){
+
+    public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
 }

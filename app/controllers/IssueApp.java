@@ -5,36 +5,29 @@
 package controllers;
 
 import java.io.File;
-import java.util.List;
-
-import com.avaje.ebean.Page;
 
 import models.Issue;
 import models.IssueComment;
-import models.Milestone;
-import models.Post;
-import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
 import models.enumeration.StateType;
 import models.support.SearchCondition;
-import utils.RoleCheck;
-import play.Logger;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Http.Request;
 import play.mvc.Result;
+import utils.Constants;
 import views.html.issue.editIssue;
 import views.html.issue.issue;
+import views.html.issue.issueError;
 import views.html.issue.issueList;
 import views.html.issue.newIssue;
 import views.html.issue.notExistingPage;
-import views.html.issue.issueError;
+
+import com.avaje.ebean.Page;
 
 public class IssueApp extends Controller {
 
@@ -132,14 +125,15 @@ public class IssueApp extends Controller {
                 .bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (commentForm.hasErrors()) {
-            return TODO;
+            flash(Constants.WARNING, "board.comment.empty");
+            return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         } else {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
-//            Issue.updateNumOfComments(issueId);
+            Issue.updateNumOfComments(issueId);
             return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         }
     }
@@ -163,7 +157,6 @@ public class IssueApp extends Controller {
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
         Issue.excelSave(issues.getList(), project.name + "_" + stateType + "_filter_"
                 + issueParam.filter + "_milestone_" + issueParam.milestone);
-
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
