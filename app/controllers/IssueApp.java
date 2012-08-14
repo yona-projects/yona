@@ -17,8 +17,8 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
 import models.enumeration.StateType;
 import models.support.SearchCondition;
 import utils.RoleCheck;
@@ -96,9 +96,9 @@ public class IssueApp extends Controller {
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
         if (UserApp.currentUser().id == targetIssue.reporterId
-                || RoleCheck.roleCheck(UserApp.currentUser().id, project.id,
-                        PermissionResource.PROJECT,
-                        PermissionOperation.WRITE)) {
+                || RoleCheck.permissionCheck(UserApp.currentUser().id, project.id,
+                        Resource.PROJECT_SETTING,
+                        Operation.WRITE)) {
 
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
