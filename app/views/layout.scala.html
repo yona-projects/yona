@@ -28,7 +28,11 @@
 
     <script src="@getJSName("jquery-1.7.2")" type="text/javascript"></script>
     <script src="@getJSName("bootstrap")" type="text/javascript"></script>
-
+    <script src="@getJSName("validation/jquery.validate")" type="text/javascript"></script>
+    <script src="@getJSName("nforge")" type="text/javascript"></script>
+    @if(!lang().toLocale.toString().equals("en")){
+        <script src="@getJSName("i18n/messages_"+lang().toLocale)" type="text/javascript"></script>
+    }
 </head>
 
 <body>
