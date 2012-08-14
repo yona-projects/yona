@@ -19,10 +19,10 @@ import controllers.GitApp;
 
 public class GitRepository {
     public static final String REPO_PREFIX = "repo/git/";
-    
-    
+
     /**
      * git Repositroy를 생성한다.
+     * 
      * @param ownerName
      * @param projectName
      * @throws IOException
@@ -34,12 +34,13 @@ public class GitRepository {
         repository.create(bare); // create bare repository
         // TODO 최초의 커밋 미리만들기? 아님 그냥 안내 보여주기?
     }
-    
+
     public static Map<String, GitRepository> map = new HashMap<String, GitRepository>();
-    
-    public static GitRepository getGitRepository(String userName, String projectName) throws IOException{
+
+    public static GitRepository getGitRepository(String userName, String projectName)
+            throws IOException {
         String key = userName + "/" + projectName;
-        if(map.containsKey(key)){
+        if (map.containsKey(key)) {
             return map.get(key);
         } else {
             GitRepository gitrepo = new GitRepository(userName, projectName);
@@ -47,17 +48,20 @@ public class GitRepository {
             return gitrepo;
         }
     }
-    
+
     private Repository repository;
-    
+
     public GitRepository(String ownerName, String projectName) throws IOException {
-        this.repository = new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + ownerName + "/" + projectName + ".git"))
-                .build();
+        this.repository = new RepositoryBuilder().setGitDir(
+                new File(REPO_PREFIX + ownerName + "/" + projectName + ".git")).build();
     }
+
     /**
      * path를 받아 파일 정보 JSON객체를 return 하는 함수 일단은 HEAD 만 가능하다.
-     * @param path              정보를 얻고싶은 파일의 path
-     * @return JSON객체         파일 정보를 담고 있다.
+     * 
+     * @param path
+     *            정보를 얻고싶은 파일의 path
+     * @return JSON객체 파일 정보를 담고 있다.
      * @throws IOException
      * @throws NoHeadException
      * @throws GitAPIException
@@ -93,7 +97,7 @@ public class GitRepository {
                 }
             }
         } catch (IllegalArgumentException e) {
-            //root
+            // root
             return folderList(git, treeWalk);
         }
 
@@ -118,7 +122,8 @@ public class GitRepository {
     }
 
     /**
-     * 폴더의 정보를 JSON객체로 리턴한다. 
+     * 폴더의 정보를 JSON객체로 리턴한다.
+     * 
      * @param git
      * @param treeWalk
      * @return
@@ -134,8 +139,7 @@ public class GitRepository {
             NoHeadException {
         ObjectNode result = Json.newObject();
         while (treeWalk.next()) {
-            RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator()
-                    .next();
+            RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator().next();
 
             ObjectNode data = Json.newObject();
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
@@ -146,16 +150,18 @@ public class GitRepository {
         }
         return result;
     }
-    
+
     /**
      * git repository에서 파일 하나 찾아 내려주기.
+     * 
      * @param path
      * @return
      * @throws LargeObjectException
      * @throws MissingObjectException
      * @throws IOException
      */
-    public byte[] getFileByByteArray(String path) throws LargeObjectException, MissingObjectException, IOException {
+    public byte[] getFileByByteArray(String path) throws LargeObjectException,
+            MissingObjectException, IOException {
         RevTree tree = new RevWalk(repository).parseTree(repository.resolve("HEAD"));
         TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
         if (treeWalk.isSubtree())
@@ -201,7 +207,6 @@ public class GitRepository {
             ReceivePack receivePack = new ReceivePack(repository);
             // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
 
-            
             receivePack.setBiDirectionalPipe(false);
             receivePack.receive(in, out, null);
         } else {

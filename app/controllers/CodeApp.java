@@ -4,8 +4,6 @@ import git.GitRepository;
 
 import java.io.*;
 
-import models.Project;
-
 import org.eclipse.jgit.api.errors.*;
 import org.tigris.subversion.javahl.ClientException;
 

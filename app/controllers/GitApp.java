@@ -2,15 +2,7 @@ package controllers;
 
 import git.GitRepository;
 
-import java.io.*;
-
-import models.Project;
-
-import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.*;
-import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
-import org.eclipse.jgit.treewalk.TreeWalk;
+import java.io.IOException;
 
 import play.Logger;
 import play.mvc.*;
@@ -36,11 +28,11 @@ public class GitApp extends Controller {
 
         response().setContentType("application/x-" + service + "-advertisement");
 
-        byte [] buf = GitRepository.getGitRepository(ownerName, projectName).advertise(service);
-        
-        if(buf == null)
+        byte[] buf = GitRepository.getGitRepository(ownerName, projectName).advertise(service);
+
+        if (buf == null)
             return forbidden("Unsupported service: '" + service + "'");
-        
+
         return ok(buf);
     }
 
@@ -57,11 +49,12 @@ public class GitApp extends Controller {
     public static Result serviceRpc(String ownerName, String projectName, String service)
             throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
-        
+
         response().setContentType("application/x-" + service + "-result");
-        
+
         byte[] requestBody = request().body().asRaw().asBytes();
-        byte [] buf = GitRepository.getGitRepository(ownerName, projectName).serviceRpc(service, requestBody);
+        byte[] buf = GitRepository.getGitRepository(ownerName, projectName).serviceRpc(service,
+                requestBody);
 
         return ok(buf);
     }
