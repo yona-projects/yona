@@ -104,7 +104,7 @@ public class GitApp extends Controller {
      */
     public static Result viewCode(String ownerName, String projectName, String path) throws IOException {
         if (path.equals("")) {
-            return ok(gitView.render("http://localhost:9000/" + projectName,
+            return ok(gitView.render(getURL(ownerName, projectName),
                     Project.findByName(projectName)));
         } else {
             Repository repository = GitRepository.getRepository(ownerName, projectName);
@@ -115,6 +115,9 @@ public class GitApp extends Controller {
             else
                 return ok(repository.open(treeWalk.getObjectId(0)).getBytes());
         }
-
+    }
+    
+    public static String getURL(String ownerName, String projectName) {
+    	return "http://localhost:9000/" + ownerName + "/" + projectName;
     }
 }
