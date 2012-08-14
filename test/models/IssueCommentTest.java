@@ -22,9 +22,8 @@ public class IssueCommentTest extends ModelTest<IssueComment> {
         issueComment.authorId = getTestUser().id;
         issueComment.issue = Issue.findById(1l);
         // When
-        long id = IssueComment.create(issueComment);
         // Then
-        assertThat(IssueComment.findById(id)).isNotNull();
+        assertThat(IssueComment.create(issueComment)).isNotNull();
         assertThat(Issue.findById(1l).comments.size()).isEqualTo(1);
 
     }

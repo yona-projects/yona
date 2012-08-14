@@ -1,15 +1,15 @@
-@(title: String, form: Form[Milestone], projectName: String, milestoneId: Long, project: Project)
+@(title: String, form: Form[Milestone], milestoneId: Long, project: Project)
 
 @import helper.twitterBootstrap._
 
 @main(title, project) {
-    @helper.form(action=routes.MilestoneApp.updateMilestone(projectName, milestoneId)){
+    @helper.form(action=routes.MilestoneApp.updateMilestone(project.owner, project.name, milestoneId)){
         @helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("label.title"))
         @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("label.contents"))
         @helper.input(form("dueDate"), '_showConstraints -> false, '_label-> Messages("label.dueDate")) { (id, name, value, args) =>
             <input type="text" name="@name" value="@value" id="dueDate" />
         }
-        <a href="@routes.MilestoneApp.manageMilestones(projectName)" class="btn">@Messages("button.cancel")</a>
+        <a href="@routes.MilestoneApp.manageMilestones(project.owner, project.name)" class="btn">@Messages("button.cancel")</a>
         <input type="submit" class="btn btn-primary" value="@Messages("button.save")"/>
     }
 }

@@ -47,7 +47,6 @@ public class IssueTest extends ModelTest<Issue> {
         Issue issue = Issue.findById(3l);
         // Then
         assertThat(issue.comments.size()).isEqualTo(1);
-
         IssueComment issueComment = issue.comments.get(0);
         assertThat(issueComment.id).isEqualTo(1l);
         assertThat(issueComment.contents).isEqualTo("코드를 수정했습니다");
@@ -70,7 +69,7 @@ public class IssueTest extends ModelTest<Issue> {
         // When
         Page<Issue> issues = Issue.findOpenIssues("nForge4java");
         // Then
-        assertThat(issues.getTotalRowCount()).isEqualTo(2);
+        assertThat(issues.getTotalRowCount()).isEqualTo(3);
     }
 
     @Test
@@ -79,7 +78,7 @@ public class IssueTest extends ModelTest<Issue> {
         // When
         Page<Issue> issues = Issue.findClosedIssues("nForge4java");
         // Then
-        assertThat(issues.getTotalRowCount()).isEqualTo(2);
+        assertThat(issues.getTotalRowCount()).isEqualTo(4);
     }
 
     @Test
@@ -98,7 +97,7 @@ public class IssueTest extends ModelTest<Issue> {
     public void findCommentedIssue() throws Exception {
         // Given
         // When
-        Page<Issue> issues = Issue.findCommentedIssues("Jindo", "");
+        Page<Issue> issues = Issue.findCommentedIssues("nForge4java", "");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }

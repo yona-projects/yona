@@ -44,11 +44,12 @@
 				  	@select(
 				    		issueForm("issueType"), 
 				    		options = options(
-				    					"1"->"치명결함", 
-				    					"2"->"중결함", 
-				    					"3"->"경결함", 
-				    					"4"->"단순개선", 
-				    					"5"->"권고사항"),
+				    					"worst"-> Messages("issue.new.detailInfo.issueType.worst"),
+                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
+                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
+                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
+                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
+				    					),
 				    		'_label-> Messages("issue.new.detailInfo.issueType"),
 				    		'_default -> Messages("issue.new.selectDefault.issueType"),
 				    		'_showConstraints -> false)
@@ -58,10 +59,11 @@
 				    		'_label-> Messages("issue.new.detailInfo.assignee"),
 				    		'_default -> Messages("issue.new.selectDefault.assignee"),
 				    		'_showConstraints -> false)
+    <!-- FIXME 컴포넌트 관련 스펙이 정해지면 수정할것 -->
 				    	@select(
 				    		issueForm("componentName"), 
 				    		options = options(
-				    					"컴포넌트"->"Component id 1"),
+				    					"component_1"->"Component id 1"),
 				    		'_label-> Messages("issue.new.detailInfo.component"),
 				    		'_default -> Messages("issue.new.selectDefault.component"),
 				    		'_showConstraints -> false)
@@ -119,25 +121,26 @@
 				    	@select(
 				    		issueForm("importance"), 
 				    		options = options(
-						    			"1"->"매우중요", 
-						    			"2"->"중요", 
-						    			"3"->"보통", 
-						    			"4"->"낮음", 
-						    			"5"->"매우낮음"),
+                                        "highest"-> Messages("issue.new.result.importance.highest"),
+                                        "high"-> Messages("issue.new.result.importance.high"),
+                                        "average"-> Messages("issue.new.result.importance.average"),
+                                        "low"-> Messages("issue.new.result.importance.low"),
+                                        "lowest"-> Messages("issue.new.result.importance.lowest")),
 				    		'_label-> Messages("issue.new.result.importance"),
 				    		'_default -> Messages("issue.new.selectDefault.importance"),
 				    		'_showConstraints -> false)
 				    	@select(
 				    		issueForm("diagnosisResult"), 
 				    		options = options(
-				    					"1"->"버그확인", 
-				    					"2"->"수정됨", 
-				    					"3"->"수정안함", 
-				    					"4"->"버그아님",
-				    					"5"->"응답대기", 
-				    					"6"->"재현불가", 
-				    					"7"->"중복", 
-				    					"8"->"잘동작함"),
+                                        "bug"-> Messages("issue.new.result.diagnosisResult.bug"),
+                                        "fixed"-> Messages("issue.new.result.diagnosisResult.fixed"), 
+                                        "willNotFixed"-> Messages("issue.new.result.diagnosisResult.willNotFixed"),
+                                        "notaBug"-> Messages("issue.new.result.diagnosisResult.notaBug"),
+                                        "awaitingResponse"-> Messages("issue.new.result.diagnosisResult.awaitingResponse"),
+                                        "unreproducible"-> Messages("issue.new.result.diagnosisResult.unreproducible"), 
+                                        "duplicated"-> Messages("issue.new.result.diagnosisResult.duplicated"), 
+                                        "works4me"-> Messages("issue.new.result.diagnosisResult.works4me")
+                                        ),
 				    		'_label-> Messages("issue.new.result.diagnosisResult"),
 				    		'_default -> Messages("issue.new.selectDefault.diagnosisResult"),
 				    		'_showConstraints -> false)

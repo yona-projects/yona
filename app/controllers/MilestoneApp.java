@@ -16,83 +16,102 @@ import java.util.List;
 
 public class MilestoneApp extends Controller {
 
-    public static Result milestones(String projectName, String state,
-                                    String sort, String direction) {
+    public static class MilestoneCondition {
 
-        Project project = Project.findByName(projectName);
+        public String state = "open";
+        public String sort = "dueDate";
+        public String direction = "asc";
+
+        public MilestoneCondition() {
+            this.state = "open";
+            this.sort = "dueDate";
+            this.direction = "asc";
+        }
+    }
+
+    public static Result milestones(String userName, String projectName) {
+
+        Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
         }
+        MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
+
         List<Milestone> milestones = Milestone.findMilestones(project.id,
-                StateType.getValue(state),
-                sort,
-                Direction.getValue(direction));
-        return ok(list.render("title.milestoneList", milestones, projectName, state, sort, direction, project));
+                StateType.getValue(mCondition.state),
+                mCondition.sort,
+                Direction.getValue(mCondition.direction));
+        return ok(list.render("title.milestoneList", milestones, project, mCondition));
     }
 
-    public static Result newMilestone(String projectName) {
-        Project project = Project.findByName(projectName);
+    public static Result newMilestone(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
         }
 
-        return ok(create.render("title.newMilestone", new Form<Milestone>(Milestone.class), projectName, project));
+        return ok(create.render("title.newMilestone", new Form<Milestone>(Milestone.class), project));
     }
 
-    public static Result saveMilestone(String projectName) {
+    public static Result saveMilestone(String userName, String projectName) {
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
-        Project project = Project.findByName(projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return internalServerError();
+            return notFound();
         }
         if (milestoneForm.hasErrors()) {
-            return ok(create.render("title.newMilestone", milestoneForm, projectName, project));
+            return ok(create.render("title.newMilestone", milestoneForm, project));
         } else {
             Milestone newMilestone = milestoneForm.get();
             newMilestone.project = project;
             Milestone.create(newMilestone);
-            return redirect(routes.MilestoneApp.manageMilestones(projectName, "dueDate", Direction.ASC.name()));
+            return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
         }
     }
 
-    public static Result manageMilestones(String projectName, String sort, String direction) {
-        Project project = Project.findByName(projectName);
+    public static Result manageMilestones(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
         }
-
+        MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
         List<Milestone> milestones = Milestone.findMilestones(project.id,
                 StateType.ALL,
-                sort,
-                Direction.getValue(direction));
-        return ok(manage.render("title.milestoneManage", milestones, projectName, sort, direction, project));
+                mCondition.sort,
+                Direction.getValue(mCondition.direction));
+        return ok(manage.render("title.milestoneManage", milestones, project, mCondition));
     }
 
-    public static Result editMilestone(String projectName, Long milestoneId) {
-        Project project = Project.findByName(projectName);
+    public static Result editMilestone(String userName, String projectName, Long milestoneId) {
+        Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
         }
 
         Milestone milestone = Milestone.findById(milestoneId);
         Form<Milestone> editForm = new Form<Milestone>(Milestone.class).fill(milestone);
-        return ok(edit.render("title.editMilestone", editForm, projectName, milestoneId, project));
+        return ok(edit.render("title.editMilestone", editForm, milestoneId, project));
     }
 
-    public static Result updateMilestone(String projectName, Long milestoneId) {
+    public static Result updateMilestone(String userName, String projectName, Long milestoneId) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if(project == null ) {
+            return notFound();
+        }
+
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
         if (milestoneForm.hasErrors()) {
-            return ok(edit.render("title.editMilestone", milestoneForm, projectName, milestoneId, Project.findByName(projectName)));
+            return ok(edit.render("title.editMilestone", milestoneForm, milestoneId, project));
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());
             Milestone.update(existingMilestone, milestoneId);
-            return redirect(routes.MilestoneApp.manageMilestones(projectName, "dueDate", Direction.ASC.name()));
+            return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
         }
     }
 
-    public static Result deleteMilestone(String projectName, Long id) {
-        Project project = Project.findByName(projectName);
+    public static Result deleteMilestone(String userName, String projectName, Long id) {
+        Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
         }
@@ -101,6 +120,7 @@ public class MilestoneApp extends Controller {
             return internalServerError();
         }
         Milestone.delete(Milestone.findById(id));
-        return redirect(routes.MilestoneApp.manageMilestones(projectName, "dueDate", Direction.ASC.name()));
+        return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
+
     }
 }

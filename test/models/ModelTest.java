@@ -16,10 +16,10 @@ public class ModelTest<T> {
     protected static EbeanUtil ebeanUiUtil;
     protected Class<T> type;
 
-
     @SuppressWarnings("unchecked")
     public ModelTest() {
-        this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
+                .getActualTypeArguments()[0];
         ebeanUiUtil = new EbeanUtil<T>(type);
     }
 
@@ -48,7 +48,7 @@ public class ModelTest<T> {
 
     /**
      * Returns the first user. (id : 2 / name : hobi)
-     *
+     * 
      * @return User
      */
     protected User getTestUser() {
@@ -57,12 +57,30 @@ public class ModelTest<T> {
 
     /**
      * Returns user.
-     *
+     * 
      * @param userId
      * @return
      */
     protected User getTestUser(Long userId) {
         return User.findById(userId);
+    }
+
+    /**
+     * Returns the first project. (id : 1 / name : nForge4java)
+     * 
+     * @return Project
+     */
+    protected Project getTestProject() {
+        return Project.findById(1l);
+    }
+
+    /**
+     * Returns project.
+     * 
+     * @return Project
+     */
+    protected Project getTestProject(Long projectId) {
+        return Project.findById(projectId);
     }
 
     @SuppressWarnings("unchecked")

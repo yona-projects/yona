@@ -21,8 +21,8 @@
             <li class="@isActiveMenu(routes.ProjectApp.members(projectInst.owner, projectInst.name))">
                 <a href="@routes.ProjectApp.members(projectInst.owner, projectInst.name)"><i class="icon-user"></i>@Messages("project.sidebar.memberList")</a>
             </li>
-            <li class="@isActiveMenu(routes.MilestoneApp.milestones(projectName),routes.MilestoneApp.manageMilestones(projectName))">
-                <a href="@routes.MilestoneApp.milestones(projectName)"><i class="icon-gift"></i>@Messages("project.sidebar.milestone")</a>
+            <li class="@isActiveMenu(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name), routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name))">
+                <a href="@routes.MilestoneApp.milestones(projectInst.owner, projectInst.name)"><i class="icon-gift"></i>@Messages("project.sidebar.milestone")</a>
             </li>
             <li class="@isActiveMenu(routes.Application.index())">
                 <a href="#"><i class="icon-wrench"></i>@Messages("project.sidebar.plugin")</a>
