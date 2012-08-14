@@ -86,6 +86,5 @@ GET     /:ownerName/:projectName/code/!         controllers.CodeApp.ajaxRequest(
 GET     /:ownerName/:projectName/code/!/        controllers.CodeApp.ajaxRequest(ownerName:String, projectName:String, path = "")
 GET     /:ownerName/:projectName/code/!/*path   controllers.CodeApp.ajaxRequest(ownerName:String, projectName:String, path:String)
 #for normal
-GET     /:ownerName/:projectName/code           controllers.CodeApp.view(ownerName:String, projectName:String, path:String = "")
-GET     /:ownerName/:projectName/code/          controllers.CodeApp.view(ownerName:String, projectName:String, path:String = "")
+GET     /:ownerName/:projectName/code           controllers.CodeApp.showCodeBrowser(ownerName:String, projectName:String)
 GET     /:ownerName/:projectName/code/*path     controllers.CodeApp.view(ownerName:String, projectName:String, path:String)

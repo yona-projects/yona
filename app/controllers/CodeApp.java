@@ -15,9 +15,17 @@ public class CodeApp extends Controller {
 
     public static Result view(String ownerName, String projectName, String path) throws IOException {
         //FIXME use ownerName
-        String vcs = Project.findByName(projectName).vcs;
+        String vcs = ProjectApp.getProject(ownerName, projectName).vcs;
         if (vcs.equals("GIT")) {
-            return GitApp.viewCode(ownerName, projectName, path);
+            return GitApp.showRawCode(ownerName, projectName, path);
+        } else {
+            return status(501, vcs + " is not supported!");
+        }
+    }
+    public static Result showCodeBrowser(String userName, String projectName) {
+        String vcs = ProjectApp.getProject(userName, projectName).vcs;
+        if (vcs.equals("GIT")) {
+            return GitApp.showCodeBrowser(userName, projectName);
         } else {
             return status(501, vcs + " is not supported!");
         }
@@ -25,7 +33,7 @@ public class CodeApp extends Controller {
     
     public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         try {
-            return ok(new GitRepository(ownerName, projectName).findFileInfo(path));
+            return ok(GitRepository.getGitRepository(ownerName, projectName).findFileInfo(path));
         } catch (NoHeadException e) {
             return forbidden();
         }

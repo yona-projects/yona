@@ -33,7 +33,7 @@ public class BoardApp extends Controller {
         return ok(postList.render(
                 "게시판",
                 project,
-                Post.findOnePage(project.name, postParam.pageNum,
+                Post.findOnePage(project.owner, project.name, postParam.pageNum,
                         Direction.getValue(postParam.order), postParam.key), postParam));
     }
 

@@ -75,9 +75,11 @@ public class Post extends Model {
      *            오름차순과 내림차수를 결정하는 기준
      * @return
      */
-    public static Page<Post> findOnePage(String projectName, int pageNum, Direction direction, String key) {
-        SearchParams searchParam = new SearchParams().add("project.name", projectName,
-                Matching.EQUALS);
+    public static Page<Post> findOnePage(String ownerName, String projectName, int pageNum,
+            Direction direction, String key) {
+        SearchParams searchParam = new SearchParams()
+            .add("project.owner", ownerName, Matching.EQUALS)
+            .add("project.name", projectName, Matching.EQUALS);
         OrderParams orderParams = new OrderParams().add(key, direction);
         return FinderTemplate.getPage(orderParams, searchParam, find, 10, pageNum - 1);
     }
@@ -96,8 +98,8 @@ public class Post extends Model {
         post.commentCount++;
         post.update();
     }
-    
-    public Duration ago(){
+
+    public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
 
@@ -110,6 +112,7 @@ public class Post extends Model {
         post.update();
     }
 
+    @Deprecated
     public static class Param {
         public Param() {
             this.order = ORDER_DESCENDING;
