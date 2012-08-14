@@ -55,17 +55,18 @@ GET     /:userName/:projectName/milestone/:id/delete      controllers.MilestoneA
 GET     /:userName/:projectName/milestone/:id/edit        controllers.MilestoneApp.editMilestone(userName: String, projectName:String, id: Long)
 
 # Issues
-GET     /:user/:project/issueList                 controllers.IssueApp.issues(user:String, project:String, stateType:String)
-GET     /:user/:project/issues/new                controllers.IssueApp.newIssue(user:String, project:String)
-POST    /:user/:project/issues/new                controllers.IssueApp.saveIssue(user:String, project:String)
-GET     /:user/:project/issues/:id                controllers.IssueApp.issue(user:String, project:String, id:Long)
-POST    /:user/:project/issue/:id/reply           controllers.IssueApp.saveComment(user:String, project:String, id:Long)
-GET     /:user/:project/issue/:id/delete          controllers.IssueApp.deleteIssue(user:String, project:String, id:Long)
-GET     /:user/:project/issue/:id/deleteComment   controllers.IssueApp.deleteComment(user:String, project:String, id:Long, commentId:Long)
-GET     /:user/:project/issueList/excel           controllers.IssueApp.extractExcelFile(user:String, project:String, stateType:String)
-GET     /:user/:project/issues/:id/edit           controllers.IssueApp.editIssue(user:String, project:String, id:Long)
-POST    /:user/:project/issues/:id/edit           controllers.IssueApp.updateIssue(user:String, project:String, id:Long)
-GET     /:user/:project/issueList/autonotify      controllers.IssueApp.enrollAutoNotification(user:String, project:String)
+GET     /:userName/:projectName/issueList                 controllers.IssueApp.issues(userName:String, projectName:String, stateType:String)
+GET     /:userName/:projectName/issueList/autonotify      controllers.IssueApp.enrollAutoNotification(userName:String, projectName:String)
+GET     /:userName/:projectName/issueList/excel           controllers.IssueApp.extractExcelFile(userName:String, projectName:String, stateType:String)
+GET     /:userName/:projectName/issues/new                controllers.IssueApp.newIssue(userName:String, projectName:String)
+POST    /:userName/:projectName/issues/new                controllers.IssueApp.saveIssue(userName:String, projectName:String)
+GET     /:userName/:projectName/issues/:id                controllers.IssueApp.issue(userName:String, projectName:String, id:Long)
+POST    /:userName/:projectName/issue/:id/reply           controllers.IssueApp.saveComment(userName:String, projectName:String, id:Long)
+GET     /:userName/:projectName/issue/:id/delete          controllers.IssueApp.deleteIssue(userName:String, projectName:String, id:Long)
+GET     /:userName/:projectName/issue/:id/deleteComment   controllers.IssueApp.deleteComment(userName:String, projectName:String, id:Long, commentId:Long)
+GET     /:userName/:projectName/issues/:id/edit           controllers.IssueApp.editIssue(userName:String, projectName:String, id:Long)
+POST    /:userName/:projectName/issues/:id/edit           controllers.IssueApp.updateIssue(userName:String, projectName:String, id:Long)
+
 
 # Git
 GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String, service:String)
