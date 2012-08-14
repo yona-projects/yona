@@ -18,9 +18,9 @@ import controllers.GitApp;
 public class GitRepository {
     public static final String REPO_PREFIX = "repo/git/";
 
-    public static Repository createRepository(String projectName) throws IOException {
+    public static Repository createRepository(String ownerName, String projectName) throws IOException {
         Repository repository = new RepositoryBuilder().setGitDir(
-                new File(GitApp.REPO_PREFIX + projectName + ".git")).build();
+                new File(GitApp.REPO_PREFIX + ownerName + "/" + projectName + ".git")).build();
         boolean bare = true;
         repository.create(bare); // create bare repository
         // TODO 최초의 커밋 미리만들기? 아님 그냥 안내 보여주기?
@@ -28,17 +28,16 @@ public class GitRepository {
         return repository;
     }
 
-    public static Repository getRepository(String projectName) throws IOException {
-        return new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + projectName + ".git"))
+    public static Repository getRepository(String ownerName, String projectName) throws IOException {
+        return new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + ownerName + "/" + projectName + ".git"))
                 .build();
     }
 
     private Repository repository;
 
-    public GitRepository(String projectName) throws IOException {
-        this.repository = getRepository(projectName);
+    public GitRepository(String ownerName, String projectName) throws IOException {
+        this.repository = getRepository(ownerName, projectName);
     }
-    
     /**
      * path를 받아 파일 정보 JSON객체를 return 하는 함수 일단은 HEAD 만 가능하다.
      * @param path              정보를 얻고싶은 파일의 path

@@ -26,7 +26,7 @@ public class GitApp extends Controller {
      * @return                  글라이언트에게 줄 응답 몸통
      * @throws IOException
      */
-    public static Result advertise(String projectName, String service) throws IOException {
+    public static Result advertise(String ownerName, String projectName, String service) throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
 
         response().setContentType("application/x-" + service + "-advertisement");
@@ -36,7 +36,7 @@ public class GitApp extends Controller {
         out.writeString("# service=" + service + "\n");
         out.end();
 
-        Repository repository = GitRepository.getRepository(projectName);
+        Repository repository = GitRepository.getRepository(ownerName, projectName);
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
 
@@ -60,12 +60,12 @@ public class GitApp extends Controller {
      * @return              클라이언트에게 줄 응답
      * @throws IOException
      */
-    public static Result serviceRpc(String projectName, String service) throws IOException {
+    public static Result serviceRpc(String ownerName, String projectName, String service) throws IOException {
         Logger.debug("GitApp.advertise : " + request().toString());
 
         response().setContentType("application/x-" + service + "-result");
 
-        Repository repository = GitRepository.getRepository(projectName);
+        Repository repository = GitRepository.getRepository(ownerName, projectName);
 
         // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
 
@@ -93,12 +93,21 @@ public class GitApp extends Controller {
         return ok(out.toByteArray());
     }
 
-    public static Result viewCode(String projectName, String path) throws IOException {
+    /**
+     * Raw포맷으로 소스를 보여주는 코드 
+     * TODO gitRepository로 위치를 옯겨야 한다.
+     * @param ownerName
+     * @param projectName
+     * @param path
+     * @return
+     * @throws IOException
+     */
+    public static Result viewCode(String ownerName, String projectName, String path) throws IOException {
         if (path.equals("")) {
             return ok(gitView.render("http://localhost:9000/" + projectName,
                     Project.findByName(projectName)));
         } else {
-            Repository repository = GitRepository.getRepository(projectName);
+            Repository repository = GitRepository.getRepository(ownerName, projectName);
             RevTree tree = new RevWalk(repository).parseTree(repository.resolve("HEAD"));
             TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
             if (treeWalk.isSubtree())

@@ -68,8 +68,8 @@ POST    /:user/:project/issues/:id/edit           controllers.IssueApp.updateIss
 GET     /:user/:project/issueList/autonotify      controllers.IssueApp.enrollAutoNotification(user:String, project:String)
 
 # Git
-GET     /:projectName/info/refs                                        controllers.GitApp.advertise(projectName:String, service:String)
-POST    /:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(projectName:String, service:String)
+GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String, service:String)
+POST    /:ownerName/:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(ownerName:String, projectName:String, service:String)
 
 # SVN
 HEAD    /svn/*path          controllers.SvnApp.serviceWithPath(path:String)

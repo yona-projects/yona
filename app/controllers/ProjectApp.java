@@ -64,7 +64,8 @@ public class ProjectApp extends Controller {
 
             // create Repository
             // FIXME 이게 과연 CodeApp의 역활인가?
-            CodeApp.createRepository(project.name, project.vcs);
+            // 나중에 SVN과 GIT을 추상으로 끌어올리면 바꿀것.
+            CodeApp.createRepository(project.owner, project.name, project.vcs);
 
             return redirect(routes.ProjectApp.project(project.owner, project.name));
         }

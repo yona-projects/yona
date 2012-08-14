@@ -29,11 +29,12 @@ public class BoardApp extends Controller {
         Form<Post.Param> postParamForm = new Form<Post.Param>(Post.Param.class);
         Param postParam = postParamForm.bindFromRequest().get();
         Project project = Project.findByNameAndOwner(ownerName, projectName);
-        
-        
-        return ok(postList.render("게시판", project,
-                Post.findOnePage(project.name, postParam.pageNum, Direction.getValue(postParam.order), postParam.key),
-                postParam));
+
+        return ok(postList.render(
+                "게시판",
+                project,
+                Post.findOnePage(project.name, postParam.pageNum,
+                        Direction.getValue(postParam.order), postParam.key), postParam));
     }
 
     public static Result newPost(String ownerName, String projectName) {
@@ -86,7 +87,7 @@ public class BoardApp extends Controller {
 
             Comment.write(comment);
             Post.countUpCommentCounter(postId);
-            
+
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         }
     }
@@ -105,8 +106,8 @@ public class BoardApp extends Controller {
         if (UserApp.currentUser().id == existPost.authorId) {
             return ok(editPost.render("게시물 수정", editForm, postId, project));
         } else {
-            return ok(boardError.render("글쓴이가 아닙니다.", routes.BoardApp.post(project.owner, project.name, postId),
-                    project));
+            return ok(boardError.render("글쓴이가 아닙니다.",
+                    routes.BoardApp.post(project.owner, project.name, postId), project));
         }
     }
 

@@ -17,7 +17,7 @@ public class CodeApp extends Controller {
         //FIXME use ownerName
         String vcs = Project.findByName(projectName).vcs;
         if (vcs.equals("GIT")) {
-            return GitApp.viewCode(projectName, path);
+            return GitApp.viewCode(ownerName, projectName, path);
         } else {
             return status(501, vcs + " is not supported!");
         }
@@ -25,22 +25,20 @@ public class CodeApp extends Controller {
     
     public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         try {
-            //FIXME use ownerName
-            return ok(new GitRepository(projectName).findFileInfo(path));
+            return ok(new GitRepository(ownerName, projectName).findFileInfo(path));
         } catch (NoHeadException e) {
             return forbidden();
         }
     }
     
-    public static void createRepository(String projectName, String type) throws IOException, ClientException {
+    public static void createRepository(String ownerName, String projectName, String type) throws IOException, ClientException {
         if (type.equals("GIT")) {
-            GitRepository.createRepository(projectName);
+            GitRepository.createRepository(ownerName, projectName);
         } else if (type.equals("Subversion")) {
             String svnPath = new File(SvnApp.REPO_PREFIX + projectName).getAbsolutePath();
             new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
         } else {
-            throw new UnsupportedOperationException("only support git!");
+            throw new UnsupportedOperationException("only support git & svn!");
         }
     }
-    
 }
