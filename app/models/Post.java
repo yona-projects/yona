@@ -86,12 +86,20 @@ public class Post extends Model {
         find.byId(id).delete();
     }
 
+    /**
+     * 댓글이 달릴때 체크를 하는 함수.
+     * @param id Post의 ID
+     */
     public static void countUpCommentCounter(Long id) {
         Post post = find.byId(id);
         post.commentCount++;
         post.update();
     }
 
+    /**
+     * 현재 글을 쓴지 얼마나 되었는지를 얻어내는 함수
+     * @return
+     */
     public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }

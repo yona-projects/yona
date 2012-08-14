@@ -41,6 +41,7 @@ public class CodeApp extends Controller {
         if (type.equals("GIT")) {
             GitRepository.createRepository(ownerName, projectName);
         } else if (type.equals("Subversion")) {
+            // TODO svnRepository도 만들것!
             String svnPath = new File(SvnApp.REPO_PREFIX + projectName).getAbsolutePath();
             new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
         } else {

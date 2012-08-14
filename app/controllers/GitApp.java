@@ -8,6 +8,15 @@ import play.Logger;
 import play.mvc.*;
 import views.html.code.gitView;
 
+/**
+ * 
+ * @author Ahn Hyeok Jun
+ * @e-mail qa22ahj@google.com
+ * 
+ * @class git repository에 접근할때의 컨트롤러. push, pull만을 처리하고 코드 브라우저의 접근은 CodeApp에서
+ *        처리한다. TODO showRawCode와 showCodeBrowser가 여기 있어야 되는지고려할것
+ * 
+ */
 public class GitApp extends Controller {
     public static final String REPO_PREFIX = "repo/git/";
     public static String HOST_URL = "http://localhost:9000/";
@@ -60,7 +69,8 @@ public class GitApp extends Controller {
     }
 
     /**
-     * Raw포맷으로 소스를 보여주는 코드 만약 패스가 넘어오지 않는다면 코드 브라우져 페이지를 보여준다.
+     * Raw포맷으로 소스를 보여주는 코드
+     * TODO 후에 codeApp으로 옯길예정
      * 
      * @param userName
      * @param projectName
@@ -73,6 +83,14 @@ public class GitApp extends Controller {
         return ok(GitRepository.getGitRepository(userName, projectName).getFileByByteArray(path));
     }
 
+    /**
+     * 코드 브라우져를 표시하는 코드 
+     * TODO 후에 codeApp으로 옯길예정
+     * 
+     * @param userName
+     * @param projectName
+     * @return
+     */
     public static Result showCodeBrowser(String userName, String projectName) {
         return ok(gitView.render(HOST_URL + projectName,
                 ProjectApp.getProject(userName, projectName)));

@@ -12,6 +12,8 @@ import org.junit.*;
 
 import com.avaje.ebean.Page;
 
+import controllers.BoardApp;
+
 public class PostTest extends ModelTest<Post> {
 
     @Test
@@ -30,7 +32,7 @@ public class PostTest extends ModelTest<Post> {
         // Given
         // When
         Page<Post> page = Post.findOnePage("hobi", "nForge4java", 1, Direction.DESC,
-                Post.ORDERING_KEY_ID);
+                BoardApp.SearchCondition.ORDERING_KEY_ID);
         // Then
         assertThat(page.getList()).hasSize(1);
     }
