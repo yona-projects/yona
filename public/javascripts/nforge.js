@@ -146,20 +146,8 @@ var NForge = function () {
           return callback.apply(this, Array.prototype.slice.call(arguments, 1));
         }
         return nforge;
-      },
-
-      t : function (key, args) {
-        var msg = key;
-        if (nforge.i18n && nforge.i18n[key]) {
-          msg = nforge.i18n[key];
-        }
-        if (args) {
-          $.each(args, function (k, v) {
-            msg = msg.replace(new RegExp("\\$\\{" + k + "\\}", "gi"), v);
-          });
-        }
-        return msg;
       }
+      
     }; //end of proto.
 
     nforge = NForge.prototype = proto;
