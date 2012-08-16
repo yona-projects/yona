@@ -29,4 +29,15 @@ public class PermissionTest extends ModelTest<Permission> {
         // Then
         assertThat(Permission.findPermissionsByRole(1l).size()).isEqualTo(63);
     }
+    
+    @Test
+    public void permissionCheckByRole() throws Exception {
+        // Given
+        // When
+        boolean result1 = Permission.permissionCheckByRole(Role.ANONYMOUS, Resource.BOARD_POST, Operation.READ);
+        boolean result2 = Permission.permissionCheckByRole(Role.ANONYMOUS, Resource.BOARD_POST, Operation.DELETE);
+        // Then
+        assertThat(result1).isEqualTo(true);
+        assertThat(result2).isEqualTo(false);
+    }
 }

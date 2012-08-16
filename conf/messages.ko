@@ -231,3 +231,8 @@ board.post.new = 새 게시물
 board.post.modify = 게시물 수정
 board.comment.empty = 댓글내용은 반드시 쓰셔야 합니다.
 board.notAuthor = 글쓴이가 아닙니다.
+
+#Search
+label.writer = 글쓴이
+post.is.empty = 등록된 게시물이 없습니다.
+title.contentSearchResult = 컨텐츠 검색 결과

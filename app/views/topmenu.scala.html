@@ -8,6 +8,12 @@
   }
 }
 <ul class="nav nav-pills pull-right">
+    <li style="margin-right: 10px;">
+        <form id="contentsSearchForm" class="navbar-search" action="@routes.SearchApp.contentsSearch(project.owner, project.name)" method="GET">
+            <input type="text" name="filter" value=""/>
+            <button type="submit" id="searchSubmit" class="btn" style="vertical-align: top;"> <i class="icon-search"> </i></button>
+        </form>
+    </li>
     <li class="@isActiveMenu(routes.ProjectApp.project(project.owner, project.name))">
       <a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("menu.home")</a>
     </li>
@@ -32,7 +38,7 @@
          <a href="#">위키</a>
        </li>
     }
-    @isVisible(models.enumeration.Resource.PROJECT_SETTING){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.PROJECT_SETTING, models.enumeration.Operation.WRITE){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.owner, project.name))">
           <a href="@routes.ProjectApp.setting(project.owner, project.name)">@Messages("menu.admin")</a>
         </li>

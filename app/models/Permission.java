@@ -42,7 +42,6 @@ public class Permission extends Model {
      */
     public static boolean permissionCheck(Long userId, Long projectId,
             Resource resource, Operation operation) {
-
         int findRowCount = find.where()
                                     .eq("roles.projectUsers.user.id", userId)
                                     .eq("roles.projectUsers.project.id", projectId)

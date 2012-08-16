@@ -81,4 +81,15 @@ public class PostTest extends ModelTest<Post> {
         assertThat(actual.contents).isEqualTo("수정되었습니다.");
         assertThat(actual.commentCount).isEqualTo(1);
     }
+    
+    @Test
+    public void isAuthor() throws Exception {
+        // Given
+        Long currentUserId_hobi = 2l;
+        Long postId = 1l;
+        // When
+        boolean result = Post.isAuthor(currentUserId_hobi, postId);
+        // Then
+        assertThat(result).isEqualTo(true);
+    }
 }

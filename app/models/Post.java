@@ -8,6 +8,7 @@ import java.util.*;
 
 import javax.persistence.*;
 
+import controllers.SearchApp;
 import models.enumeration.*;
 import models.support.*;
 
@@ -19,6 +20,7 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
+import static com.avaje.ebean.Expr.contains;
 
 @Entity
 public class Post extends Model {
@@ -112,8 +114,28 @@ public class Post extends Model {
         }
         post.update();
     }
+    
+    public static boolean isAuthor(Long currentUserId, Long id) {
+        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
 
     public String authorName() {
         return User.findNameById(this.authorId);
     }
+
+	/**
+	 * 전체 컨텐츠 검색할 때 제목과 내용에 condition.filter를 포함하고 있는 게시글를 검색한다.
+	 * @param project
+	 * @param condition
+	 * @return
+	 */
+	public static Page<Post> findPosts(Project project, SearchApp.ContentSearchCondition condition) {
+		String filter = condition.filter;
+		return find.where()
+				.eq("project.id", project.id)
+				.or(contains("title", filter), contains("contents", filter))
+				.findPagingList(condition.pageSize)
+				.getPage(condition.page - 1);
+	}
 }

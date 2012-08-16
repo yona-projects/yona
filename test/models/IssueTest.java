@@ -23,7 +23,7 @@ public class IssueTest extends ModelTest<Issue> {
         issue.title = "불필요한 로그 출력 코드 제거test";
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
-        issue.reporterId = User.findById(1l).id;
+        issue.authorId = User.findById(1l).id;
         issue.milestoneId = 4l;
         // When
         // Then
@@ -168,6 +168,22 @@ public class IssueTest extends ModelTest<Issue> {
         Issue.updateNumOfComments(3l);
         // Then
         assertThat(Issue.findById(3l).numOfComments).isEqualTo(0);
+    }
+    
+    @Test
+    @Ignore
+    public void isAuthor() throws Exception {
+        // Given
+        Long currentUserId_hobi = 2l;
+        Long issueId1 = 1l;
+        Long issueId2 = 2l;
+        // When
+        boolean result1 = Issue.isAuthor(currentUserId_hobi, issueId1);
+        boolean result2 = Issue.isAuthor(currentUserId_hobi, issueId2);
+        // Then
+        assertThat(result1).isEqualTo(true);
+        assertThat(result2).isEqualTo(false);
+       
     }
 
 }

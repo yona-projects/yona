@@ -74,7 +74,7 @@ public class IssueApp extends Controller {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
         } else {
             Issue newIssue = issueForm.get();
-            newIssue.reporterId = UserApp.currentUser().id;
+            newIssue.authorId = UserApp.currentUser().id;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
             newIssue.updateStatusType(newIssue.state);
@@ -89,7 +89,7 @@ public class IssueApp extends Controller {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (UserApp.currentUser().id == targetIssue.reporterId) {
+        if (UserApp.currentUser().id == targetIssue.authorId) {
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
@@ -104,7 +104,7 @@ public class IssueApp extends Controller {
             return badRequest(issueForm.errors().toString());
         } else {
             Issue issue = issueForm.get();
-            issue.reporterId = UserApp.currentUser().id;
+            issue.authorId = UserApp.currentUser().id;
             issue.id = id;
             issue.filePath = saveFile(request());
             issue.project = project;
