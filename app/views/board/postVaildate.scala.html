@@ -11,4 +11,18 @@
     <a href="#" class="btn" data-dismiss="modal">확인</a>
   </div>
 </div>
-<script>nforge.require("board.vaildate");</script>
+<script>
+$(document).ready(function(){
+    $("form").submit(function(){
+        if($("input#title").val() == "" || $("textarea#contents").val() == "")
+        {
+            $('#chk_vaildate').modal()
+            return false;
+        }
+        else
+        {
+        	return true;
+        }
+    });
+});
+</script>
