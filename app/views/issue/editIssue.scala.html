@@ -3,11 +3,14 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @main(Messages(title), project) {
-
-    @form( action = routes.IssueApp.updateIssue(project.owner, project.name, issueId), 
+<!-- FIXEME 
+(1) 수정했을 시에, 수정시간으로 업데이트 되는 것이 아니라, 본 글이 원래 작성된 시간을 그대로 가지고 있을 것!
+(2) 매니저 및 멤버가 해당 이슈를 수정시에, 작성자가 변하지 않아야 함.
+--> 
+    @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issueId), 
             'enctype -> "multipart/form-data",
             'class -> "form-horizontal"){
-            <fieldset>
+    <fieldset>
     	@inputText(
     	   issueForm("title"), 
     	   '_showConstraints -> false, 
@@ -21,10 +24,11 @@
     	@inputFile(
     	   issueForm("filePath"))
     	@if(issueForm("filePath") != null) {<p>@issueForm("filePath")</p>}
-    	</fieldset>
+    </fieldset>
     	</br></br>
+    	
     	@if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
-    	<fieldset>
+    <fieldset>
             <div class="well">
                 <legend><b>@Messages("issue.new.detailInfo")</b></legend>
                 <div class="well form-inline">

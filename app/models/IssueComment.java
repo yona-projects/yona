@@ -4,12 +4,7 @@
 
 package models;
 
-import models.enumeration.Operation;
-import models.enumeration.Resource;
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
-import utils.RoleCheck;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -17,7 +12,9 @@ import javax.persistence.ManyToOne;
 
 import org.joda.time.Duration;
 
-import java.util.Date;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
+import utils.JodaDateUtil;
 
 @Entity
 public class IssueComment extends Model {
@@ -41,7 +38,7 @@ public class IssueComment extends Model {
     public Issue issue;
 
     public IssueComment() {
-        date = JodaDateUtil.today();
+        date = JodaDateUtil.now();
     }
 
     public static IssueComment findById(Long id) {
@@ -60,19 +57,16 @@ public class IssueComment extends Model {
     public static void delete(Long id) {
         find.byId(id).delete();
     }
+    
+    public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
 
-    public boolean isAuthor(Long currentUserId, String projectName) {
-
-        Project project = Project.findByName(projectName);
-        return checkAuthor(currentUserId, project.id);
-
-    }
-
-    private boolean checkAuthor(Long currentUserId, Long projectId) {
-        return currentUserId.equals(this.id)
-            || RoleCheck.permissionCheck(currentUserId, projectId,
-            Resource.PROJECT_SETTING,
-            Operation.WRITE);
+        boolean authorIs;
+        if (currentUserId == findById(objectId).authorId) {
+            authorIs = true;
+        } else {
+            authorIs = false;
+        }
+        return authorIs;
     }
     
     public Duration ago(){

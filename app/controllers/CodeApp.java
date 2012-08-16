@@ -2,22 +2,23 @@ package controllers;
 
 import git.GitRepository;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
-import models.Project;
-
-import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tigris.subversion.javahl.ClientException;
 
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Result;
 
 public class CodeApp extends Controller {
+	public static final String VCS_GIT = "GIT";
 
-    public static Result view(String ownerName, String projectName, String path) throws IOException {
-        //FIXME use ownerName
-        String vcs = Project.findByName(projectName).vcs;
-        if (vcs.equals("GIT")) {
-            return GitApp.viewCode(ownerName, projectName, path);
+    public static Result view(String userName, String projectName, String path) throws IOException {
+        String vcs = ProjectApp.getProject(userName, projectName).vcs;
+        if (VCS_GIT.equals(vcs)) {
+            return GitApp.viewCode(userName, projectName, path);
         } else {
             return status(501, vcs + " is not supported!");
         }
@@ -32,7 +33,7 @@ public class CodeApp extends Controller {
     }
     
     public static void createRepository(String ownerName, String projectName, String type) throws IOException, ClientException {
-        if (type.equals("GIT")) {
+        if (type.equals(VCS_GIT)) {
             GitRepository.createRepository(ownerName, projectName);
         } else if (type.equals("Subversion")) {
             String svnPath = new File(SvnApp.REPO_PREFIX + projectName).getAbsolutePath();

@@ -124,6 +124,7 @@ issue.new.result.diagnosisResult.duplicated = 중복
 issue.new.result.diagnosisResult.works4me= 잘동작함
 issue.noAssignee = 미배정
 issue.delete.window = 이슈 삭제
+issue.comment.delete.window = 이슈 댓글 삭제
 issue.new.selectDefault.milestone = --마일스톤 선택--
 issue.new.selectDefault.issueType = --유형 선택--
 issue.new.selectDefault.assignee = --담당자 선택--
@@ -136,8 +137,11 @@ issue.new.selectDefault.diagnosisResult = --진단결과 선택--
 issue.comment.delete.confirm = 해당 이슈의 댓글이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
 
 #Post
+post.new = 새글
 post.new.title = 제목
 post.new.contents = 내용
+post.author = 글쓴이
+post.age = 나이
 post.menu.search = 검색
 post.delete.confirm = 해당 게시물이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
 post.new.fileAttach = 첨부파일
@@ -155,6 +159,9 @@ project.shareOption = 공개 설정
 project.shareOption.public = 공개
 project.shareOption.private = 비공개
 project.shareOption.private.description = 비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼수 있습니다.
+project.isAuthorEditable = 작성자 수정/삭제 권한 설정
+project.isAuthorEditable.on =  가능
+project.isAuthorEditable.off = 불가능
 project.vcs = 코드관리시스템
 project.new.agreement = 본인은 약관에 대한 안내를 읽었으며 동의합니다.
 project.new.agreement.alert = 이용 악관에 동의하여야 합니다.
@@ -216,3 +223,11 @@ time.second = 초 전
 time.minute = 분 전
 time.hour = 시간 전
 time.day = 일 전
+
+#Board
+board.post.empty = 제목과 본문에 빈칸이 있습니다.
+board.post.notExist = 존재하지 않는 게시물입니다.
+board.post.new = 새 게시물
+board.post.modify = 게시물 수정
+board.comment.empty = 댓글내용은 반드시 쓰셔야 합니다.
+board.notAuthor = 글쓴이가 아닙니다.

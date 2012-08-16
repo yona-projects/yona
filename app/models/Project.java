@@ -29,11 +29,13 @@ public class Project extends Model {
     public String name;
     
     public String overview;
-    public boolean share_option;
     public String vcs;
     public String url;
     public String logoPath;
     public String owner;
+
+    public boolean share_option;
+    public boolean isAuthorEditable;
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<Issue> issues;

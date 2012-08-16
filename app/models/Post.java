@@ -25,13 +25,6 @@ public class Post extends Model {
     private static final long serialVersionUID = 1L;
     private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
 
-    public final static String ORDER_ASCENDING = "asc";
-    public final static String ORDER_DESCENDING = "desc";
-
-    public final static String ORDERING_KEY_ID = "id";
-    public final static String ORDERING_KEY_TITLE = "title";
-    public final static String ORDERING_KEY_AGE = "date";
-
     @Id
     public Long id;
 
@@ -75,9 +68,11 @@ public class Post extends Model {
      *            오름차순과 내림차수를 결정하는 기준
      * @return
      */
-    public static Page<Post> findOnePage(String projectName, int pageNum, Direction direction, String key) {
-        SearchParams searchParam = new SearchParams().add("project.name", projectName,
-                Matching.EQUALS);
+    public static Page<Post> findOnePage(String ownerName, String projectName, int pageNum,
+            Direction direction, String key) {
+        SearchParams searchParam = new SearchParams()
+            .add("project.owner", ownerName, Matching.EQUALS)
+            .add("project.name", projectName, Matching.EQUALS);
         OrderParams orderParams = new OrderParams().add(key, direction);
         return FinderTemplate.getPage(orderParams, searchParam, find, 10, pageNum - 1);
     }
@@ -91,13 +86,21 @@ public class Post extends Model {
         find.byId(id).delete();
     }
 
+    /**
+     * 댓글이 달릴때 체크를 하는 함수.
+     * @param id Post의 ID
+     */
     public static void countUpCommentCounter(Long id) {
         Post post = find.byId(id);
         post.commentCount++;
         post.update();
     }
-    
-    public Duration ago(){
+
+    /**
+     * 현재 글을 쓴지 얼마나 되었는지를 얻어내는 함수
+     * @return
+     */
+    public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
 
@@ -108,20 +111,6 @@ public class Post extends Model {
             post.filePath = beforePost.filePath;
         }
         post.update();
-    }
-
-    public static class Param {
-        public Param() {
-            this.order = ORDER_DESCENDING;
-            this.key = ORDERING_KEY_ID;
-            this.filter = "";
-            this.pageNum = 1;
-        }
-
-        public String order;
-        public String key;
-        public String filter;
-        public int pageNum;
     }
 
     public String authorName() {

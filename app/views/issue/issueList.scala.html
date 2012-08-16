@@ -5,7 +5,7 @@
 
 @header(label:String, sortBy:String) = {
     <th>
-        <a sortBy="@sortBy" href="@routes.IssueApp.issues(project.owner, project.name, param.stateType)">@label</a>
+        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.stateType)" data-sort-by="@sortBy">@label</a>
         @if(sortBy == param.sortBy){
         @if(param.orderBy == "desc"){
         <i class="icon-chevron-down"></i>
@@ -25,10 +25,10 @@
 					<select id="milestone" name="milestone">
 						<option class="blank" value ="">@Messages("issue.menu.milestoneSelectDefault")</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
 					</select>
-					<input type="hidden" name="sortBy" value="@param.sortBy">
-          			<input type="hidden" name="orderBy" value="@param.orderBy">
+					<input type="hidden" name="sortBy" value="@param.sortBy" class="h-value sort">
+          <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
+          <input type="hidden" name="stateType" value="@param.stateType">
 					<input type="text" name="filter" value="@param.filter" placeholder=@Messages("issue.menu.searchDefault")>
-					<input type="hidden" name="stateType" value="@param.stateType">
 					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
 				
 				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.owner, project.name)" >@Messages("issue.menu.new")</a>
@@ -62,21 +62,11 @@
 		            <div class="controls inline">
 		            	<fieldset>
 <!--FIXME view 전문가님이 아래의 if-else문 안의 중복된 코드를 업그레이드 해주시길 바랍니다. -->
-		              	<label class="checkbox inline">
-		                	@if(param.commentedCheck==true){
-		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1" checked="checked"> @Messages("checkbox.commented")
-		                	} else {
-		                	     <input type="checkbox" name="commentedCheck" id="commentCheckId" value="1"> @Messages("checkbox.commented")
-		                	}
-		             	</label>
-		            	<label class="checkbox inline">
-		                	@if(param.fileAttachedCheck==true){
-		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1" checked="checked"> @Messages("checkbox.fileAttached")
-		                	} else {
-		                	<input type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1"> @Messages("checkbox.fileAttached")
-		                	}
-		              	</label>
-<!--// -->         	
+                    <input class="filters" type="checkbox" name="commentedCheck" id="commentCheckId" value="1" @if(param.commentedCheck==true){checked="checked"}>
+                    <label class="checkbox inline">@Messages("checkbox.commented")</label>
+		                <input class="filters" type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1" @if(param.fileAttachedCheck==true){checked="checked"}>
+                    <label class="checkbox inline">@Messages("checkbox.fileAttached")</label>
+<!--// -->
 		              	<a href="@routes.IssueApp.extractExcelFile(project.owner, project.name, param.stateType)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
 		            	</fieldset>
 		            </div>
@@ -128,45 +118,7 @@
 	</div>
 </div>
 }
-	<script>
-		$("#checkboxForm").bind("change check", function(){
-				if($("#commentCheckId").is(":checked") && $("#fileAttachedCheckId").is(":checked")) {
-					return $("form[id='checkboxForm']").submit();
-				}
-				else if($("#commentCheckId").is(":checked")) {
-					return $("form[id='checkboxForm']").submit();
-				}
-				else if($("#fileAttachedCheckId").is(":checked")) {
-				
-					return $("form[id='checkboxForm']").submit();
-				} else {
-					event.preventDefault();
-				}
-			});	
-		$("th a").click(function(){
-			    var key = $(this).attr("sortBy");
-			    var $input = $("#searchForm input[name=sortBy]");
-			    if(key !== $input.val())
-			    {
-			        $input.val(key)
-			    }
-			    else
-			    {
-			        $input = $("#searchForm input[name=orderBy]");
-			        if($input.val() === "desc")
-			            $input.val("asc");
-			        else if($input.val() === "asc")
-			            $input.val("desc");
-			    }    
-	    $("#searchForm").submit();
-			    return false;
-			});
-			  
-	    $("pagination").click(function(){
-			  
-			});
-		$("select[id='milestone']").change(function(){
-				$(this).parent("form[id='searchForm']").submit();
-			});
-	</script>
+<script type="text/javascript">
+  nforge.require('issue.list');
+</script>
 }

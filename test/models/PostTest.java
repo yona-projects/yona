@@ -12,6 +12,8 @@ import org.junit.*;
 
 import com.avaje.ebean.Page;
 
+import controllers.BoardApp;
+
 public class PostTest extends ModelTest<Post> {
 
     @Test
@@ -29,8 +31,8 @@ public class PostTest extends ModelTest<Post> {
     public void findOnePage() throws Exception {
         // Given
         // When
-        Page<Post> page = Post.findOnePage("nForge4java", 1, Direction.DESC,
-                Post.ORDERING_KEY_ID);
+        Page<Post> page = Post.findOnePage("hobi", "nForge4java", 1, Direction.DESC,
+                BoardApp.SearchCondition.ORDERING_KEY_ID);
         // Then
         assertThat(page.getList()).hasSize(1);
     }

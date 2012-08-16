@@ -5,8 +5,10 @@
 <div class="row">
 	<div class="span2 offset10">
 		<div id="board_btn_panel">
+		@if(issue.isAuthor(session.get("userId").toLong, issue.id, project.name) && project.isAuthorEditable){
 			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a> <a
 				data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
+		} 
 			<a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
 		</div>
 	</div>
@@ -57,11 +59,11 @@
 				
 		</div>
 		
-		@if(ProjectUser.isMember(session.get("userId").toLong, project.id) || comment.isAuthor(session.get("userId").toLong, project.name)){
+		@if(comment.isAuthor(session.get("userId").toLong, comment.id, project.name)){
 		<div class="pull-right"> 
 		      <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
 		</div>
-		
+		}
 		
 		<div class="modal hide" id="deleteCommentConfirm">
 		    <div class="modal-header">
@@ -84,7 +86,7 @@
 				class="icon-download"> </i> @comment.filePath</a>
 		</p>
 		  }
-		}
+		
 	</div>
 </div>
 }

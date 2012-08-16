@@ -5,13 +5,13 @@
 
 @main(title, project) {
     @helper.form(action=routes.BoardApp.updatePost(project.owner, project.name, postId), 'enctype -> "multipart/form-data"){
-    	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> "제목")
-    	@helper.textarea(form("contents"), '_showConstraints -> false, '_label->"내용")
+    	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("post.new.title"))
+    	@helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("post.new.contents"))
     	@helper.inputFile(form("filePath"))
-    	<input type="submit" class="btn" value="저장"/>
-    	<input type="reset" class="btn" value="다시쓰기"/>
+    	<input type="submit" class="btn btn-primary" value="@Messages("button.save")"/>
+    	<input type="reset" class="btn" value="@Messages("button.reset")"/>
     }
-    @postVaildate()
+    @*@postVaildate()*@
 }
 
             
