@@ -2,6 +2,7 @@ package utils;
 
 import models.Permission;
 import models.Project;
+import models.ProjectUser;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
@@ -21,13 +22,15 @@ public class RoleCheck {
     public static boolean permissionCheck(Long userId, Long projectId,
                                     Resource resource, Operation operation) {
         
+        if(!ProjectUser.isMember(userId, projectId)) {
+            
+        }
         
         if (Project.findById(projectId).share_option
             && operation.equals(Operation.READ)) {
             return true;
         }
-            
-
+        
         return Permission.permissionCheck(userId, projectId,
             resource, operation);
     }

@@ -21,6 +21,7 @@ public class Role extends Model {
     public static final Long MANAGER = 1l;
     public static final Long MEMBER = 2l;
     public static final Long SITEMANAGER = 3l;
+    public static final Long ANONYMOUS = 4l;
     
     @Id
     public Long id;

@@ -2,32 +2,37 @@
 @isActiveMenu(call: Call) = @{
   if(request().uri().toString().equals(call.toString())){"active"}
 }
+@isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
+  roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.READ){
+    content
+  }
+}
 <ul class="nav nav-pills pull-right">
     <li class="@isActiveMenu(routes.ProjectApp.project(project.owner, project.name))">
       <a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("menu.home")</a>
     </li>
-    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.READ){
+    @isVisible(models.enumeration.Resource.BOARD_POST){
         <li class="@isActiveMenu(routes.BoardApp.posts(project.owner, project.name))">
-          <a href="@routes.BoardApp.posts((project.owner, project.name)">@Messages("menu.board")</a>
+          <a href="@routes.BoardApp.posts(project.owner, project.name)">@Messages("menu.board")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.CODE, models.enumeration.Operation.READ){
+    @isVisible(models.enumeration.Resource.CODE){
         <li class="@isActiveMenu(routes.CodeApp.view(project.owner, project.name, ""))">
           <a href="@routes.CodeApp.view(project.owner, project.name, "")">@Messages("menu.code")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.ISSUE_POST, models.enumeration.Operation.READ){
+    @isVisible(models.enumeration.Resource.ISSUE_POST){
         <li class="@isActiveMenu(routes.IssueApp.issues(project.owner, project.name,"open"))">
           <a href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("menu.issue")</a>
         </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.WIKI_PAGE, models.enumeration.Operation.READ){
+    @isVisible(models.enumeration.Resource.WIKI_PAGE){
       <!-- TODO -->
        <li class="@isActiveMenu(routes.ProjectApp.newProject())">
          <a href="#">위키</a>
        </li>
     }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.PROJECT_SETTING, models.enumeration.Operation.WRITE){
+    @isVisible(models.enumeration.Resource.PROJECT_SETTING){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.owner, project.name))">
           <a href="@routes.ProjectApp.setting(project.owner, project.name)">@Messages("menu.admin")</a>
         </li>

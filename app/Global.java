@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -7,7 +8,15 @@ import org.tmatesoft.svn.util.SVNLogType;
 import models.User;
 
 
+import anorm.SimpleSql;
+import anorm.Sql;
+import anorm.SqlQuery;
+
+import com.avaje.ebean.CallableSql;
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.Query;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
 
 import controllers.SvnApp;
 import controllers.routes;
@@ -57,9 +66,8 @@ public class Global extends GlobalSettings {
                 
                 Ebean.save(all.get("roles"));
                 for(Object role: all.get("roles")) {
-                    Ebean.saveManyToManyAssociations(role, "permissions");                    
+                    Ebean.saveManyToManyAssociations(role, "permissions");
                 }
-                
                 Ebean.save(all.get("projectUsers"));
             }
         }

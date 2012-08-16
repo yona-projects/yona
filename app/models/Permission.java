@@ -44,10 +44,20 @@ public class Permission extends Model {
             Resource resource, Operation operation) {
 
         int findRowCount = find.where()
-                .eq("roles.projectUsers.user.id", userId)
-                .eq("roles.projectUsers.project.id", projectId)
-                .eq("resource", resource.resource())
-                .eq("operation", operation.operation()).findRowCount();
+                                    .eq("roles.projectUsers.user.id", userId)
+                                    .eq("roles.projectUsers.project.id", projectId)
+                                    .eq("resource", resource.resource())
+                                    .eq("operation", operation.operation())
+                                .findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
+    
+    public static boolean permissionCheckByRole(Long roleId, Resource resource, Operation operation) {
+        int findRowCount = find.where()
+                                .eq("roles.id", roleId)
+                                .eq("resource", resource.resource())
+                                .eq("operation", operation.operation())
+                            .findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 

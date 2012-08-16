@@ -25,8 +25,9 @@ public class ModelTest<T> {
 
     @BeforeClass
     public static void startApp() {
-        app = Helpers.fakeApplication(Helpers.inMemoryDatabase());
+        app = Helpers.fakeApplication(Helpers.inMemoryDatabase()); 
         Helpers.start(app);
+        
     }
 
     @AfterClass

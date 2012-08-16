@@ -17,8 +17,6 @@ import models.User;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.IssueState;
-import models.enumeration.PermissionOperation;
-import models.enumeration.PermissionResource;
 import models.enumeration.StateType;
 import models.support.SearchCondition;
 import utils.RoleCheck;
