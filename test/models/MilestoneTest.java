@@ -229,7 +229,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
         issue.stateType = StateType.OPEN;
-        issue.reporterId = User.findById(1l).id;
+        issue.authorId = User.findById(1l).id;
         issue.milestoneId = 5l;
 
         // WHEN

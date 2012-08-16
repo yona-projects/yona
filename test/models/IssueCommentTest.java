@@ -7,7 +7,7 @@ import org.junit.Test;
 public class IssueCommentTest extends ModelTest<IssueComment> {
 
     @Test
-    public void findById() {
+    public void findById() throws Exception {
         // Given
         // When
         // Then
@@ -15,7 +15,7 @@ public class IssueCommentTest extends ModelTest<IssueComment> {
     }
 
     @Test
-    public void create() {
+    public void create() throws Exception {
         // Given
         IssueComment issueComment = new IssueComment();
         issueComment.contents = "create() test";
@@ -29,7 +29,7 @@ public class IssueCommentTest extends ModelTest<IssueComment> {
     }
 
     @Test
-    public void delete() {
+    public void delete() throws Exception {
         // Given
         assertThat(IssueComment.findById(1l)).isNotNull();
         // When
@@ -38,5 +38,16 @@ public class IssueCommentTest extends ModelTest<IssueComment> {
         // Then
         assertThat(IssueComment.findById(1l)).isNull();
         assertThat(Issue.findById(3l).comments.size()).isEqualTo(0);
+    }
+    
+    @Test
+    public void isAuthor() throws Exception {
+        // Given
+        Long currentUserId_hobi = 2l;
+        Long issueCommentId = 1l;
+        // When
+        boolean result = IssueComment.isAuthor(currentUserId_hobi, issueCommentId);
+        // Then
+        assertThat(result).isEqualTo(true);
     }
 }

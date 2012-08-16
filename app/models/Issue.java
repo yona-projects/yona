@@ -112,7 +112,7 @@ public class Issue extends Model {
 
     public Long milestoneId;
     public Long assigneeId;
-    public Long reporterId;
+    public Long authorId;
     public IssueState state;
     public StateType stateType;
     public String issueType;
@@ -452,7 +452,7 @@ public class Issue extends Model {
     }
 
     public String reporterName() {
-        return User.findNameById(this.reporterId);
+        return User.findNameById(this.authorId);
     }
 
     /**
@@ -489,15 +489,9 @@ public class Issue extends Model {
         issue.update();
     }
 
-    public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
-
-        boolean authorIs;
-        if (currentUserId == findById(objectId).reporterId) {
-            authorIs = true;
-        } else {
-            authorIs = false;
-        }
-        return authorIs;
+    public static boolean isAuthor(Long currentUserId, Long id) {
+        int findRowCount = find.where().eq("reporterId", currentUserId).eq("id", id).findRowCount();
+        return (findRowCount != 0) ? true : false;
     }
 
     public Duration ago() {

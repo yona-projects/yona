@@ -112,6 +112,11 @@ public class Post extends Model {
         }
         post.update();
     }
+    
+    public static boolean isAuthor(Long currentUserId, Long id) {
+        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
 
     public String authorName() {
         return User.findNameById(this.authorId);

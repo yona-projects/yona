@@ -1,5 +1,6 @@
 package utils;
 
+import models.Post;
 import models.Role;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
@@ -9,7 +10,7 @@ import models.enumeration.Resource;
 
 public class RoleCheckTest extends ModelTest<Role>{
     @Test
-    public void roleCheck() throws Exception {
+    public void permissionCheck() throws Exception {
         // Given
         Long userSessionId1 = 1l;
         Long userSessionId2 = 2l;
@@ -23,5 +24,17 @@ public class RoleCheckTest extends ModelTest<Role>{
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
+    }
+    
+    @Test
+    public void permissionCheckWithOtherParameter() throws Exception {
+        // Given
+        Long userSessionId1 = 2l;
+        Long projectId1 = 3l; // isAuthorEditible = false
+        Long issueId1 = 17l;
+        // When
+        boolean result1 = RoleCheck.permissionCheck(userSessionId1, projectId1, Resource.ISSUE_POST, Operation.EDIT, issueId1);
+        // Then
+        assertThat(result1).isEqualTo(false);
     }
 }

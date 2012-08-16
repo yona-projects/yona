@@ -58,15 +58,9 @@ public class IssueComment extends Model {
         find.byId(id).delete();
     }
     
-    public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
-
-        boolean authorIs;
-        if (currentUserId == findById(objectId).authorId) {
-            authorIs = true;
-        } else {
-            authorIs = false;
-        }
-        return authorIs;
+    public static boolean isAuthor(Long currentUserId, Long id) {
+        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
+        return (findRowCount != 0) ? true : false;
     }
     
     public Duration ago(){

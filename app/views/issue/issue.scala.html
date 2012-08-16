@@ -5,7 +5,7 @@
 <div class="row">
 	<div class="span2 offset10">
 		<div id="board_btn_panel">
-		@if(issue.isAuthor(session.get("userId").toLong, issue.id, project.name) && project.isAuthorEditable){
+		@if(Issue.isAuthor(session.get("userId").toLong, issue.id) && project.isAuthorEditable){
 			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a> <a
 				data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
 		} 
@@ -59,7 +59,7 @@
 				
 		</div>
 		
-		@if(comment.isAuthor(session.get("userId").toLong, comment.id, project.name)){
+		@if(IssueComment.isAuthor(session.get("userId").toLong, comment.id)){
 		<div class="pull-right"> 
 		      <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
 		</div>

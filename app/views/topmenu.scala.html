@@ -32,7 +32,7 @@
          <a href="#">위키</a>
        </li>
     }
-    @isVisible(models.enumeration.Resource.PROJECT_SETTING){
+    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.PROJECT_SETTING, models.enumeration.Operation.WRITE){
         <li class="@isActiveMenu(routes.ProjectApp.setting(project.owner, project.name))">
           <a href="@routes.ProjectApp.setting(project.owner, project.name)">@Messages("menu.admin")</a>
         </li>
