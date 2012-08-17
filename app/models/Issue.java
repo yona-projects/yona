@@ -514,11 +514,4 @@ public class Issue extends Model {
 				.findPagingList(condition.pageSize)
 				.getPage(condition.page - 1);
 	}
-	
-	public static String changeStateToClosed
-	
-//	public static boolean changeStateByAssigned(Long id){
-//	    
-//	    return () 
-//	}
 }
