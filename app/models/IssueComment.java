@@ -28,7 +28,7 @@ public class IssueComment extends Model {
     @Constraints.Required
     public String contents;
 
-    @Constraints.Required
+    
     public Date date;
 
     public Long authorId;

@@ -492,7 +492,7 @@ public class Issue extends Model {
     }
 
     public static boolean isAuthor(Long currentUserId, Long id) {
-        int findRowCount = find.where().eq("reporterId", currentUserId).eq("id", id).findRowCount();
+        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 
@@ -514,4 +514,11 @@ public class Issue extends Model {
 				.findPagingList(condition.pageSize)
 				.getPage(condition.page - 1);
 	}
+	
+	public static String changeStateToClosed
+	
+//	public static boolean changeStateByAssigned(Long id){
+//	    
+//	    return () 
+//	}
 }
