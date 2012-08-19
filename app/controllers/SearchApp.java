@@ -36,6 +36,6 @@ public class SearchApp extends Controller {
 		Page<Post> resultPosts = Post.findPosts(project, condition);
 
 
-		return ok(contentsSearch.render("title.contentSearchResult", project, resultIssues, resultPosts));
+		return ok(contentsSearch.render("title.contentSearchResult", project, condition.filter, resultIssues, resultPosts));
 	}
 }

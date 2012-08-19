@@ -1,86 +1,92 @@
-@(title: String, project: Project, resultIssues: Page[Issue], resultPosts: Page[Post])
+@(title: String, project: Project, filter: String, resultIssues: Page[Issue], resultPosts: Page[Post])
 @import scala.collection.immutable._
 @import utils.TemplateHelper
 @import helper._
 
 @main(title, project) {
+<input class="filter" type="hidden" value="@filter" />
 <div class="row">
-    <h3>@Messages("menu.issue") (@resultIssues.getTotalRowCount())</h3>
+    <div class="span12">
+        <h3>@Messages("menu.issue") (@resultIssues.getTotalRowCount())</h3>
 
-    @if(resultIssues.getTotalRowCount == 0){
-    <div class="well span11">
-        <em>@Messages("issue.is.empty")</em>
+        @if(resultIssues.getTotalRowCount == 0){
+        <div class="well">
+            <em>@Messages("issue.is.empty")</em>
+        </div>
+        }else{
+        <div>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>@Messages("label.id")</th>
+                    <th>@Messages("label.state")</th>
+                    <th>@Messages("label.title")</th>
+                    <th>@Messages("label.assignee")</th>
+                    <th>@Messages("label.date")</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for(issue <- resultIssues.getList()){
+                <tr>
+                    <td>@issue.id</td>
+                    <td>@Messages(issue.state())</td>
+                    <td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file"></i>}</a></td>
+                    <td>
+                        @if(issue.assigneeId == null){
+                        <em>@Messages("issue.noAssignee")</em>
+                        } else {
+                        <em>@issue.assigneeName</em>
+                        }
+                    </td>
+                    <td>@agoString(issue.ago())</td>
+                </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <div>
+            @pagination(resultIssues, 5, "issue-pagination")
+        </div>
+        }
     </div>
-    }else{
-    <div>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>@Messages("label.id")</th>
-                <th>@Messages("label.state")</th>
-                <th>@Messages("label.title")</th>
-                <th>@Messages("label.assignee")</th>
-                <th>@Messages("label.date")</th>
-            </tr>
-            </thead>
-            <tbody>
-            @for(issue <- resultIssues.getList()){
-            <tr>
-                <td>@issue.id</td>
-                <td>@Messages(issue.state())</td>
-                <td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file"></i>}</a></td>
-                <td>
-                    @if(issue.assigneeId == null){
-                    <em>@Messages("issue.noAssignee")</em>
-                    } else {
-                    <em>@issue.assigneeName</em>
-                    }
-                </td>
-                <td>@agoString(issue.ago())</td>
-            </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-    <div>
-        @pagination(resultIssues, 5, "pagination")
-    </div>
-    }
 </div>
 
 <div class="row">
-    <h3>@Messages("menu.board") (@resultPosts.getTotalRowCount())</h3>
+    <div class="span12">
+        <h3>@Messages("menu.board") (@resultPosts.getTotalRowCount())</h3>
 
-    @if(resultPosts.getTotalRowCount == 0){
-    <div class="well span11">
-        <em>@Messages("post.is.empty")</em>
+        @if(resultPosts.getTotalRowCount == 0){
+        <div class="well">
+            <em>@Messages("post.is.empty")</em>
+        </div>
+        }else{
+        <div>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>@Messages("label.id")</th>
+                        <th>@Messages("label.title")</th>
+                        <th>@Messages("label.writer")</th>
+                        <th>@Messages("label.date")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @for(post <- resultPosts.getList()){
+                <tr>
+                    <td>@post.id</td>
+                    <td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.commentCount]</a></td>
+                    <td>@post.authorName</td>
+                    <td>@agoString(post.ago())</td>
+                </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <div>
+            @pagination(resultPosts, 5, "post-pagination")
+        </div>
+        }
     </div>
-    }else{
-    <div>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>@Messages("label.id")</th>
-                <th>@Messages("label.title")</th>
-                <th>@Messages("label.writer")</th>
-                <th>@Messages("label.date")</th>
-            </tr>
-            </thead>
-            <tbody>
-            @for(post <- resultPosts.getList()){
-            <tr>
-                <td>@post.id</td>
-                <td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.commentCount]</a></td>
-                <td>@post.authorName</td>
-                <td>@agoString(post.ago())</td>
-            </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-    <div>
-        @pagination(resultPosts, 5, "pagination")
-    </div>
-    }
 </div>
+<script type="text/javascript">nforge.require('pages.contentSearch');</script>
 }
