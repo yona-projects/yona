@@ -81,7 +81,7 @@ public class ProjectApp extends Controller {
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
         
-        if(Project.projectNameChangeable(project.id, project.owner, project.name)) {
+        if(!Project.projectNameChangeable(project.id, userName, project.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledUpdatedProjectForm.reject("name");
         }
