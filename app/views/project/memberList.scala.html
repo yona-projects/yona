@@ -22,9 +22,23 @@
 	                </form>
                 </td>
                 <td>
-                    <a class="btn btn-danger" href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)">@Messages("button.delete")</a>
+                    <a id="deletion" data-toggle="modal" class="btn btn-danger" href="#alertDeletion@member.user.loginId">@Messages("button.delete")</a>
                 </td>
             </tr>
+            
+            <div class="modal hide" id="alertDeletion@member.user.loginId">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h3>@Messages("project.member.delete")</h3>
+                </div>
+                <div class="modal-body">
+                    <p>@Messages("project.member.deleteConfirm")</p>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+                    <a href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="btn btn-danger">@Messages("button.yes")</a>
+                </div>
+            </div>
         }
         <tr>
             <form action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">

@@ -18,28 +18,6 @@ import play.db.ebean.Model.Finder;
  */
 public class RoleCheck {
 
-    /**
-     * 
-     * @param userId
-     * @param projectId
-     * @param resource
-     * @param operation
-     * @return
-     */
-    public static boolean permissionCheck(Long userId, Long projectId, Resource resource,
-            Operation operation) {
-        return permissionCheck(userId, projectId, resource, operation, null);
-    }
-    
-    public static boolean permissionCheck(String userId, Long projectId,
-            Resource resource, Operation operation) {
-        if(userId != null) {
-            return permissionCheck(Long.parseLong(userId), projectId, resource, operation, null);
-        } else {
-            return permissionCheck(null, projectId, resource, operation, null);
-        }
-        
-    }
 
     /**
      * 
@@ -50,9 +28,15 @@ public class RoleCheck {
      * @param resourceId
      * @return
      */
-    public static boolean permissionCheck(Long userId, Long projectId, Resource resource,
+    public static boolean permissionCheck(Object userSessionId, Long projectId, Resource resource,
             Operation operation, Long resourceId) {
-
+        Long userId;
+        if(userSessionId instanceof String) {
+            userId = Long.parseLong((String) userSessionId);
+        } else {
+            userId = (Long) userSessionId;
+        }
+        
         boolean isAuthorEditible;
 
         switch (resource)

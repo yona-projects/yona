@@ -28,14 +28,10 @@ public class User extends Model {
 
     @Id
     public Long id;
-
     public String name;
     public String loginId;
     public String password;
-
-    @Constraints.Pattern("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$")
     public String email;
-
     public String profileFilePath;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -63,6 +59,18 @@ public class User extends Model {
 
     public static User findByLoginId(String loginId) {
         return find.where().eq("loginId", loginId).findUnique();
+    }
+    
+
+    /**
+     * 존재하는 유저인지를 검사합니다.
+     * 
+     * @param loginId
+     * @return
+     */
+    public static boolean isLoginId(String loginId) {
+        int findRowCount = find.where().eq("loginId", loginId).findRowCount();
+        return (findRowCount != 0) ? true : false;
     }
 
     public static boolean authenticate(User user) {

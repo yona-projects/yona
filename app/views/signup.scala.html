@@ -14,19 +14,12 @@
       <a class="close" data-dismiss="alert">×</a>
       <strong>@Messages("user.confirmPassword.alert")</strong>
     </div>
-    <div class="alert alert-danger hide" id="wrongPasswordAlert">
-      <a class="close" data-dismiss="alert">×</a>
-      <strong>@Messages("user.wrongPassword.alert")</strong>
-    </div>
-    <div class="alert alert-danger hide" id="wrongEmailAlert">
-      <a class="close" data-dismiss="alert">×</a>
-      <strong>@Messages("user.wrongEmail.alert")</strong>
-    </div>
     @form(action = routes.UserApp.saveUser, 'class -> "well form-horizontal"){
       <fieldset>
         @inputText(
           newUserForm("loginId"),
-          '_label -> Messages("user.loginId")
+          '_label -> Messages("user.loginId"),
+          '_showConstraints -> false
         )
         
         @inputPassword(
@@ -58,21 +51,9 @@
 </div>
 <script>
   $(document).ready(function(){
-    var reg_email = /[0-9a-zA-Z]+(.[_a-z0-9-]+)*@@(?:\w+\.)+\w+$/;
-    
-    $("#signup").click(function(){
-      if($("#password").val() == ""){
-        $("#wrongPasswordAlert").show();
-        return false;
-      }
-      
+    $("#signup").click(function(){      
       if($("#password").val() != ($("#confirmPassword").val())){
         $("#confirmPasswordAlert").show();
-        return false;
-      }
-      
-      if(!reg_email.test($("#email").val())){
-        $("#wrongEmailAlert").show();
         return false;
       }
       

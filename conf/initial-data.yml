@@ -52,6 +52,14 @@ projects:
         url:            http://localhost:9000/CUBRID
         owner:          doortts
         isAuthorEditable: true
+    - !!models.Project
+        name:           HelloSocialApp
+        overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/HelloSocialApp
+        owner:          hobi
+        isAuthorEditable: true
 
 # Board
 posts:
@@ -1059,5 +1067,12 @@ projectUsers:
                             id: 4
         project:        !!models.Project
                             id: 3
+        role:           !!models.Role
+                            id: 1
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 4
         role:           !!models.Role
                             id: 1

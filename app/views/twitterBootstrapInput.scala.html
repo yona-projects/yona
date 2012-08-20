@@ -11,7 +11,7 @@
         @elements.input
         <em class="help-inline">@removeRequiredMessage(elements.infos.mkString(", "))</em>
         @if(elements.hasErrors) {
-        <em class="help-inline">@elements.errors.mkString(", ")</em>
+        <em class="help-inline">@Messages(elements.errors.mkString(", "))</em>
         }
       </div>
     </div>
