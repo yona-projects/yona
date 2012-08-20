@@ -1,7 +1,5 @@
 @(title: String, project: Project, filter: String, resultIssues: Page[Issue], resultPosts: Page[Post])
-@import scala.collection.immutable._
-@import utils.TemplateHelper
-@import helper._
+@import utils.TemplateHelper._
 
 @main(title, project) {
 <input class="filter" type="hidden" value="@filter" />
@@ -25,22 +23,8 @@
                     <th>@Messages("label.date")</th>
                 </tr>
                 </thead>
-                <tbody>
-                @for(issue <- resultIssues.getList()){
-                <tr>
-                    <td>@issue.id</td>
-                    <td>@Messages(issue.state())</td>
-                    <td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file"></i>}</a></td>
-                    <td>
-                        @if(issue.assigneeId == null){
-                        <em>@Messages("issue.noAssignee")</em>
-                        } else {
-                        <em>@issue.assigneeName</em>
-                        }
-                    </td>
-                    <td>@agoString(issue.ago())</td>
-                </tr>
-                }
+                <tbody class="issue-tbody">
+                  @issueContentsSearch(project, resultIssues)
                 </tbody>
             </table>
         </div>
@@ -70,15 +54,8 @@
                         <th>@Messages("label.date")</th>
                     </tr>
                 </thead>
-                <tbody>
-                @for(post <- resultPosts.getList()){
-                <tr>
-                    <td>@post.id</td>
-                    <td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.commentCount]</a></td>
-                    <td>@post.authorName</td>
-                    <td>@agoString(post.ago())</td>
-                </tr>
-                }
+                <tbody class="post-tbody">
+                @postContentsSearch(project, resultPosts)
                 </tbody>
             </table>
         </div>

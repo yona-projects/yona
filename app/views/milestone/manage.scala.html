@@ -1,6 +1,6 @@
 @(message: String, milestones: List[models.Milestone], projectInst: Project, mCondition: MilestoneApp.MilestoneCondition)
 @import scala.collection.immutable._
-@import utils.TemplateHelper
+@import utils.TemplateHelper._
 
 @completionRateName(completionRate: Int) = @{
     /* TODO It will be chnaged. */
@@ -24,7 +24,7 @@
             _direction = "desc"
         }
     }
-    TemplateHelper.buildQueryString(routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name),
+    buildQueryString(routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name),
       Map("sort"-> _sort, "direction"-> _direction)
     )
 }
