@@ -105,14 +105,10 @@
 			</tbody>
 		</table>
 
-		<div class="row">  
-    <div class="span6 offset4">
-        @pagination(currentPage, 5, "pagination")
-    </div>
-    <div class="span2">
-        <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.owner, project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-    </div>
-  </div>
+	    <div class="row">
+            <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.owner, project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+            @pagination(currentPage, 5, "pagination")
+        </div>
  
 
 	</div>

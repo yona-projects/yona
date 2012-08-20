@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import controllers.SearchApp;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
@@ -43,6 +44,7 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
+import static com.avaje.ebean.Expr.contains;
 
 /**
  * @author Taehyun Park
@@ -490,11 +492,26 @@ public class Issue extends Model {
     }
 
     public static boolean isAuthor(Long currentUserId, Long id) {
-        int findRowCount = find.where().eq("reporterId", currentUserId).eq("id", id).findRowCount();
+        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 
     public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
+
+	/**
+	 * 전체 컨텐츠 검색할 때 제목과 내용에 condition.filter를 포함하고 있는 이슈를 검색한다.
+	 * @param project
+	 * @param condition
+	 * @return
+	 */
+	public static Page<Issue> findIssues(Project project, SearchApp.ContentSearchCondition condition) {
+		String filter = condition.filter;
+		return find.where()
+				.eq("project.id", project.id)
+				.or(contains("title", filter), contains("body", filter))
+				.findPagingList(condition.pageSize)
+				.getPage(condition.page - 1);
+	}
 }

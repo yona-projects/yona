@@ -440,8 +440,6 @@ roles:
             - !!models.Permission
                 id: 2 
             - !!models.Permission
-                id: 3 
-            - !!models.Permission
                 id: 5 
             - !!models.Permission
                 id: 6 
@@ -449,8 +447,6 @@ roles:
                 id: 9 
             - !!models.Permission
                 id: 10 
-            - !!models.Permission
-                id: 11  
             - !!models.Permission
                 id: 12 
             - !!models.Permission
@@ -672,6 +668,8 @@ roles:
             - !!models.Permission
                 id: 9 
             - !!models.Permission
+                id: 10 
+            - !!models.Permission
                 id: 12 
             - !!models.Permission
                 id: 15 
@@ -783,15 +781,15 @@ permissions:
 
     - !!models.Permission
         id:             18
-        resource:       issue_value
+        resource:       issue_importance
         operation:      read
     - !!models.Permission
         id:             19
-        resource:       issue_value
+        resource:       issue_importance
         operation:      write
     - !!models.Permission
         id:             20
-        resource:       issue_value
+        resource:       issue_importance
         operation:      edit
 
     - !!models.Permission

@@ -29,7 +29,7 @@
     </div>  
   </div>
 
-  <div class="row">  
+  <div class="row">
     <div class="span12">
 	    <ul class="nav nav-tabs" id="board_list">
 	    	<li class="active"><a href="">전체</a></li>
@@ -64,40 +64,10 @@
   </div>
 
   <div class="row">  
-    <div class="span6 offset4">
-        @pagination(page, 5, "pagination");
-    </div>
-    <div class="span2">
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-    </div>
+      <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+      @pagination(page, 5, "pagination")
   </div>
-  <script>
-  
-  $("th a").click(function(){
-    var key = $(this).attr("key");
-    var $input = $("#search-form input[name=key]");
-    if(key !== $input.val())
-    {
-        $input.val(key)
-    }
-    else
-    {
-        $input = $("#search-form input[name=order]");
-        if($input.val() === "desc")
-            $input.val("asc");
-        else if($input.val() === "asc")
-            $input.val("desc");
-    }    
-    $("#search-form").submit();
-    return false;
-  });
-  
-  $("pagination a").click(function(){
-	  var $input = $("#search-form input[name=pageNum]");
-	  $input.val($(this).attr("pageNum"));
-	  $("#search-form").submit();
-	  return false;
-  });
+  <script type="text/javascript">
+  nforge.require('board.list');
   </script>
-  
 }

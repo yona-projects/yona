@@ -48,7 +48,8 @@ var NForge = function () {
           loadFn = function(module) {
             module = module.replace('nforge.','');
             if (module.indexOf(PERIOD) < 0) {
-              return nforge;
+              var newFunction = new nforge[module]();
+              return newFunction.init.apply(nforge,args);
             }
             _modules = module.split(PERIOD);
             var _tObj = nforge._objectDeepProp('get', module);

@@ -231,3 +231,8 @@ board.post.new = New Post
 board.post.modify = Edit Post
 board.comment.empty = you have to write contents.
 board.notAuthor = You are not author!
+
+#Search
+label.writer = Writer
+post.is.empty = There is no post.
+title.contentSearchResult = Conetnet Search Result
