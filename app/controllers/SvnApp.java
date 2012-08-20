@@ -9,11 +9,14 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
+import org.tmatesoft.svn.core.internal.io.svn.SVNReader;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
+import play.Logger;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import svn.SVNRepository;
 import utils.PlayServletRequest;
 import utils.PlayServletResponse;
 import utils.PlayServletSession;
@@ -71,11 +74,16 @@ public class SvnApp extends Controller{
         } catch (URISyntaxException e) {
             return badRequest();
         }
-        String pathInfo = path.substring(path.indexOf('/', 1));
+        String pathInfo = path.substring(path.indexOf('/',1));
+        
+        String userName = pathInfo.substring(1, pathInfo.indexOf('/', 1));
+        Logger.info(userName);
+        pathInfo = pathInfo.substring(pathInfo.indexOf('/', 1));
+        Logger.info(pathInfo);
         PlayServletRequest request = new PlayServletRequest(request(), new PlayServletSession(new PlayServletContext()), pathInfo);
         PlayServletResponse response = new PlayServletResponse(response());
 
-        getDavServlet().service(request, response);
+        SVNRepository.getDavServlet(userName).service(request, response);
 
         response.flushBuffer();
 

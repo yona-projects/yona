@@ -11,9 +11,11 @@ import org.tigris.subversion.javahl.ClientException;
 
 import play.mvc.Controller;
 import play.mvc.Result;
+import svn.SVNRepository;
 
 public class CodeApp extends Controller {
-	public static final String VCS_GIT = "GIT";
+	private static final String VCS_SUBVERSION = "Subversion";
+    public static final String VCS_GIT = "GIT";
 
     public static Result view(String userName, String projectName, String path) throws IOException {
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
@@ -24,20 +26,19 @@ public class CodeApp extends Controller {
         }
     }
     
-    public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
+    public static Result ajaxRequest(String userName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
         try {
-            return ok(new GitRepository(ownerName, projectName).findFileInfo(path));
+            return ok(new GitRepository(userName, projectName).findFileInfo(path));
         } catch (NoHeadException e) {
             return forbidden();
         }
     }
     
-    public static void createRepository(String ownerName, String projectName, String type) throws IOException, ClientException {
+    public static void createRepository(String userName, String projectName, String type) throws IOException, ClientException {
         if (type.equals(VCS_GIT)) {
-            GitRepository.createRepository(ownerName, projectName);
-        } else if (type.equals("Subversion")) {
-            String svnPath = new File(SvnApp.REPO_PREFIX + projectName).getAbsolutePath();
-            new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
+            GitRepository.create(userName, projectName);
+        } else if (type.equals(VCS_SUBVERSION)) {
+            SVNRepository.create(userName, projectName);
         } else {
             throw new UnsupportedOperationException("only support git & svn!");
         }

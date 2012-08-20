@@ -18,7 +18,7 @@ import controllers.GitApp;
 public class GitRepository {
     public static final String REPO_PREFIX = "repo/git/";
 
-    public static Repository createRepository(String ownerName, String projectName) throws IOException {
+    public static Repository create(String ownerName, String projectName) throws IOException {
         Repository repository = new RepositoryBuilder().setGitDir(
                 new File(GitApp.REPO_PREFIX + ownerName + "/" + projectName + ".git")).build();
         boolean bare = true;
