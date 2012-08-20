@@ -100,11 +100,25 @@ public class ProjectUser extends Model {
      * @param projectId
      * @return
      */
-    public static boolean isManager(Long projectId) {
+    public static boolean checkOneMangerPerOneProject(Long projectId) {
         int findRowCount = find.where().eq("role.id", Role.MANAGER)
                 .eq("project.id", projectId).findRowCount();
         return (findRowCount > 1) ? true : false;
     }
+    
+    /**
+     * 해당 유저가 해당 프로젝트의 매니저 역할인지 확인합니다.
+     * 
+     * @param userId
+     * @param projectId
+     * @return
+     */
+    public static boolean isManager(Long userId, Long projectId) {
+        int findRowCount = find.where().eq("user.id", Role.MANAGER)
+                .eq("project.id", projectId).findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
+    
 
     /**
      * 해당 유저가 해당 프로젝트에 가입되어 있는지 확인합니다.

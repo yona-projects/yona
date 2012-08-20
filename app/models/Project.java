@@ -119,7 +119,7 @@ public class Project extends Model {
         Iterator<Project> iterator = projects.iterator();
         while(iterator.hasNext()){
             Project project = iterator.next();
-            if(ProjectUser.isManager(project.id)) {
+            if(ProjectUser.checkOneMangerPerOneProject(project.id)) {
                 projects.remove(project);
             }
         }

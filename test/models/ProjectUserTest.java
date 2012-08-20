@@ -51,8 +51,8 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         flush();
         // When
         // Then
-        assertThat(ProjectUser.isManager(1l)).isEqualTo(false);
-        assertThat(ProjectUser.isManager(3l)).isEqualTo(true);
+        assertThat(ProjectUser.checkOneMangerPerOneProject(1l)).isEqualTo(false);
+        assertThat(ProjectUser.checkOneMangerPerOneProject(3l)).isEqualTo(true);
     }
     
     @Test
