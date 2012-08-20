@@ -92,6 +92,7 @@ public class IssueApp extends Controller {
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
         if (UserApp.currentUser().id == targetIssue.authorId) {
+
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
@@ -121,6 +122,7 @@ public class IssueApp extends Controller {
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
+
         Issue.delete(issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 StateType.ALL.stateType()));

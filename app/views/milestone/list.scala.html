@@ -1,6 +1,6 @@
 @(title: String, milestones: List[models.Milestone], projectInst: Project, mCondition: MilestoneApp.MilestoneCondition)
 @import scala.collection.immutable._
-@import utils.TemplateHelper
+@import utils.TemplateHelper._
 @makeSortLink(_sort:String) = @{
     var _direction = "asc";
     if(mCondition.sort.equals(_sort)) {
@@ -8,12 +8,12 @@
             _direction = "desc"
         }
     }
-    TemplateHelper.buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
+    buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
       Map("state"->mCondition.state, "sort"->_sort, "direction"->_direction)
     )
 }
 @makeIssuesLink(mId: Long, _state: String) = @{
-  TemplateHelper.buildQueryString(routes.IssueApp.issues(projectInst.owner, projectInst.name, _state),
+  buildQueryString(routes.IssueApp.issues(projectInst.owner, projectInst.name, _state),
     Map("milestone"->mId.toString)
   )
 }
@@ -28,7 +28,7 @@
     }
 }
 @makeMilestoneListLink(_state: String) = @{
-  TemplateHelper.buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
+  buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
     Map("state"->_state)
   )
 }

@@ -93,3 +93,4 @@ GET     /:user/:projectName/code/*path                  controllers.CodeApp.view
 
 # Search
 GET     /:userName/:projectName/search                  controllers.SearchApp.contentsSearch(userName: String, projectName: String)
+
