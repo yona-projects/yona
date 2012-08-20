@@ -27,6 +27,16 @@ public class RoleCheck {
             Resource resource, Operation operation) {
         return permissionCheck(userId, projectId, resource, operation, null);
     }
+    
+    public static boolean permissionCheck(String userId, Long projectId,
+            Resource resource, Operation operation) {
+        if(userId != null) {
+            return permissionCheck(Long.parseLong(userId), projectId, resource, operation, null);
+        } else {
+            return permissionCheck(null, projectId, resource, operation, null);
+        }
+        
+    }
 
     public static boolean permissionCheck(Long userId, Long projectId,
             Resource resource, Operation operation, Long resourceId) {

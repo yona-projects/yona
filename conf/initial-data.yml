@@ -744,15 +744,15 @@ permissions:
 
     - !!models.Permission
         id:             9
-        resource:       issue_field
+        resource:       issue_environment
         operation:      read
     - !!models.Permission
         id:             10
-        resource:       issue_field
+        resource:       issue_environment
         operation:      write
     - !!models.Permission
         id:             11
-        resource:       issue_field
+        resource:       issue_environment
         operation:      edit
 
     - !!models.Permission
@@ -982,6 +982,21 @@ permissions:
         id:             64
         resource:       site_setting
         operation:      write
+        
+    - !!models.Permission
+        id:             65
+        resource:       issue_importance
+        operation:      read
+    - !!models.Permission
+        id:             66
+        resource:       issue_importance
+        operation:      write
+    - !!models.Permission
+        id:             67
+        resource:       issue_importance
+        operation:      edit
+        
+        
 
 # ProjectUser
 projectUsers:
