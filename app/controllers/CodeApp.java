@@ -25,12 +25,12 @@ public class CodeApp extends Controller {
         }
     }
     
-    public static Result ajaxRequest(String userName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
+    public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         //TODO Svn과 Git의 분리필요.
         return GitApp.ajaxRequest(userName, projectName, path);
     }
     
-    public static Result showRawFile(String userName, String projectName, String path) throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException, IOException{
+    public static Result showRawFile(String userName, String projectName, String path) throws Exception{
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
         if (VCS_GIT.equals(vcs)) {
             return GitApp.showRawCode(userName, projectName, path);
