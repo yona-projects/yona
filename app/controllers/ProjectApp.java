@@ -1,26 +1,14 @@
 package controllers;
 
-import models.Project;
-import models.ProjectUser;
-import models.Role;
-import models.User;
-import utils.Constants;
+import java.io.File;
 
+import models.*;
 import play.data.Form;
-import java.io.*;
-import org.eclipse.jgit.lib.*;
-import org.tigris.subversion.javahl.ClientException;
-
-import play.mvc.Controller;
+import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Result;
-import views.html.project.newProject;
-import views.html.project.projectHome;
-import views.html.project.setting;
-import views.html.project.memberList;
-
-import java.io.File;
+import utils.Constants;
+import views.html.project.*;
 
 /**
  * @author "Hwi Ahn"
@@ -49,7 +37,7 @@ public class ProjectApp extends Controller {
         return ok(setting.render("title.projectSetting", projectForm, project));
     }
 
-    public static Result saveProject() throws IOException, ClientException {
+    public static Result saveProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class)
                 .bindFromRequest();
 
@@ -64,7 +52,6 @@ public class ProjectApp extends Controller {
 
             // create Repository
             // FIXME 이게 과연 CodeApp의 역활인가?
-            // 나중에 SVN과 GIT을 추상으로 끌어올리면 바꿀것.
             CodeApp.createRepository(project.owner, project.name, project.vcs);
 
             return redirect(routes.ProjectApp.project(project.owner, project.name));

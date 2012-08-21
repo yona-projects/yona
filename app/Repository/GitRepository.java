@@ -1,4 +1,4 @@
-package git;
+package Repository;
 
 import java.io.*;
 import java.util.Date;
@@ -13,47 +13,43 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import play.libs.Json;
-import controllers.GitApp;
 
-public class GitRepository {
+public class GitRepository implements Repo {
     public static final String REPO_PREFIX = "repo/git/";
-
-    public static Repository create(String ownerName, String projectName) throws IOException {
-        Repository repository = new RepositoryBuilder().setGitDir(
-                new File(GitApp.REPO_PREFIX + ownerName + "/" + projectName + ".git")).build();
-        boolean bare = true;
-        repository.create(bare); // create bare repository
-        // TODO 최초의 커밋 미리만들기? 아님 그냥 안내 보여주기?
-
-        return repository;
-    }
-
-    public static Repository getRepository(String ownerName, String projectName) throws IOException {
-        return new RepositoryBuilder().setGitDir(new File(REPO_PREFIX + ownerName + "/" + projectName + ".git"))
-                .build();
-    }
 
     private Repository repository;
 
-    public GitRepository(String ownerName, String projectName) throws IOException {
-        this.repository = getRepository(ownerName, projectName);
+    public GitRepository(String userName, String projectName) throws IOException {
+        this.repository = new RepositoryBuilder().setGitDir(
+                new File(REPO_PREFIX + userName + "/" + projectName + ".git")).build();
     }
+
+    /* (non-Javadoc)
+     * @see Repository.repository#create()
+     */
+    @Override
+    public void create() throws IOException {
+        this.repository.create(true); // create bare repository
+    }
+
     /**
      * path를 받아 파일 정보 JSON객체를 return 하는 함수 일단은 HEAD 만 가능하다.
-     * @param path              정보를 얻고싶은 파일의 path
-     * @return JSON객체         파일 정보를 담고 있다.
+     * 
+     * @param path
+     *            정보를 얻고싶은 파일의 path
+     * @return JSON객체 파일 정보를 담고 있다.
      * @throws IOException
      * @throws NoHeadException
      * @throws GitAPIException
      */
+    @Override
     public ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
             GitAPIException {
         // 파일 정보를 찾아서 Json으로 리턴?
         Git git = new Git(repository);
 
-        ObjectId headCommit = repository.resolve(Constants.HEAD);// 만약 특정 커밋을
-                                                                 // 얻오오고싶다면 바꾸어
-                                                                 // 주면 된다.
+        ObjectId headCommit = repository.resolve(Constants.HEAD);
+        // 만약 특정 커밋을 얻오오고싶다면 바꾸어 주면 된다.
 
         if (headCommit == null) {
             throw new NoHeadException("HEAD가 존재하지 않습니다.");
@@ -77,7 +73,7 @@ public class GitRepository {
                 }
             }
         } catch (IllegalArgumentException e) {
-            //root
+            // root
             return folderList(git, treeWalk);
         }
 
@@ -106,8 +102,7 @@ public class GitRepository {
             NoHeadException {
         ObjectNode result = Json.newObject();
         while (treeWalk.next()) {
-            RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator()
-                    .next();
+            RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator().next();
 
             ObjectNode data = Json.newObject();
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
@@ -117,5 +112,28 @@ public class GitRepository {
             result.put(treeWalk.getNameString(), data);
         }
         return result;
+    }
+
+    /* (non-Javadoc)
+     * @see Repository.repository#getRawFile(java.lang.String)
+     */
+    @Override
+    public byte[] getRawFile(String path) throws MissingObjectException,
+            IncorrectObjectTypeException, AmbiguousObjectException, IOException {
+        RevTree tree = new RevWalk(repository).parseTree(repository.resolve("HEAD"));
+        TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
+        if (treeWalk.isSubtree()) {
+            return null;
+        } else {
+            return repository.open(treeWalk.getObjectId(0)).getBytes();
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see Repository.repository#getRawRepository()
+     */
+    @Override
+    public Repository getCore() {
+        return repository;
     }
 }

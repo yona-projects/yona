@@ -1,44 +1,50 @@
 package controllers;
 
-import git.GitRepository;
-
-import java.io.File;
 import java.io.IOException;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
+import models.Project;
+
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.*;
 import org.tigris.subversion.javahl.ClientException;
 
-import play.mvc.Controller;
-import play.mvc.Result;
-import svn.SVNRepository;
+import play.mvc.*;
+import views.html.code.gitView;
 
 public class CodeApp extends Controller {
-	private static final String VCS_SUBVERSION = "Subversion";
+	public static final String VCS_SUBVERSION = "Subversion";
     public static final String VCS_GIT = "GIT";
 
-    public static Result view(String userName, String projectName, String path) throws IOException {
+    public static Result codeBrowser(String userName, String projectName) throws IOException {
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
         if (VCS_GIT.equals(vcs)) {
-            return GitApp.viewCode(userName, projectName, path);
+            return ok(gitView.render(GitApp.getURL(userName, projectName),
+                    Project.findByName(projectName)));
         } else {
             return status(501, vcs + " is not supported!");
         }
     }
     
     public static Result ajaxRequest(String userName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
-        try {
-            return ok(new GitRepository(userName, projectName).findFileInfo(path));
-        } catch (NoHeadException e) {
-            return forbidden();
-        }
+        //TODO Svn과 Git의 분리필요.
+        return GitApp.ajaxRequest(userName, projectName, path);
     }
     
-    public static void createRepository(String userName, String projectName, String type) throws IOException, ClientException {
+    public static Result showRawFile(String userName, String projectName, String path) throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException, IOException{
+        String vcs = ProjectApp.getProject(userName, projectName).vcs;
+        if (VCS_GIT.equals(vcs)) {
+            return GitApp.showRawCode(userName, projectName, path);
+        } else if (vcs.equals(VCS_SUBVERSION)) {
+            return SvnApp.showRawCode(userName, projectName, path);
+        }
+        return TODO;
+    }
+    
+    public static void createRepository(String userName, String projectName, String type) throws Exception {
         if (type.equals(VCS_GIT)) {
-            GitRepository.create(userName, projectName);
+            GitApp.createRepository(userName, projectName);
         } else if (type.equals(VCS_SUBVERSION)) {
-            SVNRepository.create(userName, projectName);
+            SvnApp.createRepository(userName, projectName);
         } else {
             throw new UnsupportedOperationException("only support git & svn!");
         }
