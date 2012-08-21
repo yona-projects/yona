@@ -153,7 +153,7 @@ post.update.error = Errors on Input Value
 #Project
 project.create = Create a project
 project.name = Project Name
-project.name.alert = Special characters cannot be used to define the name of a project.
+project.name.alert = Wrong project name.
 project.name.duplicate = Already existing project.
 project.description = Description
 project.shareOption = Share Option
