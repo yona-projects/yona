@@ -52,11 +52,5 @@
             </form>
     </table>
     
-    <script>  
-        $(document).ready(function(){
-            $("select[id='role']").change(function(){
-                $(this).parent("form").submit();
-            });
-        })
-    </script>
+    <script>nforge.require("project.roleChange");</script>
 }

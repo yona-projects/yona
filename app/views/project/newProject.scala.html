@@ -75,29 +75,7 @@
             </div>
         </div>
     }
-    <script>  
-        $(document).ready(function(){
-            var reg_name = /^[a-zA-Z0-9_]*$/;
-            $("#save").click(function() {
-                if(!reg_name.test($("input[id='name']").val())) {
-                    $("#nameAlert").show();
-                    return false;
-                }
-                
-                if($("#accept").is(":not(:checked)")) {
-                    $("#acceptAlert").show();
-                    return false;
-                }
-                
-                return true;
-            });
-                
-            
-            $("#project_name").popover();
-            $("#share_option_explanation").popover();
-            $("#terms").popover();
-        })
-    </script> 
+    <script>nforge.require(["project.nameCheck", "project.popovers", "project.acceptCheck"], "save");</script> 
 
     
 }
