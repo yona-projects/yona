@@ -153,7 +153,8 @@ post.update.error = Errors on Input Value
 #Project
 project.create = Create a project
 project.name = Project Name
-project.name.alert = Special characters cannot be used to define the name of a project.
+project.name.alert = Wrong project name.
+project.name.duplicate = Already existing project.
 project.description = Description
 project.shareOption = Share Option
 project.shareOption.public = Public
@@ -172,6 +173,8 @@ project.members = Project Members
 project.members.addMember = Add a new member...
 project.member.isManager = The project should have one manager at least.
 project.member.alreadyMember = This user already participated in this project.
+project.member.deleteConfirm = Are you sure that this user leaves this project?
+project.member.delete = Delete a project member
 project.sidebar = Project Management
 project.sidebar.setting = Setting
 project.sidebar.memberList = Member
@@ -206,6 +209,8 @@ site.userList.deleteAlert = Project's unique manager cannot be deleted.
 
 #User
 user.loginId = Login ID
+user.wrongloginId.alert = Valid ID required
+user.loginId.duplicate = Already existing ID
 user.login.alert = Please, login.
 user.password = Password
 user.confirmPassword = Confirm Password

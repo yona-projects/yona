@@ -1,5 +1,7 @@
 package controllers;
 
+import java.util.regex.Pattern;
+
 import models.User;
 import play.data.Form;
 import play.mvc.Controller;
@@ -40,6 +42,7 @@ public class UserApp extends Controller {
     
     public static Result saveUser() {
         Form<User> newUserForm = form(User.class).bindFromRequest();
+        validate(newUserForm);
         if(newUserForm.hasErrors())
             return badRequest(signup.render("title.signup", newUserForm));
         else {
@@ -61,5 +64,27 @@ public class UserApp extends Controller {
             throw new IllegalStateException("please login");
         }
         return User.findById(Long.valueOf(userId));
+    }
+    
+    public static void validate(Form<User> newUserForm) {
+        if(newUserForm.field("loginId").value() == "") {
+            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        }
+        
+        if(newUserForm.field("password").value() == "") {
+            newUserForm.reject("password", "user.wrongPassword.alert");
+        }
+        
+        if(User.isLoginId(newUserForm.field("loginId").value())){
+           newUserForm.reject("loginId", "user.loginId.duplicate"); 
+        }
+        
+        if(!Pattern.compile("^[a-zA-Z0-9_]*$").matcher(newUserForm.field("loginId").value()).find()) {
+           newUserForm.reject("loginId", "user.wrongloginId.alert");  
+        }
+        
+        if(!Pattern.compile("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$").matcher(newUserForm.field("email").value()).find()) {
+            newUserForm.reject("email", "user.wrongEmail.alert");  
+        }
     }
 }

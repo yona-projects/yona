@@ -28,7 +28,7 @@
     	</br></br>
     	
     	@if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
-    <fieldset>
+    	<fieldset>
             <div class="well">
                 <legend><b>@Messages("issue.new.detailInfo")</b></legend>
                 <div class="well form-inline">
@@ -140,6 +140,7 @@
             </div>
         </fieldset>
     	}
+    	<input type="hidden" value="@issueForm("authorId").value" name="authorId"/>
     	<input type="submit" class="btn" value=@Messages("button.save") />
     	<input type="reset" class="btn" value=@Messages("button.reset") />
     }

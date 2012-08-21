@@ -40,7 +40,12 @@ public class ProjectApp extends Controller {
     public static Result saveProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class)
                 .bindFromRequest();
-
+        
+        if(Project.isProject(UserApp.currentUser().loginId, filledNewProjectForm.field("name").value())) {
+            flash(Constants.WARNING, "project.name.duplicate");
+            filledNewProjectForm.reject("name");
+        }   
+        
         if (filledNewProjectForm.hasErrors()) {
             return badRequest(newProject.render("title.newProject",
                     filledNewProjectForm));
@@ -62,6 +67,12 @@ public class ProjectApp extends Controller {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
+        
+        if(!Project.projectNameChangeable(project.id, userName, project.name)) {
+            flash(Constants.WARNING, "project.name.duplicate");
+            filledUpdatedProjectForm.reject("name");
+        }
+        
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
         
@@ -105,7 +116,11 @@ public class ProjectApp extends Controller {
     public static Result newMember(String userName, String projectName) {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        Project project = Project.findByName(projectName);
+        if(user == null) {
+            flash(Constants.WARNING, "Not existing user");
+            return redirect(routes.ProjectApp.members(userName, projectName));
+        }
+        Project project = getProject(userName, projectName);
         if(!ProjectUser.isMember(user.id, project.id))
             ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
         else    
@@ -125,7 +140,7 @@ public class ProjectApp extends Controller {
     }
 
     public static Result updateMember(String userName, String projectName, Long userId) {
-        Long projectId = Project.findByName(projectName).id;
+        Long projectId = getProject(userName, projectName).id;
         if (isManager(userId, projectId)) {
              ProjectUser.assignRole(userId, projectId,
              form(Role.class).bindFromRequest()
@@ -139,7 +154,7 @@ public class ProjectApp extends Controller {
 
     public static boolean isManager(Long userId, Long projectId) {
         if(Role.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
-            return ProjectUser.isManager(projectId);
+            return ProjectUser.checkOneMangerPerOneProject(projectId);
         else
             return true;
         

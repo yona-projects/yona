@@ -52,6 +52,14 @@ projects:
         url:            http://localhost:9000/CUBRID
         owner:          doortts
         isAuthorEditable: true
+    - !!models.Project
+        name:           HelloSocialApp
+        overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
+        share_option:   false
+        vcs:            GIT
+        url:            http://localhost:9000/HelloSocialApp
+        owner:          hobi
+        isAuthorEditable: true
 
 # Board
 posts:
@@ -440,8 +448,6 @@ roles:
             - !!models.Permission
                 id: 2 
             - !!models.Permission
-                id: 3 
-            - !!models.Permission
                 id: 5 
             - !!models.Permission
                 id: 6 
@@ -449,8 +455,6 @@ roles:
                 id: 9 
             - !!models.Permission
                 id: 10 
-            - !!models.Permission
-                id: 11  
             - !!models.Permission
                 id: 12 
             - !!models.Permission
@@ -672,6 +676,8 @@ roles:
             - !!models.Permission
                 id: 9 
             - !!models.Permission
+                id: 10 
+            - !!models.Permission
                 id: 12 
             - !!models.Permission
                 id: 15 
@@ -744,15 +750,15 @@ permissions:
 
     - !!models.Permission
         id:             9
-        resource:       issue_field
+        resource:       issue_environment
         operation:      read
     - !!models.Permission
         id:             10
-        resource:       issue_field
+        resource:       issue_environment
         operation:      write
     - !!models.Permission
         id:             11
-        resource:       issue_field
+        resource:       issue_environment
         operation:      edit
 
     - !!models.Permission
@@ -783,15 +789,15 @@ permissions:
 
     - !!models.Permission
         id:             18
-        resource:       issue_value
+        resource:       issue_importance
         operation:      read
     - !!models.Permission
         id:             19
-        resource:       issue_value
+        resource:       issue_importance
         operation:      write
     - !!models.Permission
         id:             20
-        resource:       issue_value
+        resource:       issue_importance
         operation:      edit
 
     - !!models.Permission
@@ -982,6 +988,21 @@ permissions:
         id:             64
         resource:       site_setting
         operation:      write
+        
+    - !!models.Permission
+        id:             65
+        resource:       issue_importance
+        operation:      read
+    - !!models.Permission
+        id:             66
+        resource:       issue_importance
+        operation:      write
+    - !!models.Permission
+        id:             67
+        resource:       issue_importance
+        operation:      edit
+        
+        
 
 # ProjectUser
 projectUsers:
@@ -1046,5 +1067,12 @@ projectUsers:
                             id: 4
         project:        !!models.Project
                             id: 3
+        role:           !!models.Role
+                            id: 1
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 4
         role:           !!models.Role
                             id: 1

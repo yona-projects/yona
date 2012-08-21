@@ -1,5 +1,6 @@
 package models;
 
+import static com.avaje.ebean.Expr.contains;
 import static models.enumeration.IssueState.ASSIGNED;
 
 import java.io.File;
@@ -14,7 +15,6 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import controllers.SearchApp;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
@@ -44,7 +44,8 @@ import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
-import static com.avaje.ebean.Expr.contains;
+
+import controllers.SearchApp;
 
 /**
  * @author Taehyun Park
@@ -492,7 +493,7 @@ public class Issue extends Model {
     }
 
     public static boolean isAuthor(Long currentUserId, Long id) {
-        int findRowCount = find.where().eq("reporterId", currentUserId).eq("id", id).findRowCount();
+        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 
@@ -514,4 +515,21 @@ public class Issue extends Model {
 				.findPagingList(condition.pageSize)
 				.getPage(condition.page - 1);
 	}
+//=======
+//    public boolean isAuthor(Long currentUserId, Long objectId, String projectName) {
+//
+//        boolean authorIs;
+//        if (currentUserId == findById(objectId).reporterId
+//                || RoleCheck.roleCheck(currentUserId, project.id,
+//                        PermissionResource.PROJECT.resource(),
+//                        PermissionOperation.SETTING.operation())) {
+//            authorIs = true;
+//        } else {
+//            
+//        }
+//
+//        return authorIs;
+//
+//    }
+//>>>>>>> Stashed changes
 }

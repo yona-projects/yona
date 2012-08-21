@@ -58,7 +58,9 @@ public class IssueApp extends Controller {
             return ok(notExistingPage.render("title.post.notExistingPage", project));
         } else {
             Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class);
-            return ok(issue.render("title.issueDetail", issueInfo, commentForm, project));
+            Issue targetIssue = Issue.findById(issueId);
+            Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
+            return ok(issue.render("title.issueDetail", issueInfo, editForm, commentForm, project));
         }
     }
 
@@ -90,6 +92,7 @@ public class IssueApp extends Controller {
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
         if (UserApp.currentUser().id == targetIssue.authorId) {
+
             return ok(editIssue.render("title.editIssue", editForm, id, project));
         } else {
             return ok(issueError.render("post.edit.rejectNotAuthor",
@@ -106,8 +109,12 @@ public class IssueApp extends Controller {
             Issue issue = issueForm.get();
             issue.authorId = UserApp.currentUser().id;
             issue.id = id;
+            issue.date = Issue.findById(id).date;
             issue.filePath = saveFile(request());
             issue.project = project;
+            if(issue.assigneeId != null){
+                issue.state = IssueState.ASSIGNED;
+            }
             Issue.edit(issue);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.name()));
@@ -115,6 +122,7 @@ public class IssueApp extends Controller {
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
+
         Issue.delete(issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 StateType.ALL.stateType()));

@@ -1,6 +1,7 @@
 package models;
 
 import com.avaje.ebean.Page;
+import controllers.SearchApp;
 import models.enumeration.IssueState;
 import models.enumeration.StateType;
 import org.junit.Ignore;
@@ -183,7 +184,23 @@ public class IssueTest extends ModelTest<Issue> {
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
-       
+
     }
 
+	@Test
+	public void findIssues() {
+		// Given
+		SearchApp.ContentSearchCondition condition = new SearchApp.ContentSearchCondition();
+		condition.filter = "git";
+		condition.page = 1;
+		condition.pageSize = 10;
+		Project project = Project.findById(1l);
+
+		// When
+		Page<Issue> issuePage = Issue.findIssues(project, condition);
+
+		// Then
+		List<Issue> list = issuePage.getList();
+		assertThat(list.size()).isEqualTo(2);
+	}
 }

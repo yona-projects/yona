@@ -83,7 +83,7 @@ public class ProjectTest extends ModelTest<Project> {
         List<Project> projects_hobi = Project.isOnlyManager(2l);
         List<Project> projects_eungjun = Project.isOnlyManager(5l);
         // Then
-        assertThat(projects_hobi.size()).isEqualTo(1);
+        assertThat(projects_hobi.size()).isEqualTo(2);
         assertThat(projects_eungjun.size()).isEqualTo(0);
     }
 
@@ -93,7 +93,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         List<Project> projects = Project.findProjectsByMember(2l);
         // Then
-        assertThat(projects.size()).isEqualTo(2);
+        assertThat(projects.size()).isEqualTo(3);
     }
     
     @Test
@@ -105,5 +105,34 @@ public class ProjectTest extends ModelTest<Project> {
         Project project = Project.findByNameAndOwner(userName, projectName);
         // Then
         assertThat(project.id).isEqualTo(1l);
+    }
+    
+    @Test
+    public void isProject() throws Exception {
+        // Given
+        String userName = "hobi";
+        String projectName = "nForge4java";
+        String newProjectName = "NanumFont";
+        // When
+        boolean result1 = Project.isProject(userName, projectName);
+        boolean result2 = Project.isProject(userName, newProjectName);
+        // Then
+        assertThat(result1).isEqualTo(true);
+        assertThat(result2).isEqualTo(false);
+    }
+    
+    @Test
+    public void projectNameChangeable() throws Exception {
+        // Given
+        String userName = "hobi";
+        Long projectId = 1l;
+        String newProjectName1 = "HelloSocialApp";
+        String newProjectName2 = "NanumFont";
+        // When
+        boolean result1 = Project.projectNameChangeable(projectId, userName, newProjectName1);
+        boolean result2 = Project.projectNameChangeable(projectId, userName, newProjectName2);
+        // Then
+        assertThat(result1).isEqualTo(false);
+        assertThat(result2).isEqualTo(true);
     }
 }

@@ -6,6 +6,7 @@ package models;
 
 import static org.fest.assertions.Assertions.assertThat;
 
+import controllers.SearchApp;
 import models.enumeration.Direction;
 
 import org.junit.*;
@@ -92,4 +93,20 @@ public class PostTest extends ModelTest<Post> {
         // Then
         assertThat(result).isEqualTo(true);
     }
+
+	@Test
+	public void findPosts() {
+		// Given
+		SearchApp.ContentSearchCondition condition = new SearchApp.ContentSearchCondition();
+		condition.filter = "많은";
+		condition.page = 1;
+		condition.pageSize = 10;
+		Project project = Project.findById(1l);
+
+		// When
+		Page<Post> postPage = Post.findPosts(project, condition);
+
+		// Then
+		assertThat(postPage.getList().size()).isEqualTo(1);
+	}
 }

@@ -66,12 +66,8 @@
   </div>
 
   <div class="row">  
-    <div class="span6 offset4">
-        @pagination(page, 5, "pagination");
-    </div>
-    <div class="span2">
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-    </div>
+      <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+      @pagination(page, 5, "pagination")
   </div>
   <script type="text/javascript">
   nforge.require('board.list');

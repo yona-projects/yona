@@ -8,7 +8,7 @@
     @form(action = routes.ProjectApp.saveSetting(projectInst.owner, projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>    
-                <input type="hidden" name="id" value="@projectForm("id").value.toLong">            
+                <input type="hidden" name="id" value="@projectForm("id").value.toLong">             
                 <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
                     data-content="@Messages("project.name.alert")"
                     data-original-title="@Messages("project.name.rule")"
@@ -83,7 +83,7 @@
         </div>
     }
     
-    <div class="alert alert-danger hide" id="deleteAcceptAlert">
+    <div class="alert alert-danger hide" id="acceptAlert">
         <a class="close" data-dismiss="alert">×</a>
         <strong>@Messages("project.delete.alert")</strong>
     </div>
@@ -98,7 +98,7 @@
                 <td>
                     <p align="left"><strong>@Messages("project.delete.description")</strong></p>
                     <p align="right">
-                        <input type="checkbox" id="acceptDeletion"> <span>@Messages("project.delete.accept")</span>
+                        <input type="checkbox" id="accept"> <span>@Messages("project.delete.accept")</span>
                     </p>
                     <a id="deletion" data-toggle="modal" href="#alertDeletion" class="btn btn-danger">@Messages("project.delete")</a>
                 </td>    
@@ -121,42 +121,5 @@
         </div>
     </div>
 
-    <script>  
-        $(document).ready(function(){
-            var reg = /\.(gif|bmp|jpg|jpeg|png)$/i;
-            var reg_name = /^[a-zA-Z0-9_]*$/;
-            var reg_url = /^http?:\/\//;
-            $("#logoPath").change(function(){
-                if (!reg.test($(this).val())) {
-                    $("#logoTypeAlert").show(); 
-                    $(this).val('');
-                } else { 
-                    return $("form[id='saveSetting']").submit(); 
-                }     
-            });
-            $("#save").click(function() {
-                if(!reg_name.test($("input[id='name']").val())) {
-                    $("#nameAlert").show();
-                    return false;
-                }
-                if(!reg_url.test($("input[id='url']").val())) {
-                    $("#urlAlert").show();
-                    return false;
-                }
-                return true;
-            });
-            
-            $("#project_name").popover();
-            $("#share_option_explanation").popover();
-            $("#terms").popover();
-            $("#deletion").click(function() {
-                if($("#acceptDeletion").is(":checked")) {
-                    return true;    
-                }else {
-                    $("#deleteAcceptAlert").show();
-                    return false;
-                } 
-            });
-        })
-    </script>    
+    <script>nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.urlCheck", "project.acceptCheck"], "deletion");</script>    
 }

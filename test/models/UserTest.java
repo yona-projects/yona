@@ -102,4 +102,19 @@ public class UserTest extends ModelTest<User> {
         // Then
         assertThat(users.size()).isEqualTo(3);
     }
+	
+	@Test
+	public void isLoginId() throws Exception {
+	    // Given
+	    String existingId = "hobi";
+	    String nonExistingId = "hobiii";
+	    // When
+	    boolean result1 = User.isLoginId(existingId);
+	    boolean result2 = User.isLoginId(nonExistingId);
+	    boolean result3 = User.isLoginId(null);
+	    // Then
+	    assertThat(result1).isEqualTo(true);
+	    assertThat(result2).isEqualTo(false);
+	    assertThat(result3).isEqualTo(false);
+	}
 }

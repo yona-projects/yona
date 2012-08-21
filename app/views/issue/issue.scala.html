@@ -1,11 +1,11 @@
-@(title:String, issue:Issue, commentForm:Form[IssueComment],project:Project) 
+@(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project) 
 @import helper._ 
-@implicitFieldConstructor = @{FieldConstructor(twitterBootstrapInput.render) } 
-@main(Messages(title),project){
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@main(Messages(title),project) {
 <div class="row">
 	<div class="span2 offset10">
 		<div id="board_btn_panel">
-		@if(Issue.isAuthor(session.get("userId").toLong, issue.id) && project.isAuthorEditable){
+		@if(utils.RoleCheck.permissionCheck(session.get("userId").toLong, project.id, models.enumeration.Resource.ISSUE_POST, models.enumeration.Operation.EDIT, issue.id)){
 			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a> <a
 				data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
 		} 
@@ -24,7 +24,8 @@
 		<div class="span11">
 			<h1>@issue.title</h1>
 			<div>
-				<span>@issue.reporterName이 @agoString(issue.ago())에 작성함</span>
+				<span>@issue.reporterName이 @agoString(issue.ago())에 작성함</span> |
+                <span>@issue.date</span>
 			</div>
 		</div>
 	</div>
@@ -45,40 +46,126 @@
 		</div>
 		<a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
 	</div>
+	</br></br>
+
+<!-- FIXME 현재는 프로젝트 멤버인 경우는 모두 이슈 할당 관련 권한을 가지지지만, 프로젝트 설정의 작성자 수정 가능 권한 옵션에 영향을 받도록 수정해야함 -->
+
+
+@if(utils.RoleCheck.permissionCheck(session.get("userId").toLong, project.id, models.enumeration.Resource.ISSUE_POST, models.enumeration.Operation.EDIT, issue.id)) {
+	   @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issue.id), 
+            'enctype -> "multipart/form-data",
+            'class -> "form-horizontal") {
+            <fieldset>
+	            <div class="well">
+	                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
+	                <div class="well form-inline">
+	                    @select(
+	                            issueForm("issueType"), 
+	                            options = options(
+	                                        "worst"-> Messages("issue.new.detailInfo.issueType.worst"),
+	                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
+	                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
+	                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
+	                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
+	                                        ),
+	                            '_label-> Messages("issue.new.detailInfo.issueType"),
+	                            '_default -> Messages("issue.new.selectDefault.issueType"),
+	                            '_showConstraints -> false)
+	                        @select(
+	                            issueForm("assigneeId"), 
+	                            options(ProjectUser.options(project.id)),
+	                            '_label-> Messages("issue.new.detailInfo.assignee"),
+	                            '_default -> Messages("issue.new.selectDefault.assignee"),
+	                            '_showConstraints -> false)
+	            <!-- FIXME 컴포넌트 관련 스펙이 정해지면 수정할것 -->
+	                        @select(
+	                            issueForm("componentName"), 
+	                            options = options(
+	                                        "component_1"->"Component id 1"),
+	                            '_label-> Messages("issue.new.detailInfo.component"),
+	                            '_default -> Messages("issue.new.selectDefault.component"),
+	                            '_showConstraints -> false)
+	                        @select(
+	                            issueForm("milestoneId"), 
+	                            options(Milestone.options(project.id)),
+	                            '_label-> Messages("issue.new.detailInfo.milestone"),
+	                            '_default -> Messages("issue.new.selectDefault.milestone"),
+	                            '_showConstraints -> false)
+	                </div>      
+	            </div>
+            </fieldset>
+            <fieldset>
+	            <div class="well">
+	                <legend><b>@Messages("issue.new.result")</b></legend>
+	                <div class="well form-inline">
+	                        @select(
+	                            issueForm("importance"), 
+	                            options = options(
+	                                        "highest"-> Messages("issue.new.result.importance.highest"),
+	                                        "high"->    Messages("issue.new.result.importance.high"),
+	                                        "average"-> Messages("issue.new.result.importance.average"),
+	                                        "low"->     Messages("issue.new.result.importance.low"),
+	                                        "lowest"->  Messages("issue.new.result.importance.lowest")),
+	                            '_label-> Messages("issue.new.result.importance"),
+	                            '_default -> Messages("issue.new.selectDefault.importance"),
+	                            '_showConstraints -> false)
+	                        @select(
+	                            issueForm("diagnosisResult"), 
+	                            options = options(
+	                                        "bug"-> Messages("issue.new.result.diagnosisResult.bug"),
+	                                        "fixed"-> Messages("issue.new.result.diagnosisResult.fixed"), 
+	                                        "willNotFixed"-> Messages("issue.new.result.diagnosisResult.willNotFixed"),
+	                                        "notaBug"-> Messages("issue.new.result.diagnosisResult.notaBug"),
+	                                        "awaitingResponse"-> Messages("issue.new.result.diagnosisResult.awaitingResponse"),
+	                                        "unreproducible"-> Messages("issue.new.result.diagnosisResult.unreproducible"), 
+	                                        "duplicated"-> Messages("issue.new.result.diagnosisResult.duplicated"), 
+	                                        "works4me"-> Messages("issue.new.result.diagnosisResult.works4me")
+	                                        ),
+	                            '_label-> Messages("issue.new.result.diagnosisResult"),
+	                            '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
+	                            '_showConstraints -> false)
+	                </div>      
+	            </div>
+            </fieldset>
+        <input type="hidden" value="@issue.title" name="title"/>
+        <input type="hidden" value="@issue.body" name="body"/>
+        <input type="hidden" value="@issue.authorId" name="authorId"/>
+        <input type="submit" class="btn pull-right" value=@Messages("button.save") />
+        }
+    }
 </div>
 <!-- 여기서 부터 덧글 -->
 @for(comment <- issue.comments){
-<hr />
+<br/>
 <div class="row">
 	<div class="span1">
 		<img class="pull-right" src="http://placehold.it/50x50" />
 	</div>
 	<div class="span11">
 		<div>
-			<span>@comment.authorName이 @agoString(comment.ago())에 작성함</span>
-				
+			<span>@comment.authorName이 @agoString(comment.ago())에 작성함</span>|
+            <span>@comment.date</span>
 		</div>
-		
 		@if(IssueComment.isAuthor(session.get("userId").toLong, comment.id)){
 		<div class="pull-right"> 
 		      <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
 		</div>
-		}
 		
 		<div class="modal hide" id="deleteCommentConfirm">
-		    <div class="modal-header">
-		        <button type="button" class="close" data-dismiss="modal">×</button>
-		        <h3>@Messages("issue.delete.window")</h3>
-		    </div>
-		    <div class="modal-body">
-		        <p>@Messages("issue.comment.delete.confirm")</p>
-		    </div>
-		    <div class="modal-footer">
-		        <a class="btn btn-danger"
-		            href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">@Messages("button.yes")</a>
-		        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-		    </div>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("issue.delete.window")</h3>
+            </div>
+            <div class="modal-body">
+                <p>@Messages("issue.comment.delete.confirm")</p>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-danger"
+                    href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">@Messages("button.yes")</a>
+                <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+            </div>
         </div>
+		}
 		<p>@comment.contents
 		<p>@if(comment.filePath != null){
 		<p>
@@ -86,7 +173,6 @@
 				class="icon-download"> </i> @comment.filePath</a>
 		</p>
 		  }
-		
 	</div>
 </div>
 }
@@ -121,4 +207,3 @@
 	</div>
 </div>
 }
-

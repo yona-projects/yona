@@ -73,6 +73,33 @@ public class Project extends Model {
         return find.where().eq("name", projectName).eq("owner", userName).findUnique();
     }
     
+
+    /**
+     * 해당 프로젝트가 존재하는지 여부를 검사합니다. 해당 파라미터에 대하여 프로젝트가 존재하면 true, 존재하지 않으면 false를 반환합니다.
+     * 
+     * @param userName
+     * @param projectName
+     * @return
+     */
+    public static boolean isProject(String userName, String projectName) {
+        int findRowCount = find.where().eq("name", projectName).eq("owner", userName).findRowCount();
+        return (findRowCount != 0) ? true : false;
+    }
+    
+
+    /**
+     * 프로젝트 이름을 해당 이름(projectName)으로 변경이 가능한지 검사합니다.
+     * 
+     * @param id
+     * @param userName
+     * @param projectName
+     * @return
+     */
+    public static boolean projectNameChangeable(Long id, String userName, String projectName) {
+        int findRowCount = find.where().eq("name", projectName).eq("owner", userName).ne("id", id).findRowCount();
+        return (findRowCount == 0) ? true : false;
+    }
+    
     /**
      * 해당 유저가 속해있는 프로젝트들 중에서 해당 유저가 유일한 Manager인 프로젝트가 있는지 검사하고, 
      * 있다면 그 프로젝트들의 리스트를 반환합니다.
@@ -92,7 +119,7 @@ public class Project extends Model {
         Iterator<Project> iterator = projects.iterator();
         while(iterator.hasNext()){
             Project project = iterator.next();
-            if(ProjectUser.isManager(project.id)) {
+            if(ProjectUser.checkOneMangerPerOneProject(project.id)) {
                 projects.remove(project);
             }
         }
