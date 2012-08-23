@@ -11,7 +11,7 @@ import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
 
 import play.Logger;
 import play.mvc.*;
-import repository.RepositoryFactory;
+import playRepository.RepositoryFactory;
 
 public class GitApp extends Controller {
 

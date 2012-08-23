@@ -1,10 +1,10 @@
-package repository;
+package playRepository;
 
 import models.Project;
 import controllers.CodeApp;
 
 public class RepositoryFactory {
-    public static Repo getRepository(Project project) throws Exception{
+    public static PlayRepository getRepository(Project project) throws Exception{
         if(project.vcs.equals(CodeApp.VCS_GIT)) { 
             return new GitRepository(project.owner, project.name);
         } else if(project.vcs.equals(CodeApp.VCS_SUBVERSION)) {

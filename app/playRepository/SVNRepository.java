@@ -1,4 +1,4 @@
-package repository;
+package playRepository;
 
 import java.io.File;
 import java.util.Enumeration;
@@ -11,7 +11,7 @@ import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
 import controllers.SvnApp;
 
-public class SVNRepository implements Repo {
+public class SVNRepository implements PlayRepository {
     public static final String REPO_PREFIX = "repo/svn/";
 
     private static DAVServlet davServlet = new DAVServlet();

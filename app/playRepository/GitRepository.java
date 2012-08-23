@@ -1,4 +1,4 @@
-package repository;
+package playRepository;
 
 import java.io.*;
 import java.util.Date;
@@ -14,7 +14,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import play.libs.Json;
 
-public class GitRepository implements Repo {
+public class GitRepository implements PlayRepository {
     public static final String REPO_PREFIX = "repo/git/";
 
     private Repository repository;
@@ -28,7 +28,7 @@ public class GitRepository implements Repo {
      * @see Repository.repository#create()
      */
     @Override
-    public void create() throws IOException {
+    public void create() throws Exception {
         this.repository.create(true); // create bare repository
     }
 
