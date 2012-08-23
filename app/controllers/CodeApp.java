@@ -1,43 +1,50 @@
 package controllers;
 
-import git.GitRepository;
-
-import java.io.File;
 import java.io.IOException;
 
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
+import models.Project;
+
+import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.errors.*;
 import org.tigris.subversion.javahl.ClientException;
 
-import play.mvc.Controller;
-import play.mvc.Result;
+import play.mvc.*;
+import views.html.code.gitView;
 
 public class CodeApp extends Controller {
-	public static final String VCS_GIT = "GIT";
+	public static final String VCS_SUBVERSION = "Subversion";
+    public static final String VCS_GIT = "GIT";
 
-    public static Result view(String userName, String projectName, String path) throws IOException {
+    public static Result codeBrowser(String userName, String projectName) throws IOException {
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
         if (VCS_GIT.equals(vcs)) {
-            return GitApp.viewCode(userName, projectName, path);
+            return ok(gitView.render(GitApp.getURL(userName, projectName),
+                    Project.findByName(projectName)));
         } else {
             return status(501, vcs + " is not supported!");
         }
     }
     
-    public static Result ajaxRequest(String ownerName, String projectName, String path) throws IOException, NoHeadException, GitAPIException {
-        try {
-            return ok(new GitRepository(ownerName, projectName).findFileInfo(path));
-        } catch (NoHeadException e) {
-            return forbidden();
-        }
+    public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
+        //TODO Svn과 Git의 분리필요.
+        return GitApp.ajaxRequest(userName, projectName, path);
     }
     
-    public static void createRepository(String ownerName, String projectName, String type) throws IOException, ClientException {
+    public static Result showRawFile(String userName, String projectName, String path) throws Exception{
+        String vcs = ProjectApp.getProject(userName, projectName).vcs;
+        if (VCS_GIT.equals(vcs)) {
+            return GitApp.showRawCode(userName, projectName, path);
+        } else if (vcs.equals(VCS_SUBVERSION)) {
+            return SvnApp.showRawCode(userName, projectName, path);
+        }
+        return TODO;
+    }
+    
+    public static void createRepository(String userName, String projectName, String type) throws Exception {
         if (type.equals(VCS_GIT)) {
-            GitRepository.createRepository(ownerName, projectName);
-        } else if (type.equals("Subversion")) {
-            String svnPath = new File(SvnApp.REPO_PREFIX + projectName).getAbsolutePath();
-            new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
+            GitApp.createRepository(userName, projectName);
+        } else if (type.equals(VCS_SUBVERSION)) {
+            SvnApp.createRepository(userName, projectName);
         } else {
             throw new UnsupportedOperationException("only support git & svn!");
         }

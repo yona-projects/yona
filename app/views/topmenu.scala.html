@@ -23,8 +23,8 @@
         </li>
     }
     @isVisible(models.enumeration.Resource.CODE){
-        <li class="@isActiveMenu(routes.CodeApp.view(project.owner, project.name, ""))">
-          <a href="@routes.CodeApp.view(project.owner, project.name, "")">@Messages("menu.code")</a>
+        <li class="@isActiveMenu(routes.CodeApp.codeBrowser(project.owner, project.name))">
+          <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a>
         </li>
     }
     @isVisible(models.enumeration.Resource.ISSUE_POST){

@@ -1,23 +1,17 @@
 package controllers;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Enumeration;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
+import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
-import play.mvc.BodyParser;
-import play.mvc.Controller;
-import play.mvc.Result;
-import utils.PlayServletRequest;
-import utils.PlayServletResponse;
-import utils.PlayServletSession;
-import utils.PlayServletContext;
+import play.Logger;
+import play.mvc.*;
+import repository.SVNRepository;
+import utils.*;
 
 public class SvnApp extends Controller{
     static DAVServlet davServlet;
@@ -28,57 +22,37 @@ public class SvnApp extends Controller{
         return service();
     }
 
-    public static DAVServlet getDavServlet() throws ServletException {
-        if (davServlet == null) {
-            davServlet = new DAVServlet();
-            davServlet.init(new ServletConfig() {
-
-                @Override
-                public String getInitParameter(String name) {
-                    if (name.equals("SVNParentPath")) {
-                        return new File(REPO_PREFIX).getAbsolutePath();
-                    } else {
-                        return play.Configuration.root().getString("application." + name);
-                    }
-                }
-
-                @Override
-                public Enumeration<String> getInitParameterNames() {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public ServletContext getServletContext() {
-                    throw new UnsupportedOperationException();
-                }
-
-                @Override
-                public String getServletName() {
-                    throw new UnsupportedOperationException();
-                }
-
-            });
-        }
-
-        return davServlet;
-    }
-
     @BodyParser.Of(BodyParser.Raw.class)
     public static Result service() throws ServletException, IOException {
+        //FIXME DAVServlet 들어내고 싶다.
         String path;
         try {
             path = new java.net.URI(request().uri()).getPath();
         } catch (URISyntaxException e) {
             return badRequest();
         }
-        String pathInfo = path.substring(path.indexOf('/', 1));
+        String pathInfo = path.substring(path.indexOf('/',1));
+        
+        String userName = pathInfo.substring(1, pathInfo.indexOf('/', 1));
+        Logger.info(userName);
+        pathInfo = pathInfo.substring(pathInfo.indexOf('/', 1));
+        Logger.info(pathInfo);
         PlayServletRequest request = new PlayServletRequest(request(), new PlayServletSession(new PlayServletContext()), pathInfo);
         PlayServletResponse response = new PlayServletResponse(response());
 
-        getDavServlet().service(request, response);
+        new SVNRepository(userName, "").getCore().service(request, response);
 
         response.flushBuffer();
 
         return status(response.getStatus(), response.getBuffer().toByteArray());
+    }
+
+    public static void createRepository(String userName, String projectName) throws ClientException, ServletException {
+        new SVNRepository(userName, projectName).create();
+    }
+
+    public static Result showRawCode(String userName, String projectName, String path) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

@@ -116,7 +116,7 @@ public class IssueTest extends ModelTest<Issue> {
     public void findAssigneeByIssueId() {
         // Given
         // When
-        Long assignee = Issue.findAssigneeIdByIssueId("nForge4java", 1l);
+        Long assignee = Issue.findAssigneeIdByIssueId("nForge4java", 2l);
         // Then
         assertThat(assignee).isEqualTo(2l);
     }

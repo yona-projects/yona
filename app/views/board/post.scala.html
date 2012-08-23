@@ -4,8 +4,12 @@
 <div class="row">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
+            @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.EDIT){
 	        <a class="btn btn-primary" href="@routes.BoardApp.editPost(project.owner, project.name, post.id)">수정</a>
+            }
+            @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.DELETE){
 	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
+            }
 	        <a class="btn" href="@routes.BoardApp.posts(project.owner, project.name)">목록</a>
 	    </div>
 	</div>
@@ -52,6 +56,7 @@
 	</div>
 </div>
 }
+@roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_COMMENT, models.enumeration.Operation.WRITE){
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div class="row">
@@ -61,6 +66,7 @@
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
 	}
 </div>
+}
 <!--삭제확인상자-->
 <div class="modal hide fade" id="deleteConfirm">
   <div class="modal-header">

@@ -71,7 +71,7 @@ public class RoleCheck {
             }
             return isAuthorEditible
                     || Permission.permissionCheckByRole(Role.ANONYMOUS, resource, operation);
-        }
+      }
     }
 
     /**

@@ -153,7 +153,7 @@ post.update.error = 입력값 오류
 #Project
 project.create = 프로젝트 생성
 project.name = 프로젝트 이름
-project.name.alert = 특수문자 및 한글은 이름에 사용될 수 없습니다.
+project.name.alert = 잘못된 프로젝트 이름입니다.
 project.name.duplicate = 이미 해당 이름과 동일한 프로젝트를 가지고 있습니다.
 project.description = 설명
 project.shareOption = 공개 설정
