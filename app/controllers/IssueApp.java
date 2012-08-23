@@ -87,19 +87,26 @@ public class IssueApp extends Controller {
                 StateType.ALL.stateType()));
     }
 
+//    public static Result editIssue(String userName, String projectName, Long id) {
+//        Issue targetIssue = Issue.findById(id);
+//        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
+//        Project project = ProjectApp.getProject(userName, projectName);
+//        if (UserApp.currentUser().id == targetIssue.authorId) {
+//
+//            return ok(editIssue.render("title.editIssue", editForm, id, project));
+//        } else {
+//            return ok(issueError.render("post.edit.rejectNotAuthor",
+//                    routes.IssueApp.issue(project.owner, project.name, id), project));
+//        }
+//    }
+    
     public static Result editIssue(String userName, String projectName, Long id) {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (UserApp.currentUser().id == targetIssue.authorId) {
-
             return ok(editIssue.render("title.editIssue", editForm, id, project));
-        } else {
-            return ok(issueError.render("post.edit.rejectNotAuthor",
-                    routes.IssueApp.issue(project.owner, project.name, id), project));
-        }
     }
-
+    
     public static Result updateIssue(String userName, String projectName, Long id) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
