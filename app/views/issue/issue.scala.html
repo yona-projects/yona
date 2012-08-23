@@ -66,7 +66,7 @@
 	                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
 	                <div class="well form-inline">
 	                   @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
-	                       @select(
+	                       @selectEx(
 	                            issueForm("issueType"), 
 	                            options(Issue.issueTypes),
 	                            '_label-> Messages("issue.new.detailInfo.issueType"),
