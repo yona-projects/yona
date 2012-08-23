@@ -80,6 +80,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getCharacterEncoding() {
+        //request.headers.get("Content-Type").value()
         return this.characterEncoding;
     }
 
