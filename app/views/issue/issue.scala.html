@@ -68,13 +68,7 @@
 	                   @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
 	                       @select(
 	                            issueForm("issueType"), 
-	                            options = options(
-	                                        "worst"-> Messages("issue.new.detailInfo.issueType.worst"),
-	                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
-	                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
-	                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
-	                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
-	                                        ),
+	                            options(Issue.issueTypes),
 	                            '_label-> Messages("issue.new.detailInfo.issueType"),
 	                            '_default -> Messages("issue.new.selectDefault.issueType"),
 	                            '_showConstraints -> false)
