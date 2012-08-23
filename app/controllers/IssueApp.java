@@ -87,26 +87,13 @@ public class IssueApp extends Controller {
                 StateType.ALL.stateType()));
     }
 
-//    public static Result editIssue(String userName, String projectName, Long id) {
-//        Issue targetIssue = Issue.findById(id);
-//        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
-//        Project project = ProjectApp.getProject(userName, projectName);
-//        if (UserApp.currentUser().id == targetIssue.authorId) {
-//
-//            return ok(editIssue.render("title.editIssue", editForm, id, project));
-//        } else {
-//            return ok(issueError.render("post.edit.rejectNotAuthor",
-//                    routes.IssueApp.issue(project.owner, project.name, id), project));
-//        }
-//    }
-    
     public static Result editIssue(String userName, String projectName, Long id) {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-            return ok(editIssue.render("title.editIssue", editForm, id, project));
+        return ok(editIssue.render("title.editIssue", editForm, id, project));
     }
-    
+
     public static Result updateIssue(String userName, String projectName, Long id) {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -119,7 +106,7 @@ public class IssueApp extends Controller {
             issue.date = Issue.findById(id).date;
             issue.filePath = saveFile(request());
             issue.project = project;
-            if(issue.assigneeId != null){
+            if (issue.assigneeId != null) {
                 issue.state = IssueState.ASSIGNED;
             }
             Issue.edit(issue);
