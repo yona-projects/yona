@@ -3,10 +3,10 @@ package models.enumeration;
 public enum Resource {
     ISSUE_POST("issue_post"), 
     ISSUE_COMMENT("issue_comment"), 
-    ISSUE_FIELD("issue_field"),
+    ISSUE_ENVIRONMENT("issue_environment"),
     ISSUE_ASSIGNEE("issue_assignee"),
     ISSUE_STATE("issue_state"), 
-    ISSUE_VALUE("issue_value"), 
+    ISSUE_IMPORTANCE("issue_importance"), 
     ISSUE_CATEGORY("issue_category"), 
     ISSUE_MILESTONE("issue_milestone"), 
     ISSUE_COMPONENT("issue_component"), 

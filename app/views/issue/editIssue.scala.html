@@ -2,6 +2,12 @@
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
+@isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
+  roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT){
+    content
+  }
+}
+
 @main(Messages(title), project) {
 <!-- FIXEME 
 (1) 수정했을 시에, 수정시간으로 업데이트 되는 것이 아니라, 본 글이 원래 작성된 시간을 그대로 가지고 있을 것!
@@ -23,52 +29,10 @@
 
     	@inputFile(
     	   issueForm("filePath"))
-    	@if(issueForm("filePath") != null) {<p>@issueForm("filePath")</p>}
     </fieldset>
     	</br></br>
     	
-    	@if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
-    	<fieldset>
-            <div class="well">
-                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
-                <div class="well form-inline">
-                    @select(
-                            issueForm("issueType"), 
-                            options = options(
-                                        "worst"-> Messages("issue.new.detailInfo.issueType.worst"),
-                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
-                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
-                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
-                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
-                                        ),
-                            '_label-> Messages("issue.new.detailInfo.issueType"),
-                            '_default -> Messages("issue.new.selectDefault.issueType"),
-                            '_showConstraints -> false)
-                        @select(
-                            issueForm("assigneeId"), 
-                            options(ProjectUser.options(project.id)),
-                            '_label-> Messages("issue.new.detailInfo.assignee"),
-                            '_default -> Messages("issue.new.selectDefault.assignee"),
-                            '_showConstraints -> false)
-            <!-- FIXME 컴포넌트 관련 스펙이 정해지면 수정할것 -->
-                        @select(
-                            issueForm("componentName"), 
-                            options = options(
-                                        "component_1"->"Component id 1"),
-                            '_label-> Messages("issue.new.detailInfo.component"),
-                            '_default -> Messages("issue.new.selectDefault.component"),
-                            '_showConstraints -> false)
-                        @select(
-                            issueForm("milestoneId"), 
-                            options(Milestone.options(project.id)),
-                            '_label-> Messages("issue.new.detailInfo.milestone"),
-                            '_default -> Messages("issue.new.selectDefault.milestone"),
-                            '_showConstraints -> false)
-                </div>      
-            </div>
-        </fieldset>
-        }
-        <fieldset>
+    	 <fieldset>
             <div class="well">
             <legend><b>@Messages("issue.new.environment")</b></legend>
                 <div class="well form-inline">
@@ -105,11 +69,62 @@
                 </div>
             </div>
         </fieldset>
-        @if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
+    	
+    	
+    	
+    	@if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
+    	<fieldset>
+            <div class="well">
+                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
+                <div class="well form-inline">
+                @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
+                    @select(
+                            issueForm("issueType"), 
+                            options = options(
+                                        "worst"-> Messages("issue.new.detailInfo.issueType.worst"),
+                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
+                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
+                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
+                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
+                                        ),
+                            '_label-> Messages("issue.new.detailInfo.issueType"),
+                            '_default -> Messages("issue.new.selectDefault.issueType"),
+                            '_showConstraints -> false)
+                    }
+                    @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {        
+                        @select(
+                            issueForm("assigneeId"), 
+                            options(ProjectUser.options(project.id)),
+                            '_label-> Messages("issue.new.detailInfo.assignee"),
+                            '_default -> Messages("issue.new.selectDefault.assignee"),
+                            '_showConstraints -> false)
+                    }        
+            <!-- FIXME 컴포넌트 관련 스펙이 정해지면 수정할것 -->
+                    @isVisible(models.enumeration.Resource.ISSUE_COMPONENT) {  
+                        @select(
+                            issueForm("componentName"), 
+                            options = options(
+                                        "component_1"->"Component id 1"),
+                            '_label-> Messages("issue.new.detailInfo.component"),
+                            '_default -> Messages("issue.new.selectDefault.component"),
+                            '_showConstraints -> false)
+                     }
+                     @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
+                        @select(
+                            issueForm("milestoneId"), 
+                            options(Milestone.options(project.id)),
+                            '_label-> Messages("issue.new.detailInfo.milestone"),
+                            '_default -> Messages("issue.new.selectDefault.milestone"),
+                            '_showConstraints -> false)
+                     }
+                </div>      
+            </div>
+        </fieldset>
         <fieldset>
             <div class="well">
                 <legend><b>@Messages("issue.new.result")</b></legend>
                 <div class="well form-inline">
+                     @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {    
                         @select(
                             issueForm("importance"), 
                             options = options(
@@ -121,6 +136,8 @@
                             '_label-> Messages("issue.new.result.importance"),
                             '_default -> Messages("issue.new.selectDefault.importance"),
                             '_showConstraints -> false)
+                      }
+                      @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {      
                         @select(
                             issueForm("diagnosisResult"), 
                             options = options(
@@ -136,6 +153,7 @@
                             '_label-> Messages("issue.new.result.diagnosisResult"),
                             '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
                             '_showConstraints -> false)
+                       }     
                 </div>      
             </div>
         </fieldset>
