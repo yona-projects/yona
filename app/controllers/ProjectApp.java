@@ -4,6 +4,7 @@ import java.io.File;
 
 import models.*;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
@@ -37,6 +38,7 @@ public class ProjectApp extends Controller {
         return ok(setting.render("title.projectSetting", projectForm, project));
     }
 
+	@Transactional
     public static Result saveProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class)
                 .bindFromRequest();
