@@ -45,11 +45,11 @@ var NForge = function () {
           modules = args.shift(),
           _modules,
           defaultInitFn = 'init',
-          loadFn = function(module) {
-            module = module.replace('nforge.','');
+          loadFn = function (module) {
+            module = module.replace('nforge.', '');
             if (module.indexOf(PERIOD) < 0) {
               var newFunction = new nforge[module]();
-              return newFunction.init.apply(nforge,args);
+              return newFunction.init.apply(newFunction, args);
             }
             _modules = module.split(PERIOD);
             var _tObj = nforge._objectDeepProp('get', module);
@@ -67,7 +67,7 @@ var NForge = function () {
             if (typeof _obj === 'function') {
               _obj = new _obj();
               if (_obj.hasOwnProperty(defaultInitFn)) {
-                _obj = _obj[defaultInitFn].apply(nforge, args);
+                _obj = _obj[defaultInitFn].apply(_obj, args);
                 nforge._objectDeepProp('add', module, _obj);
                 return _obj;
               }
@@ -75,7 +75,7 @@ var NForge = function () {
           };
         if (!$.isArray(modules)) {
           return loadFn(modules);
-        }else{
+        } else {
           $.each(modules, function (idx, module) {
             loadFn(module);
           });
@@ -148,7 +148,7 @@ var NForge = function () {
         }
         return nforge;
       }
-      
+
     }; //end of proto.
 
     nforge = NForge.prototype = proto;

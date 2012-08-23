@@ -10,8 +10,8 @@ import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
 import play.Logger;
 import play.mvc.*;
+import repository.SVNRepository;
 import utils.*;
-import Repository.SVNRepository;
 
 public class SvnApp extends Controller{
     static DAVServlet davServlet;

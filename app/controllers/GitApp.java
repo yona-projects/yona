@@ -11,7 +11,7 @@ import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
 
 import play.Logger;
 import play.mvc.*;
-import Repository.RepositoryFactory;
+import repository.RepositoryFactory;
 
 public class GitApp extends Controller {
 
@@ -102,6 +102,7 @@ public class GitApp extends Controller {
 
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
+		Logger.info(project.vcs);
         return ok(RepositoryFactory.getRepository(project).findFileInfo(path));
     }
 
