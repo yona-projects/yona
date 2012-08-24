@@ -36,33 +36,21 @@
             <div class="well">
             <legend><b>@Messages("issue.new.environment")</b></legend>
                 <div class="well form-inline">
-                        @select(
+                        @selectEx(
                             issueForm("osType"), 
-                            options = options(
-                                "1"->"Windows", 
-                                "2"->"MacOS", 
-                                "3"->"Linux"),
+                            options(Issue.osTypes),
                             '_label-> Messages("issue.new.environment.osType"),
                             '_default -> Messages("issue.new.selectDefault.osType"),
                             '_showConstraints -> false)
-                        @select(
+                        @selectEx(
                             issueForm("browserType"), 
-                            options = options(
-                                        "ie"->       Messages("issue.new.environment.browserType.ie"),
-                                        "firefox"->  Messages("issue.new.environment.browserType.firefox"),
-                                        "chrome"->   Messages("issue.new.environment.browserType.chrome"),
-                                        "opera"->    Messages("issue.new.environment.browserType.opera"),
-                                        "safari"->   Messages("issue.new.environment.browserType.safari")
-                                        ),
+                            options(Issue.browserTypes),
                             '_label-> Messages("issue.new.environment.browserType"),
                             '_default -> Messages("issue.new.selectDefault.browserType"),
                             '_showConstraints -> false)
-                        @select(
+                        @selectEx(
                             issueForm("dbmsType"), 
-                            options = options(
-                                        "PostgreSQL"->  Messages("issue.new.environment.dbmsType.postgreSQL"),
-                                        "CUBRID"->      Messages("issue.new.environment.dbmsType.CUBRID"),
-                                        "MySQL"->       Messages("issue.new.environment.dbmsType.MySQL")),
+                            options(Issue.dbmsTypes),
                             '_label-> Messages("issue.new.environment.dbmsType"),
                             '_default -> Messages("issue.new.selectDefault.dbmsType"),
                             '_showConstraints -> false)
@@ -78,15 +66,9 @@
                 <legend><b>@Messages("issue.new.detailInfo")</b></legend>
                 <div class="well form-inline">
                 @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
-                    @select(
+                    @selectEx(
                             issueForm("issueType"), 
-                            options = options(
-                                        "worst"-> Messages("issue.new.detailInfo.issueType.worst"),
-                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
-                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
-                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
-                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
-                                        ),
+                            options(Issue.issueTypes),
                             '_label-> Messages("issue.new.detailInfo.issueType"),
                             '_default -> Messages("issue.new.selectDefault.issueType"),
                             '_showConstraints -> false)
@@ -125,31 +107,17 @@
                 <legend><b>@Messages("issue.new.result")</b></legend>
                 <div class="well form-inline">
                      @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {    
-                        @select(
+                        @selectEx(
                             issueForm("importance"), 
-                            options = options(
-                                        "highest"-> Messages("issue.new.result.importance.highest"),
-                                        "high"->    Messages("issue.new.result.importance.high"),
-                                        "average"-> Messages("issue.new.result.importance.average"),
-                                        "low"->     Messages("issue.new.result.importance.low"),
-                                        "lowest"->  Messages("issue.new.result.importance.lowest")),
+                            options(Issue.importances),
                             '_label-> Messages("issue.new.result.importance"),
                             '_default -> Messages("issue.new.selectDefault.importance"),
                             '_showConstraints -> false)
                       }
                       @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {      
-                        @select(
+                        @selectEx(
                             issueForm("diagnosisResult"), 
-                            options = options(
-                                        "bug"-> Messages("issue.new.result.diagnosisResult.bug"),
-                                        "fixed"-> Messages("issue.new.result.diagnosisResult.fixed"), 
-                                        "willNotFixed"-> Messages("issue.new.result.diagnosisResult.willNotFixed"),
-                                        "notaBug"-> Messages("issue.new.result.diagnosisResult.notaBug"),
-                                        "awaitingResponse"-> Messages("issue.new.result.diagnosisResult.awaitingResponse"),
-                                        "unreproducible"-> Messages("issue.new.result.diagnosisResult.unreproducible"), 
-                                        "duplicated"-> Messages("issue.new.result.diagnosisResult.duplicated"), 
-                                        "works4me"-> Messages("issue.new.result.diagnosisResult.works4me")
-                                        ),
+                            options(Issue.diagnosisResults),
                             '_label-> Messages("issue.new.result.diagnosisResult"),
                             '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
                             '_showConstraints -> false)

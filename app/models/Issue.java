@@ -65,15 +65,15 @@ import controllers.SearchApp;
  * @param statusType
  *            이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
  * @param date
- *            등록된 날짜
- * @param reporter
- *            이슈 작성자
+ *            이슈 등록 날짜
+ * @param authorId
+ *            이슈 작성자 ID
  * @param project
  *            이슈가 등록된 프로젝트
  * @param issueType
  *            이슈 상세정보의 유형
- * @param assignee
- *            담당자
+ * @param assigneeId
+ *            이슈에 배정된 담당자 Id
  * @param componentName
  *            컴포넌트
  * @param milestone
@@ -90,8 +90,6 @@ import controllers.SearchApp;
  *            이슈 상세정보의 브라우저 유형
  * @param dbmsType
  *            이슈 상세정보의 DBMS 유형
- * @param comments
- *            이슈에 등록된 댓글의 갯수 !코드 리팩토링 예정
  */
 @Entity
 public class Issue extends Model {
@@ -149,12 +147,59 @@ public class Issue extends Model {
 	}
 
 	public static Map<String, String> issueTypes() {
-		return new Options("issue.new.detailInfo.issueType.worst",
+		return new Options(
+		        "issue.new.detailInfo.issueType.worst",
 				"issue.new.detailInfo.issueType.worse",
 				"issue.new.detailInfo.issueType.bad",
 				"issue.new.detailInfo.issueType.enhancement",
 				"issue.new.detailInfo.issueType.recommendation");
 	}
+	
+	public static Map<String, String> osTypes() {
+        return new Options(
+                "issue.new.environment.osType.windows",
+                "issue.new.environment.osType.Mac",
+                "issue.new.environment.osType.Linux");
+    }
+	
+	public static Map<String, String> browserTypes() {
+        return new Options(
+                "issue.new.environment.browserType.ie",
+                "issue.new.environment.browserType.chrome",
+                "issue.new.environment.browserType.firefox",
+                "issue.new.environment.browserType.safari",
+                "issue.new.environment.browserType.opera");
+    }
+	
+	public static Map<String, String> dbmsTypes() {
+        return new Options(
+                "issue.new.environment.dbmsType.postgreSQL",
+                "issue.new.environment.dbmsType.CUBRID",
+                "issue.new.environment.dbmsType.MySQL");
+    }
+	
+	public static Map<String, String> importances() {
+        return new Options(
+                "issue.new.result.importance.highest",
+                "issue.new.result.importance.high",
+                "issue.new.result.importance.average",
+                "issue.new.result.importance.low",
+                "issue.new.result.importance.lowest");
+    }
+	
+	public static Map<String, String> diagnosisResults() {
+        return new Options(
+                "issue.new.result.diagnosisResult.bug",
+                "issue.new.result.diagnosisResult.fixed",
+                "issue.new.result.diagnosisResult.willNotFixed",
+                "issue.new.result.diagnosisResult.notaBug",
+                "issue.new.result.diagnosisResult.awaitingResponse",
+                "issue.new.result.diagnosisResult.unreproducible",
+                "issue.new.result.diagnosisResult.duplicated",
+                "issue.new.result.diagnosisResult.works4me"
+                );
+    }
+	
 
 	/**
 	 * View에서 스트링값으로 변환하도록 한다.

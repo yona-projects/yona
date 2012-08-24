@@ -104,31 +104,17 @@
 	                <legend><b>@Messages("issue.new.result")</b></legend>
 	                <div class="well form-inline">
 	                   @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {
-	                        @select(
+	                        @selectEx(
 	                            issueForm("importance"), 
-	                            options = options(
-	                                        "highest"-> Messages("issue.new.result.importance.highest"),
-	                                        "high"->    Messages("issue.new.result.importance.high"),
-	                                        "average"-> Messages("issue.new.result.importance.average"),
-	                                        "low"->     Messages("issue.new.result.importance.low"),
-	                                        "lowest"->  Messages("issue.new.result.importance.lowest")),
+	                            options(Issue.importances),
 	                            '_label-> Messages("issue.new.result.importance"),
 	                            '_default -> Messages("issue.new.selectDefault.importance"),
 	                            '_showConstraints -> false)
 	                   }
 	                   @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {
-	                        @select(
+	                        @selectEx(
 	                            issueForm("diagnosisResult"), 
-	                            options = options(
-	                                        "bug"-> Messages("issue.new.result.diagnosisResult.bug"),
-	                                        "fixed"-> Messages("issue.new.result.diagnosisResult.fixed"), 
-	                                        "willNotFixed"-> Messages("issue.new.result.diagnosisResult.willNotFixed"),
-	                                        "notaBug"-> Messages("issue.new.result.diagnosisResult.notaBug"),
-	                                        "awaitingResponse"-> Messages("issue.new.result.diagnosisResult.awaitingResponse"),
-	                                        "unreproducible"-> Messages("issue.new.result.diagnosisResult.unreproducible"), 
-	                                        "duplicated"-> Messages("issue.new.result.diagnosisResult.duplicated"), 
-	                                        "works4me"-> Messages("issue.new.result.diagnosisResult.works4me")
-	                                        ),
+	                            options(Issue.diagnosisResults),
 	                            '_label-> Messages("issue.new.result.diagnosisResult"),
 	                            '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
 	                            '_showConstraints -> false)
