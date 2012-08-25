@@ -10,6 +10,7 @@
             <input type="text" name="@name" value="@value" id="dueDate" />
         }
         <a href="@routes.MilestoneApp.manageMilestones(project.owner, project.name)" class="btn">@Messages("button.cancel")</a>
-        <input type="submit" class="btn btn-primary" value="@Messages("button.save")"/>
+        <input type="submit" class="btn btn-primary save" value="@Messages("button.save")"/>
     }
+    <script type="text/javascript">nforge.require('milestone.manage');</script>
 }
