@@ -32,7 +32,7 @@ public class SearchApp extends Controller {
         if (project == null) {
             notFound();
         }
-
+		/* @TODO 쿼리에 대해서 특수문자나 공백 체크 해야함. */
         ContentSearchCondition condition = form(ContentSearchCondition.class).bindFromRequest().get();
 
         Page<Issue> resultIssues = null;
