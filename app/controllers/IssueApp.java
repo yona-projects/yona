@@ -77,6 +77,7 @@ public class IssueApp extends Controller {
         } else {
             Issue newIssue = issueForm.get();
             newIssue.authorId = UserApp.currentUser().id;
+            newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
             newIssue.updateStatusType(newIssue.state);
@@ -102,6 +103,7 @@ public class IssueApp extends Controller {
         } else {
             Issue issue = issueForm.get();
             issue.authorId = UserApp.currentUser().id;
+            issue.authorName = UserApp.currentUser().name;
             issue.id = id;
             issue.date = Issue.findById(id).date;
             issue.filePath = saveFile(request());

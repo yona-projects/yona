@@ -118,6 +118,7 @@ public class Issue extends Model {
 	public Long milestoneId;
 	public Long assigneeId;
 	public Long authorId;
+	public String authorName;
 	public IssueState state;
 	public StateType stateType;
 	public String issueType;
@@ -529,7 +530,8 @@ public class Issue extends Model {
 	}
 
 	public String reporterName() {
-		return User.findNameById(this.authorId);
+	    return this.authorName;
+		//return User.findNameById(this.authorId);
 	}
 
 	/**
