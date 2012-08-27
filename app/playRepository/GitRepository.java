@@ -12,6 +12,7 @@ import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+import play.Logger;
 import play.libs.Json;
 
 public class GitRepository implements PlayRepository {
@@ -52,7 +53,8 @@ public class GitRepository implements PlayRepository {
         // 만약 특정 커밋을 얻오오고싶다면 바꾸어 주면 된다.
 
         if (headCommit == null) {
-            throw new NoHeadException("HEAD가 존재하지 않습니다.");
+            Logger.debug("GitRepository : init Project - No Head commit");
+            return null;
         }
 
         RevWalk revWalk = new RevWalk(repository);

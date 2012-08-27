@@ -5,6 +5,7 @@ import java.io.*;
 
 import models.Project;
 
+import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
@@ -103,7 +104,12 @@ public class GitApp extends Controller {
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
 		Logger.info(project.vcs);
-        return ok(RepositoryFactory.getRepository(project).findFileInfo(path));
+        ObjectNode findFileInfo = RepositoryFactory.getRepository(project).findFileInfo(path);
+        if(findFileInfo != null) {
+            return ok(findFileInfo);
+        } else {
+            return status(403);
+        }
     }
 
     /**
