@@ -32,6 +32,7 @@ public class IssueComment extends Model {
     public Date date;
 
     public Long authorId;
+    public String authorName;
     public String filePath;
 
     @ManyToOne
