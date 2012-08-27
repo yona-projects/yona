@@ -26,6 +26,10 @@ menu.wiki = Wiki
 menu.admin = Administrator
 menu.siteAdmin = Site Admin
 
+message.warning = Warning
+message.success = Success
+message.info = Information
+
 label.title = Title
 label.contents = Contents
 label.state = State
@@ -175,6 +179,7 @@ project.member.isManager = The project should have one manager at least.
 project.member.alreadyMember = This user already participated in this project.
 project.member.deleteConfirm = Are you sure that this user leaves this project?
 project.member.delete = Delete a project member
+project.member.notExist = Not existing user
 project.sidebar = Project Management
 project.sidebar.setting = Setting
 project.sidebar.memberList = Member
