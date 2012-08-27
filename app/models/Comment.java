@@ -26,6 +26,7 @@ public class Comment extends Model {
 
     public String filePath;
     public Long authorId;
+    public String authorName;
     @ManyToOne
     public Post post;
 
@@ -53,9 +54,5 @@ public class Comment extends Model {
     
     public Duration ago(){
         return JodaDateUtil.ago(this.date);
-    }
-
-    public String authorName() {
-        return User.findNameById(this.authorId);
     }
 }

@@ -44,6 +44,7 @@ public class Post extends Model {
     public String filePath;
 
     public Long authorId;
+    public String authorName;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     public List<Comment> comments;
@@ -118,10 +119,6 @@ public class Post extends Model {
     public static boolean isAuthor(Long currentUserId, Long id) {
         int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
-    }
-
-    public String authorName() {
-        return User.findNameById(this.authorId);
     }
 
 	/**

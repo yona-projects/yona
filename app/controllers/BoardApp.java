@@ -66,6 +66,7 @@ public class BoardApp extends Controller {
         } else {
             Post post = postForm.get();
             post.authorId = UserApp.currentUser().id;
+            post.authorName = UserApp.currentUser().name;
             post.commentCount = 0;
             post.filePath = saveFile(request());
             post.project = project;
@@ -98,6 +99,7 @@ public class BoardApp extends Controller {
             Comment comment = commentForm.get();
             comment.post = Post.findById(postId);
             comment.authorId = UserApp.currentUser().id;
+            comment.authorName = UserApp.currentUser().name;
             comment.filePath = saveFile(request());
 
             Comment.write(comment);
@@ -137,6 +139,7 @@ public class BoardApp extends Controller {
 
             Post post = postForm.get();
             post.authorId = UserApp.currentUser().id;
+            post.authorName = UserApp.currentUser().name;
             post.id = postId;
             post.filePath = saveFile(request());
             post.project = project;
