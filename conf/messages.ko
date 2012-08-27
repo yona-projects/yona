@@ -200,6 +200,8 @@ project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
 project.delete.requestion = 프로젝트를 삭제하시겠습니까?
 project.delete.reaccept = 정말로 삭제하시겠습니까?
 project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.
+project.new.vcsType.git = Git
+project.new.vcsType.subversion = Subversion
 
 #Site
 site.sidebar = 사이트 관리
