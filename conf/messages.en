@@ -241,3 +241,8 @@ board.notAuthor = You are not author!
 label.writer = Writer
 post.is.empty = There is no post.
 title.contentSearchResult = Conetnet Search Result
+
+#Vaildation
+error.required = It is required.
+error.wrong.format = It is wrong format.
+

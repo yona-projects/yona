@@ -1,46 +1,37 @@
-nforge.namespace("milestone");
+nforge.namespace('milestone');
 
-nforge.milestone.common = function() {
-  var $validates;
+nforge.milestone.manage = function () {
   return {
-    init : function() {
-      $validates = $('.validate');
-      return this;
+    init : function () {
+      $('.save').click(this.save);
     },
 
-    validate : function() {
-      $.each($validates, function(idx, validate){
-        var $validate  = $(this);
-        /* @TODO put validate code */
-      });
-      return true;
-    },
+    save : function (e) {
+      var errors = {},
+        $title = $('#title'),
+        $contents = $('#contents'),
+        $dueDate = $('#dueDate'),
+        dueDateValue = $.trim($dueDate.val()),
+        isDateMatch = dueDateValue.match(/\d\d\d\d-\d\d-\d\d/);
 
-    requireField : function() {
-
-    },
-
-    dateField : function() {
-
-    }
-  };
-};
-
-nforge.milestone.manage = function() {
-  var that,
-    common =  nforge.require('milestone.common');
-  that = {
-    init : function() {
-      $('.save').click(that.save);
-    },
-
-    save : function(e) {
-      if(!common.validate()) {
-        return false;
+      if (!$.trim($title.val())) {
+        errors['title'] = 'error.required';
       }
+
+      if (!$.trim($contents.val())) {
+        errors['contents'] = 'error.required';
+      }
+
+      if (!dueDateValue || !isDateMatch) {
+        errors['dueDate'] = !dueDateValue ? 'error.required' : 'error.wrong.format';
+      }
+
+      $title.next().html(errors['title'] || '');
+      $contents.next().html(errors['contents'] || '');
+      $dueDate.next().html(errors['dueDate'] || '');
+
+      return $.isEmptyObject(errors);
     }
   };
-  return that;
 };
-
 

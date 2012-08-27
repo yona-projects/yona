@@ -1,0 +1,13 @@
+@(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)
+@import helper.input 
+
+@input(field, args:_*) { (id, name, value, htmlArgs) =>
+    <select id="@id" name="@name" @toHtmlArgs(htmlArgs)>
+        @args.toMap.get('_default).map { defaultValue =>
+            <option class="blank" value="">@defaultValue</option>
+        }
+        @options.map { v =>
+            <option value="@v._1" @(if(value == Some(v._1)) "selected" else "")>@Messages(v._2)</option>
+        }
+    </select>
+}

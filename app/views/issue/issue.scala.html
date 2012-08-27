@@ -53,11 +53,8 @@
 		<a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
 	</div>
 	</br></br>
-
-<!-- FIXME 현재는 프로젝트 멤버인 경우는 모두 이슈 할당 관련 권한을 가지지지만, 프로젝트 설정의 작성자 수정 가능 권한 옵션에 영향을 받도록 수정해야함 -->
-
-
-
+    @if(session.get("userId") != null && ProjectUser.isMember(session.get("userId").toLong, project.id)){
+       
 	   @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issue.id), 
             'enctype -> "multipart/form-data",
             'class -> "form-horizontal") {
@@ -66,15 +63,9 @@
 	                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
 	                <div class="well form-inline">
 	                   @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
-	                       @select(
+	                       @selectEx(
 	                            issueForm("issueType"), 
-	                            options = options(
-	                                        "worst"-> Messages("issue.new.detailInfo.issueType.worst"),
-	                                        "worse"-> Messages("issue.new.detailInfo.issueType.worse"),
-	                                        "bad"-> Messages("issue.new.detailInfo.issueType.bad"),
-	                                        "enhancement"-> Messages("issue.new.detailInfo.issueType.enhancement"),
-	                                        "recommendation"-> Messages("issue.new.detailInfo.issueType.recommendation")
-	                                        ),
+	                            options(Issue.issueTypes),
 	                            '_label-> Messages("issue.new.detailInfo.issueType"),
 	                            '_default -> Messages("issue.new.selectDefault.issueType"),
 	                            '_showConstraints -> false)
@@ -113,31 +104,17 @@
 	                <legend><b>@Messages("issue.new.result")</b></legend>
 	                <div class="well form-inline">
 	                   @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {
-	                        @select(
+	                        @selectEx(
 	                            issueForm("importance"), 
-	                            options = options(
-	                                        "highest"-> Messages("issue.new.result.importance.highest"),
-	                                        "high"->    Messages("issue.new.result.importance.high"),
-	                                        "average"-> Messages("issue.new.result.importance.average"),
-	                                        "low"->     Messages("issue.new.result.importance.low"),
-	                                        "lowest"->  Messages("issue.new.result.importance.lowest")),
+	                            options(Issue.importances),
 	                            '_label-> Messages("issue.new.result.importance"),
 	                            '_default -> Messages("issue.new.selectDefault.importance"),
 	                            '_showConstraints -> false)
 	                   }
 	                   @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {
-	                        @select(
+	                        @selectEx(
 	                            issueForm("diagnosisResult"), 
-	                            options = options(
-	                                        "bug"-> Messages("issue.new.result.diagnosisResult.bug"),
-	                                        "fixed"-> Messages("issue.new.result.diagnosisResult.fixed"), 
-	                                        "willNotFixed"-> Messages("issue.new.result.diagnosisResult.willNotFixed"),
-	                                        "notaBug"-> Messages("issue.new.result.diagnosisResult.notaBug"),
-	                                        "awaitingResponse"-> Messages("issue.new.result.diagnosisResult.awaitingResponse"),
-	                                        "unreproducible"-> Messages("issue.new.result.diagnosisResult.unreproducible"), 
-	                                        "duplicated"-> Messages("issue.new.result.diagnosisResult.duplicated"), 
-	                                        "works4me"-> Messages("issue.new.result.diagnosisResult.works4me")
-	                                        ),
+	                            options(Issue.diagnosisResults),
 	                            '_label-> Messages("issue.new.result.diagnosisResult"),
 	                            '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
 	                            '_showConstraints -> false)
@@ -150,7 +127,7 @@
         <input type="hidden" value="@issue.authorId" name="authorId"/>
         <input type="submit" class="btn pull-right" value=@Messages("button.save") />
     }
-    
+   }
     
 </div>
 <!-- 여기서 부터 덧글 -->
