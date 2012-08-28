@@ -80,7 +80,7 @@ public class IssueApp extends Controller {
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-//            newIssue.updateStatusType();
+            // newIssue.updateStatusType();
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
@@ -102,15 +102,11 @@ public class IssueApp extends Controller {
             return badRequest(issueForm.errors().toString());
         } else {
             Issue issue = issueForm.get();
-//            issue.authorId = UserApp.currentUser().id;
             issue.id = id;
             issue.date = Issue.findById(id).date;
             issue.filePath = saveFile(request());
             issue.project = project;
             issue.updateState(issue);
-
-            Logger.error("assigneeId :_"+issue.assigneeId +"// diagnoisResult:_" + issue.diagnosisResult);
-            //            issue.updateStateType();
             Issue.edit(issue);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.name()));
