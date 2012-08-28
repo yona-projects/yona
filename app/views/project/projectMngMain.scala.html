@@ -1,13 +1,26 @@
 @(title: String, projectInst:Project)(content: Html)
 
-@main(title, projectInst) {
-<div class="row-fluid">
-    <div class="span2">
-        @views.html.project.sidebar(title, projectInst)
+@layout(Messages(title)) {
+    @views.html.navbar()      
+    <div class="container">
+            <div class="row-fluid">
+                <div class="span2">
+                    <h3>@projectInst.name</h3>
+                </div>
+                <div class="span10">
+                    @views.html.topmenu(projectInst)
+                </div>
+            </div>
+            
+            
+        <div class="row-fluid">
+            <div class="span2">
+                @views.html.project.sidebar(title, projectInst)
+            </div>
+            <div class="span10">
+                @views.html.alert()
+                @content
+            </div>
+        </div>   
     </div>
-    <div class="span10">
-        @content
-    </div>
-
-</div>
 }

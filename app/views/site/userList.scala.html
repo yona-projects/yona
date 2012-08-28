@@ -25,9 +25,23 @@
             <td>@user.name</td>
             <td>@user.email</td>
             <td>
-              <a class="btn btn-danger" href="@routes.SiteApp.deleteUser(user.id)">@Messages("button.delete")</a>
+              <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion@user.loginId">@Messages("button.delete")</a>
             </td> 
           </tr>
+          
+          <div class="modal hide" id="alertDeletion@user.loginId">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">×</button>
+                  <h3>@Messages("site.user.delete")</h3>
+              </div>
+              <div class="modal-body">
+                  <p>@Messages("site.user.deleteConfirm")</p>
+              </div>
+              <div class="modal-footer">
+                  <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+                  <a href="@routes.SiteApp.deleteUser(user.id)" class="btn btn-danger">@Messages("button.yes")</a>
+              </div>
+          </div>
         }
       </tbody>
     </table>
@@ -35,5 +49,5 @@
   
   <div class="row-fluid">
     <center>@paginationForUserList(currentPage, 5, "pagination")</center>
-  </div>  
+  </div>
 }

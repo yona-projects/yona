@@ -1,13 +1,16 @@
 @(title: String)(content: Html)
 
-@home(title) {
-<div class="row-fluid">
-    <div class="span2">
-        @views.html.site.sidebar(title)
+@layout(Messages(title)) {
+    @views.html.navbar()      
+    <div class="container">
+        <div class="row-fluid">
+            <div class="span2">
+                @views.html.site.sidebar(title)
+            </div>
+            <div class="span10">
+                @views.html.alert()
+                @content
+            </div>
+        </div>     
     </div>
-    <div class="span10">
-        @content
-    </div>
-
-</div>
 }

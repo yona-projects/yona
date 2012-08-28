@@ -47,9 +47,9 @@
                     options = options("false"->Messages("project.isAuthorEditable.off"), "true"->Messages("project.isAuthorEditable.on")),
                     '_label -> Messages("project.isAuthorEditable")
                 )
-                @select(
+                @selectEx(
                     newProjectForm("vcs"),
-                    options=options("GIT"->"GIT", "Subversion"->"Subversion"), 
+                    options(Project.vcsTypes), 
                     '_label -> Messages("project.vcs")
                 )
                 

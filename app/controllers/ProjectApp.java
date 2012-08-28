@@ -119,7 +119,7 @@ public class ProjectApp extends Controller {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         if(user == null) {
-            flash(Constants.WARNING, "Not existing user");
+            flash(Constants.WARNING, "project.member.notExist");
             return redirect(routes.ProjectApp.members(userName, projectName));
         }
         Project project = getProject(userName, projectName);

@@ -8,29 +8,24 @@
     }
     menuState
 }
-@defining(projectInst.id+ " " + projectInst.id) { fullName =>
-    <div>Hello @fullName</div>
-}
-@defining((projectInst.id,projectInst.name)){ case (projectId, projectName)=>
-    <div class="well" style="padding: 8px 0;">
-        <ul class="nav nav-list">
-            <li class="nav-header">@Messages("project.sidebar")</li>
-            <li class="@isActiveMenu(routes.ProjectApp.setting(projectInst.owner, projectInst.name))">
-                <a href="@routes.ProjectApp.setting(projectInst.owner, projectInst.name)"><i class="icon-cog"></i>@Messages("project.sidebar.setting")</a>
-            </li>
-            <li class="@isActiveMenu(routes.ProjectApp.members(projectInst.owner, projectInst.name))">
-                <a href="@routes.ProjectApp.members(projectInst.owner, projectInst.name)"><i class="icon-user"></i>@Messages("project.sidebar.memberList")</a>
-            </li>
-            <li class="@isActiveMenu(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name), routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name))">
-                <a href="@routes.MilestoneApp.milestones(projectInst.owner, projectInst.name)"><i class="icon-gift"></i>@Messages("project.sidebar.milestone")</a>
-            </li>
-            <li class="@isActiveMenu(routes.Application.index())">
-                <a href="#"><i class="icon-wrench"></i>@Messages("project.sidebar.plugin")</a>
-            </li>
-            <li class="divider"></li>
-            <li class="@isActiveMenu(routes.Application.index())">
-                <a href="#"><i class="icon-book"></i>@Messages("project.sidebar.help")</a>
-            </li>
-        </ul>
-    </div> <!-- /well -->
-}
+<div class="well" style="padding: 8px 0;">
+    <ul class="nav nav-list">
+        <li class="nav-header">@Messages("project.sidebar")</li>
+        <li class="@isActiveMenu(routes.ProjectApp.setting(projectInst.owner, projectInst.name))">
+            <a href="@routes.ProjectApp.setting(projectInst.owner, projectInst.name)"><i class="icon-cog"></i>@Messages("project.sidebar.setting")</a>
+        </li>
+        <li class="@isActiveMenu(routes.ProjectApp.members(projectInst.owner, projectInst.name))">
+            <a href="@routes.ProjectApp.members(projectInst.owner, projectInst.name)"><i class="icon-user"></i>@Messages("project.sidebar.memberList")</a>
+        </li>
+        <li class="@isActiveMenu(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name), routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name))">
+            <a href="@routes.MilestoneApp.milestones(projectInst.owner, projectInst.name)"><i class="icon-gift"></i>@Messages("project.sidebar.milestone")</a>
+        </li>
+        <li class="@isActiveMenu(routes.Application.index())">
+            <a href="#"><i class="icon-wrench"></i>@Messages("project.sidebar.plugin")</a>
+        </li>
+        <li class="divider"></li>
+        <li class="@isActiveMenu(routes.Application.index())">
+            <a href="#"><i class="icon-book"></i>@Messages("project.sidebar.help")</a>
+        </li>
+    </ul>
+</div> <!-- /well -->
