@@ -245,7 +245,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
     public void updateIssue() throws Exception {
         //Given
         Issue issue = new Issue();
-        issue.updateStatusType(IssueState.ENROLLED);
+        issue.updateStateType(issue);
         issue.milestoneId = 6l;
         issue.update(5l);
 

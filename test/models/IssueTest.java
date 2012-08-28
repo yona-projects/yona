@@ -1,19 +1,20 @@
 package models;
 
-import com.avaje.ebean.Page;
-import controllers.SearchApp;
+import static org.fest.assertions.Assertions.assertThat;
+
+import java.util.List;
+
 import models.enumeration.IssueState;
 import models.enumeration.StateType;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
-import play.Logger;
 import utils.JodaDateUtil;
 
-import java.io.File;
-import java.util.List;
+import com.avaje.ebean.Page;
 
-import static org.fest.assertions.Assertions.assertThat;
+import controllers.SearchApp;
 
 public class IssueTest extends ModelTest<Issue> {
 
@@ -26,6 +27,7 @@ public class IssueTest extends ModelTest<Issue> {
         issue.state = IssueState.ASSIGNED;
         issue.authorId = User.findById(1l).id;
         issue.milestoneId = 4l;
+        issue.issueType = "issue.new.detailInfo.issueType.worst";
         // When
         // Then
         assertThat(Issue.create(issue)).isNotNull();
@@ -171,22 +173,6 @@ public class IssueTest extends ModelTest<Issue> {
         assertThat(Issue.findById(3l).numOfComments).isEqualTo(0);
     }
     
-    @Test
-    @Ignore
-    public void isAuthor() throws Exception {
-        // Given
-        Long currentUserId_hobi = 2l;
-        Long issueId1 = 1l;
-        Long issueId2 = 2l;
-        // When
-        boolean result1 = Issue.isAuthor(currentUserId_hobi, issueId1);
-        boolean result2 = Issue.isAuthor(currentUserId_hobi, issueId2);
-        // Then
-        assertThat(result1).isEqualTo(true);
-        assertThat(result2).isEqualTo(false);
-
-    }
-
 	@Test
 	public void findIssues() {
 		// Given

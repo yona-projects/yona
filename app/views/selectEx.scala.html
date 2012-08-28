@@ -1,5 +1,7 @@
 @(field: play.api.data.Field, options: Seq[(String,String)], args: (Symbol,Any)*)
 @import helper.input 
+@import helper.FieldConstructor
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @input(field, args:_*) { (id, name, value, htmlArgs) =>
     <select id="@id" name="@name" @toHtmlArgs(htmlArgs)>
