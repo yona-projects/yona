@@ -116,6 +116,7 @@ public class Issue extends Model {
     public Long milestoneId;
     public Long assigneeId;
     public Long authorId;
+    public String authorName;
     public IssueState state;
     public StateType stateType;
     public String issueType;

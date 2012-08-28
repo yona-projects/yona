@@ -77,6 +77,7 @@ public class IssueApp extends Controller {
         } else {
             Issue newIssue = issueForm.get();
             newIssue.authorId = UserApp.currentUser().id;
+            newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
 //            newIssue.updateStatusType();
@@ -134,6 +135,7 @@ public class IssueApp extends Controller {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
+            comment.authorName = UserApp.currentUser().name;
             comment.filePath = saveFile(request());
             IssueComment.create(comment);
             Issue.updateNumOfComments(issueId);
