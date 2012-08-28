@@ -399,6 +399,20 @@ public class Issue extends Model {
     }
 
     /**
+     * 이슈를 수정 & 업데이트 한다.
+     * 
+     * @param issue
+     */
+    public static void edit(Issue issue) {
+        Issue previousIssue = findById(issue.id);
+        if (issue.filePath == null) {
+            issue.filePath = previousIssue.filePath;
+        }
+        issue.updateStateType(issue);
+        issue.update();
+    }
+
+    /**
      * 미해결 탭을 눌렀을 때, open 상태의 이슈들을 찾아준다..
      * 
      * @param projectName
@@ -557,15 +571,6 @@ public class Issue extends Model {
         SearchParams searchParams = new SearchParams().add("milestoneId", milestoneId,
                 Matching.EQUALS);
         return FinderTemplate.findBy(null, searchParams, find);
-    }
-
-    public static void edit(Issue issue) {
-        Issue previousIssue = findById(issue.id);
-        if (issue.filePath == null) {
-            issue.filePath = previousIssue.filePath;
-        }
-        issue.updateStateType(issue);
-        issue.update();
     }
 
     /**
