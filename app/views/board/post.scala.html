@@ -29,12 +29,10 @@
 	<div class="row">
 		<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
 		<div class="span11">
-			<div class="well">
-				<p>@post.contents</p>
-				@if(post.filePath != null){
-				<p><a href='@routes.Assets.at("uploadFiles/" + post.filePath)'><i class="icon-download"></i>@post.filePath</a></p>
-				}
-			</div>
+			<pre>@post.contents</pre>
+			@if(post.filePath != null){
+			<p><a href='@routes.Assets.at("uploadFiles/" + post.filePath)'><i class="icon-download"></i>@post.filePath</a></p>
+			}
 		</div>
         <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
 	</div>
@@ -53,7 +51,7 @@
             <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
             }
 		</div>
-		<p>@comment.contents<p>
+		<pre>@comment.contents</pre>
 		@if(comment.filePath != null){
 		<p><a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i class="icon-download"></i>@comment.filePath</a></p>
 		}
