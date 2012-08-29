@@ -13,6 +13,7 @@ import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import models.enumeration.StateType;
 import models.support.SearchCondition;
+import play.Logger;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -22,7 +23,6 @@ import play.mvc.Result;
 import utils.Constants;
 import views.html.issue.editIssue;
 import views.html.issue.issue;
-import views.html.issue.issueError;
 import views.html.issue.issueList;
 import views.html.issue.newIssue;
 import views.html.issue.notExistingPage;
@@ -80,7 +80,7 @@ public class IssueApp extends Controller {
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-            newIssue.updateStatusType(newIssue.state);
+            // newIssue.updateStatusType();
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }
@@ -102,15 +102,11 @@ public class IssueApp extends Controller {
             return badRequest(issueForm.errors().toString());
         } else {
             Issue issue = issueForm.get();
-            issue.authorId = UserApp.currentUser().id;
-            issue.authorName = UserApp.currentUser().name;
             issue.id = id;
             issue.date = Issue.findById(id).date;
             issue.filePath = saveFile(request());
             issue.project = project;
-            if (issue.assigneeId != null) {
-                issue.state = IssueState.ASSIGNED;
-            }
+            issue.updateState(issue);
             Issue.edit(issue);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.name()));

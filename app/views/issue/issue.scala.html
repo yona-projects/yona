@@ -125,10 +125,13 @@
         <input type="hidden" value="@issue.title" name="title"/>
         <input type="hidden" value="@issue.body" name="body"/>
         <input type="hidden" value="@issue.authorId" name="authorId"/>
-        <input type="submit" class="btn pull-right" value=@Messages("button.save") />
+        <div class = "btn pull-right">
+            <input type="submit" value=@Messages("button.save") />
+            <input type="button" id=makeFinished value="이슈 해결" />
+        </div>
     }
    }
-    
+  
 </div>
 <!-- 여기서 부터 덧글 -->
 @for(comment <- issue.comments){

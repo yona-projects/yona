@@ -15,7 +15,7 @@
 	</div>
     @form(action = routes.IssueApp.saveIssue(project.owner, project.name), 
     				'enctype -> "multipart/form-data",
-    				'class -> "form-horizontal"){
+    				'class -> "horizontal form-horizontal") {
     	<fieldset>
     	@inputText(
     		issueForm("title"), 
@@ -26,8 +26,9 @@
     		'_showConstraints -> false,
     		'_label-> Messages("label.contents"))
     	</fieldset>
+
     	<i class = "icon-file"></i>@Messages("post.new.fileAttach") <a id="fileUpload" data-toggle="modal" href="#askFilePath" class="btn">@Messages("button.selectFile")</a>
-		<div class="modal hide" id="askFilePath">
+	       <div class="modal hide" id="askFilePath">
 		    	<div class="modal-header">
 			        <button type="button" class="close" data-dismiss="modal">@Messages("button.popup.exit")</button>
 			            <h3>@Messages("post.popup.fileAttach.title")</h3>
@@ -40,11 +41,12 @@
 			        <a href="#" class="btn" data-dismiss="modal">@Messages("button.cancel")</a>
 			        <a href="#" class="btn btn-primary" data-dismiss="modal">@Messages("button.confirm")</a>
 			    </div>
-			 </div>
-		</br></Sbr>
+	       </div>
+		</br></br>
+
 		<fieldset>
             <div class="well">
-                <h4> @Messages("issue.new.environment")</h4>
+                <legend><b>@Messages("issue.new.environment")</b></legend>
                 <div class="well form-inline">
                         @selectEx(
                             issueForm("osType"), 
@@ -68,9 +70,10 @@
                 </div>
             </div>
         </fieldset>
+
 		<fieldset>
 			<div class="well">
-	    		<h4>@Messages("issue.new.detailInfo")</h4>
+	    		<legend><b>@Messages("issue.new.detailInfo")</b></legend>
 	    		<div class="well form-inline">
                 @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {		  	
 				  	@selectEx(
@@ -111,7 +114,7 @@
 	    </fieldset>
     	<fieldset>
     		<div class="well">
-    			<h4> @Messages("issue.new.result")</h4>
+    			<legend><b>@Messages("issue.new.result")</b></legend>
     			<div class="well form-inline">
                     @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {				    	
 				    	@selectEx(
@@ -132,7 +135,7 @@
 				</div>		
     		</div>
     	</fieldset>
-    	}
+
 	<div class="row pull-right">
 			<div class="actions">
 				<input type="submit" class="btn btn-primary" value="@Messages("button.save")"> 
@@ -140,4 +143,4 @@
 			</div>
     </div>
  }
-
+}
