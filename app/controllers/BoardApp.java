@@ -38,11 +38,11 @@ public class BoardApp extends Controller {
     }
     
 
-    public static Result posts(String ownerName, String projectName) {
+    public static Result posts(String userName, String projectName) {
 
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
 
         return ok(postList.render(
                 "menu.board",
@@ -51,18 +51,18 @@ public class BoardApp extends Controller {
                         Direction.getValue(postSearchCondition.order), postSearchCondition.key), postSearchCondition));
     }
 
-    public static Result newPost(String ownerName, String projectName) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+    public static Result newPost(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
         return ok(newPost.render("board.post.new", new Form<Post>(Post.class), project));
     }
 
-    public static Result savePost(String ownerName, String projectName) {
+    public static Result savePost(String userName, String projectName) {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
         if (postForm.hasErrors()) {
             flash(Constants.WARNING, "board.post.empty");
             
-            return redirect(routes.BoardApp.newPost(ownerName, projectName));
+            return redirect(routes.BoardApp.newPost(userName, projectName));
         } else {
             Post post = postForm.get();
             post.authorId = UserApp.currentUser().id;
@@ -76,9 +76,9 @@ public class BoardApp extends Controller {
         return redirect(routes.BoardApp.posts(project.owner, project.name));
     }
 
-    public static Result post(String ownerName, String projectName, Long postId) {
+    public static Result post(String userName, String projectName, Long postId) {
         Post post = Post.findById(postId);
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
         if (post == null) {
             flash(Constants.WARNING, "board.post.notExist");
             return redirect(routes.BoardApp.posts(project.owner, project.name));
@@ -88,10 +88,10 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result saveComment(String ownerName, String projectName, Long postId) {
+    public static Result saveComment(String userName, String projectName, Long postId) {
         Form<Comment> commentForm = new Form<Comment>(Comment.class).bindFromRequest();
 
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "board.comment.empty");
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));
@@ -109,16 +109,16 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result deletePost(String ownerName, String projectName, Long postId) {
-        Project project = ProjectApp.getProject(ownerName, projectName);
+    public static Result deletePost(String userName, String projectName, Long postId) {
+        Project project = ProjectApp.getProject(userName, projectName);
         Post.delete(postId);
         return redirect(routes.BoardApp.posts(project.owner, project.name));
     }
 
-    public static Result editPost(String ownerName, String projectName, Long postId) {
+    public static Result editPost(String userName, String projectName, Long postId) {
         Post existPost = Post.findById(postId);
         Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
 
         if (UserApp.currentUser().id == existPost.authorId) {
             return ok(editPost.render("board.post.modify", editForm, postId, project));
@@ -128,13 +128,13 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result updatePost(String ownerName, String projectName, Long postId) {
+    public static Result updatePost(String userName, String projectName, Long postId) {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
-        Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(userName, projectName);
 
         if (postForm.hasErrors()) {
             flash(Constants.WARNING, "board.post.empty");
-            return redirect(routes.BoardApp.editPost(ownerName, projectName, postId));
+            return redirect(routes.BoardApp.editPost(userName, projectName, postId));
         } else {
 
             Post post = postForm.get();
@@ -148,6 +148,13 @@ public class BoardApp extends Controller {
         }
 
         return redirect(routes.BoardApp.posts(project.owner, project.name));
+        
+    }
+    
+    public static Result deleteComment(String userName, String projectName, Long postId, Long commentId) {
+        Comment.delete(commentId);
+        Post.countDownCommentCounter(postId);
+        return redirect(routes.BoardApp.post(userName, projectName, postId));
     }
 
     private static String saveFile(Request request) {
@@ -162,4 +169,5 @@ public class BoardApp extends Controller {
         }
         return null;
     }
+    
 }

@@ -35,7 +35,7 @@ public class Post extends Model {
 
     @Constraints.Required
     public String contents;
-
+ 
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date;
@@ -135,4 +135,10 @@ public class Post extends Model {
 				.findPagingList(condition.pageSize)
 				.getPage(condition.page - 1);
 	}
+
+    public static void countDownCommentCounter(Long id) {
+        Post post = find.byId(id);
+        post.commentCount--;
+        post.update();
+    }
 }

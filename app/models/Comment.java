@@ -55,4 +55,8 @@ public class Comment extends Model {
     public Duration ago(){
         return JodaDateUtil.ago(this.date);
     }
+
+    public static void delete(Long commentId) {
+        find.byId(commentId).delete();
+    }
 }

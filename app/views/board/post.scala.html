@@ -48,6 +48,10 @@
 		<div>
 			<span>@comment.authorName가 @agoString(comment.ago())에 작성함</span> |
 			<span>@comment.date</span>
+            <!-- TODO 권한설정 잘할것. -->
+            @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_COMMENT, models.enumeration.Operation.DELETE, comment.id){
+            <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
+            }
 		</div>
 		<p>@comment.contents<p>
 		@if(comment.filePath != null){

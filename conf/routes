@@ -32,6 +32,7 @@ POST    /:user/:projectName/board/:id/replay            controllers.BoardApp.sav
 GET     /:user/:projectName/board/:id/delete            controllers.BoardApp.deletePost(user:String, projectName:String, id:Long)
 GET     /:user/:projectName/board/:id/edit              controllers.BoardApp.editPost(user:String, projectName:String, id:Long)
 POST    /:user/:projectName/board/:id/edit              controllers.BoardApp.updatePost(user:String, projectName:String, id:Long)
+GET     /:user/:projectName/board/:id/delete/:commentId controllers.BoardApp.deleteComment(user:String, projectName:String, id:Long, commentId:Long)
 
 # Projects
 GET     /projects/new                                   controllers.ProjectApp.newProject()

@@ -1,6 +1,7 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import org.junit.*;
 
@@ -25,5 +26,14 @@ public class CommentTest extends ModelTest<Comment> {
         long id = Comment.write(comment);
         // Then
         assertThat(Comment.findById(id)).isNotNull();
+    }
+    @Test
+    public void delete() throws Exception {
+        //Given
+        //When
+        Comment.delete(1l);
+        flush();
+        //Then
+        assertThat(Comment.findById(1l)).isNull();
     }
 }
