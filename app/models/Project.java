@@ -2,14 +2,12 @@ package models;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-import models.support.Options;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -76,12 +74,6 @@ public class Project extends Model {
         return find.where().eq("name", projectName).eq("owner", userName).findUnique();
     }
     
-    public static Map<String, String> vcsTypes() {
-        return new Options(
-                "project.new.vcsType.git",
-                "project.new.vcsType.subversion");
-    }
-
     /**
      * 해당 프로젝트가 존재하는지 여부를 검사합니다. 해당 파라미터에 대하여 프로젝트가 존재하면 true, 존재하지 않으면 false를 반환합니다.
      * 

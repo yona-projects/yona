@@ -8,6 +8,7 @@ import play.db.ebean.Transactional;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
+import playRepository.RepositoryService;
 import utils.Constants;
 import views.html.project.*;
 
@@ -59,7 +60,7 @@ public class ProjectApp extends Controller {
 
             // create Repository
             // FIXME 이게 과연 CodeApp의 역활인가?
-            CodeApp.createRepository(project.owner, project.name, project.vcs);
+            RepositoryService.createRepository(project.owner, project.name, project.vcs);
 
             return redirect(routes.ProjectApp.project(project.owner, project.name));
         }
