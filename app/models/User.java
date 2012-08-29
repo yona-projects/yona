@@ -1,21 +1,14 @@
 package models;
 
-import com.avaje.ebean.Page;
-import models.enumeration.Direction;
-import models.enumeration.Matching;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
-import play.data.validation.Constraints;
+import java.util.*;
+
+import javax.persistence.*;
+
+import models.enumeration.*;
+import models.support.*;
 import play.db.ebean.Model;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.avaje.ebean.Page;
 
 @Entity
 public class User extends Model {

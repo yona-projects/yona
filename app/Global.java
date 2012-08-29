@@ -1,34 +1,14 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-
-import org.tmatesoft.svn.util.SVNLogType;
+import java.util.*;
 
 import models.User;
-
-
-import anorm.SimpleSql;
-import anorm.Sql;
-import anorm.SqlQuery;
-
-import com.avaje.ebean.CallableSql;
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-
-import controllers.SvnApp;
-import controllers.routes;
-
-import play.Application;
-import play.GlobalSettings;
-import play.Logger;
+import play.*;
 import play.api.mvc.Handler;
-import play.core.Router;
 import play.libs.Yaml;
-
 import play.mvc.Http.RequestHeader;
+
+import com.avaje.ebean.Ebean;
+
+import controllers.routes;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {

@@ -3,11 +3,6 @@ package controllers;
 import java.io.IOException;
 
 import models.Project;
-
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.errors.*;
-import org.tigris.subversion.javahl.ClientException;
-
 import play.mvc.*;
 import views.html.code.gitView;
 

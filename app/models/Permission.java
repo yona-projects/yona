@@ -1,17 +1,11 @@
 package models;
 
-import models.enumeration.Operation;
-import models.enumeration.Resource;
-import play.db.ebean.Model;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
-import javax.persistence.ManyToMany;
-
-import com.avaje.ebean.ExpressionList;
-
 import java.util.List;
+
+import javax.persistence.*;
+
+import models.enumeration.*;
+import play.db.ebean.Model;
 
 /**
  * @author "Hwi Ahn"
