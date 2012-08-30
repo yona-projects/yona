@@ -11,24 +11,24 @@ import models.enumeration.Resource;
 import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
 
-public class RoleCheckTest extends ModelTest<Role>{
+public class AccessControlTest extends ModelTest<Role>{
     @Test
-    public void permissionCheck() throws Exception {
+    public void isAllowed() throws Exception {
         // Given
         Long userSessionId1 = 1l;
         Long userSessionId2 = 2l;
         Long projectId1 = 1l;
         Long projectId2 = 3l;
         // When
-        boolean result1 = RoleCheck.permissionCheck(userSessionId1, projectId1, Resource.PROJECT_SETTING, Operation.WRITE, null);
-        boolean result2 = RoleCheck.permissionCheck(userSessionId2, projectId2, Resource.BOARD_POST, Operation.READ, null);
+        boolean result1 = AccessControl.isAllowed(userSessionId1, projectId1, Resource.PROJECT_SETTING, Operation.WRITE, null);
+        boolean result2 = AccessControl.isAllowed(userSessionId2, projectId2, Resource.BOARD_POST, Operation.READ, null);
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
     }
     
     @Test
-    public void authorCheck() throws Exception {
+    public void isAuthor() throws Exception {
         // Given
         Long userId1 = 2l;
         Long resourceId1 = 1l;
@@ -37,8 +37,8 @@ public class RoleCheckTest extends ModelTest<Role>{
         Long resourceId2 = 1l;
         Finder<Long, Issue> issueFinder = new Finder<Long, Issue>(Long.class, Issue.class);
         // When
-        boolean result1 = RoleCheck.authorCheck(userId1, resourceId1, postFinder);
-        boolean result2 = RoleCheck.authorCheck(userId2, resourceId2, issueFinder);
+        boolean result1 = AccessControl.isAuthor(userId1, resourceId1, postFinder);
+        boolean result2 = AccessControl.isAuthor(userId2, resourceId2, issueFinder);
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);

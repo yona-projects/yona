@@ -2,6 +2,8 @@ package models;
 
 import java.util.List;
 
+import models.enumeration.RoleType;
+
 import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -15,7 +17,7 @@ public class RoleTest extends ModelTest<Role> {
     public void findById() throws Exception {
         // Given
         // When
-        Role role = Role.findById(1l);
+        Role role = Role.findByRoleType(RoleType.MANAGER);
         // Then
         assertThat(role.name).isEqualTo("manager");
     }
