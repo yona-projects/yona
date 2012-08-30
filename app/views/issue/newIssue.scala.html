@@ -15,16 +15,16 @@
 	</div>
     @form(action = routes.IssueApp.saveIssue(project.owner, project.name), 
     				'enctype -> "multipart/form-data",
-    				'class -> "horizontal form-horizontal") {
+    				'class -> "form-horizontal") {
     	<fieldset>
     	@inputText(
     		issueForm("title"), 
     		'_showConstraints -> false, 
-    		'_label-> Messages("label.title"))
+    		'_label-> Messages("post.new.title"))
     	@textarea(
     		issueForm("body"), 
     		'_showConstraints -> false,
-    		'_label-> Messages("label.contents"))
+    		'_label-> Messages("post.new.contents"))
     	</fieldset>
 
     	<i class = "icon-file"></i>@Messages("post.new.fileAttach") <a id="fileUpload" data-toggle="modal" href="#askFilePath" class="btn">@Messages("button.selectFile")</a>
