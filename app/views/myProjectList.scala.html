@@ -1,5 +1,7 @@
-@if(session.contains("userId")){
-    @for(singleProject <- Project.findProjectsByMember(session.get("userId").toLong)){
+@(projects:List[Project])
+
+@if(projects != null){
+    @for(singleProject <- projects){
         <li><a href="@routes.ProjectApp.project(singleProject.owner, singleProject.name)">@singleProject.name (@singleProject.owner)</a></li>
     }
 }

@@ -124,5 +124,11 @@ public class GitApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         return ok(RepositoryFactory.getRepository(project).getRawFile(path));
         
+    }   
+
+    public static void deleteRepository(String userName, String projectName) throws Exception {
+        Project project = ProjectApp.getProject(userName, projectName);
+        RepositoryFactory.getRepository(project).delete();
+        
     }
 }

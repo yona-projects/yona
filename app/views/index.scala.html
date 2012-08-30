@@ -1,4 +1,4 @@
-@(message: String) 
+@(projects:List[Project]) 
 
 @home("Welcome to nForge") {
   <div class="row-fluid">
@@ -22,7 +22,7 @@
           <li class="nav-header">
             My projects
           </li>
-            @views.html.myProjectList()
+            @views.html.myProjectList(projects)
         </ul>
       }
     </div>

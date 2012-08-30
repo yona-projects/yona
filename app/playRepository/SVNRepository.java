@@ -9,6 +9,8 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
+import utils.FileUtil;
+
 import controllers.SvnApp;
 
 public class SVNRepository implements PlayRepository {
@@ -85,6 +87,11 @@ public class SVNRepository implements PlayRepository {
     @Override
     public DAVServlet getCore() {
         return servlet;
+    }
+
+    @Override
+    public void delete() {
+        FileUtil.rm_rf(new File(REPO_PREFIX + userName + "/" + projectName));
     }
 
 }

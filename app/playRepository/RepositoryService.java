@@ -26,4 +26,13 @@ public class RepositoryService {
             throw new UnsupportedOperationException("only support git & svn!");
         }
     }
+    public static void deleteRepository(String userName, String projectName, String type) throws Exception {
+        if (type.equals(RepositoryService.VCS_GIT)) {
+            GitApp.deleteRepository(userName, projectName);
+        } else if (type.equals(RepositoryService.VCS_SUBVERSION)) {
+            SvnApp.deleteRepository(userName, projectName);
+        } else {
+            throw new UnsupportedOperationException("only support git & svn!");
+        }
+    }
 }

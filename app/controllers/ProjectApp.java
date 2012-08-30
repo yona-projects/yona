@@ -16,7 +16,7 @@ import views.html.project.*;
  * @author "Hwi Ahn"
  */
 public class ProjectApp extends Controller {
-    
+
     public static Project getProject(String userName, String projectName) {
         return Project.findByNameAndOwner(userName, projectName);
     }
@@ -26,10 +26,10 @@ public class ProjectApp extends Controller {
     }
 
     public static Result newProject() {
-        if(session().get(UserApp.SESSION_USERID) == null){
+        if (session().get(UserApp.SESSION_USERID) == null) {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.Application.index());
-        } else 
+        } else
             return ok(newProject.render("title.newProject", form(Project.class)));
     }
 
@@ -39,27 +39,23 @@ public class ProjectApp extends Controller {
         return ok(setting.render("title.projectSetting", projectForm, project));
     }
 
-	@Transactional
+    @Transactional
     public static Result saveProject() throws Exception {
-        Form<Project> filledNewProjectForm = form(Project.class)
-                .bindFromRequest();
-        
-        if(Project.isProject(UserApp.currentUser().loginId, filledNewProjectForm.field("name").value())) {
+        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
+
+        if (Project.isProject(UserApp.currentUser().loginId, filledNewProjectForm.field("name")
+                .value())) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledNewProjectForm.reject("name");
-        }   
-        
+        }
+
         if (filledNewProjectForm.hasErrors()) {
-            return badRequest(newProject.render("title.newProject",
-                    filledNewProjectForm));
+            return badRequest(newProject.render("title.newProject", filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             project.owner = UserApp.currentUser().loginId;
-            ProjectUser.assignRole(UserApp.currentUser().id,
-                    Project.create(project), Role.MANAGER);
+            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), Role.MANAGER);
 
-            // create Repository
-            // FIXME 이게 과연 CodeApp의 역활인가?
             RepositoryService.createRepository(project.owner, project.name, project.vcs);
 
             return redirect(routes.ProjectApp.project(project.owner, project.name));
@@ -67,18 +63,17 @@ public class ProjectApp extends Controller {
     }
 
     public static Result saveSetting(String userName, String projectName) {
-        Form<Project> filledUpdatedProjectForm = form(Project.class)
-                .bindFromRequest();
+        Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
-        
-        if(!Project.projectNameChangeable(project.id, userName, project.name)) {
+
+        if (!Project.projectNameChangeable(project.id, userName, project.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledUpdatedProjectForm.reject("name");
         }
-        
+
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
-        
+
         if (filePart != null) {
             if (filePart.getFile().length() > 1048576) {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
@@ -105,28 +100,29 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Result deleteProject(String userName, String projectName) {
-        Project.delete(getProject(userName, projectName).id);
+    public static Result deleteProject(String userName, String projectName) throws Exception {
+        Project project = getProject(userName, projectName);
+        RepositoryService.deleteRepository(userName, projectName, project.vcs);
+        Project.delete(project.id);
         return redirect(routes.Application.index());
     }
 
     public static Result members(String userName, String projectName) {
         Project project = getProject(userName, projectName);
-        return ok(memberList.render("title.memberList", ProjectUser.findMemberListByProject(project.id), project,
-                Role.getActiveRoles()));
+        return ok(memberList.render("title.memberList",
+                ProjectUser.findMemberListByProject(project.id), project, Role.getActiveRoles()));
     }
 
     public static Result newMember(String userName, String projectName) {
-        User user = User
-                .findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        if(user == null) {
+        User user = User.findByLoginId(form(User.class).bindFromRequest().get().loginId);
+        if (user == null) {
             flash(Constants.WARNING, "project.member.notExist");
             return redirect(routes.ProjectApp.members(userName, projectName));
         }
         Project project = getProject(userName, projectName);
-        if(!ProjectUser.isMember(user.id, project.id))
+        if (!ProjectUser.isMember(user.id, project.id))
             ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
-        else    
+        else
             flash(Constants.WARNING, "project.member.alreadyMember");
         return redirect(routes.ProjectApp.members(userName, projectName));
     }
@@ -145,21 +141,19 @@ public class ProjectApp extends Controller {
     public static Result updateMember(String userName, String projectName, Long userId) {
         Long projectId = getProject(userName, projectName).id;
         if (isManager(userId, projectId)) {
-             ProjectUser.assignRole(userId, projectId,
-             form(Role.class).bindFromRequest()
-             .get().id);
+            ProjectUser.assignRole(userId, projectId, form(Role.class).bindFromRequest().get().id);
             return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
             flash(Constants.WARNING, "project.member.isManager");
             return redirect(routes.ProjectApp.members(userName, projectName));
-        } 
+        }
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        if(Role.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
+        if (Role.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
             return ProjectUser.checkOneMangerPerOneProject(projectId);
         else
             return true;
-        
+
     }
 }
