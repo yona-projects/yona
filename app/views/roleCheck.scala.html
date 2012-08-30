@@ -1,5 +1,5 @@
 @(userId: String, projectId: Long, resource: models.enumeration.Resource, operation: models.enumeration.Operation, resourceId: Long = null)(content: => Html)
 
-@if(utils.RoleCheck.permissionCheck(userId, projectId, resource, operation, resourceId)){
+@if(utils.AccessControl.isAllowed(userId, projectId, resource, operation, resourceId)){
   @content
 }

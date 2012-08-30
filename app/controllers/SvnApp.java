@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
+import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
 
 import play.mvc.*;
 import playRepository.SVNRepository;
@@ -30,7 +31,7 @@ public class SvnApp extends Controller{
         } catch (URISyntaxException e) {
             return badRequest();
         }
-        String pathInfo = path.substring(path.indexOf('/',1));
+        String pathInfo = SVNEncodingUtil.uriEncode(path.substring(path.indexOf('/',1)));
         
         String userName = pathInfo.substring(1, pathInfo.indexOf('/', 1));
         pathInfo = pathInfo.substring(pathInfo.indexOf('/', 1));

@@ -3,6 +3,7 @@ package controllers;
 import java.io.File;
 
 import models.*;
+import models.enumeration.RoleType;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.*;
@@ -54,7 +55,8 @@ public class ProjectApp extends Controller {
         } else {
             Project project = filledNewProjectForm.get();
             project.owner = UserApp.currentUser().loginId;
-            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), Role.MANAGER);
+            ProjectUser.assignRole(UserApp.currentUser().id,
+                    Project.create(project), RoleType.MANAGER);
 
             RepositoryService.createRepository(project);
 
@@ -120,9 +122,9 @@ public class ProjectApp extends Controller {
             return redirect(routes.ProjectApp.members(userName, projectName));
         }
         Project project = getProject(userName, projectName);
-        if (!ProjectUser.isMember(user.id, project.id))
-            ProjectUser.assignRole(user.id, project.id, Role.MEMBER);
-        else
+        if(!ProjectUser.isMember(user.id, project.id))
+            ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
+        else    
             flash(Constants.WARNING, "project.member.alreadyMember");
         return redirect(routes.ProjectApp.members(userName, projectName));
     }
@@ -150,7 +152,7 @@ public class ProjectApp extends Controller {
     }
 
     public static boolean isManager(Long userId, Long projectId) {
-        if (Role.findRoleByIds(userId, projectId).id.equals(Role.MANAGER))
+        if (Role.findRoleByIds(userId, projectId).id.equals(RoleType.MANAGER))
             return ProjectUser.checkOneMangerPerOneProject(projectId);
         else
             return true;
