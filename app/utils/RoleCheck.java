@@ -66,7 +66,7 @@ public class RoleCheck {
             return isAuthorEditible
                     || Permission.permissionCheck(userId, projectId, resource, operation);
         } else { // Anonymous
-            if (!Project.findById(projectId).share_option) {
+            if (Project.findById(projectId) != null && !Project.findById(projectId).share_option) {
                 return false;
             }
             return isAuthorEditible
