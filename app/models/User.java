@@ -6,6 +6,8 @@ import javax.persistence.*;
 
 import models.enumeration.*;
 import models.support.*;
+import play.data.validation.Constraints;
+import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;
 
 import com.avaje.ebean.Page;
@@ -22,8 +24,12 @@ public class User extends Model {
     @Id
     public Long id;
     public String name;
+
+    @Constraints.Pattern(value="^[a-zA-Z0-9_]*$", message="user.wrongloginId.alert")
     public String loginId;
     public String password;
+
+    @Email(message="user.wrongEmail.alert")
     public String email;
     public String profileFilePath;
 
@@ -53,11 +59,11 @@ public class User extends Model {
     public static User findByLoginId(String loginId) {
         return find.where().eq("loginId", loginId).findUnique();
     }
-    
+
 
     /**
      * 존재하는 유저인지를 검사합니다.
-     * 
+     *
      * @param loginId
      * @return
      */
