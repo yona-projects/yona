@@ -1,3 +1,4 @@
+import java.io.File;
 import java.util.*;
 
 import models.User;
@@ -15,6 +16,7 @@ import controllers.*;
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
         InitialData.insert(app);
+        InitialData.makeUploadFolder();
     }
 
     @Override
@@ -53,6 +55,10 @@ public class Global extends GlobalSettings {
                 }
                 Ebean.save(all.get("projectUsers"));
             }
+        }
+
+        public static void makeUploadFolder() {
+            new File("public/uploadFiles/").mkdir();
         }
 
         public static void makeTestRepository() {
