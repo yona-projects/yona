@@ -71,26 +71,19 @@ public class UserApp extends Controller {
     }
 
     public static void validate(Form<User> newUserForm) {
-        if (newUserForm.field("loginId").value() == "") {
+        // loginId가 빈 값이 들어오면 안된다.
+        if(newUserForm.field("loginId").value() == "") {
             newUserForm.reject("loginId", "user.wrongloginId.alert");
         }
-
-        if (newUserForm.field("password").value() == "") {
+        
+        // password가 빈 값이 들어오면 안된다.
+        if(newUserForm.field("password").value() == "") {
             newUserForm.reject("password", "user.wrongPassword.alert");
         }
-
-        if (User.isLoginId(newUserForm.field("loginId").value())) {
-            newUserForm.reject("loginId", "user.loginId.duplicate");
-        }
-
-        if (!Pattern.compile("^[a-zA-Z0-9_]*$").matcher(newUserForm.field("loginId").value())
-                .find()) {
-            newUserForm.reject("loginId", "user.wrongloginId.alert");
-        }
-
-        if (!Pattern.compile("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$")
-                .matcher(newUserForm.field("email").value()).find()) {
-            newUserForm.reject("email", "user.wrongEmail.alert");
+        
+        //중복된 loginId로 가입할 수 없다.
+        if(User.isLoginId(newUserForm.field("loginId").value())){
+           newUserForm.reject("loginId", "user.loginId.duplicate"); 
         }
     }
 }

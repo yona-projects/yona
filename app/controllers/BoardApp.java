@@ -121,7 +121,7 @@ public class BoardApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         
-        if (RoleCheck.permissionCheck(UserApp.currentUser().id, project.id, Resource.BOARD_POST, Operation.EDIT, postId)) {
+        if (AccessControl.isAllowed(UserApp.currentUser().id, project.id, Resource.BOARD_POST, Operation.EDIT, postId)) {
             return ok(editPost.render("board.post.modify", editForm, postId, project));
         } else {
             flash(Constants.WARNING, "board.notAuthor");
