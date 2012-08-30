@@ -41,7 +41,7 @@
 		</div>
 		<div class="span11">
 			<div class="well">
-				<p>@issue.body</p>
+				<pre>@issue.body</pre>
 				@if(issue.filePath != null){
 				<p>
 					<a href='@routes.Assets.at("uploadFiles/" + issue.filePath)'><i
@@ -165,8 +165,8 @@
             </div>
         </div>
 		}
-		<p>@comment.contents
-		<p>@if(comment.filePath != null){
+		<pre>@comment.contents</pre>
+		@if(comment.filePath != null){
 		<p>
 			<a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i
 				class="icon-download"> </i> @comment.filePath</a>
