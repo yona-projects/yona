@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
-import play.Logger;
 import play.mvc.*;
 import playRepository.SVNRepository;
 import utils.*;
@@ -34,9 +33,7 @@ public class SvnApp extends Controller{
         String pathInfo = path.substring(path.indexOf('/',1));
         
         String userName = pathInfo.substring(1, pathInfo.indexOf('/', 1));
-        Logger.info(userName);
         pathInfo = pathInfo.substring(pathInfo.indexOf('/', 1));
-        Logger.info(pathInfo);
         PlayServletRequest request = new PlayServletRequest(request(), new PlayServletSession(new PlayServletContext()), pathInfo);
         PlayServletResponse response = new PlayServletResponse(response());
 
@@ -55,5 +52,10 @@ public class SvnApp extends Controller{
         // TODO Auto-generated method stub
         
         return null;
+    }
+
+    public static void deleteRepository(String userName, String projectName) throws Exception {
+        new SVNRepository(userName, projectName).delete();
+        
     }
 }
