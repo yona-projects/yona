@@ -14,8 +14,6 @@ import controllers.SvnApp;
 public class SVNRepository implements PlayRepository {
     public static final String REPO_PREFIX = "repo/svn/";
 
-    private static DAVServlet davServlet = new DAVServlet();
-
     private DAVServlet servlet;
 
     private String projectName;
@@ -24,7 +22,7 @@ public class SVNRepository implements PlayRepository {
 
     public SVNRepository(final String userName, String projectName) throws ServletException {
         this.servlet = new DAVServlet();
-        davServlet.init(new ServletConfig() {
+        servlet.init(new ServletConfig() {
 
             @Override
             public String getInitParameter(String name) {
@@ -67,36 +65,6 @@ public class SVNRepository implements PlayRepository {
         new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
     }
 
-    public static DAVServlet getDavServlet(final String userName) throws ServletException {
-        davServlet.init(new ServletConfig() {
-
-            @Override
-            public String getInitParameter(String name) {
-                if (name.equals("SVNParentPath")) {
-                    return new File(REPO_PREFIX + userName + "/").getAbsolutePath();
-                } else {
-                    return play.Configuration.root().getString("application." + name);
-                }
-            }
-
-            @Override
-            public Enumeration<String> getInitParameterNames() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public ServletContext getServletContext() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public String getServletName() {
-                throw new UnsupportedOperationException();
-            }
-
-        });
-        return davServlet;
-    }
 
     public byte[] getRawFile(String path) {
         return null;
