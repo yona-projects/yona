@@ -126,8 +126,8 @@
         <input type="hidden" value="@issue.body" name="body"/>
         <input type="hidden" value="@issue.authorId" name="authorId"/>
         <div class = "btn pull-right">
-            <input type="submit" value=@Messages("button.save") />
-            <input type="button" id=makeFinished value="이슈 해결" />
+            <input type="submit" value=@Messages("issue.committer.edit") />
+           <!--   <input type="button" id=makeFinished value="이슈 해결" /> -->
         </div>
     }
    }
@@ -176,19 +176,25 @@
 </div>
 }
 <!-- 댓글 입력 폼 -->
-<hr />
-<div class="row">
-	@form(routes.IssueApp.saveComment(project.owner, project.name, issue.id), 'enctype ->
-	"multipart/form-data"){
-	<div class="span12">@textarea(commentForm("contents"))</div>
-	<div class="span6">@inputFile(commentForm("filePath"))</div>
-	<div class="span6">
-		<input class="btn pull-right" type="submit" value=@Messages( "button.comment.new")/>
-	</div>
+<br />
+<div class="row pull-left">
+	@form(routes.IssueApp.saveComment(project.owner, project.name, issue.id), 
+	   'enctype -> "multipart/form-data",
+	   'class -> "form-horizontal"){
+		<div class="span12">
+		      @textarea(commentForm("contents"),
+		                    '_label-> Messages("post.new.contents")
+		                           )
+		</div>
+		<div class="span6">
+		      @inputFile(commentForm("filePath"),
+	                       '_label -> Messages("post.new.filePath"))
+	    </div>
+		<div class="span6">
+			<input class="btn pull-right" type="submit" value=@Messages( "button.comment.new") />
+		</div>
 	}
 </div>
-</div>
-
 
 <!--삭제확인상자-->
 <div class="modal hide" id="deleteIssueConfirm">

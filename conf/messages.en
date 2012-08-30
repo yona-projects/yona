@@ -139,11 +139,13 @@ issue.new.selectDefault.dbmsType = --Select a Type of DBMS--
 issue.new.selectDefault.importance = --Select an Importance--
 issue.new.selectDefault.diagnosisResult = --Select a Diagnosis Result--
 issue.comment.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
+issue.committer.edit = Edit Issue
 
 #Post
 post.new = New
 post.new.title = Title
 post.new.contents = Contents
+post.new.filePath = File Path
 post.author = Author
 post.age = Age
 post.menu.search = Search
