@@ -3,6 +3,8 @@ package playRepository;
 import java.util.HashMap;
 import java.util.Map;
 
+import models.Project;
+
 import controllers.GitApp;
 import controllers.SvnApp;
 
@@ -17,20 +19,23 @@ public class RepositoryService {
         return map;
     }
 
-    public static void createRepository(String userName, String projectName, String type) throws Exception {
-        if (type.equals(RepositoryService.VCS_GIT)) {
-            GitApp.createRepository(userName, projectName);
-        } else if (type.equals(RepositoryService.VCS_SUBVERSION)) {
-            SvnApp.createRepository(userName, projectName);
-        } else {
-            throw new UnsupportedOperationException("only support git & svn!");
-        }
-    }
-    public static void deleteRepository(String userName, String projectName, String type) throws Exception {
+    public static void deleteRepository(String userName, String projectName, String type)
+            throws Exception {
         if (type.equals(RepositoryService.VCS_GIT)) {
             GitApp.deleteRepository(userName, projectName);
         } else if (type.equals(RepositoryService.VCS_SUBVERSION)) {
             SvnApp.deleteRepository(userName, projectName);
+        } else {
+            throw new UnsupportedOperationException("only support git & svn!");
+        }
+    }
+
+    public static void createRepository(Project project) throws Exception {
+        RepositoryService.deleteRepository(project.owner, project.name, project.vcs);
+        if (project.vcs.equals(RepositoryService.VCS_GIT)) {
+            GitApp.createRepository(project.owner, project.name);
+        } else if (project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {
+            SvnApp.createRepository(project.owner, project.name);
         } else {
             throw new UnsupportedOperationException("only support git & svn!");
         }

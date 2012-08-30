@@ -56,7 +56,7 @@ public class ProjectApp extends Controller {
             project.owner = UserApp.currentUser().loginId;
             ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), Role.MANAGER);
 
-            RepositoryService.createRepository(project.owner, project.name, project.vcs);
+            RepositoryService.createRepository(project);
 
             return redirect(routes.ProjectApp.project(project.owner, project.name));
         }
