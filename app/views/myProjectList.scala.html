@@ -1,6 +1,6 @@
 @(projects:List[Project])
 
-@if(session.contains("userId")){
+@if(projects != null){
     @for(singleProject <- projects){
         <li><a href="@routes.ProjectApp.project(singleProject.owner, singleProject.name)">@singleProject.name (@singleProject.owner)</a></li>
     }
