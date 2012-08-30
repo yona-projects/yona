@@ -25,6 +25,11 @@ users:
         loginId:        nori
         password:       nori00
         email:          ejlee@nhn.com
+    - !!models.User
+        name:           anonymous
+        loginId:        anonymous
+        password:       
+        email:          anonymous@nhn.com
         
 # Projects
 projects:
@@ -93,7 +98,7 @@ issues:
         milestoneId:    1
         project:        !!models.Project
                             id: 1
-        filePath:       http://localhost:9000/project/1/issue23/capture.jpg
+        filePath:       FakeFilePath/To/Check/FileIcon
     - !!models.Issue
         authorId:     3
         assigneeId:     2     

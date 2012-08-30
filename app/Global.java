@@ -17,6 +17,7 @@ public class Global extends GlobalSettings {
     public void onStart(Application app) {
         InitialData.insert(app);
         InitialData.makeUploadFolder();
+        UserApp.anonymous = User.findByLoginId("anonymous");
     }
 
     @Override
