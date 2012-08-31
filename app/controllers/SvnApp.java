@@ -52,7 +52,7 @@ public class SvnApp extends Controller{
 
     public static String getURL(String ownerName, String projectName) {
         String[] pathSegments = { "svn", ownerName, projectName };
-        return Config.getProtocol("http") + "://" + Config.getAuthority(request().host()) + "/"
+        return Config.getScheme("http") + "://" + Config.getAuthority(request().host()) + "/"
                 + StringUtils.join(pathSegments, "/");
     }
 

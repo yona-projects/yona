@@ -24,22 +24,22 @@ public class Config {
         }
     }
 
-    public static String getProtocol() {
-        return getProtocol("http");
+    public static String getScheme() {
+        return getScheme("http");
     }
 
-    public static String getProtocol(String defaultValue) {
-        String protocol = play.Configuration.root().getString("application.protocol");
+    public static String getScheme(String defaultValue) {
+        String scheme = play.Configuration.root().getString("application.scheme");
 
-        if (protocol == null || protocol.isEmpty()) {
+        if (scheme == null || scheme.isEmpty()) {
             return defaultValue;
         } else {
-            return protocol;
+            return scheme;
         }
     }
 
-    public static String createURL(String[] pathSegments, String defaultHost, String defaultProtocol) {
+    public static String createURL(String[] pathSegments, String defaultHost, String defaultScheme) {
         String path = "/" + StringUtils.join(pathSegments, "/");
-        return getProtocol(defaultProtocol) + "://" + getAuthority(defaultHost) + path;
+        return getScheme(defaultScheme) + "://" + getAuthority(defaultHost) + path;
     }
 }
