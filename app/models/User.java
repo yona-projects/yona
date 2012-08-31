@@ -12,6 +12,8 @@ import play.db.ebean.Model;
 
 import com.avaje.ebean.Page;
 
+import controllers.UserApp;
+
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
@@ -111,6 +113,7 @@ public class User extends Model {
     public static Page<User> findUsers(int pageNum, String loginId) {
         OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
         SearchParams searchParams = new SearchParams().add("id", 1l, Matching.NOT_EQUALS);
+        searchParams.add("loginId", UserApp.anonymous.loginId, Matching.NOT_EQUALS);
 
         if(loginId != null){
             searchParams.add("loginId", loginId, Matching.CONTAINS);
