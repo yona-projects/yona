@@ -37,17 +37,17 @@ public class TestEbeanPlugin extends Plugin {
      */
     public void onStart() {
 
-        Configuration ebeanConf = Configuration.root().getConfig("ebean");
+        Configuration ebeanConfig = Configuration.root().getConfig("ebean");
 
-        if (ebeanConf != null) {
-            for (String key : ebeanConf.keys()) {
+        if (ebeanConfig != null) {
+            for (String key : ebeanConfig.keys()) {
 
                 ServerConfig config = new ServerConfig();
                 config.setName(key);
                 try {
                     config.setDataSource(new WrappingDatasource(DB.getDataSource(key)));
                 } catch (Exception e) {
-                    throw ebeanConf.reportError(
+                    throw ebeanConfig.reportError(
                             key,
                             e.getMessage(),
                             e
@@ -57,7 +57,7 @@ public class TestEbeanPlugin extends Plugin {
                     config.setDefaultServer(true);
                 }
 
-                String[] toLoad = ebeanConf.getString(key).split(",");
+                String[] toLoad = ebeanConfig.getString(key).split(",");
                 Set<String> classes = new HashSet<String>();
                 for (String load : toLoad) {
                     load = load.trim();
@@ -72,7 +72,7 @@ public class TestEbeanPlugin extends Plugin {
                     try {
                         config.addClass(Class.forName(clazz, true, application.classloader()));
                     } catch (Throwable e) {
-                        throw ebeanConf.reportError(
+                        throw ebeanConfig.reportError(
                                 key,
                                 "Cannot register class [" + clazz + "] in Ebean server",
                                 e

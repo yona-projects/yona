@@ -156,8 +156,8 @@ public class IssueTest extends ModelTest<Issue> {
     public void excelSave() throws Exception {
         // Given
         // When
-        String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", StateType.ALL)
-                .getList(), "testExcelSave");
+       //  String excelFilePath = Issue.excelSave(Issue.findIssues("nForge4java", StateType.ALL)
+        //                .getList(), "testExcelSave");
         // Then
         // assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
     }

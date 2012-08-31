@@ -36,7 +36,7 @@ public class ModelTest<T> {
     }
 
     @Before
-    public void beginTransaction() throws Exception {
+    public void beginTransaction() {
         Ebean.beginTransaction();
     }
 

@@ -41,7 +41,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(sut.milestones.size()).isEqualTo(2);
     }
     @Test
-    public void findIssuessById() throws Exception {
+    public void findIssueById() throws Exception {
         // Given
         // When
         Project sut = Project.findById(1l);
@@ -80,11 +80,11 @@ public class ProjectTest extends ModelTest<Project> {
     public void isOnlyManager() throws Exception {
         // Given
         // When
-        List<Project> projects_hobi = Project.isOnlyManager(2l);
-        List<Project> projects_eungjun = Project.isOnlyManager(5l);
+        List<Project> projectsHobi = Project.isOnlyManager(2l);
+        List<Project> projectsEungjun = Project.isOnlyManager(5l);
         // Then
-        assertThat(projects_hobi.size()).isEqualTo(2);
-        assertThat(projects_eungjun.size()).isEqualTo(0);
+        assertThat(projectsHobi.size()).isEqualTo(2);
+        assertThat(projectsEungjun.size()).isEqualTo(0);
     }
 
     @Test
