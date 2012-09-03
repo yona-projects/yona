@@ -1,12 +1,9 @@
-package utils;
 
+package utils;
 import org.apache.commons.lang.StringUtils;
 
 public class Config {
 
-    public static String getAuthority() {
-        return getAuthority("localhost");
-    }
 
     public static String getAuthority(String defaultValue) {
         String hostname = play.Configuration.root().getString("application.hostname");
@@ -22,10 +19,6 @@ public class Config {
         } else {
            return defaultValue;
         }
-    }
-
-    public static String getScheme() {
-        return getScheme("http");
     }
 
     public static String getScheme(String defaultValue) {
