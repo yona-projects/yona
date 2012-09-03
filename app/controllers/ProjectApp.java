@@ -2,6 +2,8 @@ package controllers;
 
 import java.io.File;
 
+import com.avaje.ebean.Page;
+
 import models.*;
 import models.enumeration.RoleType;
 import play.data.Form;
@@ -157,5 +159,9 @@ public class ProjectApp extends Controller {
         else
             return true;
 
+    }
+
+    public static Page<Project> projectList(int pageNum) {
+        return Project.projects(pageNum);
     }
 }

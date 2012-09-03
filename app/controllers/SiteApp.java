@@ -1,5 +1,7 @@
 package controllers;
 
+import com.avaje.ebean.Page;
+
 import models.Project;
 import models.User;
 import play.mvc.Controller;
@@ -32,7 +34,12 @@ public class SiteApp extends Controller {
     }
         
     public static Result projectList() {
-        return TODO;
+        Page<Project> projects = ProjectApp.projectList(0);
+        return ok(projectList.render("title.siteList", projects));
+    }
+    public static Result deleteProject(Long projectId){
+        Project.delete(projectId);
+        return redirect(routes.SiteApp.projectList());
     }
     
     public static Result softwareMap() {

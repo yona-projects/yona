@@ -21,6 +21,7 @@ GET     /sites/userList                                 controllers.SiteApp.user
 POST    /sites/userList                                 controllers.SiteApp.searchUser()
 GET     /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
 GET     /sites/projectList                              controllers.SiteApp.projectList()
+GET     /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
 GET     /sites/softwareMap                              controllers.SiteApp.softwareMap()
 
 # Boards
