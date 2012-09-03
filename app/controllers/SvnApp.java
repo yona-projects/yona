@@ -5,10 +5,11 @@ import java.net.URISyntaxException;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
+import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
 
-import play.Logger;
 import play.mvc.*;
 import playRepository.SVNRepository;
 import utils.*;
@@ -31,12 +32,10 @@ public class SvnApp extends Controller{
         } catch (URISyntaxException e) {
             return badRequest();
         }
-        String pathInfo = path.substring(path.indexOf('/',1));
+        String pathInfo = SVNEncodingUtil.uriEncode(path.substring(path.indexOf('/',1)));
         
         String userName = pathInfo.substring(1, pathInfo.indexOf('/', 1));
-        Logger.info(userName);
         pathInfo = pathInfo.substring(pathInfo.indexOf('/', 1));
-        Logger.info(pathInfo);
         PlayServletRequest request = new PlayServletRequest(request(), new PlayServletSession(new PlayServletContext()), pathInfo);
         PlayServletResponse response = new PlayServletResponse(response());
 
@@ -51,9 +50,20 @@ public class SvnApp extends Controller{
         new SVNRepository(userName, projectName).create();
     }
 
+    public static String getURL(String ownerName, String projectName) {
+        String[] pathSegments = { "svn", ownerName, projectName };
+        return Config.getScheme("http") + "://" + Config.getHostport(request().host()) + "/"
+                + StringUtils.join(pathSegments, "/");
+    }
+
     public static Result showRawCode(String userName, String projectName, String path) {
         // TODO Auto-generated method stub
         
         return null;
+    }
+
+    public static void deleteRepository(String userName, String projectName) throws Exception {
+        new SVNRepository(userName, projectName).delete();
+        
     }
 }

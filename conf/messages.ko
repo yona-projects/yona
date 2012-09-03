@@ -46,7 +46,7 @@ button.edit = 수정
 button.delete = 삭제
 button.list = 목록
 button.selectFile = 파일 선택
-button.comment.new = 댓글 입력
+button.comment.new = 댓글입력
 button.autoNotification = 자동알림
 button.excelDownload = Excel
 button.yes = 예
@@ -139,11 +139,13 @@ issue.new.selectDefault.dbmsType = --DBMS 선택--
 issue.new.selectDefault.importance = --중요도 선택--
 issue.new.selectDefault.diagnosisResult = --진단결과 선택--
 issue.comment.delete.confirm = 해당 이슈의 댓글이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
+issue.committer.edit = 이슈수정
 
 #Post
 post.new = 새글
 post.new.title = 제목
 post.new.contents = 내용
+post.new.filePath = 파일 경로
 post.author = 글쓴이
 post.age = 나이
 post.menu.search = 검색

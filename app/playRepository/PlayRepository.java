@@ -19,4 +19,7 @@ public interface PlayRepository {
 
     public Object getCore();
 
+
+    public void delete();
+
 }

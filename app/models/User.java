@@ -1,21 +1,18 @@
 package models;
 
-import com.avaje.ebean.Page;
-import models.enumeration.Direction;
-import models.enumeration.Matching;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
+import java.util.*;
+
+import javax.persistence.*;
+
+import models.enumeration.*;
+import models.support.*;
 import play.data.validation.Constraints;
+import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.avaje.ebean.Page;
+
+import controllers.UserApp;
 
 @Entity
 public class User extends Model {
@@ -29,8 +26,12 @@ public class User extends Model {
     @Id
     public Long id;
     public String name;
+
+    @Constraints.Pattern(value="^[a-zA-Z0-9_]*$", message="user.wrongloginId.alert")
     public String loginId;
     public String password;
+
+    @Email(message="user.wrongEmail.alert")
     public String email;
     public String profileFilePath;
 
@@ -60,11 +61,11 @@ public class User extends Model {
     public static User findByLoginId(String loginId) {
         return find.where().eq("loginId", loginId).findUnique();
     }
-    
+
 
     /**
      * 존재하는 유저인지를 검사합니다.
-     * 
+     *
      * @param loginId
      * @return
      */
@@ -112,6 +113,7 @@ public class User extends Model {
     public static Page<User> findUsers(int pageNum, String loginId) {
         OrderParams orderParams = new OrderParams().add("loginId", Direction.ASC);
         SearchParams searchParams = new SearchParams().add("id", 1l, Matching.NOT_EQUALS);
+        searchParams.add("loginId", UserApp.anonymous.loginId, Matching.NOT_EQUALS);
 
         if(loginId != null){
             searchParams.add("loginId", loginId, Matching.CONTAINS);
@@ -130,6 +132,6 @@ public class User extends Model {
     public static List<User> findUsersByProject(Long projectId) {
         return find.where()
                 .eq("projectUser.project.id", projectId)
-                .ne("projectUser.role.id", Role.SITEMANAGER).findList();
+                .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType()).findList();
     }
 }

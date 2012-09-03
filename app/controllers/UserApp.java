@@ -14,20 +14,23 @@ public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
     public static final String SESSION_USERNAME = "userName";
 
+    public static User anonymous = new User();
+
     public static Result login() {
         return ok(login.render("title.login"));
     }
-    
+
     public static Result logout() {
         session().clear();
         flash(Constants.SUCCESS, "user.logout.success");
         return redirect(routes.Application.index());
     }
-    
+
     public static Result authenticate() {
         User user = form(User.class).bindFromRequest().get();
-        if(User.authenticate(user)){
-            if(user.id == null) user = User.findByLoginId(user.loginId);
+        if (User.authenticate(user)) {
+            if (user.id == null)
+                user = User.findByLoginId(user.loginId);
             setUserInfoInSession(user);
             return redirect(routes.Application.index());
         } else {
@@ -35,15 +38,15 @@ public class UserApp extends Controller {
             return redirect(routes.UserApp.login());
         }
     }
-    
+
     public static Result signup() {
         return ok(signup.render("title.signup", form(User.class)));
     }
-    
+
     public static Result saveUser() {
         Form<User> newUserForm = form(User.class).bindFromRequest();
         validate(newUserForm);
-        if(newUserForm.hasErrors())
+        if (newUserForm.hasErrors())
             return badRequest(signup.render("title.signup", newUserForm));
         else {
             User user = newUserForm.get();
@@ -58,33 +61,29 @@ public class UserApp extends Controller {
         session(SESSION_USERNAME, user.name);
     }
 
+    // FIXME
     public static User currentUser() {
         String userId = session().get(SESSION_USERID);
         if (userId == null) {
-            throw new IllegalStateException("please login");
+            return anonymous;
         }
         return User.findById(Long.valueOf(userId));
     }
-    
+
     public static void validate(Form<User> newUserForm) {
+        // loginId가 빈 값이 들어오면 안된다.
         if(newUserForm.field("loginId").value() == "") {
             newUserForm.reject("loginId", "user.wrongloginId.alert");
         }
         
+        // password가 빈 값이 들어오면 안된다.
         if(newUserForm.field("password").value() == "") {
             newUserForm.reject("password", "user.wrongPassword.alert");
         }
         
+        //중복된 loginId로 가입할 수 없다.
         if(User.isLoginId(newUserForm.field("loginId").value())){
            newUserForm.reject("loginId", "user.loginId.duplicate"); 
-        }
-        
-        if(!Pattern.compile("^[a-zA-Z0-9_]*$").matcher(newUserForm.field("loginId").value()).find()) {
-           newUserForm.reject("loginId", "user.wrongloginId.alert");  
-        }
-        
-        if(!Pattern.compile("[0-9a-zA-Z]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$").matcher(newUserForm.field("email").value()).find()) {
-            newUserForm.reject("email", "user.wrongEmail.alert");  
         }
     }
 }

@@ -4,8 +4,8 @@ nforge.project.nameCheck = function() {
 	var that = {
 		init : function() {
 			$("#save").click(function() {
-				var reg_name = /^[a-zA-Z0-9_]*$/;
-				if(!reg_name.test($("input#name").val() || $("input#name").val() == "")) {
+				var reg_name = /^[a-zA-Z0-9_]+$/;
+				if(!reg_name.test($("input#name").val())) {
 			        $("#nameAlert").show();
 			        return false;
 			    }
