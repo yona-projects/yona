@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 public class Config {
 
 
-    public static String getAuthority(String defaultValue) {
+    public static String getHostport(String defaultValue) {
         String hostname = play.Configuration.root().getString("application.hostname");
 
         if (hostname != null && !hostname.isEmpty()) {
@@ -33,6 +33,7 @@ public class Config {
 
     public static String createURL(String[] pathSegments, String defaultHost, String defaultScheme) {
         String path = "/" + StringUtils.join(pathSegments, "/");
-        return getScheme(defaultScheme) + "://" + getAuthority(defaultHost) + path;
+        return getScheme(defaultScheme) + "://" + getHostport(defaultHost) + path;
     }
+
 }
