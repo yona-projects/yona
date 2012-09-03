@@ -25,6 +25,11 @@ users:
         loginId:        nori
         password:       nori00
         email:          ejlee@nhn.com
+    - !!models.User
+        name:           anonymous
+        loginId:        anonymous
+        password:       
+        email:          anonymous@nhn.com
         
 # Projects
 projects:
@@ -93,7 +98,7 @@ issues:
         milestoneId:    1
         project:        !!models.Project
                             id: 1
-        filePath:       http://localhost:9000/project/1/issue23/capture.jpg
+        filePath:       FakeFilePath/To/Check/FileIcon
     - !!models.Issue
         authorId:     3
         assigneeId:     2     
@@ -112,6 +117,7 @@ issues:
         state:          SOLVED
         stateType:      CLOSED
         milestoneId:    2
+        diagnosisResult: 2
         project:        !!models.Project
                             id: 1
         numOfComments:  1
@@ -123,6 +129,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    2
+        diagnosisResult: 5
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -143,6 +150,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    6
+        diagnosisResult: 1
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -163,6 +171,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    5
+        diagnosisResult: 4
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -173,6 +182,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    1
+        diagnosisResult: 4
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -183,6 +193,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    1
+        diagnosisResult: 3
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -202,6 +213,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    3
+        diagnosisResult: 3
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -212,6 +224,7 @@ issues:
         state:          FINISHED
         stateType:      CLOSED
         milestoneId:    3
+        diagnosisResult: 3
         project:        !!models.Project
                             id: 2
     - !!models.Issue

@@ -61,7 +61,7 @@ public class UserTest extends ModelTest<User> {
         // When
         Map<String, String> userOptions = User.options();
         // Then
-        assertThat(userOptions).hasSize(5);
+        assertThat(userOptions).hasSize(6);
     }
 	
 	@Test

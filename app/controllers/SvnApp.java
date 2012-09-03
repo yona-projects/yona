@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang.StringUtils;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
@@ -47,6 +48,12 @@ public class SvnApp extends Controller{
 
     public static void createRepository(String userName, String projectName) throws ClientException, ServletException {
         new SVNRepository(userName, projectName).create();
+    }
+
+    public static String getURL(String ownerName, String projectName) {
+        String[] pathSegments = { "svn", ownerName, projectName };
+        return Config.getScheme("http") + "://" + Config.getHostport(request().host()) + "/"
+                + StringUtils.join(pathSegments, "/");
     }
 
     public static Result showRawCode(String userName, String projectName, String path) {

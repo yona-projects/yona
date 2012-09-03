@@ -80,7 +80,7 @@ public class IssueApp extends Controller {
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
-            // newIssue.updateStatusType();
+            newIssue.updateStateType(newIssue);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
         }

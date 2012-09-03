@@ -6,12 +6,16 @@ import models.Project;
 import play.mvc.*;
 import playRepository.RepositoryService;
 import views.html.code.gitView;
+import views.html.code.svnView;
 
 public class CodeApp extends Controller {
 	public static Result codeBrowser(String userName, String projectName) throws IOException {
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
         if (RepositoryService.VCS_GIT.equals(vcs)) {
             return ok(gitView.render(GitApp.getURL(userName, projectName),
+                    Project.findByName(projectName)));
+        } else if (RepositoryService.VCS_SUBVERSION.equals(vcs)) {
+            return ok(svnView.render(SvnApp.getURL(userName, projectName),
                     Project.findByName(projectName)));
         } else {
             return status(501, vcs + " is not supported!");

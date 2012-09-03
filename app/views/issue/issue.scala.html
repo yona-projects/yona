@@ -165,8 +165,8 @@
             </div>
         </div>
 		}
-		<p>@comment.contents
-		<p>@if(comment.filePath != null){
+		<pre>@comment.contents</pre>
+		@if(comment.filePath != null){
 		<p>
 			<a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i
 				class="icon-download"> </i> @comment.filePath</a>
