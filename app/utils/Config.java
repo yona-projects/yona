@@ -1,6 +1,5 @@
 
 package utils;
-import org.apache.commons.lang.StringUtils;
 
 public class Config {
 
@@ -40,11 +39,6 @@ public class Config {
         } else {
             return scheme;
         }
-    }
-
-    public static String createURL(String[] pathSegments, String defaultHost, String defaultScheme) {
-        String path = "/" + StringUtils.join(pathSegments, "/");
-        return getScheme(defaultScheme) + "://" + getHostport(defaultHost) + path;
     }
 
 }
