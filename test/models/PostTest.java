@@ -104,7 +104,7 @@ public class PostTest extends ModelTest<Post> {
 		Project project = Project.findById(1l);
 
 		// When
-		Page<Post> postPage = Post.findPosts(project, condition);
+		Page<Post> postPage = Post.find(project, condition);
 
 		// Then
 		assertThat(postPage.getList().size()).isEqualTo(1);

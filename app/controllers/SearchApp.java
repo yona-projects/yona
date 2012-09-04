@@ -39,10 +39,10 @@ public class SearchApp extends Controller {
         Page<Post> resultPosts = null;
 
         if(!condition.type.equals("post")) {
-            resultIssues = Issue.findIssues(project, condition);
+            resultIssues = Issue.find(project, condition);
         }
         if(!condition.type.equals("issue")) {
-            resultPosts = Post.findPosts(project, condition);
+            resultPosts = Post.find(project, condition);
         }
 
         if(condition.type.equals("post")) {

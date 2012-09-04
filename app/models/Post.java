@@ -25,7 +25,7 @@ import static com.avaje.ebean.Expr.contains;
 @Entity
 public class Post extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Post> find = new Finder<Long, Post>(Long.class, Post.class);
+    private static Finder<Long, Post> finder = new Finder<Long, Post>(Long.class, Post.class);
 
     @Id
     public Long id;
@@ -57,7 +57,7 @@ public class Post extends Model {
     }
 
     public static Post findById(Long id) {
-        return find.byId(id);
+        return finder.byId(id);
     }
 
     /**
@@ -77,7 +77,7 @@ public class Post extends Model {
             .add("project.owner", ownerName, Matching.EQUALS)
             .add("project.name", projectName, Matching.EQUALS);
         OrderParams orderParams = new OrderParams().add(key, direction);
-        return FinderTemplate.getPage(orderParams, searchParam, find, 10, pageNum - 1);
+        return FinderTemplate.getPage(orderParams, searchParam, finder, 10, pageNum - 1);
     }
 
     public static Long write(Post post) {
@@ -86,7 +86,7 @@ public class Post extends Model {
     }
 
     public static void delete(Long id) {
-        find.byId(id).delete();
+        finder.byId(id).delete();
     }
 
     /**
@@ -94,7 +94,7 @@ public class Post extends Model {
      * @param id Post의 ID
      */
     public static void countUpCommentCounter(Long id) {
-        Post post = find.byId(id);
+        Post post = finder.byId(id);
         post.commentCount++;
         post.update();
     }
@@ -117,7 +117,7 @@ public class Post extends Model {
     }
     
     public static boolean isAuthor(Long currentUserId, Long id) {
-        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
+        int findRowCount = finder.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 
@@ -127,9 +127,9 @@ public class Post extends Model {
 	 * @param condition
 	 * @return
 	 */
-	public static Page<Post> findPosts(Project project, SearchApp.ContentSearchCondition condition) {
+	public static Page<Post> find(Project project, SearchApp.ContentSearchCondition condition) {
 		String filter = condition.filter;
-		return find.where()
+		return finder.where()
 				.eq("project.id", project.id)
 				.or(contains("title", filter), contains("contents", filter))
 				.findPagingList(condition.pageSize)
@@ -137,7 +137,7 @@ public class Post extends Model {
 	}
 
     public static void countDownCommentCounter(Long id) {
-        Post post = find.byId(id);
+        Post post = finder.byId(id);
         post.commentCount--;
         post.update();
     }

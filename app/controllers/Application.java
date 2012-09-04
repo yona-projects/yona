@@ -1,10 +1,6 @@
 package controllers;
 
-import java.util.Iterator;
-
-import models.User;
 import play.mvc.Controller;
-import play.mvc.Http.Cookie;
 import play.mvc.Result;
 import views.html.index;
 

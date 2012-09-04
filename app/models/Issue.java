@@ -92,7 +92,7 @@ import controllers.SearchApp;
 @Entity
 public class Issue extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Issue> find = new Finder<Long, Issue>(Long.class, Issue.class);
+    private static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
@@ -365,7 +365,7 @@ public class Issue extends Model {
      * @return
      */
     public static Issue findById(Long id) {
-        return find.byId(id);
+        return finder.byId(id);
     }
 
     /**
@@ -390,7 +390,7 @@ public class Issue extends Model {
      * @param id
      */
     public static void delete(Long id) {
-        Issue issue = find.byId(id);
+        Issue issue = finder.byId(id);
         if (!issue.milestoneId.equals(0l) || issue.milestoneId != null) {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
@@ -501,7 +501,7 @@ public class Issue extends Model {
      * 이슈들을 아래의 parameter들의 조건에 의거하여 Page형태로 반환한다.
      * 
      * @param projectName
-     *            project ID to find issues
+     *            project ID to finder issues
      * @param pageNumber
      *            Page to display
      * @param state
@@ -553,12 +553,12 @@ public class Issue extends Model {
                 break;
             default:
             }
-        return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE,
+        return FinderTemplate.getPage(orderParams, searchParams, finder, ISSUE_COUNT_PER_PAGE,
                 pageNumber);
     }
 
     public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
-        return find.byId(issueId).assigneeId;
+        return finder.byId(issueId).assigneeId;
     }
 
     /**
@@ -570,7 +570,7 @@ public class Issue extends Model {
     public static List<Issue> findByMilestoneId(Long milestoneId) {
         SearchParams searchParams = new SearchParams().add("milestoneId", milestoneId,
                 Matching.EQUALS);
-        return FinderTemplate.findBy(null, searchParams, find);
+        return FinderTemplate.findBy(null, searchParams, finder);
     }
 
     /**
@@ -670,9 +670,9 @@ public class Issue extends Model {
      * @param condition
      * @return
      */
-    public static Page<Issue> findIssues(Project project, SearchApp.ContentSearchCondition condition) {
+    public static Page<Issue> find(Project project, SearchApp.ContentSearchCondition condition) {
         String filter = condition.filter;
-        return find.where().eq("project.id", project.id)
+        return finder.where().eq("project.id", project.id)
                 .or(contains("title", filter), contains("body", filter))
                 .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
