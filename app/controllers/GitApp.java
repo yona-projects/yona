@@ -2,6 +2,8 @@ package controllers;
 
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 import models.Project;
 
@@ -98,7 +100,7 @@ public class GitApp extends Controller {
     }
     
     public static String getURL(String ownerName, String projectName) {
-    	return "http://localhost:9000/" + ownerName + "/" + projectName;
+        return utils.Url.create(Arrays.asList(ownerName, projectName));
     }
 
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception {
