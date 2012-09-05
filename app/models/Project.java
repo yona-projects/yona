@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import com.avaje.ebean.Page;
+
 import models.enumeration.RoleType;
 
 
@@ -138,5 +140,9 @@ public class Project extends Model {
     public static List<Project> findProjectsByMember(Long userId) {
         return find.where()
                 .eq("projectUser.user.id", userId).findList();
+    }
+
+    public static Page<Project> projects(int pageNum) {
+        return find.findPagingList(25).getPage(pageNum);
     }
 }
