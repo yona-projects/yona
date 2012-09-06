@@ -1,5 +1,7 @@
 package utils;
 
+import org.h2.util.StringUtils;
+
 import models.Comment;
 import models.Issue;
 import models.IssueComment;
@@ -31,9 +33,11 @@ public class AccessControl {
      */
     public static boolean isAllowed(Object userSessionId, Long projectId, Resource resource,
             Operation operation, Long resourceId) {
-        Long userId;
+        Long userId=0l;
         if(userSessionId instanceof String) {
-            userId = Long.parseLong((String) userSessionId);
+        	if(StringUtils.isNumber(userSessionId.toString())) {
+        		userId = Long.parseLong((String) userSessionId);
+        	}
         } else {
             userId = (Long) userSessionId;
         }
