@@ -5,12 +5,19 @@ import java.net.URISyntaxException;
 
 import javax.servlet.ServletException;
 
+import models.Project;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
+
 import org.apache.commons.lang.StringUtils;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
+import org.tmatesoft.svn.core.internal.server.dav.SVNPathBasedAccess;
+import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory;
 import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
 
 import play.mvc.*;
+import play.mvc.Http.Session;
 import playRepository.SVNRepository;
 import utils.*;
 
@@ -23,6 +30,7 @@ public class SvnApp extends Controller{
         return service();
     }
 
+    @With(BasicAuthAction.class)
     @BodyParser.Of(BodyParser.Raw.class)
     public static Result service() throws ServletException, IOException {
         //FIXME DAVServlet 들어내고 싶다.
@@ -34,7 +42,22 @@ public class SvnApp extends Controller{
         }
         String pathInfo = SVNEncodingUtil.uriEncode(path.substring(path.indexOf('/',1)));
         
-        String userName = pathInfo.substring(1, pathInfo.indexOf('/', 1));
+        String[] pathSegments = pathInfo.substring(1).split("/");
+
+        if (pathSegments.length < 2) {
+            return badRequest();
+        }
+
+        String userName = pathSegments[0];
+        String projectName = pathSegments[1];
+
+        Project project = Project.findByName(projectName);
+
+        if (!AccessControl.isAllowed(session().get(UserApp.SESSION_USERID), project.id,
+                Resource.CODE, getRequestedOperation(request().method()), null)) {
+            return forbidden("You have no permission to read this repository.");
+        }
+
         pathInfo = pathInfo.substring(pathInfo.indexOf('/', 1));
         PlayServletRequest request = new PlayServletRequest(request(), new PlayServletSession(new PlayServletContext()), pathInfo);
         PlayServletResponse response = new PlayServletResponse(response());
@@ -66,4 +89,16 @@ public class SvnApp extends Controller{
         new SVNRepository(userName, projectName).delete();
         
     }
+
+    private static Operation getRequestedOperation(String method) {
+        if (DAVHandlerFactory.METHOD_OPTIONS.equals(method)
+                || DAVHandlerFactory.METHOD_PROPFIND.equals(method)
+                || DAVHandlerFactory.METHOD_GET.equals(method)
+                || DAVHandlerFactory.METHOD_REPORT.equals(method)) {
+            return Operation.READ;
+        } else {
+            return Operation.WRITE;
+        }
+    }
+
 }
