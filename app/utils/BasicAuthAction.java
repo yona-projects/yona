@@ -78,8 +78,9 @@ public class BasicAuthAction extends Action<Object> {
         }
         
         if (authUser != null && User.authenticate(authUser)) {
-            context.session().put(UserApp.SESSION_USERID, String.valueOf(authUser.id));
-            context.session().put(UserApp.SESSION_USERNAME, authUser.name);
+            User user = User.findByLoginId(authUser.loginId);
+            context.session().put(UserApp.SESSION_USERID, String.valueOf(user.id));
+            context.session().put(UserApp.SESSION_USERNAME, user.name);
             return delegate.call(context);
         } else {
             return unauthorized(context);
