@@ -7,8 +7,8 @@ import java.io.UnsupportedEncodingException;
 
 import models.User;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
-
 
 import utils.BasicAuthAction;
 
@@ -25,7 +25,7 @@ public class BasicAuthActionTest {
         
         // ok
         String userpass = "hello:world";
-        String basicCredentials = new sun.misc.BASE64Encoder().encode(userpass.getBytes());
+        String basicCredentials = new String(Base64.encodeBase64(userpass.getBytes()));
         try {
             User user = BasicAuthAction.parseCredentials("Basic " + basicCredentials);
             assertThat(user.loginId).isEqualTo("hello");
@@ -38,7 +38,7 @@ public class BasicAuthActionTest {
         
         // ok
         userpass = ":";
-        basicCredentials = new sun.misc.BASE64Encoder().encode(userpass.getBytes());
+        basicCredentials = new String(Base64.encodeBase64(userpass.getBytes()));
         try {
             User user = BasicAuthAction.parseCredentials("Basic " + basicCredentials);
             assertThat(user.loginId).isEqualTo("");
@@ -51,8 +51,7 @@ public class BasicAuthActionTest {
         
         // malformed credentials.
         String malformedUserpass = "helloworld";
-        String malformedCredentials = new sun.misc.BASE64Encoder().encode(malformedUserpass
-                .getBytes());
+        String malformedCredentials = new String(Base64.encodeBase64(malformedUserpass.getBytes()));
         try {
             BasicAuthAction.parseCredentials("Basic " + malformedCredentials);
             fail();
@@ -66,8 +65,7 @@ public class BasicAuthActionTest {
         // NOTE: UnsupportedEncodingException is NOT thrown here. It should be thrown
         // if and only if the Server does not support ISO-8859-1.
         malformedUserpass = "안녕:세상";
-        malformedCredentials = new sun.misc.BASE64Encoder().encode(malformedUserpass
-                .getBytes());
+        malformedCredentials = new String(Base64.encodeBase64(malformedUserpass.getBytes()));
         try {
             User user = BasicAuthAction.parseCredentials("Basic " + malformedCredentials);
             assertThat(user.loginId).isNotEqualTo("안녕");

@@ -1,7 +1,8 @@
 package utils;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+
+import org.apache.commons.codec.binary.Base64;
 
 import controllers.UserApp;
 import models.User;
@@ -38,11 +39,7 @@ public class BasicAuthAction extends Action<Object> {
         String userpassBase64 = credentials.substring(6);
         byte[] userpassBytes;
         
-        try {
-            userpassBytes = new sun.misc.BASE64Decoder().decodeBuffer(userpassBase64);
-        } catch (IOException e) {
-            throw new MalformedCredentialsException("", e);
-        }
+        userpassBytes = Base64.decodeBase64(userpassBase64.getBytes());
         
         // Use ISO-8859-1 only and not others, even if in RFC 2616, Section 2.2 "Basic Rules" allows
         // TEXT to be encoded according to the rules of RFC 2047.
