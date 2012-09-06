@@ -1,9 +1,8 @@
 package models.support;
 
-import models.enumeration.Direction;
+import models.enumeration.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 public class OrderParams {

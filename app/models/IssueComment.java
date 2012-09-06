@@ -4,17 +4,13 @@
 
 package models;
 
-import java.util.Date;
+import org.joda.time.*;
+import play.data.validation.*;
+import play.db.ebean.*;
+import utils.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-
-import org.joda.time.Duration;
-
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
+import javax.persistence.*;
+import java.util.*;
 
 @Entity
 public class IssueComment extends Model {

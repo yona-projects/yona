@@ -1,6 +1,6 @@
 package models.support;
 
-import models.enumeration.Matching;
+import models.enumeration.*;
 
 public class SearchParam {
 

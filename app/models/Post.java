@@ -4,23 +4,20 @@
 
 package models;
 
-import java.util.*;
-
-import javax.persistence.*;
-
-import controllers.SearchApp;
+import com.avaje.ebean.*;
+import controllers.*;
 import models.enumeration.*;
 import models.support.*;
+import org.joda.time.*;
+import play.data.format.*;
+import play.data.validation.*;
+import play.db.ebean.*;
+import utils.*;
 
-import org.joda.time.Duration;
+import javax.persistence.*;
+import java.util.*;
 
-import play.data.format.Formats;
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
-
-import com.avaje.ebean.Page;
-import static com.avaje.ebean.Expr.contains;
+import static com.avaje.ebean.Expr.*;
 
 @Entity
 public class Post extends Model {

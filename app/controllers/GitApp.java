@@ -1,18 +1,16 @@
 package controllers;
 
 
-import java.io.*;
-
-import models.Project;
-
-import org.codehaus.jackson.node.ObjectNode;
-import org.eclipse.jgit.lib.Repository;
+import models.*;
+import org.codehaus.jackson.node.*;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
-
-import play.Logger;
+import org.eclipse.jgit.transport.RefAdvertiser.*;
+import play.*;
 import play.mvc.*;
-import playRepository.RepositoryFactory;
+import playRepository.*;
+
+import java.io.*;
 
 public class GitApp extends Controller {
 

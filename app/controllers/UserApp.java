@@ -1,14 +1,12 @@
 package controllers;
 
-import java.util.regex.Pattern;
+import models.*;
+import play.data.*;
+import play.mvc.*;
+import utils.*;
+import views.html.*;
 
-import models.User;
-import play.data.Form;
-import play.mvc.Controller;
-import play.mvc.Result;
-import utils.Constants;
-import views.html.login;
-import views.html.signup;
+import java.util.regex.*;
 
 public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";

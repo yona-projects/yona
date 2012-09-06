@@ -1,6 +1,6 @@
 package models.support;
 
-import models.enumeration.Direction;
+import models.enumeration.*;
 
 public class OrderParam {
 

@@ -1,18 +1,11 @@
 package models;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import models.support.*;
+import play.data.validation.*;
+import play.db.ebean.*;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-
-import models.support.Options;
-
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
+import javax.persistence.*;
+import java.util.*;
 
 /**
  * 

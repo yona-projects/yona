@@ -1,7 +1,6 @@
 package models.support;
 
-import models.enumeration.Direction;
-import models.enumeration.StateType;
+import models.enumeration.*;
 /**
  * 
  * @author Taehyun Park

@@ -1,17 +1,9 @@
 package utils;
 
-import models.Comment;
-import models.Issue;
-import models.IssueComment;
-import models.Permission;
-import models.Post;
-import models.Project;
-import models.ProjectUser;
-import models.Role;
-import models.enumeration.Operation;
-import models.enumeration.Resource;
-import play.db.ebean.Model;
-import play.db.ebean.Model.Finder;
+import models.*;
+import models.enumeration.*;
+import play.db.ebean.*;
+import play.db.ebean.Model.*;
 
 /**
  * @author "Hwi Ahn"

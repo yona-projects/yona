@@ -1,10 +1,8 @@
 package controllers;
 
-import models.Project;
-import models.User;
-import play.mvc.Controller;
-import play.mvc.Result;
-import utils.Constants;
+import models.*;
+import play.mvc.*;
+import utils.*;
 import views.html.site.*;
 
 public class SiteApp extends Controller {

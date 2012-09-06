@@ -1,15 +1,10 @@
 package controllers;
 
-import java.io.IOException;
-
-import models.Project;
-
-import org.eclipse.jgit.api.errors.*;
-import org.eclipse.jgit.errors.*;
-import org.tigris.subversion.javahl.ClientException;
-
+import models.*;
 import play.mvc.*;
-import views.html.code.gitView;
+import views.html.code.*;
+
+import java.io.*;
 
 public class CodeApp extends Controller {
 	public static final String VCS_SUBVERSION = "Subversion";

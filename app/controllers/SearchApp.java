@@ -1,15 +1,9 @@
 package controllers;
 
-import com.avaje.ebean.Page;
-import models.Issue;
-import models.Post;
-import models.Project;
-import play.Logger;
-import play.mvc.Controller;
-import play.mvc.Result;
-import views.html.search.contentsSearch;
-import views.html.search.issueContentsSearch;
-import views.html.search.postContentsSearch;
+import com.avaje.ebean.*;
+import models.*;
+import play.mvc.*;
+import views.html.search.*;
 
 public class SearchApp extends Controller {
 

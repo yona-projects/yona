@@ -4,17 +4,16 @@
 
 package controllers;
 
-import java.io.File;
-
 import models.*;
-import models.enumeration.Direction;
-import play.data.Form;
+import models.enumeration.*;
+import play.data.*;
 import play.mvc.*;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Http.Request;
-import utils.Constants;
+import play.mvc.Http.*;
+import play.mvc.Http.MultipartFormData.*;
+import utils.*;
 import views.html.board.*;
+
+import java.io.*;
 
 public class BoardApp extends Controller {
     
