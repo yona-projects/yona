@@ -22,7 +22,9 @@ object ApplicationBuild extends Build {
 	    "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5",
 	    "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
 	  // shiro
-	    "org.apache.shiro" % "shiro-core" % "1.2.1"
+	    "org.apache.shiro" % "shiro-core" % "1.2.1",
+      // commons-codec
+      "commons-codec" % "commons-codec" % "1.2"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
