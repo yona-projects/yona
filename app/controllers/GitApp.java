@@ -6,6 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import models.Project;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.lib.Repository;
@@ -15,6 +17,8 @@ import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
 import play.Logger;
 import play.mvc.*;
 import playRepository.RepositoryFactory;
+import utils.AccessControl;
+import utils.BasicAuthAction;
 
 public class GitApp extends Controller {
 
@@ -25,6 +29,7 @@ public class GitApp extends Controller {
      * @return                  글라이언트에게 줄 응답 몸통
      * @throws Exception 
      */
+    @With(BasicAuthAction.class)
     public static Result advertise(String userName, String projectName, String service) throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Logger.debug("GitApp.advertise : " + request().toString());
@@ -60,6 +65,7 @@ public class GitApp extends Controller {
      * @return              클라이언트에게 줄 응답
      * @throws Exception 
      */
+    @With(BasicAuthAction.class)
     public static Result serviceRpc(String userName, String projectName, String service) throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Logger.debug("GitApp.advertise : " + request().toString());
@@ -77,12 +83,22 @@ public class GitApp extends Controller {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         if (service.equals("git-upload-pack")) {
+            // pull from repository in the Server
+            if (!AccessControl.isAllowed(session().get(UserApp.SESSION_USERID), project.id,
+                    Resource.CODE, Operation.READ, null)) {
+                return forbidden("You have no permission to read this repository.");
+            }
             UploadPack uploadPack = new UploadPack(repository);
 
             uploadPack.setBiDirectionalPipe(false);
             uploadPack.upload(in, out, null);
 
         } else if (service.equals("git-receive-pack")) {
+            // push to repository in the Server
+            if (!AccessControl.isAllowed(session().get(UserApp.SESSION_USERID), project.id,
+                    Resource.CODE, Operation.WRITE, null)) {
+                return forbidden("You have no permission to write this repository.");
+            }
             ReceivePack receivePack = new ReceivePack(repository);
 
             receivePack.setBiDirectionalPipe(false);
