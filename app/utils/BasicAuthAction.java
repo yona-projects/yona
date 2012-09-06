@@ -77,13 +77,14 @@ public class BasicAuthAction extends Action<Object> {
             return internalServerError();
         }
         
-        if (authUser != null && User.authenticate(authUser)) {
-            User user = User.findByLoginId(authUser.loginId);
-            context.session().put(UserApp.SESSION_USERID, String.valueOf(user.id));
-            context.session().put(UserApp.SESSION_USERNAME, user.name);
-            return delegate.call(context);
-        } else {
-            return unauthorized(context);
-        }
+        if (authUser != null) {
+        	User targetUser = User.findByLoginId(authUser.loginId);
+        	if(UserApp.authenticate(authUser, targetUser)){
+        		context.session().put(UserApp.SESSION_USERID, String.valueOf(targetUser.id));
+        		context.session().put(UserApp.SESSION_USERNAME, targetUser.name);
+        		return delegate.call(context);
+        	}
+        } 
+        return unauthorized(context);
     }
 }
