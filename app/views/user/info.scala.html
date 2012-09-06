@@ -1,0 +1,11 @@
+@(user:User)
+
+@home("Users Info") {
+    
+    <div>
+        name : @user.name
+    </div>
+    <div>email : @user.email
+        <a href="@routes.UserApp.edit()" class="btn">수정</a>
+    </div>
+}

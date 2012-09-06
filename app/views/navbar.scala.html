@@ -15,7 +15,7 @@
                     @roleCheck(session.get("userId"), 1l, models.enumeration.Resource.SITE_SETTING, models.enumeration.Operation.WRITE){
                         <li class=""><a href="@routes.SiteApp.setting()">@Messages("menu.siteAdmin")</a></li>
                     }
-                    <li class=""><a href="#">@session.get("userName")</a></li>
+                    <li class=""><a href="@routes.UserApp.info()">@session.get("userName")</a></li>
                     <li class=""><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
                 }else {
                     <li class=""><a href="@routes.UserApp.signup()">@Messages("title.signup")</a></li>

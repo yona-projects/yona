@@ -1,0 +1,10 @@
+@(form:Form[User])
+
+@home("Users Info") {
+
+    <form action="@routes.UserApp.edit()" method="POST">
+    
+        @helper.inputText(form("email"))
+        <input class="btn" type="submit" value="저장"/>
+    </form>
+}
