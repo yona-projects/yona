@@ -1,6 +1,7 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -18,6 +19,19 @@ import controllers.SearchApp;
 
 public class IssueTest extends ModelTest<Issue> {
 
+	@Test
+	public void testState() throws Exception {
+		//Given
+		Issue issue = new Issue();
+        
+        //When
+        issue.state = IssueState.ASSIGNED;
+
+        //Then
+        assertEquals(IssueState.ASSIGNED, issue.state);
+        
+	}
+	
     @Test
     public void create() throws Exception {
         // Given

@@ -4,6 +4,7 @@ import com.avaje.ebean.Page;
 import models.Issue;
 import models.Post;
 import models.Project;
+import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.search.contentsSearch;

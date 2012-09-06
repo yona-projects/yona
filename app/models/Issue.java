@@ -39,6 +39,7 @@ import models.support.SearchParams;
 
 import org.joda.time.Duration;
 
+import play.Logger;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -91,8 +92,9 @@ import controllers.SearchApp;
  */
 @Entity
 public class Issue extends Model {
-    private static final long serialVersionUID = 1L;
-    private static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
+	private static final long serialVersionUID = -2409072006294045262L;
+
+	private static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
@@ -174,16 +176,6 @@ public class Issue extends Model {
      * 
      * @return
      */
-    public String state() {
-        if (this.state.equals(IssueState.ASSIGNED)) {
-            return IssueState.ASSIGNED.state();
-        } else if (this.state.equals(IssueState.SOLVED)) {
-            return IssueState.SOLVED.state();
-        } else if (this.state.equals(IssueState.FINISHED)) {
-            return IssueState.FINISHED.state();
-        } else
-            return IssueState.ENROLLED.state();
-    }
 
     /**
      * 해당 이슈의 상태(state) 따라서 탭 기능에서 구분 짖는(stateType) 것이 해결인지 미해결인지 값을 결정해준다.
@@ -440,7 +432,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findIssues(String projectName, StateType state) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+        return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 "", null, false, false);
     }
 
@@ -456,7 +448,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findFilteredIssues(String projectName, String filter,
             StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+        return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 filter, null, commentedCheck, fileAttachedCheck);
     }
 
@@ -468,7 +460,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findCommentedIssues(String projectName, String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, true, false);
     }
 
@@ -481,7 +473,7 @@ public class Issue extends Model {
      */
 
     public static Page<Issue> findFileAttachedIssues(String projectName, String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, false, true);
     }
 
@@ -493,7 +485,7 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findIssuesByMilestoneId(String projectName, Long milestoneId) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, "", milestoneId, false, false);
     }
 
@@ -520,10 +512,9 @@ public class Issue extends Model {
      *            필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
-    public static Page<Issue> findIssues(String projectName, int pageNumber, StateType state,
-            String sortBy, Direction order, String filter, Long milestoneId,
-            boolean commentedCheck, boolean fileAttachedCheck) {
-
+    public static Page<Issue> find(String projectName, int pageNumber, StateType state,
+                                   String sortBy, Direction order, String filter, Long milestoneId,
+                                   boolean commentedCheck, boolean fileAttachedCheck) {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name", projectName,
                 Matching.EQUALS);
@@ -555,6 +546,20 @@ public class Issue extends Model {
             }
         return FinderTemplate.getPage(orderParams, searchParams, finder, ISSUE_COUNT_PER_PAGE,
                 pageNumber);
+    }
+
+    /**
+     * 전체 컨텐츠 검색할 때 제목과 내용에 condition.filter를 포함하고 있는 이슈를 검색한다.
+     *
+     * @param project
+     * @param condition
+     * @return
+     */
+    public static Page<Issue> find(Project project, SearchApp.ContentSearchCondition condition) {
+        String filter = condition.filter;
+        return finder.where().eq("project.id", project.id)
+                .or(contains("title", filter), contains("body", filter))
+                .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
 
     public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
@@ -661,19 +666,5 @@ public class Issue extends Model {
         Issue issue = Issue.findById(id);
         issue.numOfComments = issue.comments.size();
         issue.update();
-    }
-
-    /**
-     * 전체 컨텐츠 검색할 때 제목과 내용에 condition.filter를 포함하고 있는 이슈를 검색한다.
-     * 
-     * @param project
-     * @param condition
-     * @return
-     */
-    public static Page<Issue> find(Project project, SearchApp.ContentSearchCondition condition) {
-        String filter = condition.filter;
-        return finder.where().eq("project.id", project.id)
-                .or(contains("title", filter), contains("body", filter))
-                .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
 }

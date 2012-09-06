@@ -13,7 +13,6 @@ import models.enumeration.Direction;
 import models.enumeration.IssueState;
 import models.enumeration.StateType;
 import models.support.SearchCondition;
-import play.Logger;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
@@ -44,7 +43,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
+        Page<Issue> issues = Issue.find(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
@@ -152,7 +151,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
+        Page<Issue> issues = Issue.find(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);

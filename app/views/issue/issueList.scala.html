@@ -89,7 +89,7 @@
 					@for(issue <- currentPage.getList()){
 						<tr>
 							<td>@issue.id</td>
-							<td>@Messages(issue.state())</td>
+							<td>@Messages(issue.state.state)</td>
 							<td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title @if(issue.comments.size > 0){[@issue.comments.size]} @if(issue.filePath != null){<i class="icon-file"></i>}</a></td>
 							<td>
 								@if(issue.assigneeId == null){
