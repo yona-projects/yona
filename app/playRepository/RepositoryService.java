@@ -1,7 +1,12 @@
 package playRepository;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.servlet.ServletException;
+
+import org.tigris.subversion.javahl.ClientException;
 
 import models.Project;
 
@@ -20,7 +25,7 @@ public class RepositoryService {
     }
 
     public static void deleteRepository(String userName, String projectName, String type)
-            throws Exception {
+            throws IOException, ServletException {
         if (type.equals(RepositoryService.VCS_GIT)) {
             GitApp.deleteRepository(userName, projectName);
         } else if (type.equals(RepositoryService.VCS_SUBVERSION)) {
@@ -30,7 +35,8 @@ public class RepositoryService {
         }
     }
 
-    public static void createRepository(Project project) throws Exception {
+    public static void createRepository(Project project) throws IOException, ServletException,
+            UnsupportedOperationException, ClientException {
         RepositoryService.deleteRepository(project.owner, project.name, project.vcs);
         if (project.vcs.equals(RepositoryService.VCS_GIT)) {
             GitApp.createRepository(project.owner, project.name);

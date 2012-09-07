@@ -96,7 +96,7 @@ public class SvnApp extends Controller {
         return null;
     }
 
-    public static void deleteRepository(String userName, String projectName) throws Exception {
+    public static void deleteRepository(String userName, String projectName) throws ServletException {
         new SVNRepository(userName, projectName).delete();
         
     }

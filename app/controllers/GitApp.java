@@ -1,18 +1,22 @@
 package controllers;
 
-
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.servlet.ServletException;
 
 import models.Project;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
+import org.tigris.subversion.javahl.ClientException;
 
 import play.Logger;
 import play.mvc.*;
@@ -30,7 +34,8 @@ public class GitApp extends Controller {
      * @throws Exception 
      */
     @With(BasicAuthAction.class)
-    public static Result advertise(String userName, String projectName, String service) throws Exception {
+    public static Result advertise(String userName, String projectName, String service)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Logger.debug("GitApp.advertise : " + request().toString());
 
@@ -66,7 +71,8 @@ public class GitApp extends Controller {
      * @throws Exception 
      */
     @With(BasicAuthAction.class)
-    public static Result serviceRpc(String userName, String projectName, String service) throws Exception {
+    public static Result serviceRpc(String userName, String projectName, String service)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Logger.debug("GitApp.advertise : " + request().toString());
 
@@ -109,8 +115,9 @@ public class GitApp extends Controller {
         out.close();
         return ok(out.toByteArray());
     }
-    
-    public static void createRepository(String userName, String projectName) throws Exception{
+
+    public static void createRepository(String userName, String projectName) throws IOException,
+            ServletException, UnsupportedOperationException, ClientException {
         Project project = ProjectApp.getProject(userName, projectName);
         RepositoryFactory.getRepository(project).create();
     }
@@ -119,7 +126,9 @@ public class GitApp extends Controller {
         return utils.Url.create(Arrays.asList(ownerName, projectName));
     }
 
-    public static Result ajaxRequest(String userName, String projectName, String path) throws Exception {
+    public static Result ajaxRequest(String userName, String projectName, String path)
+            throws NoHeadException, UnsupportedOperationException, IOException, GitAPIException,
+            ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 		Logger.info(project.vcs);
         ObjectNode findFileInfo = RepositoryFactory.getRepository(project).findFileInfo(path);
@@ -136,15 +145,17 @@ public class GitApp extends Controller {
      * @param projectName
      * @param path
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    public static Result showRawCode(String userName, String projectName, String path) throws Exception {
+    public static Result showRawCode(String userName, String projectName, String path)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         return ok(RepositoryFactory.getRepository(project).getRawFile(path));
-        
-    }   
 
-    public static void deleteRepository(String userName, String projectName) throws Exception {
+    }
+
+    public static void deleteRepository(String userName, String projectName) throws IOException,
+            ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         RepositoryFactory.getRepository(project).delete();
         
