@@ -66,6 +66,10 @@ public class Project extends Model {
         Project.findById(id).delete();
     }
 
+    public static List<Project> findAll() {
+        return find.all();
+    }
+
     public static Project findById(Long id) {
         return find.byId(id);
     }

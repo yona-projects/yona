@@ -23,6 +23,7 @@ public class Global extends GlobalSettings {
     public void onStart(Application app) {
         InitialData.insert(app);
         InitialData.makeUploadFolder();
+        InitialData.makeTestRepository();
         UserApp.anonymous = User.findByLoginId("anonymous");
     }
 
@@ -69,12 +70,14 @@ public class Global extends GlobalSettings {
         }
 
         public static void makeTestRepository() {
-            try {
-                
-                // RepositoryService.createRepository("hobi", "nForge4java", RepositoryService.VCS_GIT);
-                
-            } catch (Exception e) {
-                e.printStackTrace();
+            for (Project project : Project.findAll()) {
+                Logger.debug("makeTestRepository: " + project.name);
+                try {
+                    RepositoryService.createRepository(project);
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
     }
