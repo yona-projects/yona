@@ -7,7 +7,6 @@ import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
-import org.apache.shiro.util.SimpleByteSource;
 
 import play.Logger;
 import play.data.Form;
@@ -51,18 +50,18 @@ public class UserApp extends Controller {
 
 	public static Result authenticate() {
 		User sourceUser = form(User.class).bindFromRequest().get();
-		User targetUser = User.findByLoginId(sourceUser.loginId);
 		
 		UsernamePasswordToken token = new UsernamePasswordToken(sourceUser.loginId,
 				sourceUser.password);
 		token.setRememberMe(sourceUser.rememberMe);
 		// Subject currentUser = SecurityUtils.getSubject();
 		
-		if(authenticate(sourceUser, targetUser)) {
-			
-			setUserInfoInSession(targetUser);
+		User authenticate = authenticate(sourceUser);
+		
+		if(authenticate!=null) {
+			setUserInfoInSession(authenticate);
 			if (sourceUser.rememberMe) {
-				rememberMe(targetUser);
+				rememberMe(authenticate);
 			}
 			return redirect(routes.Application.index());
 		}
@@ -71,16 +70,18 @@ public class UserApp extends Controller {
 		return redirect(routes.UserApp.login());
 	}
 	
-	public static boolean authenticate(User sourceUser, User targetUser) {
+	public static User authenticate(User user) {
+		User targetUser = User.findByLoginId(user.loginId);
 		if (targetUser != null) {
-			if (targetUser.password.equals(hashedPassword(sourceUser.password,
+			if (targetUser.password.equals(hashedPassword(user.password,
 					targetUser.passwordSalt))) {
-				return true;
+				return targetUser;
 			}
 		}
-		return false;
+			
+		return null;
 	}
-
+	
 	private static String hashedPassword(String plaintextPassword,
 			String passwordSalt) {
 		return new Sha256Hash(plaintextPassword,

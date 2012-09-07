@@ -13,22 +13,6 @@ import com.avaje.ebean.Page;
 public class UserTest extends ModelTest<User> {
 
 	@Test
-	public void authenticate() throws Exception {
-		// Given
-		User user1 = new User();
-		user1.loginId = "hobi";
-		user1.password = "hobi00";
-		
-		User user2 = new User();
-        user2.loginId = "hobi";
-        user2.password = "hobi";
-		// When
-		// Then
-		assertThat(User.authenticate(user1)).isEqualTo(true);
-		assertThat(User.authenticate(user2)).isEqualTo(false);
-	}
-
-	@Test
 	public void findById() throws Exception {
 		// Given
 		// When

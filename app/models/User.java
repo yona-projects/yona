@@ -15,11 +15,6 @@ import models.enumeration.RoleType;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
-
-import org.apache.shiro.crypto.hash.Sha256Hash;
-import org.apache.shiro.util.SimpleByteSource;
-
-import play.Logger;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;

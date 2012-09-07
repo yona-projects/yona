@@ -78,10 +78,10 @@ public class BasicAuthAction extends Action<Object> {
         }
         
         if (authUser != null) {
-        	User targetUser = User.findByLoginId(authUser.loginId);
-        	if(UserApp.authenticate(authUser, targetUser)){
-        		context.session().put(UserApp.SESSION_USERID, String.valueOf(targetUser.id));
-        		context.session().put(UserApp.SESSION_USERNAME, targetUser.name);
+        	User authenticate = UserApp.authenticate(authUser);
+        	if(authenticate!=null) {         			
+        		context.session().put(UserApp.SESSION_USERID, String.valueOf(authenticate.id));
+        		context.session().put(UserApp.SESSION_USERNAME, authenticate.name);
         		return delegate.call(context);
         	}
         } 
