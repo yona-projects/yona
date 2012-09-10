@@ -1,10 +1,12 @@
-@(form:Form[User])
+@(userForm:Form[User])
+
+@import helper._
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @home("Users Info") {
-
-    <form action="@routes.UserApp.edit()" method="POST">
-    
-        @helper.inputText(form("email"))
+    @helper.form(action=routes.UserApp.save()){
+        @helper.inputText(userForm("email"))
         <input class="btn" type="submit" value="저장"/>
-    </form>
+    }
 }
