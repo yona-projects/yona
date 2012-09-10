@@ -8,6 +8,6 @@ resolvers ++= Seq(
 )
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("play" % "sbt-plugin" % "2.0.2")
+addSbtPlugin("play" % "sbt-plugin" % "2.0.3")
 
 // addSbtPlugin("com.github.play2war" % "play2-war-plugin" % "0.6")
