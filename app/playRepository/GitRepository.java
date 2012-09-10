@@ -14,6 +14,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import play.Logger;
 import play.libs.Json;
+import utils.FileUtil;
 
 public class GitRepository implements PlayRepository {
     public static final String REPO_PREFIX = "repo/git/";
@@ -29,7 +30,7 @@ public class GitRepository implements PlayRepository {
      * @see Repository.repository#create()
      */
     @Override
-    public void create() throws Exception {
+    public void create() throws IOException {
         this.repository.create(true); // create bare repository
     }
 
@@ -138,4 +139,10 @@ public class GitRepository implements PlayRepository {
     public Repository getCore() {
         return repository;
     }
+
+    @Override
+    public void delete() {
+        FileUtil.rm_rf(repository.getDirectory());
+    }
+    
 }

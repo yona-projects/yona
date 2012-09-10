@@ -6,10 +6,11 @@ package controllers;
 
 import models.*;
 import models.enumeration.*;
-import play.data.*;
+import play.data.Form;
 import play.mvc.*;
-import play.mvc.Http.*;
-import play.mvc.Http.MultipartFormData.*;
+import play.mvc.Http.MultipartFormData;
+import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Http.Request;
 import utils.*;
 import views.html.board.*;
 
@@ -119,7 +120,8 @@ public class BoardApp extends Controller {
         Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
         Project project = ProjectApp.getProject(userName, projectName);
 
-        if (UserApp.currentUser().id == existPost.authorId) {
+        
+        if (AccessControl.isAllowed(UserApp.currentUser().id, project.id, Resource.BOARD_POST, Operation.EDIT, postId)) {
             return ok(editPost.render("board.post.modify", editForm, postId, project));
         } else {
             flash(Constants.WARNING, "board.notAuthor");

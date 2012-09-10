@@ -1,7 +1,9 @@
 @(title:String, newProjectForm:Form[Project])
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@import playRepository.RepositoryService
+
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @home(title){
   <div class="page-header">
@@ -49,10 +51,10 @@
                 )
                 @selectEx(
                     newProjectForm("vcs"),
-                    options(Project.vcsTypes), 
+                    options(RepositoryService.vcsTypes),
                     '_label -> Messages("project.vcs")
                 )
-                
+
                 <div class="icon-question-sign" href = "#" id="terms" rel="popover"
                     data-content="약관 ..."
                     data-original-title="@Messages("project.agreement")"

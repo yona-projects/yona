@@ -1,18 +1,41 @@
 package utils;
 
-import play.*;
-import play.i18n.*;
-import play.mvc.*;
-import play.mvc.Http.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import javax.servlet.*;
+import javax.servlet.AsyncContext;
+import javax.servlet.DispatcherType;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.*;
-import java.io.*;
-import java.net.*;
-import java.security.*;
-import java.text.*;
-import java.util.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
+
+import play.Play;
+import play.i18n.Lang;
+import play.mvc.Http;
+import play.mvc.Http.RawBuffer;
+import play.mvc.Http.Request;
 
 public class PlayServletRequest implements HttpServletRequest {
 
@@ -56,7 +79,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getCharacterEncoding() {
-        //request.headers.get("Content-Type").value()
+        // request.headers.get("Content-Type").value()
         return this.characterEncoding;
     }
 
@@ -97,20 +120,19 @@ public class PlayServletRequest implements HttpServletRequest {
                     }
                     bytes = raw.asBytes();
                 }
-                
+
                 if (isFinished()) {
                     return -1;
                 }
-                
+
                 return bytes[offset++];
             }
 
-            @SuppressWarnings("unused")
             public boolean isFinished() {
                 if (bytes != null && bytes.length <= offset) {
                     return true;
                 }
-                
+
                 return false;
             }
 
@@ -217,16 +239,16 @@ public class PlayServletRequest implements HttpServletRequest {
     @Override
     public String getScheme() {
         String scheme = null;
-        
+
         try {
             scheme = new URI(request.uri()).getScheme();
         } catch (URISyntaxException e) {
         }
-        
+
         if (scheme == null) {
             return "http";
         }
-        
+
         return scheme;
     }
 
@@ -324,11 +346,11 @@ public class PlayServletRequest implements HttpServletRequest {
     @Override
     public long getDateHeader(String name) {
         String date = request.getHeader(name);
-        
+
         if (date == null) {
             return -1;
         }
-        
+
         return FastHttpDateFormat.parseDate(request.getHeader(name), formats);
     }
 
@@ -394,7 +416,7 @@ public class PlayServletRequest implements HttpServletRequest {
     public String getQueryString() {
         String uri = request.uri();
         int index = uri.indexOf('?');
-        
+
         if (index >= 0) {
             return uri.substring(index + 1);
         } else {

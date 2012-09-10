@@ -1,16 +1,33 @@
 package controllers;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
 
-import models.*;
-import org.codehaus.jackson.node.*;
-import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.transport.*;
-import org.eclipse.jgit.transport.RefAdvertiser.*;
-import play.*;
-import play.mvc.*;
-import playRepository.*;
+import javax.servlet.ServletException;
 
-import java.io.*;
+import models.Project;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
+
+import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.PacketLineOut;
+import org.eclipse.jgit.transport.ReceivePack;
+import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
+import org.eclipse.jgit.transport.UploadPack;
+import org.tigris.subversion.javahl.ClientException;
+
+import play.Logger;
+import play.mvc.Controller;
+import play.mvc.Result;
+import play.mvc.With;
+import playRepository.RepositoryFactory;
+import utils.AccessControl;
+import utils.BasicAuthAction;
 
 public class GitApp extends Controller {
 
@@ -21,7 +38,9 @@ public class GitApp extends Controller {
      * @return                  글라이언트에게 줄 응답 몸통
      * @throws Exception 
      */
-    public static Result advertise(String userName, String projectName, String service) throws Exception {
+    @With(BasicAuthAction.class)
+    public static Result advertise(String userName, String projectName, String service)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Logger.debug("GitApp.advertise : " + request().toString());
 
@@ -56,7 +75,9 @@ public class GitApp extends Controller {
      * @return              클라이언트에게 줄 응답
      * @throws Exception 
      */
-    public static Result serviceRpc(String userName, String projectName, String service) throws Exception {
+    @With(BasicAuthAction.class)
+    public static Result serviceRpc(String userName, String projectName, String service)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         Logger.debug("GitApp.advertise : " + request().toString());
 
@@ -73,12 +94,22 @@ public class GitApp extends Controller {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         if (service.equals("git-upload-pack")) {
+            // pull from repository in the Server
+            if (!AccessControl.isAllowed(session().get(UserApp.SESSION_USERID), project.id,
+                    Resource.CODE, Operation.READ, null)) {
+                return forbidden("You have no permission to read this repository.");
+            }
             UploadPack uploadPack = new UploadPack(repository);
 
             uploadPack.setBiDirectionalPipe(false);
             uploadPack.upload(in, out, null);
 
         } else if (service.equals("git-receive-pack")) {
+            // push to repository in the Server
+            if (!AccessControl.isAllowed(session().get(UserApp.SESSION_USERID), project.id,
+                    Resource.CODE, Operation.WRITE, null)) {
+                return forbidden("You have no permission to write this repository.");
+            }
             ReceivePack receivePack = new ReceivePack(repository);
 
             receivePack.setBiDirectionalPipe(false);
@@ -89,17 +120,20 @@ public class GitApp extends Controller {
         out.close();
         return ok(out.toByteArray());
     }
-    
-    public static void createRepository(String userName, String projectName) throws Exception{
+
+    public static void createRepository(String userName, String projectName) throws IOException,
+            ServletException, UnsupportedOperationException, ClientException {
         Project project = ProjectApp.getProject(userName, projectName);
         RepositoryFactory.getRepository(project).create();
     }
     
     public static String getURL(String ownerName, String projectName) {
-    	return "http://localhost:9000/" + ownerName + "/" + projectName;
+        return utils.Url.create(Arrays.asList(ownerName, projectName));
     }
 
-    public static Result ajaxRequest(String userName, String projectName, String path) throws Exception {
+    public static Result ajaxRequest(String userName, String projectName, String path)
+            throws NoHeadException, UnsupportedOperationException, IOException, GitAPIException,
+            ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 		Logger.info(project.vcs);
         ObjectNode findFileInfo = RepositoryFactory.getRepository(project).findFileInfo(path);
@@ -116,11 +150,19 @@ public class GitApp extends Controller {
      * @param projectName
      * @param path
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    public static Result showRawCode(String userName, String projectName, String path) throws Exception {
+    public static Result showRawCode(String userName, String projectName, String path)
+            throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
         return ok(RepositoryFactory.getRepository(project).getRawFile(path));
+
+    }
+
+    public static void deleteRepository(String userName, String projectName) throws IOException,
+            ServletException {
+        Project project = ProjectApp.getProject(userName, projectName);
+        RepositoryFactory.getRepository(project).delete();
         
     }
 }

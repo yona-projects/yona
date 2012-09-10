@@ -1,14 +1,25 @@
 package utils;
 
-import models.*;
-import models.enumeration.*;
-import play.db.ebean.*;
-import play.db.ebean.Model.*;
+import models.Comment;
+import models.Issue;
+import models.IssueComment;
+import models.Permission;
+import models.Post;
+import models.Project;
+import models.ProjectUser;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
+import models.enumeration.RoleType;
+
+import org.h2.util.StringUtils;
+
+import play.db.ebean.Model;
+import play.db.ebean.Model.Finder;
 
 /**
  * @author "Hwi Ahn"
  */
-public class RoleCheck {
+public class AccessControl {
 
 
     /**
@@ -20,11 +31,13 @@ public class RoleCheck {
      * @param resourceId
      * @return
      */
-    public static boolean permissionCheck(Object userSessionId, Long projectId, Resource resource,
+    public static boolean isAllowed(Object userSessionId, Long projectId, Resource resource,
             Operation operation, Long resourceId) {
-        Long userId;
+        Long userId=0l;
         if(userSessionId instanceof String) {
-            userId = Long.parseLong((String) userSessionId);
+        	if(StringUtils.isNumber(userSessionId.toString())) {
+        		userId = Long.parseLong((String) userSessionId);
+        	}
         } else {
             userId = (Long) userSessionId;
         }
@@ -34,20 +47,20 @@ public class RoleCheck {
         switch (resource)
             {
             case ISSUE_POST:
-                isAuthorEditible = authorCheck(userId, resourceId, new Finder<Long, Issue>(
+                isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, Issue>(
                         Long.class, Issue.class))
                         && Project.findById(projectId).isAuthorEditable;
                 break;
             case ISSUE_COMMENT:
-                isAuthorEditible = authorCheck(userId, resourceId, new Finder<Long, IssueComment>(
+                isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, IssueComment>(
                         Long.class, IssueComment.class));
                 break;
             case BOARD_POST:
-                isAuthorEditible = authorCheck(userId, resourceId, new Finder<Long, Post>(
+                isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, Post>(
                         Long.class, Post.class));
                 break;
             case BOARD_COMMENT:
-                isAuthorEditible = authorCheck(userId, resourceId, new Finder<Long, Comment>(
+                isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, Comment>(
                         Long.class, Comment.class));
                 break;
             default:
@@ -56,13 +69,13 @@ public class RoleCheck {
             }
         if (ProjectUser.isMember(userId, projectId)) {
             return isAuthorEditible
-                    || Permission.permissionCheck(userId, projectId, resource, operation);
+                    || Permission.hasPermission(userId, projectId, resource, operation);
         } else { // Anonymous
             if (!Project.findById(projectId).share_option) {
                 return false;
             }
             return isAuthorEditible
-                    || Permission.permissionCheckByRole(Role.ANONYMOUS, resource, operation);
+                    || Permission.hasPermission(RoleType.ANONYMOUS, resource, operation);
       }
     }
 
@@ -73,7 +86,7 @@ public class RoleCheck {
      * @param finder
      * @return
      */
-    public static <T, K> boolean authorCheck(Long userId, Long resourceId, Model.Finder<K, T> finder) {
+    public static <T, K> boolean isAuthor(Long userId, Long resourceId, Model.Finder<K, T> finder) {
         int findRowCount = finder.where().eq("authorId", userId).eq("id", resourceId)
                 .findRowCount();
         return (findRowCount != 0) ? true : false;

@@ -91,7 +91,7 @@ public class Issue extends Model {
     public Project project;
 
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
-    public List<IssueComment> comments = new ArrayList<IssueComment>();
+    public List<IssueComment> comments;
 
     public Issue() {
         this.date = JodaDateUtil.now();

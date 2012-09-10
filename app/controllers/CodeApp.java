@@ -1,19 +1,21 @@
 package controllers;
 
-import models.*;
-import play.mvc.*;
-import views.html.code.*;
+import java.io.IOException;
 
-import java.io.*;
+import models.Project;
+import play.mvc.*;
+import playRepository.RepositoryService;
+import views.html.code.gitView;
+import views.html.code.svnView;
 
 public class CodeApp extends Controller {
-	public static final String VCS_SUBVERSION = "Subversion";
-    public static final String VCS_GIT = "GIT";
-
-    public static Result codeBrowser(String userName, String projectName) throws IOException {
+	public static Result codeBrowser(String userName, String projectName) throws IOException {
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
-        if (VCS_GIT.equals(vcs)) {
+        if (RepositoryService.VCS_GIT.equals(vcs)) {
             return ok(gitView.render(GitApp.getURL(userName, projectName),
+                    Project.findByName(projectName)));
+        } else if (RepositoryService.VCS_SUBVERSION.equals(vcs)) {
+            return ok(svnView.render(SvnApp.getURL(userName, projectName),
                     Project.findByName(projectName)));
         } else {
             return status(501, vcs + " is not supported!");
@@ -27,21 +29,11 @@ public class CodeApp extends Controller {
     
     public static Result showRawFile(String userName, String projectName, String path) throws Exception{
         String vcs = ProjectApp.getProject(userName, projectName).vcs;
-        if (VCS_GIT.equals(vcs)) {
+        if (RepositoryService.VCS_GIT.equals(vcs)) {
             return GitApp.showRawCode(userName, projectName, path);
-        } else if (vcs.equals(VCS_SUBVERSION)) {
+        } else if (vcs.equals(RepositoryService.VCS_SUBVERSION)) {
             return SvnApp.showRawCode(userName, projectName, path);
         }
         return TODO;
-    }
-    
-    public static void createRepository(String userName, String projectName, String type) throws Exception {
-        if (type.equals(VCS_GIT)) {
-            GitApp.createRepository(userName, projectName);
-        } else if (type.equals(VCS_SUBVERSION)) {
-            SvnApp.createRepository(userName, projectName);
-        } else {
-            throw new UnsupportedOperationException("only support git & svn!");
-        }
     }
 }

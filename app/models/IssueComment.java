@@ -24,9 +24,7 @@ public class IssueComment extends Model {
     @Constraints.Required
     public String contents;
 
-    
     public Date date;
-
     public Long authorId;
     public String authorName;
     public String filePath;
@@ -54,13 +52,13 @@ public class IssueComment extends Model {
     public static void delete(Long id) {
         find.byId(id).delete();
     }
-    
+
     public static boolean isAuthor(Long currentUserId, Long id) {
         int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
-    
-    public Duration ago(){
+
+    public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
 

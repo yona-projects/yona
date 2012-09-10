@@ -5,10 +5,11 @@ import java.io.IOException;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
+import org.tigris.subversion.javahl.ClientException;
 
 public interface PlayRepository {
 
-    public void create() throws Exception;
+    public void create() throws IOException, ClientException;
 
     
     public ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
@@ -18,5 +19,8 @@ public interface PlayRepository {
             IncorrectObjectTypeException, AmbiguousObjectException, IOException;
 
     public Object getCore();
+
+
+    public void delete();
 
 }

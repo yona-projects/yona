@@ -1,10 +1,15 @@
 package models;
 
-import models.enumeration.*;
-import play.db.ebean.*;
+import java.util.List;
 
-import javax.persistence.*;
-import java.util.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+
+import models.enumeration.Operation;
+import models.enumeration.Resource;
+import models.enumeration.RoleType;
+import play.db.ebean.Model;
 
 /**
  * @author "Hwi Ahn"
@@ -33,7 +38,7 @@ public class Permission extends Model {
      * @param operation
      * @return
      */
-    public static boolean permissionCheck(Long userId, Long projectId,
+    public static boolean hasPermission(Long userId, Long projectId,
             Resource resource, Operation operation) {
         int findRowCount = find.where()
                                     .eq("roles.projectUsers.user.id", userId)
@@ -44,9 +49,9 @@ public class Permission extends Model {
         return (findRowCount != 0) ? true : false;
     }
     
-    public static boolean permissionCheckByRole(Long roleId, Resource resource, Operation operation) {
+    public static boolean hasPermission(RoleType roleType, Resource resource, Operation operation) {
         int findRowCount = find.where()
-                                .eq("roles.id", roleId)
+                                .eq("roles.id", roleType.roleType())
                                 .eq("resource", resource.resource())
                                 .eq("operation", operation.operation())
                             .findRowCount();

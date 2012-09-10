@@ -1,11 +1,18 @@
 package models;
 
-import models.support.*;
-import play.data.validation.*;
-import play.db.ebean.*;
+import java.util.Iterator;
+import java.util.List;
 
-import javax.persistence.*;
-import java.util.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+
+import models.enumeration.RoleType;
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
+
+import com.avaje.ebean.Page;
 
 /**
  * 
@@ -49,12 +56,16 @@ public class Project extends Model {
     public static Long create(Project newProject) {
         newProject.url = "http://localhost:9000/" + newProject.name;
         newProject.save();
-        ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, Role.SITEMANAGER);
+        ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, RoleType.SITEMANAGER);
         return newProject.id;
     }
 
     public static void delete(Long id) {
         Project.findById(id).delete();
+    }
+
+    public static List<Project> findAll() {
+        return find.all();
     }
 
     public static Project findById(Long id) {
@@ -69,12 +80,6 @@ public class Project extends Model {
         return find.where().eq("name", projectName).eq("owner", userName).findUnique();
     }
     
-    public static Map<String, String> vcsTypes() {
-        return new Options(
-                "project.new.vcsType.git",
-                "project.new.vcsType.subversion");
-    }
-
     /**
      * 해당 프로젝트가 존재하는지 여부를 검사합니다. 해당 파라미터에 대하여 프로젝트가 존재하면 true, 존재하지 않으면 false를 반환합니다.
      * 
@@ -114,7 +119,7 @@ public class Project extends Model {
                                     .select("name")
                                     .where()
                                         .eq("projectUser.user.id", userId)
-                                        .eq("projectUser.role.id", Role.MANAGER)
+                                        .eq("projectUser.role.id", RoleType.MANAGER.roleType())
                                     .findList();
         
         Iterator<Project> iterator = projects.iterator();
@@ -137,5 +142,9 @@ public class Project extends Model {
     public static List<Project> findProjectsByMember(Long userId) {
         return find.where()
                 .eq("projectUser.user.id", userId).findList();
+    }
+
+    public static Page<Project> projects(int pageNum) {
+        return find.findPagingList(25).getPage(pageNum);
     }
 }
