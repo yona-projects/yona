@@ -25,6 +25,7 @@
             <td>@user.name</td>
             <td>@user.email</td>
             <td>
+              <a class="btn"data-toggle="modal" href="#alertEdit@user.loginId">@Messages("button.edit")</a>
               <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion@user.loginId">@Messages("button.delete")</a>
             </td> 
           </tr>
@@ -41,6 +42,22 @@
                   <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
                   <a href="@routes.SiteApp.deleteUser(user.id)" class="btn btn-danger">@Messages("button.yes")</a>
               </div>
+          </div>
+          <div class="modal hide" id="alertEdit@user.loginId">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">×</button>
+                  <h3>@Messages("site.user.emailEdit")</h3>
+              </div>
+              <form method="post" action="#">
+                  <div class="modal-body">
+                      <p>@Messages("site.user.editConfirm")</p>
+                        <input/>
+                  </div>
+                  <div class="modal-footer">
+                      <a href="#" class="btn" data-dismiss="modal">@Messages("button.cancel")</a>
+                      <input type="submit" " class="btn btn-danger" value="@Messages("button.save")"/>
+                  </div>
+              </form>
           </div>
         }
       </tbody>

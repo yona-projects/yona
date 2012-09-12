@@ -9,7 +9,6 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import views.html.login;
-import views.html.signup;
 import views.html.user.*;
 
 public class UserApp extends Controller {
@@ -102,6 +101,7 @@ public class UserApp extends Controller {
     }
 
     public static Result save() {
+        //FIXME email검증이 필요함.
         Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.bindFromRequest();
         String email = userForm.data().get("email");
