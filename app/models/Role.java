@@ -1,6 +1,6 @@
 package models;
 
-import play.db.ebean.Model;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -9,8 +9,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
 import models.enumeration.RoleType;
-
-import java.util.List;
+import play.db.ebean.Model;
 
 /**
  * @author "Hwi Ahn"

@@ -9,21 +9,25 @@ import models.Project;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
-import org.apache.commons.lang.StringUtils;
-import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory;
 import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
 
-import play.mvc.*;
-import play.mvc.Http.Session;
-import playRepository.SVNRepository;
-import utils.*;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Result;
+import play.mvc.With;
+import playRepository.RepositoryService;
+import utils.AccessControl;
+import utils.BasicAuthAction;
+import utils.PlayServletContext;
+import utils.PlayServletRequest;
+import utils.PlayServletResponse;
+import utils.PlayServletSession;
 
 public class SvnApp extends Controller {
     static DAVServlet davServlet;
-    public static final String REPO_PREFIX = "repo/svn/";
-
+    
     @With(BasicAuthAction.class)
     @BodyParser.Of(BodyParser.Raw.class)
     public static Result serviceWithPath(String path) throws ServletException, IOException {
@@ -73,32 +77,11 @@ public class SvnApp extends Controller {
         PlayServletResponse response = new PlayServletResponse(response());
 
         // Get DAVServlet from SVNRepository and serve the request using it.
-        new SVNRepository(userName, "").getCore().service(request, response);
+        RepositoryService.createDavServlet(userName).service(request, response);
 
         response.flushBuffer();
 
         return status(response.getStatus(), response.getBuffer().toByteArray());
-    }
-
-    public static void createRepository(String userName, String projectName) throws ClientException, ServletException {
-        new SVNRepository(userName, projectName).create();
-    }
-
-    public static String getURL(String ownerName, String projectName) {
-        String[] pathSegments = { "svn", ownerName, projectName };
-        return Config.getScheme("http") + "://" + Config.getHostport(request().host()) + "/"
-                + StringUtils.join(pathSegments, "/");
-    }
-
-    public static Result showRawCode(String userName, String projectName, String path) {
-        // TODO Auto-generated method stub
-        
-        return null;
-    }
-
-    public static void deleteRepository(String userName, String projectName) throws ServletException {
-        new SVNRepository(userName, projectName).delete();
-        
     }
 
     private static Operation getRequestedOperation(String method) {

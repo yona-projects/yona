@@ -1,14 +1,12 @@
 package models;
 
-import java.util.*;
+import org.joda.time.*;
+import play.data.validation.*;
+import play.db.ebean.*;
+import utils.*;
 
 import javax.persistence.*;
-
-import org.joda.time.Duration;
-
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
+import java.util.*;
 
 @Entity
 public class Comment extends Model {

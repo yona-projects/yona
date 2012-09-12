@@ -1,13 +1,16 @@
 package controllers;
 
-import com.avaje.ebean.Page;
-
 import models.Project;
 import models.User;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import views.html.site.*;
+
+import views.html.site.setting;
+import views.html.site.userList;
+import views.html.site.projectList;
+
+import com.avaje.ebean.Page;
 
 public class SiteApp extends Controller {
     

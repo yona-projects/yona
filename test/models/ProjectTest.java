@@ -29,7 +29,7 @@ public class ProjectTest extends ModelTest<Project> {
         
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
-        assertThat(actualProject.url).isEqualTo("http://localhost:9000/prj_test");
+        assertThat(actualProject.homepage).isEqualTo("http://localhost:9000/prj_test");
     }
     
     @Test
@@ -41,7 +41,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(sut.milestones.size()).isEqualTo(2);
     }
     @Test
-    public void findIssuessById() throws Exception {
+    public void findIssueById() throws Exception {
         // Given
         // When
         Project sut = Project.findById(1l);
@@ -72,7 +72,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
         assertThat(project.share_option).isEqualTo(true);
         assertThat(project.vcs).isEqualTo("GIT");
-        assertThat(project.url).isEqualTo("http://localhost:9000/nForge4java");
+        assertThat(project.homepage).isEqualTo("http://localhost:9000/nForge4java");
       
     }
     
@@ -80,11 +80,11 @@ public class ProjectTest extends ModelTest<Project> {
     public void isOnlyManager() throws Exception {
         // Given
         // When
-        List<Project> projects_hobi = Project.isOnlyManager(2l);
-        List<Project> projects_eungjun = Project.isOnlyManager(5l);
+        List<Project> projectsHobi = Project.isOnlyManager(2l);
+        List<Project> projectsEungjun = Project.isOnlyManager(5l);
         // Then
-        assertThat(projects_hobi.size()).isEqualTo(2);
-        assertThat(projects_eungjun.size()).isEqualTo(0);
+        assertThat(projectsHobi.size()).isEqualTo(2);
+        assertThat(projectsEungjun.size()).isEqualTo(0);
     }
 
     @Test

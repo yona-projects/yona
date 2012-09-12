@@ -1,98 +1,56 @@
 package models;
 
-import static com.avaje.ebean.Expr.contains;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import jxl.Workbook;
-import jxl.format.Alignment;
-import jxl.format.Border;
-import jxl.format.BorderLineStyle;
+import com.avaje.ebean.*;
+import controllers.*;
+import jxl.*;
+import jxl.format.*;
 import jxl.format.Colour;
-import jxl.format.ScriptStyle;
-import jxl.format.UnderlineStyle;
-import jxl.write.Label;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-import models.enumeration.Direction;
-import models.enumeration.IssueState;
-import models.enumeration.Matching;
-import models.enumeration.StateType;
-import models.support.FinderTemplate;
-import models.support.Options;
-import models.support.OrderParams;
-import models.support.SearchParams;
+import jxl.format.BorderLineStyle;
+import jxl.format.Border;
+import jxl.format.Alignment;
+import jxl.write.*;
+import models.enumeration.*;
+import models.support.*;
+import org.joda.time.*;
+import play.data.format.*;
+import play.data.validation.*;
+import play.db.ebean.*;
+import utils.*;
 
-import org.joda.time.Duration;
+import javax.persistence.*;
+import java.io.*;
+import java.util.*;
 
-import play.data.format.Formats;
-import play.data.validation.Constraints;
-import play.db.ebean.Model;
-import utils.JodaDateUtil;
-
-import com.avaje.ebean.Page;
-
-import controllers.SearchApp;
+import static com.avaje.ebean.Expr.*;
 
 /**
+ * @param id              이슈 ID
+ * @param title           이슈 제목
+ * @param body            이슈 내용
+ * @param state           이슈 상태(등록, 진행중, 해결, 닫힘)
+ * @param statusType      이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
+ * @param date            이슈 등록 날짜
+ * @param authorId        이슈 작성자 ID
+ * @param project         이슈가 등록된 프로젝트
+ * @param issueType       이슈 상세정보의 유형
+ * @param assigneeId      이슈에 배정된 담당자 Id
+ * @param componentName   컴포넌트
+ * @param milestone       이슈가 등록된 마일스톤
+ * @param importance      이슈 상세정보의 중요도
+ * @param diagnosisResult 이슈 상세정보의 진단유형
+ * @param filePath        이슈에 첨부된 파일 주소
+ * @param osType          이슈 상세정보의 OS 유형
+ * @param browserType     이슈 상세정보의 브라우저 유형
+ * @param dbmsType        이슈 상세정보의 DBMS 유형
  * @author Taehyun Park
- * 
+ *         <p/>
  *         Issue entity mangaed by Ebean
- * @param id
- *            이슈 ID
- * @param title
- *            이슈 제목
- * @param body
- *            이슈 내용
- * @param state
- *            이슈 상태(등록, 진행중, 해결, 닫힘)
- * @param statusType
- *            이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
- * @param date
- *            이슈 등록 날짜
- * @param authorId
- *            이슈 작성자 ID
- * @param project
- *            이슈가 등록된 프로젝트
- * @param issueType
- *            이슈 상세정보의 유형
- * @param assigneeId
- *            이슈에 배정된 담당자 Id
- * @param componentName
- *            컴포넌트
- * @param milestone
- *            이슈가 등록된 마일스톤
- * @param importance
- *            이슈 상세정보의 중요도
- * @param diagnosisResult
- *            이슈 상세정보의 진단유형
- * @param filePath
- *            이슈에 첨부된 파일 주소
- * @param osType
- *            이슈 상세정보의 OS 유형
- * @param browserType
- *            이슈 상세정보의 브라우저 유형
- * @param dbmsType
- *            이슈 상세정보의 DBMS 유형
  */
 @Entity
 public class Issue extends Model {
-    private static final long serialVersionUID = 1L;
-    private static Finder<Long, Issue> find = new Finder<Long, Issue>(Long.class, Issue.class);
+    private static final long serialVersionUID = -2409072006294045262L;
+
+    private static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
@@ -162,7 +120,7 @@ public class Issue extends Model {
 
     /**
      * 이슈의 오픈 상태를 확인한다.
-     * 
+     *
      * @return boolean
      */
     public boolean isOpen() {
@@ -171,24 +129,14 @@ public class Issue extends Model {
 
     /**
      * View에서 스트링값으로 변환하도록 한다.
-     * 
+     *
      * @return
      */
-    public String state() {
-        if (this.state.equals(IssueState.ASSIGNED)) {
-            return IssueState.ASSIGNED.state();
-        } else if (this.state.equals(IssueState.SOLVED)) {
-            return IssueState.SOLVED.state();
-        } else if (this.state.equals(IssueState.FINISHED)) {
-            return IssueState.FINISHED.state();
-        } else
-            return IssueState.ENROLLED.state();
-    }
 
     /**
      * 해당 이슈의 상태(state) 따라서 탭 기능에서 구분 짖는(stateType) 것이 해결인지 미해결인지 값을 결정해준다.
      * diagnosisResult가 2인 경우는 현 진단결과 선택 란에서 "수정완료"를 의미하므로, 이슈 정상 해결을 의미한다.
-     * 
+     *
      * @param state
      */
     public void updateStateType(Issue issue) {
@@ -204,7 +152,7 @@ public class Issue extends Model {
     /**
      * 이슈의 담당자(assignee) 배정과 이슈의 진단결과(diagnosisResult)에 따라 이슈의 상태를 정해진 로직에 따라
      * 변경한다.
-     * 
+     *
      * @param issue
      */
     public void updateState(Issue issue) {
@@ -225,7 +173,7 @@ public class Issue extends Model {
 
     /**
      * 이슈가 담당자와 진단결과가 없는 경우에는 "등록" 상태임을 확인해준다.
-     * 
+     *
      * @param issue
      * @return boolean
      */
@@ -239,7 +187,7 @@ public class Issue extends Model {
 
     /**
      * 이슈가 담당자는 배정받고, 진단결과가 없는 경우에는 "진행중" 상태임을 확인해준다.
-     * 
+     *
      * @param issue
      * @return
      */
@@ -253,7 +201,7 @@ public class Issue extends Model {
 
     /**
      * 이슈가 담당자를 배정받고 진단결과가 2번째 수정완료(추후 변경 가능) 인 경우에는 "해결" 상태임을 확인해준다.
-     * 
+     *
      * @param issue
      * @return
      */
@@ -267,7 +215,7 @@ public class Issue extends Model {
 
     /**
      * 이슈가 담당자의 유무와 상관 없이, 진단결과가 2번째 수정완료가 아닌 다른 사유가 존재한 경우에는 "닫힘" 상태임을 확인해준다.
-     * 
+     *
      * @param issue
      * @return
      */
@@ -283,7 +231,7 @@ public class Issue extends Model {
     /**
      * View에서 사용할 이슈 유형에 대한 옵션을 제공한다. Purpose : View에서 Select 부분에서 i18n를 사용하면서
      * 최대한 간단하게 하기 위함.
-     * 
+     *
      * @return
      */
     public static Map<String, String> issueTypes() {
@@ -296,7 +244,7 @@ public class Issue extends Model {
     /**
      * View에서 사용할 OS유형에 대한 옵션을 제공한다. Purpose : View에서 Select 부분에서 i18n를 사용하면서
      * 최대한 간단하게 하기 위함.
-     * 
+     *
      * @return
      */
     public static Map<String, String> osTypes() {
@@ -307,7 +255,7 @@ public class Issue extends Model {
     /**
      * View에서 사용할 브라우져 유형에 대한 옵션을 제공한다. Purpose : View에서 Select 부분에서 i18n를 사용하면서
      * 최대한 간단하게 하기 위함.
-     * 
+     *
      * @return
      */
     public static Map<String, String> browserTypes() {
@@ -321,7 +269,7 @@ public class Issue extends Model {
     /**
      * View에서 사용할 DBMS 유형에 대한 옵션을 제공한다. Purpose : View에서 Select 부분에서 i18n를 사용하면서
      * 최대한 간단하게 하기 위함.
-     * 
+     *
      * @return
      */
     public static Map<String, String> dbmsTypes() {
@@ -332,7 +280,7 @@ public class Issue extends Model {
     /**
      * View에서 사용할 중요도에 대한 옵션을 제공한다. Purpose : View에서 Select 부분에서 i18n를 사용하면서 최대한
      * 간단하게 하기 위함.
-     * 
+     *
      * @return
      */
     public static Map<String, String> importances() {
@@ -344,7 +292,7 @@ public class Issue extends Model {
     /**
      * View에서 사용할 진단 결과에 대한 옵션을 제공한다. Purpose : View에서 Select 부분에서 i18n를 사용하면서
      * 최대한 간단하게 하기 위함.
-     * 
+     *
      * @return
      */
     public static Map<String, String> diagnosisResults() {
@@ -360,17 +308,17 @@ public class Issue extends Model {
 
     /**
      * 이슈 id로 이슈를 찾아준다.
-     * 
+     *
      * @param id
      * @return
      */
     public static Issue findById(Long id) {
-        return find.byId(id);
+        return finder.byId(id);
     }
 
     /**
      * 이슈를 생성한다.
-     * 
+     *
      * @param issue
      * @return
      */
@@ -386,11 +334,11 @@ public class Issue extends Model {
 
     /**
      * 이슈를 삭제한다.
-     * 
+     *
      * @param id
      */
     public static void delete(Long id) {
-        Issue issue = find.byId(id);
+        Issue issue = finder.byId(id);
         if (!issue.milestoneId.equals(0l) || issue.milestoneId != null) {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
@@ -400,7 +348,7 @@ public class Issue extends Model {
 
     /**
      * 이슈를 수정 & 업데이트 한다.
-     * 
+     *
      * @param issue
      */
     public static void edit(Issue issue) {
@@ -414,7 +362,7 @@ public class Issue extends Model {
 
     /**
      * 미해결 탭을 눌렀을 때, open 상태의 이슈들을 찾아준다..
-     * 
+     *
      * @param projectName
      * @return
      */
@@ -424,7 +372,7 @@ public class Issue extends Model {
 
     /**
      * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 찾아준다.
-     * 
+     *
      * @param projectName
      * @return
      */
@@ -434,19 +382,19 @@ public class Issue extends Model {
 
     /**
      * 해당 프로젝트의 State 외의 것들은 기본값들로 이뤄진 이슈들을 찾아준다.
-     * 
+     *
      * @param projectName
      * @param state
      * @return
      */
     public static Page<Issue> findIssues(String projectName, StateType state) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+        return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 "", null, false, false);
     }
 
     /**
      * 검색창에서 제공된 query(filter)와 댓글과 파일첨부된 이슈만 찾아주는 체크박스의 값에 따라 필터링된 이슈들을 찾아준다.
-     * 
+     *
      * @param projectName
      * @param filter
      * @param state
@@ -455,75 +403,66 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findFilteredIssues(String projectName, String filter,
-            StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+                                                 StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
+        return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 filter, null, commentedCheck, fileAttachedCheck);
     }
 
     /**
      * 댓글이 달린 이슈들만 찾아준다.
-     * 
+     *
      * @param projectName
      * @param filter
      * @return
      */
     public static Page<Issue> findCommentedIssues(String projectName, String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, true, false);
     }
 
     /**
      * 파일이 첨부된 이슈들만 찾아준다.
-     * 
+     *
      * @param projectName
      * @param filter
      * @return
      */
 
     public static Page<Issue> findFileAttachedIssues(String projectName, String filter) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, false, true);
     }
 
     /**
      * 마일스톤 Id에 의거해서 해당 마일스톤에 속한 이슈들을 찾아준다.
-     * 
+     *
      * @param projectName
      * @param milestoneId
      * @return
      */
     public static Page<Issue> findIssuesByMilestoneId(String projectName, Long milestoneId) {
-        return findIssues(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
                 Direction.DESC, "", milestoneId, false, false);
     }
 
     /**
      * 이슈들을 아래의 parameter들의 조건에 의거하여 Page형태로 반환한다.
-     * 
-     * @param projectName
-     *            project ID to find issues
-     * @param pageNumber
-     *            Page to display
-     * @param state
-     *            state type of issue(OPEN or CLOSED
-     * @param sortBy
-     *            Issue property used for sorting, but, it might be fixed to
-     *            enum type
-     * @param order
-     *            Sort order(either asc or desc)
-     * @param filter
-     *            filter applied on the title column
-     * @param commentedCheck
-     *            filter applied on the commetedCheck column, 댓글이 존재하는 이슈만 필터링
-     * @param fileAttachedCheck
-     *            filter applied on the fileAttachedCheck column, 파일이 업로드된 이슈만
-     *            필터링
+     *
+     * @param projectName       project ID to finder issues
+     * @param pageNumber        Page to display
+     * @param state             state type of issue(OPEN or CLOSED
+     * @param sortBy            Issue property used for sorting, but, it might be fixed to
+     *                          enum type
+     * @param order             Sort order(either asc or desc)
+     * @param filter            filter applied on the title column
+     * @param commentedCheck    filter applied on the commetedCheck column, 댓글이 존재하는 이슈만 필터링
+     * @param fileAttachedCheck filter applied on the fileAttachedCheck column, 파일이 업로드된 이슈만
+     *                          필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
-    public static Page<Issue> findIssues(String projectName, int pageNumber, StateType state,
-            String sortBy, Direction order, String filter, Long milestoneId,
-            boolean commentedCheck, boolean fileAttachedCheck) {
-
+    public static Page<Issue> find(String projectName, int pageNumber, StateType state,
+                                   String sortBy, Direction order, String filter, Long milestoneId,
+                                   boolean commentedCheck, boolean fileAttachedCheck) {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name", projectName,
                 Matching.EQUALS);
@@ -543,8 +482,7 @@ public class Issue extends Model {
         if (state == null) {
             state = StateType.ALL;
         }
-        switch (state)
-            {
+        switch (state) {
             case OPEN:
                 searchParams.add("stateType", StateType.OPEN, Matching.EQUALS);
                 break;
@@ -552,34 +490,46 @@ public class Issue extends Model {
                 searchParams.add("stateType", StateType.CLOSED, Matching.EQUALS);
                 break;
             default:
-            }
-        return FinderTemplate.getPage(orderParams, searchParams, find, ISSUE_COUNT_PER_PAGE,
+        }
+        return FinderTemplate.getPage(orderParams, searchParams, finder, ISSUE_COUNT_PER_PAGE,
                 pageNumber);
     }
 
+    /**
+     * 전체 컨텐츠 검색할 때 제목과 내용에 condition.filter를 포함하고 있는 이슈를 검색한다.
+     *
+     * @param project
+     * @param condition
+     * @return
+     */
+    public static Page<Issue> find(Project project, SearchApp.ContentSearchCondition condition) {
+        String filter = condition.filter;
+        return finder.where().eq("project.id", project.id)
+                .or(contains("title", filter), contains("body", filter))
+                .findPagingList(condition.pageSize).getPage(condition.page - 1);
+    }
+
     public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
-        return find.byId(issueId).assigneeId;
+        return finder.byId(issueId).assigneeId;
     }
 
     /**
      * 해당 마일스톤아이디로 관련 이슈를 검색한다.
-     * 
+     *
      * @param milestoneId
      * @return
      */
     public static List<Issue> findByMilestoneId(Long milestoneId) {
         SearchParams searchParams = new SearchParams().add("milestoneId", milestoneId,
                 Matching.EQUALS);
-        return FinderTemplate.findBy(null, searchParams, find);
+        return FinderTemplate.findBy(null, searchParams, finder);
     }
 
     /**
      * JXL 라이브러리를 이용하여 엑셀 파일로 저장하며, 해당 파일이 저장된 주소를 반환한다.
-     * 
-     * @param resultList
-     *            엑셀로 저장하고자 하는 리스트
-     * @param pageName
-     *            엑셀로 저장하고자 하는 목록의 페이지(내용, ex 이슈, 게시물 등) 이름
+     *
+     * @param resultList 엑셀로 저장하고자 하는 리스트
+     * @param pageName   엑셀로 저장하고자 하는 목록의 페이지(내용, ex 이슈, 게시물 등) 이름
      * @return
      * @throws Exception
      */
@@ -606,7 +556,7 @@ public class Issue extends Model {
             workbook = Workbook.createWorkbook(new File(fullPath));
             sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
 
-            String[] labalArr = { "ID", "STATE", "TITLE", "ASSIGNEE", "DATE" };
+            String[] labalArr = {"ID", "STATE", "TITLE", "ASSIGNEE", "DATE"};
 
             for (int i = 0; i < labalArr.length; i++) {
                 sheet.addCell(new Label(i, 0, labalArr[i], cf1));
@@ -640,7 +590,7 @@ public class Issue extends Model {
 
     /**
      * excelSave에서 assignee를 리턴해준다.
-     * 
+     *
      * @param uId
      * @return
      */
@@ -653,7 +603,7 @@ public class Issue extends Model {
 
     /**
      * comment가 delete되거나 create될 때, numOfComment와 comment.size()를 동기화 시켜준다.
-     * 
+     *
      * @param id
      */
     public static void updateNumOfComments(Long id) {
@@ -661,19 +611,5 @@ public class Issue extends Model {
         Issue issue = Issue.findById(id);
         issue.numOfComments = issue.comments.size();
         issue.update();
-    }
-
-    /**
-     * 전체 컨텐츠 검색할 때 제목과 내용에 condition.filter를 포함하고 있는 이슈를 검색한다.
-     * 
-     * @param project
-     * @param condition
-     * @return
-     */
-    public static Page<Issue> findIssues(Project project, SearchApp.ContentSearchCondition condition) {
-        String filter = condition.filter;
-        return find.where().eq("project.id", project.id)
-                .or(contains("title", filter), contains("body", filter))
-                .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
 }

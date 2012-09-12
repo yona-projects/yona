@@ -19,19 +19,14 @@
 
 package utils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Locale;
+import play.mvc.*;
+import play.mvc.Http.*;
 
-import javax.servlet.ServletOutputStream;
+import javax.servlet.*;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-
-import play.mvc.Http;
-import play.mvc.Http.Response;
+import javax.servlet.http.*;
+import java.io.*;
+import java.util.*;
 
 public class PlayServletResponse implements HttpServletResponse {
     

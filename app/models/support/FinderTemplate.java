@@ -1,10 +1,9 @@
 package models.support;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
-import play.db.ebean.Model;
+import com.avaje.ebean.*;
+import play.db.ebean.*;
 
-import java.util.List;
+import java.util.*;
 
 public class FinderTemplate {
 

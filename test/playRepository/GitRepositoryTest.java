@@ -64,8 +64,10 @@ public class GitRepositoryTest {
     }
 
     private void rm_rf(File file) {
+        assert file != null;
         if (file.isDirectory()) {
             File[] list = file.listFiles();
+            assert list != null;
             for(int i = 0; i < list.length; i++){
                 rm_rf(list[i]);
             }

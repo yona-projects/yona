@@ -1,7 +1,5 @@
 package utils;
 
-import org.h2.util.StringUtils;
-
 import models.Comment;
 import models.Issue;
 import models.IssueComment;
@@ -9,10 +7,13 @@ import models.Permission;
 import models.Post;
 import models.Project;
 import models.ProjectUser;
-import models.Role;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 import models.enumeration.RoleType;
+
+import org.h2.util.StringUtils;
+
+import play.Logger;
 import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
 
@@ -41,6 +42,13 @@ public class AccessControl {
         } else {
             userId = (Long) userSessionId;
         }
+        
+        // Site administrator is all-mighty.
+        /*
+        if (Permission.hasPermission(userId, 0l, Resource.SITE_SETTING, Operation.WRITE)) {
+            return true;
+        }
+        */
         
         boolean isAuthorEditible;
 
@@ -71,6 +79,7 @@ public class AccessControl {
             return isAuthorEditible
                     || Permission.hasPermission(userId, projectId, resource, operation);
         } else { // Anonymous
+            Logger.debug("projectid: " + projectId);
             if (!Project.findById(projectId).share_option) {
                 return false;
             }

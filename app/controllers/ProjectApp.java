@@ -1,19 +1,27 @@
 package controllers;
 
+
 import java.io.File;
 
-import com.avaje.ebean.Page;
-
-import models.*;
+import models.Project;
+import models.ProjectUser;
+import models.Role;
+import models.User;
 import models.enumeration.RoleType;
 import play.data.Form;
 import play.db.ebean.Transactional;
-import play.mvc.*;
+import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
+import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.Constants;
-import views.html.project.*;
+import views.html.project.memberList;
+import views.html.project.newProject;
+import views.html.project.projectHome;
+import views.html.project.setting;
+
+import com.avaje.ebean.Page;
 
 /**
  * @author "Hwi Ahn"

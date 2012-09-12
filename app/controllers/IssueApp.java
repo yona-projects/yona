@@ -4,30 +4,18 @@
 
 package controllers;
 
-import java.io.File;
+import com.avaje.ebean.*;
+import models.*;
+import models.enumeration.*;
+import models.support.*;
+import play.data.*;
+import play.mvc.*;
+import play.mvc.Http.*;
+import play.mvc.Http.MultipartFormData.*;
+import utils.*;
+import views.html.issue.*;
 
-import models.Issue;
-import models.IssueComment;
-import models.Project;
-import models.enumeration.Direction;
-import models.enumeration.IssueState;
-import models.enumeration.StateType;
-import models.support.SearchCondition;
-import play.Logger;
-import play.data.Form;
-import play.mvc.Controller;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Http.Request;
-import play.mvc.Result;
-import utils.Constants;
-import views.html.issue.editIssue;
-import views.html.issue.issue;
-import views.html.issue.issueList;
-import views.html.issue.newIssue;
-import views.html.issue.notExistingPage;
-
-import com.avaje.ebean.Page;
+import java.io.*;
 
 public class IssueApp extends Controller {
 
@@ -44,7 +32,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
+        Page<Issue> issues = Issue.find(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);
@@ -152,7 +140,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        Page<Issue> issues = Issue.findIssues(project.name, issueParam.pageNum,
+        Page<Issue> issues = Issue.find(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck, issueParam.fileAttachedCheck);

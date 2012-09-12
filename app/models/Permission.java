@@ -2,9 +2,13 @@ package models;
 
 import java.util.List;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 
-import models.enumeration.*;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
+import models.enumeration.RoleType;
 import play.db.ebean.Model;
 
 /**

@@ -8,13 +8,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
-import com.avaje.ebean.Page;
-
 import models.enumeration.RoleType;
-
-
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+
+import com.avaje.ebean.Page;
 
 /**
  * 
@@ -36,7 +34,7 @@ public class Project extends Model {
     
     public String overview;
     public String vcs;
-    public String url;
+    public String homepage;
     public String logoPath;
     public String owner;
 
@@ -56,7 +54,7 @@ public class Project extends Model {
     public List<Milestone> milestones;
 
     public static Long create(Project newProject) {
-        newProject.url = "http://localhost:9000/" + newProject.name;
+        newProject.homepage = "http://localhost:9000/" + newProject.name;
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, RoleType.SITEMANAGER);
         return newProject.id;

@@ -18,9 +18,6 @@ public interface PlayRepository {
     public byte[] getRawFile(String path) throws MissingObjectException,
             IncorrectObjectTypeException, AmbiguousObjectException, IOException;
 
-    public Object getCore();
-
-
     public void delete();
 
 }

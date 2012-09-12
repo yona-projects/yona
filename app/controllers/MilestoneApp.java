@@ -1,18 +1,12 @@
 package controllers;
 
-import models.Milestone;
-import models.Project;
-import models.enumeration.Direction;
-import models.enumeration.StateType;
-import play.data.Form;
-import play.mvc.Controller;
-import play.mvc.Result;
-import views.html.milestone.create;
-import views.html.milestone.edit;
-import views.html.milestone.list;
-import views.html.milestone.manage;
+import models.*;
+import models.enumeration.*;
+import play.data.*;
+import play.mvc.*;
+import views.html.milestone.*;
 
-import java.util.List;
+import java.util.*;
 
 public class MilestoneApp extends Controller {
 

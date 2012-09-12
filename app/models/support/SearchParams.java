@@ -1,9 +1,8 @@
 package models.support;
 
-import models.enumeration.Matching;
+import models.enumeration.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SearchParams {
 
