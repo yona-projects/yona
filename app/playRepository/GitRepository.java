@@ -22,7 +22,11 @@ public class GitRepository implements PlayRepository {
     private Repository repository;
 
     public GitRepository(String userName, String projectName) throws IOException {
-        this.repository = new RepositoryBuilder().setGitDir(
+        this.repository = createGitRepository(userName, projectName);
+    }
+
+    public static Repository createGitRepository(String userName, String projectName) throws IOException {
+        return new RepositoryBuilder().setGitDir(
                 new File(REPO_PREFIX + userName + "/" + projectName + ".git")).build();
     }
 
@@ -132,17 +136,9 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    /* (non-Javadoc)
-     * @see Repository.repository#getRawRepository()
-     */
-    @Override
-    public Repository getCore() {
-        return repository;
-    }
-
     @Override
     public void delete() {
         FileUtil.rm_rf(repository.getDirectory());
     }
-    
+
 }
