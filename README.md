@@ -30,3 +30,7 @@ nForge 프로젝트에 참여했을때 얻을 수 있는 가치
 - 오픈소스 프로젝트에 기여
 - 개인 네임밸류
 - 다양한 개발자들과의 교류
+
+빌드서버
+---
+- [http://travis-ci.org/#!/nforge/nforge4](http://travis-ci.org/#!/nforge/nforge4)

@@ -30,7 +30,7 @@ public class GitRepository implements PlayRepository {
      * @see Repository.repository#create()
      */
     @Override
-    public void create() throws Exception {
+    public void create() throws IOException {
         this.repository.create(true); // create bare repository
     }
 

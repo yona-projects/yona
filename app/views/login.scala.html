@@ -1,23 +1,32 @@
-@(message: String) 
+@(message:String, userForm:Form[User]) 
+
+@import helper._
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @home(message) {
 <div class="page-header">
   <h1>@Messages(message)</h1>
 </div>
+
 <div class="row-fluid">
-  <div class="span4"></div>
-  <div class="span4">
-    <form class="well" action="@routes.UserApp.authenticate()" method="post">
-      <label for="userName">@Messages("user.loginId")</label>
-      <input type="text" class="input" id="userName" name="loginId">
-      
-      <label for="userLoginId">@Messages("user.password")</label>
-      <input type="password" class="input" id="userLoginId" name="password">
-      
-      <label></label>
-      <button type="submit" class="btn btn-primary">@Messages("button.login")</button>
-    </form>
-  </div>
+  <div class="span12">
+        @form(routes.UserApp.authenticate(), 'class->"form-horizontal"){
+            @inputText(userForm("loginId")
+                ,'_label-> Messages("user.loginId") 
+                ,'class->"input-medium")        
+                
+            @inputPassword(userForm("password")
+                ,'_label-> Messages("user.password") 
+                ,'class->"input-medium")
+            
+            @checkbox(userForm("rememberMe"))
+            
+            <div class="form-actions">
+                <input class="btn btn-primary" type="submit" value="@Messages("button.login")">
+                <a class="btn" href="@routes.Application.index()">@Messages("button.cancel")</a>
+            </div>
+        }
+    </div>
 </div>
 
 <div class="row">

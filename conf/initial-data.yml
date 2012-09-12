@@ -3,27 +3,32 @@ users:
     - !!models.User
         name:           Site admin
         loginId:        admin
-        password:       admin00
+        password:       5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=
+        passwordSalt:   '[B@1032a4'
         email:          admin@nhn.com
     - !!models.User
         name:           Hobi
         loginId:        hobi
-        password:       hobi00
+        password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
+        passwordSalt:   '[B@1032a4'        
         email:          hobi@nhn.com
     - !!models.User
         name:           scott
         loginId:        k16wire
-        password:       k16wire00
+        password:       v1O5ggs2TqM0prM1pLUD/zC+g7cavbWMXayVA9pvGHY=
+        passwordSalt:   '[B@1032a4'        
         email:          k16wire@naver.com
     - !!models.User
         name:           suwon
         loginId:        doortts
-        password:       doortts00
+        password:       rB5DBMe0hxMWs5FlQOJi5GmK+wj2Txx09MdgFqH83+k=
+        passwordSalt:   '[B@1032a4'        
         email:          sw@korea.com
     - !!models.User
         name:           eungjun
         loginId:        nori
-        password:       nori00
+        password:       yOF0X0iKA1MVkaAJESNcdGE1n/3SWM8vDOKRYCXV2E0=
+        passwordSalt:   '[B@1032a4'        
         email:          ejlee@nhn.com
     - !!models.User
         name:           anonymous
