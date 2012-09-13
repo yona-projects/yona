@@ -18,6 +18,7 @@ import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.tigris.subversion.javahl.ClientException;
+import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
 import play.Logger;
@@ -51,7 +52,7 @@ public class RepositoryService {
 
     public static ObjectNode getMetaDataFrom(String userName, String projectName, String path)
             throws NoHeadException, UnsupportedOperationException, IOException, GitAPIException,
-            ServletException {
+            ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
     	Logger.info(project.vcs);
         return RepositoryService.getRepository(project).findFileInfo(path);
@@ -69,10 +70,11 @@ public class RepositoryService {
      * @throws AmbiguousObjectException 
      * @throws IncorrectObjectTypeException 
      * @throws MissingObjectException 
+     * @throws SVNException 
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String path)
             throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException,
-            UnsupportedOperationException, IOException, ServletException {
+            UnsupportedOperationException, IOException, ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
         return RepositoryService.getRepository(project).getRawFile(path);
     }
