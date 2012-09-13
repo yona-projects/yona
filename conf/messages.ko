@@ -235,10 +235,14 @@ user.logout.success = 성공적으로 로그아웃되었습니다.
 
 #Time
 time.just = 방금 전
-time.second = 초 전
-time.minute = 분 전
-time.hour = 시간 전
-time.day = 일 전
+time.second = {0} 초 전
+time.seconds = {0} 초 전
+time.minute = {0} 분 전
+time.minutes = {0} 분 전
+time.hour = {0} 시간 전
+time.hours = {0} 시간 전
+time.day = {0} 일 전
+time.days = {0} 일 전
 
 #Board
 board.post.empty = 제목과 본문에 빈칸이 있습니다.

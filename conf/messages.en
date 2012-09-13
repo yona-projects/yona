@@ -235,10 +235,14 @@ user.logout.success = Logout successfully
 
 #Time
 time.just = just now
-time.second = second ago
-time.minute = minute ago
-time.hour = hour ago
-time.day = day ago
+time.second = {0} second ago
+time.seconds = {0} seconds ago
+time.minute = {0} minute ago
+time.minutes = {0} minutes ago
+time.hour = {0} hour ago
+time.hours = {0} hours ago
+time.day = {0} day ago
+time.days = {0} days ago
 
 #Board
 board.post.empty = you have to write title and contents.

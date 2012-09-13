@@ -21,14 +21,19 @@ object TemplateHelper {
 
   def agoString(duration: org.joda.time.Duration) = {
     val sec = duration.getMillis / DateTimeConstants.MILLIS_PER_SECOND
+
     sec match {
-      case x if x >= 86400 => duration.getStandardDays + " " + Messages.get("time.day")
-      case x if x >= 3600 => duration.getStandardHours + " " + Messages.get("time.hour")
-      case x if x >= 60 => duration.getStandardMinutes + " " + Messages.get("time.minute")
-      case x if x > 0 => duration.getStandardSeconds + " " + Messages.get("time.second")
+      case x if x >= 86400 => plural("time.day", duration.getStandardDays)
+      case x if x >= 3600 => plural("time.hour", duration.getStandardHours)
+      case x if x >= 60 => plural("time.minute", duration.getStandardMinutes)
+      case x if x > 0 => plural("time.second",duration.getStandardSeconds)
       case _ => Messages.get("time.just")
     }
   }
+
+  def plural(key: String, count: Number): String = {
+    var _key = key
+    if (count != 1) _key = key+"s"
+    Messages.get(_key, count toString)
+  }
 }
-
-
