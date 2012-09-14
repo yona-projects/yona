@@ -13,7 +13,9 @@ import views.html.index;
 
 public class Application extends Controller {
 
-    public static Result index() {
+    public static Result index() {  
+    	UserApp.isRememberMe();
+    	
         if (session().containsKey("userId")) {        	
         	String userId = session().get("userId");
         	if(StringUtils.isNumber(userId)) {
@@ -24,6 +26,7 @@ public class Application extends Controller {
         		return ok(index.render(projects));
         	}
         }
+
         return ok(index.render(null));
     }
 }

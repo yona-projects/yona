@@ -78,7 +78,7 @@ public class BasicAuthAction extends Action<Object> {
         }
         
         if (authUser != null) {
-        	User authenticate = UserApp.authenticate(authUser);
+        	User authenticate = UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
         	if(authenticate!=null) {         			
         		context.session().put(UserApp.SESSION_USERID, String.valueOf(authenticate.id));
         		context.session().put(UserApp.SESSION_USERNAME, authenticate.name);

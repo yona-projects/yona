@@ -2,11 +2,20 @@ package controllers;
 
 import models.User;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.LockedAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
+import org.apache.shiro.util.Factory;
 
 import play.Logger;
 import play.data.Form;
@@ -21,29 +30,18 @@ public class UserApp extends Controller {
 
 	public static final String SESSION_USERID = "userId";
 	public static final String SESSION_USERNAME = "userName";
-	public static final String SUBJECT = "nforge.subject";
+	public static final String TOKEN = "nforge.token";
+	public static final int MAX_AGE = 30*24*60*60;
 
 	public static User anonymous = new User();
 
 	public static Result login() {
-		// Remember Me
-		Cookie cookie = request().cookies().get(SUBJECT);
-		if (cookie != null) {
-			String value = cookie.value();
-			Logger.debug(value);
-			String[] subject = value.split(":");
-
-			User user = User.findByLoginId(subject[0]);
-			setUserInfoInSession(user);
-			return redirect(routes.Application.index());
-		}
-
 		return ok(login.render("title.login", form(User.class)));
 	}
 
 	public static Result logout() {
 		session().clear();
-		response().discardCookies(SUBJECT);
+		response().discardCookies(TOKEN);
 
 		flash(Constants.SUCCESS, "user.logout.success");
 		return redirect(routes.Application.index());
@@ -52,17 +50,40 @@ public class UserApp extends Controller {
 	public static Result authenticate() {
 		User sourceUser = form(User.class).bindFromRequest().get();
 		
-		UsernamePasswordToken token = new UsernamePasswordToken(sourceUser.loginId,
-				sourceUser.password);
-		token.setRememberMe(sourceUser.rememberMe);
-		// Subject currentUser = SecurityUtils.getSubject();
+		Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
+		SecurityManager securityManager = factory.getInstance();
+		SecurityUtils.setSecurityManager(securityManager);
 		
-		User authenticate = authenticate(sourceUser);
+        Subject currentUser = SecurityUtils.getSubject();
+        if(!currentUser.isAuthenticated()) {
+        	UsernamePasswordToken token = new UsernamePasswordToken(sourceUser.loginId,
+    				sourceUser.password);
+        	token.setRememberMe(sourceUser.rememberMe);
+        	
+        	Object principal = token.getPrincipal();
+        	
+        	try {
+                currentUser.login(token);
+            } catch (UnknownAccountException uae) {
+            	Logger.info("There is no user with username of " + token.getPrincipal());
+            } catch (IncorrectCredentialsException ice) {
+            	Logger.info("Password for account " + token.getPrincipal() + " was incorrect!");
+            } catch (LockedAccountException lae) {
+            	Logger.info("The account for username " + token.getPrincipal() + " is locked.  " +
+                        "Please contact your administrator to unlock it.");
+            }
+            // ... catch more exceptions here (maybe custom ones specific to your application?
+            catch (AuthenticationException ae) {
+                //unexpected condition?  error?
+            }
+        }
+		
+		User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 		
 		if(authenticate!=null) {
 			setUserInfoInSession(authenticate);
 			if (sourceUser.rememberMe) {
-				rememberMe(authenticate);
+				setupRememberMe(authenticate);
 			}
 			return redirect(routes.Application.index());
 		}
@@ -71,15 +92,24 @@ public class UserApp extends Controller {
 		return redirect(routes.UserApp.login());
 	}
 	
-	public static User authenticate(User user) {
-		User targetUser = User.findByLoginId(user.loginId);
-		if (targetUser != null) {
-			if (targetUser.password.equals(hashedPassword(user.password,
-					targetUser.passwordSalt))) {
-				return targetUser;
+	public static User authenticateWithHashedPassword(String loginId, String password) {
+		User user = User.findByLoginId(loginId);
+		if (user != null) {
+			if (user.password.equals(password)) {
+				return user;
 			}
 		}
-			
+		return null;
+	}
+	
+	public static User authenticateWithPlainPassword(String loginId, String password) {
+		User user = User.findByLoginId(loginId);
+		if (user != null) {
+			if (user.password.equals(hashedPassword(password,
+					user.passwordSalt))) {
+				return user;
+			}
+		}
 		return null;
 	}
 	
@@ -88,9 +118,24 @@ public class UserApp extends Controller {
 		return new Sha256Hash(plaintextPassword,
 				ByteSource.Util.bytes(passwordSalt), 1024).toBase64();
 	}
+	
+	public static boolean isRememberMe() {
+		// Remember Me
+		Cookie cookie = request().cookies().get(TOKEN);
+		
+		if (cookie != null) {
+			String[] subject = cookie.value().split(":");
+			User user = authenticateWithHashedPassword(subject[0], subject[1]);
+			if(user!=null) {
+				setUserInfoInSession(user);
+			}
+			return true;
+		}
+		return false;
+	}
 
-	private static void rememberMe(User user) {
-		response().setCookie(SUBJECT, user.loginId + ":" + "123456789");
+	private static void setupRememberMe(User user) {
+		response().setCookie(TOKEN, user.loginId + ":" + user.password, MAX_AGE);
 		Logger.debug("remember me enabled");
 	}
 
