@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import javax.servlet.ServletException;
 
 import models.Project;
+import models.User;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
@@ -63,11 +64,16 @@ public class SvnApp extends Controller {
         // Get projectName from the pathInfo.
         String projectName = pathInfo.split("/", 2)[0];
 
+        User currentUser = UserApp.currentUser();
         // Check the user has a permission to access this repository.
         Project project = Project.findByNameAndOwner(userName, projectName);
-        if (!AccessControl.isAllowed(session().get(UserApp.SESSION_USERID), project.id,
+        if (!AccessControl.isAllowed(currentUser.id, project.id,
                 Resource.CODE, getRequestedOperation(request().method()), null)) {
-            return forbidden("You have no permission to access this repository.");
+            if (currentUser.id == UserApp.anonymous.id) {
+                return BasicAuthAction.unauthorized(response());
+            } else {
+                return forbidden("You have no permission to access this repository.");
+            }
         }
 
         // Transform request and response in this context to ServletRequest and

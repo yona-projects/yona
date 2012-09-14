@@ -1,5 +1,7 @@
 package playRepository;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
@@ -17,11 +19,17 @@ import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.transport.PacketLineOut;
+import org.eclipse.jgit.transport.ReceivePack;
+import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
+import org.eclipse.jgit.transport.UploadPack;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
 import play.Logger;
+import play.mvc.Http.Response;
+import play.mvc.Http.Request;
 
 import models.Project;
 
@@ -89,7 +97,7 @@ public class RepositoryService {
             throw new UnsupportedOperationException();
         }
     }
-    
+
     public static DAVServlet createDavServlet(final String userName) throws ServletException {
         DAVServlet servlet = new DAVServlet();
         servlet.init(new ServletConfig() {
@@ -119,12 +127,61 @@ public class RepositoryService {
             }
 
         });
-        
+
         return servlet;
     }
 
     public static Repository createGitRepository(String userName, String projectName) throws IOException {
         return GitRepository.createGitRepository(userName, projectName);
+    }
+
+    public static byte[] gitAdvertise(String userName, String projectName, String service, Response response) throws IOException {
+        response.setContentType("application/x-" + service + "-advertisement");
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PacketLineOut packetLineOut = new PacketLineOut(byteArrayOutputStream);
+        packetLineOut.writeString("# service=" + service + "\n");
+        packetLineOut.end();
+        PacketLineOutRefAdvertiser packetLineOutRefAdvertiser = new PacketLineOutRefAdvertiser(packetLineOut);
+
+        Repository repository = createGitRepository(userName, projectName);
+
+        if (service.equals("git-upload-pack")) {
+            UploadPack uploadPack = new UploadPack(repository);
+            uploadPack.setBiDirectionalPipe(false);
+            uploadPack.sendAdvertisedRefs(packetLineOutRefAdvertiser);
+        } else if (service.equals("git-receive-pack")) {
+            ReceivePack receivePack = new ReceivePack(repository);
+            receivePack.sendAdvertisedRefs(packetLineOutRefAdvertiser);
+        }
+
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    public static byte[] gitRpc(String userName, String projectName, String service, Request request, Response response) throws IOException {
+        response.setContentType("application/x-" + service + "-result");
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        // FIXME 스트림으로..
+        byte[] buf = request.body().asRaw().asBytes();
+        ByteArrayInputStream in = new ByteArrayInputStream(buf);
+
+        Repository repository = createGitRepository(userName, projectName);
+
+        if (service.equals("git-upload-pack")) {
+            UploadPack uploadPack = new UploadPack(repository);
+            uploadPack.setBiDirectionalPipe(false);
+            uploadPack.upload(in, byteArrayOutputStream, null);
+        } else if (service.equals("git-receive-pack")) {
+            ReceivePack receivePack = new ReceivePack(repository);
+            receivePack.setBiDirectionalPipe(false);
+            receivePack.receive(in, byteArrayOutputStream, null);
+        }
+
+        // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+        byteArrayOutputStream.close();
+
+        return byteArrayOutputStream.toByteArray();
     }
 
 }

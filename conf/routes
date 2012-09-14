@@ -74,7 +74,7 @@ POST    /:userName/:projectName/issues/:id/edit         controllers.IssueApp.upd
 
 
 # Git
-GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String, service:String)
+GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String)
 POST    /:ownerName/:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(ownerName:String, projectName:String, service:String)
 
 # SVN
