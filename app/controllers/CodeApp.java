@@ -11,7 +11,6 @@ import play.mvc.*;
 import playRepository.RepositoryService;
 import utils.Config;
 import views.html.code.gitView;
-import views.html.code.svnView;
 
 public class CodeApp extends Controller {
 	public static Result codeBrowser(String userName, String projectName) throws IOException {
@@ -26,7 +25,7 @@ public class CodeApp extends Controller {
             return status(501, vcs + " is not supported!");
         }
     }
-    
+
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         //TODO Svn과 Git의 분리필요.
         ObjectNode findFileInfo =  RepositoryService.getMetaDataFrom(userName, projectName, path);
@@ -36,7 +35,7 @@ public class CodeApp extends Controller {
             return status(403);
         }
     }
-    
+
     public static Result showRawFile(String userName, String projectName, String path) throws Exception{
         return ok(RepositoryService.getFileAsRaw(userName, projectName, path));
     }

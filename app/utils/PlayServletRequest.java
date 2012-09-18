@@ -428,8 +428,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getRemoteUser() {
-        // FIXME
-        return null;
+        return UserApp.currentUser().loginId;
     }
 
     @Override

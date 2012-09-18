@@ -1,7 +1,9 @@
 package playRepository;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.codehaus.jackson.node.ObjectNode;
@@ -168,14 +170,25 @@ public class GitRepository implements PlayRepository {
     }
 
     @Override
-    public List<RevCommit> getHistory(int page, int limit) throws AmbiguousObjectException,
+    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException {
         // Get the list of commits from HEAD to the given page.
-        List<RevCommit> list = Lists.newArrayList(new Git(repository).log()
-                .setMaxCount(page * limit + limit).call());
+        Iterable<RevCommit> iter = new Git(repository).log()
+                .setMaxCount(page * limit + limit).call();
+        List<RevCommit> list = new LinkedList<RevCommit>();
+        for(RevCommit commit : iter) {
+            if (list.size() >= limit) {
+                list.remove(0);
+            }
+            list.add(commit);
+        }
 
-        // Return the list of commits in the page.
-        return list.subList(list.size() - limit, list.size());
+        List<Commit> result = new ArrayList<Commit>();
+        for(RevCommit commit : list) {
+            result.add(new GitCommit(commit));
+        }
+
+        return result;
     }
 
 }

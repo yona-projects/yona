@@ -1,0 +1,27 @@
+@(url: String, project: Project, history: List[playRepository.Commit], page: Integer)
+
+@main(Messages("Commit History"), project) {
+<div class="row" id="history">
+    <table class="table">
+        <tbody>
+        @for(commit <- history.iterator()) {
+            <tr>
+                <td><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
+                <td>@commit.getShortMessage()</td>
+                <td>@commit.getAuthorName()</td>
+                <td>@commit.getAuthorDate()</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <ul class="pager">
+        @if(page > 0) {
+        <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name)?page=@(page - 1)">@Messages("Newer")</a></li>
+        }
+
+        @if(history.get(history.size() - 1).getParentCount() > 0) {
+        <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name)?page=@(page + 1)">@Messages("Older")</a></li>
+        }
+        </ul>
+</div>
+}

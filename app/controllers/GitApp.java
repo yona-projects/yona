@@ -17,6 +17,7 @@ import play.mvc.With;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
+import utils.RequestUtil;
 
 public class GitApp extends Controller {
 
@@ -82,12 +83,12 @@ public class GitApp extends Controller {
     public static Result advertise(String userName, String projectName)
             throws ServiceMayNotContinueException, UnsupportedOperationException, IOException,
             ServletException {
-        if (!request().queryString().containsKey("service")) {
+        String service = RequestUtil.getFirstValueFromQuery(request().queryString(), "service");
+        if (service == null) {
             // If service parameter is not specified then git server should do getanyfile service,
             // but we don't support that.
             return forbidden("Unsupported service: getanyfile");
         }
-        String service = request().queryString().get("service")[0];
 
         Logger.debug("GitApp.advertise:" + request().toString());
 

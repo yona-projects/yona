@@ -6,7 +6,6 @@ import java.util.List;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 
@@ -14,7 +13,7 @@ public interface PlayRepository {
 
     public void create() throws IOException, ClientException;
 
-    
+
     public ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
             GitAPIException, SVNException;
 
@@ -24,9 +23,9 @@ public interface PlayRepository {
     public void delete();
 
     public String getPatch(String commitId) throws GitAPIException, MissingObjectException,
-            IncorrectObjectTypeException, IOException;
+            IncorrectObjectTypeException, IOException, SVNException;
 
-    public List<RevCommit> getHistory(int page, int limit) throws AmbiguousObjectException,
-            IOException, NoHeadException, GitAPIException;
+    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
+            IOException, NoHeadException, GitAPIException, SVNException;
 
 }
