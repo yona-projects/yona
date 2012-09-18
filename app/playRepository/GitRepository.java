@@ -2,15 +2,20 @@ package playRepository;
 
 import java.io.*;
 import java.util.Date;
+import java.util.List;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+
+import com.google.common.collect.Lists;
 
 import play.Logger;
 import play.libs.Json;
@@ -139,6 +144,38 @@ public class GitRepository implements PlayRepository {
     @Override
     public void delete() {
         FileUtil.rm_rf(repository.getDirectory());
+    }
+
+    @Override
+    public String getPatch(String rev) throws GitAPIException, MissingObjectException,
+            IncorrectObjectTypeException, IOException {
+        // Get the current commit.
+        ObjectId commitId = repository.resolve(rev);
+        RevWalk walk = new RevWalk(repository);
+        RevCommit commit = walk.parseCommit(commitId);
+
+        // Get the current and parent commit's trees.
+        RevTree a = commit.getTree();
+        RevTree b = walk.parseCommit(commit.getParent(0).getId()).getTree();
+
+        // Render the difference.
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DiffFormatter diffFormatter = new DiffFormatter(out);
+        diffFormatter.setRepository(repository);
+        diffFormatter.format(diffFormatter.scan(b, a));
+
+        return out.toString("UTF-8");
+    }
+
+    @Override
+    public List<RevCommit> getHistory(int page, int limit) throws AmbiguousObjectException,
+            IOException, NoHeadException, GitAPIException {
+        // Get the list of commits from HEAD to the given page.
+        List<RevCommit> list = Lists.newArrayList(new Git(repository).log()
+                .setMaxCount(page * limit + limit).call());
+
+        // Return the list of commits in the page.
+        return list.subList(list.size() - limit, list.size());
     }
 
 }

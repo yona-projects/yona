@@ -6,19 +6,20 @@ import java.util.*;
 import javax.servlet.*;
 
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.tigris.subversion.javahl.*;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 
-import play.Logger;
 import play.libs.Json;
 
 import utils.FileUtil;
 
 
 public class SVNRepository implements PlayRepository {
-    
 
     public static final String REPO_PREFIX = "repo/svn/";
 
@@ -98,6 +99,20 @@ public class SVNRepository implements PlayRepository {
     @Override
     public void delete() {
         FileUtil.rm_rf(new File(REPO_PREFIX + userName + "/" + projectName));
+    }
+
+
+    @Override
+    public String getPatch(String commitId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<RevCommit> getHistory(int page, int limit) throws AmbiguousObjectException,
+            IOException, NoHeadException, GitAPIException {
+        // TODO Auto-generated method stub
+        return null;
     }
     
 }

@@ -1,0 +1,11 @@
+@(project: Project, patch: String)
+
+@main(Messages("Commit"), project) {
+<div class="row" id="commit">
+    <pre>@patch</pre>
+</div>
+<script type="text/javascript">
+  var fn = nforge.require('code.diff');
+  console.log(fn);
+</script>
+}
