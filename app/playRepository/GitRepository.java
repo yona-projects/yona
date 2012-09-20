@@ -24,9 +24,17 @@ import play.libs.Json;
 import utils.FileUtil;
 
 public class GitRepository implements PlayRepository {
-    public static final String REPO_PREFIX = "repo/git/";
+    private static String repoPrefix = "repo/git/";
 
-    private Repository repository;
+    public static String getRepoPrefix() {
+        return repoPrefix;
+    }
+
+    public static void setRepoPrefix(String repoPrefix) {
+        GitRepository.repoPrefix = repoPrefix;
+    }
+
+    private final Repository repository;
 
     public GitRepository(String userName, String projectName) throws IOException {
         this.repository = createGitRepository(userName, projectName);
@@ -34,7 +42,7 @@ public class GitRepository implements PlayRepository {
 
     public static Repository createGitRepository(String userName, String projectName) throws IOException {
         return new RepositoryBuilder().setGitDir(
-                new File(REPO_PREFIX + userName + "/" + projectName + ".git")).build();
+                new File(getRepoPrefix() + userName + "/" + projectName + ".git")).build();
     }
 
     /* (non-Javadoc)
@@ -47,7 +55,7 @@ public class GitRepository implements PlayRepository {
 
     /**
      * path를 받아 파일 정보 JSON객체를 return 하는 함수 일단은 HEAD 만 가능하다.
-     * 
+     *
      * @param path
      *            정보를 얻고싶은 파일의 path
      * @return JSON객체 파일 정보를 담고 있다.
