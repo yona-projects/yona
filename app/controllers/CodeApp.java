@@ -19,7 +19,7 @@ public class CodeApp extends Controller {
             return ok(gitView.render(CodeApp.getURL(userName, projectName),
                     Project.findByName(projectName)));
         } else if (RepositoryService.VCS_SUBVERSION.equals(vcs)) {
-            return ok(gitView.render(CodeApp.getSvnURL(userName, projectName),
+            return ok(svnView.render(CodeApp.getSvnURL(userName, projectName),
                     Project.findByName(projectName)));
         } else {
             return status(501, vcs + " is not supported!");

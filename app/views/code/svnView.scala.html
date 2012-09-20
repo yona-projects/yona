@@ -5,4 +5,170 @@
 </ul>
 
 <div class="well">Checkout this repository : svn checkout @url</div>
+<div class="row" id="codeBrowser">
+    <div class="span3">
+        <ul id="codeRoot" class="well nav nav-list">
+            <li id="codeBrowserHeader">코드 탐색기</li>
+        </ul>
+    </div>
+    <div class="span9" >
+        <div id="folderView">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>FileName</th>
+                        <th>Commit Message</th>
+                        <th>Commit Date</th>
+                        <th>Author</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div id="codeView" class="hide">
+            <div>
+                <span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span>
+                <span class="pull-right"><a id="rawCode" class="btn btn-mini" target="_blank">Raw</a></span>
+            </div>
+            <hr />
+            <div>
+                <pre><code style="overflow:hidden"></code></pre>
+            </div>
+        </div>
+        
+    </div>
+    
+</div>
+<div id="codeError" class="hide row">
+    <div class="well span12">
+        <p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>
+        <pre><code>svn checkout @url
+touch readme.md
+git add readme.md
+git commit -m "init"
+git push origin master</code></pre>
+    </div>
+</div>
+<script type="text/javascript" src="/assets/javascripts/hljs.js"></script>
+<script type="text/javascript" src="/assets/javascripts/hljs.jquery.js"></script>
+<script type="text/javascript" src="/assets/javascripts/languages/allinone.js"></script>
+<style>
+@@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
+</style>
+<script type="text/javascript" src="/assets/javascript/jquery.ba-bbq.js"></script>
+<script>
+    $(document).ready(function(){
+        
+        openFolder("code/!", $("#codeBrowserHeader"))
+        
+        function makeLink(name, type, prefix)
+        {
+            var $li = $("<li>");
+            var $a = $("<a>");
+            var $icon = $("<i>");
+            if(type ==="folder")
+            {
+                $icon.addClass("icon-folder-close");
+            }
+            else if(type === "file")
+            {
+                $icon.addClass("icon-file");
+            }
+            $a.attr("type", type);
+            $a.append($icon).attr("href", prefix +"/"+ name).append(name);
+            $li.append($a);
+            return $li;
+        }
+
+        $("#codeRoot a").live("click", function(){
+            var target = $(this).attr("href");
+            var type = $(this).attr("type");
+            if(type === "file")
+            {
+                openFile(target);
+            }
+            else if(type === "folder")
+            {
+                if($(this).attr("opened") !== "true")
+                {
+                    openFolder(target,$(this));
+                }
+                else if($(this).attr("opened") === "true")
+                {
+                    closeFolder($(this));
+                }
+            }
+            return false;
+        });
+        function openFile(path)
+        {
+            $.ajax(path, {
+                success : function(data, textStatus, jqXHR){
+                    $("#commiter").text(data.commiter);
+                    $("#commitMessage").text(data.commitMessage);
+                    $("#commitDate").text(data.commitDate);
+                    $("code").text(data.data);
+                    $("#rawCode").attr("href", path.replace(/\/!/, ""));
+                    $("#folderView").hide();
+                    $("#codeView").show();
+                    $("code").highlight();
+                }
+            });
+        }
+        function openFolder(path, $parent)
+        {
+            $.ajax(path, {
+                success : function(data, textStatus, jqXHR){
+                    //폴더 구조를 펼치기
+                    var $ul = $("<ul>").addClass("nav nav-list");//<--
+                    $("tbody").children().remove();
+                    for(var name in data)
+                    {
+                        $ul.append(makeLink(name, data[name].type, path));//<-
+                        
+                        $("tbody").append($("<tr>")
+                                .append($("<td>").text(name))
+                                .append($("<td>").text(data[name].commitMessage))
+                                .append($("<td>").text(data[name].commitDate))
+                                .append($("<td>").text(data[name].commiter))
+                                );
+                    }
+                    $parent.after($ul); //<--
+                    $parent.attr("opened", "true");
+                    $("#folderView").show();
+                    $("#codeView").hide();
+                },
+                error : function(){
+                    $("#codeError").show();
+                    $("#codeBrowser").hide();
+                }
+            });
+        }
+        function closeFolder($parent)
+        {
+            $parent.next().remove();
+            $.ajax($parent.attr("href"), {
+                success : function(data, textStatus, jqXHR){
+                    $("tbody").children().remove();//<--
+                    
+
+                    for(var name in data)
+                    {
+                        $("tbody").append($("<tr>")
+                                .append($("<td>").text(name))
+                                .append($("<td>").text(data[name].commitMessage))
+                                .append($("<td>").text(data[name].commitDate))
+                                .append($("<td>").text(data[name].commiter))
+                                );
+                    }
+                    $parent.attr("opened", "false");
+                    $("#folderView").show();
+                    $("#codeView").hide();
+                }
+            });
+        }
+        
+    });
+    </script>
 }

@@ -64,7 +64,7 @@ public class GitRepository implements PlayRepository {
     @Override
     public ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
             GitAPIException {
-        // 파일 정보를 찾아서 Json으로 리턴?
+        // 파일 정보를 찾아서 Json으로 리턴
         Git git = new Git(repository);
 
         ObjectId headCommit = repository.resolve(Constants.HEAD);
@@ -106,6 +106,12 @@ public class GitRepository implements PlayRepository {
 
             RevCommit commit = git.log().addPath(path).call().iterator().next();
             ObjectNode result = Json.newObject();
+            
+            result.put("type", "file");
+            result.put("msg", commit.getShortMessage());
+            result.put("author", commit.getAuthorIdent().getName());
+            result.put("date", new Date(commit.getCommitTime() * 1000L).toString());
+
             result.put("commitMessage", commit.getShortMessage());
             result.put("commiter", commit.getAuthorIdent().getName());
 
@@ -121,16 +127,21 @@ public class GitRepository implements PlayRepository {
             IncorrectObjectTypeException, CorruptObjectException, IOException, GitAPIException,
             NoHeadException {
         ObjectNode result = Json.newObject();
+        result.put("type", "folder");
+        
+        ObjectNode listData = Json.newObject();
+
         while (treeWalk.next()) {
             RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator().next();
 
             ObjectNode data = Json.newObject();
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
-            data.put("commitMessage", commit.getShortMessage());
-            data.put("commiter", commit.getAuthorIdent().getName());
-            data.put("commitDate", new Date(commit.getCommitTime() * 1000l).toString());
-            result.put(treeWalk.getNameString(), data);
+            data.put("msg", commit.getShortMessage());
+            data.put("author", commit.getAuthorIdent().getName());
+            data.put("date", new Date(commit.getCommitTime() * 1000l).toString());
+            listData.put(treeWalk.getNameString(), data);
         }
+        result.put("data", listData);
         return result;
     }
 
