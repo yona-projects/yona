@@ -1,11 +1,17 @@
 @(project: Project, patch: String)
 
 @main(Messages("Commit"), project) {
+<script type="text/javascript" src="/assets/javascripts/hljs.js"></script>
+<script type="text/javascript" src="/assets/javascripts/hljs.jquery.js"></script>
+<script type="text/javascript" src="/assets/javascripts/languages/allinone.js"></script>
+<style>
+@@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
+</style>
 <div class="row" id="commit">
-    <pre>@patch</pre>
+    <pre><code>@patch</code></pre>
 </div>
 <script type="text/javascript">
   var fn = nforge.require('code.diff');
-  console.log(fn);
+  $("code").highlight('diff');
 </script>
 }
