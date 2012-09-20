@@ -1,11 +1,5 @@
 @(url : String, project:Project) @main("코드", project){
-
-<ul class="nav nav-tabs">
-    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a></li>
-    <a href="@routes.CodeHistoryApp.history(project.owner, project.name, null)">@Messages("Commits")</a></li>
-</ul>
-
-<div class="well">Checkout this repository : svn checkout @url</div>
+<div class="well">Clone this repository : git clone @url</div>
 <div class="row" id="codeBrowser">
     <div class="span3">
         <ul id="codeRoot" class="well nav nav-list">
@@ -52,7 +46,7 @@
 <div id="codeError" class="hide row">
     <div class="well span12">
         <p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>
-        <pre><code>svn checkout @url
+        <pre><code>git clone @url
 touch readme.md
 git add readme.md
 git commit -m "init"
@@ -67,8 +61,8 @@ git push origin master</code></pre>
 </style>
 <script>
     $(document).ready(function(){
-        /*
-        function makeLink(name, type, prefix)
+    	/*
+    	function makeLink(name, type, prefix)
         {
             var $li = $("<li>");
             var $a = $("<a>");
@@ -103,7 +97,7 @@ git push origin master</code></pre>
                 else if($(this).attr("opened") === "true")
                 {
                     closeFolder($(this));
-                }
+    			}
             }
             return false;
         });
@@ -114,9 +108,9 @@ git push origin master</code></pre>
         function openFolder(path, $parent)
         {
             $.ajax(path, {
-                success : function(data, textStatus, jqXHR){
-                    setHash("#" + path.replace(/code\/!/, ""));
-                    //폴더 구조를 펼치기
+    			success : function(data, textStatus, jqXHR){
+    			    setHash("#" + path.replace(/code\/!/, ""));
+    			    //폴더 구조를 펼치기
                     var $ul = $("<ul>").addClass("nav nav-list");//<--
                     for(var name in data) {
                         $ul.append(makeLink(name, data[name].type, path));//<-
@@ -127,8 +121,8 @@ git push origin master</code></pre>
                     $("#codeView").hide();
                 },
                 error : function(){
-                    $("#codeError").show();
-                    $("#codeBrowser").hide();
+                	$("#codeError").show();
+                	$("#codeBrowser").hide();
                 }
             });
         }
@@ -139,7 +133,7 @@ git push origin master</code></pre>
           $.ajax($parent.attr("href"), {
             success : function(data, textStatus, jqXHR){
               setHash("#" + path.replace(/code\/!/, ""));
-              $("tbody").children().remove();//<--
+        	  $("tbody").children().remove();//<--
               for(var name in data)
               {
                 $("tbody")

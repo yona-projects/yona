@@ -6,9 +6,11 @@ import java.util.*;
 import javax.servlet.*;
 
 import org.codehaus.jackson.node.ObjectNode;
+
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
+
 import org.tigris.subversion.javahl.*;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
@@ -60,6 +62,10 @@ public class SVNRepository implements PlayRepository {
         if(nodeKind == SVNNodeKind.DIR){
             //폴더 내용 출력
             ObjectNode result = Json.newObject();
+            
+            result.put("type", "folder");
+            ObjectNode listData = Json.newObject();
+            
             SVNProperties prop = new SVNProperties();
             
             Collection entries = repository.getDir(path, -1, prop, (Collection)null);
@@ -70,12 +76,13 @@ public class SVNRepository implements PlayRepository {
                 
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
-                data.put("commitMessage", entry.getCommitMessage());
-                data.put("commiter", entry.getAuthor());
-                data.put("commitDate", entry.getDate().toString());
+                data.put("msg", entry.getCommitMessage());
+                data.put("author", entry.getAuthor());
+                data.put("date", entry.getDate().toString());
                 
-                result.put(entry.getName(), data);
+                listData.put(entry.getName(), data);
             }
+            result.put("data", listData);
             
             return result;
             
@@ -87,10 +94,10 @@ public class SVNRepository implements PlayRepository {
             SVNProperties prop = new SVNProperties();
             repository.getFile(path, -1l, prop, baos);
             
-            result.put("commitMessage", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
-            result.put("commiter", prop.getStringValue(SVNProperty.LAST_AUTHOR));
+            result.put("msg", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
+            result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
 
-            result.put("commitDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
+            result.put("date", prop.getStringValue(SVNProperty.COMMITTED_DATE));
 
             result.put("data", baos.toString());
             return result;
