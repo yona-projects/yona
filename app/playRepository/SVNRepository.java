@@ -23,7 +23,15 @@ import utils.FileUtil;
 
 public class SVNRepository implements PlayRepository {
 
-    public static final String REPO_PREFIX = "repo/svn/";
+    private static String repoPrefix = "repo/svn/";
+
+    public static String getRepoPrefix() {
+        return repoPrefix;
+    }
+
+    public static void setRepoPrefix(String repoPrefix) {
+        SVNRepository.repoPrefix = repoPrefix;
+    }
 
     private String projectName;
 
@@ -36,7 +44,7 @@ public class SVNRepository implements PlayRepository {
 
 
     public byte[] getRawFile(String path) throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(REPO_PREFIX + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         repository.getFile(path, -1l, null, baos);
@@ -44,7 +52,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     public ObjectNode findFileInfo(String path) throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(REPO_PREFIX + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
         
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
@@ -93,20 +101,20 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public void create() throws ClientException {
-        String svnPath = new File(SVNRepository.REPO_PREFIX + userName + "/" + projectName)
+        String svnPath = new File(SVNRepository.getRepoPrefix() + userName + "/" + projectName)
                 .getAbsolutePath();
         new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
     }
 
     @Override
     public void delete() {
-        FileUtil.rm_rf(new File(REPO_PREFIX + userName + "/" + projectName));
+        FileUtil.rm_rf(new File(getRepoPrefix() + userName + "/" + projectName));
     }
 
     @Override
     public String getPatch(String commitId) throws SVNException {
         // Prepare required arguments.
-        SVNURL svnURL = SVNURL.fromFile(new File(REPO_PREFIX + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
         long rev = Integer.parseInt(commitId);
 
         // Get diffClient.
@@ -126,7 +134,7 @@ public class SVNRepository implements PlayRepository {
     public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException {
         // Get the repository
-        SVNURL svnURL = SVNURL.fromFile(new File(REPO_PREFIX + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + userName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
 
         // path to get log
