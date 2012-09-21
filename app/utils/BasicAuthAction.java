@@ -69,14 +69,12 @@ public class BasicAuthAction extends Action<Object> {
 
     public User authenticate(Request request) throws UnsupportedEncodingException, MalformedCredentialsException {
         String credential = request.getHeader(Http.HeaderNames.AUTHORIZATION);
-        Logger.debug(credential);
         User authUser = parseCredentials(credential);
 
         if (authUser != null) {
             return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
         } else {
             if (isAnonymousSupported) {
-                Logger.debug("return anon");
                 return UserApp.anonymous;
             } else {
                 return null;
@@ -91,7 +89,6 @@ public class BasicAuthAction extends Action<Object> {
         try {
             user = authenticate(context.request());
         } catch (MalformedCredentialsException error) {
-            Logger.debug("Malformed");
             return badRequest();
         } catch (UnsupportedEncodingException e) {
             return internalServerError();

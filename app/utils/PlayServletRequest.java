@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
+import controllers.UserApp;
+
 import play.Play;
 import play.i18n.Lang;
 import play.mvc.Http;
@@ -426,8 +428,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getRemoteUser() {
-        // FIXME
-        return null;
+        return UserApp.currentUser().loginId;
     }
 
     @Override
@@ -471,8 +472,14 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public Principal getUserPrincipal() {
-        // FIXME Implement this.
-        return null;
+        return new Principal() {
+
+            @Override
+            public String getName() {
+                return UserApp.currentUser().loginId;
+            }
+
+        };
     }
 
     @Override

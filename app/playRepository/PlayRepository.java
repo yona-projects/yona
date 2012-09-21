@@ -1,6 +1,7 @@
 package playRepository;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.*;
@@ -12,7 +13,7 @@ public interface PlayRepository {
 
     public void create() throws IOException, ClientException;
 
-    
+
     public ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
             GitAPIException, SVNException;
 
@@ -20,5 +21,11 @@ public interface PlayRepository {
             IncorrectObjectTypeException, AmbiguousObjectException, IOException, SVNException;
 
     public void delete();
+
+    public String getPatch(String commitId) throws GitAPIException, MissingObjectException,
+            IncorrectObjectTypeException, IOException, SVNException;
+
+    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
+            IOException, NoHeadException, GitAPIException, SVNException;
 
 }

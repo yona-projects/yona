@@ -1,4 +1,9 @@
 @(url : String, project:Project) @main("코드", project){
+<ul class="nav nav-tabs">
+    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a></li>
+    <a href="@routes.CodeHistoryApp.history(project.owner, project.name)">@Messages("Commits")</a></li>
+</ul>
+
 <div class="well">Clone this repository : git clone @url</div>
 <div class="row" id="codeBrowser">
     <div class="span3">

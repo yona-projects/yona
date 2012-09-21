@@ -1,25 +1,40 @@
 package playRepository;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.*;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.errors.*;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+import com.google.common.collect.Lists;
+
 import play.Logger;
 import play.libs.Json;
 import utils.FileUtil;
 
 public class GitRepository implements PlayRepository {
-    public static final String REPO_PREFIX = "repo/git/";
+    private static String repoPrefix = "repo/git/";
 
-    private Repository repository;
+    public static String getRepoPrefix() {
+        return repoPrefix;
+    }
+
+    public static void setRepoPrefix(String repoPrefix) {
+        GitRepository.repoPrefix = repoPrefix;
+    }
+
+    private final Repository repository;
 
     public GitRepository(String userName, String projectName) throws IOException {
         this.repository = createGitRepository(userName, projectName);
@@ -27,7 +42,7 @@ public class GitRepository implements PlayRepository {
 
     public static Repository createGitRepository(String userName, String projectName) throws IOException {
         return new RepositoryBuilder().setGitDir(
-                new File(REPO_PREFIX + userName + "/" + projectName + ".git")).build();
+                new File(getRepoPrefix() + userName + "/" + projectName + ".git")).build();
     }
 
     /* (non-Javadoc)
@@ -40,7 +55,7 @@ public class GitRepository implements PlayRepository {
 
     /**
      * path를 받아 파일 정보 JSON객체를 return 하는 함수 일단은 HEAD 만 가능하다.
-     * 
+     *
      * @param path
      *            정보를 얻고싶은 파일의 path
      * @return JSON객체 파일 정보를 담고 있다.
@@ -139,6 +154,49 @@ public class GitRepository implements PlayRepository {
     @Override
     public void delete() {
         FileUtil.rm_rf(repository.getDirectory());
+    }
+
+    @Override
+    public String getPatch(String rev) throws GitAPIException, MissingObjectException,
+            IncorrectObjectTypeException, IOException {
+        // Get the current commit.
+        ObjectId commitId = repository.resolve(rev);
+        RevWalk walk = new RevWalk(repository);
+        RevCommit commit = walk.parseCommit(commitId);
+
+        // Get the current and parent commit's trees.
+        RevTree a = commit.getTree();
+        RevTree b = walk.parseCommit(commit.getParent(0).getId()).getTree();
+
+        // Render the difference.
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DiffFormatter diffFormatter = new DiffFormatter(out);
+        diffFormatter.setRepository(repository);
+        diffFormatter.format(diffFormatter.scan(b, a));
+
+        return out.toString("UTF-8");
+    }
+
+    @Override
+    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
+            IOException, NoHeadException, GitAPIException {
+        // Get the list of commits from HEAD to the given page.
+        Iterable<RevCommit> iter = new Git(repository).log()
+                .setMaxCount(page * limit + limit).call();
+        List<RevCommit> list = new LinkedList<RevCommit>();
+        for(RevCommit commit : iter) {
+            if (list.size() >= limit) {
+                list.remove(0);
+            }
+            list.add(commit);
+        }
+
+        List<Commit> result = new ArrayList<Commit>();
+        for(RevCommit commit : list) {
+            result.add(new GitCommit(commit));
+        }
+
+        return result;
     }
 
 }

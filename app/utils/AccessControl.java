@@ -79,7 +79,6 @@ public class AccessControl {
             return isAuthorEditible
                     || Permission.hasPermission(userId, projectId, resource, operation);
         } else { // Anonymous
-            Logger.debug("projectid: " + projectId);
             if (!Project.findById(projectId).share_option) {
                 return false;
             }

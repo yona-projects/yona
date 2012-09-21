@@ -95,7 +95,9 @@ GET     /:user/:projectName/code/!/*path                controllers.CodeApp.ajax
 GET     /:user/:projectName/code                        controllers.CodeApp.codeBrowser(user:String, projectName:String)
 GET     /:user/:projectName/code/*path                  controllers.CodeApp.showRawFile(user:String, projectName:String, path:String)
 
+# Commits
+GET     /:user/:projectName/commits                     controllers.CodeHistoryApp.history(user:String, projectName:String)
+GET     /:user/:projectName/commit/:id                  controllers.CodeHistoryApp.show(user:String, projectName:String, id:String)
 
 # Search
 GET     /:userName/:projectName/search                  controllers.SearchApp.contentsSearch(userName: String, projectName: String)
-

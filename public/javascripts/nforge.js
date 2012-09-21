@@ -1,3 +1,4 @@
+// nfoge.require 하기 전에 일단 모듈 js파일을 불러오긴 해야된다. 그것까지 알아서 하는 건 아님.
 var NForge = function () {
     var proto,
       PERIOD = '.',

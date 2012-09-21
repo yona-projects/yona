@@ -105,7 +105,7 @@ public class RepositoryService {
             @Override
             public String getInitParameter(String name) {
                 if (name.equals("SVNParentPath")) {
-                    return new File(SVNRepository.REPO_PREFIX + userName + "/").getAbsolutePath();
+                    return new File(SVNRepository.getRepoPrefix() + userName + "/").getAbsolutePath();
                 } else {
                     return play.Configuration.root().getString("application." + name);
                 }
