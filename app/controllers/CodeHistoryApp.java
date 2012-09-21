@@ -17,6 +17,7 @@ import playRepository.Commit;
 import playRepository.RepositoryService;
 import utils.RequestUtil;
 import views.html.code.history;
+import views.html.code.nohead;
 import views.html.code.diff;
 
 public class CodeHistoryApp extends Controller {
@@ -24,7 +25,7 @@ public class CodeHistoryApp extends Controller {
     private static final int HISTORY_ITEM_LIMIT = 25;
 
     public static Result history(String userName, String projectName) throws IOException,
-            UnsupportedOperationException, ServletException, NoHeadException, GitAPIException,
+            UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByName(projectName);
         String url = CodeApp.getURL(userName, projectName);
@@ -34,10 +35,13 @@ public class CodeHistoryApp extends Controller {
             page = Integer.parseInt(pageStr);
         }
 
-        List<Commit> commits = RepositoryService.getRepository(project).getHistory(page,
-                HISTORY_ITEM_LIMIT);
-
-        return ok(history.render(url, project, commits, page));
+        try {
+            List<Commit> commits = RepositoryService.getRepository(project).getHistory(page,
+                    HISTORY_ITEM_LIMIT);
+            return ok(history.render(url, project, commits, page));
+        } catch (NoHeadException e) {
+            return ok(nohead.render(url, project));
+        }
     }
 
     public static Result show(String userName, String projectName, String commitId)
