@@ -224,8 +224,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         Milestone m5 = Milestone.findById(5l);
         int totalNumber = m5.numTotalIssues;
         int openNumber = m5.numOpenIssues;
-        Issue issue = new Issue();
-        issue.title = "불필요한 로그 출력 코드 제거test";
+        Issue issue = new Issue("불필요한 로그 출력 코드 제거test");
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
         issue.stateType = StateType.OPEN;
@@ -244,7 +243,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
     @Test
     public void updateIssue() throws Exception {
         //Given
-        Issue issue = new Issue();
+        Issue issue = new Issue("불필요한 로그 출력 코드 제거test");
         issue.updateStateType(issue);
         issue.milestoneId = 6l;
         issue.update(5l);

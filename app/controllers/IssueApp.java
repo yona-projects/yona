@@ -172,4 +172,8 @@ public class IssueApp extends Controller {
         }
         return null;
     }
+    
+    public static Result getIssueDatil(){
+    	return TODO;
+    }
 }

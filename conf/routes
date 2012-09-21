@@ -71,7 +71,7 @@ GET     /:userName/:projectName/issue/:id/delete        controllers.IssueApp.del
 GET     /:userName/:projectName/issue/:id/deleteComment controllers.IssueApp.deleteComment(userName:String, projectName:String, id:Long, commentId:Long)
 GET     /:userName/:projectName/issues/:id/edit         controllers.IssueApp.editIssue(userName:String, projectName:String, id:Long)
 POST    /:userName/:projectName/issues/:id/edit         controllers.IssueApp.updateIssue(userName:String, projectName:String, id:Long)
-
+GET		/issuedetail									controllers.IssueApp.getIssueDatil()
 
 # Git
 GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String)

@@ -22,7 +22,7 @@ public class IssueTest extends ModelTest<Issue> {
 	@Test
 	public void testState() throws Exception {
 		//Given
-		Issue issue = new Issue();
+		Issue issue = new Issue("test 이슈");
         
         //When
         issue.state = IssueState.ASSIGNED;
@@ -35,8 +35,7 @@ public class IssueTest extends ModelTest<Issue> {
     @Test
     public void create() throws Exception {
         // Given
-        Issue issue = new Issue();
-        issue.title = "불필요한 로그 출력 코드 제거test";
+        Issue issue = new Issue("불필요한 로그 출력 코드 제거test");
         issue.date = JodaDateUtil.today();
         issue.state = IssueState.ASSIGNED;
         issue.authorId = User.findById(1l).id;
@@ -46,6 +45,8 @@ public class IssueTest extends ModelTest<Issue> {
         // Then
         assertThat(Issue.create(issue)).isNotNull();
     }
+    
+    
 
     @Test
     public void findById() throws Exception {

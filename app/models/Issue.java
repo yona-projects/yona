@@ -86,6 +86,9 @@ public class Issue extends Model {
     public String dbmsType;
     public String importance;
     public String diagnosisResult;
+    
+    @OneToMany
+	public List<IssueDetail> issueDetails;
 
     @ManyToOne
     public Project project;
@@ -93,7 +96,7 @@ public class Issue extends Model {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public List<IssueComment> comments;
 
-    public Issue() {
+    public Issue(String title) {
         this.date = JodaDateUtil.now();
     }
 
@@ -612,4 +615,11 @@ public class Issue extends Model {
         issue.numOfComments = issue.comments.size();
         issue.update();
     }
+
+	public void addIssueDetails(IssueDetail issueDetail) {
+		if(this.issueDetails == null) {
+			this.issueDetails = new ArrayList<IssueDetail>();
+		}
+		this.issueDetails.add(issueDetail);
+	}
 }
