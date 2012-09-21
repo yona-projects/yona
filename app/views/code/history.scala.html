@@ -1,15 +1,21 @@
 @(url: String, project: Project, history: List[playRepository.Commit], page: Integer)
 
 @main(Messages("Commit History"), project) {
+
+<ul class="nav nav-tabs">
+    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a></li>
+    <a href="@routes.CodeHistoryApp.history(project.owner, project.name)">@Messages("Commits")</a></li>
+</ul>
+
 <div class="row" id="history">
     <table class="table">
         <tbody>
         @for(commit <- history.iterator()) {
             <tr>
-                <td><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
-                <td>@commit.getShortMessage()</td>
                 <td>@commit.getAuthorName()</td>
+                <td><pre>@commit.getMessage()</pre></td>
                 <td>@commit.getAuthorDate()</td>
+                <td><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
             </tr>
         }
         </tbody>
