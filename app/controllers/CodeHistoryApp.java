@@ -24,7 +24,13 @@ public class CodeHistoryApp extends Controller {
 
     private static final int HISTORY_ITEM_LIMIT = 25;
 
-    public static Result history(String userName, String projectName) throws IOException,
+    public static Result historyUntilHead(String userName, String projectName) throws IOException,
+            UnsupportedOperationException, ServletException, GitAPIException,
+            SVNException {
+        return history(userName, projectName, null);
+    }
+
+    public static Result history(String userName, String projectName, String branch) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByName(projectName);
@@ -37,8 +43,8 @@ public class CodeHistoryApp extends Controller {
 
         try {
             List<Commit> commits = RepositoryService.getRepository(project).getHistory(page,
-                    HISTORY_ITEM_LIMIT);
-            return ok(history.render(url, project, commits, page));
+                    HISTORY_ITEM_LIMIT, branch);
+            return ok(history.render(url, project, commits, page, branch));
         } catch (NoHeadException e) {
             return ok(nohead.render(url, project));
         }

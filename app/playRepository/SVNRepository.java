@@ -131,7 +131,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
+    public List<Commit> getHistory(int page, int limit, String until) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException {
         // Get the repository
         SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + userName + "/" + projectName));
@@ -144,7 +144,7 @@ public class SVNRepository implements PlayRepository {
         long startRevision = repository.getLatestRevision();
         long endRevision = startRevision - limit;
         if (endRevision < 1) {
-            endRevision = 1;
+            return new ArrayList<Commit>();
         }
 
         // Get the logs
@@ -156,4 +156,8 @@ public class SVNRepository implements PlayRepository {
         return result;
     }
 
+    @Override
+    public List<String> getBranches() {
+        return new ArrayList<String>();
+    }
 }

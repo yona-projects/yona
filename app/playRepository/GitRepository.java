@@ -17,8 +17,6 @@ import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
-import com.google.common.collect.Lists;
-
 import play.Logger;
 import play.libs.Json;
 import utils.FileUtil;
@@ -178,13 +176,16 @@ public class GitRepository implements PlayRepository {
     }
 
     @Override
-    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
-            IOException, NoHeadException, GitAPIException {
+    public List<Commit> getHistory(int page, int limit, String until)
+            throws AmbiguousObjectException, IOException, NoHeadException, GitAPIException {
         // Get the list of commits from HEAD to the given page.
-        Iterable<RevCommit> iter = new Git(repository).log()
-                .setMaxCount(page * limit + limit).call();
+        LogCommand logCommand = new Git(repository).log();
+        if (until != null) {
+            logCommand.add(repository.resolve(until));
+        }
+        Iterable<RevCommit> iter = logCommand.setMaxCount(page * limit + limit).call();
         List<RevCommit> list = new LinkedList<RevCommit>();
-        for(RevCommit commit : iter) {
+        for (RevCommit commit : iter) {
             if (list.size() >= limit) {
                 list.remove(0);
             }
@@ -192,11 +193,16 @@ public class GitRepository implements PlayRepository {
         }
 
         List<Commit> result = new ArrayList<Commit>();
-        for(RevCommit commit : list) {
+        for (RevCommit commit : list) {
             result.add(new GitCommit(commit));
         }
 
         return result;
+    }
+
+    @Override
+    public List<String> getBranches() {
+        return new ArrayList<String>(repository.getAllRefs().keySet());
     }
 
 }

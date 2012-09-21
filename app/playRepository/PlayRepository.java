@@ -25,7 +25,9 @@ public interface PlayRepository {
     public String getPatch(String commitId) throws GitAPIException, MissingObjectException,
             IncorrectObjectTypeException, IOException, SVNException;
 
-    public List<Commit> getHistory(int page, int limit) throws AmbiguousObjectException,
+    public List<Commit> getHistory(int page, int limit, String branch) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException;
+
+    public List<String> getBranches();
 
 }
