@@ -7,9 +7,16 @@
 <style>
 @@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
 </style>
+
+<ul class="nav nav-tabs">
+    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a></li>
+    <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+</ul>
+
 <div class="row" id="commit">
     <pre><code>@patch</code></pre>
 </div>
+
 <script type="text/javascript">
   $("code").highlight('diff');
 </script>

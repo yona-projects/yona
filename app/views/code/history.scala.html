@@ -3,7 +3,7 @@
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 
-@main(Messages("Commit History"), project) {
+@main(Messages("title.commitHistory"), project) {
 
 @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
     @if(branches.length > 0) {
@@ -17,38 +17,46 @@
     }
 }
 
-<ul class="nav nav-tabs">
-    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a></li>
-    <a href="@routes.CodeHistoryApp.history(project.owner, project.name, selectedBranch)">@Messages("Commits")</a></li>
-</ul>
+@defining(
+    if(selectedBranch) {
+        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
+    } else {
+        routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
+    }
+) { url =>
+    <ul class="nav nav-tabs">
+        <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a></li>
+        <a href="@url">@Messages("code.commits")</a></li>
+    </ul>
 
-@if(history.size() > 0) {
-    <div class="row" id="history">
-        <table class="table">
-            <tbody>
-            @for(commit <- history.iterator()) {
-                <tr>
-                    <td>@commit.getAuthorName()</td>
-                    <td><pre>@commit.getMessage()</pre></td>
-                    <td>@commit.getAuthorDate()</td>
-                    <td><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
-                </tr>
-            }
-            </tbody>
-        </table>
-        <ul class="pager">
+    @if(history.size() > 0) {
+        <div class="row" id="history">
+            <table class="table">
+                <tbody>
+                @for(commit <- history.iterator()) {
+                    <tr>
+                        <td>@commit.getAuthorName()</td>
+                        <td><pre>@commit.getMessage()</pre></td>
+                        <td>@commit.getAuthorDate()</td>
+                        <td><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <ul class="pager">
             @if(page > 0) {
-            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, selectedBranch)?page=@(page - 1)">@Messages("Newer")</a></li>
+                <li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
             }
 
             @if(history.get(history.size() - 1).getParentCount() > 0) {
-            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, selectedBranch)?page=@(page + 1)">@Messages("Older")</a></li>
+                <li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
             }
             </ul>
-    </div>
-    <script type="text/javascript">
-    nforge.require('code.branch');
-    </script>
+        </div>
+        <script type="text/javascript">
+        nforge.require('code.branch');
+        </script>
+    }
 }
 
 }

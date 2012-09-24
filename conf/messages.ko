@@ -17,6 +17,7 @@ title.site.userEdit = 유저 설정
 title.login = 로그인
 title.logout = 로그아웃
 title.signup = 회원 가입
+title.commitHistory = 커밋 히스토리
 
 menu.home = 홈
 menu.board = 게시판
@@ -260,3 +261,9 @@ title.contentSearchResult = 컨텐츠 검색 결과
 #Vaildation
 error.required = 필수 입력란입니다.
 error.wrong.format = 잘못된 형식의 값 입니다.
+
+#Code
+code.files = 파일
+code.commits = 커밋
+code.newer = 이전
+code.older = 다음

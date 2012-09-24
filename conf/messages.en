@@ -17,6 +17,7 @@ title.site.userEdit = Edit a User
 title.login = Login
 title.logout = Logout
 title.signup = Sign Up
+title.codeHistory = Commit History
 
 menu.home = Home
 menu.board = Board
@@ -261,3 +262,8 @@ title.contentSearchResult = Conetnet Search Result
 error.required = It is required.
 error.wrong.format = It is wrong format.
 
+#Code
+code.files = Files
+code.commits = Commits
+code.newer = Newer
+code.older = Older
