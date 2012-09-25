@@ -95,6 +95,8 @@ public class SVNRepository implements PlayRepository {
             SVNProperties prop = new SVNProperties();
             repository.getFile(path, -1l, prop, baos);
             
+            result.put("type", "file");
+            
             result.put("msg", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
             result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
 
