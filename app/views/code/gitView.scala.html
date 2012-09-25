@@ -237,10 +237,10 @@ git push origin master</code></pre>
             $($breadcrumbs).html('<a href="#/">/</a>');
                         
             var names = path.split("/");
-            var str = "#/"
+            var str = "#"
             for(var i = 1; i < names.length; i++){
               var name = names[i];
-              str += name;
+              str += "/" + name;
               $breadcrumbs.append(" &gt; ");
               $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
             }
@@ -253,7 +253,7 @@ git push origin master</code></pre>
               var $ul = $("<ul>").addClass("nav nav-list");
               for(var name in data.data) {
                 if (data.data[name].type === "folder"){
-                  var str = "#" + (path !== "/" ? path : "") + "/" + name;
+                  var str = "#" + getPath(name);
                   var $a = $("<a>").attr("href", str).text(name);
                   $("<li>").append($a).appendTo($ul);
                 }
@@ -270,12 +270,20 @@ git push origin master</code></pre>
               var $ul = $("<ul>").addClass("nav nav-list");
               for(var name in data.data) {
                 if (data.data[name].type === "folder"){
-                  var str = "#" + (path !== "/" ? path : "") + "/" + name;
+                  var str = "#" + getPath(name);
                   var $a = $("<a>").attr("href", str).text(name);
                   $("<li>").append($a).appendTo($ul);
                 }
               }
               $parent.after($ul);
+            }
+          }
+          function getPath(name){
+            var path = getHash().replace(/^#/, "");
+            if(path == "/") {
+              return path + name;
+            } else {
+              return path + "/" + name;
             }
           }
         });
