@@ -1,0 +1,39 @@
+@(message: String, isConfigured: Boolean)
+
+@siteMngMain(message) {
+<form method="post" action="@routes.SiteApp.sendMail()" id="mailForm" class="span9 form-horizontal">
+  <div class="page-header">
+    <h3>@Messages(message)</h3>
+  </div>
+  @if(!isConfigured) {
+    <div class="alert alert-error">@Html(Messages("mail.notConfigured", "/admin/mailconf"))</div>
+  }
+  <div class="control-group">
+    <label name="to" class="control-label">@Messages("mail.to")</label>
+    <div class="controls">
+      <input type="text" name="to" required="" placeholder="@Messages("mail.toPlaceholder")">
+    </div>
+  </div>
+  <div style="margin-right: 10px" class="control-group">
+    <label name="subject" class="control-label">@Messages("mail.subject")</label>
+    <div class="controls">
+      <input type="text" name="subject">
+    </div>
+  </div>
+  <div style="margin-right: 10px" class="control-group">
+    <label name="body" class="control-label">@Messages("mail.body")</label>
+    <div class="controls">
+      <textarea id="body" name="body" cols="32" rows="16" class="input-xlarge textbody"></textarea>
+    </div>
+  </div>
+  <div>
+    <button type="submit" class="btn btn-primary">
+      <strong>@Messages("mail.send")</strong>
+    </button>
+  </div>
+</form>
+
+<script type="text/javascript">
+  nforge.require('admin.mail');
+</script>
+}

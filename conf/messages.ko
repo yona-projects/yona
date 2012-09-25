@@ -18,6 +18,8 @@ title.login = 로그인
 title.logout = 로그아웃
 title.signup = 회원 가입
 title.commitHistory = 커밋 히스토리
+title.mailSetting = 메일 설정
+title.sendMail = 메일 발송
 
 menu.home = 홈
 menu.board = 게시판
@@ -267,3 +269,26 @@ code.files = 파일
 code.commits = 커밋
 code.newer = 이전
 code.older = 다음
+
+#mail
+mail.from = 발신 메일주소
+mail.password = 비밀번호
+mail.passwordPlaceholder = 이 비밀번호는 서버에 평문으로 저장됩니다.
+mail.host =	호스트
+mail.hostPlaceholder =	smtp.mail.com
+mail.port =	포트
+mail.portPlaceholder = 보통 25, 587, 465 중 하나
+mail.username =	사용자 이름
+mail.usernamePlaceholder = yourname
+mail.ssl = SSL
+mail.tls = TLS
+mail.authMethod = 인증 방법
+mail.save = 저장
+mail.authMethodPlaceholder = LOGIN 혹은 PLAIN
+
+mail.notConfigured = 메일이 설정되지 않았습니다. <a href="https://github.com/typesafehub/play-plugins/tree/master/mailer#installation">여기</a>를 참고하여 메일을 설정해 주세요.
+mail.to = 받는사람
+mail.toPlaceholder = receiver@mail.com
+mail.subject = 제목
+mail.body = 본문
+mail.send = 발송

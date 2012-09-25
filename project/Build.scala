@@ -24,7 +24,9 @@ object ApplicationBuild extends Build {
 	  // shiro
 	    "org.apache.shiro" % "shiro-core" % "1.2.1",
       // commons-codec
-      "commons-codec" % "commons-codec" % "1.2"
+      "commons-codec" % "commons-codec" % "1.2",
+      // mailer
+      "com.typesafe" %% "play-plugins-mailer" % "2.0.4"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(

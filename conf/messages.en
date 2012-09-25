@@ -18,6 +18,8 @@ title.login = Login
 title.logout = Logout
 title.signup = Sign Up
 title.codeHistory = Commit History
+title.mailSetting = Mail Configuration
+title.sendMail = Send Mail
 
 menu.home = Home
 menu.board = Board
@@ -267,3 +269,26 @@ code.files = Files
 code.commits = Commits
 code.newer = Newer
 code.older = Older
+
+#mail
+mail.from = From
+mail.password = Password
+mail.passwordPlaceholder = This will be stored as a plain text in the server.
+mail.host =	Host
+mail.hostPlaceholder =	smtp.mail.com
+mail.port = Port
+mail.portPlaceholder = 25, 587 or 465
+mail.username = User name
+mail.usernamePlaceholder = yourname
+mail.ssl = SSL
+mail.tls = TLS
+mail.authMethod = Authentication method
+mail.save = Save Changes
+mail.authMehtodPlaceholder = LOGIN or PLAIN
+
+mail.notConfigured = Mail is not configured. Refer <a href="https://github.com/typesafehub/play-plugins/tree/master/mailer#installation">here</a> for more details.
+mail.to = To
+mail.toPlaceholder = receiver@mail.com
+mail.subject = Subject
+mail.body = Body
+mail.send = Send

@@ -20,6 +20,8 @@ POST    /info/edit                                      controllers.UserApp.save
 
 # Site
 GET     /sites/setting                                  controllers.SiteApp.setting()
+GET     /sites/mail                                     controllers.SiteApp.writeMail()
+POST    /sites/mail                                     controllers.SiteApp.sendMail()
 GET     /sites/userList                                 controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
 POST    /sites/userList                                 controllers.SiteApp.searchUser()
 GET     /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
