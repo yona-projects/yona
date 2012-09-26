@@ -8,7 +8,7 @@
 <div class="row" id="codeBrowser">
     <div class="span3">
         <ul id="codeRoot" class="well nav nav-list">
-            <li id="codeBrowserHeader">코드 탐색기</li>
+            <li id="codeBrowserHeader"><a href="#">코드 탐색기</a></li>
         </ul>
     </div>
     <div class="span9" >
@@ -166,7 +166,8 @@ git push origin master</code></pre>
             datatype : "json",
             success : function(data, textStatus, jqXHR){
               updateBreadcrumbs(path);
-              updateFileNav(data);
+              //updateFileNav(data);
+              updateNav(path);
               //현재 위치 네비게이션과 위의 Breadcrumbs에 표시해주고
               switch(data.type){
                 case "file" :
@@ -297,6 +298,39 @@ git push origin master</code></pre>
     }
     function setHash(hash){
         return location.hash = hash;
+    }
+    var stack = [];
+    function updateNav(path){
+        $.ajax("code/!" + path, {
+            success : function(data, textStatus, jqXHR){
+                data.path = path;
+                stack.push(data);
+                var $codeRoot = $("#codeRoot");
+                var $a = $codeRoot.find("li a[href='#"+ path +"']");
+                if($a.length !== 0) {
+                    stackTrace(stack);
+                } else {
+                    updateNav(path.substr(0, path.lastIndexOf("/")));
+                } 
+            }
+        });
+    }
+    function stackTrace(stack){
+        while(stack.length !== 0) {
+             var data = stack.pop();
+             if(data.type === "file") continue;
+             
+             var $ul = $("<ul>").addClass("nav nav-list");
+             for(var name in data.data){
+                if(data.data[name].type  !== "folder") continue;
+                
+                var $li = $("<li>");
+                $("<a>").attr("href", "#" + data.path + "/" + name).text(name).appendTo($li);
+                $li.appendTo($ul);
+             }
+             var parentStr = data.path.substr(0, data.path.lastIndexOf("/"));
+             $("#codeRoot").find("li a[href='#" + data.path + "']").parent().after($ul);
+        }
     }
     </script>
 }
