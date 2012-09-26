@@ -65,98 +65,7 @@ git push origin master</code></pre>
 @@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
 </style>
 <script>
-    $(document).ready(function(){
-    	/*
-    	function makeLink(name, type, prefix)
-        {
-            var $li = $("<li>");
-            var $a = $("<a>");
-            var $icon = $("<i>");
-            if(type ==="folder")
-            {
-                $icon.addClass("icon-folder-close");
-            }
-            else if(type === "file")
-            {
-                $icon.addClass("icon-file");
-            }
-            $a.attr("type", type);
-            $a.append($icon).attr("href", prefix +"/"+ name).append(name);
-            $li.append($a);
-            return $li;
-        }
-
-        $("#codeRoot a").live("click", function(){
-            var target = $(this).attr("href");
-            var type = $(this).attr("type");
-            if(type === "file")
-            {
-                openFile(target);
-            }
-            else if(type === "folder")
-            {
-                if($(this).attr("opened") !== "true")
-                {
-                    openFolder(target,$(this));
-                }
-                else if($(this).attr("opened") === "true")
-                {
-                    closeFolder($(this));
-    			}
-            }
-            return false;
-        });
-        function openFile(path)
-        {
-          setHash("#" + path.replace(/code\/!/, ""));
-        }
-        function openFolder(path, $parent)
-        {
-            $.ajax(path, {
-    			success : function(data, textStatus, jqXHR){
-    			    setHash("#" + path.replace(/code\/!/, ""));
-    			    //폴더 구조를 펼치기
-                    var $ul = $("<ul>").addClass("nav nav-list");//<--
-                    for(var name in data) {
-                        $ul.append(makeLink(name, data[name].type, path));//<-
-                    }
-                    $parent.after($ul); //<--
-                    $parent.attr("opened", "true");
-                    $("#folderView").show();
-                    $("#codeView").hide();
-                },
-                error : function(){
-                	$("#codeError").show();
-                	$("#codeBrowser").hide();
-                }
-            });
-        }
-        
-        function closeFolder($parent)
-        {
-          $parent.next().remove();
-          $.ajax($parent.attr("href"), {
-            success : function(data, textStatus, jqXHR){
-              setHash("#" + path.replace(/code\/!/, ""));
-        	  $("tbody").children().remove();//<--
-              for(var name in data)
-              {
-                $("tbody")
-                  .append($("<tr>")
-                          .append($("<td>").text(name))
-                          .append($("<td>").text(data[name].commitMessage))
-                          .append($("<td>").text(data[name].commitDate))
-                          .append($("<td>").text(data[name].commiter))
-                         );
-              }
-              $parent.attr("opened", "false");
-              $("#folderView").show();
-              $("#codeView").hide();
-            }
-          });
-        }
-        */
-        
+    $(document).ready(function(){      
         $(window).bind('hashchange', function(e){
           //대기 표시 한다.
           //여기서 요청을 보내고
@@ -204,20 +113,6 @@ git push origin master</code></pre>
                 var tablerow = makeTableRow(name, info.msg, info.date, info.author);
                 $("tbody").append(tablerow);
               }
-              
-              //네비게이션을 업데이트 한다. 이부분이 문제.. 모든 부모의 리스트를 가지고 있어야 한다.
-              //클라에서 요청을 여러번날리면 어떨까?  < -- 이거로 하자. 성능은 조금 딸리겠지만 어쩔수 없다.
-              //현재 위치를 오픈한다.
-              /*var $ul = $("<ul>").addClass("nav nav-list");
-              for(var name in data.data) {
-                if (data.data[name].type === "folder"){
-                  var str = "#" + (path !== "/" ? path : "") + "/" + name;
-                  var $a = $("<a>").attr("href", str).text(name);
-                  $("<li>").append($a).appendTo($ul);
-                }
-              }
-              $("#codeBrowserHeader").after($ul);*/
-              
 
               $("#folderView").show();
               $("#codeView").hide();
