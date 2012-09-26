@@ -286,9 +286,12 @@ mail.authMethod = 인증 방법
 mail.save = 저장
 mail.authMethodPlaceholder = LOGIN 혹은 PLAIN
 
-mail.notConfigured = 메일이 설정되지 않았습니다. <a href="https://github.com/typesafehub/play-plugins/tree/master/mailer#installation">여기</a>를 참고하여 메일을 설정해 주세요.
+mail.notConfigured = 메일러가 설정되지 않았습니다. conf/application.conf에서 다음의 속성을 설정해주세요.
+mail.from = 보내는 사람
+mail.fromPlaceholder = sender@mail.com
 mail.to = 받는사람
-mail.toPlaceholder = receiver@mail.com
+mail.toPlaceholder = recipient@mail.com
 mail.subject = 제목
 mail.body = 본문
 mail.send = 발송
+mail.fail = 메일 발송에 실패했습니다.

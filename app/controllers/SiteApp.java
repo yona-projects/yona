@@ -1,6 +1,10 @@
 package controllers;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.mail.EmailException;
 
 import models.Project;
 import models.User;
@@ -8,6 +12,7 @@ import play.Configuration;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
+import utils.Mailer;
 
 import views.html.site.setting;
 import views.html.site.mail;
@@ -15,31 +20,42 @@ import views.html.site.userList;
 import views.html.site.projectList;
 
 import com.avaje.ebean.Page;
-import com.typesafe.plugin.MailerAPI;
-import com.typesafe.plugin.MailerPlugin;
 
 public class SiteApp extends Controller {
 
     public static Result sendMail() {
-        MailerAPI email = play.Play.application().plugin(MailerPlugin.class).email();
+        Mailer email = new Mailer(play.Play.application());
 
         Map<String, String[]> formData = request().body().asFormUrlEncoded();
-        email.addFrom(play.Play.application().configuration().getString("smtp.user"));
+        email.addFrom(utils.RequestUtil.getFirstValueFromQuery(formData, "from"));
         email.setSubject(utils.RequestUtil.getFirstValueFromQuery(formData, "subject"));
         email.addRecipient(utils.RequestUtil.getFirstValueFromQuery(formData, "to"));
-        email.send(utils.RequestUtil.getFirstValueFromQuery(formData, "body"));
 
-        return ok(mail.render("title.sendMail", true));
+        String errorMessage = null;
+        try {
+            email.send(utils.RequestUtil.getFirstValueFromQuery(formData, "body"));
+        } catch (EmailException e) {
+            errorMessage = e.toString();
+            if (e.getCause() != null) {
+               errorMessage += "<br/>Caused by: " + e.getCause();
+            }
+        }
+
+        return ok(mail.render("title.sendMail", new ArrayList<String>(), errorMessage));
     }
 
     public static Result writeMail() {
         boolean isConfigured = false;
         Configuration config = play.Play.application().configuration();
-        if (config.getString("smtp.user") != null && config.getString("smtp.password") != null) {
-            isConfigured = true;
+        List<String> notConfiguredItems = new ArrayList<String>();
+        String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
+        for(String key : requiredItems) {
+            if (config.getString(key) == null) {
+                notConfiguredItems.add(key);
+            }
         }
 
-        return ok(mail.render("title.sendMail", isConfigured));
+        return ok(mail.render("title.sendMail", notConfiguredItems, null));
     }
 
     public static Result setting() {

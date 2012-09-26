@@ -286,9 +286,12 @@ mail.authMethod = Authentication method
 mail.save = Save Changes
 mail.authMehtodPlaceholder = LOGIN or PLAIN
 
-mail.notConfigured = Mail is not configured. Refer <a href="https://github.com/typesafehub/play-plugins/tree/master/mailer#installation">here</a> for more details.
+mail.notConfigured = Mailer is not configured. Set below properties in conf/application.conf.
+mail.from = From
+mail.fromPlaceholder = sender@mail.com
 mail.to = To
 mail.toPlaceholder = receiver@mail.com
 mail.subject = Subject
 mail.body = Body
 mail.send = Send
+mail.fail = Failed to send a mail.
