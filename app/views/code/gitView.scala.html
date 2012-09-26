@@ -75,9 +75,7 @@ git push origin master</code></pre>
             datatype : "json",
             success : function(data, textStatus, jqXHR){
               updateBreadcrumbs(path);
-              //updateFileNav(data);
               updateNav(path);
-              //현재 위치 네비게이션과 위의 Breadcrumbs에 표시해주고
               switch(data.type){
                 case "file" :
                     handleFile(data);
@@ -141,39 +139,7 @@ git push origin master</code></pre>
               $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
             }
           }
-          function updateFileNav(data){
-            var $codeRoot = $("#codeRoot");
-            var $a = $codeRoot.find("li a[href='#"+ path.substr(0, path.lastIndexOf("/")) +"']");
-            
-            if(path === "/"){
-              var $ul = $("<ul>").addClass("nav nav-list");
-              for(var name in data.data) {
-                if (data.data[name].type === "folder"){
-                  var str = "#" + getPath(name);
-                  var $a = $("<a>").attr("href", str).text(name);
-                  $("<li>").append($a).appendTo($ul);
-                }
-              }
-              $("#codeBrowserHeader").after($ul);
-            } else if($a.length == 0){
-              //TODO
-              //상위의 뭔가가 없다.
-              //요청을 날린다. 
-              //요청을 처리한다.
-              //콜백 함수에서 내가 할일 한다.
-            } else {
-              var $parent = $a.parent();
-              var $ul = $("<ul>").addClass("nav nav-list");
-              for(var name in data.data) {
-                if (data.data[name].type === "folder"){
-                  var str = "#" + getPath(name);
-                  var $a = $("<a>").attr("href", str).text(name);
-                  $("<li>").append($a).appendTo($ul);
-                }
-              }
-              $parent.after($ul);
-            }
-          }
+          
           function getPath(name){
             var path = getHash().replace(/^#/, "");
             if(path == "/") {

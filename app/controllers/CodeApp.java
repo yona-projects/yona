@@ -28,7 +28,6 @@ public class CodeApp extends Controller {
     }
 
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
-        //TODO Svn과 Git의 분리필요.
         ObjectNode findFileInfo =  RepositoryService.getMetaDataFrom(userName, projectName, path);
         if(findFileInfo != null) {
             return ok(findFileInfo);
