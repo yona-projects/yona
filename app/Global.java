@@ -24,7 +24,7 @@ public class Global extends GlobalSettings {
 //        InitialData.insert(app);
         InitialData.makeUploadFolder();
         InitialData.makeTestRepository();
-        UserApp.anonymous = User.findByLoginId("anonymous");
+//        UserApp.anonymous = User.findByLoginId("anonymous");
     }
 
     @Override
