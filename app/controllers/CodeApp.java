@@ -10,20 +10,19 @@ import models.Project;
 import play.mvc.*;
 import playRepository.RepositoryService;
 import utils.Config;
-import views.html.code.gitView;
-import views.html.code.svnView;
+import views.html.code.codeView;
 
 public class CodeApp extends Controller {
 	public static Result codeBrowser(String userName, String projectName) throws IOException {
-        String vcs = ProjectApp.getProject(userName, projectName).vcs;
-        if (RepositoryService.VCS_GIT.equals(vcs)) {
-            return ok(gitView.render(CodeApp.getURL(userName, projectName),
-                    Project.findByName(projectName)));
-        } else if (RepositoryService.VCS_SUBVERSION.equals(vcs)) {
-            return ok(svnView.render(CodeApp.getSvnURL(userName, projectName),
-                    Project.findByName(projectName)));
+        Project project = ProjectApp.getProject(userName, projectName);
+        if (RepositoryService.VCS_GIT.equals(project.vcs)) {
+            String msg = "Clone this Repository : git clone " + CodeApp.getURL(userName, projectName);
+            return ok(codeView.render(msg, project));
+        } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
+            String msg = "Check out Repository : svn checkout " + CodeApp.getSvnURL(userName, projectName);
+            return ok(codeView.render(msg, project));
         } else {
-            return status(501, vcs + " is not supported!");
+            return status(501, project.vcs + " is not supported!");
         }
     }
 
