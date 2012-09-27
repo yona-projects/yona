@@ -21,10 +21,10 @@ import controllers.*;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
-        InitialData.insert(app);
-        InitialData.makeUploadFolder();
-        InitialData.makeTestRepository();
-        UserApp.anonymous = User.findByLoginId("anonymous");
+//        InitialData.insert(app);
+//        InitialData.makeUploadFolder();
+//        InitialData.makeTestRepository();
+//        UserApp.anonymous = User.findByLoginId("anonymous");
     }
 
     @Override
