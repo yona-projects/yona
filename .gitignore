@@ -14,5 +14,5 @@ conf/evolutions/default/
 public/uploadFiles
 .DS_Store
 repo/
-db
+*.db
 *.iml
