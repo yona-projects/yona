@@ -21,7 +21,7 @@ import controllers.*;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
-//        InitialData.insert(app);
+        InitialData.insert(app);
         InitialData.makeUploadFolder();
 //        InitialData.makeTestRepository();
 //        UserApp.anonymous = User.findByLoginId("anonymous");
@@ -44,24 +44,24 @@ public class Global extends GlobalSettings {
 
         public static void insert(Application app) {
             if (Ebean.find(User.class).findRowCount() == 0) {
-                @SuppressWarnings("unchecked")
-                Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
-                        .load("initial-data.yml");
-
-                Ebean.save(all.get("users"));
-                Ebean.save(all.get("projects"));
-                Ebean.save(all.get("milestones"));
-                Ebean.save(all.get("issues"));
-                Ebean.save(all.get("issueComments"));
-                Ebean.save(all.get("posts"));
-                Ebean.save(all.get("comments"));
-                Ebean.save(all.get("permissions"));
-
-                Ebean.save(all.get("roles"));
-                for (Object role : all.get("roles")) {
-                    Ebean.saveManyToManyAssociations(role, "permissions");
-                }
-                Ebean.save(all.get("projectUsers"));
+//                @SuppressWarnings("unchecked")
+//                Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
+//                        .load("initial-data.yml");
+//
+//                Ebean.save(all.get("users"));
+//                Ebean.save(all.get("projects"));
+//                Ebean.save(all.get("milestones"));
+//                Ebean.save(all.get("issues"));
+//                Ebean.save(all.get("issueComments"));
+//                Ebean.save(all.get("posts"));
+//                Ebean.save(all.get("comments"));
+//                Ebean.save(all.get("permissions"));
+//
+//                Ebean.save(all.get("roles"));
+//                for (Object role : all.get("roles")) {
+//                    Ebean.saveManyToManyAssociations(role, "permissions");
+//                }
+//                Ebean.save(all.get("projectUsers"));
             }
         }
 
