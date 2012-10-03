@@ -8,6 +8,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import models.enumeration.Direction;
 import models.enumeration.Matching;
@@ -23,6 +24,7 @@ import com.avaje.ebean.Page;
 
 import controllers.UserApp;
 
+@Table(name="users")
 @Entity
 public class User extends Model {
 	private static final long serialVersionUID = 1L;
