@@ -1,1 +1,1 @@
-web: target/start -Dhttp.port=${PORT} -D%prod -Dprecompiled=true -DapplyEvolutions.default=true
+web: target/start -Dhttp.port=${PORT} -D%prod -Dprecompiled=true
