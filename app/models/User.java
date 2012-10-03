@@ -24,7 +24,7 @@ import com.avaje.ebean.Page;
 
 import controllers.UserApp;
 
-@Table(name="users")
+@Table(name="n4user")
 @Entity
 public class User extends Model {
 	private static final long serialVersionUID = 1L;
