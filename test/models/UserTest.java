@@ -64,7 +64,7 @@ public class UserTest extends ModelTest<User> {
 	    Page<User> users = User.findUsers(0, null);
 	    Page<User> searchUsers = User.findUsers(0, "ho");
 	    // Then
-	    assertThat(users.getTotalRowCount()).isEqualTo(4);
+	    assertThat(users.getTotalRowCount()).isEqualTo(5);
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}
 	
