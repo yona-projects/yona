@@ -1,4 +1,4 @@
-@(message: String, notConfiguredItems: List[String], errorMessage: String)
+@(message: String, notConfiguredItems: List[String], sender: String, errorMessage: String, sended: Boolean)
 
 @siteMngMain(message) {
 @if(errorMessage) {
@@ -11,6 +11,12 @@
   <div class="page-header">
     <h3>@Messages(message)</h3>
   </div>
+  @if(sended) {
+  <div class="alert alert-success">
+    @Messages("mail.sended")
+  </div>
+  }
+
   @if(notConfiguredItems != null && notConfiguredItems.size() > 0) {
   <div class="alert alert-error">
     <p>@Html(Messages("mail.notConfigured", "/admin/mailconf"))</p>
@@ -24,7 +30,7 @@
   <div class="control-group">
     <label name="from" class="control-label">@Messages("mail.from")</label>
     <div class="controls">
-      <input type="text" name="from" required="" placeholder="@Messages("mail.fromPlaceholder")">
+      <input type="text" name="from" value="@sender" required="" placeholder="@Messages("mail.fromPlaceholder")">
     </div>
   </div>
   <div class="control-group">

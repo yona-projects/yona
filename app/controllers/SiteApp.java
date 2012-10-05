@@ -32,8 +32,10 @@ public class SiteApp extends Controller {
         email.addRecipient(utils.RequestUtil.getFirstValueFromQuery(formData, "to"));
 
         String errorMessage = null;
+        boolean sended = false;
         try {
             email.send(utils.RequestUtil.getFirstValueFromQuery(formData, "body"));
+            sended = true;
         } catch (EmailException e) {
             errorMessage = e.toString();
             if (e.getCause() != null) {
@@ -41,11 +43,10 @@ public class SiteApp extends Controller {
             }
         }
 
-        return ok(mail.render("title.sendMail", new ArrayList<String>(), errorMessage));
+        return writeMail(errorMessage, sended);
     }
 
-    public static Result writeMail() {
-        boolean isConfigured = false;
+    public static Result writeMail(String errorMessage, boolean sended) {
         Configuration config = play.Play.application().configuration();
         List<String> notConfiguredItems = new ArrayList<String>();
         String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
@@ -55,7 +56,13 @@ public class SiteApp extends Controller {
             }
         }
 
-        return ok(mail.render("title.sendMail", notConfiguredItems, null));
+        String sender = config.getString("smtp.user");
+
+        return ok(mail.render("title.sendMail", notConfiguredItems, sender, errorMessage, sended));
+    }
+
+    public static Result writeMail() {
+        return writeMail(null, false);
     }
 
     public static Result setting() {

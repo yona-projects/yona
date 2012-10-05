@@ -295,3 +295,4 @@ mail.subject = 제목
 mail.body = 본문
 mail.send = 발송
 mail.fail = 메일 발송에 실패했습니다.
+mail.sended = 메일을 발송하였습니다.
