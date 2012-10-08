@@ -93,9 +93,13 @@ POST    /!svn-fake/sevice/                              controllers.SvnApp.servi
 GET     /:user/:projectName/code/!                      controllers.CodeApp.ajaxRequest(user:String, projectName:String, path = "")
 GET     /:user/:projectName/code/!/                     controllers.CodeApp.ajaxRequest(user:String, projectName:String, path = "")
 GET     /:user/:projectName/code/!/*path                controllers.CodeApp.ajaxRequest(user:String, projectName:String, path:String)
+GET     /:user/:projectName/code/:branch/!              controllers.CodeApp.ajaxRequestWithBranch(user:String, projectName:String, branch:String, path="")
+GET     /:user/:projectName/code/:branch/!/             controllers.CodeApp.ajaxRequestWithBranch(user:String, projectName:String, branch:String, path="")
+GET     /:user/:projectName/code/:branch/!/*path        controllers.CodeApp.ajaxRequestWithBranch(user:String, projectName:String, branch:String, path:String)
 #for normal
 GET     /:user/:projectName/code                        controllers.CodeApp.codeBrowser(user:String, projectName:String)
-GET     /:user/:projectName/code/*path                  controllers.CodeApp.showRawFile(user:String, projectName:String, path:String)
+GET     /:user/:projectName/rawcode/*path               controllers.CodeApp.showRawFile(user:String, projectName:String, path:String)
+GET     /:user/:projectName/code/:branch                controllers.CodeApp.codeBrowserWithBranch(user:String, projectName:String, branch:String) 
 
 # Commits
 GET     /:user/:projectName/commits                     controllers.CodeHistoryApp.historyUntilHead(user:String, projectName:String)

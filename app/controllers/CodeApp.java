@@ -2,9 +2,16 @@ package controllers;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+
+import javax.servlet.ServletException;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.tmatesoft.svn.core.SVNException;
 
 import models.Project;
 import play.mvc.*;
@@ -13,21 +20,46 @@ import utils.Config;
 import views.html.code.codeView;
 
 public class CodeApp extends Controller {
-	public static Result codeBrowser(String userName, String projectName) throws IOException {
+    //TODO 리팩토링이 시급합니다.
+	public static Result codeBrowser(String userName, String projectName) throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (RepositoryService.VCS_GIT.equals(project.vcs)) {
             String msg = "Clone this Repository : git clone " + CodeApp.getURL(userName, projectName);
-            return ok(codeView.render(msg, project));
+            List<String> branches = RepositoryService.getRepository(project).getBranches();
+            return ok(codeView.render(msg, project, branches));
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             String msg = "Check out Repository : svn checkout " + CodeApp.getSvnURL(userName, projectName);
-            return ok(codeView.render(msg, project));
+            List<String> branches = RepositoryService.getRepository(project).getBranches();
+            return ok(codeView.render(msg, project, branches));
+        } else {
+            return status(501, project.vcs + " is not supported!");
+        }
+    }
+	public static Result codeBrowserWithBranch(String userName, String projectName, String branch) throws IOException, UnsupportedOperationException, ServletException {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if (RepositoryService.VCS_GIT.equals(project.vcs)) {
+            String msg = "Clone this Repository : git clone " + CodeApp.getURL(userName, projectName);
+            List<String> branches = RepositoryService.getRepository(project).getBranches();
+            return ok(codeView.render(msg, project, branches));
+        } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
+            String msg = "Check out Repository : svn checkout " + CodeApp.getSvnURL(userName, projectName);
+            List<String> branches = RepositoryService.getRepository(project).getBranches();
+            return ok(codeView.render(msg, project, branches));
         } else {
             return status(501, project.vcs + " is not supported!");
         }
     }
 
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
-        ObjectNode findFileInfo =  RepositoryService.getMetaDataFrom(userName, projectName, path);
+        ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path);
+        if(findFileInfo != null) {
+            return ok(findFileInfo);
+        } else {
+            return status(403);
+        }
+    }
+    public static Result ajaxRequestWithBranch(String userName, String projectName, String path, String branch) throws AmbiguousObjectException, NoHeadException, UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
+        ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {

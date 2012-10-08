@@ -1,4 +1,4 @@
-@(msg : String, project:Project) 
+@(msg : String, project:Project, branches:List[String])
 
 @main("코드", project){
 <ul class="nav nav-tabs">
@@ -17,8 +17,10 @@
         <div>
             <span id="breadcrumbs">Breadcrumbs</span>
             <span>
-                <select>
-                    <option>master</option>
+                <select id="branchSelector">
+                    @for(name <- branches){
+                        <option>@name</option>
+                    }
                 </select>
             </span>
         </div>
@@ -94,7 +96,7 @@ git push origin master</code></pre>
               $("#commitMessage").text(data.msg);
               $("#commitDate").text(data.date);
               $("code").text(data.data);
-              $("#rawCode").attr("href", path.replace(/\/!/, ""));
+              $("#rawCode").attr("href", path.replace(/\/!/, ""));//TODO 현재 동작하지 않음.
               
               $("#folderView").hide();
               $("#codeView").show();
@@ -139,15 +141,6 @@ git push origin master</code></pre>
               str += "/" + name;
               $breadcrumbs.append(" &gt; ");
               $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
-            }
-          }
-          
-          function getPath(name){
-            var path = getHash().replace(/^#/, "");
-            if(path == "/") {
-              return path + name;
-            } else {
-              return path + "/" + name;
             }
           }
         });
@@ -195,5 +188,9 @@ git push origin master</code></pre>
              $("#codeRoot").find("li a[href='#" + data.path + "']").parent().after($ul);
         }
     }
+    
+    $("#branchSelector option").click(function(){
+        alert($(this).text());
+    });
     </script>
 }

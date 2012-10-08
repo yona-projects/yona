@@ -62,9 +62,15 @@ public class RepositoryService {
             throws NoHeadException, UnsupportedOperationException, IOException, GitAPIException,
             ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
-    	Logger.info(project.vcs);
         return RepositoryService.getRepository(project).findFileInfo(path);
     }
+
+    public static ObjectNode getMetaDataFrom(String userName, String projectName, String path, String branch) throws AmbiguousObjectException, NoHeadException, UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
+        // TODO Auto-generated method stub
+        Project project = ProjectApp.getProject(userName, projectName);
+        return RepositoryService.getRepository(project).findFileInfo(branch, path);
+    }
+
 
     /**
      * Raw 소스를 보여주는 코드

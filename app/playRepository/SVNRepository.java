@@ -108,6 +108,63 @@ public class SVNRepository implements PlayRepository {
             return null;
         }
     }
+    @Override
+    public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException,
+            IOException, SVNException {
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
+        org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
+        
+        SVNNodeKind nodeKind = repository.checkPath(path , -1 );
+        
+        if(nodeKind == SVNNodeKind.DIR){
+            //폴더 내용 출력
+            ObjectNode result = Json.newObject();
+            
+            result.put("type", "folder");
+            ObjectNode listData = Json.newObject();
+            
+            SVNProperties prop = new SVNProperties();
+            
+            Collection entries = repository.getDir(path, -1, prop, (Collection)null);
+            
+            Iterator iterator = entries.iterator( );
+            while ( iterator.hasNext( ) ) {
+                SVNDirEntry entry = ( SVNDirEntry ) iterator.next( );
+                
+                ObjectNode data = Json.newObject();
+                data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
+                data.put("msg", entry.getCommitMessage());
+                data.put("author", entry.getAuthor());
+                data.put("date", entry.getDate().toString());
+                
+                listData.put(entry.getName(), data);
+            }
+            result.put("data", listData);
+            
+            return result;
+            
+        } else if(nodeKind == SVNNodeKind.FILE) {
+            //파일 내용 출력
+            ObjectNode result = Json.newObject();
+            
+            
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            SVNProperties prop = new SVNProperties();
+            repository.getFile(path, -1l, prop, baos);
+            
+            result.put("type", "file");
+            
+            result.put("msg", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
+            result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
+
+            result.put("date", prop.getStringValue(SVNProperty.COMMITTED_DATE));
+
+            result.put("data", baos.toString());
+            return result;
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public void create() throws ClientException {
@@ -170,4 +227,6 @@ public class SVNRepository implements PlayRepository {
     public List<String> getBranches() {
         return new ArrayList<String>();
     }
+
+    
 }

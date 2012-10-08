@@ -30,4 +30,7 @@ public interface PlayRepository {
 
     public List<String> getBranches();
 
+
+    public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException, IOException, SVNException, NoHeadException, GitAPIException;
+
 }

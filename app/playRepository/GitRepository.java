@@ -123,6 +123,66 @@ public class GitRepository implements PlayRepository {
         }
     }
 
+    @Override
+    public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException, IOException, NoHeadException, GitAPIException {
+        Git git = new Git(repository);
+
+        ObjectId headCommit = repository.resolve(branch);
+        // 만약 특정 커밋을 얻오오고싶다면 바꾸어 주면 된다.
+
+        if (headCommit == null) {
+            Logger.debug("GitRepository : init Project - No Head commit");
+            return null;
+        }
+
+        RevWalk revWalk = new RevWalk(repository);
+        RevTree revTree = revWalk.parseTree(headCommit);
+        TreeWalk treeWalk = new TreeWalk(repository);
+        treeWalk.addTree(revTree);
+
+        try {
+            PathFilter pathFilter = PathFilter.create(path);
+
+            treeWalk.setFilter(pathFilter);
+
+            while (treeWalk.next()) {
+                if (pathFilter.isDone(treeWalk)) {
+                    break;
+                } else if (treeWalk.isSubtree()) {
+                    treeWalk.enterSubtree();
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            // root
+            return folderList(git, treeWalk);
+        }
+
+        if (treeWalk.isSubtree()) {
+            treeWalk.enterSubtree();
+            return folderList(git, treeWalk);
+        } else {
+            // 파일 내려주기
+            ObjectId objectId = treeWalk.getObjectId(0);
+
+            RevCommit commit = git.log().addPath(path).call().iterator().next();
+            ObjectNode result = Json.newObject();
+            
+            result.put("type", "file");
+            result.put("msg", commit.getShortMessage());
+            result.put("author", commit.getAuthorIdent().getName());
+            result.put("date", new Date(commit.getCommitTime() * 1000L).toString());
+
+            result.put("commitMessage", commit.getShortMessage());
+            result.put("commiter", commit.getAuthorIdent().getName());
+
+            result.put("commitDate", new Date(commit.getCommitTime() * 1000l).toString());
+
+            String str = new String(repository.open(objectId).getBytes());
+            result.put("data", str);
+            return result;
+        }
+    }
+
     private ObjectNode folderList(Git git, TreeWalk treeWalk) throws MissingObjectException,
             IncorrectObjectTypeException, CorruptObjectException, IOException, GitAPIException,
             NoHeadException {
@@ -215,5 +275,6 @@ public class GitRepository implements PlayRepository {
     public List<String> getBranches() {
         return new ArrayList<String>(repository.getAllRefs().keySet());
     }
+
 
 }
