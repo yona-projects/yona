@@ -1,0 +1,18 @@
+@(project:Project)
+
+@main("TaskManager", project){
+    <h1>TEST</h1>
+    <script>
+    var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
+    webSocket.onmessage = function(e){
+      console.log(e.data);
+    }
+    webSocket.onopen = function(){
+      console.log("socket Open");
+      webSocket.send("test");
+    }
+    webSocket.onclose = function(){
+      console.log("socket Close");
+    }
+    </script>
+}

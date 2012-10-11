@@ -1,7 +1,8 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.*;
+import models.Comment;
+import models.Post;
 
 import org.junit.*;
 

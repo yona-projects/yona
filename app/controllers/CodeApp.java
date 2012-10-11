@@ -19,7 +19,8 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.Config;
-import views.html.code.codeView;
+import views.html.code.gitView;
+import views.html.code.svnView;
 
 public class CodeApp extends Controller {
     //TODO 리팩토링이 시급합니다.
@@ -48,7 +49,7 @@ public class CodeApp extends Controller {
             List<String> branches = RepositoryService.getRepository(project).getBranches();
             return ok(codeView.render(msg, project, branches));
         } else {
-            return status(501, project.vcs + " is not supported!");
+            return status(501, vcs + " is not supported!");
         }
     }
 

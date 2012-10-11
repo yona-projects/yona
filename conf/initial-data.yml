@@ -1110,3 +1110,51 @@ projectUsers:
                             id: 4
         role:           !!models.Role
                             id: 1
+
+#Task
+cards:
+    - !!models.task.Card
+        id:             1
+        body:           test card
+        assignee:
+            - !!models.ProjectUser
+                id:     1
+        labels:         
+            - !!models.task.Label
+                id: 1
+        comments:
+            - !!models.task.TaskComment
+                id: 1
+    - !!models.task.TaskComment
+        body:           test comment
+        author:         !!models.ProjectUser
+                            id: 1
+taskBoards:
+    - !!models.task.TaskBoard
+        lines:
+            - !!models.task.Label
+                id:     1
+        project:        !!models.Project
+                id:             1
+                
+    - !!models.task.Label
+        name:           story
+        color:          blue
+        
+checkLists:
+    - !!models.task.CheckList
+        title:          Box
+        items:
+            - !!models.task.Item
+                id:     1
+    - !!models.task.CheckList
+        title:          TODO
+    - !!models.task.CheckList
+        title:          Doing
+    - !!models.task.CheckList
+        title:          Done
+    - !!models.task.Item
+        body:           test item    
+    
+                
+                
