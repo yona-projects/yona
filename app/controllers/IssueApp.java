@@ -21,7 +21,7 @@ public class IssueApp extends Controller {
 
     /**
      * 페이지 처리된 이슈들의 리스트를 보여준다.
-     * 
+     *
      * @param projectName
      *            프로젝트 이름
      * @param statusType
@@ -71,6 +71,7 @@ public class IssueApp extends Controller {
             newIssue.updateStateType(newIssue);
             newIssue.filePath = saveFile(request());
             Issue.create(newIssue);
+
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 StateType.ALL.stateType()));
@@ -156,7 +157,7 @@ public class IssueApp extends Controller {
 
     /**
      * From BoardApp
-     * 
+     *
      * @param request
      * @return
      */
@@ -172,7 +173,7 @@ public class IssueApp extends Controller {
         }
         return null;
     }
-    
+
     public static Result getIssueDatil(){
     	return TODO;
     }

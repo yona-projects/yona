@@ -86,7 +86,7 @@ public class Issue extends Model {
     public String dbmsType;
     public String importance;
     public String diagnosisResult;
-    
+
     @OneToMany
 	public List<IssueDetail> issueDetails;
 
