@@ -38,18 +38,19 @@ public class Comment extends Model {
 
     public static Long write(Comment comment) {
         comment.save();
+
         return comment.id;
     }
 
     public static List<Comment> findCommentsByPostId(Long postId) {
         return find.where().eq("post.id", postId).findList();
     }
-    
+
     public static boolean isAuthor(Long currentUserId, Long id) {
         int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
-    
+
     public Duration ago(){
         return JodaDateUtil.ago(this.date);
     }

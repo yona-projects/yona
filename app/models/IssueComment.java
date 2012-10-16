@@ -61,5 +61,4 @@ public class IssueComment extends Model {
     public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
-
 }
