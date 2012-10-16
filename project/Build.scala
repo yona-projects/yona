@@ -27,7 +27,8 @@ object ApplicationBuild extends Build {
       // commons-codec
       "commons-codec" % "commons-codec" % "1.2",
       // apache-mails
-      "org.apache.commons" % "commons-email" % "1.2"
+      "org.apache.commons" % "commons-email" % "1.2",
+      "commons-lang" % "commons-lang" % "2.6"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(

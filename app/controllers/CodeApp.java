@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.servlet.ServletException;
 
+import models.Project;
+
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -13,8 +15,8 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.tmatesoft.svn.core.SVNException;
 
-import models.Project;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.Config;
 import views.html.code.codeView;
