@@ -1,5 +1,6 @@
 @(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project) 
 @import helper._ 
+@import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
@@ -8,6 +9,7 @@
   }
 }
 @main(Messages(title),project) {
+
 <div class="row">
 	<div class="span2 offset10">
 		<div id="board_btn_panel">
@@ -41,7 +43,7 @@
 		</div>
 		<div class="span11">
 			<div>
-				<pre>@issue.body</pre>
+				<div id="body">@issue.body</div>
 				@if(issue.filePath != null){
 				<p>
 					<a href='@routes.Assets.at("uploadFiles/" + issue.filePath)'><i
@@ -211,4 +213,6 @@
 		<a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
 	</div>
 </div>
+
+@views.html.markdown(Map("#body" -> "render"))
 }

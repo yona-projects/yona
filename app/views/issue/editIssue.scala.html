@@ -1,5 +1,6 @@
 @(title:String, issueForm:Form[Issue], issueId:Long,  project:Project)
 @import helper._
+@import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
@@ -9,6 +10,7 @@
 }
 
 @main(Messages(title), project) {
+
 <!-- FIXEME 
 (1) 수정했을 시에, 수정시간으로 업데이트 되는 것이 아니라, 본 글이 원래 작성된 시간을 그대로 가지고 있을 것!
 (2) 매니저 및 멤버가 해당 이슈를 수정시에, 작성자가 변하지 않아야 함.
@@ -20,12 +22,15 @@
     	@inputText(
     	   issueForm("title"), 
     	   '_showConstraints -> false, 
-    	   '_label-> Messages("post.new.title"))
+           '_label-> Messages("post.new.title"),
+           'class -> "input-xxlarge")
 
     	@textarea(
     	   issueForm("body"), 
     	   '_showConstraints -> false, 
-    	   '_label-> Messages("post.new.contents"))
+           '_label-> Messages("post.new.contents"),
+           'rows -> 16,
+           'class -> "input-xxlarge textbody")
 
     	@inputFile(
     	   issueForm("filePath"),
@@ -134,6 +139,5 @@
 
     @board.postVaildate()
 
+@views.html.markdown(Map("#body" -> "edit"))
 }
-
-            

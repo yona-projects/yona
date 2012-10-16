@@ -1,6 +1,7 @@
 @(title:String, issueForm:Form[Issue], project:Project)
 
 @import helper._
+@import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
@@ -143,4 +144,6 @@
 			</div>
     </div>
  }
+
+@views.html.markdown(Map("#body" -> "edit"))
 }

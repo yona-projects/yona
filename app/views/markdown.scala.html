@@ -1,0 +1,24 @@
+@(targets: Map[String, String])
+
+@getJSName(name : String) = @{
+    loadAssetsLink("javascripts",name,"js")
+}
+
+@loadAssetsLink(base:String, name:String, _type: String) = @{
+    var miniified = ""
+    if (play.Play.isProd()) miniified = ".min"
+    routes.Assets.at(base + "/" + name + miniified + "." +_type)
+}
+
+<style>
+@@IMPORT url(@loadAssetsLink("stylesheets", "hljsstyles/googlecode", "css"));
+</style>
+<script src="@getJSName("showdown")" type="text/javascript"></script>
+<script src="@getJSName("hljs")" type="text/javascript"></script>
+<script src="@getJSName("languages/allinone")" type="text/javascript"></script>
+<script type="text/javascript">
+  @applyMarkdown(key: String) = {
+    nforge.require("markdown.@targets.get(key)", "@key");
+  }
+  @targets.keys.map(applyMarkdown)
+</script>
