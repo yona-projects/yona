@@ -1125,22 +1125,31 @@ cards:
         comments:
             - !!models.task.TaskComment
                 id: 1
+    - !!models.task.Card
+        id:             2
+        body:           alpha
+        assignee:
+            - !!models.ProjectUser
+                id:     1
     - !!models.task.TaskComment
         body:           test comment
         author:         !!models.ProjectUser
                             id: 1
 taskBoards:
     - !!models.task.TaskBoard
-        lines:
+        labels:
             - !!models.task.Label
                 id:     1
         project:        !!models.Project
                 id:             1
-                
-    - !!models.task.Label
-        name:           story
-        color:          blue
-        
+    - !!models.task.Line
+        id:             100
+        title:          Box
+        cards:
+            - !!models.task.Card
+                id:             1
+            - !!models.task.Card
+                id:             2
 checkLists:
     - !!models.task.CheckList
         title:          Box

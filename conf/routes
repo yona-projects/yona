@@ -108,3 +108,7 @@ GET     /:user/:projectName/commit/:id                  controllers.CodeHistoryA
 
 # Search
 GET     /:userName/:projectName/search                  controllers.SearchApp.contentsSearch(userName: String, projectName: String)
+
+#task
+GET     /:userName/:projectName/task                    controllers.TaskApp.index(userName:String, projectName:String)
+GET     /:userName/:projectName/task/connect            controllers.TaskApp.connect(userName:String, projectName:String)

@@ -7,8 +7,10 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import models.enumeration.RoleType;
+import models.task.TaskBoard;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -52,6 +54,9 @@ public class Project extends Model {
     
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<Milestone> milestones;
+    
+    @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
+    public TaskBoard taskboard;
 
     public static Long create(Project newProject) {
         newProject.homepage = "http://localhost:9000/" + newProject.name;

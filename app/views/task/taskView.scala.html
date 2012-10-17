@@ -1,18 +1,309 @@
 @(project:Project)
 
 @main("TaskManager", project){
-    <h1>TEST</h1>
-    <script>
-    var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
-    webSocket.onmessage = function(e){
-      console.log(e.data);
-    }
-    webSocket.onopen = function(){
-      console.log("socket Open");
-      webSocket.send("test");
-    }
-    webSocket.onclose = function(){
-      console.log("socket Close");
-    }
-    </script>
+    
+  <h1>TaskManager</h1>
+  <style>
+  section.line {
+    width : 150px;
+    float : left;
+    border : 2px solid #666666;
+    background : #fafafa;
+    margin-right : 5px;
+    border-radius : 5px;
+    text-align : center;
+    cursor : move;
+  }
+  section.line header {
+    padding : 5px;
+    background-color : #dadada;
+    border-top-left-radius : 5px;
+    border-top-right-radius : 5px;
+  }
+  article.card {
+    background : #b9a;
+    margin : 4px;
+    border-radius : 3px;
+    border : 1px solid gray;
+  }
+  .cardlist {
+    border: 2px solid #f1f1f1;
+    background: #f1f1f1;
+  }
+  .over {
+    border: 2px dashed #000;
+  }
+  
+  .dragTargetCard{
+    background-color: dadada;
+    color: dadada;
+  }
+  .blank{
+    min-height: 3px;
+  }
+  .overBlank{
+    min-height: 25px;
+    background-color: #ddd;
+  }
+  .fade{
+    background : #333;
+  }
+  </style>
+  <div ng-controller="controller">
+    <section ng-repeat="line in lines" class="line">
+      <header>{{line.title}}</header>
+      <div class="cardlist" id="cardlist_{{line._id}}" >
+        <article class="blank"></article>
+        <div ng-repeat="card in line.cards" > 
+          <article class="card" draggable="true" ui-event="{'dragstart': 'onDragStart(line, card)'}" >
+            {{card.title}}
+          </article>
+          <article class="blank"></article>
+        </div>
+      </div>
+      <article>
+        <form ng-submit="addCard(line)">
+          <input type="submit" value="add"/>
+        </form>
+      </article>
+    </section>
+  </div>
+  <script>
+  $(function(){
+    var myapp = angular.module('myapp', ['ui']);
+    var TaskCtrl = function($scope){
+        var dragStart = {};
+        var getSamples = function(){
+          return [
+                {
+                  _id : "1", 
+                  title : "BOX", 
+                  cards:
+                    [
+                      {
+                        _id : "1",
+                        title : "aaa",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      },
+                      {
+                        _id : "2",
+                        title : "bbb",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      },
+                      {
+                        _id : "3",
+                        title : "ccc",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      }
+                    ]
+                },
+                {
+                  _id : "2",
+                  title : "TODO",
+                  cards:
+                    [
+                      {
+                        _id : "4",
+                        title : "alpha",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      },
+                      {
+                        _id : "5",
+                        title : "bravo",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      },
+                      {
+                        _id : "6",
+                        title : "chaile",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      },
+                      {
+                        _id : "7",
+                        title : "delta",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      }
+                    ]
+                },
+                {
+                  _id : "3",
+                  title : "Doing",
+                  cards:[]
+                },
+                {
+                  _id : "4",
+                  title : "Test",
+                  cards:
+                    [
+                      {
+                        _id : "8",
+                        title : "check",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      },
+                      {
+                        _id : "9",
+                        title : "test",
+                        body : [],
+                        comment : [],
+                        assignee : [],
+                        labels : [],
+                        checkList : {},
+                        dueDate : {},
+                        storyPoint : -1 //unsigned
+                      }
+                    ]
+                },
+                {
+                  _id : "5",
+                  title : "Done",
+                  cards:[]
+                }
+            ];
+        }
+        $scope.lines = getSamples();
+        $scope.addCard = function(line){
+            console.log("added!");
+            console.log(line);
+            line.cards.push("adding card");
+            return false;
+        }
+        $scope.onDragOver = function($event) {
+            $event.preventDefault();
+        };
+        $scope.onDragleave = function($event) {
+            $event.preventDefault();
+        };
+        $scope.onDrop = function($event, targetLine) {
+          if (dragStart === null ) return;
+          if( targetLine._id !== dragStart.line._id){
+            if (dragStart !== null ) {
+              targetLine.cards.push(dragStart.card);
+              dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
+            }
+          }
+        };
+        $scope.onDragStart = function(currentLine, currentCard) {
+            dragStart = {
+              line: currentLine, 
+              card: currentCard,
+              idx: _.indexOf(currentLine.cards, currentCard)
+            };
+        };
+
+        $scope.onDragOverBlank = function($event) {
+          $event.preventDefault();
+        };
+        $scope.onDragleaveBlank = function($event) {
+          $event.preventDefault();
+        };
+        $scope.onDropBlank = function($event, targetLine, targetCard) {
+          if (dragStart === null ) return;
+          var prvIdx = null;
+          if( targetLine._id == dragStart.line._id){
+            targetLine.cards.splice(dragStart.idx, 1);
+          } else {
+            dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
+          }
+          targetLine.cards.splice(_.indexOf(targetLine.cards, targetCard)+1, 0, dragStart.card);
+          dragStart = null;
+          webSocket.send(JSON.stringify($scope.lines));
+          console.log("currentLine:", targetLine);
+        };
+    };
+    myapp.controller('controller', TaskCtrl);
+    angular.bootstrap(document, ['myapp']);
+  });
+  (function(){
+    $(".cardlist").live("drop", function(e){
+      if (e.stopPropagation) e.stopPropagation();
+      e.preventDefault();
+    });
+
+    $(".cardlist")
+      .live("dragover", function(e){
+        $(this).addClass("over");
+        return e.preventDefault();
+      })
+      .live("drop dragleave", function(e){
+        $(this).removeClass("over");
+      });
+    $(".card").live("dragstart", function(e){
+    });
+
+    $(".blank")
+      .live("dragover", function(e){
+        $(this).addClass("overBlank");
+        return e.preventDefault();
+      })
+      .live("drop dragleave", function(e){
+        $(this).removeClass("overBlank");
+      });
+    $(".cardlist").attr("ui-event", "{dragover: 'onDragOver($event)', dragleave: 'onDragLeave($event)', drop: 'onDrop($event, line)'}");
+    $(".blank").attr("ui-event", "{dragover: 'onDragOverBlank($event)', dragleave: 'onDragLeaveBlank($event)', drop: 'onDropBlank($event, line, card)'}");
+  })();
+  </script>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
+  <script type="text/javascript" src="https://raw.github.com/angular-ui/angular-ui/master/build/angular-ui.min.js"></script>
+  <script>
+  var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
+  webSocket.onmessage = function(e){
+    console.log(JSON.parse(e.data));
+  }
+  webSocket.onopen = function(){
+    console.log("socket Open");
+  }
+  webSocket.onclose = function(){
+    console.log("socket Close");
+  }
+  </script>
 }

@@ -1,22 +1,32 @@
 package models.task;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 
 import models.Project;
 
 import play.db.ebean.Model;
+import play.libs.Json;
 
 @Entity
 public class TaskBoard extends Model {
     @Id
     public Long id;
+    
     public List<Line> lines;
     public List<Label> labels;
+    
     @OneToOne
     public Project project;
     
@@ -55,6 +65,27 @@ public class TaskBoard extends Model {
 
     public static TaskBoard findByProject(Project project) {
         return find.where().eq("project", project).findUnique();
+    }
+    public void accecptJSON(JsonNode json) {
+        // TODO json객체를 taskboard객체로 전환한다. 단 이때 이미 있는걸 확인해야 한다.
+        //아니면 특정 카드만 보내면 _id 로 찾아서 그거만 변경?
+        
+    }
+   
+    public JsonNode toJSON() {
+        //라인중에서 넣을 것만 넣고 나머지는 다 위임한다.
+        ArrayNode json = Json.newObject().arrayNode();
+        for(int i = 0; i < lines.size(); i++){
+            json.add(1);
+        }
+        /*assert(lines != null);
+        assert(lines.size() == 2);
+        Iterator<Line> iter = lines.iterator();
+        while(iter.hasNext()){
+            Line line = iter.next();
+            json.add(1);
+        }*/
+        return json;
     }
     
 }
