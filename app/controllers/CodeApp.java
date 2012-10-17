@@ -1,26 +1,22 @@
 package controllers;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.ServletException;
-
 import models.Project;
-
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.Config;
-import views.html.code.gitView;
-import views.html.code.svnView;
+import views.html.code.codeView;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class CodeApp extends Controller {
     //TODO 리팩토링이 시급합니다.
@@ -49,7 +45,7 @@ public class CodeApp extends Controller {
             List<String> branches = RepositoryService.getRepository(project).getBranches();
             return ok(codeView.render(msg, project, branches));
         } else {
-            return status(501, vcs + " is not supported!");
+            return status(501, project.vcs + " is not supported!");
         }
     }
 

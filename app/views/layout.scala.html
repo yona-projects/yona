@@ -1,17 +1,5 @@
 @(title: String)(content: Html)
-@getCssName(name : String) = @{
-    loadAssetsLink("stylesheets",name,"css")
-}
-@getJSName(name : String) = @{
-    loadAssetsLink("javascripts",name,"js")
-}
-
-@loadAssetsLink(base:String, name:String, _type: String) = @{
-    var miniified = ""
-    if (play.Play.isProd()) miniified = ".min"
-    routes.Assets.at(base + "/" + name + miniified + "." +_type)
-}
-
+@import utils.TemplateHelper._
 <!DOCTYPE html>
 
 <html>
@@ -20,25 +8,25 @@
 <title>@title</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="@getCssName("bootstrap")">
-    <link rel="stylesheet" type="text/css" media="screen" href="@getCssName("bootstrap-responsive")">
-    <link rel="stylesheet" type="text/css" media="screen" href="@getCssName("main")">
+    <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap")">
+    <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap-responsive")">
+    <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("main")">
 
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
 
-    <script src="@getJSName("jquery-1.7.2")" type="text/javascript"></script>
-    <script src="@getJSName("bootstrap")" type="text/javascript"></script>
-    <script src="@getJSName("validation/jquery.validate")" type="text/javascript"></script>
-    <script src="@getJSName("nforge")" type="text/javascript"></script>
-    <script src="@getJSName("modules/common")" type="text/javascript"></script>
-    <script src="@getJSName("modules/issue")" type="text/javascript"></script>
-    <script src="@getJSName("modules/board")" type="text/javascript"></script>
-    <script src="@getJSName("modules/pages")" type="text/javascript"></script>
-    <script src="@getJSName("modules/project")" type="text/javascript"></script>
-    <script src="@getJSName("modules/milestone")" type="text/javascript"></script>
-    <script src="@getJSName("modules/code")" type="text/javascript"></script>
-    <script src="@getJSName("modules/markdown")" type="text/javascript"></script>
-    <script src="@getJSName("modules/shortcut")" type="text/javascript"></script>
+    <script src="@getJSLink("jquery-1.7.2")" type="text/javascript"></script>
+    <script src="@getJSLink("bootstrap")" type="text/javascript"></script>
+    <script src="@getJSLink("validation/jquery.validate")" type="text/javascript"></script>
+    <script src="@getJSLink("nforge")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/common")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/issue")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/board")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/pages")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/project")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/milestone")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/code")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/markdown")" type="text/javascript"></script>
+    <script src="@getJSLink("modules/shortcut")" type="text/javascript"></script>
 </head>
 
 <body>
