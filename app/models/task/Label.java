@@ -2,6 +2,7 @@ package models.task;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 import play.db.ebean.Model;
 
@@ -11,6 +12,9 @@ public class Label extends Model{
     public Long id;
     public String name;
     public String color;//#ffffff
+    
+    @ManyToOne
+    public TaskBoard taskBoard;
     
     private static Finder<Long, Label> find = new Finder<Long, Label>(Long.class, Label.class);
     

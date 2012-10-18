@@ -64,6 +64,12 @@ public class Global extends GlobalSettings {
                 Ebean.save(all.get("projectUsers"));
                 Ebean.save(all.get("cards"));
                 Ebean.save(all.get("taskBoards"));
+                Ebean.save(all.get("labels"));
+                Ebean.save(all.get("lines"));
+                /*for (Object line : all.get("lines")){
+                   Ebean.saveAssociation(line, "taskBoard");
+                }*/
+                
                 Ebean.save(all.get("checkLists"));
             }
         }

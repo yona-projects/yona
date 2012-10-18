@@ -89,7 +89,7 @@ public class TaskApp extends Controller {
 
             this.out = out;
             // Send a single 'Hello!' message
-            out.write("Hello!");
+            //out.write("Hello!");
         }
 
         public void sendMessage(String msg) {
@@ -100,10 +100,10 @@ public class TaskApp extends Controller {
         public void invoke(String event) throws Throwable {
             // out.write()로 응답
 
-            JsonNode data = Json.parse(event);
-            for (int i = 0; i < data.size(); i++) {
+            //JsonNode data = Json.parse(event);
+            /*for (int i = 0; i < data.size(); i++) {
                 Logger.info(data.get(i).findValue("_id").asText());
-            }
+            }*/
 
             // model에 뭔가 저장한다.
             // 같은 것에 접속해 있는 모든사람에게 노티를 보낸다.

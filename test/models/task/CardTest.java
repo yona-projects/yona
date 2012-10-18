@@ -1,11 +1,10 @@
 package models.task;
 
-import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.junit.Assert.*;
-
 import models.ModelTest;
 import models.ProjectUser;
+
+import org.junit.Test;
 
 public class CardTest extends ModelTest<Card> {
 

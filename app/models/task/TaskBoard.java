@@ -12,8 +12,6 @@ import javax.persistence.OneToOne;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
-
 import models.Project;
 
 import play.db.ebean.Model;
@@ -24,7 +22,9 @@ public class TaskBoard extends Model {
     @Id
     public Long id;
     
-    public List<Line> lines;
+    @OneToMany(mappedBy = "taskBoard", cascade=CascadeType.ALL)
+    public List<Line> lines = new ArrayList<Line>();
+    @OneToMany(mappedBy = "taskBoard", cascade=CascadeType.ALL)
     public List<Label> labels;
     
     @OneToOne
@@ -64,7 +64,7 @@ public class TaskBoard extends Model {
     }
 
     public static TaskBoard findByProject(Project project) {
-        return find.where().eq("project", project).findUnique();
+        return find.where().eq("project.id", project.id).findUnique();
     }
     public void accecptJSON(JsonNode json) {
         // TODO json객체를 taskboard객체로 전환한다. 단 이때 이미 있는걸 확인해야 한다.

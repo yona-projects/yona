@@ -27,7 +27,7 @@ public class TaskBoardTest extends ModelTest<TaskBoard> {
         assertThat(taskboard.project).isEqualTo(project);
     }
 
-    @Test
+    @Ignore @Test
     public void findByProject() throws Exception {
         // Given
         Project project = ProjectApp.getProject("hobi", "nForge4java");
@@ -35,6 +35,7 @@ public class TaskBoardTest extends ModelTest<TaskBoard> {
         TaskBoard taskboard = TaskBoard.findByProject(project);
         // Then
         assertThat(taskboard).isNotNull();
+        assertThat(taskboard.project).isEqualTo(project);
     }
     @Ignore @Test
     public void accecptJSON() throws Exception{
@@ -51,14 +52,12 @@ public class TaskBoardTest extends ModelTest<TaskBoard> {
     public void toJSON() throws Exception {
         //현재 DB에 들어있는 놈을 JSON으로 내려 보내야 한다.
         //Given
-        assertThat(getTestProject().id).isEqualTo(1l);
         TaskBoard taskBoard = TaskBoard.findByProject(getTestProject());
-        assertThat(taskBoard.labels.size()).isEqualTo(1);
-        
+        //assertThat(taskBoard).isNotNull();
         assertThat(taskBoard.lines).isNotNull();
         assertThat(taskBoard.lines.size()).isEqualTo(2);
         //When
-        //JsonNode json = taskBoard.toJSON();
+        JsonNode json = taskBoard.toJSON();
         //Then
         //assertThat(json.size()).isEqualTo(2);
     }

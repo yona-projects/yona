@@ -43,7 +43,7 @@ projects:
         overview:       nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
         share_option:   true
         vcs:            GIT
-        homepage:            http://localhost:9000/nForge4java
+        homepage:       http://localhost:9000/nForge4java
         owner:          hobi
         isAuthorEditable: true
     - !!models.Project
@@ -51,7 +51,7 @@ projects:
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
         share_option:   false
         vcs:            Subversion
-        homepage:            http://localhost:9000/Jindo
+        homepage:       http://localhost:9000/Jindo
         owner:          k16wire
         isAuthorEditable: false
     - !!models.Project
@@ -59,7 +59,7 @@ projects:
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
         share_option:   false
         vcs:            GIT
-        homepage:            http://localhost:9000/CUBRID
+        homepage:       http://localhost:9000/CUBRID
         owner:          doortts
         isAuthorEditable: true
     - !!models.Project
@@ -67,7 +67,7 @@ projects:
         overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
         share_option:   false
         vcs:            GIT
-        homepage:            http://localhost:9000/HelloSocialApp
+        homepage:       http://localhost:9000/HelloSocialApp
         owner:          hobi
         isAuthorEditable: true
 
@@ -1035,8 +1035,6 @@ permissions:
         id:             67
         resource:       issue_importance
         operation:      edit
-        
-        
 
 # ProjectUser
 projectUsers:
@@ -1137,19 +1135,24 @@ cards:
                             id: 1
 taskBoards:
     - !!models.task.TaskBoard
-        labels:
-            - !!models.task.Label
-                id:     1
         project:        !!models.Project
-                id:             1
+                            id:  1
+
+labels:
+    - !!models.task.Label
+        name:           HELP
+
+lines:
     - !!models.task.Line
-        id:             100
         title:          Box
-        cards:
-            - !!models.task.Card
-                id:             1
-            - !!models.task.Card
-                id:             2
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
+        
+    - !!models.task.Line
+        title:          TODO
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
+        
 checkLists:
     - !!models.task.CheckList
         title:          Box
@@ -1163,7 +1166,7 @@ checkLists:
     - !!models.task.CheckList
         title:          Done
     - !!models.task.Item
-        body:           test item    
+        body:           test item
     
                 
                 

@@ -207,6 +207,18 @@
                 }
             ];
         }
+        var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
+        webSocket.onmessage = function(e){
+          console.log("data from other client!");
+          $scope.lines = JSON.parse(e.data);
+          $scope.$apply();
+        }
+        webSocket.onopen = function(){
+          console.log("socket Open");
+        }
+        webSocket.onclose = function(){
+          console.log("disconnected!");
+        }
         $scope.lines = getSamples();
         $scope.addCard = function(line){
             console.log("added!");
@@ -294,16 +306,4 @@
   <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
   <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
   <script type="text/javascript" src="https://raw.github.com/angular-ui/angular-ui/master/build/angular-ui.min.js"></script>
-  <script>
-  var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
-  webSocket.onmessage = function(e){
-    console.log(JSON.parse(e.data));
-  }
-  webSocket.onopen = function(){
-    console.log("socket Open");
-  }
-  webSocket.onclose = function(){
-    console.log("socket Close");
-  }
-  </script>
 }
