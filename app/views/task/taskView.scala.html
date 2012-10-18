@@ -209,7 +209,6 @@
         }
         var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
         webSocket.onmessage = function(e){
-          console.log("data from other client!");
           $scope.lines = JSON.parse(e.data);
           $scope.$apply();
         }
@@ -240,6 +239,7 @@
               dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
             }
           }
+          webSocket.send(JSON.stringify($scope.lines));
         };
         $scope.onDragStart = function(currentLine, currentCard) {
             dragStart = {
