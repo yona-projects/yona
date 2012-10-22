@@ -8,10 +8,16 @@ import java.util.Set;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
 
 import models.ProjectUser;
 
+import play.Logger;
 import play.db.ebean.Model;
+import play.libs.Json;
 
 @Entity
 public class Card extends Model{
@@ -20,16 +26,19 @@ public class Card extends Model{
     public String title;
     public List<TaskComment> comments = new ArrayList<TaskComment>();
     public Set<ProjectUser> assignee = new HashSet<ProjectUser>() ;
-    int StoryPoint; //!주의 10배로 표현
+    public int storyPoint; //!주의 10배로 표현
     public Set<Label> labels = new HashSet<Label>();
     public String body;
     public Date dueDate;
     public CheckList checklist;
     
+    @ManyToOne
+    public Line line;
+    
     private static Finder<Long, Card> find = new Finder<Long, Card>(Long.class, Card.class);
     
-    public static Card findById(Long cardid){
-        return find.byId(cardid);
+    public static Card findById(Long id){
+        return find.byId(id);
     }
     
     public void assignMember(ProjectUser member){
@@ -58,5 +67,21 @@ public class Card extends Model{
         }
         this.checklist = checklist;
         checklist.save();
+    }
+
+    public JsonNode toJSON() {
+        ObjectNode json = Json.newObject();
+        json.put("_id", id);
+        json.put("title", title);
+        json.put("body", body);
+        return json;
+    }
+
+    public void accecptJSON(JsonNode json) {
+        title = json.get("title").asText();
+        body = json.get("body").asText();
+        //TODO 기타 다른것들도 데이터를 집어 넣어 줘야 함.
+        
+        save();
     }
 }

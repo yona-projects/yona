@@ -1,15 +1,12 @@
 import java.io.File;
-import java.io.IOException;
-import java.util.*;
-
-import javax.servlet.ServletException;
-
-import org.tigris.subversion.javahl.ClientException;
+import java.util.List;
+import java.util.Map;
 
 import models.Project;
 import models.User;
-import play.*;
 import play.Application;
+import play.GlobalSettings;
+import play.Logger;
 import play.api.mvc.Handler;
 import play.libs.Yaml;
 import play.mvc.Http.RequestHeader;
@@ -17,14 +14,14 @@ import playRepository.RepositoryService;
 
 import com.avaje.ebean.Ebean;
 
-import controllers.*;
+import controllers.routes;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
         InitialData.insert(app);
         InitialData.makeUploadFolder();
-//        InitialData.makeTestRepository();
-//        UserApp.anonymous = User.findByLoginId("anonymous");
+        InitialData.makeTestRepository();
+        // UserApp.anonymous = User.findByLoginId("anonymous");
     }
 
     @Override
@@ -62,14 +59,11 @@ public class Global extends GlobalSettings {
                     Ebean.saveManyToManyAssociations(role, "permissions");
                 }
                 Ebean.save(all.get("projectUsers"));
-                Ebean.save(all.get("cards"));
-                Ebean.save(all.get("taskBoards"));
-                Ebean.save(all.get("labels"));
-                Ebean.save(all.get("lines"));
-                /*for (Object line : all.get("lines")){
-                   Ebean.saveAssociation(line, "taskBoard");
-                }*/
                 
+                Ebean.save(all.get("taskBoards"));
+                Ebean.save(all.get("lines"));
+                Ebean.save(all.get("cards"));
+                Ebean.save(all.get("labels"));
                 Ebean.save(all.get("checkLists"));
             }
         }
@@ -92,6 +86,6 @@ public class Global extends GlobalSettings {
     }
 
     public void onStop(Application app) {
-        
+
     }
 }

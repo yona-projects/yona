@@ -3,7 +3,12 @@ package controllers;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import models.Project;
+import models.task.TaskBoard;
+
 import org.codehaus.jackson.JsonNode;
+
+import com.avaje.ebean.Ebean;
 
 import play.Logger;
 import play.libs.F.Callback;
@@ -55,7 +60,6 @@ public class TaskApp extends Controller {
 
         public void sendNotify(WebSocketConnector that, String msg) {
             for (int i = 0; i < sockets.size(); i++) {
-
                 WebSocketConnector socket = sockets.get(i);
                 if (socket != that) {
                     socket.sendMessage(msg);
@@ -71,6 +75,7 @@ public class TaskApp extends Controller {
         private String projectName;
         private play.mvc.WebSocket.Out<String> out;
         private WebSocketServer server;
+        private TaskBoard taskBoard;
 
         public WebSocketConnector(String userName, String projectName,
                 WebSocketServer webSocketServer) {
@@ -83,13 +88,12 @@ public class TaskApp extends Controller {
         public void onReady(play.mvc.WebSocket.In<String> in, play.mvc.WebSocket.Out<String> out) {
             // For each event received on the socket,
             in.onMessage(this);
-
-            // When the socket is closed.
             in.onClose(this);
 
             this.out = out;
-            // Send a single 'Hello!' message
-            //out.write("Hello!");
+
+            taskBoard = TaskBoard.findByProject(ProjectApp.getProject(userName, projectName));
+            out.write(Json.stringify(taskBoard.toJSON()));
         }
 
         public void sendMessage(String msg) {
@@ -98,16 +102,9 @@ public class TaskApp extends Controller {
 
         @Override
         public void invoke(String event) throws Throwable {
-            // out.write()로 응답
-
-            //JsonNode data = Json.parse(event);
-            /*for (int i = 0; i < data.size(); i++) {
-                Logger.info(data.get(i).findValue("_id").asText());
-            }*/
-
-            // model에 뭔가 저장한다.
-            // 같은 것에 접속해 있는 모든사람에게 노티를 보낸다.
+            //클라이언트에서 모델을 보내올때
             this.server.sendNotify(this, event);
+            this.taskBoard.accecptJSON(Json.parse(event));
         }
 
         @Override

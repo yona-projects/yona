@@ -4,6 +4,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import models.ModelTest;
 import models.ProjectUser;
 
+import org.codehaus.jackson.JsonNode;
 import org.junit.Test;
 
 public class CardTest extends ModelTest<Card> {
@@ -88,5 +89,15 @@ public class CardTest extends ModelTest<Card> {
         assertThat(card.checklist).isNotNull();
         assertThat(card.checklist).isEqualTo(checklist);
         assertThat(checklist.id).isNotNull();
+    }
+    @Test
+    public void toJSON() throws Exception {
+        //Given
+        Card card = Card.findById(1l);
+        //When
+        JsonNode json = card.toJSON();
+        //Then
+        assertThat(json.get("title").asText()).isEqualTo("test title");
+        assertThat(json.get("body").asText()).isEqualTo("test card");
     }
 }

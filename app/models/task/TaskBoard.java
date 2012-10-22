@@ -6,14 +6,17 @@ import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ArrayNode;
 import models.Project;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
+
+import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
@@ -67,24 +70,31 @@ public class TaskBoard extends Model {
         return find.where().eq("project.id", project.id).findUnique();
     }
     public void accecptJSON(JsonNode json) {
-        // TODO json객체를 taskboard객체로 전환한다. 단 이때 이미 있는걸 확인해야 한다.
-        //아니면 특정 카드만 보내면 _id 로 찾아서 그거만 변경?
-        
+        // 이미 있는 목록을 지워버리고 온거로만 채운다. 지원지면 난 몰라!
+        // TODO delete를 고려할것.
+        lines.clear();
+        for(int i =0; i < json.size(); i++){
+            JsonNode lineJson = json.get(i);
+            Long lineId = lineJson.get("_id").asLong();
+            Line line = Line.findById(lineId);
+            if(line == null){
+                line = new Line();
+            }
+            lines.add(line);
+            line.taskBoard = this;
+            line.accecptJSON(lineJson);
+            line.save();
+        }
+        save();
     }
    
     public JsonNode toJSON() {
         //라인중에서 넣을 것만 넣고 나머지는 다 위임한다.
         ArrayNode json = Json.newObject().arrayNode();
-        for(int i = 0; i < lines.size(); i++){
-            json.add(1);
+        
+        for(Line line : lines) {
+            json.add(line.toJSON());
         }
-        /*assert(lines != null);
-        assert(lines.size() == 2);
-        Iterator<Line> iter = lines.iterator();
-        while(iter.hasNext()){
-            Line line = iter.next();
-            json.add(1);
-        }*/
         return json;
     }
     

@@ -1109,49 +1109,59 @@ projectUsers:
                             id: 1
 
 #Task
+taskBoards:
+    - !!models.task.TaskBoard
+        project:        !!models.Project
+                            id:  1
+lines:
+    - !!models.task.Line
+        title:          Box
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
+
+    - !!models.task.Line
+        title:          TODO
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
+
 cards:
     - !!models.task.Card
-        id:             1
+        title:          test title
         body:           test card
         assignee:
             - !!models.ProjectUser
                 id:     1
         labels:         
             - !!models.task.Label
-                id: 1
+                id:     1
         comments:
             - !!models.task.TaskComment
-                id: 1
+                id:     1
+        line:           !!models.task.Line
+                            id:     1
     - !!models.task.Card
-        id:             2
+        title:          alpha
         body:           alpha
         assignee:
             - !!models.ProjectUser
                 id:     1
+        line:           !!models.task.Line
+                            id:     1
+    - !!models.task.Card
+        title:          Beta
+        body:           beta
+        line:           !!models.task.Line
+                            id:     1
+        
     - !!models.task.TaskComment
         body:           test comment
         author:         !!models.ProjectUser
-                            id: 1
-taskBoards:
-    - !!models.task.TaskBoard
-        project:        !!models.Project
-                            id:  1
+                            id:     1
 
 labels:
     - !!models.task.Label
         name:           HELP
 
-lines:
-    - !!models.task.Line
-        title:          Box
-        taskBoard:      !!models.task.TaskBoard
-                            id:      1
-        
-    - !!models.task.Line
-        title:          TODO
-        taskBoard:      !!models.task.TaskBoard
-                            id:      1
-        
 checkLists:
     - !!models.task.CheckList
         title:          Box
