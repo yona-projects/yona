@@ -75,6 +75,12 @@ GET     /:userName/:projectName/issues/:id/edit         controllers.IssueApp.edi
 POST    /:userName/:projectName/issues/:id/edit         controllers.IssueApp.updateIssue(userName:String, projectName:String, id:Long)
 GET		/issuedetail									controllers.IssueApp.getIssueDatil()
 
+# Attachments
+GET     /files 				    controllers.AttachmentApp.getFileList()
+POST    /files 				    controllers.AttachmentApp.newFile()
+GET     /files/:id/:filename	controllers.AttachmentApp.getFile(id: Long, filename: String)
+POST    /files/:id/:filename	controllers.AttachmentApp.deleteFile(id: Long, filename: String)
+
 # Git
 GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String)
 POST    /:ownerName/:projectName/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(ownerName:String, projectName:String, service:String)

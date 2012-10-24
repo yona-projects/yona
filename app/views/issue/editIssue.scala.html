@@ -2,6 +2,7 @@
 @import helper._
 @import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@import models.enumeration.Resource
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
   roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT){
@@ -30,11 +31,11 @@
     	   '_showConstraints -> false, 
            '_label-> Messages("post.new.contents"),
            'rows -> 16,
-           'class -> "input-xxlarge textbody")
+           'class -> "input-xxlarge textbody",
+           'resourceType -> Resource.ISSUE_POST,
+           'markdown -> true,
+           'resourceId -> issueId)
 
-    	@inputFile(
-    	   issueForm("filePath"),
-    	   '_label -> Messages("post.new.filePath"))
     </fieldset>
     	</br></br>
     	
@@ -139,7 +140,7 @@
 
     @board.postVaildate()
 
-@views.html.markdown(Map("#body" -> "edit"))
+@views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
 </script>

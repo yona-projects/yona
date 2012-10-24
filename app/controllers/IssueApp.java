@@ -10,8 +10,6 @@ import models.enumeration.*;
 import models.support.*;
 import play.data.*;
 import play.mvc.*;
-import play.mvc.Http.*;
-import play.mvc.Http.MultipartFormData.*;
 import utils.*;
 import views.html.issue.*;
 
@@ -35,7 +33,7 @@ public class IssueApp extends Controller {
         Page<Issue> issues = Issue.find(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
-                issueParam.commentedCheck, issueParam.fileAttachedCheck);
+                issueParam.commentedCheck);
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
@@ -57,9 +55,9 @@ public class IssueApp extends Controller {
         return ok(newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
-    public static Result saveIssue(String userName, String projectName) {
+    public static Result saveIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
         } else {
@@ -69,9 +67,10 @@ public class IssueApp extends Controller {
             newIssue.project = project;
             newIssue.state = IssueState.ENROLLED;
             newIssue.updateStateType(newIssue);
-            newIssue.filePath = saveFile(request());
-            Issue.create(newIssue);
+            Long issueId = Issue.create(newIssue);
 
+            // Attach all of the files in the current user's temporary storage.
+            Attachment.moveTempFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 StateType.ALL.stateType()));
@@ -84,7 +83,7 @@ public class IssueApp extends Controller {
         return ok(editIssue.render("title.editIssue", editForm, id, project));
     }
 
-    public static Result updateIssue(String userName, String projectName, Long id) {
+    public static Result updateIssue(String userName, String projectName, Long id) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (issueForm.hasErrors()) {
@@ -93,10 +92,12 @@ public class IssueApp extends Controller {
             Issue issue = issueForm.get();
             issue.id = id;
             issue.date = Issue.findById(id).date;
-            issue.filePath = saveFile(request());
             issue.project = project;
             issue.updateState(issue);
             Issue.edit(issue);
+
+            // Attach the files in the current user's temporary storage.
+            Attachment.moveTempFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, id);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.name()));
     }
@@ -109,7 +110,7 @@ public class IssueApp extends Controller {
                 StateType.ALL.stateType()));
     }
 
-    public static Result saveComment(String userName, String projectName, Long issueId) {
+    public static Result saveComment(String userName, String projectName, Long issueId) throws IOException {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -121,9 +122,12 @@ public class IssueApp extends Controller {
             comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
             comment.authorName = UserApp.currentUser().name;
-            comment.filePath = saveFile(request());
-            IssueComment.create(comment);
+            Long commentId = IssueComment.create(comment);
             Issue.updateNumOfComments(issueId);
+
+            // Attach all of the files in the current user's temporary storage.
+            Attachment.moveTempFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_COMMENT, commentId);
+
             return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         }
     }
@@ -144,7 +148,7 @@ public class IssueApp extends Controller {
         Page<Issue> issues = Issue.find(project.name, issueParam.pageNum,
                 StateType.getValue(stateType), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
-                issueParam.commentedCheck, issueParam.fileAttachedCheck);
+                issueParam.commentedCheck);
         Issue.excelSave(issues.getList(), project.name + "_" + stateType + "_filter_"
                 + issueParam.filter + "_milestone_" + issueParam.milestone);
         return ok(issueList.render("title.issueList", issues, issueParam, project));
@@ -153,25 +157,6 @@ public class IssueApp extends Controller {
     public static Result enrollAutoNotification(String userName, String projectName)
             throws Exception {
         return TODO;
-    }
-
-    /**
-     * From BoardApp
-     *
-     * @param request
-     * @return
-     */
-    private static String saveFile(Request request) {
-        MultipartFormData body = request.body().asMultipartFormData();
-
-        FilePart filePart = body.getFile("filePath");
-
-        if (filePart != null) {
-            File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
-            filePart.getFile().renameTo(saveFile);
-            return filePart.getFilename();
-        }
-        return null;
     }
 
     public static Result getIssueDatil(){

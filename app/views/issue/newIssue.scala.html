@@ -21,29 +21,16 @@
     	@inputText(
     		issueForm("title"), 
     		'_showConstraints -> false, 
-    		'_label-> Messages("post.new.title"))
+            '_label-> Messages("post.new.title"),
+            'class -> "input-xxlarge")
     	@textarea(
     		issueForm("body"), 
     		'_showConstraints -> false,
-    		'_label-> Messages("post.new.contents"))
+            '_label-> Messages("post.new.contents"),
+            'rows -> 16,
+            'class -> "input-xxlarge textbody",
+            'markdown -> true)
     	</fieldset>
-
-    	<i class = "icon-file"></i>@Messages("post.new.fileAttach") <a id="fileUpload" data-toggle="modal" href="#askFilePath" class="btn">@Messages("button.selectFile")</a>
-	       <div class="modal hide" id="askFilePath">
-		    	<div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal">@Messages("button.popup.exit")</button>
-			            <h3>@Messages("post.popup.fileAttach.title")</h3>
-			    </div>
-			    <div class="modal-body">
-			        <p> @Messages("post.popup.fileAttach.contents")</p>
-			        @inputFile(issueForm("filePath"))
-			    </div>
-			    <div class="modal-footer">
-			        <a href="#" class="btn" data-dismiss="modal">@Messages("button.cancel")</a>
-			        <a href="#" class="btn btn-primary" data-dismiss="modal">@Messages("button.confirm")</a>
-			    </div>
-	       </div>
-		</br></br>
 
 		<fieldset>
             <div class="well">
@@ -145,7 +132,7 @@
     </div>
  }
 
-@views.html.markdown(Map("#body" -> "edit"))
+@views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
 </script>

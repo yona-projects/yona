@@ -1,6 +1,8 @@
 @(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project) 
 @import helper._ 
 @import scala.collection.mutable.Map
+@import models.enumeration.Resource
+
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
@@ -43,13 +45,7 @@
 		</div>
 		<div class="span11">
 			<div>
-				<div id="body">@issue.body</div>
-				@if(issue.filePath != null){
-				<p>
-					<a href='@routes.Assets.at("uploadFiles/" + issue.filePath)'><i
-						class="icon-download"></i>@issue.filePath</a>
-				</p>
-				}
+				<div id="body" markdown resourceType=@Resource.ISSUE_POST resourceId="@issue.id">@issue.body</div>
 			</div>
 		</div>
 		<a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
@@ -167,13 +163,7 @@
             </div>
         </div>
 		}
-		<pre>@comment.contents</pre>
-		@if(comment.filePath != null){
-		<p>
-			<a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i
-				class="icon-download"> </i> @comment.filePath</a>
-		</p>
-		  }
+		<div markdown resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id>@comment.contents</div>
 	</div>
 </div>
 }
@@ -184,14 +174,12 @@
 	   'enctype -> "multipart/form-data",
 	   'class -> "form-horizontal"){
 		<div class="span12">
-		      @textarea(commentForm("contents"),
-		                    '_label-> Messages("post.new.contents")
-		                           )
+        @textarea(commentForm("contents"),
+            '_label-> Messages("post.new.contents"),
+            'rows -> 5,
+            'markdown -> true,
+            'class -> "input-xxlarge textbody")
 		</div>
-		<div class="span6">
-		      @inputFile(commentForm("filePath"),
-	                       '_label -> Messages("post.new.filePath"))
-	    </div>
 		<div class="span6">
 			<input class="btn pull-right" type="submit" value=@Messages( "button.comment.new") />
 		</div>
@@ -214,5 +202,5 @@
 	</div>
 </div>
 
-@views.html.markdown(Map("#body" -> "render"))
+@views.html.markdown()
 }

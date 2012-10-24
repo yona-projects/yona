@@ -1,4 +1,3 @@
-@(targets: Map[String, String])
 @import utils.TemplateHelper._
 <style>
 @@IMPORT url(@getCSSLink("hljsstyles/googlecode"));
@@ -6,9 +5,7 @@
 <script src="@getJSLink("showdown")" type="text/javascript"></script>
 <script src="@getJSLink("hljs")" type="text/javascript"></script>
 <script src="@getJSLink("languages/allinone")" type="text/javascript"></script>
+<script src="@getJSLink("jquery.form")" type="text/javascript"></script>
 <script type="text/javascript">
-  @applyMarkdown(key: String) = {
-    nforge.require("markdown.@targets.get(key)", "@key");
-  }
-  @targets.keys.map(applyMarkdown)
+  nforge.require("markdown.enable", $("[markdown]"), "@routes.AttachmentApp.newFile");
 </script>

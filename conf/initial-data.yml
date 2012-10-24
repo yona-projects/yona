@@ -103,7 +103,6 @@ issues:
         milestoneId:    1
         project:        !!models.Project
                             id: 1
-        filePath:       FakeFilePath/To/Check/FileIcon
     - !!models.Issue
         authorId:     3
         assigneeId:     2     

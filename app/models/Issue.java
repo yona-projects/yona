@@ -38,7 +38,6 @@ import static com.avaje.ebean.Expr.*;
  * @param milestone       이슈가 등록된 마일스톤
  * @param importance      이슈 상세정보의 중요도
  * @param diagnosisResult 이슈 상세정보의 진단유형
- * @param filePath        이슈에 첨부된 파일 주소
  * @param osType          이슈 상세정보의 OS 유형
  * @param browserType     이슈 상세정보의 브라우저 유형
  * @param dbmsType        이슈 상세정보의 DBMS 유형
@@ -79,8 +78,6 @@ public class Issue extends Model {
     public StateType stateType;
     public String issueType;
     public String componentName;
-    // TODO 첨부 파일이 여러개인경우는?
-    public String filePath;
     public String osType;
     public String browserType;
     public String dbmsType;
@@ -355,10 +352,6 @@ public class Issue extends Model {
      * @param issue
      */
     public static void edit(Issue issue) {
-        Issue previousIssue = findById(issue.id);
-        if (issue.filePath == null) {
-            issue.filePath = previousIssue.filePath;
-        }
         issue.updateStateType(issue);
         issue.update();
     }
@@ -392,7 +385,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssues(String projectName, StateType state) {
         return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                "", null, false, false);
+                "", null, false);
     }
 
     /**
@@ -402,13 +395,12 @@ public class Issue extends Model {
      * @param filter
      * @param state
      * @param commentedCheck
-     * @param fileAttachedCheck
      * @return
      */
     public static Page<Issue> findFilteredIssues(String projectName, String filter,
-                                                 StateType state, boolean commentedCheck, boolean fileAttachedCheck) {
+                                                 StateType state, boolean commentedCheck) {
         return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                filter, null, commentedCheck, fileAttachedCheck);
+                filter, null, commentedCheck);
     }
 
     /**
@@ -420,20 +412,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findCommentedIssues(String projectName, String filter) {
         return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
-                Direction.DESC, filter, null, true, false);
-    }
-
-    /**
-     * 파일이 첨부된 이슈들만 찾아준다.
-     *
-     * @param projectName
-     * @param filter
-     * @return
-     */
-
-    public static Page<Issue> findFileAttachedIssues(String projectName, String filter) {
-        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
-                Direction.DESC, filter, null, false, true);
+                Direction.DESC, filter, null, true);
     }
 
     /**
@@ -445,7 +424,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssuesByMilestoneId(String projectName, Long milestoneId) {
         return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
-                Direction.DESC, "", milestoneId, false, false);
+                Direction.DESC, "", milestoneId, false);
     }
 
     /**
@@ -459,13 +438,11 @@ public class Issue extends Model {
      * @param order             Sort order(either asc or desc)
      * @param filter            filter applied on the title column
      * @param commentedCheck    filter applied on the commetedCheck column, 댓글이 존재하는 이슈만 필터링
-     * @param fileAttachedCheck filter applied on the fileAttachedCheck column, 파일이 업로드된 이슈만
-     *                          필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
     public static Page<Issue> find(String projectName, int pageNumber, StateType state,
                                    String sortBy, Direction order, String filter, Long milestoneId,
-                                   boolean commentedCheck, boolean fileAttachedCheck) {
+                                   boolean commentedCheck) {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.name", projectName,
                 Matching.EQUALS);
@@ -479,9 +456,7 @@ public class Issue extends Model {
         if (commentedCheck) {
             searchParams.add("numOfComments", NUMBER_OF_ONE_MORE_COMMENTS, Matching.GE);
         }
-        if (fileAttachedCheck) {
-            searchParams.add("filePath", "", Matching.NOT_EQUALS);
-        }
+
         if (state == null) {
             state = StateType.ALL;
         }
@@ -566,7 +541,7 @@ public class Issue extends Model {
                 sheet.setColumnView(i, 20);
             }
             for (int i = 1; i < resultList.size() + 1; i++) {
-                Issue issue = (Issue) resultList.get(i - 1);
+                Issue issue = resultList.get(i - 1);
                 int colcnt = 0;
                 sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
                 sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
