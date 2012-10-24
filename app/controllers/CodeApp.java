@@ -71,12 +71,10 @@ public class CodeApp extends Controller {
     }
 
     public static String getURL(String ownerName, String projectName) {
-        return utils.Url.create(Arrays.asList(ownerName, projectName));
+        return utils.Url.create(Arrays.asList(ownerName, projectName), request().host());
     }
 
     public static String getSvnURL(String ownerName, String projectName) {
-        String[] pathSegments = { "svn", ownerName, projectName };
-        return Config.getScheme("http") + "://" + Config.getHostport(request().host()) + "/"
-                + StringUtils.join(pathSegments, "/");
+        return utils.Url.create(Arrays.asList("svn", ownerName, projectName), request().host());
     }
 }
