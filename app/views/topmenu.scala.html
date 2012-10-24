@@ -35,7 +35,7 @@
     @isVisible(models.enumeration.Resource.WIKI_PAGE){
       <!-- TODO -->
        <li class="@isActiveMenu(routes.ProjectApp.newProject())">
-         <a href="#">위키</a>
+         <a href="@routes.TaskApp.index(project.owner, project.name)">Task</a>
        </li>
     }
     @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.PROJECT_SETTING, models.enumeration.Operation.WRITE){
