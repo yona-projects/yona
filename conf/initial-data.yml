@@ -1147,9 +1147,6 @@ cards:
         labels:         
             - !!models.task.Label
                 id:     1
-        comments:
-            - !!models.task.TaskComment
-                id:     1
         line:           !!models.task.Line
                             id:     1
     - !!models.task.Card
@@ -1169,6 +1166,14 @@ cards:
     - !!models.task.TaskComment
         body:           test comment
         author:         !!models.ProjectUser
+                            id:     1
+        card:           !!models.task.Card
+                            id:     1
+    - !!models.task.TaskComment
+        body:           test comment2
+        author:         !!models.ProjectUser
+                            id:     1
+        card:           !!models.task.Card
                             id:     1
 
 labels:
