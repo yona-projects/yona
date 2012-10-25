@@ -29,6 +29,13 @@ GET     /sites/projectList                              controllers.SiteApp.proj
 GET     /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
 GET     /sites/softwareMap                              controllers.SiteApp.softwareMap()
 
+# Attachments
+GET     /files                                          controllers.AttachmentApp.getFileList()
+POST    /files                                          controllers.AttachmentApp.newFile()
+GET     /files/:id                                      controllers.AttachmentApp.getFile(id: Long)
+GET     /files/:id/?                                    controllers.AttachmentApp.getFile(id: Long)
+POST    /files/:id/:filename                            controllers.AttachmentApp.deleteFile(id: Long, filename: String)
+
 # Boards
 GET     /:user/:projectName/boardList                   controllers.BoardApp.posts(user:String, projectName:String)
 GET     /:user/:projectName/boards/new                  controllers.BoardApp.newPost(user:String, projectName:String)
@@ -75,11 +82,6 @@ GET     /:userName/:projectName/issues/:id/edit         controllers.IssueApp.edi
 POST    /:userName/:projectName/issues/:id/edit         controllers.IssueApp.updateIssue(userName:String, projectName:String, id:Long)
 GET		/issuedetail									controllers.IssueApp.getIssueDatil()
 
-# Attachments
-GET     /files 				    controllers.AttachmentApp.getFileList()
-POST    /files 				    controllers.AttachmentApp.newFile()
-GET     /files/:id/:filename	controllers.AttachmentApp.getFile(id: Long, filename: String)
-POST    /files/:id/:filename	controllers.AttachmentApp.deleteFile(id: Long, filename: String)
 
 # Git
 GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String)

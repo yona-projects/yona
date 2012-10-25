@@ -69,7 +69,7 @@ public class AttachmentApp extends Controller {
         // returned in the entity of the response, with the most specific URI
         // for the resource given by a Location header field.
         //     -- RFC 2616, 10.2.2. 201 Created
-        String url = routes.AttachmentApp.getFile(attach.id, URLEncoder.encode(attach.name, "UTF-8")).url();
+        String url = routes.AttachmentApp.getFile(attach.id).url();
         response().setHeader("Location", url);
 
         // The response SHOULD include an entity containing a list of resource
@@ -98,7 +98,7 @@ public class AttachmentApp extends Controller {
         }
     }
 
-    public static Result getFile(Long id, String filename)
+    public static Result getFile(Long id)
             throws NoSuchAlgorithmException, IOException {
         Attachment attachment = Attachment.findById(id);
 
@@ -113,7 +113,7 @@ public class AttachmentApp extends Controller {
         File file = new File("uploads/" + attachment.hash);
 
         // RFC 2231; IE 8 or less, and Safari 5 or less are not supported.
-        filename = attachment.name.replaceAll("[:\\x5c\\/{?]", "_");
+        String filename = attachment.name.replaceAll("[:\\x5c\\/{?]", "_");
         filename = "filename*=UTF-8''" + URLEncoder.encode(filename, "UTF-8");
 
         response().setHeader("Content-Length", Long.toString(file.length()));
@@ -196,7 +196,7 @@ public class AttachmentApp extends Controller {
         file.put("id", attach.id.toString());
         file.put("mimeType", attach.mimeType);
         file.put("name", attach.name);
-        file.put("url", routes.AttachmentApp.getFile(attach.id, attach.name).url());
+        file.put("url", routes.AttachmentApp.getFile(attach.id).url());
 
         return file;
     }
