@@ -40,7 +40,7 @@ public class TaskBoard extends Model {
         //create default line
         taskBoard.lines = new ArrayList<Line>();
         taskBoard.lines.add(createLine("Box"));
-        taskBoard.lines.add(createLine("TODO"));
+        taskBoard.lines.add(createLine("Todo"));
         taskBoard.lines.add(createLine("Doing"));
         taskBoard.lines.add(createLine("Test"));
         taskBoard.lines.add(createLine("Done"));
@@ -70,7 +70,7 @@ public class TaskBoard extends Model {
         return find.where().eq("project.id", project.id).findUnique();
     }
     public void accecptJSON(JsonNode json) {
-        // 이미 있는 목록을 지워버리고 온거로만 채운다. 지원지면 난 몰라!
+        // 이미 있는 목록을 지워버리고 온거로만 채운다. 지워지면 난 몰라!
         // TODO delete를 고려할것.
         lines.clear();
         for(int i =0; i < json.size(); i++){
@@ -97,5 +97,4 @@ public class TaskBoard extends Model {
         }
         return json;
     }
-    
 }

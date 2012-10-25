@@ -25,6 +25,7 @@
     margin : 4px;
     border-radius : 3px;
     border : 1px solid gray;
+    min-height : 20px;
   }
   .cardlist {
     border: 2px solid #f1f1f1;
@@ -73,152 +74,20 @@
     var myapp = angular.module('myapp', ['ui']);
     var TaskCtrl = function($scope){
         var dragStart = {};
-        var getSamples = function(){
-          return [
-                {
-                  _id : "1", 
-                  title : "BOX", 
-                  cards:
-                    [
-                      {
-                        _id : "1",
-                        title : "aaa",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      },
-                      {
-                        _id : "2",
-                        title : "bbb",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      },
-                      {
-                        _id : "3",
-                        title : "ccc",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      }
-                    ]
-                },
-                {
-                  _id : "2",
-                  title : "TODO",
-                  cards:
-                    [
-                      {
-                        _id : "4",
-                        title : "alpha",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      },
-                      {
-                        _id : "5",
-                        title : "bravo",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      },
-                      {
-                        _id : "6",
-                        title : "chaile",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      },
-                      {
-                        _id : "7",
-                        title : "delta",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      }
-                    ]
-                },
-                {
-                  _id : "3",
-                  title : "Doing",
-                  cards:[]
-                },
-                {
-                  _id : "4",
-                  title : "Test",
-                  cards:
-                    [
-                      {
-                        _id : "8",
-                        title : "check",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      },
-                      {
-                        _id : "9",
-                        title : "test",
-                        body : [],
-                        comment : [],
-                        assignee : [],
-                        labels : [],
-                        checkList : {},
-                        dueDate : {},
-                        storyPoint : -1 //unsigned
-                      }
-                    ]
-                },
-                {
-                  _id : "5",
-                  title : "Done",
-                  cards:[]
-                }
-            ];
-        }
+        
         var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
         webSocket.onmessage = function(e){
           $scope.lines = JSON.parse(e.data);
           $scope.$apply();
         }
         webSocket.onopen = function(){
-          console.log("socket Open");
+          console.log("socket Open!");
         }
         webSocket.onclose = function(){
           console.log("disconnected!");
+          console.log("trying to reconnect...");
+          console.log("unimplement");
         }
-        $scope.lines = getSamples();
         $scope.addCard = function(line){
             console.log("added!");
             console.log(line);

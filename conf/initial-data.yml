@@ -1128,6 +1128,7 @@ cards:
     - !!models.task.Card
         title:          test title
         body:           test card
+        storyPoint:     5 
         assignee:
             - !!models.ProjectUser
                 id:     1

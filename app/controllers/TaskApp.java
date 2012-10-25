@@ -3,13 +3,8 @@ package controllers;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import models.Project;
+import models.task.Card;
 import models.task.TaskBoard;
-
-import org.codehaus.jackson.JsonNode;
-
-import com.avaje.ebean.Ebean;
-
 import play.Logger;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
@@ -17,12 +12,26 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.WebSocket;
-import views.html.task.*;
+import views.html.task.taskView;
+import views.html.task.cardView;
 
 public class TaskApp extends Controller {
     public static Result index(String userName, String projectName) {
         return ok(taskView.render(ProjectApp.getProject(userName, projectName)));
     }
+    
+    public static Result card(String userName, String projectName, Long cardId) {
+        return ok(Card.findById(cardId).toJSON());
+    }
+    
+    //TestCode
+    public static Result cardTest(String userName, String projectName){
+        return ok(cardView.render());
+    }
+    public static Result addComment(String userName, String projectName){
+        return ok();
+    }
+    //TestCode End
 
     public static WebSocket<String> connect(String userName, String projectName) {
         return WebSocketServer.handelWebSocket(userName, projectName);

@@ -1,0 +1,96 @@
+<!-- 실제로 이것들은 미리 로딩되어 있음 -->
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
+<script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
+<script type="text/javascript" src="https://raw.github.com/angular-ui/angular-ui/master/build/angular-ui.min.js"></script>
+<!-- preloading section end -->
+<style>
+input.card_title {
+    border : 0px;
+}
+#storypoint {
+    border-radius : 5px;
+    padding : 4px;
+    background : blue;
+    color : white;
+}
+</style>
+  <div ng-controller="CardCtrl">
+    <section class="card">
+        <input type="text" value="{{card.title}}" class="card_title"/>
+        <span id="storypoint" ng-show="card.storyPoint">{{card.storyPoint}}</span><br/>
+        <textarea>{{card.body}}</textarea>
+        <div>
+            <fieldset>
+                <legend>assignee</legend>
+                <div ng-repeat="member in card.assignee">
+                    <img width="48" height="48"/>
+                </div>
+                <button>assign</button>
+            </fieldset>
+        </div>
+        <span ng-show="card.dueDate">{{card.dueDate}}</span>
+        <fieldset ng-show="card.checklist">
+            <legend>checklist</legend>
+            <ul ng-repeat="item in card.checklist">
+                <li>{{item.title}}</li>
+            </ul>
+        </fieldset>
+    </section>
+    <section id="taskComments" ng-repeat="comment in card.comments">
+        <article>
+            {{comment}}
+        </article>
+    </section>
+    <div>
+        <form ng-submit="addComment()">
+            <textarea id="comment_input" ng-model="input.comment"></textarea>
+            <input type="submit" value="comment"/>
+        </form>
+    </div>
+  </div>
+  <script>
+  var cardLoad;
+  $(function(){
+
+    //angular!
+    var cardapp = angular.module('cardApp', ['ui']);
+    function CardCtrl($scope){
+        $scope.card; //model
+        $scope.input = {comment : "aaa"};
+        cardLoad = function(id){
+            $.ajax("c/" + id, {
+                dataType : "json",
+                success : function(data){
+                    $scope.card = data;
+                    $scope.$apply();
+                    console.log(data);
+                }
+            });
+        }
+        $scope.addComment = function(){
+            
+            $scope.card.comments.push($scope.input.comment);
+            $scope.input.comment = "";
+            //Action을 추가 보더에 던져준다.
+            cardLoad($scope.card._id);
+        }
+        cardLoad(1);// for TEST
+    }
+    cardapp.controller('CardCtrl', CardCtrl);//여기는 실제함수와 어트리뷰트간의 관계맺기
+    angular.bootstrap(document, ['cardApp']);
+    
+    var server = {};
+    server.send = function(url,obj){
+        $.ajax(url, {
+            body : obj,
+            sucess : function(data){
+            }
+        });
+    }
+    
+    
+  });
+  
+  </script>

@@ -118,3 +118,6 @@ GET     /:userName/:projectName/search                  controllers.SearchApp.co
 #task
 GET     /:userName/:projectName/task                    controllers.TaskApp.index(userName:String, projectName:String)
 GET     /:userName/:projectName/task/connect            controllers.TaskApp.connect(userName:String, projectName:String)
+GET     /:userName/:projectName/task/c/:cardId          controllers.TaskApp.card(userName:String, projectName:String, cardId:Long)
+GET     /:userName/:projectName/task/card               controllers.TaskApp.cardTest(userName:String, projectName:String)
+POST    /:userName/:projectName/task/comment            controllers.TaskApp.addComment(userName:String, projectName:String)
