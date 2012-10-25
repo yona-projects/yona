@@ -110,7 +110,7 @@ public class AttachmentApp extends Controller {
             return forbidden();
         }
 
-        File file = new File("public/uploadFiles/" + attachment.hash);
+        File file = new File("uploads/" + attachment.hash);
 
         // RFC 2231; IE 8 or less, and Safari 5 or less are not supported.
         filename = attachment.name.replaceAll("[:\\x5c\\/{?]", "_");
@@ -172,7 +172,13 @@ public class AttachmentApp extends Controller {
             for (byte b : algorithm.digest()) {
                 formatter.format("%02x", b);
             }
-            File saveFile = new File("public/uploadFiles/" + formatter.toString());
+            File uploads = new File("uploads");
+            if (!uploads.exists()) {
+                uploads.mkdir();
+            } else if (!uploads.isDirectory()) {
+                throw new RuntimeException();
+            }
+            File saveFile = new File("uploads/" + formatter.toString());
             filePart.getFile().renameTo(saveFile);
             String hash = formatter.toString();
 
