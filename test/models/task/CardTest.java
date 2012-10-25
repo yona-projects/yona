@@ -99,5 +99,6 @@ public class CardTest extends ModelTest<Card> {
         //Then
         assertThat(json.get("title").asText()).isEqualTo("test title");
         assertThat(json.get("body").asText()).isEqualTo("test card");
+        assertThat(json.get("comments").size()).isEqualTo(2);
     }
 }

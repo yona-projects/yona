@@ -18,9 +18,10 @@ input.card_title {
 </style>
   <div ng-controller="CardCtrl">
     <section class="card">
-        <input type="text" value="{{card.title}}" class="card_title"/>
+        <input type="text" ng-model="card.title" class="card_title"/>
         <span id="storypoint" ng-show="card.storyPoint">{{card.storyPoint}}</span><br/>
-        <textarea>{{card.body}}</textarea>
+        <textarea ng-model="card.body"></textarea>
+        <button ng-click="saveCard()">save</button>
         <div>
             <fieldset>
                 <legend>assignee</legend>
@@ -40,7 +41,7 @@ input.card_title {
     </section>
     <section id="taskComments" ng-repeat="comment in card.comments">
         <article>
-            {{comment}}
+            {{comment.body}}
         </article>
     </section>
     <div>
@@ -53,12 +54,11 @@ input.card_title {
   <script>
   var cardLoad;
   $(function(){
-
     //angular!
     var cardapp = angular.module('cardApp', ['ui']);
     function CardCtrl($scope){
         $scope.card; //model
-        $scope.input = {comment : "aaa"};
+        $scope.input = {comment : ""};
         cardLoad = function(id){
             $.ajax("c/" + id, {
                 dataType : "json",
@@ -70,11 +70,14 @@ input.card_title {
             });
         }
         $scope.addComment = function(){
-            
             $scope.card.comments.push($scope.input.comment);
-            $scope.input.comment = "";
+            server.addComment($scope.card._id, $scope.input.comment);
             //Action을 추가 보더에 던져준다.
-            cardLoad($scope.card._id);
+            $scope.input.comment = "";
+            
+        }
+        $scope.saveCard = function(){
+            server.saveCard($scope.card);
         }
         cardLoad(1);// for TEST
     }
@@ -82,15 +85,28 @@ input.card_title {
     angular.bootstrap(document, ['cardApp']);
     
     var server = {};
-    server.send = function(url,obj){
-        $.ajax(url, {
-            body : obj,
-            sucess : function(data){
+    server.addComment = function(_id, str){
+        $.ajax("comment", {
+            type : "POST",
+            data : {
+                body : str, 
+                _id : _id
+                },
+            success : function(data){
+                cardLoad(_id);
+            }
+        }); 
+    };
+    server.saveCard = function(card){
+        //서버로 카드 전체를 보내서 저장합니다.
+        $.ajax("card", {
+            type : "post",
+            data : JSON.stringify(card),
+            contentType : "text/json",
+            success : function(data){
+                    console.log("saveCard!");
             }
         });
     }
-    
-    
   });
-  
   </script>

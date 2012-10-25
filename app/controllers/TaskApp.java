@@ -2,18 +2,21 @@ package controllers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import org.codehaus.jackson.JsonNode;
 
 import models.task.Card;
 import models.task.TaskBoard;
+import models.task.TaskComment;
 import play.Logger;
+import play.data.validation.Constraints.Pattern;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.libs.Json;
-import play.mvc.Controller;
-import play.mvc.Result;
-import play.mvc.WebSocket;
-import views.html.task.taskView;
+import play.mvc.*;
 import views.html.task.cardView;
+import views.html.task.taskView;
 
 public class TaskApp extends Controller {
     public static Result index(String userName, String projectName) {
@@ -28,7 +31,28 @@ public class TaskApp extends Controller {
     public static Result cardTest(String userName, String projectName){
         return ok(cardView.render());
     }
+    
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result saveCard(String userName, String projectName){
+        JsonNode json = request().body().asJson();
+        Long cardid = json.findPath("_id").asLong();
+        Card.findById(cardid).accecptJSON(json);
+        return ok();
+    }
+    
     public static Result addComment(String userName, String projectName){
+        Map<String, String[]> data = request().body().asFormUrlEncoded();
+        Long cardid = Long.parseLong(data.get("_id")[0]);
+        String body = data.get("body")[0];
+        Card card = Card.findById(cardid);
+        
+        TaskComment comment = new TaskComment();
+        comment.body = body;
+        //ProjectUser 추가방법 생각할것.
+        
+        card.addComment(comment);
+
+        Logger.info("comment added!");
         return ok();
     }
     //TestCode End

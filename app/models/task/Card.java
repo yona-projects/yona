@@ -6,15 +6,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 import models.ProjectUser;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
+import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
@@ -23,8 +27,10 @@ public class Card extends Model {
     @Id
     public Long id;
     public String title;
+    
+    @OneToMany(cascade=CascadeType.ALL, mappedBy="card")
+    public List<TaskComment> comments;
     // TODO 아래에 있는것 중에 관계를 맺어줘야 하는 것들도 있다.
-    public List<TaskComment> comments = new ArrayList<TaskComment>();
     //Action도 저장해야 함.
     public Set<ProjectUser> assignee = new HashSet<ProjectUser>();
     public int storyPoint; // !주의 10배로 표현
@@ -60,7 +66,9 @@ public class Card extends Model {
 
     public void addComment(TaskComment comment) {
         comments.add(comment);
+        comment.card = this;
         comment.save();
+        save();
     }
 
     public void removeComment(TaskComment comment) {
@@ -81,11 +89,11 @@ public class Card extends Model {
         json.put("title", title);
         json.put("body", body);
         json.put("storyPoint", storyPoint);
-        /*commentsJson
+        ArrayNode commentsJson = Json.newObject().arrayNode();
         for(TaskComment comment : comments){
-           
-        }*/
-        json.put("comments", Json.newObject().arrayNode());
+           commentsJson.add(comment.toJSON());
+        }
+        json.put("comments", commentsJson);
         return json;
     }
 
@@ -93,7 +101,6 @@ public class Card extends Model {
         title = json.get("title").asText();
         body = json.get("body").asText();
         // TODO 기타 다른것들도 데이터를 집어 넣어 줘야 함.
-
-        save();
+        this.save();
     }
 }
