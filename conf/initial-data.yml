@@ -1123,6 +1123,18 @@ lines:
         title:          TODO
         taskBoard:      !!models.task.TaskBoard
                             id:      1
+    - !!models.task.Line
+        title:          Doing
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
+    - !!models.task.Line
+        title:          Test
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
+    - !!models.task.Line
+        title:          Done
+        taskBoard:      !!models.task.TaskBoard
+                            id:      1
 
 cards:
     - !!models.task.Card
