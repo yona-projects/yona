@@ -2,6 +2,7 @@ package controllers;
 
 import models.User;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -174,7 +175,8 @@ public class UserApp extends Controller {
 	// FIXME
 	public static User currentUser() {
 		String userId = session().get(SESSION_USERID);
-		if (userId == null) {
+		if (StringUtils.isEmpty(userId) || !StringUtils.isNumeric(userId)) {
+			anonymous.id = -1l;
 			return anonymous;
 		}
 		return User.findById(Long.valueOf(userId));

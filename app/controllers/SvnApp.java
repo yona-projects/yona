@@ -64,9 +64,11 @@ public class SvnApp extends Controller {
         // Get projectName from the pathInfo.
         String projectName = pathInfo.split("/", 2)[0];
 
+        // if user is anon, currentUser is null
         User currentUser = UserApp.currentUser();
         // Check the user has a permission to access this repository.
         Project project = Project.findByNameAndOwner(userName, projectName);
+        
         if (!AccessControl.isAllowed(currentUser.id, project.id,
                 Resource.CODE, getRequestedOperation(request().method()), null)) {
             if (currentUser.id == UserApp.anonymous.id) {
