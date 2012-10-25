@@ -71,6 +71,8 @@ public class AccessControl {
                 isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, Comment>(
                         Long.class, Comment.class));
                 break;
+            case USER:
+                return userId == resourceId;
             default:
                 isAuthorEditible = false;
                 break;
