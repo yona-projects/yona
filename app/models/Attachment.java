@@ -94,8 +94,7 @@ public class Attachment extends Model {
         MessageDigest algorithm = MessageDigest.getInstance("SHA1");
         DigestInputStream dis = new DigestInputStream(
                 new BufferedInputStream(new FileInputStream(file)), algorithm);
-        while (dis.read() != -1)
-            ;
+        while (dis.read() != -1);
         Formatter formatter = new Formatter();
         for (byte b : algorithm.digest()) {
             formatter.format("%02x", b);
