@@ -15,7 +15,6 @@ import models.Attachment;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
-import org.apache.tika.Tika;
 import org.codehaus.jackson.JsonNode;
 
 import play.mvc.Controller;
@@ -42,12 +41,7 @@ public class AttachmentApp extends Controller {
 
         // Store the file in the user's temporary area.
         Attachment attach = new Attachment();
-        attach.projectId = 0L;
-        attach.containerType = Resource.USER;
-        attach.containerId = UserApp.currentUser().id;
-        attach.mimeType = new Tika().detect(file);
-        attach.name = filePart.getFilename();
-        boolean isCreated = attach.save(file);
+        boolean isCreated = attach.storeInUserTemporaryArea(UserApp.currentUser().id, file, filePart.getFilename());
 
         // The request has been fulfilled and resulted in a new resource being
         // created. The newly created resource can be referenced by the URI(s)
@@ -169,7 +163,7 @@ public class AttachmentApp extends Controller {
         }
         files.put("tempFiles", tempFiles);
 
-        // Get the attached files only if the user has the proper permission.
+        // Get attached files only if the user has permission to read it.
         Map<String, String[]> query = request().queryString();
         String containerType = RequestUtil.getFirstValueFromQuery(query, "containerType");
         String containerId = RequestUtil.getFirstValueFromQuery(query, "containerId");

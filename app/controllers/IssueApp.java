@@ -70,7 +70,7 @@ public class IssueApp extends Controller {
             Long issueId = Issue.create(newIssue);
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.moveTempFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 StateType.ALL.stateType()));
@@ -97,7 +97,7 @@ public class IssueApp extends Controller {
             Issue.edit(issue);
 
             // Attach the files in the current user's temporary storage.
-            Attachment.moveTempFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, id);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, id);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name, StateType.ALL.name()));
     }
@@ -126,7 +126,7 @@ public class IssueApp extends Controller {
             Issue.updateNumOfComments(issueId);
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.moveTempFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_COMMENT, commentId);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_COMMENT, commentId);
 
             return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         }

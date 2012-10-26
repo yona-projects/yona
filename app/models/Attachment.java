@@ -15,6 +15,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
+import org.apache.tika.Tika;
+
 import models.enumeration.Resource;
 
 import play.data.validation.*;
@@ -30,6 +32,7 @@ public class Attachment extends Model {
     private static final long serialVersionUID = 7856282252495067924L;
     private static Finder<Long, Attachment> find = new Finder<Long, Attachment>(Long.class,
             Attachment.class);
+    private static String uploadDirectory = "uploads";
     @Id
     public Long id;
 
@@ -54,7 +57,7 @@ public class Attachment extends Model {
                 .eq("containerId", userId).findList();
     }
 
-    public static Attachment findBy(Attachment attach) {
+    private static Attachment findBy(Attachment attach) {
         return find.where()
                 .eq("name", attach.name)
                 .eq("hash", attach.hash)
@@ -71,14 +74,16 @@ public class Attachment extends Model {
         return find.byId(id);
     }
 
-    public static List<Attachment> findByContainer(Resource containerType, Long containerId) {
+    public static List<Attachment> findByContainer(
+            Resource containerType, Long containerId) {
         return find.where()
                 .eq("containerType", containerType)
                 .eq("containerId", containerId).findList();
     }
 
-    public static void moveTempFiles(Long userId, Long projectId, Resource containerType,
-            Long containerId) {
+    // Attach the files from the user's temporary area to the given container.
+    public static void attachFiles(
+            Long userId, Long projectId, Resource containerType, Long containerId) {
         // Move the attached files in the temporary area to the issue area.
         List<Attachment> attachments = Attachment.findTempFiles(userId);
         for (Attachment attachment : attachments) {
@@ -89,7 +94,9 @@ public class Attachment extends Model {
         }
     }
 
-    public static String storeFile(File file) throws NoSuchAlgorithmException, IOException {
+    // Store the files in the filesystem.
+    private static String storeFileInFilesystem(File file)
+            throws NoSuchAlgorithmException, IOException {
         // Compute sha1 checksum.
         MessageDigest algorithm = MessageDigest.getInstance("SHA1");
         DigestInputStream dis = new DigestInputStream(
@@ -102,8 +109,8 @@ public class Attachment extends Model {
         String hash = formatter.toString();
 
         // Store the file.
-        // Before do that, create 'uploads' directory if it doesn't exist.
-        File uploads = new File("uploads");
+        // Before do that, create upload directory if it doesn't exist.
+        File uploads = new File(uploadDirectory);
         uploads.mkdirs();
         if (!uploads.isDirectory()) {
             formatter.close();
@@ -111,26 +118,36 @@ public class Attachment extends Model {
             throw new NotDirectoryException(
                     "'" + file.getAbsolutePath().toString() + "' is not a directory.");
         }
-        File saveFile = new File("uploads/" + formatter.toString());
-        file.renameTo(saveFile);
+        File attachedFile = new File(uploadDirectory, formatter.toString());
+        file.renameTo(attachedFile);
 
-        // Close all resources
+        // Close all resources.
         formatter.close();
         dis.close();
 
         return hash;
     }
 
-    @Override
-    public void save() {
-        throw new UnsupportedOperationException("Use save(File file)");
-    }
-
+    // Store the files in the user's temporary area.
     // Return true only if the attachment record is created because there was
     // no same record.
-    public boolean save(File file) throws NoSuchAlgorithmException, IOException {
+    public boolean storeInUserTemporaryArea(Long userId, File file, String name)
+            throws NoSuchAlgorithmException, IOException {
         // Store the file in the filesystem and compute SHA1 hash.
-        this.hash = Attachment.storeFile(file);
+        this.projectId = 0L;
+        this.containerType = Resource.USER;
+        this.containerId = userId;
+
+        if (name == null) {
+            this.name = file.getName();
+        } else {
+            this.name = name;
+        }
+
+        if (this.mimeType == null) {
+            this.mimeType = new Tika().detect(file);
+        }
+        this.hash = Attachment.storeFileInFilesystem(file);
 
         // Add the attachment into the Database only if there is no same record.
         Attachment sameAttach = Attachment.findBy(this);
@@ -144,6 +161,10 @@ public class Attachment extends Model {
     }
 
     public File getFile() {
-        return new File("uploads/" + this.hash);
+        return new File(uploadDirectory, this.hash);
+    }
+
+    public static void setUploadDirectory(String path) {
+        uploadDirectory = path;
     }
 }
