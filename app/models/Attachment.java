@@ -20,6 +20,7 @@ import models.enumeration.Resource;
 import play.data.validation.*;
 
 import play.db.ebean.Model;
+import scalax.file.NotDirectoryException;
 
 @Entity
 public class Attachment extends Model {
@@ -102,11 +103,14 @@ public class Attachment extends Model {
         String hash = formatter.toString();
 
         // Store the file.
+        // Before do that, create 'uploads' directory if it doesn't exist.
         File uploads = new File("uploads");
-        if (!uploads.exists()) {
-            uploads.mkdir();
-        } else if (!uploads.isDirectory()) {
-            throw new RuntimeException();
+        uploads.mkdirs();
+        if (!uploads.isDirectory()) {
+            formatter.close();
+            dis.close();
+            throw new NotDirectoryException(
+                    "'" + file.getAbsolutePath().toString() + "' is not a directory.");
         }
         File saveFile = new File("uploads/" + formatter.toString());
         file.renameTo(saveFile);
