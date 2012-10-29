@@ -104,7 +104,7 @@ public class AttachmentApp extends Controller {
         return ok(file);
     }
 
-    public static Result deleteFile(Long id, String filename)
+    public static Result deleteFile(Long id)
             throws NoSuchAlgorithmException, IOException {
         // _method must be 'delete'
         Map<String, String[]> data =
