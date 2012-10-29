@@ -3,7 +3,7 @@ logLevel := Level.Warn
 
 // The Typesafe repository
 resolvers ++= Seq(
-    "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+    "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
     "Play2war plugins release" at "http://repository-play-war.forge.cloudbees.com/release/"
 )
 
