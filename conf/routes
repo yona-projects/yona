@@ -34,7 +34,8 @@ GET     /files                                          controllers.AttachmentAp
 POST    /files                                          controllers.AttachmentApp.newFile()
 GET     /files/:id                                      controllers.AttachmentApp.getFile(id: Long)
 GET     /files/:id/?                                    controllers.AttachmentApp.getFile(id: Long)
-POST    /files/:id/:filename                            controllers.AttachmentApp.deleteFile(id: Long, filename: String)
+POST    /files/:id/?                            		controllers.AttachmentApp.deleteFile(id: Long)
+POST    /files/:id                            			controllers.AttachmentApp.deleteFile(id: Long)
 
 # Boards
 GET     /:user/:projectName/boardList                   controllers.BoardApp.posts(user:String, projectName:String)
