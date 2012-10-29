@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 import PlayProject._
+import com.github.play2war.plugin._
 
 object ApplicationBuild extends Build {
 
@@ -32,12 +33,16 @@ object ApplicationBuild extends Build {
       "org.apache.tika" % "tika-core" % "1.2"
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(
+    val projectSettings = Play2WarPlugin.play2WarSettings ++ Seq(
       // Add your own project settings here
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
       templatesImport += "models.enumeration._",
-      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less")
+      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less"),
+      Play2WarKeys.servletVersion := "3.0"
+      // Or Play2WarKeys.servletVersion := "2.5"
     )
+
+    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(projectSettings: _*)
 }
