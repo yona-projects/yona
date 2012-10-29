@@ -173,4 +173,14 @@ public class Attachment extends Model {
     public static void setUploadDirectory(String path) {
         uploadDirectory = path;
     }
+
+    public static boolean fileExists(String hash) {
+        return new File(uploadDirectory, hash).isFile();
+    }
+
+    @Override
+    public void delete() {
+        super.delete();
+        new File(uploadDirectory, this.hash).delete();
+    }
 }

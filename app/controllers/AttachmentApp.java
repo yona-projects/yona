@@ -17,6 +17,7 @@ import models.enumeration.Resource;
 
 import org.codehaus.jackson.JsonNode;
 
+import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
@@ -121,23 +122,21 @@ public class AttachmentApp extends Controller {
         }
         attach.delete();
 
-        // Delete the file matched with the attachment,
-        // if and only if no attachment refer the file.
-        if (Attachment.exists(attach.hash)) {
-            return ok("The attachment is removed successfully, but the origin" +
-                    "file still exists because it is referred by somewhere.");
-        }
-
-        boolean result = new File("public/uploadFiles/" + attach.hash).delete();
-
-        if (result) {
-            return ok("The both of attachment and origin file is removed" +
-                    "successfully.");
+        if (!Attachment.exists(attach.hash)) {
+            if (!Attachment.fileExists(attach.hash)) {
+                Logger.error("The uploaded file '" + attach.name + "'cannot be " +
+                        "found even if the file is still referred by some" +
+                        "attachments.");
+            }
+            return ok("Both the attachment and its origin file are removed successfully.");
         } else {
-            return status(202,
-                    "The attachment is removed successfully, but the origin" +
-                    "file still exists abnormally even if it is referred by" +
-                    "nowhere.");
+            if (Attachment.fileExists(attach.hash)) {
+                Logger.warn("The attachment is removed successfully, but its " +
+                        "origin file still exists abnormally even if the file " +
+                        "referred by nowhere.");
+            }
+            return ok("The attachment is removed successfully, but its " +
+                    "origin file still exists.");
         }
     }
 
