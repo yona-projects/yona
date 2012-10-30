@@ -56,7 +56,7 @@ public class Project extends Model {
     public List<Milestone> milestones;
     
     @OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
-    public TaskBoard taskboard;
+    public TaskBoard taskBoard;
 
     public static Long create(Project newProject) {
         newProject.homepage = "http://localhost:9000/" + newProject.name;

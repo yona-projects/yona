@@ -24,7 +24,7 @@ public class Line extends Model {
     public Long id;
     public String title;
     
-    @OneToMany(cascade=CascadeType.ALL)
+    @OneToMany(mappedBy="line", cascade=CascadeType.ALL)
     public List<Card> cards;
     
     @ManyToOne

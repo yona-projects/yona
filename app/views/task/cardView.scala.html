@@ -18,8 +18,14 @@ input.card_title {
 </style>
   <div ng-controller="CardCtrl">
     <section class="card">
+        <!--//Label구현하기 
+        //클릭하지 않았을때는 그냥 잘 보여주다 클릭하면 input으로 바꾸기.
+        //         (아마 onclick에서 바꾸고 onBlur에서 다시 원상 복귀하면 될듯.)-->
+        <div ng-show="card.labels" ng-repeat="lable in card.lables">
+            <span></span><!-- 색깔라벨 나오게 만들것! -->
+        </div>
         <input type="text" ng-model="card.title" class="card_title"/>
-        <span id="storypoint" ng-show="card.storyPoint">{{card.storyPoint}}</span><br/>
+        <input ng-model="card.storyPoint" ui-event="{'blur':'saveCard()'}" type="number" min="0" max="500"/><br/>
         <textarea ng-model="card.body"></textarea>
         <button ng-click="saveCard()">save</button>
         <div>
@@ -28,15 +34,20 @@ input.card_title {
                 <div ng-repeat="member in card.assignee">
                     <img width="48" height="48"/>
                 </div>
-                <button>assign</button>
+                <button ng-click="showMemberList()">assign</button>
             </fieldset>
         </div>
-        <span ng-show="card.dueDate">{{card.dueDate}}</span>
+        <div>
+            DueDate : 
+            <input type="date" ng-model="card.dueDate" ui-event="{'blur':'saveCard()'}"/>
+        </div>
         <fieldset ng-show="card.checklist">
-            <legend>checklist</legend>
-            <ul ng-repeat="item in card.checklist">
-                <li>{{item.title}}</li>
+            <legend>{{card.checklist.title}}</legend>
+            <ul ng-repeat="item in card.checklist.items">
+                <li>{{item.body}}</li>
             </ul>
+            <input type="text" ng-model="input.checklist"/>
+            <button ng-click="addChecklist()">add</button>
         </fieldset>
     </section>
     <section id="taskComments" ng-repeat="comment in card.comments">
@@ -77,7 +88,18 @@ input.card_title {
             
         }
         $scope.saveCard = function(){
+            console.log("test");
             server.saveCard($scope.card);
+        }
+        $scope.showMemberList = function(){
+          console.log("test");
+        }
+        $scope.addChecklist = function(){
+            $scope.card.checklist.items.push({body: $scope.input.checklist, state: false});
+            $scope.input.checklist = "";
+            //아래의 코드를 만들어야 함.
+            //server.saveCheckListItem(data);
+            //서버쪽 코딩 할것!
         }
         cardLoad(1);// for TEST
     }
@@ -107,6 +129,10 @@ input.card_title {
                     console.log("saveCard!");
             }
         });
+    }
+    
+    function makeAction(){
+      //TODO 여기에다가 어떤 랙션을 만들어 서버에 다녀와야 한다.
     }
   });
   </script>

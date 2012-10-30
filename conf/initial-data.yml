@@ -1141,20 +1141,21 @@ cards:
         title:          test title
         body:           test card
         storyPoint:     5 
-        assignee:
-            - !!models.ProjectUser
-                id:     1
-        labels:         
-            - !!models.task.Label
-                id:     1
+#        assignee:
+#            - !!models.ProjectUser
+#                id:     1
+#        labels:         
+#            - !!models.task.Label
+#                id:     1
         line:           !!models.task.Line
                             id:     1
+                            
     - !!models.task.Card
         title:          alpha
         body:           alpha
-        assignee:
-            - !!models.ProjectUser
-                id:     1
+#        assignee:
+#            - !!models.ProjectUser
+#                id:     1
         line:           !!models.task.Line
                             id:     1
     - !!models.task.Card
@@ -1181,19 +1182,20 @@ labels:
         name:           HELP
 
 checkLists:
-    - !!models.task.CheckList
-        title:          Box
-        items:
-            - !!models.task.Item
-                id:     1
-    - !!models.task.CheckList
+    - !!models.task.Checklist
         title:          TODO
-    - !!models.task.CheckList
-        title:          Doing
-    - !!models.task.CheckList
-        title:          Done
+        card:           !!models.task.Card
+                            id:     1
+        
     - !!models.task.Item
         body:           test item
+        checklist :     !!models.task.Checklist
+                            id:     1 
+    
+    - !!models.task.Item
+        body:           test item2
+        checklist :     !!models.task.Checklist
+                            id:     1
     
                 
                 

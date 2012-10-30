@@ -1,12 +1,10 @@
 package models.task;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -16,7 +14,6 @@ import models.Project;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 
-import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
@@ -26,7 +23,7 @@ public class TaskBoard extends Model {
     public Long id;
     
     @OneToMany(mappedBy = "taskBoard", cascade=CascadeType.ALL)
-    public List<Line> lines = new ArrayList<Line>();
+    public List<Line> lines;
     @OneToMany(mappedBy = "taskBoard", cascade=CascadeType.ALL)
     public List<Label> labels;
     
@@ -49,7 +46,7 @@ public class TaskBoard extends Model {
         taskBoard.labels = new ArrayList<Label>();
         for(int i = 0; i < 10; i++){
             Label label = new Label();
-            label.save();
+            
             taskBoard.labels.add(label);
         }
         
