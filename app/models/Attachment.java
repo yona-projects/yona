@@ -15,6 +15,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 
 import models.enumeration.Resource;
@@ -119,7 +120,12 @@ public class Attachment extends Model {
                     "'" + file.getAbsolutePath().toString() + "' is not a directory.");
         }
         File attachedFile = new File(uploadDirectory, formatter.toString());
-        file.renameTo(attachedFile);
+        boolean isMoved = file.renameTo(attachedFile);
+
+        if(!isMoved){
+            FileUtils.copyFile(file, attachedFile);
+            file.delete();
+        }
 
         // Close all resources.
         formatter.close();

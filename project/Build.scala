@@ -30,7 +30,8 @@ object ApplicationBuild extends Build {
       // apache-mails
       "org.apache.commons" % "commons-email" % "1.2",
       "commons-lang" % "commons-lang" % "2.6",
-      "org.apache.tika" % "tika-core" % "1.2"
+      "org.apache.tika" % "tika-core" % "1.2",
+      "commons-io" % "commons-io" % "2.4"
     )
 
     val projectSettings = Play2WarPlugin.play2WarSettings ++ Seq(
