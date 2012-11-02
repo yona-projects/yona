@@ -6,6 +6,7 @@ import java.util.Map;
 
 import models.Project;
 import models.task.Card;
+import models.task.Line;
 import models.task.TaskBoard;
 import models.task.TaskComment;
 
@@ -43,9 +44,21 @@ public class TaskApp extends Controller {
         return ok(taskBoard.getMember());
     }
 
-    // TestCode
+    // TestCode 나중에 전부 웹소켓으로 바꾼다. 당연히 그걸 고려해서 짜야한다.
     public static Result cardTest(String userName, String projectName) {
         return ok(cardView.render());
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result newCard(String userName, String projectName) {
+        JsonNode json = request().body().asJson();
+        Long line_id = json.findPath("line_id").asLong();
+        Line line = Line.findById(line_id);
+        Card card = new Card();
+        card.title = json.get("card_data").asText();
+        line.addCard(card);
+        json = card.toJSON();
+        return ok(json);
     }
 
     @BodyParser.Of(BodyParser.Json.class)

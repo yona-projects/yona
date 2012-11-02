@@ -101,17 +101,18 @@
         $scope.newCard = {targetLine : line};
       };
       $scope.addCard = function(line){
-        console.log(line);
-        /*$.ajax("task/createCard", {
+        console.log(line._id);
+        $.ajax("task/newCard", {
           success : function(data){
-            line.cards.push(data);
+            $scope.newCard.title = "";
+            line.cards.push(data);   
+            $scope.$apply();
           },
+          contentType : "text/json",
           dataType : "json",
-          data : JSON.stringify({})
-        });*/
-        var card = {title : $scope.newCard.title}
-        $scope.newCard.title = "";
-        line.cards.push(card);
+          data : JSON.stringify({line_id : line._id, card_data : $scope.newCard.title}),
+          type : "POST"
+        });
         return false;
       }
 

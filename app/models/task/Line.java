@@ -69,4 +69,10 @@ public class Line extends Model {
         save();//왜 save가 안되는거야?
         //아마 지워진걸 delete를 해줘야 할듯... 안하면 안되는듯...
     }
+
+    public void addCard(Card card) {
+        // TODO MAKETEST
+        cards.add(card);
+        save();
+    }
 }
