@@ -63,19 +63,51 @@ public class TaskBoardTest {
         assertThat(taskBoard.lines.size()).isEqualTo(5);
 
     }
+
     @Test
     public void toJSON() throws Exception {
         running(fakeApplication(), new Runnable() {
             @Override
             public void run() {
-                // 현재 DB에 들어있는 놈을 JSON으로 내려 보내야 한다.
-                Project project = ProjectApp.getProject("hobi", "nForge4java");
                 // Given
+                Project project = ProjectApp.getProject("hobi", "nForge4java");
                 TaskBoard taskBoard = TaskBoard.findByProject(project);
                 // When
                 JsonNode json = taskBoard.toJSON();
                 // Then
                 assertThat(json.size()).isEqualTo(5);
+            }
+        });
+    }
+
+    @Test
+    public void getLabel() throws Exception {
+        running(fakeApplication(), new Runnable() {
+            @Override
+            public void run() {
+                // Given
+                Project project = ProjectApp.getProject("hobi", "nForge4java");
+                TaskBoard taskBoard = TaskBoard.findByProject(project);
+                // When
+                JsonNode json = taskBoard.getLabel();
+                // Then
+                assertThat(json.size()).isEqualTo(2);
+            }
+        });
+    }
+
+    @Test
+    public void getMember() throws Exception {
+        running(fakeApplication(), new Runnable() {
+            @Override
+            public void run() {
+                // Given
+                Project project = ProjectApp.getProject("hobi", "nForge4java");
+                TaskBoard taskBoard = TaskBoard.findByProject(project);
+                // When
+                JsonNode json = taskBoard.getMember();
+                // Then
+                assertThat(json.size()).isEqualTo(3);
             }
         });
     }

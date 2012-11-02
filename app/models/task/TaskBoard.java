@@ -10,6 +10,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import models.Project;
+import models.ProjectUser;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -21,43 +22,45 @@ import play.libs.Json;
 public class TaskBoard extends Model {
     @Id
     public Long id;
-    
-    @OneToMany(mappedBy = "taskBoard", cascade=CascadeType.ALL)
+
+    @OneToMany(mappedBy = "taskBoard", cascade = CascadeType.ALL)
     public List<Line> lines;
-    @OneToMany(mappedBy = "taskBoard", cascade=CascadeType.ALL)
+    @OneToMany(mappedBy = "taskBoard", cascade = CascadeType.ALL)
     public List<Label> labels;
-    
+
     @OneToOne
     public Project project;
-    
-    private static Finder<Long, TaskBoard> find = new Finder<Long, TaskBoard>(Long.class, TaskBoard.class);
-    
+
+    private static Finder<Long, TaskBoard> find = new Finder<Long, TaskBoard>(Long.class,
+            TaskBoard.class);
+
     public static TaskBoard create(Project project) {
         TaskBoard taskBoard = new TaskBoard();
-        //create default line
+        // create default line
         taskBoard.lines = new ArrayList<Line>();
         taskBoard.lines.add(createLine("Box"));
         taskBoard.lines.add(createLine("Todo"));
         taskBoard.lines.add(createLine("Doing"));
         taskBoard.lines.add(createLine("Test"));
         taskBoard.lines.add(createLine("Done"));
-        
-        //create default Label
+
+        // create default Label
         taskBoard.labels = new ArrayList<Label>();
-        for(int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++) {
             Label label = new Label();
-            
+
             taskBoard.labels.add(label);
         }
-        
+
         taskBoard.project = project;
-        
+
         taskBoard.save();
-        
+
         return taskBoard;
     }
+
     private static Line createLine(String title) {
-        Line line  = new Line();
+        Line line = new Line();
         line.title = title;
         line.save();
         return line;
@@ -66,15 +69,17 @@ public class TaskBoard extends Model {
     public static TaskBoard findByProject(Project project) {
         return find.where().eq("project.id", project.id).findUnique();
     }
+
     public void accecptJSON(JsonNode json) {
         // 이미 있는 목록을 지워버리고 온거로만 채운다. 지워지면 난 몰라!
         // TODO delete를 고려할것.
         lines.clear();
-        for(int i =0; i < json.size(); i++){
+
+        for (int i = 0; i < json.size(); i++) {
             JsonNode lineJson = json.get(i);
             Long lineId = lineJson.get("_id").asLong();
             Line line = Line.findById(lineId);
-            if(line == null){
+            if (line == null) {
                 line = new Line();
             }
             lines.add(line);
@@ -84,13 +89,29 @@ public class TaskBoard extends Model {
         }
         save();
     }
-   
+
     public JsonNode toJSON() {
-        //라인중에서 넣을 것만 넣고 나머지는 다 위임한다.
+        // 라인중에서 넣을 것만 넣고 나머지는 다 위임한다.
         ArrayNode json = Json.newObject().arrayNode();
-        
-        for(Line line : lines) {
+
+        for (Line line : lines) {
             json.add(line.toJSON());
+        }
+        return json;
+    }
+
+    public JsonNode getLabel() {
+        ArrayNode json = Json.newObject().arrayNode();
+        for (Label label : labels) {
+            json.add(label.toJSON());
+        }
+        return json;
+    }
+
+    public JsonNode getMember() {
+        ArrayNode json = Json.newObject().arrayNode();
+        for (ProjectUser member : project.projectUser) {
+            json.add(member.user.loginId);
         }
         return json;
     }

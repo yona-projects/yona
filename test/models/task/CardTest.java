@@ -23,7 +23,6 @@ public class CardTest extends ModelTest<Card> {
         assertThat(card.body).isEqualTo("test card");
     }
 
-    /*
     @Test
     public void assign() throws Exception {
         // Given
@@ -66,7 +65,7 @@ public class CardTest extends ModelTest<Card> {
         // Then
         assertThat(card.labels).excludes(label);
     }
-*/
+
     @Test
     public void addComment() throws Exception {
         // Given
@@ -90,18 +89,14 @@ public class CardTest extends ModelTest<Card> {
         assertThat(card.comments).excludes(TaskComment.findById(1l));
     }
 
-    /*@Test
-    public void addCheckList() throws Exception {
-        // Given
-        Card card = Card.findById(1l);
-        CheckList checklist = new CheckList();
-        // When
-        card.addCheckList(checklist);
-        // Then
-        assertThat(card.checkList).isNotNull();
-        assertThat(card.checkList).isEqualTo(checklist);
-        assertThat(checklist.id).isNotNull();
-    }*/
+    /*
+     * @Test public void addCheckList() throws Exception { // Given Card card =
+     * Card.findById(1l); CheckList checklist = new CheckList(); // When
+     * card.addCheckList(checklist); // Then
+     * assertThat(card.checkList).isNotNull();
+     * assertThat(card.checkList).isEqualTo(checklist);
+     * assertThat(checklist.id).isNotNull(); }
+     */
 
     @Test
     public void toJSON() throws Exception {

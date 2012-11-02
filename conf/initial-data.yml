@@ -1180,6 +1180,12 @@ cards:
 labels:
     - !!models.task.Label
         name:           HELP
+        taskBoard:      !!models.task.TaskBoard
+                            id:     1
+    - !!models.task.Label
+        name:           ISSUE
+        taskBoard:      !!models.task.TaskBoard
+                            id:     1
 
 checkLists:
     - !!models.task.Checklist

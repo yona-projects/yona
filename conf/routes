@@ -120,6 +120,8 @@ GET     /:userName/:projectName/search                  controllers.SearchApp.co
 
 #task
 GET     /:userName/:projectName/task                    controllers.TaskApp.index(userName:String, projectName:String)
+GET     /:userName/:projectName/task/labels             controllers.TaskApp.getLabels(userName:String, projectName:String)
+GET     /:userName/:projectName/task/member             controllers.TaskApp.getMember(userName:String, projectName:String)
 GET     /:userName/:projectName/task/connect            controllers.TaskApp.connect(userName:String, projectName:String)
 GET     /:userName/:projectName/task/c/:cardId          controllers.TaskApp.card(userName:String, projectName:String, cardId:Long)
 GET     /:userName/:projectName/task/card               controllers.TaskApp.cardTest(userName:String, projectName:String)

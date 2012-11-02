@@ -68,6 +68,14 @@
         </form>
       </article>
     </section>
+    <section>
+      <article id="lables" ng-repeat="label in labels">
+        <span>{{label.name}}</span>
+      </article>
+      <aritcle ng-repeat="member in members">
+        <span>{{member}}</span>
+      </aritcle>
+    </section>
   </div>
   <script>
   $(function(){
@@ -94,11 +102,26 @@
             line.cards.push("adding card");
             return false;
         }
+
+        $.ajax("task/labels", {
+          success : function(data){
+            $scope.labels = data;
+          },
+          dataType : "json"
+        });
+
+        $.ajax("task/member", {
+          success: function(data){
+            console.log(data);
+            $scope.members = data;
+          }
+        })
+        //init end
         $scope.onDragOver = function($event) {
-            $event.preventDefault();
+          $event.preventDefault();
         };
         $scope.onDragleave = function($event) {
-            $event.preventDefault();
+          $event.preventDefault();
         };
         $scope.onDrop = function($event, targetLine) {
           if (dragStart === null ) return;

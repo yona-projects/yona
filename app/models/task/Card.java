@@ -42,9 +42,9 @@ public class Card extends Model {
     
     // TODO 아래에 있는것 중에 관계를 맺어줘야 하는 것들도 있다.
     //Action도 저장해야 함.
-    //public Set<ProjectUser> assignee = new HashSet<ProjectUser>();
+    public Set<ProjectUser> assignee = new HashSet<ProjectUser>();
     public int storyPoint; // !주의 10배로 표현
-    //public Set<Label> labels = new HashSet<Label>();
+    public Set<Label> labels = new HashSet<Label>();
     public String body;
     public Date dueDate;
 
@@ -54,7 +54,7 @@ public class Card extends Model {
         return find.byId(id);
     }
 
-    /*public void assignMember(ProjectUser member) {
+    public void assignMember(ProjectUser member) {
         assignee.add(member);
     }
 
@@ -68,7 +68,7 @@ public class Card extends Model {
 
     public void removeLabel(Label label) {
         labels.remove(label);
-    }*/
+    }
 
     public void addComment(TaskComment comment) {
         comments.add(comment);

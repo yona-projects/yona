@@ -4,17 +4,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonNode;
-
+import models.Project;
 import models.task.Card;
 import models.task.TaskBoard;
 import models.task.TaskComment;
+
+import org.codehaus.jackson.JsonNode;
+
 import play.Logger;
-import play.data.validation.Constraints.Pattern;
 import play.libs.F.Callback;
 import play.libs.F.Callback0;
 import play.libs.Json;
-import play.mvc.*;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Result;
+import play.mvc.WebSocket;
 import views.html.task.cardView;
 import views.html.task.taskView;
 
@@ -22,40 +26,53 @@ public class TaskApp extends Controller {
     public static Result index(String userName, String projectName) {
         return ok(taskView.render(ProjectApp.getProject(userName, projectName)));
     }
-    
+
     public static Result card(String userName, String projectName, Long cardId) {
         return ok(Card.findById(cardId).toJSON());
     }
-    
-    //TestCode
-    public static Result cardTest(String userName, String projectName){
+
+    public static Result getLabels(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        TaskBoard taskBoard = TaskBoard.findByProject(project);
+        return ok(taskBoard.getLabel());
+    }
+
+    public static Result getMember(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        TaskBoard taskBoard = TaskBoard.findByProject(project);
+        return ok(taskBoard.getMember());
+    }
+
+    // TestCode
+    public static Result cardTest(String userName, String projectName) {
         return ok(cardView.render());
     }
-    
+
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result saveCard(String userName, String projectName){
+    public static Result saveCard(String userName, String projectName) {
         JsonNode json = request().body().asJson();
         Long cardid = json.findPath("_id").asLong();
         Card.findById(cardid).accecptJSON(json);
         return ok();
     }
-    
-    public static Result addComment(String userName, String projectName){
+
+    public static Result addComment(String userName, String projectName) {
         Map<String, String[]> data = request().body().asFormUrlEncoded();
         Long cardid = Long.parseLong(data.get("_id")[0]);
         String body = data.get("body")[0];
         Card card = Card.findById(cardid);
-        
+
         TaskComment comment = new TaskComment();
         comment.body = body;
-        //ProjectUser 추가방법 생각할것.
-        
+        // ProjectUser 추가방법 생각할것.
+
         card.addComment(comment);
 
         Logger.info("comment added!");
         return ok();
     }
-    //TestCode End
+
+    // TestCode End
 
     public static WebSocket<String> connect(String userName, String projectName) {
         return WebSocketServer.handelWebSocket(userName, projectName);
@@ -135,7 +152,7 @@ public class TaskApp extends Controller {
 
         @Override
         public void invoke(String event) throws Throwable {
-            //클라이언트에서 모델을 보내올때
+            // 클라이언트에서 모델을 보내올때
             this.server.sendNotify(this, event);
             this.taskBoard.accecptJSON(Json.parse(event));
         }
