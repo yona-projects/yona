@@ -63,7 +63,9 @@
         </div>
       </div>
       <article>
-        <form ng-submit="addCard(line)">
+        <button ng-hide="newCard && newCard.targetLine == line" ng-click="showCardInput(line)">new Card</button>
+        <form ng-submit="addCard(line)" ng-show="newCard && newCard.targetLine == line">
+          <textarea ng-model="newCard.title"></textarea>
           <input type="submit" value="add"/>
         </form>
       </article>
@@ -81,85 +83,95 @@
   $(function(){
     var myapp = angular.module('myapp', ['ui']);
     var TaskCtrl = function($scope){
-        var dragStart = {};
-        
-        var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
-        webSocket.onmessage = function(e){
-          $scope.lines = JSON.parse(e.data);
-          $scope.$apply();
-        }
-        webSocket.onopen = function(){
-          console.log("socket Open!");
-        }
-        webSocket.onclose = function(){
-          console.log("disconnected!");
-          console.log("trying to reconnect...");
-          console.log("unimplement");
-        }
-        $scope.addCard = function(line){
-            console.log("added!");
-            console.log(line);
-            line.cards.push("adding card");
-            return false;
-        }
-
-        $.ajax("task/labels", {
+      var dragStart = {};
+      var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
+      webSocket.onmessage = function(e){
+        $scope.lines = JSON.parse(e.data);
+        $scope.$apply();
+      }
+      webSocket.onopen = function(){
+        console.log("socket Open!");
+      }
+      webSocket.onclose = function(){
+        console.log("disconnected!");
+        console.log("trying to reconnect...");
+        console.log("unimplement");
+      }
+      $scope.showCardInput = function(line){
+        $scope.newCard = {targetLine : line};
+      };
+      $scope.addCard = function(line){
+        console.log(line);
+        /*$.ajax("task/createCard", {
           success : function(data){
-            $scope.labels = data;
+            line.cards.push(data);
           },
-          dataType : "json"
-        });
+          dataType : "json",
+          data : JSON.stringify({})
+        });*/
+        var card = {title : $scope.newCard.title}
+        $scope.newCard.title = "";
+        line.cards.push(card);
+        return false;
+      }
 
-        $.ajax("task/member", {
-          success: function(data){
-            console.log(data);
-            $scope.members = data;
-          }
-        })
-        //init end
-        $scope.onDragOver = function($event) {
-          $event.preventDefault();
-        };
-        $scope.onDragleave = function($event) {
-          $event.preventDefault();
-        };
-        $scope.onDrop = function($event, targetLine) {
-          if (dragStart === null ) return;
-          if( targetLine._id !== dragStart.line._id){
-            if (dragStart !== null ) {
-              targetLine.cards.push(dragStart.card);
-              dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
-            }
-          }
-          webSocket.send(JSON.stringify($scope.lines));
-        };
-        $scope.onDragStart = function(currentLine, currentCard) {
-            dragStart = {
-              line: currentLine, 
-              card: currentCard,
-              idx: _.indexOf(currentLine.cards, currentCard)
-            };
-        };
+      $.ajax("task/labels", {
+        success : function(data){
+          $scope.labels = data;
+        },
+        dataType : "json"
+      });
 
-        $scope.onDragOverBlank = function($event) {
-          $event.preventDefault();
-        };
-        $scope.onDragleaveBlank = function($event) {
-          $event.preventDefault();
-        };
-        $scope.onDropBlank = function($event, targetLine, targetCard) {
-          if (dragStart === null ) return;
-          var prvIdx = null;
-          if( targetLine._id == dragStart.line._id){
-            targetLine.cards.splice(dragStart.idx, 1);
-          } else {
+      $.ajax("task/member", {
+        success: function(data){
+          console.log(data);
+          $scope.members = data;
+        }
+      });
+      //init end
+      $scope.onDragOver = function($event) {
+        $event.preventDefault();
+      };
+      $scope.onDragleave = function($event) {
+        $event.preventDefault();
+      };
+      $scope.onDrop = function($event, targetLine) {
+        if (dragStart === null ) return;
+        if( targetLine._id !== dragStart.line._id){
+          if (dragStart !== null ) {
+            targetLine.cards.push(dragStart.card);
             dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
           }
-          targetLine.cards.splice(_.indexOf(targetLine.cards, targetCard)+1, 0, dragStart.card);
-          dragStart = null;
-          webSocket.send(JSON.stringify($scope.lines));
-          console.log("currentLine:", targetLine);
-        };
+        }
+        webSocket.send(JSON.stringify($scope.lines));
+      };
+      $scope.onDragStart = function(currentLine, currentCard) {
+          dragStart = {
+            line: currentLine, 
+            card: currentCard,
+            idx: _.indexOf(currentLine.cards, currentCard)
+          };
+      };
+
+      $scope.onDragOverBlank = function($event) {
+        $event.preventDefault();
+      };
+      $scope.onDragleaveBlank = function($event) {
+        $event.preventDefault();
+      };
+      $scope.onDropBlank = function($event, targetLine, targetCard) {
+        if (dragStart === null ) return;
+        var prvIdx = null;
+        if( targetLine._id == dragStart.line._id){
+          targetLine.cards.splice(dragStart.idx, 1);
+        } else {
+          dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
+        }
+        targetLine.cards.splice(_.indexOf(targetLine.cards, targetCard)+1, 0, dragStart.card);
+        dragStart = null;
+        webSocket.send(JSON.stringify($scope.lines));
+        console.log("currentLine:", targetLine);
+      };
     };
     myapp.controller('controller', TaskCtrl);
     angular.bootstrap(document, ['myapp']);

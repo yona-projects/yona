@@ -1,15 +1,11 @@
 package models.task;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.fakeApplication;
-import static play.test.Helpers.running;
 import models.ModelTest;
 import models.ProjectUser;
 
 import org.codehaus.jackson.JsonNode;
 import org.junit.Test;
-
-import play.test.Helpers;
 
 public class CardTest extends ModelTest<Card> {
 
