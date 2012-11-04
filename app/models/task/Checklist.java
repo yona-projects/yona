@@ -14,6 +14,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
+import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
@@ -56,4 +57,21 @@ public class Checklist extends Model {
         json.put("items", itemsJson);
         return json;
     }
+
+	public void acceptJSON(JsonNode json) {
+		// TODO MAEKTEST
+		JsonNode itemsJson = json.get("items");
+		for(Item item : items){
+			item.delete();
+		}
+		items.clear();
+		for(int i = 0; i < itemsJson.size(); i++){
+			JsonNode itemJson = itemsJson.get(i);
+			Item item = new Item();
+			//item.checklist = this;
+			item.body = itemJson.get("body").asText();
+			items.add(item);
+		}
+		save();
+	}
 }

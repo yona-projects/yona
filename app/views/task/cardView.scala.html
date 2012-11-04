@@ -97,9 +97,7 @@ input.card_title {
         $scope.addChecklist = function(){
             $scope.card.checklist.items.push({body: $scope.input.checklist, state: false});
             $scope.input.checklist = "";
-            //아래의 코드를 만들어야 함.
-            //server.saveCheckListItem(data);
-            //서버쪽 코딩 할것!
+            server.saveCard($scope.card);
         }
         cardLoad(1);// for TEST
     }
@@ -129,10 +127,6 @@ input.card_title {
                     console.log("saveCard!");
             }
         });
-    }
-    
-    function makeAction(){
-      //TODO 여기에다가 어떤 랙션을 만들어 서버에 다녀와야 한다.
     }
   });
   </script>

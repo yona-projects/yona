@@ -111,6 +111,7 @@ public class Card extends Model {
         title = json.get("title").asText();
         body = json.get("body").asText();
         storyPoint = json.get("storyPoint").asInt();
+        checklists.get(0).acceptJSON(json.get("checklist"));
         // TODO 기타 다른것들도 데이터를 집어 넣어 줘야 함.
         this.save();
     }
