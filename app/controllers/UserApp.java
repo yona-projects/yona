@@ -61,7 +61,7 @@ public class UserApp extends Controller {
     				sourceUser.password);
         	token.setRememberMe(sourceUser.rememberMe);
         	
-        	Object principal = token.getPrincipal();
+        	//Object principal = token.getPrincipal();
         	
         	try {
                 currentUser.login(token);

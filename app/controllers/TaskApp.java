@@ -10,7 +10,6 @@ import models.task.TaskComment;
 
 import org.codehaus.jackson.JsonNode;
 
-import play.Logger;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -77,7 +76,6 @@ public class TaskApp extends Controller {
 
         card.addComment(comment);
 
-        Logger.info("comment added!");
         return ok();
     }
 

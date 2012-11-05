@@ -9,12 +9,9 @@
 input.card_title {
   border: 0px;
 }
-
-#storypoint {
-  border-radius: 5px;
-  padding: 4px;
-  background: blue;
-  color: white;
+ul {
+  list-style: none;
+  padding: 0px;
 }
 </style>
 <div ng-controller="CardCtrl">
@@ -37,6 +34,9 @@ input.card_title {
           <img width="48" height="48" />
         </div>
         <button ng-click="showMemberList()">assign</button>
+        <div ng-show="input.assign" ng-repeat="member in board.members">
+            <span>{{member}}</span>
+        </div>
       </fieldset>
     </div>
     <div>
@@ -45,7 +45,10 @@ input.card_title {
     <fieldset ng-show="card.checklist">
       <legend>{{card.checklist.title}}</legend>
       <ul ng-repeat="item in card.checklist.items">
-        <li>{{item.body}}</li>
+        <li>
+          <input type="checkbox" ng-model="item.state" ng-click="checkItem(item)"/>
+          {{item.body}}
+        </li>
       </ul>
       <input type="text" ng-model="input.checklist" />
       <button ng-click="addChecklist()">add</button>
@@ -68,6 +71,7 @@ input.card_title {
     var cardapp = angular.module('cardApp', [ 'ui' ]);
     function CardCtrl($scope) {
       $scope.card; //model
+      $scope.board = {};
       $scope.input = {
         comment : ""
       };
@@ -81,6 +85,11 @@ input.card_title {
           }
         });
       }
+      $.ajax("member", {
+        success: function(data){
+          $scope.board.members = data;
+        }
+      });
       $scope.addComment = function() {
         $scope.card.comments.push($scope.input.comment);
         server.addComment($scope.card._id, $scope.input.comment);
@@ -92,7 +101,7 @@ input.card_title {
         server.saveCard($scope.card);
       }
       $scope.showMemberList = function() {
-        console.log("test");
+        $scope.input.assign = !$scope.input.assign;
       }
       $scope.addChecklist = function() {
         $scope.card.checklist.items.push({
@@ -100,6 +109,9 @@ input.card_title {
           state : false
         });
         $scope.input.checklist = "";
+        server.saveCard($scope.card);
+      }
+      $scope.checkItem = function(item){
         server.saveCard($scope.card);
       }
       cardLoad(1);// for TEST
@@ -120,14 +132,15 @@ input.card_title {
         }
       });
     };
-    server.saveCard = function(card) {
+    server.saveCard = function(card, callback) {
       //서버로 카드 전체를 보내서 저장합니다.
       $.ajax("card", {
         type : "post",
         data : JSON.stringify(card),
         contentType : "text/json",
         success : function(data) {
-          console.log("saveCard!");
+          if(callback)
+            callback();
         }
       });
     }

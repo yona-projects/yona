@@ -1,6 +1,5 @@
 package models.task;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -8,18 +7,18 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
 @Entity
 public class Checklist extends Model {
+	private static final long serialVersionUID = 1L;
+	
     @Id
     public Long id;
     public String title;
@@ -68,8 +67,7 @@ public class Checklist extends Model {
 		for(int i = 0; i < itemsJson.size(); i++){
 			JsonNode itemJson = itemsJson.get(i);
 			Item item = new Item();
-			//item.checklist = this;
-			item.body = itemJson.get("body").asText();
+			item.acceptJSON(itemJson);
 			items.add(item);
 		}
 		save();
