@@ -1,6 +1,5 @@
 package models.task;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +10,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 import models.ProjectUser;
 
@@ -19,12 +17,13 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
 @Entity
 public class Card extends Model {
+	private static final long serialVersionUID = 1L;
+	
     @Id
     public Long id;
     public String title;

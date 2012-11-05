@@ -4,15 +4,18 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+import models.ProjectUser;
+
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import models.ProjectUser;
 import play.db.ebean.Model;
 import play.libs.Json;
 
 @Entity
 public class TaskComment extends Model {
+	private static final long serialVersionUID = 1L;
+	
     @Id
     public Long id;
     public String body;

@@ -20,6 +20,8 @@ import play.libs.Json;
 
 @Entity
 public class TaskBoard extends Model {
+	private static final long serialVersionUID = 1L;
+	
     @Id
     public Long id;
 

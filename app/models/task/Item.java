@@ -12,7 +12,9 @@ import play.libs.Json;
 
 @Entity
 public class Item extends Model {
-    @Id
+	private static final long serialVersionUID = 1L;
+	
+	@Id
     public Long id;
     private boolean state;//체크 안체크
     public String body;
@@ -41,5 +43,9 @@ public class Item extends Model {
         json.put("state", state);
         json.put("body", body);
         return json;
+    }
+    public void acceptJSON(JsonNode json){
+    	body = json.get("body").asText();
+    	state = json.get("state").asBoolean();
     }
 }

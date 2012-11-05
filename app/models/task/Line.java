@@ -12,14 +12,13 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import com.avaje.ebean.Ebean;
-
-import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
 @Entity
 public class Line extends Model {
+	private static final long serialVersionUID = 1L;
+	
     @Id
     public Long id;
     public String title;
