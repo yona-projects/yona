@@ -7,126 +7,129 @@
 <!-- preloading section end -->
 <style>
 input.card_title {
-    border : 0px;
+  border: 0px;
 }
+
 #storypoint {
-    border-radius : 5px;
-    padding : 4px;
-    background : blue;
-    color : white;
+  border-radius: 5px;
+  padding: 4px;
+  background: blue;
+  color: white;
 }
 </style>
-  <div ng-controller="CardCtrl">
-    <section class="card">
-        <!--//Label구현하기 
-        //클릭하지 않았을때는 그냥 잘 보여주다 클릭하면 input으로 바꾸기.
-        //         (아마 onclick에서 바꾸고 onBlur에서 다시 원상 복귀하면 될듯.)-->
-        <div ng-show="card.labels" ng-repeat="lable in card.lables">
-            <span></span><!-- 색깔라벨 나오게 만들것! -->
-        </div>
-        <input type="text" ng-model="card.title" class="card_title"/>
-        <input ng-model="card.storyPoint" ui-event="{'blur':'saveCard()'}" type="number" min="0" max="500"/><br/>
-        <textarea ng-model="card.body"></textarea>
-        <button ng-click="saveCard()">save</button>
-        <div>
-            <fieldset>
-                <legend>assignee</legend>
-                <div ng-repeat="member in card.assignee">
-                    <img width="48" height="48"/>
-                </div>
-                <button ng-click="showMemberList()">assign</button>
-            </fieldset>
-        </div>
-        <div>
-            DueDate : 
-            <input type="date" ng-model="card.dueDate" ui-event="{'blur':'saveCard()'}"/>
-        </div>
-        <fieldset ng-show="card.checklist">
-            <legend>{{card.checklist.title}}</legend>
-            <ul ng-repeat="item in card.checklist.items">
-                <li>{{item.body}}</li>
-            </ul>
-            <input type="text" ng-model="input.checklist"/>
-            <button ng-click="addChecklist()">add</button>
-        </fieldset>
-    </section>
-    <section id="taskComments" ng-repeat="comment in card.comments">
-        <article>
-            {{comment.body}}
-        </article>
-    </section>
-    <div>
-        <form ng-submit="addComment()">
-            <textarea id="comment_input" ng-model="input.comment"></textarea>
-            <input type="submit" value="comment"/>
-        </form>
+<div ng-controller="CardCtrl">
+  <section class="card">
+    <!--//Label구현하기 
+      //클릭하지 않았을때는 그냥 잘 보여주다 클릭하면 input으로 바꾸기.
+      //         (아마 onclick에서 바꾸고 onBlur에서 다시 원상 복귀하면 될듯.)-->
+    <div ng-show="card.labels" ng-repeat="lable in card.lables">
+      <span></span>
+      <!-- 색깔라벨 나오게 만들것! -->
     </div>
+    <input type="text" ng-model="card.title" class="card_title" /> <input ng-model="card.storyPoint"
+      ui-event="{'blur':'saveCard()'}" type="number" min="0" max="500" /><br />
+    <textarea ng-model="card.body"></textarea>
+    <button ng-click="saveCard()">save</button>
+    <div>
+      <fieldset>
+        <legend>assignee</legend>
+        <div ng-repeat="member in card.assignee">
+          <img width="48" height="48" />
+        </div>
+        <button ng-click="showMemberList()">assign</button>
+      </fieldset>
+    </div>
+    <div>
+      DueDate : <input type="date" ng-model="card.dueDate" ui-event="{'blur':'saveCard()'}" />
+    </div>
+    <fieldset ng-show="card.checklist">
+      <legend>{{card.checklist.title}}</legend>
+      <ul ng-repeat="item in card.checklist.items">
+        <li>{{item.body}}</li>
+      </ul>
+      <input type="text" ng-model="input.checklist" />
+      <button ng-click="addChecklist()">add</button>
+    </fieldset>
+  </section>
+  <section id="taskComments" ng-repeat="comment in card.comments">
+    <article>{{comment.body}}</article>
+  </section>
+  <div>
+    <form ng-submit="addComment()">
+      <textarea id="comment_input" ng-model="input.comment"></textarea>
+      <input type="submit" value="comment" />
+    </form>
   </div>
-  <script>
+</div>
+<script>
   var cardLoad;
-  $(function(){
+  $(function() {
     //angular!
-    var cardapp = angular.module('cardApp', ['ui']);
-    function CardCtrl($scope){
-        $scope.card; //model
-        $scope.input = {comment : ""};
-        cardLoad = function(id){
-            $.ajax("c/" + id, {
-                dataType : "json",
-                success : function(data){
-                    $scope.card = data;
-                    $scope.$apply();
-                    console.log(data);
-                }
-            });
-        }
-        $scope.addComment = function(){
-            $scope.card.comments.push($scope.input.comment);
-            server.addComment($scope.card._id, $scope.input.comment);
-            //Action을 추가 보더에 던져준다.
-            $scope.input.comment = "";
-            
-        }
-        $scope.saveCard = function(){
-            console.log("test");
-            server.saveCard($scope.card);
-        }
-        $scope.showMemberList = function(){
-          console.log("test");
-        }
-        $scope.addChecklist = function(){
-            $scope.card.checklist.items.push({body: $scope.input.checklist, state: false});
-            $scope.input.checklist = "";
-            server.saveCard($scope.card);
-        }
-        cardLoad(1);// for TEST
+    var cardapp = angular.module('cardApp', [ 'ui' ]);
+    function CardCtrl($scope) {
+      $scope.card; //model
+      $scope.input = {
+        comment : ""
+      };
+      cardLoad = function(id) {
+        $.ajax("c/" + id, {
+          dataType : "json",
+          success : function(data) {
+            $scope.card = data;
+            $scope.$apply();
+            console.log(data);
+          }
+        });
+      }
+      $scope.addComment = function() {
+        $scope.card.comments.push($scope.input.comment);
+        server.addComment($scope.card._id, $scope.input.comment);
+        $scope.input.comment = "";
+
+      }
+      $scope.saveCard = function() {
+        console.log("test");
+        server.saveCard($scope.card);
+      }
+      $scope.showMemberList = function() {
+        console.log("test");
+      }
+      $scope.addChecklist = function() {
+        $scope.card.checklist.items.push({
+          body : $scope.input.checklist,
+          state : false
+        });
+        $scope.input.checklist = "";
+        server.saveCard($scope.card);
+      }
+      cardLoad(1);// for TEST
     }
     cardapp.controller('CardCtrl', CardCtrl);//여기는 실제함수와 어트리뷰트간의 관계맺기
-    angular.bootstrap(document, ['cardApp']);
-    
+    angular.bootstrap(document, [ 'cardApp' ]);
+
     var server = {};
-    server.addComment = function(_id, str){
-        $.ajax("comment", {
-            type : "POST",
-            data : {
-                body : str, 
-                _id : _id
-                },
-            success : function(data){
-                cardLoad(_id);
-            }
-        }); 
+    server.addComment = function(_id, str) {
+      $.ajax("comment", {
+        type : "POST",
+        data : {
+          body : str,
+          _id : _id
+        },
+        success : function(data) {
+          cardLoad(_id);
+        }
+      });
     };
-    server.saveCard = function(card){
-        //서버로 카드 전체를 보내서 저장합니다.
-        $.ajax("card", {
-            type : "post",
-            data : JSON.stringify(card),
-            contentType : "text/json",
-            success : function(data){
-                    console.log("saveCard!");
-            }
-        });
+    server.saveCard = function(card) {
+      //서버로 카드 전체를 보내서 저장합니다.
+      $.ajax("card", {
+        type : "post",
+        data : JSON.stringify(card),
+        contentType : "text/json",
+        success : function(data) {
+          console.log("saveCard!");
+        }
+      });
     }
   });
-  </script>
+</script>
