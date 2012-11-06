@@ -1,7 +1,6 @@
 package models.task;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -15,6 +14,7 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
+import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
@@ -37,14 +37,14 @@ public class Card extends Model {
     @ManyToOne
     public Line line;
 
-    // TODO 아래에 있는것 중에 관계를 맺어줘야 하는 것들도 있다.
-    // Action도 저장해야 함.
     @OneToMany(cascade = CascadeType.ALL)
     public Set<CardAssignee> assignee;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    public Set<CardLabel> labels;
+
     public int storyPoint; // !주의 10배로 표현
 
-    public Set<Label> labels = new HashSet<Label>();
     public String body;
     public Date dueDate;
 
@@ -53,14 +53,6 @@ public class Card extends Model {
 
     public static Card findById(Long id) {
         return find.byId(id);
-    }
-
-    public void addLabel(Label label) {
-        labels.add(label);
-    }
-
-    public void removeLabel(Label label) {
-        labels.remove(label);
     }
 
     public void addComment(TaskComment comment) {
@@ -102,9 +94,21 @@ public class Card extends Model {
         }
         json.put("assignee", assigneeJson);
 
+        ArrayNode labelsJson = Json.newObject().arrayNode();
+        for (CardLabel label : labels) {
+            ObjectNode tmp = Json.newObject();
+            Logger.info(label.toString());
+            Logger.info(label.label.toString());
+            tmp.put("_id", label.label.id);
+            tmp.put("name", label.label.name);
+            labelsJson.add(tmp);
+        }
+        json.put("labels", labelsJson);
+
         if (checklists.size() != 0) {
             json.put("checklist", checklists.get(0).toJSON());
         }
+
         return json;
     }
 
@@ -126,7 +130,19 @@ public class Card extends Model {
             CardAssignee cardAssignee = new CardAssignee(this, projectUserId);
             assignee.add(cardAssignee);
         }
-        this.save();
 
+        JsonNode labelsJson = json.get("labels");
+
+        for (CardLabel label : this.labels) {
+            label.delete();
+        }
+        this.labels.clear();
+        for (int i = 0; i < labelsJson.size(); i++) {
+            JsonNode labelJson = labelsJson.get(i);
+            Long labelId = labelJson.get("_id").asLong();
+            labelJson.get("name");
+            this.labels.add(new CardLabel(this, labelId));
+        }
+        this.save();
     }
 }
