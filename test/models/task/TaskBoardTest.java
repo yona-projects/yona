@@ -107,7 +107,7 @@ public class TaskBoardTest {
                 // When
                 JsonNode json = taskBoard.getMember();
                 // Then
-                assertThat(json.size()).isEqualTo(3);
+                assertThat(json.size()).isEqualTo(2);
             }
         });
     }

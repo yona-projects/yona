@@ -38,7 +38,7 @@ public class Item extends Model {
         return find.byId(id);
     }
     public JsonNode toJSON() {
-        // TODO test 작성해야 함.
+        // TODO MAKETEST
         ObjectNode json = Json.newObject();
         json.put("state", state);
         json.put("body", body);

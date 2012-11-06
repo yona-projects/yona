@@ -14,14 +14,15 @@ import models.ProjectUser;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 
 import play.db.ebean.Model;
 import play.libs.Json;
 
 @Entity
 public class TaskBoard extends Model {
-	private static final long serialVersionUID = 1L;
-	
+    private static final long serialVersionUID = 1L;
+
     @Id
     public Long id;
 
@@ -33,8 +34,8 @@ public class TaskBoard extends Model {
     @OneToOne
     public Project project;
 
-    private static Finder<Long, TaskBoard> find = new Finder<Long, TaskBoard>(Long.class,
-            TaskBoard.class);
+    private static Finder<Long, TaskBoard> find = new Finder<Long, TaskBoard>(
+            Long.class, TaskBoard.class);
 
     public static TaskBoard create(Project project) {
         TaskBoard taskBoard = new TaskBoard();
@@ -112,8 +113,11 @@ public class TaskBoard extends Model {
 
     public JsonNode getMember() {
         ArrayNode json = Json.newObject().arrayNode();
-        for (ProjectUser member : project.projectUser) {
-            json.add(member.user.loginId);
+        for (ProjectUser member : ProjectUser.findMemberListByProject(project.id)) {
+            ObjectNode tmp = Json.newObject();
+            tmp.put("loginId", member.user.loginId);
+            tmp.put("_id", member.id);
+            json.add(tmp);
         }
         return json;
     }

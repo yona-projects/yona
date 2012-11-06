@@ -1141,9 +1141,6 @@ cards:
         title:          test title
         body:           test card
         storyPoint:     5 
-#        assignee:
-#            - !!models.ProjectUser
-#                id:     1
 #        labels:         
 #            - !!models.task.Label
 #                id:     1
@@ -1153,9 +1150,6 @@ cards:
     - !!models.task.Card
         title:          alpha
         body:           alpha
-#        assignee:
-#            - !!models.ProjectUser
-#                id:     1
         line:           !!models.task.Line
                             id:     1
     - !!models.task.Card
@@ -1176,6 +1170,12 @@ cards:
                             id:     1
         card:           !!models.task.Card
                             id:     1
+
+    - !!models.task.CardAssignee
+        card:           !!models.task.Card
+                            id:     1
+        projectUser:    !!models.ProjectUser
+                            id:     4
 
 labels:
     - !!models.task.Label

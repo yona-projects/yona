@@ -20,49 +20,6 @@ public class CardTest extends ModelTest<Card> {
     }
 
     @Test
-    public void assign() throws Exception {
-        // Given
-        Card card = new Card();
-        // When
-        card.assignMember(ProjectUser.findByIds(1l, 1l));
-        // Then
-        assertThat(card.assignee).contains(ProjectUser.findByIds(1l, 1l));
-    }
-
-    @Test
-    public void unassign() throws Exception {
-        // Given
-        Card card = Card.findById(1l);
-        // when
-        card.unassignMember(ProjectUser.findByIds(1l, 1l));
-        // Then
-        assertThat(card.assignee).isEmpty();
-    }
-
-    @Test
-    public void addLabel() throws Exception {
-        // Given
-        Card card = Card.findById(1l);
-        Label label = new Label();// XXX
-        // When
-        card.addLabel(label);
-        // Then
-        assertThat(card.labels).isNotEmpty();
-        assertThat(card.labels.contains(label));
-    }
-
-    @Test
-    public void removeLabel() throws Exception {
-        // Given
-        Card card = Card.findById(1l);
-        Label label = Label.findById(1l);
-        // When
-        card.removeLabel(label);
-        // Then
-        assertThat(card.labels).excludes(label);
-    }
-
-    @Test
     public void addComment() throws Exception {
         // Given
         Card card = Card.findById(1l);

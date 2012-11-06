@@ -9,6 +9,7 @@
 input.card_title {
   border: 0px;
 }
+
 ul {
   list-style: none;
   padding: 0px;
@@ -16,13 +17,9 @@ ul {
 </style>
 <div ng-controller="CardCtrl">
   <section class="card">
-    <!--//Label구현하기 
+    <!--
       //클릭하지 않았을때는 그냥 잘 보여주다 클릭하면 input으로 바꾸기.
       //         (아마 onclick에서 바꾸고 onBlur에서 다시 원상 복귀하면 될듯.)-->
-    <div ng-show="card.labels" ng-repeat="lable in card.lables">
-      <span></span>
-      <!-- 색깔라벨 나오게 만들것! -->
-    </div>
     <input type="text" ng-model="card.title" class="card_title" /> <input ng-model="card.storyPoint"
       ui-event="{'blur':'saveCard()'}" type="number" min="0" max="500" /><br />
     <textarea ng-model="card.body"></textarea>
@@ -31,13 +28,17 @@ ul {
       <fieldset>
         <legend>assignee</legend>
         <div ng-repeat="member in card.assignee">
-          <img width="48" height="48" />
+          <span>{{member.loginId}}</span>
         </div>
         <button ng-click="showMemberList()">assign</button>
         <div ng-show="input.assign" ng-repeat="member in board.members">
-            <span>{{member}}</span>
+          <span><input type="checkbox" ng-model="member.assigned" ng-change="assign(member)" />{{member.loginId}}</span>
         </div>
       </fieldset>
+    </div>
+    <div ng-repeat="label in board.labels">
+      <span><input type="checkbox" ng-model="label.state" ng-change="saveCard()" />{{label.name}}</span>
+      <!-- 색깔라벨 나오게 만들것! -->
     </div>
     <div>
       DueDate : <input type="date" ng-model="card.dueDate" ui-event="{'blur':'saveCard()'}" />
@@ -45,10 +46,7 @@ ul {
     <fieldset ng-show="card.checklist">
       <legend>{{card.checklist.title}}</legend>
       <ul ng-repeat="item in card.checklist.items">
-        <li>
-          <input type="checkbox" ng-model="item.state" ng-click="checkItem(item)"/>
-          {{item.body}}
-        </li>
+        <li><input type="checkbox" ng-model="item.state" ng-click="checkItem(item)" /> {{item.body}}</li>
       </ul>
       <input type="text" ng-model="input.checklist" />
       <button ng-click="addChecklist()">add</button>
@@ -65,6 +63,8 @@ ul {
   </div>
 </div>
 <script>
+  //웹소켓은 그야말로 클라 노티에만 쓰고 노티오면 다시 리로딩.
+  //taskBoard는 완전히 따로 생각한다. 리로딩시 문제는 없음.
   var cardLoad;
   $(function() {
     //angular!
@@ -81,15 +81,53 @@ ul {
           success : function(data) {
             $scope.card = data;
             $scope.$apply();
-            console.log(data);
+            adjust();
           }
         });
       }
       $.ajax("member", {
-        success: function(data){
+        success : function(data) {
           $scope.board.members = data;
+          adjust();
         }
       });
+      function adjust() {
+        if ($scope.card && $scope.board && $scope.board.members) {
+          var assignee = $scope.card.assignee;
+          var members = $scope.board.members;
+          for ( var i = 0; i < members.length; i++) {
+            members[i].assigned = false;
+            for ( var j = 0; j < assignee.length; j++) {
+              if (members[i]._id == assignee[j]._id) {
+                members[i].assigned = true;
+                assignee[j] = members[i];
+              }
+            }
+          }
+          $scope.$apply();
+        }
+        if ($scope.card && $scope.board && $scope.board.labels) {
+          var cardLabels = $scope.card.labels;
+          var boardLabels = $scope.board.labels;
+          for ( var i = 0; i < boardLabels.length; i++) {
+            boardLabels[i].state = false;
+            for ( var j = 0; j < cardLabels.length; j++) {
+              if (cardLabels[j]._id == boardLabels[i]._id) {
+                boardLabels[i].state = true;
+              }
+            }
+          }
+        }
+        $scope.$apply()
+      }
+      $.ajax("labels", {
+        success : function(data) {
+          $scope.board.labels = data;
+          adjust();
+        },
+        dataType : "json"
+      });
+      //inti function end 
       $scope.addComment = function() {
         $scope.card.comments.push($scope.input.comment);
         server.addComment($scope.card._id, $scope.input.comment);
@@ -97,8 +135,14 @@ ul {
 
       }
       $scope.saveCard = function() {
-        console.log("test");
+        $scope.card.labels = [];
+        for ( var i = 0; i < $scope.board.labels.length; i++) {
+          if ($scope.board.labels[i].state == true) {
+            $scope.card.labels.push($scope.board.labels[i]);
+          }
+        }
         server.saveCard($scope.card);
+        console.log($scope.card);
       }
       $scope.showMemberList = function() {
         $scope.input.assign = !$scope.input.assign;
@@ -109,10 +153,18 @@ ul {
           state : false
         });
         $scope.input.checklist = "";
-        server.saveCard($scope.card);
+        $scope.saveCard();
       }
-      $scope.checkItem = function(item){
-        server.saveCard($scope.card);
+      $scope.checkItem = function(item) {
+        $scope.saveCard();
+      }
+      $scope.assign = function(member) {
+        if (member.assigned) {
+          $scope.card.assignee.push(member);
+        } else {
+          $scope.card.assignee = _.without($scope.card.assignee, member);
+        }
+        $scope.saveCard();
       }
       cardLoad(1);// for TEST
     }
@@ -139,7 +191,7 @@ ul {
         data : JSON.stringify(card),
         contentType : "text/json",
         success : function(data) {
-          if(callback)
+          if (callback)
             callback();
         }
       });

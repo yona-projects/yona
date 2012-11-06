@@ -31,6 +31,7 @@ public class Label extends Model{
     public JsonNode toJSON() {
         //TODO TESTCODE 작성
         ObjectNode json = Json.newObject();
+        json.put("_id", id);
         json.put("name", name);
         json.put("color", color);
         return json;
