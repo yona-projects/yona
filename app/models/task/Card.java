@@ -6,9 +6,11 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -26,10 +28,8 @@ public class Card extends Model {
     public Long id;
     public String title;
 
-    // FIXME 원래는 OneToOne으로 하려 했으나 Project.Delete시의
-    // Ebean 에러로 인해 ManyToOne으로 변경
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
-    public List<Checklist> checklists;
+    @OneToOne(cascade=CascadeType.ALL)
+    public Checklist checklist;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
     public List<TaskComment> comments;
@@ -97,16 +97,14 @@ public class Card extends Model {
         ArrayNode labelsJson = Json.newObject().arrayNode();
         for (CardLabel label : labels) {
             ObjectNode tmp = Json.newObject();
-            Logger.info(label.toString());
-            Logger.info(label.label.toString());
             tmp.put("_id", label.label.id);
             tmp.put("name", label.label.name);
             labelsJson.add(tmp);
         }
         json.put("labels", labelsJson);
 
-        if (checklists.size() != 0) {
-            json.put("checklist", checklists.get(0).toJSON());
+        if(checklist != null){
+            json.put("checklist", checklist.toJSON());
         }
 
         return json;
@@ -116,7 +114,7 @@ public class Card extends Model {
         title = json.get("title").asText();
         body = json.get("body").asText();
         storyPoint = json.get("storyPoint").asInt();
-        checklists.get(0).acceptJSON(json.get("checklist"));
+        checklist.acceptJSON(json.get("checklist"));
 
         JsonNode assigneeJson = json.get("assignee");
         for (CardAssignee tmp : assignee) {

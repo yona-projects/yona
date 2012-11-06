@@ -1141,9 +1141,9 @@ cards:
         title:          test title
         body:           test card
         storyPoint:     5 
-#        labels:         
-#            - !!models.task.Label
-#                id:     1
+        checklist:      !!models.task.Checklist
+                            id:     1
+                            title:          TODO
         line:           !!models.task.Line
                             id:     1
                             
@@ -1188,11 +1188,7 @@ labels:
                             id:     1
 
 checkLists:
-    - !!models.task.Checklist
-        title:          TODO
-        card:           !!models.task.Card
-                            id:     1
-        
+
     - !!models.task.Item
         body:           test item
         checklist :     !!models.task.Checklist

@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -25,9 +26,6 @@ public class Checklist extends Model {
     
     @OneToMany(cascade=CascadeType.ALL, mappedBy="checklist")
     public List<Item> items;
-    
-    @ManyToOne
-    public Card card;
 
     public static Finder<Long, Checklist> find = new Finder<Long, Checklist>(Long.class,
             Checklist.class);
