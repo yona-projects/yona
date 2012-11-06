@@ -29,7 +29,7 @@ public class ProjectTest extends ModelTest<Project> {
         
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
-        assertThat(actualProject.homepage).isEqualTo("http://localhost:9000/prj_test");
+        assertThat(actualProject.siteurl).isEqualTo("http://localhost:9000/prj_test");
     }
     
     @Test
@@ -72,7 +72,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
         assertThat(project.share_option).isEqualTo(true);
         assertThat(project.vcs).isEqualTo("GIT");
-        assertThat(project.homepage).isEqualTo("http://localhost:9000/nForge4java");
+        assertThat(project.siteurl).isEqualTo("http://localhost:9000/nForge4java");
       
     }
     

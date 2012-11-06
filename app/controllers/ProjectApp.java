@@ -8,6 +8,7 @@ import models.ProjectUser;
 import models.Role;
 import models.User;
 import models.enumeration.RoleType;
+import play.Logger;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
@@ -107,6 +108,8 @@ public class ProjectApp extends Controller {
             return badRequest(setting.render("title.projectSetting", filledUpdatedProjectForm,
                     Project.findById(project.id)));
         } else {
+        	Logger.debug(project.siteurl);
+        	
             project.update();
             return redirect(routes.ProjectApp.setting(userName, project.name));
         }

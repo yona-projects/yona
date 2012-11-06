@@ -36,7 +36,7 @@ public class Project extends Model {
     
     public String overview;
     public String vcs;
-    public String homepage;
+    public String siteurl;
     public String logoPath;
     public String owner;
 
@@ -59,7 +59,7 @@ public class Project extends Model {
     public TaskBoard taskBoard;
 
     public static Long create(Project newProject) {
-        newProject.homepage = "http://localhost:9000/" + newProject.name;
+        newProject.siteurl = "http://localhost:9000/" + newProject.name;
         newProject.save();
         ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id, RoleType.SITEMANAGER);
         return newProject.id;

@@ -8,8 +8,10 @@ nforge.project.nameCheck = function() {
 				if(!reg_name.test($("input#name").val())) {
 			        $("#nameAlert").show();
 			        return false;
+			    }else {
+			    	$("#nameAlert").hide();
+					return true;
 			    }
-				return true;
 			});
 		}
 	};
@@ -21,11 +23,15 @@ nforge.project.urlCheck = function() {
 		init : function() {
 			$("#save").click(function() {
 				var reg_url = /^http?:\/\//;
-				if(!reg_url.test($("input#url").val())) {
+
+				if($("input#siteurl").val()!="" && !reg_url.test($("input#siteurl").val())) {
                     $("#urlAlert").show();
                     return false;
+                }else {
+                	$("#urlAlert").hide();
+                	return true;
                 }
-				return true;
+				
 			});
 		}
 	};
@@ -39,8 +45,10 @@ nforge.project.acceptCheck = function() {
 				if($("#accept").is(":not(:checked)")) {
 	                $("#acceptAlert").show();
 	                return false;
+	            }else {
+	            	$("#acceptAlert").hide();
+					return true;	
 	            }
-				return true;
 			});
 		}
 	};
