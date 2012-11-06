@@ -64,6 +64,7 @@ public class Issue extends Model {
     public String title;
 
     @Constraints.Required
+    @Column(length=4000)
     public String body;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
