@@ -75,7 +75,7 @@
         <span>{{label.name}}</span>
       </article>
       <aritcle ng-repeat="member in members">
-        <span>{{member}}</span>
+        <span>{{member.loginId}}</span>
       </aritcle>
     </section>
   </div>
@@ -87,6 +87,7 @@
       var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
       webSocket.onmessage = function(e){
         $scope.lines = JSON.parse(e.data);
+        console.log($scope.lines);
         $scope.$apply();
       }
       webSocket.onopen = function(){
