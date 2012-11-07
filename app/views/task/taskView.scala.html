@@ -87,7 +87,6 @@
       var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
       webSocket.onmessage = function(e){
         $scope.lines = JSON.parse(e.data);
-        console.log($scope.lines);
         $scope.$apply();
       }
       webSocket.onopen = function(){
@@ -102,7 +101,6 @@
         $scope.newCard = {targetLine : line};
       };
       $scope.addCard = function(line){
-        console.log(line._id);
         $.ajax("task/newCard", {
           success : function(data){
             $scope.newCard.title = "";
@@ -126,7 +124,6 @@
 
       $.ajax("task/member", {
         success: function(data){
-          console.log(data);
           $scope.members = data;
         }
       });
@@ -172,7 +169,6 @@
         targetLine.cards.splice(_.indexOf(targetLine.cards, targetCard)+1, 0, dragStart.card);
         dragStart = null;
         webSocket.send(JSON.stringify($scope.lines));
-        console.log("currentLine:", targetLine);
       };
     };
     myapp.controller('controller', TaskCtrl);

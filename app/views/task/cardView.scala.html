@@ -43,6 +43,7 @@ ul {
     <div>
       DueDate : <input type="date" ng-model="card.dueDate" ui-event="{'blur':'saveCard()'}" />
     </div>
+    <button ng-hide="card.checklist" ng-click="makeCheckList()">makeCheckList</button>
     <fieldset ng-show="card.checklist">
       <legend>{{card.checklist.title}}</legend>
       <ul ng-repeat="item in card.checklist.items">
@@ -146,6 +147,12 @@ ul {
       }
       $scope.showMemberList = function() {
         $scope.input.assign = !$scope.input.assign;
+      }
+      $scope.makeCheckList = function(){
+        $scope.card.checklist = {
+          items : [],
+          title : "TODO"
+        };
       }
       $scope.addChecklist = function() {
         $scope.card.checklist.items.push({

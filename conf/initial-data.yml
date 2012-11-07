@@ -1142,7 +1142,6 @@ cards:
         body:           test card
         storyPoint:     5 
         checklist:      !!models.task.Checklist
-                            id:     1
                             title:          TODO
         line:           !!models.task.Line
                             id:     1

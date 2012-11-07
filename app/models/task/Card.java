@@ -6,7 +6,6 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -16,7 +15,6 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import play.Logger;
 import play.db.ebean.Model;
 import play.libs.Json;
 
@@ -28,7 +26,7 @@ public class Card extends Model {
     public Long id;
     public String title;
 
-    @OneToOne(cascade=CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     public Checklist checklist;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL)
@@ -103,7 +101,7 @@ public class Card extends Model {
         }
         json.put("labels", labelsJson);
 
-        if(checklist != null){
+        if (checklist != null) {
             json.put("checklist", checklist.toJSON());
         }
 
@@ -114,7 +112,18 @@ public class Card extends Model {
         title = json.get("title").asText();
         body = json.get("body").asText();
         storyPoint = json.get("storyPoint").asInt();
-        checklist.acceptJSON(json.get("checklist"));
+        JsonNode checklistJson = json.get("checklist");
+        if (checklistJson != null) {
+            if (checklist == null) {
+                checklist = new Checklist();
+            }
+            checklist.acceptJSON(checklistJson);
+        } else {
+            if(checklist != null){
+                checklist.delete();
+            }
+            checklist = null;
+        }
 
         JsonNode assigneeJson = json.get("assignee");
         for (CardAssignee tmp : assignee) {
