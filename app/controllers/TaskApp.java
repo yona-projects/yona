@@ -41,7 +41,7 @@ public class TaskApp extends Controller {
 
     // TestCode 나중에 전부 웹소켓으로 바꾼다. 당연히 그걸 고려해서 짜야한다.
     public static Result cardView(String userName, String projectName) {
-        return ok(cardView.render());
+        return ok(cardView.render(ProjectApp.getProject(userName, projectName)));
     }
 
     @BodyParser.Of(BodyParser.Json.class)

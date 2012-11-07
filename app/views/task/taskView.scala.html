@@ -1,129 +1,142 @@
-@(project:Project)
+@(project:Project) @main("TaskManager", project){
+<h1>TaskManager</h1>
+<style>
+section.line {
+  width: 150px;
+  float: left;
+  border: 2px solid #666666;
+  background: #fafafa;
+  margin-right: 5px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: move;
+}
 
-@main("TaskManager", project){
-    
-  <h1>TaskManager</h1>
-  <style>
-  section.line {
-    width : 150px;
-    float : left;
-    border : 2px solid #666666;
-    background : #fafafa;
-    margin-right : 5px;
-    border-radius : 5px;
-    text-align : center;
-    cursor : move;
-  }
-  section.line header {
-    padding : 5px;
-    background-color : #dadada;
-    border-top-left-radius : 5px;
-    border-top-right-radius : 5px;
-  }
-  article.card {
-    background : #b9a;
-    margin : 4px;
-    border-radius : 3px;
-    border : 1px solid gray;
-    min-height : 20px;
-  }
-  .cardlist {
-    border: 2px solid #f1f1f1;
-    background: #f1f1f1;
-  }
-  .over {
-    border: 2px dashed #000;
-  }
-  
-  .dragTargetCard{
-    background-color: dadada;
-    color: dadada;
-  }
-  .blank{
-    min-height: 3px;
-  }
-  .overBlank{
-    min-height: 25px;
-    background-color: #ddd;
-  }
-  .fade{
-    background : #333;
-  }
-  </style>
-  <div ng-controller="controller">
-    <section ng-repeat="line in lines" class="line">
-      <header>{{line.title}}</header>
-      <div class="cardlist" id="cardlist_{{line._id}}" >
+section.line header {
+  padding: 5px;
+  background-color: #dadada;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+article.card {
+  background: #b9a;
+  margin: 4px;
+  border-radius: 3px;
+  border: 1px solid gray;
+  min-height: 20px;
+}
+
+.cardlist {
+  border: 2px solid #f1f1f1;
+  background: #f1f1f1;
+}
+
+.over {
+  border: 2px dashed #000;
+}
+
+.dragTargetCard {
+  background-color: dadada;
+  color: dadada;
+}
+
+.blank {
+  min-height: 3px;
+}
+
+.overBlank {
+  min-height: 25px;
+  background-color: #ddd;
+}
+
+.fade {
+  background: #333;
+}
+</style>
+<div ng-controller="controller">
+  <section ng-repeat="line in lines" class="line">
+    <header>{{line.title}}</header>
+    <div class="cardlist" id="cardlist_{{line._id}}">
+      <article class="blank"></article>
+      <div ng-repeat="card in line.cards">
+        <article class="card" draggable="true" ui-event="{'dragstart': 'onDragStart(line, card)'}">
+          {{card.title}}</article>
         <article class="blank"></article>
-        <div ng-repeat="card in line.cards" > 
-          <article class="card" draggable="true" ui-event="{'dragstart': 'onDragStart(line, card)'}" >
-            {{card.title}}
-          </article>
-          <article class="blank"></article>
-        </div>
       </div>
-      <article>
-        <button ng-hide="newCard && newCard.targetLine == line" ng-click="showCardInput(line)">new Card</button>
-        <form ng-submit="addCard(line)" ng-show="newCard && newCard.targetLine == line">
-          <textarea ng-model="newCard.title"></textarea>
-          <input type="submit" value="add"/>
-        </form>
-      </article>
-    </section>
-    <section>
+    </div>
+    <article>
+      <button ng-hide="newCard && newCard.targetLine == line" ng-click="showCardInput(line)">new Card</button>
+      <form ng-submit="addCard(line)" ng-show="newCard && newCard.targetLine == line">
+        <textarea ng-model="newCard.title"></textarea>
+        <input type="submit" value="add" />
+      </form>
+    </article>
+  </section>
+  <section style="float: right">
+    <fieldset>
+      <legend>label List</legend>
       <article id="lables" ng-repeat="label in labels">
         <span>{{label.name}}</span>
       </article>
-      <aritcle ng-repeat="member in members">
-        <span>{{member.loginId}}</span>
-      </aritcle>
-    </section>
-  </div>
-  <script>
-  $(function(){
-    var myapp = angular.module('myapp', ['ui']);
-    var TaskCtrl = function($scope){
+    </fieldset>
+    <fieldset>
+      <legend>memberList</legend>
+      <aritcle ng-repeat="member in members"> <span>{{member.loginId}}</span> </aritcle>
+    </fieldset>
+  </section>
+</div>
+<script>
+  $(function() {
+    var myapp = angular.module('myapp', [ 'ui' ]);
+    var TaskCtrl = function($scope) {
       var dragStart = {};
-      var webSocket = new WebSocket("ws://" +location.host + location.pathname + "/connect");
-      webSocket.onmessage = function(e){
+      var webSocket = new WebSocket("ws://" + location.host + location.pathname
+          + "/connect");
+      webSocket.onmessage = function(e) {
         $scope.lines = JSON.parse(e.data);
         $scope.$apply();
       }
-      webSocket.onopen = function(){
+      webSocket.onopen = function() {
         console.log("socket Open!");
       }
-      webSocket.onclose = function(){
+      webSocket.onclose = function() {
         console.log("disconnected!");
         console.log("trying to reconnect...");
         console.log("unimplement");
       }
-      $scope.showCardInput = function(line){
-        $scope.newCard = {targetLine : line};
+      $scope.showCardInput = function(line) {
+        $scope.newCard = {
+          targetLine : line
+        };
       };
-      $scope.addCard = function(line){
+      $scope.addCard = function(line) {
         $.ajax("task/newCard", {
-          success : function(data){
+          success : function(data) {
             $scope.newCard.title = "";
-            line.cards.push(data);   
+            line.cards.push(data);
             $scope.$apply();
           },
           contentType : "text/json",
           dataType : "json",
-          data : JSON.stringify({line_id : line._id, card_data : $scope.newCard.title}),
+          data : JSON.stringify({
+            line_id : line._id,
+            card_data : $scope.newCard.title
+          }),
           type : "POST"
         });
         return false;
       }
 
       $.ajax("task/labels", {
-        success : function(data){
+        success : function(data) {
           $scope.labels = data;
         },
         dataType : "json"
       });
 
       $.ajax("task/member", {
-        success: function(data){
+        success : function(data) {
           $scope.members = data;
         }
       });
@@ -135,21 +148,23 @@
         $event.preventDefault();
       };
       $scope.onDrop = function($event, targetLine) {
-        if (dragStart === null ) return;
-        if( targetLine._id !== dragStart.line._id){
-          if (dragStart !== null ) {
+        if (dragStart === null)
+          return;
+        if (targetLine._id !== dragStart.line._id) {
+          if (dragStart !== null) {
             targetLine.cards.push(dragStart.card);
-            dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
+            dragStart.line.cards = _.without(dragStart.line.cards,
+                dragStart.card);
           }
         }
         webSocket.send(JSON.stringify($scope.lines));
       };
       $scope.onDragStart = function(currentLine, currentCard) {
-          dragStart = {
-            line: currentLine, 
-            card: currentCard,
-            idx: _.indexOf(currentLine.cards, currentCard)
-          };
+        dragStart = {
+          line : currentLine,
+          card : currentCard,
+          idx : _.indexOf(currentLine.cards, currentCard)
+        };
       };
 
       $scope.onDragOverBlank = function($event) {
@@ -159,53 +174,62 @@
         $event.preventDefault();
       };
       $scope.onDropBlank = function($event, targetLine, targetCard) {
-        if (dragStart === null ) return;
+        if (dragStart === null)
+          return;
         var prvIdx = null;
-        if( targetLine._id == dragStart.line._id){
+        if (targetLine._id == dragStart.line._id) {
           targetLine.cards.splice(dragStart.idx, 1);
         } else {
-          dragStart.line.cards = _.without(dragStart.line.cards, dragStart.card);
+          dragStart.line.cards = _
+              .without(dragStart.line.cards, dragStart.card);
         }
-        targetLine.cards.splice(_.indexOf(targetLine.cards, targetCard)+1, 0, dragStart.card);
+        targetLine.cards.splice(_.indexOf(targetLine.cards, targetCard) + 1, 0,
+            dragStart.card);
         dragStart = null;
         webSocket.send(JSON.stringify($scope.lines));
       };
     };
     myapp.controller('controller', TaskCtrl);
-    angular.bootstrap(document, ['myapp']);
+    angular.bootstrap(document, [ 'myapp' ]);
   });
-  (function(){
-    $(".cardlist").live("drop", function(e){
-      if (e.stopPropagation) e.stopPropagation();
+  (function() {
+    $(".cardlist").live("drop", function(e) {
+      if (e.stopPropagation)
+        e.stopPropagation();
       e.preventDefault();
     });
 
-    $(".cardlist")
-      .live("dragover", function(e){
-        $(this).addClass("over");
-        return e.preventDefault();
-      })
-      .live("drop dragleave", function(e){
-        $(this).removeClass("over");
-      });
-    $(".card").live("dragstart", function(e){
+    $(".cardlist").live("dragover", function(e) {
+      $(this).addClass("over");
+      return e.preventDefault();
+    }).live("drop dragleave", function(e) {
+      $(this).removeClass("over");
+    });
+    $(".card").live("dragstart", function(e) {
     });
 
+    $(".blank").live("dragover", function(e) {
+      $(this).addClass("overBlank");
+      return e.preventDefault();
+    }).live("drop dragleave", function(e) {
+      $(this).removeClass("overBlank");
+    });
+    $(".cardlist")
+        .attr(
+            "ui-event",
+            "{dragover: 'onDragOver($event)', dragleave: 'onDragLeave($event)', drop: 'onDrop($event, line)'}");
     $(".blank")
-      .live("dragover", function(e){
-        $(this).addClass("overBlank");
-        return e.preventDefault();
-      })
-      .live("drop dragleave", function(e){
-        $(this).removeClass("overBlank");
-      });
-    $(".cardlist").attr("ui-event", "{dragover: 'onDragOver($event)', dragleave: 'onDragLeave($event)', drop: 'onDrop($event, line)'}");
-    $(".blank").attr("ui-event", "{dragover: 'onDragOverBlank($event)', dragleave: 'onDragLeaveBlank($event)', drop: 'onDropBlank($event, line, card)'}");
+        .attr(
+            "ui-event",
+            "{dragover: 'onDragOverBlank($event)', dragleave: 'onDragLeaveBlank($event)', drop: 'onDropBlank($event, line, card)'}");
   })();
-  </script>
-  <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
-  <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
-  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
-  <script type="text/javascript" src="https://raw.github.com/angular-ui/angular-ui/master/build/angular-ui.min.js"></script>
+
+  //===============================
+  var URL_PREFIX = "/@project.owner/@project.name/task/";
+</script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js"></script>
+<script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
+<script type="text/javascript" src="https://raw.github.com/angular-ui/angular-ui/master/build/angular-ui.min.js"></script>
 }

@@ -1,62 +1,63 @@
 @(url : String, project:Project) @main("코드", project){
 <ul class="nav nav-tabs">
-    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a></li>
-    <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("Commits")</a></li>
+  <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a>
+  </li>
+  <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("Commits")</a>
+  </li>
 </ul>
-
 <div class="well">Clone this repository : git clone @url</div>
 <div class="row" id="codeBrowser">
-    <div class="span3">
-        <ul id="codeRoot" class="well nav nav-list">
-            <li id="codeBrowserHeader"><a href="#">코드 탐색기</a></li>
-        </ul>
+  <div class="span3">
+    <ul id="codeRoot" class="well nav nav-list">
+      <li id="codeBrowserHeader"><a href="#">코드 탐색기</a></li>
+    </ul>
+  </div>
+  <div class="span9">
+    <div>
+      <span id="breadcrumbs">Breadcrumbs</span> <span> <select>
+          <option>master</option>
+      </select>
+      </span>
     </div>
-    <div class="span9" >
-        <div>
-            <span id="breadcrumbs">Breadcrumbs</span>
-            <span>
-                <select>
-                    <option>master</option>
-                </select>
-            </span>
-        </div>
-        <div id="folderView">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>FileName</th>
-                        <th>Commit Message</th>
-                        <th>Commit Date</th>
-                        <th>Author</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-        <div id="codeView" class="hide">
-            <div>
-                <span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span>
-                <span class="pull-right"><a id="rawCode" class="btn btn-mini" target="_blank">Raw</a></span>
-            </div>
-            <hr />
-            <div>
-                <pre><code style="overflow:hidden"></code></pre>
-            </div>
-        </div>
-        
+    <div id="folderView">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>FileName</th>
+            <th>Commit Message</th>
+            <th>Commit Date</th>
+            <th>Author</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
     </div>
-    
+    <div id="codeView" class="hide">
+      <div>
+        <span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span> <span
+          class="pull-right"><a id="rawCode" class="btn btn-mini" target="_blank">Raw</a></span>
+      </div>
+      <hr />
+      <div>
+        <pre>
+          <code style="overflow: hidden"></code>
+        </pre>
+      </div>
+    </div>
+  </div>
 </div>
 <div id="codeError" class="hide row">
-    <div class="well span12">
-        <p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>
-        <pre><code>git clone @url
+  <div class="well span12">
+    <p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>
+    <pre>
+      <code>git clone @url
 touch readme.md
 git add readme.md
 git commit -m "init"
-git push origin master</code></pre>
-    </div>
+git push origin master</code>
+    </pre>
+  </div>
 </div>
 <script type="text/javascript" src="/assets/javascripts/hljs.js"></script>
 <script type="text/javascript" src="/assets/javascripts/hljs.jquery.js"></script>
