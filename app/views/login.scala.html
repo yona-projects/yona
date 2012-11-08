@@ -1,7 +1,4 @@
-@(message:String, userForm:Form[User]) 
-
-@import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@(message:String, userForm:Form[User])
 
 @home(message) {
 <div class="page full">
@@ -12,7 +9,7 @@
         <div class="login-form-wrap">
             <form action="@routes.UserApp.authenticate()" method="POST">
                 <label for="email">
-                    <input type="text" class="text email" id="email" placeholder="USER NAME" autocomplete="off" name="loginId">
+                    <input type="text" class="text email" id="email" placeholder="ID" autocomplete="off" name="loginId">
                 </label>
                 <label for="password">
                     <input type="password" class="text password" id="password" placeholder="PASSWORD" autocomplete="off" name="password">

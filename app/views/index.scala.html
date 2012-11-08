@@ -1,22 +1,14 @@
 @(projects:List[Project]) 
 
 @home("Welcome to nForge") {
-    @if(session.contains("userId")){
-    <div class="page">
-    } else {
-    <div class="page full">
-    }
+    <div class="page@if(!session.contains("userId")){ full}">
         <div class="center-wrap tag-line-wrap">
             <h1 class="title"><span class="high-light">Open Source</span> N4</h1>
             <p class="tag-line">Software development platform for Open Source project.</p>
         </div>
-        @if(session.contains("userId")){
-        <div class="fn-intro-wrap">
-            <ul class="intros">
-        } else {
-        <div class="intro-wrap">
-            <ul class="intros unstyled">
-        }
+        
+        <div class="@if(session.contains("userId")){fn-intro-wrap}else{intro-wrap}">
+            <ul class="intros@if(!session.contains("userId")){ unstyled}">
                 <li class="intro"><img src="@routes.Assets.at("images/img-project-198.png")" width="198" height="180"/></li>
                 <li class="intro"><img src="@routes.Assets.at("images/img-repository-198.png")" width="198" height="180"/></li>
                 <li class="intro"><img src="@routes.Assets.at("images/img-issue-198.png")" width="198" height="180"/></li>
@@ -37,7 +29,7 @@
                 <div class="gray-bubble-wrap">
                     <div class="bg-project-bubble-top ico">
                         <div class="project-count-wrap">
-                            MY PROJECTS <i class="ico ico-dot-white"></i><span class="p-num">22</span>
+                            MY PROJECTS <i class="ico ico-dot-white"></i><span class="p-num">@projects.size()</span>
                         </div>
                     </div>
                     <ul class="my-projects unstyled">

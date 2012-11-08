@@ -1,83 +1,60 @@
 @(title:String, newProjectForm:Form[Project])
 
-@import helper._
 @import playRepository.RepositoryService
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
-
 @home(title){
-  <div class="page-header">
-    <h1>@Messages(title)</h1>
-  </div>
-
-    @form(action = routes.ProjectApp.saveProject, 
-                    'class -> "form-horizontal"){
-        <div class="row">
-            <fieldset>
-                <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
-                    data-content="@Messages("project.name.alert")"
-                    data-original-title="@Messages("project.name.rule")"
-                ></div>
-                @inputText(
-                    newProjectForm("name"),
-                    '_label -> Messages("project.name"),
-                    '_help -> Messages("input.mandatory")
-                )
-                <div class="alert alert-danger hide" id="nameAlert">
-                    <a class="close" data-dismiss="alert">×</a>
-                    <strong>@Messages("project.name.alert")</strong>
+    <div class="page">
+        <div class="form-wrap new-project">
+            <div class="bread-crumb-wrap">
+                <h1 class="title orange">New Project</h1>
+                <div class="bread-crumb">
+                    <a href="/"><i class="ico ico-home"></i></a>
+                    <i class="ico ico-location-arrow"></i>
+                    <span>new project</span>
                 </div>
-                
-                @textarea(
-                    newProjectForm("overview"),
-                    '_label -> Messages("project.description"),
-                    'cols -> 50,
-                    '_help -> Messages("input.optional")
-                )
-                
-                <div class="icon-question-sign" href = "#" id="share_option_explanation" rel="popover"
-                    data-content="@Messages("project.shareOption.private.description")"
-                    data-original-title="@Messages("project.shareOption")"
-                ></div>
-                @inputRadioGroup(
-                    newProjectForm("share_option"),
-                    options = options("false"->Messages("project.shareOption.private"), "true"->Messages("project.shareOption.public")),
-                    '_label -> Messages("project.shareOption")
-                )
-                 @inputRadioGroup(
-                    newProjectForm("isAuthorEditable"),
-                    options = options("false"->Messages("project.isAuthorEditable.off"), "true"->Messages("project.isAuthorEditable.on")),
-                    '_label -> Messages("project.isAuthorEditable")
-                )
-                @selectEx(
-                    newProjectForm("vcs"),
-                    options(RepositoryService.vcsTypes),
-                    '_label -> Messages("project.vcs")
-                )
-
-                <div class="icon-question-sign" href = "#" id="terms" rel="popover"
-                    data-content="약관 ..."
-                    data-original-title="@Messages("project.agreement")"
-                ></div>
-                @checkbox(
-                     newProjectForm("accept"), 
-                    '_label -> None,
-                    '_text -> Messages("project.new.agreement"),
-                    '_showConstraints -> false
-                      )
-                <div class="alert alert-danger hide" id="acceptAlert">
-                    <a class="close" data-dismiss="alert">×</a>
-                    <strong>@Messages("project.new.agreement.alert")</strong>
-                </div>
-            </fieldset>
-        </div>
-        <div class="row">
-            <div class="actions">
-                <center><input type="submit" class="btn btn-primary" value="@Messages("project.create")" id="save"></center>
             </div>
+            <form action="@routes.ProjectApp.saveProject()" method="post">
+                <label for="name">
+                    <input id="project-name" type="text" name="name" class="text" placeholder="새 프로젝트 이름을 입력해주세요.">
+                </label>
+                <label for="overview">
+                    <textarea id="description" name="overview" class="text textarea" placeholder="프로젝트 설명을 입력해주세요."></textarea>
+                </label>
+                <ul class="options unstyled">
+                    <li class="option">
+                        <div class="option-label">공개설정</div>
+                        <div class="option-desc">
+                            <input name="share_option" type="radio" checked="checked" id="true" value="public" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
+                            <input name="share_option" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
+                            <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
+                        </div>
+                    </li>
+                    <li class="option">
+                        <div class="option-label">코드관리시스템</div>
+                        <div class="option-desc">
+                            <div class="btn-group">
+                                <button data-toggle="dropdown" class="btn">git</button>
+                                <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
+                                <ul class="dropdown-menu">
+                                    @RepositoryService.vcsTypes.map{ v =>
+                                        <li><a href="#!/git">@Messages(v._2)</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="option">
+                        <div class="option-label">이용약관 <i class="ico ico-que-mark"></i></div>
+                        <div class="option-desc">
+                            <input type="checkbox" class="stipulation checkbox" autocomplete="off" id="stipulation" name="accept"><label for="stipulation" class="bg-checkbox">본인은 약관에 대한 안내를 읽었으며 동의 합니다.</label>
+                        </div>
+                    </li>
+                </ul>
+                <div class="actions">
+                    <button class="btn-transparent n-btn orange med">SAVE</button>
+                    <a href="/" class="n-btn gray med cancel">CANCEL</a>
+                </div>
+            </form>
         </div>
-    }
-    <script>nforge.require(["project.nameCheck", "project.popovers", "project.acceptCheck"], "save");</script> 
-
-    
+    </div>
 }
