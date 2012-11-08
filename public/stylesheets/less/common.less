@@ -1,0 +1,32 @@
+html, body {
+    min-height: 100%;
+}
+body {
+    background-repeat: no-repeat;
+    background-color: #8cc8ce;
+    background-position: center bottom, center top;
+    background-image:  url("/assets/images/bg_day_objects.png"), url("/assets/images/bg_day.png");
+    &.night {
+        background-color: #22262c;
+        background-image: url("/assets/images/bg_night.png");
+    }
+
+}
+a {
+    color: inherit;
+    text-decoration:none;
+    &:hover {
+        color: @link-hover-color;
+        text-decoration: underline;
+    }
+}
+
+.btn-transparent {
+    border: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.d-link {
+    color: @blue;
+}

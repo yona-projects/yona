@@ -1,0 +1,37 @@
+<div class="page-header">
+  <h1>@Messages(message)</h1>
+</div>
+
+<div class="row-fluid">
+  <div class="span12">
+        @form(routes.UserApp.authenticate(), 'class->"form-horizontal"){
+            @inputText(userForm("loginId")
+                ,'_label-> Messages("user.loginId") 
+                ,'class->"input-medium")        
+                
+            @inputPassword(userForm("password")
+                ,'_label-> Messages("user.password") 
+                ,'class->"input-medium")
+            
+            @checkbox(userForm("rememberMe"))
+            
+            <div class="form-actions">
+                <input class="btn btn-primary" type="submit" value="@Messages("button.login")">
+                <a class="btn" href="@routes.Application.index()">@Messages("button.cancel")</a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="span12">
+      <dl class="dl-horizontal">
+        <dt>사이트 관리자</dt>
+        <dd>admin/admin00</dd>
+        <dt>프로젝트 관리자</dt>
+        <dd>hobi/hobi00</dd>
+        <dt>프로젝트 멤버</dt>
+        <dd>k16wire/k16wire00</dd>
+      </dl>
+    </div>
+</div>

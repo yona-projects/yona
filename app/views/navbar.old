@@ -1,0 +1,28 @@
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <button type="button"class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <div class="nav">            
+                <a class="brand" href="@routes.Application.index()">nForge</a>
+            </div>
+            <div class="nav-collapse collapse">
+                <ul class="nav pull-right">
+                @if(session.contains("userId")){
+                    @roleCheck(session.get("userId"), 1l, models.enumeration.Resource.SITE_SETTING, models.enumeration.Operation.WRITE){
+                        <li class=""><a href="@routes.SiteApp.setting()">@Messages("menu.siteAdmin")</a></li>
+                    }
+                    <li class=""><a href="@routes.UserApp.info()">@session.get("userName")</a></li>
+                    <li class=""><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
+                }else {
+                    <li class=""><a href="@routes.UserApp.signup()">@Messages("title.signup")</a></li>
+                    <li class=""><a href="@routes.UserApp.login()">@Messages("title.login")</a></li>
+                }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,10 +1,14 @@
 @(title: String)(content: Html)
 
 @layout(Messages(title)) {
-    @views.html.navbar()      
-		
-		<div class="container">
-      @views.html.alert()
-      @content		
-		</div>
+    @views.html.navbar()
+    <div class="container page-wrap">
+    @views.html.alert()
+    @content
+	</div>
+    <footer class="page-footer-outer">
+        <div class="page-footer">
+            <span class="provider">Powered by <strong>nFORGE.</strong></span>
+        </div>
+    </footer>
 }

@@ -1,28 +1,45 @@
-<div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-        <div class="container">
-            <button type="button"class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <div class="nav">            
-                <a class="brand" href="@routes.Application.index()">nForge</a>
-            </div>
-            <div class="nav-collapse collapse">
-                <ul class="nav pull-right">
+<header class="gnb-outer">
+    <div class="gnb-inner">
+        <div class="gnb-knob left"><i class="ico gnb-orange-left"></i></div>
+        <div class="gnb-menu-wrap">
+            <a href="@routes.Application.index()" class="logo">
+                <img src="@routes.Assets.at("images/logo-orange-150.png")" width="150" height="70"/>
+            </a>
+            <ul class="gnb-menus unstyled">
+                <li class="menu">
+                    <a href="@routes.ProjectApp.newProject()">NEW PROJECT</a>
+                </li>
+                <li class="menu">
+                    <a href="/explore">EXPLORE</a>
+                </li>
+                <li class="menu">
+                    <a href="/help">HELP</a>
+                </li>
+            </ul>
+            <ul class="gnb-menus right unstyled">
                 @if(session.contains("userId")){
-                    @roleCheck(session.get("userId"), 1l, models.enumeration.Resource.SITE_SETTING, models.enumeration.Operation.WRITE){
-                        <li class=""><a href="@routes.SiteApp.setting()">@Messages("menu.siteAdmin")</a></li>
-                    }
-                    <li class=""><a href="@routes.UserApp.info()">@session.get("userName")</a></li>
-                    <li class=""><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
-                }else {
-                    <li class=""><a href="@routes.UserApp.signup()">@Messages("title.signup")</a></li>
-                    <li class=""><a href="@routes.UserApp.login()">@Messages("title.login")</a></li>
+                <li><a href="@routes.UserApp.info()" class="d-link signin"><i class="ico ico-user"></i>@session.get("userName")</a></li>
+                <li class="sp-line">|</li>
+                <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
+                } else {
+                <li><a href="@routes.UserApp.login()" class="d-link signin"><i class="ico ico-user"></i>@Messages("title.login")</a></li>
+                <li class="sp-line">|</li>
+                <li><a href="@routes.UserApp.signup()" class="d-link signup">@Messages("title.signup")</a></li>
                 }
-                </ul>
-            </div>
+                <li class="search-bar">
+                    <form action="/search">
+                        <input type="text" autocomplete="off" class="query" name="query" /><button type="submit" class="ico ico-o-search btn-transparent"></button>
+                    </form>
+                </li>
+            </ul>
         </div>
+        <div class="gnb-knob right"><i class="ico gnb-orange-right"></i></div>
     </div>
-</div>
+    <div class="sub-menu-sp"></div>
+    <div class="side-menu-wrap">
+        <ul class="side-menus ico bg-side-menu unstyled">
+            <li class="side-menu"><a href="/statistics"><i class="ico ico-statistics"></i></a></li>
+            <li class="side-menu"><a href="/setting"><i class="ico ico-setting"></i></a></li>
+        </ul>
+    </div>
+</header>

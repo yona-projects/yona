@@ -1,0 +1,52 @@
+.n-btn {
+    color: @white;
+    font-size: 18px;
+    line-height: 18px;
+    height: 18px;
+    padding: 14px 35px;
+    .border-radius(10px);
+    .box-shadow;
+    text-align: center;
+    .inline-block;
+    > i.ico {
+        margin-right: 5px;
+        vertical-align: bottom;
+    }
+    &:hover {
+        color: @white;
+        text-decoration: none;
+    }
+    &.blue {
+        background-color: #53A1AF;
+        &:hover {
+            background-color: #72C4D3;
+        }
+    }
+    &.green {
+        background-color: #75AB48;
+        &:hover {
+            background-color: #91CF5E;
+        }
+    }
+    &.orange {
+        background-color: @orange;
+        &:hover {
+            background-color: #FF9F6B;
+        }
+    }
+    &.gray {
+        background-color: @gray-cc;
+    }
+    &.btn-transparent {
+        line-height: 1;
+    }
+    &.med {
+        font-size: 11px;
+        padding: 3px 20px;
+        &.btn-transparent {
+            height: 24px;
+            padding: 4px 20px;
+        }
+        .border-radius(5px);
+    }
+}

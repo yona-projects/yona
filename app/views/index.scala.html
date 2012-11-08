@@ -1,31 +1,59 @@
 @(projects:List[Project]) 
 
 @home("Welcome to nForge") {
-  <div class="row-fluid">
-    <div class="span12">    
-  	  <div class="hero-unit">
-		    <h1>nForge4 Java</h1>
-		    <p>Software development platform for <Strong>Open Source</Strong> project.</p>
-		    <p>
-			    <a class="btn btn-primary btn-large" href="@routes.ProjectApp.newProject()"> @Messages("button.newProject") </a>
-		    </p>	    
-      </div>  		  
+    @if(session.contains("userId")){
+    <div class="page">
+    } else {
+    <div class="page full">
+    }
+        <div class="center-wrap tag-line-wrap">
+            <h1 class="title"><span class="high-light">Open Source</span> N4</h1>
+            <p class="tag-line">Software development platform for Open Source project.</p>
+        </div>
+        @if(session.contains("userId")){
+        <div class="fn-intro-wrap">
+            <ul class="intros">
+        } else {
+        <div class="intro-wrap">
+            <ul class="intros unstyled">
+        }
+                <li class="intro"><img src="@routes.Assets.at("images/img-project-198.png")" width="198" height="180"/></li>
+                <li class="intro"><img src="@routes.Assets.at("images/img-repository-198.png")" width="198" height="180"/></li>
+                <li class="intro"><img src="@routes.Assets.at("images/img-issue-198.png")" width="198" height="180"/></li>
+                <li class="intro"><img src="@routes.Assets.at("images/img-task-198.png")" width="198" height="180"/></li>
+            </ul>
+            @if(session.contains("userId")){
+            <a href="#!/toggle-intro"><i class="ico btn-open-close"></i></a>
+            }
+        </div>
+        
+        @if(session.contains("userId")){
+        <div class="content-container">
+            <div class="main-stream">
+                <ul>
+                </ul>
+            </div>
+            <div class="right-aside">
+                <div class="gray-bubble-wrap">
+                    <div class="bg-project-bubble-top ico">
+                        <div class="project-count-wrap">
+                            MY PROJECTS <i class="ico ico-dot-white"></i><span class="p-num">22</span>
+                        </div>
+                    </div>
+                    <ul class="my-projects unstyled">
+                        @views.html.myProjectList(projects)
+                    </ul>
+                    <div class="sp-line"></div>
+                    <div class="btn-wrap">
+                        <a href="@routes.ProjectApp.newProject()"><i class="ico btn-new-project"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        } else {
+        <div class="center-wrap">
+            <a href="@routes.ProjectApp.newProject()" class="n-btn blue create-project"><i class="ico ico-pencil"></i>@Messages("button.newProject")</a>
+        </div>
+        }
     </div>
-  </div>
-  
-  <div class="row-fluid">
-    <div class="span9">
-    </div>
-    <div class="span3">
-      @if(session.contains("userId")){    
-        <ul class="nav nav-list">
-          <li class="nav-header">
-            My projects
-          </li>
-            @views.html.myProjectList(projects)
-        </ul>
-      }
-    </div>
-  </div>
-
 }

@@ -4,41 +4,28 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 @home(message) {
-<div class="page-header">
-  <h1>@Messages(message)</h1>
-</div>
-
-<div class="row-fluid">
-  <div class="span12">
-        @form(routes.UserApp.authenticate(), 'class->"form-horizontal"){
-            @inputText(userForm("loginId")
-                ,'_label-> Messages("user.loginId") 
-                ,'class->"input-medium")        
-                
-            @inputPassword(userForm("password")
-                ,'_label-> Messages("user.password") 
-                ,'class->"input-medium")
-            
-            @checkbox(userForm("rememberMe"))
-            
-            <div class="form-actions">
-                <input class="btn btn-primary" type="submit" value="@Messages("button.login")">
-                <a class="btn" href="@routes.Application.index()">@Messages("button.cancel")</a>
-            </div>
-        }
+<div class="page full">
+        <div class="center-wrap tag-line-wrap login">
+            <h1 class="title"><span class="high-light">Open Source</span> N4</h1>
+            <p class="tag-line">Software development platform for Open Source project.</p>
+        </div>
+        <div class="login-form-wrap">
+            <form action="@routes.UserApp.authenticate()" method="POST">
+                <label for="email">
+                    <input type="text" class="text email" id="email" placeholder="USER NAME" autocomplete="off" name="loginId">
+                </label>
+                <label for="password">
+                    <input type="password" class="text password" id="password" placeholder="PASSWORD" autocomplete="off" name="password">
+                </label>
+                <div class="act-row">
+                    <input type="checkbox" class="checkbox" autocomplete="off" id="remember-me" name ="rememberMe"><label for="remember-me" class="bg-checkbox">REMEMBER ME</label>
+                    <a href="/forgot-password" class="forgot-password">FORGOT PASSWORD</a>
+                </div>
+                <div class="btns-row">
+                    <button type="submit" class="n-btn orange log-in"><i class="ico ico-user-white"></i>@Messages("button.login")</button><!--
+                 --><a href="@routes.UserApp.signup()" class="n-btn blue join"><i class="ico ico-join"></i>Join</a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-<div class="row">
-    <div class="span12">
-      <dl class="dl-horizontal">
-        <dt>사이트 관리자</dt>
-        <dd>admin/admin00</dd>
-        <dt>프로젝트 관리자</dt>
-        <dd>hobi/hobi00</dd>
-        <dt>프로젝트 멤버</dt>
-        <dd>k16wire/k16wire00</dd>
-      </dl>
-    </div>
-</div>
 }

@@ -2,6 +2,21 @@
 
 @if(projects != null){
     @for(singleProject <- projects){
-        <li><a href="@routes.ProjectApp.project(singleProject.owner, singleProject.name)">@singleProject.name (@singleProject.owner)</a></li>
+        <li class="my-project">
+            <div class="project-header">
+                <div class="name-wrap">
+                    <a href="@routes.ProjectApp.project(singleProject.owner, singleProject.name)" class="project-name">
+                        <strong>
+                            @singleProject.name (@singleProject.owner)
+                            <i class="ico ico-lock"></i>
+                        </strong>
+                    </a>
+                </div>
+                <div class="ico-wrap">
+                    <i class="ico ico-gray-arrow-right"></i>
+                </div>
+            <div class="project-detail hidden"></div>
+        </li>
     }
 }
+
