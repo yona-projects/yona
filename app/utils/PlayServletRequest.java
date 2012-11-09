@@ -1,7 +1,10 @@
 package utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -108,36 +111,29 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
+        RawBuffer raw = request.body().asRaw();
+        byte[] buf = raw.asBytes();
+        final InputStream in;
+
+        // If the content size is bigger than memoryThreshold,
+        // which is defined as 100 * 1024 in play.api.mvc.BodyParsers trait,
+        // the content is stored as a file.
+        if (buf != null) {
+            in = new ByteArrayInputStream(buf);
+        } else {
+            in = new FileInputStream(raw.asFile());
+        }
+
         return new ServletInputStream() {
-
-            int offset = 0;
-            byte[] bytes = null;
-
             @Override
             public int read() throws IOException {
-                if (bytes == null) {
-                    RawBuffer raw = request.body().asRaw();
-                    if (raw == null) {
-                        return -1;
-                    }
-                    bytes = raw.asBytes();
-                }
-
-                if (isFinished()) {
-                    return -1;
-                }
-
-                return bytes[offset++];
+                return in.read();
             }
 
-            public boolean isFinished() {
-                if (bytes != null && bytes.length <= offset) {
-                    return true;
-                }
-
-                return false;
+            @Override
+            protected void finalize() throws IOException {
+                in.close();
             }
-
         };
     }
 

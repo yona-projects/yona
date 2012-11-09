@@ -3,7 +3,9 @@ package playRepository;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,7 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
 import play.Logger;
+import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Response;
 import play.mvc.Http.Request;
 
@@ -169,8 +172,18 @@ public class RepositoryService {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         // FIXME 스트림으로..
-        byte[] buf = request.body().asRaw().asBytes();
-        ByteArrayInputStream in = new ByteArrayInputStream(buf);
+        RawBuffer raw = request.body().asRaw();
+        byte[] buf = raw.asBytes();
+        InputStream in;
+
+        // If the content size is bigger than memoryThreshold,
+        // which is defined as 100 * 1024 in play.api.mvc.BodyParsers trait,
+        // the content is stored as a file.
+        if (buf != null) {
+            in = new ByteArrayInputStream(buf);
+        } else {
+            in = new FileInputStream(raw.asFile());
+        }
 
         Repository repository = createGitRepository(userName, projectName);
 
