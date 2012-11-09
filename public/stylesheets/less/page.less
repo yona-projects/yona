@@ -22,6 +22,8 @@
             .logo {
                 float: left;
                 width: 150px;
+                height: 70px;
+                background-image: url("@{base-image-path}/logo-blue-150.png");
             }
             .gnb-menus {
                 float: left;
@@ -36,7 +38,7 @@
                     a {
                         font-size: 13px;
                         font-family: Din, Tahoma, Arial,sans-serif;
-                        &:hover, .selected {
+                        &:hover, &.selected {
                             color: @gnb-link-hover-color;
                         }
                     }
@@ -57,25 +59,29 @@
                     .sp-line {
                         padding: 0;
                         color: #506D73;
+                        font-size: 18px;
                     }
                     .search-bar {
                         margin: 3px 0 0 5px;
-                        padding: 0 0 0 6px;
-                        width: 154px;
+                        padding: 0 6px;
+                        width: 148px;
                         height: 21px;
                         background-color: @gnb-active-color;
                         .border-radius(5px);
+                        form {
+                            margin: 0;
+                            line-height: 0;
+                        }
                         .query {
                             border: 0 none;
                             margin: 0;
-                            width: 130px;
+                            width: 120px;
                             .box-shadow(none);
                             color: @white;
                             font-size: 12px;
-                            height: 21px;
+                            height: 13px;
                         }
                         .ico-search-14 {
-                            border: 0 none;
                             margin-right: 10px;
                         }
                     } /*.search-bar */
@@ -112,6 +118,9 @@
         width: 100%;
         .gnb-inner {
             .gnb-menu-wrap {
+                .logo {
+                    background-image: url("@{base-image-path}/logo-orange-150.png");
+                }
                 background-color: @orange-gnb-color !important;
                 .gnb-menus {
                     .menu {
@@ -121,19 +130,13 @@
                     }
                     &.right {
                         .sp-line {
-                            color: #2B2823;
+                            color: #2A2723;
                         }
                         .search-bar {
                             background-color: @orange-seach-bar-bg-color;
                             .query {
                                 background-color: @orange-seach-bar-bg-color;
                                 color: @gray-cc;
-                            }
-                            &:hover {
-                                background-color: @orange-seach-bar-hover-bg-color;
-                                .query {
-                                    background-color: @orange-seach-bar-hover-bg-color;
-                                }
                             }
                         }
                     }//.right
@@ -166,7 +169,7 @@
 }
 
 .intro-wrap {
-    background: url("/assets/images/bg-index-content-960.png") no-repeat top left transparent;
+    background: url("@{base-image-path}/bg-index-content-960.png") no-repeat top left transparent;
     height: 375px;
     text-align: center;
     width: @base-width;
@@ -232,7 +235,7 @@
     color: #999;
     padding-left: 21px;
     background-repeat: no-repeat;
-    background-image: url('/assets/images/assets/bg-checkbox.png');
+    background-image: url('@{base-image-path}/assets/bg-checkbox.png');
     background-position: 0 -1px;
     cursor: pointer;
     margin-right: 5px;
@@ -241,7 +244,7 @@
     }
 }
 .checkbox:checked + .bg-checkbox {
-    background-image: url('/assets/images/assets/bg-checkbox-checked.png');
+    background-image: url('@{base-image-path}/assets/bg-checkbox-checked.png');
 }
 
 .radio-btn {
@@ -253,7 +256,7 @@
     color: #999;
     padding-left: 18px;
     background-repeat: no-repeat;
-    background-image: url('/assets/images/assets/bg-radiobutton.png');
+    background-image: url('@{base-image-path}/assets/bg-radiobutton.png');
     background-position: 0 2px;
     cursor: pointer;
     margin-right: 5px;
@@ -262,7 +265,7 @@
     }
 }
 .radio-btn:checked + .bg-radiobtn {
-    background-image: url('/assets/images/assets/bg-radiobutton-checked.png');
+    background-image: url('@{base-image-path}/assets/bg-radiobutton-checked.png');
 }
 
 //----------- index page.
@@ -735,11 +738,37 @@
     .search-wrap {
         border-top: 1px solid #FFF;
         padding: 10px 10px 0;
+        &.help {
+            border: 0 none;
+            padding: 0 10px;
+            .inner {
+                padding-left: 30px;
+                .labels {
+                    vertical-align: middle;
+                    font-size: 18px;
+                    &.sub {
+                        color: #555;
+                        .opacity(70);
+                        margin-right: 5px;
+                    }
+                }
+                .sp-line {
+                    .inline-block;
+                    border-left: 1px solid #CCC;
+                    margin: 0 11px;
+                    height: 12px;
+                    vertical-align: text-bottom;
+                }
+                .text {
+                    width: 408px;
+                }
+            }
+        }
         form {
             margin: 0;
         }
         .inner {
-            background-image: url('/assets/images/assets/bg-search-man.png');
+            background-image: url('@{base-image-path}/assets/bg-search-man.png');
             background-position: 785px bottom;
             background-repeat: no-repeat;
             background-color: #FFF;
@@ -765,6 +794,10 @@
                 font-weight: bold;
                 font-size: 10px;
                 color: #666;
+                .opacity(50);
+                &:hover {
+                    .opacity(100);
+                }
             }
         }
     }
@@ -821,6 +854,62 @@
             }
             .user-thumb-wrap {
                 margin-left: 38px;
+            }
+        }
+    }
+}
+
+//-- help page
+
+.qas {
+    list-style: none;
+    margin: 30px 0 0;
+    padding: 0;
+    .qa {
+        margin-bottom: 14px;
+        border-bottom: 1px solid #CDCDCD;
+        .question-wrap {
+            line-height: 1.2;
+            display: table;
+            padding: 0 10px;
+            margin-bottom: 14px;
+            .ico {
+                margin-right: 10px;
+            }
+            .question {
+                vertical-align: middle;
+                display: table-cell;
+                font-size: 14px;
+                color: #4C4C4C;
+                .opacity(50);
+                text-decoration: none;
+            }
+        }
+        .answer-wrap {
+            display: none;
+            padding: 19px 20px;
+            border-top: 1px solid #CDCDCD;
+            background-color: #EBEBEB;
+            .ico {
+                margin-right: 20px;
+            }
+            .answer {
+                vertical-align: top;
+                display: table-cell;
+                line-height: 16px;
+            }
+        }
+        &.open {
+            .question-wrap {
+                margin-bottom: 16px;
+                .question {
+                    font-size: 20px;
+                    .opacity(100);
+                }
+            }
+
+            .answer-wrap {
+                display: table;
             }
         }
     }

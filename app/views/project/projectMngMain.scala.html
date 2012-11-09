@@ -1,6 +1,6 @@
 @(title: String, projectInst:Project)(content: Html)
 
-@layout(Messages(title)) {
+@main(Messages(title), projectInst) {
     @views.html.navbar()      
     <div class="container">
             <div class="row-fluid">

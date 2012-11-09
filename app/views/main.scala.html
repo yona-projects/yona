@@ -1,18 +1,19 @@
 @(title:String, project:Project)(content: Html)
 
-@layout(Messages(title)) {
-    @views.html.navbar()      
-    <div class="container">
-		    <div class="row-fluid">
-		        <div class="span2">
-		            <h3>@project.name</h3>
-		        </div>
-		        <div class="span10">
-		            @views.html.topmenu(project)
-		        </div>
-		    </div>
-		    @views.html.alert()
-		    
+@layout(Messages(title))("") {
+    @topmenu(project)
+    <div class="container page-wrap">
+	    <div class="row-fluid">
+	        <div class="span2">
+	            <h3>@project.name</h3>
+	        </div>
+	    </div>
+	    @views.html.alert()
         @content    
-    </div>  
+    </div>
+    <footer class="page-footer-outer">
+        <div class="page-footer">
+            <span class="provider">Powered by <strong>nFORGE.</strong></span>
+        </div>
+    </footer>  
 }

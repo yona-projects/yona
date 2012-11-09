@@ -7,41 +7,62 @@
     content
   }
 }
-<ul class="nav nav-pills pull-right">
-    <li style="margin-right: 10px;">
-        <form id="contentsSearchForm" class="navbar-search" action="@routes.SearchApp.contentsSearch(project.owner, project.name)" method="GET">
-            <input type="text" name="filter" value=""/>
-            <button type="submit" id="searchSubmit" class="btn" style="vertical-align: top;"> <i class="icon-search"> </i></button>
-        </form>
-    </li>
-    <li class="@isActiveMenu(routes.ProjectApp.project(project.owner, project.name))">
-      <a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("menu.home")</a>
-    </li>
-    @isVisible(models.enumeration.Resource.BOARD_POST){
-        <li class="@isActiveMenu(routes.BoardApp.posts(project.owner, project.name))">
-          <a href="@routes.BoardApp.posts(project.owner, project.name)">@Messages("menu.board")</a>
-        </li>
-    }
-    @isVisible(models.enumeration.Resource.CODE){
-        <li class="@isActiveMenu(routes.CodeApp.codeBrowser(project.owner, project.name))">
-          <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a>
-        </li>
-    }
-    @isVisible(models.enumeration.Resource.ISSUE_POST){
-        <li class="@isActiveMenu(routes.IssueApp.issues(project.owner, project.name,"open"))">
-          <a href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("menu.issue")</a>
-        </li>
-    }
-    @isVisible(models.enumeration.Resource.WIKI_PAGE){
-      <!-- TODO -->
-       <li class="@isActiveMenu(routes.ProjectApp.newProject())">
-         <a href="@routes.TaskApp.index(project.owner, project.name)">Task</a>
-         <a href="@routes.TaskApp.cardView(project.owner, project.name)">(card)</a>
-       </li>
-    }
-    @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.PROJECT_SETTING, models.enumeration.Operation.WRITE){
-        <li class="@isActiveMenu(routes.ProjectApp.setting(project.owner, project.name))">
-          <a href="@routes.ProjectApp.setting(project.owner, project.name)">@Messages("menu.admin")</a>
-        </li>
-    }    
-</ul>
+
+<header class="gnb-outer">
+    <div class="gnb-inner">
+        <div class="gnb-knob left"><i class="ico gnb-left"></i></div>
+        <div class="gnb-menu-wrap">
+            <a href="/" class="logo"></a>
+            <ul class="gnb-menus unstyled">
+                <li class="menu">
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)">PROJECT HOME</a>
+                </li>
+                @isVisible(models.enumeration.Resource.BOARD_POST){
+                <li class="menu @isActiveMenu(routes.ProjectApp.project(project.owner, project.name))">
+                    <a href="@routes.BoardApp.posts(project.owner, project.name)">BOARD</a>
+                </li>
+                }
+                @isVisible(models.enumeration.Resource.CODE){
+                <li class="menu">
+                    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">CODE</a>
+                </li>
+                }
+                @isVisible(models.enumeration.Resource.ISSUE_POST){
+                <li class="menu">
+                    <a href="@routes.IssueApp.issues(project.owner, project.name,"open")">ISSUE</a>
+                </li>
+                }
+                @isVisible(models.enumeration.Resource.WIKI_PAGE){
+                <li class="menu">
+                    <a href="@routes.TaskApp.index(project.owner, project.name)">TASK</a>
+                </li>
+                }
+            </ul>
+            <ul class="gnb-menus right unstyled">
+                @if(session.contains("userId")){
+                <li><a href="@routes.UserApp.info()" class="d-link signin"><i class="ico ico-user"></i>@session.get("userName")</a></li>
+                <li class="sp-line">|</li>
+                <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
+                } else {
+                <li><a href="@routes.UserApp.login()" class="d-link signin"><i class="ico ico-user"></i>@Messages("title.login")</a></li>
+                <li class="sp-line">|</li>
+                <li><a href="@routes.UserApp.signup()" class="d-link signup">@Messages("title.signup")</a></li>
+                }
+                <li class="search-bar">
+                    <form action="@routes.SearchApp.contentsSearch(project.owner, project.name)">
+                        <input type="text" autocomplete="off" class="query" name="filter" /><button type="submit" class="ico ico-o-search btn-transparent"></button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+        <div class="gnb-knob right"><i class="ico gnb-right"></i></div>
+    </div>
+    <div class="sub-menu-sp"></div>
+    <div class="side-menu-wrap">
+        <ul class="side-menus ico bg-side-menu unstyled">
+            <li class="side-menu"><a href="/statistics"><i class="ico ico-statistics"></i></a></li>
+            <li class="side-menu"><a href="@routes.ProjectApp.setting(project.owner, project.name)"><i class="ico ico-setting on"></i></a></li>
+        </ul>
+    </div>
+</header>
+
