@@ -4,7 +4,7 @@
     background-image: url('@{base-image-path}/sprite.png');
 }
 
-.bg-project-bubble-top {
+.bg-bubble-top {
     width: 198px;
     height: 37px;
     background-position: -2px -63px;
@@ -44,6 +44,9 @@
     width: 5px;
     height: 5px;
     background-position: -54px -2px;
+    &:hover {
+        background-position: -129px -103px;
+    }
 }
 
 .btn-new-project {
@@ -278,12 +281,21 @@
     background-position: -87px -2px;
 }
 
-.ico-o-search {
+.ico-search {
     width: 14px;
     height: 13px;
-    background-position: -60px -27px;
+    background-position: -28px -27px;
     &:hover {
-        background-position: -76px -27px;
+        background-position: -44px -27px;
+    }
+}
+
+.orange {
+    .ico-search {
+        background-position: -60px -27px;
+        &:hover {
+            background-position: -76px -27px;
+        }
     }
 }
 
@@ -320,15 +332,6 @@
     }
 }
 
-.ico-search {
-    width: 14px;
-    height: 13px;
-    background-position: -28px -27px;
-    &:hover {
-        background-position: -44px -27px;
-    }
-}
-
 .ico-setting {
     width: 16px;
     height: 15px;
@@ -338,16 +341,14 @@
     }
 }
 
-.ico-sort-down {
-    width: 7px;
-    height: 4px;
-    background-position: -25px -2px;
-}
-
-.ico-sort-up {
+.ico-sort {
     width: 7px;
     height: 4px;
     background-position: -16px -2px;
+    vertical-align: middle;
+    &.down {
+        background-position: -25px -2px;
+    }
 }
 
 .ico-sp-dot {
@@ -436,4 +437,10 @@
     background-position: -156px -335px;
     width: 48px;
     height: 48px;
+}
+
+.ico-readme-book {
+    width: 16px;
+    height: 11px;
+    background-position: -131px -104px;
 }

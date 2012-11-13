@@ -1,6 +1,8 @@
 package controllers;
 
+import models.Attachment;
 import models.User;
+import models.enumeration.Resource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -218,7 +220,11 @@ public class UserApp extends Controller {
         User user = UserApp.currentUser();
         user.email = email;
         user.update();
+        Attachment.attachFiles(currentUser().id, null, Resource.USER, currentUser().id);
         return redirect(routes.UserApp.info());
-
+    }
+    public static Result getProfilePic(String userName){
+        Long fileId = Attachment.findByContainer(Resource.USER, User.findByName(userName).id).get(0).containerId;
+        return TODO;
     }
 }

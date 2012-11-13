@@ -24,8 +24,8 @@
                     <li class="option">
                         <div class="option-label">공개설정</div>
                         <div class="option-desc">
-                            <input name="share_option" type="radio" checked="checked" id="true" value="public" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
-                            <input name="share_option" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
+                            <input name="share_option" type="radio" checked="checked" id="public" value="true" class="radio-btn-"><label for="public" class="bg-radiobtn">공개</label>
+                            <input name="share_option" type="radio" id="private" value="false" class="radio-btn-"><label for="private" class="bg-radiobtn">비공개</label>
                             <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
                         </div>
                     </li>
@@ -33,13 +33,15 @@
                         <div class="option-label">코드관리시스템</div>
                         <div class="option-desc">
                             <div class="btn-group">
-                                <button data-toggle="dropdown" class="btn">git</button>
+                                <button data-toggle="dropdown" class="btn">Git</button>
                                 <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu" id="vcs_dropdown">
                                     @RepositoryService.vcsTypes.map{ v =>
-                                        <li><a href="#!/git">@Messages(v._2)</a></li>
+                                        <li><a href="#!/git" value="@v._1">@Messages(v._2)</a></li>
                                     }
+                                    <!-- 여기가 일반 input이 아니라서 submit시에 자료를 넣어줘야 할듯...-->
                                 </ul>
+                                <input type="hidden" name="vcs" id="vcs" value="GIT"/>
                             </div>
                         </div>
                     </li>
@@ -57,4 +59,10 @@
             </form>
         </div>
     </div>
+    <script>
+    $("#vcs_dropdown").click(function(e){
+      console.log($(e.srcElement).val());
+      $("#vcs").attr("value",$(e.srcElement).val());
+    });
+    </script>
 }

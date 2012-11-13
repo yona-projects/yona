@@ -3,13 +3,11 @@
 @layout(Messages(title))("") {
     @topmenu(project)
     <div class="container page-wrap">
-	    <div class="row-fluid">
-	        <div class="span2">
-	            <h3>@project.name</h3>
-	        </div>
-	    </div>
+      <div class="page">
 	    @views.html.alert()
+
         @content    
+      </div>
     </div>
     <footer class="page-footer-outer">
         <div class="page-footer">

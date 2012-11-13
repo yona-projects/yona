@@ -12,7 +12,7 @@
     <div class="gnb-inner">
         <div class="gnb-knob left"><i class="ico gnb-left"></i></div>
         <div class="gnb-menu-wrap">
-            <a href="/" class="logo"></a>
+            <a href="@routes.Application.index()" class="logo"></a>
             <ul class="gnb-menus unstyled">
                 <li class="menu">
                     <a href="@routes.ProjectApp.project(project.owner, project.name)">PROJECT HOME</a>
@@ -40,7 +40,7 @@
             </ul>
             <ul class="gnb-menus right unstyled">
                 @if(session.contains("userId")){
-                <li><a href="@routes.UserApp.info()" class="d-link signin"><i class="ico ico-user"></i>@session.get("userName")</a></li>
+                <li><a href="@routes.UserApp.info()" class="img-rounded"><img class="user-thumb" src="/assets/images/default-avatar-34.png" alt="avatar" width="24" height="24"></a><a href="/uname" class="d-link uname">@session.get("userName")</a></li>
                 <li class="sp-line">|</li>
                 <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
                 } else {
@@ -50,7 +50,7 @@
                 }
                 <li class="search-bar">
                     <form action="@routes.SearchApp.contentsSearch(project.owner, project.name)">
-                        <input type="text" autocomplete="off" class="query" name="filter" /><button type="submit" class="ico ico-o-search btn-transparent"></button>
+                        <input type="text" autocomplete="off" class="query" name="filter" placeholder="현재 프로젝트에서 검색" /><button type="submit" class="ico ico-search btn-transparent"></button>
                     </form>
                 </li>
             </ul>

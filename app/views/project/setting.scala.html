@@ -5,6 +5,77 @@
 
 
 @projectMngMain(message, projectInst) {
+    <h1 class="page-title"><span class="gray">K16wire/nforge4/</span>Setting</h1>
+        <div class="bubble-wrap gray">
+            <form class="nm" action="/project-save" method="post">
+                <div class="box-wrap top clearfix">
+                    <div class="setting-box left">
+                        <div class="logo-wrap">
+                            <img src="/images/bg-default-project.png" alt="project-logo">
+                        </div>
+                        <div class="logo-desc">
+                            <ul class="unstyled descs">
+                                <li><strong>LOGO</strong></li>
+                                <li>파일형식 <span class="point">bmp, jpg, gif, png</span></li>
+                                <li>파일크기 <span class="point">1MB (이하)</span></li>
+                                <li>사이즈 <span class="point">234px * 168px</span></li>
+                                <li>
+                                    <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
+                                        <input type="file" class="file">
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="setting-box right">
+                        <div class="n-alert">
+                            <div class="n-inner">
+                                <span class="msg">잘못된 프로젝트 이름입니다.</span>
+                                <a href="#!/close" class="ico btn-delete"></a>
+                            </div>
+                        </div>
+                        <label for="project-name">
+                            <input class="text" type="text" name="project-name" placeholder="프로젝트 이름을 입력해주세요." id="project-name">
+                        </label>
+                        <label for="project-desc">
+                            <textarea class="textarea" id="project-desc" name="project-desc" placeholder="프로젝트 설명을 입력해주세요."></textarea>
+                        </label>
+                    </div>
+                </div>
+                <div class="box-wrap middle">
+                    <div class="cu-label">공개설정</div>
+                    <div class="cu-desc">
+                        <input name="exhibition" type="radio" checked="checked" id="public" value="public" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
+                        <input name="exhibition" type="radio" id="private" value="private" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
+                        <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
+                    </div>
+                </div>
+                <div class="box-wrap bottom">
+                    <button class="btn-transparent n-btn blue med">SAVE</button>
+                </div>
+            </form>
+        </div>
+        <div class="bubble-wrap gray wp">
+            <div class="n-alert project-del">
+                <div class="n-inner">
+                    <span class="msg">프로젝트 삭제에 동의하여야 합니다.</span>
+                    <a href="#!/close" class="ico btn-delete"></a>
+                </div>
+            </div>
+            <div class="cu-label">프로젝트 삭제</div>
+            <div class="cu-desc">
+                <p><strong class="notice">프로젝트를 삭제하게되면 코드, 위키, 이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다.</strong></p>
+                <p><input type="checkbox" class="checkbox" autocomplete="off" id="agreement"><label for="agreement" class="bg-checkbox">프로젝트를 삭제하는데 동의 합니다.</label>
+                    <a href="/project-delete" class="n-btn small black"><i class="ico ico-delete-small"></i>DELETE YOUR PROJECT</a>
+                </p>
+            </div>
+        </div>
+
+
+
+
+
+
     @form(action = routes.ProjectApp.saveSetting(projectInst.owner, projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
         <div class="row">
             <fieldset>    

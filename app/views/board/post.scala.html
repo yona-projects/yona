@@ -1,7 +1,7 @@
 @(post:Post, commentForm:Form[Comment],  project:Project)
 
 @main("상세보기", project){
-<div class="row">
+<div class="row-fluid">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
             @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.EDIT){
@@ -16,7 +16,7 @@
 </div>
 <!-- 메인 글 -->
 <div>
-	<div class="row">
+	<div class="row-fluid">
 		<div class="span1"><span class="badge">#@post.id</span></div>
 		<div class="span11">
 			<h1>@post.title</h1>
@@ -26,7 +26,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="row">
+	<div class="row-fluid">
 		<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
 		<div class="span11">
 			<pre>@post.contents</pre>
@@ -40,7 +40,7 @@
 <!-- 여기서 부터 덧글 -->
 @for(comment <-post.comments){
 <hr/>
-<div class="row">
+<div class="row-fluid">
 	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
 	<div class="span11">
 		<div>
@@ -61,7 +61,7 @@
 @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_COMMENT, models.enumeration.Operation.WRITE){
 <!-- 댓글 입력 폼 -->
 <hr/>
-<div class="row">
+<div class="row-fluid">
 	@helper.form(routes.BoardApp.saveComment(project.owner, project.name, post.id), 'enctype -> "multipart/form-data"){
 		<div class="span12">@helper.textarea(commentForm("contents"), '_showConstraints -> false, 'label-> "덧글내용")</div>
 		<div class="span6">@helper.inputFile(commentForm("filePath"), '_showConstraints -> false, 'label->"파일첨부")</div>		

@@ -62,6 +62,8 @@ public class ProjectApp extends Controller {
         }
 
         if (filledNewProjectForm.hasErrors()) {
+            filledNewProjectForm.reject("name");
+            flash(Constants.WARNING, filledNewProjectForm.errors().toString());
             return badRequest(newProject.render("title.newProject", filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();

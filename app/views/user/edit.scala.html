@@ -1,12 +1,103 @@
 @(userForm:Form[User])
 
 @import helper._
+@import utils.TemplateHelper._
 
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
-
+ 
 @home("Users Info") {
     @helper.form(action=routes.UserApp.save()){
         @helper.inputText(userForm("email"))
+        <div id="picPath">업로드된 파일이 없습니다.</div>
+        <input id="attachmemt" type="file" name="filePath"/>
+        <div id="noti"></div>
+        <div id ="progress" class="progress progress-warning">
+            <div class="bar"></div>
+        </div>
         <input class="btn" type="submit" value="저장"/>
     }
+    <script src="@getJSLink("jquery.form")" type="text/javascript"></script>
+    <script>
+    (function(){
+      var progressbar = $("#progress .bar");
+      var attachment = $("#attachmemt");
+      var notification = $("#noti");
+      
+      attachment.click(function(e){
+        setProgressBar(0);
+      });
+      attachment.change(function(event) {
+        if (attachment.val() !== "") {
+          var filename = _getFileNameOnly(attachment.val());
+          var form = $('<form>')
+            .attr('method', 'post')
+            .attr('enctype', 'multipart/form-data')
+            .attr('action', "@routes.AttachmentApp.newFile");
+          console.log(form);
+          form.append(attachment);
+          form.ajaxForm(fileUploadOptions);
+          form.submit();
+          notification.text(filename + ' is uploading...');
+        }
+      });
+      function setProgressBar(value){
+        progressbar.css("width", value + "%");
+        progressbar.text(value + "%");
+      }
+      
+      var fileUploadOptions = {
+        beforeSubmit: function() {
+          var filename = _getFileNameOnly(attachment.val());
+
+          // show message box
+          if (filename === "") {
+            notification.text('Choose a file to be attached.');
+            return false;
+          }
+
+          return true;
+        },
+
+        success: function(responseBody, statusText, xhr) {
+          var file, link;
+          file = responseBody;
+
+          if (!(file instanceof Object) || !file.name || !file.url) {
+            notification.text('Failed to upload - Server error.');
+            setProgressBar(0);
+            return;
+          }
+          
+          $("#picPath").text(file.name);
+
+          notification.text(file.name + ' is uploaded successfully.');
+
+          setProgressBar(100);
+        },
+
+        error: function(responseBody, statusText, xhr) {
+          notification.text('Failed to upload.');
+          setProgressBar(0);
+        },
+
+        uploadProgress: function(event, position, total, percentComplete) {
+          setProgressBar(percentComplete);
+        }
+      };
+      
+      function _getFileNameOnly(filename) {
+        var fakepath = 'fakepath';
+        var fakepathPostion = filename.indexOf(fakepath);
+        if (fakepathPostion > -1) {
+          filename = filename.substring(fakepath.length + fakepathPostion + 1);
+        }
+        return filename;
+      };
+      $.ajax("@routes.AttachmentApp.getFileList()", {
+        success : function(data){
+          console.log(data);
+        }
+      });
+    })();
+    </script>
 }

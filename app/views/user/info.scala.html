@@ -1,11 +1,22 @@
 @(user:User)
 
 @home("Users Info") {
-    
-    <div>
-        name : @user.name
-    </div>
-    <div>email : @user.email
-        <a href="@routes.UserApp.edit()" class="btn">수정</a>
-    </div>
+<div class="page">
+  <div>name : @user.name</div>
+  <div>
+    email : @user.email <a href="@routes.UserApp.edit()" class="btn">수정</a>
+  </div>
+  <div>
+  프로젝트 갯수 : @user.myProjects().size()
+  </div>
+  <div>
+    <ul>
+    @for(project <- user.myProjects()){
+        <li>
+            @project.name
+        </li>
+    }
+    </ul>
+  </div>
+</div>
 }

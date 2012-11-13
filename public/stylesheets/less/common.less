@@ -37,3 +37,45 @@ a {
 .d-link {
     color: @blue;
 }
+
+.nm {
+    margin: 0;
+}
+
+.n-alert {
+    overflow: hidden;
+    .n-inner {
+        float: left;
+        font-size: 11px;
+        border: 1px solid #93C0C8;
+        color: #4092A1;
+        background-color: #E8f6f9;
+        padding: 0 7px;
+        line-height: 25px;
+        .border-radius(2px);
+        &.orange {
+            color: @orange;
+            background-color: #FFF0E8;
+            border: 1px solid #FAC7AB;
+        }
+    }
+    margin-bottom: 5px;
+}
+
+.dropdown-toggle.d-label {
+    .border-radius(4px 0 0 4px) !important;
+    min-width: 100px;
+    text-align: left;
+}
+
+.btns {
+    font-size: 0;
+    .n-btn:first-child {
+        margin-right: 5px;
+    }
+}
+
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
+}
