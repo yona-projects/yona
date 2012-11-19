@@ -5,8 +5,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import models.enumeration.IssueState;
-import models.enumeration.StateType;
+import models.enumeration.State;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,30 +22,29 @@ public class IssueTest extends ModelTest<Issue> {
 	public void testState() throws Exception {
 		//Given
 		Issue issue = new Issue("test 이슈");
-        
+
         //When
-        issue.state = IssueState.ASSIGNED;
+        issue.state = State.CLOSED;
 
         //Then
-        assertEquals(IssueState.ASSIGNED, issue.state);
-        
+        assertEquals(State.CLOSED, issue.state);
+
 	}
-	
+
     @Test
     public void create() throws Exception {
         // Given
         Issue issue = new Issue("불필요한 로그 출력 코드 제거test");
         issue.date = JodaDateUtil.today();
-        issue.state = IssueState.ASSIGNED;
+        issue.state = State.CLOSED;
         issue.authorId = User.findById(1l).id;
         issue.milestoneId = 4l;
-        issue.issueType = "issue.new.detailInfo.issueType.worst";
         // When
         // Then
         assertThat(Issue.create(issue)).isNotNull();
     }
-    
-    
+
+
 
     @Test
     public void findById() throws Exception {
@@ -84,8 +82,9 @@ public class IssueTest extends ModelTest<Issue> {
     @Test
     public void findOpenIssues() throws Exception {
         // Given
+        Project project = Project.findByNameAndOwner("hobi", "nForge4java");
         // When
-        Page<Issue> issues = Issue.findOpenIssues("nForge4java");
+        Page<Issue> issues = Issue.findOpenIssues(project.id);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(3);
     }
@@ -93,18 +92,19 @@ public class IssueTest extends ModelTest<Issue> {
     @Test
     public void findClosedIssues() throws Exception {
         // Given
+        Project project = Project.findByNameAndOwner("hobi", "nForge4java");
         // When
-        Page<Issue> issues = Issue.findClosedIssues("nForge4java");
+        Page<Issue> issues = Issue.findClosedIssues(project.id);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(4);
     }
 
     @Test
     public void findFilteredIssues() throws Exception {
-
         // Given
+        Project project = Project.findByNameAndOwner("hobi", "nForge4java");
         // When
-        Page<Issue> issues = Issue.findFilteredIssues("nForge4java", "로그", StateType.OPEN, false);
+        Page<Issue> issues = Issue.findFilteredIssues(project.id, "로그", State.OPEN, false);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
 
@@ -113,17 +113,17 @@ public class IssueTest extends ModelTest<Issue> {
     @Test
     public void findCommentedIssue() throws Exception {
         // Given
+        Project project = Project.findByNameAndOwner("hobi", "nForge4java");
         // When
-        Page<Issue> issues = Issue.findCommentedIssues("nForge4java", "");
+        Page<Issue> issues = Issue.findCommentedIssues(project.id, "");
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(1);
     }
 
     @Test
     public void findAssigneeByIssueId() {
-        // Given
         // When
-        Long assignee = Issue.findAssigneeIdByIssueId("nForge4java", 2l);
+        Long assignee = Issue.findAssigneeIdByIssueId(2l);
         // Then
         assertThat(assignee).isEqualTo(2l);
     }
@@ -140,11 +140,11 @@ public class IssueTest extends ModelTest<Issue> {
     @Test
     public void findIssuesByMilestoneId() throws Exception {
         // Given
+        Project project = Project.findByNameAndOwner("doortts", "CUBRID");
         // When
-        Page<Issue> issues = Issue.findIssuesByMilestoneId("CUBRID", 5l);
+        Page<Issue> issues = Issue.findIssuesByMilestoneId(project.id, 5l);
         // Then
         assertThat(issues.getTotalRowCount()).isEqualTo(2);
-
     }
 
     @Test
@@ -166,7 +166,7 @@ public class IssueTest extends ModelTest<Issue> {
         // Then
         // assertThat(excelFilePath).isEqualTo("testExcelSave.xls");
     }
-    
+
     @Test
     public void updateNumOfComments() throws Exception {
         // Given
@@ -177,7 +177,7 @@ public class IssueTest extends ModelTest<Issue> {
         // Then
         assertThat(Issue.findById(3l).numOfComments).isEqualTo(0);
     }
-    
+
 	@Test
 	public void findIssues() {
 		// Given

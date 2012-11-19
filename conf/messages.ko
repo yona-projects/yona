@@ -77,13 +77,9 @@ sort.by.dueDate = 완료일순
 sort.by.completionRate = 완료울순
 
 #Issue
-issue.stateType.all = 전체
-issue.stateType.open = 미해결
-issue.stateType.closed = 해결
-issue.state.assigned = 진행중
-issue.state.enrolled = 등록
-issue.state.solved = 해결
-issue.state.finished = 닫힘
+issue.state.all = 전체
+issue.state.open = 미해결
+issue.state.closed = 해결
 issue.is.empty = 등록된 이슈가 없습니다. 
 issue.menu.searchDefault = 이슈 검색
 issue.menu.milestoneSelectDefault = 마일스톤 선택

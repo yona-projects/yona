@@ -88,16 +88,6 @@
                             '_default -> Messages("issue.new.selectDefault.assignee"),
                             '_showConstraints -> false)
                     }        
-            <!-- FIXME 컴포넌트 관련 스펙이 정해지면 수정할것 -->
-                    @isVisible(models.enumeration.Resource.ISSUE_COMPONENT) {  
-                        @select(
-                            issueForm("componentName"), 
-                            options = options(
-                                        "component_1"->"Component id 1"),
-                            '_label-> Messages("issue.new.detailInfo.component"),
-                            '_default -> Messages("issue.new.selectDefault.component"),
-                            '_showConstraints -> false)
-                     }
                      @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
                         @select(
                             issueForm("milestoneId"), 
@@ -106,29 +96,6 @@
                             '_default -> Messages("issue.new.selectDefault.milestone"),
                             '_showConstraints -> false)
                      }
-                </div>      
-            </div>
-        </fieldset>
-        <fieldset>
-            <div class="well">
-                <legend><b>@Messages("issue.new.result")</b></legend>
-                <div class="well form-inline">
-                     @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {    
-                        @selectEx(
-                            issueForm("importance"), 
-                            options(Issue.importances),
-                            '_label-> Messages("issue.new.result.importance"),
-                            '_default -> Messages("issue.new.selectDefault.importance"),
-                            '_showConstraints -> false)
-                      }
-                      @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {      
-                        @selectEx(
-                            issueForm("diagnosisResult"), 
-                            options(Issue.diagnosisResults),
-                            '_label-> Messages("issue.new.result.diagnosisResult"),
-                            '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
-                            '_showConstraints -> false)
-                       }     
                 </div>      
             </div>
         </fieldset>

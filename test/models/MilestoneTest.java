@@ -1,8 +1,7 @@
 package models;
 
 import models.enumeration.Direction;
-import models.enumeration.IssueState;
-import models.enumeration.StateType;
+import models.enumeration.State;
 import org.junit.Test;
 import utils.JodaDateUtil;
 
@@ -158,35 +157,35 @@ public class MilestoneTest extends ModelTest<Milestone> {
         // Given
         // When
         List<Milestone> p1InCmpleteMilestones = Milestone.findMilestones(1l,
-            StateType.OPEN);
+            State.OPEN);
         // Then
         assertThat(p1InCmpleteMilestones.size()).isEqualTo(2);
 
         // Given
         // When
         List<Milestone> p2CompletedMilestones = Milestone.findMilestones(2l,
-            StateType.CLOSED);
+            State.CLOSED);
         // Then
         assertThat(p2CompletedMilestones.size()).isEqualTo(1);
 
         // Given
         // When
         List<Milestone> p2Milestones = Milestone.findMilestones(2l,
-            StateType.ALL);
+            State.ALL);
         // Then
         assertThat(p2Milestones.size()).isEqualTo(2);
 
         // Given
         // When
         List<Milestone> p1MilestonesASCDirection = Milestone.findMilestones(1l,
-            StateType.ALL, "completionRate", Direction.ASC);
+            State.ALL, "completionRate", Direction.ASC);
         // Then
         assertThat(p1MilestonesASCDirection.get(0).completionRate).isEqualTo(50);
 
         // Given
         // When
         List<Milestone> p2MilestonesDESCDirection = Milestone.findMilestones(
-            2l, StateType.ALL, "completionRate", Direction.DESC);
+            2l, State.ALL, "completionRate", Direction.DESC);
         // Then
         assertThat(p2MilestonesDESCDirection.get(0).completionRate).isEqualTo(
             100);
@@ -226,8 +225,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         int openNumber = m5.numOpenIssues;
         Issue issue = new Issue("불필요한 로그 출력 코드 제거test");
         issue.date = JodaDateUtil.today();
-        issue.state = IssueState.ASSIGNED;
-        issue.stateType = StateType.OPEN;
+        issue.state = State.OPEN;
         issue.authorId = User.findById(1l).id;
         issue.milestoneId = 5l;
 
@@ -244,7 +242,6 @@ public class MilestoneTest extends ModelTest<Milestone> {
     public void updateIssue() throws Exception {
         //Given
         Issue issue = new Issue("불필요한 로그 출력 코드 제거test");
-        issue.updateStateType(issue);
         issue.milestoneId = 6l;
         issue.update(5l);
 

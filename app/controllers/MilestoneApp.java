@@ -32,7 +32,7 @@ public class MilestoneApp extends Controller {
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
-                StateType.getValue(mCondition.state),
+                State.getValue(mCondition.state),
                 mCondition.sort,
                 Direction.getValue(mCondition.direction));
         return ok(list.render("title.milestoneList", milestones, project, mCondition));
@@ -70,7 +70,7 @@ public class MilestoneApp extends Controller {
         }
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
         List<Milestone> milestones = Milestone.findMilestones(project.id,
-                StateType.ALL,
+                State.ALL,
                 mCondition.sort,
                 Direction.getValue(mCondition.direction));
         return ok(manage.render("title.milestoneManage", milestones, project, mCondition));

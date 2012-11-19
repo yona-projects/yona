@@ -70,9 +70,9 @@ GET     /:userName/:projectName/milestone/:id/delete    controllers.MilestoneApp
 GET     /:userName/:projectName/milestone/:id/edit      controllers.MilestoneApp.editMilestone(userName: String, projectName:String, id: Long)
 
 # Issues
-GET     /:userName/:projectName/issueList               controllers.IssueApp.issues(userName:String, projectName:String, stateType:String)
+GET     /:userName/:projectName/issueList               controllers.IssueApp.issues(userName:String, projectName:String, state:String)
 GET     /:userName/:projectName/issueList/autonotify    controllers.IssueApp.enrollAutoNotification(userName:String, projectName:String)
-GET     /:userName/:projectName/issueList/excel         controllers.IssueApp.extractExcelFile(userName:String, projectName:String, stateType:String)
+GET     /:userName/:projectName/issueList/excel         controllers.IssueApp.extractExcelFile(userName:String, projectName:String, state:String)
 GET     /:userName/:projectName/issues/new              controllers.IssueApp.newIssue(userName:String, projectName:String)
 POST    /:userName/:projectName/issues/new              controllers.IssueApp.saveIssue(userName:String, projectName:String)
 GET     /:userName/:projectName/issues/:id              controllers.IssueApp.issue(userName:String, projectName:String, id:Long)
@@ -83,6 +83,10 @@ GET     /:userName/:projectName/issues/:id/edit         controllers.IssueApp.edi
 POST    /:userName/:projectName/issues/:id/edit         controllers.IssueApp.updateIssue(userName:String, projectName:String, id:Long)
 GET		/issuedetail									controllers.IssueApp.getIssueDatil()
 
+# Label
+POST	/:userName/:projectName/labels					controllers.IssueLabelApp.post(userName:String, projectName:String)
+GET		/:userName/:projectName/labels					controllers.IssueLabelApp.getAll(userName:String, projectName:String)
+POST	/:userName/:projectName/labels/:id		  	    controllers.IssueLabelApp.delete(userName:String, projectName:String, id:Long)
 
 # Git
 GET     /:ownerName/:projectName/info/refs                                        controllers.GitApp.advertise(ownerName:String, projectName:String)

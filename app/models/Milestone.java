@@ -78,7 +78,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findByProjectId(Long projectId) {
-        return Milestone.findMilestones(projectId, StateType.ALL);
+        return Milestone.findMilestones(projectId, State.ALL);
     }
 
     /**
@@ -88,7 +88,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findClosedMilestones(Long projectId) {
-        return Milestone.findMilestones(projectId, StateType.CLOSED);
+        return Milestone.findMilestones(projectId, State.CLOSED);
     }
 
     /**
@@ -98,7 +98,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findOpenMilestones(Long projectId) {
-        return Milestone.findMilestones(projectId, StateType.OPEN);
+        return Milestone.findMilestones(projectId, State.OPEN);
     }
 
     /**
@@ -119,7 +119,7 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findMilestones(Long projectId,
-                                                 StateType state) {
+                                                 State state) {
         return findMilestones(projectId, state, DEFAULT_SORTER, Direction.ASC);
     }
 
@@ -133,11 +133,11 @@ public class Milestone extends Model {
      * @return
      */
     public static List<Milestone> findMilestones(Long projectId,
-                                                 StateType state, String sort, Direction direction) {
+                                                 State state, String sort, Direction direction) {
         OrderParams orderParams = new OrderParams().add(sort, direction);
         SearchParams searchParams = new SearchParams().add("project.id", projectId, Matching.EQUALS);
         if (state == null) {
-            state = StateType.ALL;
+            state = State.ALL;
         }
         switch (state) {
             case OPEN:
@@ -163,7 +163,7 @@ public class Milestone extends Model {
      */
     public static Map<String, String> options(Long projectId) {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
-        for (Milestone milestone : findMilestones(projectId, StateType.ALL, "title", Direction.ASC)) {
+        for (Milestone milestone : findMilestones(projectId, State.ALL, "title", Direction.ASC)) {
             options.put(milestone.id.toString(), milestone.title);
         }
         return options;

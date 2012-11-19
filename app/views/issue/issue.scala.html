@@ -11,6 +11,9 @@
   }
 }
 @main(Messages(title),project) {
+<style>
+@@IMPORT url("/assets/stylesheets/issue.css");
+</style>
 
 <div class="row">
 	<div class="span2 offset10">
@@ -33,6 +36,7 @@
 
 		<div class="span11">
 			<h1>@issue.title</h1>
+            <p>@for(label <- issue.labels) { <button class="issue-label" labelId="@label.id">@label.name</button> } </p>
 			<div>
 				<span>@issue.reporterName이 @agoString(issue.ago())에 작성함</span> |
                 <span>@issue.date</span>
@@ -51,39 +55,26 @@
 		<a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
 	</div>
 	</br></br>
+
     @if(session.get("userId") != null && ProjectUser.isMember(session.get("userId").toLong, project.id)){
        
 	   @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issue.id), 
             'enctype -> "multipart/form-data",
             'class -> "form-horizontal") {
+
+            <!-- issue.label module make this as label selector -->
+            <fieldset class="labels"></fieldset>
+
             <fieldset>
 	            <div class="well">
 	                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
 	                <div class="well form-inline">
-	                   @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
-	                       @selectEx(
-	                            issueForm("issueType"), 
-	                            options(Issue.issueTypes),
-	                            '_label-> Messages("issue.new.detailInfo.issueType"),
-	                            '_default -> Messages("issue.new.selectDefault.issueType"),
-	                            '_showConstraints -> false)
-	                   }
 	                   @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
 	                        @select(
 	                            issueForm("assigneeId"), 
 	                            options(ProjectUser.options(project.id)),
 	                            '_label-> Messages("issue.new.detailInfo.assignee"),
 	                            '_default -> Messages("issue.new.selectDefault.assignee"),
-	                            '_showConstraints -> false)
-	                   }
-	            <!-- FIXME 컴포넌트 관련 스펙이 정해지면 수정할것 -->
-	                   @isVisible(models.enumeration.Resource.ISSUE_COMPONENT) {                   
-	                        @select(
-	                            issueForm("componentName"), 
-	                            options = options(
-	                                        "component_1"->"Component id 1"),
-	                            '_label-> Messages("issue.new.detailInfo.component"),
-	                            '_default -> Messages("issue.new.selectDefault.component"),
 	                            '_showConstraints -> false)
 	                   }
 	                   @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
@@ -97,30 +88,7 @@
 	                </div>      
 	            </div>
             </fieldset>
-            <fieldset>
-	            <div class="well">
-	                <legend><b>@Messages("issue.new.result")</b></legend>
-	                <div class="well form-inline">
-	                   @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {
-	                        @selectEx(
-	                            issueForm("importance"), 
-	                            options(Issue.importances),
-	                            '_label-> Messages("issue.new.result.importance"),
-	                            '_default -> Messages("issue.new.selectDefault.importance"),
-	                            '_showConstraints -> false)
-	                   }
-	                   @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {
-	                        @selectEx(
-	                            issueForm("diagnosisResult"), 
-	                            options(Issue.diagnosisResults),
-	                            '_label-> Messages("issue.new.result.diagnosisResult"),
-	                            '_default -> Messages("issue.new.selectDefault.diagnosisResult"),
-	                            '_showConstraints -> false)
-	                    }
-	                </div>      
-	            </div>
-            </fieldset>
-        <input type="hidden" value="@issue.title" name="title"/>
+           <input type="hidden" value="@issue.title" name="title"/>
         <input type="hidden" value="@issue.body" name="body"/>
         <input type="hidden" value="@issue.authorId" name="authorId"/>
         <div class = "btn pull-right">
@@ -205,5 +173,10 @@
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
+  @for(label <- issue.labels) {
+    $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
+  }
+  nforge.require('nforge.issue.view');
+  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: false});
 </script>
 }

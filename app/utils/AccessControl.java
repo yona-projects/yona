@@ -73,6 +73,8 @@ public class AccessControl {
                 break;
             case USER:
                 return userId == resourceId;
+            case ISSUE_LABEL:
+                return ProjectUser.isMember(userId, projectId);
             default:
                 isAuthorEditible = false;
                 break;

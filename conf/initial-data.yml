@@ -98,8 +98,7 @@ issues:
         authorId:     2       
         title:          불필요한 로그 출력 코드 제거
         body:           내용 불필요한~
-        state:          ENROLLED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    1
         project:        !!models.Project
                             id: 1
@@ -108,8 +107,7 @@ issues:
         assigneeId:     2     
         title:          다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    2
         project:        !!models.Project
                             id: 1
@@ -118,10 +116,8 @@ issues:
         assigneeId:     2
         title:          gittracker.php의 메모리 제한 에러
         body:           내용 gittracker.php의 메모리 제한 에러
-        state:          SOLVED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    2
-        diagnosisResult: 2
         project:        !!models.Project
                             id: 1
         numOfComments:  1
@@ -130,10 +126,8 @@ issues:
         assigneeId:     3
         title:          git/hg 코드 브라우저에 i18n이 적용되지 않음
         body:           내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    2
-        diagnosisResult: 5
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -141,8 +135,7 @@ issues:
         assigneeId:     3
         title:          CUBRID 설치 문제
         body:           IOS는 설치 못하나요?
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    0
         project:        !!models.Project
                             id: 3
@@ -151,10 +144,8 @@ issues:
         assigneeId:     3
         title:          메모리 누수 현상
         body:           메모리가 너무 누수가 되는듯.
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    6
-        diagnosisResult: 1
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -162,8 +153,7 @@ issues:
         assigneeId:    3
         title:          Client application for Mac.
         body:           Please make it.
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    5
         project:        !!models.Project
                             id: 3
@@ -172,10 +162,8 @@ issues:
         assigneeId:     3
         title:          CPU 무한 점유울 문제.
         body:           CPU를 무한사용 중이에요.
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    5
-        diagnosisResult: 4
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -183,10 +171,8 @@ issues:
         assigneeId:     3
         title:          Less chained imports causes compile error
         body:           When using Play, when I chain less files such as a.less imports b.less which in turn imports c.less
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    1
-        diagnosisResult: 4
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -194,18 +180,15 @@ issues:
         assigneeId:     2
         title:          Weird TypeDoesNotMatch exception in RC-3 and final
         body:           The following code works as expected in RC1-Snapshot, but breaks with an TypeDoesNotMatch exception in RC-3 and 2.0 final.
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    1
-        diagnosisResult: 3
         project:        !!models.Project
                             id: 1
     - !!models.Issue
         authorId:     1
         title:          Anorm and PostgreSQL - return value not accessible
         body:           PostgreSQL allows you to insert a row and obtain the id of the new row in one query
-        state:          ENROLLED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    1
         project:        !!models.Project
                             id: 1
@@ -214,10 +197,8 @@ issues:
         assigneeId:     3
         title:          Update sbt-idea to 1.1.0
         body:           Create sbt project definition module, if exists, for each subproject (pull 128)
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    3
-        diagnosisResult: 3
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -225,10 +206,8 @@ issues:
         assigneeId:    3
         title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
         body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
-        state:          FINISHED
-        stateType:      CLOSED
+        state:      CLOSED
         milestoneId:    3
-        diagnosisResult: 3
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -236,8 +215,7 @@ issues:
         assigneeId:     3
         title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
         body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    4
         project:        !!models.Project
                             id: 2
@@ -246,8 +224,7 @@ issues:
         assigneeId:     3
         title:          Cookie Expires date
         body:           With Play 2.0.2, when creating a cookie with response().setCookie, HTTP output is like
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    4
         project:        !!models.Project
                             id: 2
@@ -256,8 +233,7 @@ issues:
         assigneeId:     3
         title:          require is not work in windows (Closure Compiler)
         body:           Test on Play2.1-Snapshot
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    4
         project:        !!models.Project
                             id: 2
@@ -266,8 +242,7 @@ issues:
         assigneeId:     3
         title:          Remember me is not working
         body:           Test on Play2.1-Snapshot
-        state:          ASSIGNED
-        stateType:      OPEN
+        state:      OPEN
         milestoneId:    4
         project:        !!models.Project
                             id: 3
@@ -363,12 +338,6 @@ roles:
             - !!models.Permission
                 id: 8 
             - !!models.Permission
-                id: 9 
-            - !!models.Permission
-                id: 10 
-            - !!models.Permission
-                id: 11  
-            - !!models.Permission
                 id: 12 
             - !!models.Permission
                 id: 13 
@@ -381,12 +350,6 @@ roles:
             - !!models.Permission
                 id: 17  
             - !!models.Permission
-                id: 18
-            - !!models.Permission
-                id: 19
-            - !!models.Permission
-                id: 20
-            - !!models.Permission
                 id: 21  
             - !!models.Permission
                 id: 22 
@@ -398,18 +361,6 @@ roles:
                 id: 25 
             - !!models.Permission
                 id: 26 
-            - !!models.Permission
-                id: 27  
-            - !!models.Permission
-                id: 28 
-            - !!models.Permission
-                id: 29 
-            - !!models.Permission
-                id: 30 
-            - !!models.Permission
-                id: 31  
-            - !!models.Permission
-                id: 32 
             - !!models.Permission
                 id: 33 
             - !!models.Permission
@@ -485,10 +436,6 @@ roles:
             - !!models.Permission
                 id: 6 
             - !!models.Permission
-                id: 9 
-            - !!models.Permission
-                id: 10 
-            - !!models.Permission
                 id: 12 
             - !!models.Permission
                 id: 13 
@@ -501,12 +448,6 @@ roles:
             - !!models.Permission
                 id: 17  
             - !!models.Permission
-                id: 18
-            - !!models.Permission
-                id: 19
-            - !!models.Permission
-                id: 20
-            - !!models.Permission
                 id: 21  
             - !!models.Permission
                 id: 22 
@@ -518,18 +459,6 @@ roles:
                 id: 25 
             - !!models.Permission
                 id: 26 
-            - !!models.Permission
-                id: 27  
-            - !!models.Permission
-                id: 28 
-            - !!models.Permission
-                id: 29 
-            - !!models.Permission
-                id: 30 
-            - !!models.Permission
-                id: 31  
-            - !!models.Permission
-                id: 32 
             - !!models.Permission
                 id: 33 
             - !!models.Permission
@@ -583,12 +512,6 @@ roles:
             - !!models.Permission
                 id: 8 
             - !!models.Permission
-                id: 9 
-            - !!models.Permission
-                id: 10 
-            - !!models.Permission
-                id: 11  
-            - !!models.Permission
                 id: 12 
             - !!models.Permission
                 id: 13 
@@ -601,12 +524,6 @@ roles:
             - !!models.Permission
                 id: 17  
             - !!models.Permission
-                id: 18
-            - !!models.Permission
-                id: 19
-            - !!models.Permission
-                id: 20
-            - !!models.Permission
                 id: 21  
             - !!models.Permission
                 id: 22 
@@ -618,18 +535,6 @@ roles:
                 id: 25 
             - !!models.Permission
                 id: 26 
-            - !!models.Permission
-                id: 27  
-            - !!models.Permission
-                id: 28 
-            - !!models.Permission
-                id: 29 
-            - !!models.Permission
-                id: 30 
-            - !!models.Permission
-                id: 31  
-            - !!models.Permission
-                id: 32 
             - !!models.Permission
                 id: 33 
             - !!models.Permission
@@ -707,23 +612,13 @@ roles:
             - !!models.Permission
                 id: 6 
             - !!models.Permission
-                id: 9 
-            - !!models.Permission
-                id: 10 
-            - !!models.Permission
                 id: 12 
             - !!models.Permission
                 id: 15 
             - !!models.Permission
-                id: 18
-            - !!models.Permission
                 id: 21  
             - !!models.Permission
                 id: 24  
-            - !!models.Permission
-                id: 27  
-            - !!models.Permission
-                id: 30 
             - !!models.Permission
                 id: 33 
             - !!models.Permission
@@ -782,19 +677,6 @@ permissions:
         operation:      delete
 
     - !!models.Permission
-        id:             9
-        resource:       issue_environment
-        operation:      read
-    - !!models.Permission
-        id:             10
-        resource:       issue_environment
-        operation:      write
-    - !!models.Permission
-        id:             11
-        resource:       issue_environment
-        operation:      edit
-
-    - !!models.Permission
         id:             12
         resource:       issue_assignee
         operation:      read
@@ -821,19 +703,6 @@ permissions:
         operation:      edit
 
     - !!models.Permission
-        id:             18
-        resource:       issue_importance
-        operation:      read
-    - !!models.Permission
-        id:             19
-        resource:       issue_importance
-        operation:      write
-    - !!models.Permission
-        id:             20
-        resource:       issue_importance
-        operation:      edit
-
-    - !!models.Permission
         id:             21
         resource:       issue_category
         operation:      read
@@ -857,32 +726,6 @@ permissions:
     - !!models.Permission
         id:             26
         resource:       issue_milestone
-        operation:      edit
-
-    - !!models.Permission
-        id:             27
-        resource:       issue_component
-        operation:      read
-    - !!models.Permission
-        id:             28
-        resource:       issue_component
-        operation:      write
-    - !!models.Permission
-        id:             29
-        resource:       issue_component
-        operation:      edit
-
-    - !!models.Permission
-        id:             30
-        resource:       issue_diagnosisResult
-        operation:      read
-    - !!models.Permission
-        id:             31
-        resource:       issue_diagnosisResult
-        operation:      write
-    - !!models.Permission
-        id:             32
-        resource:       issue_diagnosisResult
         operation:      edit
 
     - !!models.Permission
@@ -1022,19 +865,6 @@ permissions:
         resource:       site_setting
         operation:      write
         
-    - !!models.Permission
-        id:             65
-        resource:       issue_importance
-        operation:      read
-    - !!models.Permission
-        id:             66
-        resource:       issue_importance
-        operation:      write
-    - !!models.Permission
-        id:             67
-        resource:       issue_importance
-        operation:      edit
-
 # ProjectUser
 projectUsers:
     - !!models.ProjectUser
@@ -1197,6 +1027,3 @@ checkLists:
         body:           test item2
         checklist :     !!models.task.Checklist
                             id:     1
-    
-                
-                

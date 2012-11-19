@@ -29,6 +29,6 @@ public class PermissionTest extends ModelTest<Permission> {
         // Given
         // When
         // Then
-        assertThat(Permission.findPermissionsByRole(1l).size()).isEqualTo(63);
+        assertThat(Permission.findPermissionsByRole(1l).size()).isEqualTo(51);
     }
 }

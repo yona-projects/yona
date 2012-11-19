@@ -2,7 +2,7 @@
 
 @import helper._
 @import scala.collection.mutable.Map
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
   roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT){
@@ -11,46 +11,57 @@
 }
 
 @main(Messages(title), project) {
-	<div class="page-header">
-		<h1>@Messages(title)</h1>
-	</div>
-    @form(action = routes.IssueApp.saveIssue(project.owner, project.name), 
-    				'enctype -> "multipart/form-data",
-    				'class -> "form-horizontal") {
-    	<fieldset>
-    	@inputText(
-    		issueForm("title"), 
-    		'_showConstraints -> false, 
+    <style>
+    @@IMPORT url("/assets/stylesheets/issue.css");
+    </style>
+
+    <div class="page-header">
+        <h1>@Messages(title)</h1>
+    </div>
+
+    @form(action = routes.IssueApp.saveIssue(project.owner, project.name),
+                    'id -> "issue-form",
+                    'enctype -> "multipart/form-data",
+                    'class -> "form-horizontal",
+                    'onkeypress -> "return event.keyCode !== 13"
+                    ) {
+        <fieldset>
+        @inputText(
+            issueForm("title"),
+            '_showConstraints -> false,
             '_label-> Messages("post.new.title"),
             'class -> "input-xxlarge")
-    	@textarea(
-    		issueForm("body"), 
-    		'_showConstraints -> false,
+        @textarea(
+            issueForm("body"),
+            '_showConstraints -> false,
             '_label-> Messages("post.new.contents"),
             'rows -> 16,
             'class -> "input-xxlarge textbody",
             'markdown -> true)
-    	</fieldset>
+        </fieldset>
 
-		<fieldset>
+        <!-- issue.label module make this as label selector -->
+        <fieldset class="labels"></fieldset>
+
+        <fieldset>
             <div class="well">
                 <legend><b>@Messages("issue.new.environment")</b></legend>
                 <div class="well form-inline">
                         @selectEx(
-                            issueForm("osType"), 
+                            issueForm("osType"),
                             options(Issue.osTypes),
                             '_label-> Messages("issue.new.environment.osType"),
                             '_default ->  Messages("issue.new.selectDefault.osType"),
                             '_showConstraints -> false)
-                        
+
                         @selectEx(
-                            issueForm("browserType"), 
+                            issueForm("browserType"),
                             options(Issue.browserTypes),
                             '_label-> Messages("issue.new.environment.browserType"),
                             '_default -> Messages("issue.new.selectDefault.browserType"),
                             '_showConstraints -> false)
                         @selectEx(
-                            issueForm("dbmsType"), 
+                            issueForm("dbmsType"),
                             options(Issue.dbmsTypes),
                             '_label-> Messages("issue.new.environment.dbmsType"),
                             '_default -> Messages("issue.new.selectDefault.dbmsType"),
@@ -59,81 +70,41 @@
             </div>
         </fieldset>
 
-		<fieldset>
-			<div class="well">
-	    		<legend><b>@Messages("issue.new.detailInfo")</b></legend>
-	    		<div class="well form-inline">
-                @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {		  	
-				  	@selectEx(
-				    		issueForm("issueType"), 
-				    		options(Issue.issueTypes),
-				    		'_label-> Messages("issue.new.detailInfo.issueType"),
-				    		'_default -> Messages("issue.new.selectDefault.issueType"),
-				    		'_showConstraints -> false)
-				    	}
-				  @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
-				    	@select(
-				    		issueForm("assigneeId"), 
-				    		options(ProjectUser.options(project.id)),
-				    		'_label-> Messages("issue.new.detailInfo.assignee"),
-				    		'_default -> Messages("issue.new.selectDefault.assignee"),
-				    		'_showConstraints -> false)
+        <fieldset>
+            <div class="well">
+                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
+                <div class="well form-inline">
+                  @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
+                        @select(
+                            issueForm("assigneeId"),
+                            options(ProjectUser.options(project.id)),
+                            '_label-> Messages("issue.new.detailInfo.assignee"),
+                            '_default -> Messages("issue.new.selectDefault.assignee"),
+                            '_showConstraints -> false)
                         }
-				  @isVisible(models.enumeration.Resource.ISSUE_COMPONENT) {  	
-				    	@select(
-				    		issueForm("componentName"), 
-				    		options = options(
-				    					"component_1"->"Component id 1"),
-				    		'_label-> Messages("issue.new.detailInfo.component"),
-				    		'_default -> Messages("issue.new.selectDefault.component"),
-				    		'_showConstraints -> false)
-				    	}
-				   @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
-				    	@select(
-				    		issueForm("milestoneId"), 
-				    		options(Milestone.options(project.id)),
-				    		'_label-> Messages("issue.new.detailInfo.milestone"),
-				    		'_default -> Messages("issue.new.selectDefault.milestone"),
-				    		'_showConstraints -> false)
-				        }
-				</div>		
-	    	</div>
-	               
-	    </fieldset>
-    	<fieldset>
-    		<div class="well">
-    			<legend><b>@Messages("issue.new.result")</b></legend>
-    			<div class="well form-inline">
-                    @isVisible(models.enumeration.Resource.ISSUE_IMPORTANCE) {				    	
-				    	@selectEx(
-				    		issueForm("importance"), 
-				    		options(Issue.importances),
-				    		'_label-> Messages("issue.new.result.importance"),
-				    		'_default -> Messages("issue.new.selectDefault.importance"),
-				    		'_showConstraints -> false)
-				    	}
-				    @isVisible(models.enumeration.Resource.ISSUE_DIAGNOSISRESULT) {
-				    	@selectEx(
-				    		issueForm("diagnosisResult"), 
-				    		options(Issue.diagnosisResults),
-				    		'_label-> Messages("issue.new.result.diagnosisResult"),
-				    		'_default -> Messages("issue.new.selectDefault.diagnosisResult"),
-				    		'_showConstraints -> false)
-				    	}
-				</div>		
-    		</div>
-    	</fieldset>
+                  @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
+                        @select(
+                            issueForm("milestoneId"),
+                            options(Milestone.options(project.id)),
+                            '_label-> Messages("issue.new.detailInfo.milestone"),
+                            '_default -> Messages("issue.new.selectDefault.milestone"),
+                            '_showConstraints -> false)
+                        }
+                </div>
+            </div>
+        </fieldset>
 
-	<div class="row pull-right">
-			<div class="actions">
-				<input type="submit" class="btn btn-primary" value="@Messages("button.save")"> 
-				<a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="btn">@Messages("button.cancel")</a>
-			</div>
+    <div class="row pull-right">
+            <div class="actions">
+                <input type="submit" class="btn btn-primary" value="@Messages("button.save")">
+                <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="btn">@Messages("button.cancel")</a>
+            </div>
     </div>
  }
 
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
+  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)');
 </script>
 }

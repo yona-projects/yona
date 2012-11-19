@@ -5,7 +5,7 @@
 
 @header(label:String, sortBy:String) = {
     <th>
-        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.stateType)" data-sort-by="@sortBy">@label</a>
+        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)" data-sort-by="@sortBy">@label</a>
         @if(sortBy == param.sortBy){
         @if(param.orderBy == "desc"){
         <i class="icon-chevron-down"></i>
@@ -14,105 +14,90 @@
         }
         }
     </th>
+
 }
 
 @main(Messages(title), project){
-<div id = "issue_page">
-	<div class="row">
-		<div span="span6">
-			<div class="pull-right">
-				<form id="searchForm" class="form-search form-inline" action="@routes.IssueApp.issues(project.owner, project.name, param.stateType)" method="GET" >
-					<select id="milestone" name="milestone">
-						<option class="blank" value ="">@Messages("issue.menu.milestoneSelectDefault")</option>@Milestone.options(project.id).map { v => <option id="changeMilestone" name ="milestone" value="@v._1" >@v._2</option>}
-					</select>
-					<input type="hidden" name="sortBy" value="@param.sortBy" class="h-value sort">
-          <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
-          <input type="hidden" name="stateType" value="@param.stateType">
-					<input type="text" name="filter" value="@param.filter" placeholder=@Messages("issue.menu.searchDefault")>
-					<button type="submit" id="searchSubmit" class="btn"> <i class="icon-search"> </i></button>
-				
-				<a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.owner, project.name)" >@Messages("issue.menu.new")</a>
-				</form>
-			</div>
-		</div>
-	</div>
-	<div>
-		<ul class="nav nav-tabs" id="issue_list">
-			<li class="@if(param.stateType.equals("all")){active}">
-				<a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("issue.stateType.all")</a></li>
-			<li class="@if(param.stateType.equals("open")){active}">
-				<a href="@routes.IssueApp.issues(project.owner, project.name, "open")">@Messages("issue.stateType.open")</a></li>
-			<li class="@if(param.stateType.equals("closed")){active}">
-				<a href="@routes.IssueApp.issues(project.owner, project.name, "closed")">@Messages("issue.stateType.closed")</a></li>
-		</ul>
-				
-		@if(currentPage.getTotalRowCount == 0){
-			<div class="well span11">
-				<em>@Messages("issue.is.empty")</em>
-			</div>
-		}else{
-		<div class="pull-right">
-			<form class="form-inline" id="checkboxForm" action="@routes.IssueApp.issues(project.owner, project.name, param.stateType)" method="GET">
-				
-				<input type="hidden" name="filter" value="@param.filter">
-				<input type="hidden" name="stateType" value="@param.stateType">
-		        <div class="control-group">
-		            <label class="control-label" for="inlineCheckboxes"></label>
-		            <div class="controls inline">
-		            	<fieldset>
-<!--FIXME view 전문가님이 아래의 if-else문 안의 중복된 코드를 업그레이드 해주시길 바랍니다. -->
-                    <input class="filters" type="checkbox" name="commentedCheck" id="commentCheckId" value="1" @if(param.commentedCheck==true){checked="checked"}>
-                    <label class="checkbox inline">@Messages("checkbox.commented")</label>
-		                <input class="filters" type="checkbox" name="fileAttachedCheck" id="fileAttachedCheckId" value="1" @if(param.fileAttachedCheck==true){checked="checked"}>
-                    <label class="checkbox inline">@Messages("checkbox.fileAttached")</label>
-<!--// -->
-		              	<a href="@routes.IssueApp.extractExcelFile(project.owner, project.name, param.stateType)"><i class ="icon-download-alt"></i>@Messages("button.excelDownload")</a>
-		            	</fieldset>
-		            </div>
-		        </div>
-		    </form>
-		</div>
-			<table class="table">
-				<thead>
-					<tr>
-						@header(Messages("label.id"),"id")
-						@header(Messages("label.state"), "state")
-						@header(Messages("label.title"), "title")
-						@header(Messages("label.assignee"), "assigneeId")
-						@header(Messages("label.date"), "date")
-					</tr>
-				</thead>
-				<tbody>
-					@for(issue <- currentPage.getList()){
-						<tr>
-							<td>@issue.id</td>
-							<td>@Messages(issue.state.state)</td>
-							<td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a></td>
-							<td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)"></a></td>
-							<td>
-								@if(issue.assigneeId == null){
-								<em>@Messages("issue.noAssignee")</em>						
-							} else {
-								<em>@issue.assigneeName</em>
-							}
-							</td>
-							<td>@agoString(issue.ago())</td>
+<style>
+@@IMPORT url("/assets/stylesheets/issue.css");
+</style>
+<div class="page-padding">
+  <ul class="breadcrumb page-navi pull-right">
+      <li><a href="#" class="icon-home"></a><span class="divider">&gt;</span></li>
+      <li><a href="#">project home</a><span class="divider">&gt;</span></li>
+      <li class="active">Issue</li>
+  </ul>
 
-						</tr>
-					}
-			</tbody>
-		</table>
+  <ul class="breadcrumb project-name">
+      <li><a href="#">@project.owner</a><span class="divider">/</span></li>
+      <li class="active"><a href="#">@project.name</a></li>
+  </ul>
 
-	    <div class="row">
-            <a class="btn pull-right" href="@routes.IssueApp.enrollAutoNotification(project.owner, project.name)"><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-            @pagination(currentPage, 5, "pagination")
-        </div>
- 
+  <div class="dashboard">
+    <dl class="row-fluid">
+      <div class="span4"><dt><b>All</b> issues</dt><dd class="all inner-shadow pull-right" title="312,549">@Issue.countIssues(project.id, State.ALL)</dd></div>
+      <div class="span4"><dt><b>Open</b> issues</dt><dd class="open inner-shadow pull-right" title="32,047">@Issue.countIssues(project.id, State.OPEN)</dd></div>
+      <div class="span4"><dt><b>Closed</b> issues</dt><dd class="closed inner-shadow pull-right" title="4,086">@Issue.countIssues(project.id, State.CLOSED)</dd></div>
+    </dl>
 
-	</div>
+    <hr/>
+    <form class="form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
+      <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">Advanced Search</button>
+      <a href="@routes.IssueApp.extractExcelFile(project.owner, project.name, param.state)" class="btn btn-small btn-flat">Download Excel file</a>
+      <div class="input-append pull-right">
+        <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
+        <input type="hidden" name="state" value="@param.state">
+        <input name="filter" class="span2" id="appendedInputButton" size="16" type="text"><button class="btn" type="button"  placeholder="현재 게시글에서 검색">SEARCH</button>
+      </div>
+    </form>
+
+    <form class="form-horizontal" id="labels-form">
+      <!-- issue.label module make this as label filter and editor -->
+      <fieldset class="labels"></fieldset>
+    </form>
+
+  </div>
+
+  <p class="ordering">
+      <span>▲상태순</span>
+      <span>▲날짜순</span>
+      <span selected>▼댓글순</span>
+  </p>
+
+  <table>
+    <tbody>
+
+      @for(issue <- currentPage.getList.reverse){
+        <tr>
+          <td class="no">@issue.id</td>
+          <td class="attachmend attached">@if(Attachment.findByContainer(Resource.ISSUE_POST, issue.id).size > 0){<span class="icon-file"/>}</td>
+          <td class="info">
+            <p><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a></p>
+            <p class="author">by <a href="/users/@issue.authorId">@issue.authorName</a>
+            </a> @agoString(issue.ago())</p>
+          </td>
+          <td class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</td>
+          <td class="comments">@issue.numOfComments</td>
+          <td class="assignee"><a href="#"><img class="user-picture" src="/assets/images/default-avatar-34.png"></a>
+              <span>@{ if (issue.assigneeId == null) Messages("issue.noAssignee")
+                else issue.assigneeName }</span>
+          </td>
+
+        </tr>
+      }
+
+    <tbody>
+  </table>
+  <div class="pull-right">
+    <a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.owner, project.name)" >@Messages("issue.menu.new")</a>
+  </div>
+  <div class="pagination pagination-centered">
+    @pagination(currentPage, 5, "pagination")
+  </div>
 </div>
-}
+
 <script type="text/javascript">
+  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: true});
   nforge.require('issue.list');
 </script>
 }

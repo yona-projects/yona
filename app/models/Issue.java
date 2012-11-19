@@ -27,20 +27,14 @@ import static com.avaje.ebean.Expr.*;
  * @param id              이슈 ID
  * @param title           이슈 제목
  * @param body            이슈 내용
- * @param state           이슈 상태(등록, 진행중, 해결, 닫힘)
- * @param statusType      이슈 상태, 등록 및 진행중 => 미해결, 해결 및 닫힘 => 해결
+ * @param state           이슈 상태(열림, 닫힘)
  * @param date            이슈 등록 날짜
  * @param authorId        이슈 작성자 ID
  * @param project         이슈가 등록된 프로젝트
  * @param issueType       이슈 상세정보의 유형
  * @param assigneeId      이슈에 배정된 담당자 Id
- * @param componentName   컴포넌트
  * @param milestone       이슈가 등록된 마일스톤
  * @param importance      이슈 상세정보의 중요도
- * @param diagnosisResult 이슈 상세정보의 진단유형
- * @param osType          이슈 상세정보의 OS 유형
- * @param browserType     이슈 상세정보의 브라우저 유형
- * @param dbmsType        이슈 상세정보의 DBMS 유형
  * @author Taehyun Park
  *         <p/>
  *         Issue entity mangaed by Ebean
@@ -75,16 +69,7 @@ public class Issue extends Model {
     public Long assigneeId;
     public Long authorId;
     public String authorName;
-    public IssueState state;
-    public StateType stateType;
-    public String issueType;
-    public String componentName;
-    public String osType;
-    public String browserType;
-    public String dbmsType;
-    public String importance;
-    public String diagnosisResult;
-
+    public State state;
     @OneToMany
 	public List<IssueDetail> issueDetails;
 
@@ -94,12 +79,11 @@ public class Issue extends Model {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public List<IssueComment> comments;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    public Set<IssueLabel> labels;
+
     public Issue(String title) {
         this.date = JodaDateUtil.now();
-    }
-
-    public String issueTypeLabel() {
-        return issueTypes().get(issueType);
     }
 
     public Duration ago() {
@@ -117,116 +101,6 @@ public class Issue extends Model {
     public String assigneeName() {
 
         return (this.assigneeId != null ? User.findNameById(this.assigneeId) : "issue.noAssignee");
-    }
-
-    /**
-     * 이슈의 오픈 상태를 확인한다.
-     *
-     * @return boolean
-     */
-    public boolean isOpen() {
-        return StateType.OPEN.equals(this.stateType);
-    }
-
-    /**
-     * View에서 스트링값으로 변환하도록 한다.
-     *
-     * @return
-     */
-
-    /**
-     * 해당 이슈의 상태(state) 따라서 탭 기능에서 구분 짖는(stateType) 것이 해결인지 미해결인지 값을 결정해준다.
-     * diagnosisResult가 2인 경우는 현 진단결과 선택 란에서 "수정완료"를 의미하므로, 이슈 정상 해결을 의미한다.
-     *
-     * @param state
-     */
-    public void updateStateType(Issue issue) {
-
-        if (this.state == null || this.state.equals(IssueState.ASSIGNED)
-                || this.state.equals(IssueState.ENROLLED)) {
-            this.stateType = StateType.OPEN;
-        } else {
-            this.stateType = StateType.CLOSED;
-        }
-    }
-
-    /**
-     * 이슈의 담당자(assignee) 배정과 이슈의 진단결과(diagnosisResult)에 따라 이슈의 상태를 정해진 로직에 따라
-     * 변경한다.
-     *
-     * @param issue
-     */
-    public void updateState(Issue issue) {
-
-        if (isEnrolled(issue)) {
-            this.state = IssueState.ENROLLED;
-        } else if (isFinished(issue)) {
-            this.state = IssueState.FINISHED;
-        } else if (isAssigned(issue)) {
-            this.state = IssueState.ASSIGNED;
-        } else if (isSolved(issue)) {
-            this.state = IssueState.SOLVED;
-        } else
-            this.state = IssueState.ENROLLED;
-
-        updateStateType(issue);
-    }
-
-    /**
-     * 이슈가 담당자와 진단결과가 없는 경우에는 "등록" 상태임을 확인해준다.
-     *
-     * @param issue
-     * @return boolean
-     */
-    public boolean isEnrolled(Issue issue) {
-
-        if (issue.assigneeId == null && issue.diagnosisResult.equals("")) {
-            return true;
-        } else
-            return false;
-    }
-
-    /**
-     * 이슈가 담당자는 배정받고, 진단결과가 없는 경우에는 "진행중" 상태임을 확인해준다.
-     *
-     * @param issue
-     * @return
-     */
-    public boolean isAssigned(Issue issue) {
-
-        if (issue.assigneeId != null && issue.diagnosisResult.equals("")) {
-            return true;
-        } else
-            return false;
-    }
-
-    /**
-     * 이슈가 담당자를 배정받고 진단결과가 2번째 수정완료(추후 변경 가능) 인 경우에는 "해결" 상태임을 확인해준다.
-     *
-     * @param issue
-     * @return
-     */
-    public boolean isSolved(Issue issue) {
-
-        if (issue.assigneeId != null && issue.diagnosisResult.equals("2")) {
-            return true;
-        } else
-            return false;
-    }
-
-    /**
-     * 이슈가 담당자의 유무와 상관 없이, 진단결과가 2번째 수정완료가 아닌 다른 사유가 존재한 경우에는 "닫힘" 상태임을 확인해준다.
-     *
-     * @param issue
-     * @return
-     */
-
-    public boolean isFinished(Issue issue) {
-
-        if (!issue.diagnosisResult.equals("2") && !issue.diagnosisResult.equals("")) {
-            return true;
-        } else
-            return false;
     }
 
     /**
@@ -329,7 +203,6 @@ public class Issue extends Model {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.add(issue);
         }
-        issue.updateStateType(issue);
         return issue.id;
     }
 
@@ -353,28 +226,35 @@ public class Issue extends Model {
      * @param issue
      */
     public static void edit(Issue issue) {
-        issue.updateStateType(issue);
         issue.update();
+    }
+
+    public static int countIssues(Long projectId, State state) {
+        if (state == State.ALL) {
+            return finder.where().eq("project.id", projectId).findRowCount();
+        } else {
+            return finder.where().eq("project.id", projectId).eq("state", state).findRowCount();
+        }
     }
 
     /**
      * 미해결 탭을 눌렀을 때, open 상태의 이슈들을 찾아준다..
      *
-     * @param projectName
+     * @param projectId
      * @return
      */
-    public static Page<Issue> findOpenIssues(String projectName) {
-        return Issue.findIssues(projectName, StateType.OPEN);
+    public static Page<Issue> findOpenIssues(Long projectId) {
+        return Issue.findIssues(projectId, State.OPEN);
     }
 
     /**
      * 해결 탭을 눌렀을 때, closed 상태의 이슈들을 찾아준다.
      *
-     * @param projectName
+     * @param projectId
      * @return
      */
-    public static Page<Issue> findClosedIssues(String projectName) {
-        return Issue.findIssues(projectName, StateType.CLOSED);
+    public static Page<Issue> findClosedIssues(Long projectId) {
+        return Issue.findIssues(projectId, State.CLOSED);
     }
 
     /**
@@ -384,54 +264,54 @@ public class Issue extends Model {
      * @param state
      * @return
      */
-    public static Page<Issue> findIssues(String projectName, StateType state) {
-        return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+    public static Page<Issue> findIssues(Long projectId, State state) {
+        return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 "", null, false);
     }
 
     /**
      * 검색창에서 제공된 query(filter)와 댓글과 파일첨부된 이슈만 찾아주는 체크박스의 값에 따라 필터링된 이슈들을 찾아준다.
      *
-     * @param projectName
+     * @param projectId
      * @param filter
      * @param state
      * @param commentedCheck
      * @return
      */
-    public static Page<Issue> findFilteredIssues(String projectName, String filter,
-                                                 StateType state, boolean commentedCheck) {
-        return find(projectName, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
+    public static Page<Issue> findFilteredIssues(Long projectId, String filter,
+                                                 State state, boolean commentedCheck) {
+        return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
                 filter, null, commentedCheck);
     }
 
     /**
      * 댓글이 달린 이슈들만 찾아준다.
      *
-     * @param projectName
+     * @param projectId
      * @param filter
      * @return
      */
-    public static Page<Issue> findCommentedIssues(String projectName, String filter) {
-        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+    public static Page<Issue> findCommentedIssues(Long projectId, String filter) {
+        return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER,
                 Direction.DESC, filter, null, true);
     }
 
     /**
      * 마일스톤 Id에 의거해서 해당 마일스톤에 속한 이슈들을 찾아준다.
      *
-     * @param projectName
+     * @param projectId
      * @param milestoneId
      * @return
      */
-    public static Page<Issue> findIssuesByMilestoneId(String projectName, Long milestoneId) {
-        return find(projectName, FIRST_PAGE_NUMBER, StateType.ALL, DEFAULT_SORTER,
+    public static Page<Issue> findIssuesByMilestoneId(Long projectId, Long milestoneId) {
+        return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER,
                 Direction.DESC, "", milestoneId, false);
     }
 
     /**
      * 이슈들을 아래의 parameter들의 조건에 의거하여 Page형태로 반환한다.
      *
-     * @param projectName       project ID to finder issues
+     * @param projectId       project ID to finder issues
      * @param pageNumber        Page to display
      * @param state             state type of issue(OPEN or CLOSED
      * @param sortBy            Issue property used for sorting, but, it might be fixed to
@@ -441,11 +321,11 @@ public class Issue extends Model {
      * @param commentedCheck    filter applied on the commetedCheck column, 댓글이 존재하는 이슈만 필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
-    public static Page<Issue> find(String projectName, int pageNumber, StateType state,
+    public static Page<Issue> find(Long projectId, int pageNumber, State state,
                                    String sortBy, Direction order, String filter, Long milestoneId,
                                    boolean commentedCheck) {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
-        SearchParams searchParams = new SearchParams().add("project.name", projectName,
+        SearchParams searchParams = new SearchParams().add("project.id", projectId,
                 Matching.EQUALS);
 
         if (filter != null && !filter.isEmpty()) {
@@ -459,14 +339,14 @@ public class Issue extends Model {
         }
 
         if (state == null) {
-            state = StateType.ALL;
+            state = State.ALL;
         }
         switch (state) {
             case OPEN:
-                searchParams.add("stateType", StateType.OPEN, Matching.EQUALS);
+                searchParams.add("state", State.OPEN, Matching.EQUALS);
                 break;
             case CLOSED:
-                searchParams.add("stateType", StateType.CLOSED, Matching.EQUALS);
+                searchParams.add("state", State.CLOSED, Matching.EQUALS);
                 break;
             default:
         }
@@ -488,7 +368,7 @@ public class Issue extends Model {
                 .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
 
-    public static Long findAssigneeIdByIssueId(String projectName, Long issueId) {
+    public static Long findAssigneeIdByIssueId(Long issueId) {
         return finder.byId(issueId).assigneeId;
     }
 
@@ -597,5 +477,13 @@ public class Issue extends Model {
 			this.issueDetails = new ArrayList<IssueDetail>();
 		}
 		this.issueDetails.add(issueDetail);
+	}
+
+	public boolean isOpen() {
+	    return this.state == State.OPEN;
+	}
+
+	public boolean isClosed() {
+	    return this.state == State.CLOSED;
 	}
 }
