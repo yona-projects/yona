@@ -1,20 +1,25 @@
 package utils;
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
 public class Url {
-    
+
     /**
      * Create url with given <code>pathSegments</code> and configured scheme, hostname and port.
-     * 
+     *
      * @param pathSegments List of path segments to construct the path.
-     * 
+     *
      * @return <code>String</code> containing the created URL
      */
     public static String create(List<String> pathSegments) {
-        return create(pathSegments, "localhost");
+        try {
+            return create(pathSegments, java.net.InetAddress.getLocalHost().getHostAddress());
+        } catch (UnknownHostException e) {
+            return create(pathSegments, "localhost");
+        }
     }
     
     /**
