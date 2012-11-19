@@ -120,6 +120,12 @@ public class AttachmentApp extends Controller {
         if (attach == null) {
             return notFound();
         }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser().id, attach.projectId,
+                attach.containerType, Operation.DELETE, attach.containerId)) {
+            return forbidden();
+        }
+
         attach.delete();
 
         if (!Attachment.exists(attach.hash)) {
