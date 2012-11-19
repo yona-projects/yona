@@ -8,7 +8,7 @@ nforge.shortcut.submit = function () {
     init : function () {
       var eventHandler = function (event) {
         if (event.ctrlKey && event.which == 13) {
-        $(event.target).parents('form').get(0).submit();
+          $($(event.target).parents('form').get(0)).submit();
         }
       }
 
