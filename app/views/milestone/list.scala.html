@@ -1,6 +1,7 @@
 @(title: String, milestones: List[models.Milestone], projectInst: Project, mCondition: MilestoneApp.MilestoneCondition)
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
+
 @makeSortLink(_sort:String) = @{
     var _direction = "asc";
     if(mCondition.sort.equals(_sort)) {
@@ -21,10 +22,12 @@
     /* TODO It will be chnaged. */
     if(mCondition.sort.equals(_sort)) {
         if(mCondition.direction.equals("desc")){
-        "▼"
+        "down"
         } else {
-        "▲"
+        "up"
         }
+    } else {
+        "up hidden"
     }
 }
 @makeMilestoneListLink(_state: String) = @{
@@ -35,51 +38,67 @@
 
 @project.projectMngMain(title, projectInst) {
     <h1 class="page-title"><span class="gray">@projectInst.owner/@projectInst.name/</span>Milestone</h1>
-    <div>
-        <div style="position: relative;">
-            <ul class="nav nav-tabs" id="milestone_list">
-                <li class="@if(mCondition.state.equals("all")){active}">
-                <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
-                </li>
-                <li class="@if(mCondition.state.equals("open")){active}">
-                <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
-                </li>
-                <li class="@if(mCondition.state.equals("closed")){active}">
-                <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
-                </li>
-            </ul>
-            <div style="position: absolute; top: 10px; right: 0;">
-                <a href="@makeSortLink("dueDate")">@Messages("sort.by.dueDate") @sortMark("dueDate")</a>
-                <a href="@makeSortLink("completionRate")">@Messages("sort.by.completionRate")@sortMark("completionRate")</a>
-            </div>
+    <div class="tab-wrap">
+        <div class="pull-right btns">
+            <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">MANAGE</a>
+            <a href="milestone-new.html" class="n-btn small blue">NEW MILESTONE</a>
         </div>
-    @if(milestones == null || milestones.isEmpty()){
-        <p>@Messages("milestone.is.empty")</p>
-    }else{
-    <table class="table">
-        <tbody>
-            @for(milestone <- milestones){
-            <tr>
-                <td>
-                    <h3><a href="@makeIssuesLink(milestone.id,"all")">@milestone.title</a><br /></h3>
-                    @Messages("label.dueDate") @milestone.getDueDateString<br />
-                    @milestone.contents
-                </td>
-                <td>
-                    <a href="@makeIssuesLink(milestone.id,"closed")">@milestone.numClosedIssues</a> <span>@Messages("issue.state.closed")</span>
-                    <a href="@makeIssuesLink(milestone.id,"open")">@milestone.numOpenIssues</a> <span>@Messages("issue.state.open")</span>
-                    <div class="progress">
-                        <div class="bar" style="width: @milestone.completionRate%;"></div>
-                    </div>
-                </td>
-            </tr>
-            }
-        </tbody>
-    </table>
+        <ul class="nav nav-tabs">
+            <li class="@if(mCondition.state.equals("all")){active}">
+                <a href="@makeMilestoneListLink("all")">All Milestones</a>
+            </li>
+            <li class="@if(mCondition.state.equals("open")){active}">
+                <a href="@makeMilestoneListLink("open")">Open Milestones</a>
+            </li>
+            <li class="@if(mCondition.state.equals("closed")){active}">
+                <a href="@makeMilestoneListLink("closed")">Closed Milestones</a>
+            </li>
+        </ul>
     </div>
-
-    }
-    <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" >@Messages("milestone.menu.manage")</a>
-    </div> 
+    <div class="filter-wrap milestone">
+        <div class="filters">
+            <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>완료일순</a>
+            <a href="@makeSortLink("completionRate")" class="filter"><i class="ico ico-sort @sortMark("completionRate")"></i>완료율순</a>
+        </div>
+    </div>
+    <ul class="milestones">
+        @for(milestone <- milestones){
+        <li class="milestone">
+            <div class="infos">
+                <ul class="contributors">
+                    <li class="contributor">
+                        <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
+                    </li>
+                    <li class="contributor">
+                        <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
+                    </li>
+                    <li class="contributor">
+                        <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
+                    </li>
+                </ul>
+                <div class="meta-info">
+                    <strong class="version"></strong>
+                    <span class="title">@milestone.title</span>
+                    <span class="sp">|</span>
+                    <span class="due-date">완료일 <strong>@milestone.getDueDateString</strong></span>
+                </div>
+                <div class="progress-wrap">
+                    <div class="progress">
+                        <div class="bar orange" style="width: @milestone.completionRate%;"></div>
+                    </div>
+                    <div class="pull-left">
+                        <a href="@makeIssuesLink(milestone.id,"closed")">완료 @milestone.numClosedIssues (40%)</a>
+                    </div>
+                    <div class="pull-right">
+                        <a href="@makeIssuesLink(milestone.id,"open")">미완료 @milestone.numOpenIssues (60%)</a>
+                    </div>
+                </div>
+                <div class="desc">
+                    @milestone.contents
+                </div>
+            </div>
+            <div class="completion-rate @if(milestone.completionRate == 100){done}">@milestone.completionRate%</div>
+        </li>
+        }
+    </ul>
 }
