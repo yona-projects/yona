@@ -138,4 +138,4 @@ POST    /:userName/:projectName/task/comment            controllers.TaskApp.addC
 GET     /help                                           controllers.HelpApp.help()
 
 # Statistics
-GET     /statistics                                     controllers.StatisticsApp.statistics()
+GET     /:userName/:projectName/statistics              controllers.StatisticsApp.statistics(userName:String, projectName:String)
