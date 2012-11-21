@@ -133,3 +133,9 @@ GET     /:userName/:projectName/task/card               controllers.TaskApp.card
 POST    /:userName/:projectName/task/newCard            controllers.TaskApp.newCard(userName:String, projectName:String)
 POST    /:userName/:projectName/task/card               controllers.TaskApp.saveCard(userName:String, projectName:String)
 POST    /:userName/:projectName/task/comment            controllers.TaskApp.addComment(userName:String, projectName:String)
+
+# Help
+GET     /help                                           controllers.HelpApp.help()
+
+# Statistics
+GET     /statistics                                     controllers.StatisticsApp.statistics()

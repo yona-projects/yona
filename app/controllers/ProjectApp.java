@@ -179,6 +179,6 @@ public class ProjectApp extends Controller {
     }
     
     public static Result projects() {
-    	return ok(views.html.underconstruction.render(""));
+    	return ok(views.html.underconstruction.render("projects"));
     }
 }
