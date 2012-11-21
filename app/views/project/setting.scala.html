@@ -5,192 +5,94 @@
 
 
 @projectMngMain(message, projectInst) {
-    <h1 class="page-title"><span class="gray">K16wire/nforge4/</span>Setting</h1>
-        <div class="bubble-wrap gray">
-            <form class="nm" action="/project-save" method="post">
-                <div class="box-wrap top clearfix">
-                    <div class="setting-box left">
-                        <div class="logo-wrap">
-                            <img src="/images/bg-default-project.png" alt="project-logo">
-                        </div>
-                        <div class="logo-desc">
-                            <ul class="unstyled descs">
-                                <li><strong>LOGO</strong></li>
-                                <li>파일형식 <span class="point">bmp, jpg, gif, png</span></li>
-                                <li>파일크기 <span class="point">1MB (이하)</span></li>
-                                <li>사이즈 <span class="point">234px * 168px</span></li>
-                                <li>
-                                    <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
-                                        <input type="file" class="file">
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
+    <h1 class="page-title"><span class="gray">@projectInst.owner/@projectInst.name/</span>Setting</h1>
+    <div class="bubble-wrap gray">
+        <form class="nm" action="@routes.ProjectApp.saveSetting(projectInst.owner, projectInst.name)" method="post" enctype="multipart/form-data" id="saveSetting">
+            <input type="hidden" name="id" value="@projectForm("id").value.toLong">
+            <div class="box-wrap top clearfix">
+                <div class="setting-box left">
+                    <div class="logo-wrap">
+                        @if(projectForm("logoPath").value != null) {
+                        <img src="/assets/uploadFiles/@projectForm("logoPath").value" alt="project-logo">
+                        } else {
+                        <img src="@routes.Assets.at("images/bg-default-project.png")" alt="project-logo">
+                        }
                     </div>
-                    <div class="setting-box right">
-                        <div class="n-alert">
-                            <div class="n-inner">
-                                <span class="msg">잘못된 프로젝트 이름입니다.</span>
-                                <a href="#!/close" class="ico btn-delete"></a>
-                            </div>
-                        </div>
-                        <label for="project-name">
-                            <input class="text" type="text" name="project-name" placeholder="프로젝트 이름을 입력해주세요." id="project-name">
-                        </label>
-                        <label for="project-desc">
-                            <textarea class="textarea" id="project-desc" name="project-desc" placeholder="프로젝트 설명을 입력해주세요."></textarea>
-                        </label>
+                    <div class="logo-desc">
+                        <ul class="unstyled descs">
+                            <li><strong>LOGO</strong></li>
+                            <li>파일형식 <span class="point">bmp, jpg, gif, png</span></li>
+                            <li>파일크기 <span class="point">1MB (이하)</span></li>
+                            <li>사이즈 <span class="point">234px * 168px</span></li>
+                            <li>
+                                <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
+                                    <input type="file" class="file" name="logoPath">
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-                <div class="box-wrap middle">
-                    <div class="cu-label">공개설정</div>
-                    <div class="cu-desc">
-                        <input name="exhibition" type="radio" checked="checked" id="public" value="public" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
-                        <input name="exhibition" type="radio" id="private" value="private" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
-                        <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
+                <div class="setting-box right">
+                    <div class="n-alert">
+                        <div class="n-inner">
+                            <span class="msg">잘못된 프로젝트 이름입니다.</span>
+                            <a href="#!/close" class="ico btn-delete"></a>
+                        </div>
                     </div>
-                </div>
-                <div class="box-wrap bottom">
-                    <button class="btn-transparent n-btn blue med">SAVE</button>
-                </div>
-            </form>
-        </div>
-        <div class="bubble-wrap gray wp">
-            <div class="n-alert project-del">
-                <div class="n-inner">
-                    <span class="msg">프로젝트 삭제에 동의하여야 합니다.</span>
-                    <a href="#!/close" class="ico btn-delete"></a>
+                    <label for="project-name">
+                        <input class="text" type="text" name="name" placeholder="프로젝트 이름을 입력해주세요." id="project-name" value="@projectInst.name">
+                    </label>
+                    <label for="project-desc">
+                        <textarea class="textarea" id="project-desc" name="overview" placeholder="프로젝트 설명을 입력해주세요.">@projectInst.overview</textarea>
+                    </label>
                 </div>
             </div>
-            <div class="cu-label">프로젝트 삭제</div>
-            <div class="cu-desc">
-                <p><strong class="notice">프로젝트를 삭제하게되면 코드, 위키, 이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다.</strong></p>
-                <p><input type="checkbox" class="checkbox" autocomplete="off" id="agreement"><label for="agreement" class="bg-checkbox">프로젝트를 삭제하는데 동의 합니다.</label>
-                    <a href="/project-delete" class="n-btn small black"><i class="ico ico-delete-small"></i>DELETE YOUR PROJECT</a>
-                </p>
+            <div class="box-wrap middle">
+                <div class="cu-label">공개설정</div>
+                <div class="cu-desc">
+                    <input name="share_option" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
+                    <input name="share_option" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
+                    <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
+                </div>
             </div>
-        </div>
-
-
-
-
-
-
-    @form(action = routes.ProjectApp.saveSetting(projectInst.owner, projectInst.name), 'class -> "form-horizontal", 'enctype -> "multipart/form-data", 'id -> "saveSetting"){
-        <div class="row">
-            <fieldset>    
-                <input type="hidden" name="id" value="@projectForm("id").value.toLong">             
-                <div class="icon-question-sign" href = "#" id="project_name" rel="popover"
-                    data-content="@Messages("project.name.alert")"
-                    data-original-title="@Messages("project.name.rule")"
-                ></div>
-                @inputText(
-                    projectForm("name"),
-                    '_label -> Messages("project.name"),
-                    '_help -> Messages("input.mandatory")
-                )
-                <div class="alert alert-danger hide" id="nameAlert">
-                    <a class="close" data-dismiss="alert">×</a>
-                    <strong>@Messages("project.name.alert")</strong>
-                </div>
-                
-                @textarea(
-                    projectForm("overview"),
-                    '_label -> Messages("project.description"),
-                    '_help -> Messages("input.optional")
-                )
-                
-                <div class="thumbnail">
-                @if(projectForm("logoPath").value != null) {
-                    <img src="http://localhost:9000/assets/uploadFiles/@projectForm("logoPath").value" alt="" width="234" height="168">
-                    
-                } else {
-                    <img src="@routes.Assets.at("images/project_image_default.jpg")" alt="" width="234" height="168">
-                }
-                    <p>@Messages("project.logo.type")</p>
-                    <p>@Messages("project.logo.fileSize")</p>
-                    <p>@Messages("project.logo.size")</p>
-                </div>                                
-                                
-                @inputFile(
-                    projectForm("logoPath"),
-                    '_label -> Messages("project.logo")
-                )
-                <div class="alert alert-danger hide" id="logoTypeAlert">
-                    <a class="close" data-dismiss="alert">×</a>
-                    <strong>@Messages("project.logo.alert")</strong>
-                </div>
-                
-                <div class="icon-question-sign" href = "#" id="share_option_explanation" rel="popover"
-                    data-content="@Messages("project.shareOption.private.description")"
-                    data-original-title="@Messages("project.shareOption")"
-                ></div>
-                @inputRadioGroup(
-                    projectForm("share_option"),
-                    options = options("false"->Messages("project.shareOption.private"), "true"->Messages("project.shareOption.public")),
-                    '_label -> Messages("project.shareOption")
-                )
-                @inputRadioGroup(
-                    projectForm("isAuthorEditable"),
-                    options = options("false"->Messages("project.isAuthorEditable.off"), "true"->Messages("project.isAuthorEditable.on")),
-                    '_label -> Messages("project.isAuthorEditable")
-                )
-                
-                @inputText(
-                    projectForm("siteurl"),
-                    '_label -> Messages("project.siteurl"),
-                    '_showConstraints -> false
-                )
-                <div class="alert alert-danger hide" id="urlAlert">
-                    <a class="close" data-dismiss="alert">×</a>
-                    <strong>@Messages("project.siteurl.alert")</strong>
-                </div>
-            </fieldset>
-        </div>
-        <div class="row">
-            <div class="actions">
-                <input type="submit" class="btn btn-primary" value="@Messages("button.save")" id="save">
+            <div class="box-wrap bottom">
+                <button class="btn-transparent n-btn blue med" type="submit">SAVE</button>
             </div>
-        </div>
-    }
-    
-    <div class="alert alert-danger hide" id="acceptAlert">
-        <a class="close" data-dismiss="alert">×</a>
-        <strong>@Messages("project.delete.alert")</strong>
+            <!-- 현재 레이아웃에 존재하지 않는 기능 -->
+            <input type="hidden" name="isAuthorEditable" value="true"/>
+            <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(projectInst.owner, projectInst.name)"/>
+        </form>
     </div>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th><strong>@Messages("project.delete")</strong></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <p align="left"><strong>@Messages("project.delete.description")</strong></p>
-                    <p align="right">
-                        <input type="checkbox" id="accept"> <span>@Messages("project.delete.accept")</span>
-                    </p>
-                    <a id="deletion" data-toggle="modal" href="#alertDeletion" class="btn btn-danger">@Messages("project.delete")</a>
-                </td>    
-            </tr>
-        </tbody>
-    </table>
-    
-    <div class="modal hide" id="alertDeletion">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal">×</button>
-            <h3>@Messages("project.delete.requestion")</h3>
+    <div class="bubble-wrap gray wp">
+        <div class="n-alert project-del">
+            <div class="n-inner hide" id="acceptAlert">
+                <span class="msg">프로젝트 삭제에 동의하여야 합니다.</span>
+                <a class="ico btn-delete" data-dismiss="alert"></a>
+            </div>
         </div>
-        <div class="modal-body">
-            <p> @Messages("project.delete.description")</p>
-            <p> @Messages("project.delete.reaccept") </p>
-        </div>
-        <div class="modal-footer">
-            <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-            <a href="@routes.ProjectApp.deleteProject(projectInst.owner, projectInst.name)" class="btn btn-danger">@Messages("button.yes")</a>
+        <div class="cu-label">프로젝트 삭제</div>
+        <div class="cu-desc">
+            <p><strong class="notice">프로젝트를 삭제하게되면 코드, 위키, 이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다.</strong></p>
+            <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="agreement" class="bg-checkbox">프로젝트를 삭제하는데 동의 합니다.</label>
+                <a id="deletion" data-toggle="modal" href="#alertDeletion" class="n-btn small black"><i class="ico ico-delete-small"></i>DELETE YOUR PROJECT</a>
+            </p>
         </div>
     </div>
 
-    <script>nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.urlCheck", "project.acceptCheck"], "deletion");</script>    
+
+<div class="modal hide" id="alertDeletion">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>@Messages("project.delete.requestion")</h3>
+    </div>
+    <div class="modal-body">
+        <p> @Messages("project.delete.description")</p>
+        <p> @Messages("project.delete.reaccept") </p>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+        <a href="@routes.ProjectApp.deleteProject(projectInst.owner, projectInst.name)" class="btn btn-danger">@Messages("button.yes")</a>
+    </div>
+</div>
+<script>nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.urlCheck", "project.acceptCheck"], "deletion");</script>    
 }

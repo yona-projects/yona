@@ -1,0 +1,22 @@
+@(currPage: String, projectInst: Project)
+@isActiveMenu(calls: Call*) = @{
+    var menuState = ""
+    for(call <- calls) {
+        if(call.toString().equals(request().path().toString())) {
+            menuState = "selected"
+        }
+    }
+    menuState
+}
+@makeMenu(call:Call, name:String) = {
+    <li class="menu @isActiveMenu(call)"><a href="@call">@name</a></li>
+}
+<div class="sub-menu-wrap">
+    <ul class="sub-menus">
+        @makeMenu(routes.ProjectApp.setting(projectInst.owner, projectInst.name), "SETTING")
+        @makeMenu(routes.ProjectApp.members(projectInst.owner, projectInst.name), "MEMBER")
+        @makeMenu(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name), "MILESTONE")
+        @makeMenu(routes.Application.index(), "PLUGIN")
+        <li class="menu"></li>
+    </ul>
+</div>

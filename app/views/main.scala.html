@@ -1,11 +1,14 @@
 @(title:String, project:Project)(content: Html)
 
 @layout(Messages(title))("") {
-    @topmenu(project)
+    <header class="gnb-outer">
+      @topmenu(project)
+      <div class="sub-menu-sp"></div>
+      @sidemenu(project)
+    </header>
     <div class="container page-wrap">
       <div class="page">
 	    @views.html.alert()
-
         @content    
       </div>
     </div>
