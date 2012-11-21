@@ -60,9 +60,11 @@
         </div>
     </div>
     <script>
-    $("#vcs_dropdown").click(function(e){
-      var data = $(e.srcElement).attr("value");
-      var msg = $(e.srcElement).text();
+    $("#vcs_dropdown li a").click(function(e){
+      var $target = $(this);
+
+      var data = $target.attr("value");
+      var msg = $target.text();
       $("#vcs").attr("value",data);
       $("#vcs_msg").text(msg);
     });

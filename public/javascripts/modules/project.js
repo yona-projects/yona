@@ -5,13 +5,13 @@ nforge.project.nameCheck = function() {
 		init : function() {
 			$("#save").click(function() {
 				var reg_name = /^[a-zA-Z0-9_]+$/;
-				if(!reg_name.test($("input#name").val())) {
-			        $("#nameAlert").show();
-			        return false;
-			    }else {
-			    	$("#nameAlert").hide();
+				if(!reg_name.test($("input#project-name").val())) {
+		      $("#alert_msg").show();
+		      return false;
+			  } else {
+			    $("#alert_msg").hide();
 					return true;
-			    }
+			  }
 			});
 		}
 	};
@@ -25,13 +25,13 @@ nforge.project.urlCheck = function() {
 				var reg_url = /^http?:\/\//;
 
 				if($("input#siteurl").val()!="" && !reg_url.test($("input#siteurl").val())) {
-                    $("#urlAlert").show();
-                    return false;
-                }else {
-                	$("#urlAlert").hide();
-                	return true;
-                }
-				
+          $("#urlAlert").show();
+          return false;
+        }else {
+        	$("#urlAlert").hide();
+        	return true;
+        }
+
 			});
 		}
 	};
@@ -43,12 +43,12 @@ nforge.project.acceptCheck = function() {
 		init : function(id) {
 			$("#"+id).click(function() {
 				if($("#accept").is(":not(:checked)")) {
-	                $("#acceptAlert").show();
-	                return false;
-	            }else {
-	            	$("#acceptAlert").hide();
+          $("#acceptAlert").show();
+          return false;
+        }else {
+        	$("#acceptAlert").hide();
 					return true;	
-	            }
+        }
 			});
 		}
 	};
@@ -60,13 +60,13 @@ nforge.project.logoCheck = function() {
 		init : function() {
 			$("#logoPath").change(function(){
 				var reg_type = /\.(gif|bmp|jpg|jpeg|png)$/i;
-                if (!reg_type.test($(this).val())) {
-                    $("#logoTypeAlert").show(); 
-                    $(this).val('');
-                } else { 
-                    return $("form#saveSetting").submit(); 
-                }
-            });
+        if (!reg_type.test($(this).val())) {
+            $("#logoTypeAlert").show(); 
+            $(this).val('');
+        } else { 
+            return $("form#saveSetting").submit(); 
+        }
+      });
 		}
 	};
 	return that;
