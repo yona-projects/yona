@@ -33,7 +33,7 @@
                         <div class="option-label">코드관리시스템</div>
                         <div class="option-desc">
                             <div class="btn-group">
-                                <button data-toggle="dropdown" class="btn">Git</button>
+                                <button data-toggle="dropdown" class="btn" id="vcs_msg">Git</button>
                                 <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
                                 <ul class="dropdown-menu" id="vcs_dropdown">
                                     @RepositoryService.vcsTypes.map{ v =>
@@ -61,8 +61,10 @@
     </div>
     <script>
     $("#vcs_dropdown").click(function(e){
-      console.log($(e.srcElement).val());
-      $("#vcs").attr("value",$(e.srcElement).val());
+      var data = $(e.srcElement).attr("value");
+      var msg = $(e.srcElement).text();
+      $("#vcs").attr("value",data);
+      $("#vcs_msg").text(msg);
     });
     </script>
 }
