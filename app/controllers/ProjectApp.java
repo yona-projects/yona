@@ -177,4 +177,8 @@ public class ProjectApp extends Controller {
     public static Page<Project> projectList(int pageNum) {
         return Project.projects(pageNum);
     }
+    
+    public static Result projects() {
+    	return ok(views.html.underconstruction.render(""));
+    }
 }
