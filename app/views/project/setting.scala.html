@@ -1,13 +1,13 @@
-@(message: String)(projectForm: Form[Project], projectInst:Project)
+@(message: String)(projectForm: Form[Project], project:Project)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 
 
-@projectMngMain(message, projectInst) {
-    <h1 class="page-title"><span class="gray">@projectInst.owner/@projectInst.name/</span>Setting</h1>
+@projectMngMain(message, project) {
+    <h1 class="page-title"><span class="gray">@project.owner/@project.name/</span>Setting</h1>
     <div class="bubble-wrap gray">
-        <form class="nm" action="@routes.ProjectApp.saveSetting(projectInst.owner, projectInst.name)" method="post" enctype="multipart/form-data" id="saveSetting">
+        <form class="nm" action="@routes.ProjectApp.saveSetting(project.owner, project.name)" method="post" enctype="multipart/form-data" id="saveSetting">
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">
             <div class="box-wrap top clearfix">
                 <div class="setting-box left">
@@ -33,17 +33,17 @@
                     </div>
                 </div>
                 <div class="setting-box right">
-                    <div class="n-alert">
+                    <div class="n-alert hide" id="alert_msg">
                         <div class="n-inner">
                             <span class="msg">잘못된 프로젝트 이름입니다.</span>
-                            <a href="#!/close" class="ico btn-delete"></a>
+                            <a href="#" class="ico btn-delete" data-dismiss="alert"></a>
                         </div>
                     </div>
                     <label for="project-name">
-                        <input class="text" type="text" name="name" placeholder="프로젝트 이름을 입력해주세요." id="project-name" value="@projectInst.name">
+                        <input class="text" type="text" name="name" placeholder="프로젝트 이름을 입력해주세요." id="project-name" value="@project.name">
                     </label>
                     <label for="project-desc">
-                        <textarea class="textarea" id="project-desc" name="overview" placeholder="프로젝트 설명을 입력해주세요.">@projectInst.overview</textarea>
+                        <textarea class="textarea" id="project-desc" name="overview" placeholder="프로젝트 설명을 입력해주세요.">@project.overview</textarea>
                     </label>
                 </div>
             </div>
@@ -56,11 +56,11 @@
                 </div>
             </div>
             <div class="box-wrap bottom">
-                <button class="btn-transparent n-btn blue med" type="submit">SAVE</button>
+                <button class="btn-transparent n-btn blue med" type="submit" id="save">SAVE</button>
             </div>
             <!-- 현재 레이아웃에 존재하지 않는 기능 -->
             <input type="hidden" name="isAuthorEditable" value="true"/>
-            <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(projectInst.owner, projectInst.name)"/>
+            <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(project.owner, project.name)"/>
         </form>
     </div>
     <div class="bubble-wrap gray wp">
@@ -91,8 +91,8 @@
     </div>
     <div class="modal-footer">
         <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-        <a href="@routes.ProjectApp.deleteProject(projectInst.owner, projectInst.name)" class="btn btn-danger">@Messages("button.yes")</a>
+        <a href="@routes.ProjectApp.deleteProject(project.owner, project.name)" class="btn btn-danger">@Messages("button.yes")</a>
     </div>
 </div>
-<script>nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.urlCheck", "project.acceptCheck"], "deletion");</script>    
+<script>nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.acceptCheck"], "deletion");</script>    
 }
