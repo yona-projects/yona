@@ -1,6 +1,5 @@
 package controllers;
 
-
 import java.io.File;
 
 import models.Project;
@@ -35,7 +34,8 @@ public class ProjectApp extends Controller {
     }
 
     public static Result project(String userName, String projectName) {
-        return ok(projectHome.render("title.projectHome", getProject(userName, projectName)));
+        return ok(projectHome.render("title.projectHome",
+                getProject(userName, projectName)));
     }
 
     public static Result newProject() {
@@ -43,7 +43,8 @@ public class ProjectApp extends Controller {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.Application.index());
         } else
-            return ok(newProject.render("title.newProject", form(Project.class)));
+            return ok(newProject
+                    .render("title.newProject", form(Project.class)));
     }
 
     public static Result setting(String userName, String projectName) {
@@ -54,10 +55,11 @@ public class ProjectApp extends Controller {
 
     @Transactional
     public static Result saveProject() throws Exception {
-        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
+        Form<Project> filledNewProjectForm = form(Project.class)
+                .bindFromRequest();
 
-        if (Project.isProject(UserApp.currentUser().loginId, filledNewProjectForm.field("name")
-                .value())) {
+        if (Project.isProject(UserApp.currentUser().loginId,
+                filledNewProjectForm.field("name").value())) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledNewProjectForm.reject("name");
         }
@@ -65,7 +67,8 @@ public class ProjectApp extends Controller {
         if (filledNewProjectForm.hasErrors()) {
             filledNewProjectForm.reject("name");
             flash(Constants.WARNING, filledNewProjectForm.errors().toString());
-            return badRequest(newProject.render("title.newProject", filledNewProjectForm));
+            return badRequest(newProject.render("title.newProject",
+                    filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             project.owner = UserApp.currentUser().loginId;
@@ -74,12 +77,14 @@ public class ProjectApp extends Controller {
 
             RepositoryService.createRepository(project);
 
-            return redirect(routes.ProjectApp.project(project.owner, project.name));
+            return redirect(routes.ProjectApp.project(project.owner,
+                    project.name));
         }
     }
 
     public static Result saveSetting(String userName, String projectName) {
-        Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
+        Form<Project> filledUpdatedProjectForm = form(Project.class)
+                .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
 
         if (!Project.projectNameChangeable(project.id, userName, project.name)) {
@@ -90,9 +95,6 @@ public class ProjectApp extends Controller {
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
         
-        for(String suffix : LOGO_TYPE){
-        	filePart.getFilename().endsWith(suffix);
-        }
         if (filePart != null) {
         	if(!isImageFile(filePart.getFilename())) {
         		flash(Constants.WARNING, "project.logo.alert");
@@ -105,7 +107,8 @@ public class ProjectApp extends Controller {
                 String string = filePart.getFilename();
                 string = string.substring(string.lastIndexOf("."));
 
-                File file = new File(Constants.DEFAULT_LOGO_PATH + projectName + string);
+                File file = new File(Constants.DEFAULT_LOGO_PATH + projectName
+                        + string);
                 if (file.exists())
                     file.delete();
                 filePart.getFile().renameTo(file);
@@ -115,16 +118,16 @@ public class ProjectApp extends Controller {
         }
 
         if (filledUpdatedProjectForm.hasErrors()) {
-            return badRequest(setting.render("title.projectSetting", filledUpdatedProjectForm,
-                    Project.findById(project.id)));
+            return badRequest(setting.render("title.projectSetting",
+                    filledUpdatedProjectForm, Project.findById(project.id)));
         } else {
-        	Logger.debug(project.siteurl);
-        	
+            Logger.debug(project.siteurl);
+
             project.update();
             return redirect(routes.ProjectApp.setting(userName, project.name));
         }
     }
-    
+
     public static boolean isImageFile(String filename) {
     	boolean isImageFile = false;
     	for(String suffix : LOGO_TYPE){
@@ -136,34 +139,42 @@ public class ProjectApp extends Controller {
     
     public static Result deleteProject(String userName, String projectName) throws Exception {
         Project project = getProject(userName, projectName);
-        RepositoryService.deleteRepository(userName, projectName, project.vcs);
-        Project.delete(project.id);
-        return redirect(routes.Application.index());
+        if (ProjectUser.isManager(UserApp.currentUser().id, project.id)) {
+            RepositoryService.deleteRepository(userName, projectName, project.vcs);
+            Project.delete(project.id);
+            return redirect(routes.Application.index());
+        } else {
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.setting(userName, projectName));
+        }
     }
 
     public static Result members(String userName, String projectName) {
         Project project = getProject(userName, projectName);
         return ok(memberList.render("title.memberList",
-                ProjectUser.findMemberListByProject(project.id), project, Role.getActiveRoles()));
+                ProjectUser.findMemberListByProject(project.id), project,
+                Role.getActiveRoles()));
     }
 
     public static Result newMember(String userName, String projectName) {
-        User user = User.findByLoginId(form(User.class).bindFromRequest().get().loginId);
+        User user = User
+                .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         if (user == null) {
             flash(Constants.WARNING, "project.member.notExist");
             return redirect(routes.ProjectApp.members(userName, projectName));
         }
         Project project = getProject(userName, projectName);
-        if(!ProjectUser.isMember(user.id, project.id))
+        if (!ProjectUser.isMember(user.id, project.id))
             ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
-        else    
+        else
             flash(Constants.WARNING, "project.member.alreadyMember");
         return redirect(routes.ProjectApp.members(userName, projectName));
     }
 
-    public static Result deleteMember(String userName, String projectName, Long userId) {
+    public static Result deleteMember(String userName, String projectName,
+            Long userId) {
         Long projectId = getProject(userName, projectName).id;
-        if (isManager(userId, projectId)) {
+        if (ProjectUser.isManager(UserApp.currentUser().id, projectId)) {
             ProjectUser.delete(userId, projectId);
             return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
@@ -174,28 +185,28 @@ public class ProjectApp extends Controller {
 
     public static Result updateMember(String userName, String projectName, Long userId) {
         Long projectId = getProject(userName, projectName).id;
-        if (isManager(userId, projectId)) {
-            ProjectUser.assignRole(userId, projectId, form(Role.class).bindFromRequest().get().id);
-            return redirect(routes.ProjectApp.members(userName, projectName));
+        if(ProjectUser.isManager(UserApp.currentUser().id, projectId)){
+            ProjectUser.assignRole(userId, projectId, form(Role.class)
+                    .bindFromRequest().get().id);
+            if(ProjectUser.checkOneMangerPerOneProject(projectId)){
+                return redirect(routes.ProjectApp.members(userName, projectName));
+            } else {
+                Logger.info("test12");
+                ProjectUser.assignRole(userId, projectId, RoleType.MANAGER);
+                flash(Constants.WARNING, "project.member.isManager");
+                return redirect(routes.ProjectApp.members(userName, projectName));
+            }
         } else {
             flash(Constants.WARNING, "project.member.isManager");
             return redirect(routes.ProjectApp.members(userName, projectName));
         }
     }
 
-    public static boolean isManager(Long userId, Long projectId) {
-        if (Role.findRoleByIds(userId, projectId).id.equals(RoleType.MANAGER))
-            return ProjectUser.checkOneMangerPerOneProject(projectId);
-        else
-            return false;
-
-    }
-
     public static Page<Project> projectList(int pageNum) {
         return Project.projects(pageNum);
     }
-    
+
     public static Result projects() {
-    	return ok(views.html.underconstruction.render("projects"));
+        return ok(views.html.underconstruction.render("projects"));
     }
 }

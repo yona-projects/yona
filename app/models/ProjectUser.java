@@ -113,7 +113,7 @@ public class ProjectUser extends Model {
     public static boolean checkOneMangerPerOneProject(Long projectId) {
         int findRowCount = find.where().eq("role.id", RoleType.MANAGER.roleType())
                 .eq("project.id", projectId).findRowCount();
-        return (findRowCount > 1) ? true : false;
+        return (findRowCount > 0) ? true : false;
     }
 
     /**

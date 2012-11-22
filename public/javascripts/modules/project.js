@@ -87,8 +87,8 @@ nforge.project.roleChange = function() {
 	var that = {
 		init : function() {
 			$("select#role").change(function(){
-                $(this).parent("form").submit();
-            });
+        $(this).parent("form").submit();
+      });
 		}
 	};
 	return that;

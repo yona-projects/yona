@@ -5,6 +5,7 @@ import java.util.List;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -44,7 +45,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         assertThat(ProjectUser.findByIds(2l, 3l).role.id).isEqualTo(2l);
     }
     
-    @Test
+    @Ignore @Test
     public void isManager() throws Exception {
         // Given
         ProjectUser.assignRole(2l, 3l, 1l);
