@@ -28,6 +28,7 @@ import com.avaje.ebean.Page;
  * @author "Hwi Ahn"
  */
 public class ProjectApp extends Controller {
+	public static final String[] LOGO_TYPE = {"jpg", "png", "gif", "bmp"};
 
     public static Project getProject(String userName, String projectName) {
         return Project.findByNameAndOwner(userName, projectName);
@@ -88,9 +89,16 @@ public class ProjectApp extends Controller {
 
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
-
+        
+        for(String suffix : LOGO_TYPE){
+        	filePart.getFilename().endsWith(suffix);
+        }
         if (filePart != null) {
-            if (filePart.getFile().length() > 1048576) {
+        	if(!isImageFile(filePart.getFilename())) {
+        		flash(Constants.WARNING, "project.logo.alert");
+        		filledUpdatedProjectForm.reject("logoPath");
+        	}
+        	else if (filePart.getFile().length() > 1048576) {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
                 filledUpdatedProjectForm.reject("logoPath");
             } else {
@@ -116,7 +124,16 @@ public class ProjectApp extends Controller {
             return redirect(routes.ProjectApp.setting(userName, project.name));
         }
     }
-
+    
+    public static boolean isImageFile(String filename) {
+    	boolean isImageFile = false;
+    	for(String suffix : LOGO_TYPE){
+    		if(filename.toLowerCase().endsWith(suffix)) 
+    			isImageFile=true;
+    		}
+    	return isImageFile;
+    }
+    
     public static Result deleteProject(String userName, String projectName) throws Exception {
         Project project = getProject(userName, projectName);
         RepositoryService.deleteRepository(userName, projectName, project.vcs);
