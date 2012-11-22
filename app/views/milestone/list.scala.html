@@ -87,10 +87,10 @@
                         <div class="bar orange" style="width: @milestone.completionRate%;"></div>
                     </div>
                     <div class="pull-left">
-                        <a href="@makeIssuesLink(milestone.id,"closed")">완료 @milestone.numClosedIssues (40%)</a>
+                        <a href="@makeIssuesLink(milestone.id,"closed")">완료 @milestone.numClosedIssues (@milestone.completionRate%)</a>
                     </div>
                     <div class="pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")">미완료 @milestone.numOpenIssues (60%)</a>
+                        <a href="@makeIssuesLink(milestone.id,"open")">미완료 @milestone.numOpenIssues (@{100 - milestone.completionRate}%)</a>
                     </div>
                 </div>
                 <div class="desc">
