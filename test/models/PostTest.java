@@ -33,7 +33,7 @@ public class PostTest extends ModelTest<Post> {
         // Given
         // When
         Page<Post> page = Post.findOnePage("hobi", "nForge4java", 1, Direction.DESC,
-                BoardApp.SearchCondition.ORDERING_KEY_ID);
+                BoardApp.SearchCondition.ORDERING_KEY_ID, "");
         // Then
         assertThat(page.getList()).hasSize(1);
     }

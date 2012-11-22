@@ -6,6 +6,7 @@ package controllers;
 
 import models.*;
 import models.enumeration.*;
+import play.Logger;
 import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
@@ -23,6 +24,7 @@ public class BoardApp extends Controller {
         public final static String ORDERING_KEY_ID = "id";
         public final static String ORDERING_KEY_TITLE = "title";
         public final static String ORDERING_KEY_AGE = "date";
+        public final static String ORDERING_KEY_AUTHOR = "authorName";
         
         public SearchCondition() {
             this.order = Direction.DESC.direction();
@@ -44,11 +46,12 @@ public class BoardApp extends Controller {
         SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
         Project project = ProjectApp.getProject(userName, projectName);
 
+        Logger.debug(postSearchCondition.filter);
         return ok(postList.render(
                 "menu.board",
                 project,
                 Post.findOnePage(project.owner, project.name, postSearchCondition.pageNum,
-                        Direction.getValue(postSearchCondition.order), postSearchCondition.key), postSearchCondition));
+                        Direction.getValue(postSearchCondition.order), postSearchCondition.key, postSearchCondition.filter), postSearchCondition));
     }
 
     public static Result newPost(String userName, String projectName) {

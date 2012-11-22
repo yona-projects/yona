@@ -69,10 +69,11 @@ public class Post extends Model {
      * @return
      */
     public static Page<Post> findOnePage(String ownerName, String projectName, int pageNum,
-            Direction direction, String key) {
+            Direction direction, String key, String filter) {
         SearchParams searchParam = new SearchParams()
             .add("project.owner", ownerName, Matching.EQUALS)
-            .add("project.name", projectName, Matching.EQUALS);
+            .add("project.name", projectName, Matching.EQUALS)
+            .add("contents", filter, Matching.CONTAINS);
         OrderParams orderParams = new OrderParams().add(key, direction);
         return FinderTemplate.getPage(orderParams, searchParam, finder, 10, pageNum - 1);
     }
