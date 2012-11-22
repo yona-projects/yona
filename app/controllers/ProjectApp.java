@@ -170,7 +170,7 @@ public class ProjectApp extends Controller {
         if (Role.findRoleByIds(userId, projectId).id.equals(RoleType.MANAGER))
             return ProjectUser.checkOneMangerPerOneProject(projectId);
         else
-            return true;
+            return false;
 
     }
 
