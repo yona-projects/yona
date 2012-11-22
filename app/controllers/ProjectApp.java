@@ -86,6 +86,11 @@ public class ProjectApp extends Controller {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
+          
+        if(!ProjectUser.isManager(UserApp.currentUser().id, project.id)){
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.setting(userName, project.name));
+        }
 
         if (!Project.projectNameChangeable(project.id, userName, project.name)) {
             flash(Constants.WARNING, "project.name.duplicate");

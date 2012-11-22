@@ -44,7 +44,7 @@
             <form action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
 	            <td colspan="2">
 	                <input type="text" id="loginId" name="loginId" class="span8"
-	                placeholder="@Messages("project.members.addMember")">
+	                placeholder="@Messages("project.members.addMember")" pattern="[a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")">
 	            </td>
 	            <td>
 	                <input type="submit" class="btn btn-primary" value="@Messages("button.add")">
