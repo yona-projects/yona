@@ -220,6 +220,8 @@ site.userList.isActive = Active Status
 site.userList.deleteAlert = Project's unique manager cannot be deleted.
 site.user.delete = Delete an user
 site.user.deleteConfirm = Are you sure that his user leaves this site?
+site.project.delete = Delete an project
+site.project.deleteConfirm = Do you want to delete this project?
 
 #User
 user.loginId = Login ID
