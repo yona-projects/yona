@@ -1,0 +1,52 @@
+section.line {
+  width: 150px;
+  float: left;
+  border: 2px solid #666666;
+  background: #fafafa;
+  margin-right: 5px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: move;
+}
+
+section.line header {
+  padding: 5px;
+  background-color: #dadada;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+article.card {
+  background: #b9a;
+  margin: 4px;
+  border-radius: 3px;
+  border: 1px solid gray;
+  min-height: 20px;
+}
+
+.cardlist {
+  border: 2px solid #f1f1f1;
+  background: #f1f1f1;
+}
+
+.over {
+  border: 2px dashed #000;
+}
+
+.dragTargetCard {
+  background-color: dadada;
+  color: dadada;
+}
+
+.blank {
+  min-height: 3px;
+}
+
+.overBlank {
+  min-height: 25px;
+  background-color: #ddd;
+}
+
+.fade {
+  background: #333;
+}
