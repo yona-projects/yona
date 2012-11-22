@@ -7,6 +7,7 @@
     content
   }
 }
+@import utils.TemplateHelper._
 
     <div class="gnb-inner">
         <div class="gnb-knob left"><i class="ico gnb-left"></i></div>
@@ -39,7 +40,7 @@
             </ul>
             <ul class="gnb-menus right unstyled">
                 @if(session.contains("userId")){
-                <li><a href="@routes.UserApp.info()" class="img-rounded"><img class="user-thumb" src="/assets/images/default-avatar-34.png" alt="avatar" width="24" height="24">@session.get("userName")</a></li>
+                <li><a href="@routes.UserApp.info()" class="img-rounded"><img class="user-thumb" src="@urlToPicture(User.findById(session.get("userId").toLong).email, 24)" alt="avatar" width="24" height="24">@session.get("userName")</a></li>
                 <li class="sp-line">|</li>
                 <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
                 } else {

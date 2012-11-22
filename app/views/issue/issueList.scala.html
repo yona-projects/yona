@@ -64,23 +64,21 @@
       <span selected>▼댓글순</span>
   </p>
 
-  <table>
+  <table class="table issue-list">
     <tbody>
 
-      @for(issue <- currentPage.getList.reverse){
+      @for(issue <- currentPage.getList){
         <tr>
           <td class="no">@issue.id</td>
           <td class="attachmend attached">@if(Attachment.findByContainer(Resource.ISSUE_POST, issue.id).size > 0){<span class="icon-file"/>}</td>
           <td class="info">
             <p><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a></p>
-            <p class="author">by <a href="/users/@issue.authorId">@issue.authorName</a>
-            </a> @agoString(issue.ago())</p>
+            <p class="author">by <a href="/users/@issue.authorId">@Option(issue.getAuthorName).orElse(Option(Messages("issue.noAuthor"))).get</a>@agoString(issue.ago)</p>
           </td>
           <td class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</td>
           <td class="comments">@issue.numOfComments</td>
-          <td class="assignee"><a href="#"><img class="user-picture" src="/assets/images/default-avatar-34.png"></a>
-              <span>@{ if (issue.assigneeId == null) Messages("issue.noAssignee")
-                else issue.assigneeName }</span>
+          <td class="assignee">
+            <a href="#"><img class="user-picture" src="@urlToPicture(User.findById(issue.authorId).email, 34)"></a>
           </td>
 
         </tr>

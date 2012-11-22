@@ -4,6 +4,7 @@ import play.mvc.Call
 import org.joda.time.DateTimeConstants
 import play.i18n.Messages
 import controllers.routes
+import java.security.MessageDigest
 
 object TemplateHelper {
 
@@ -51,4 +52,9 @@ object TemplateHelper {
     if (play.Play.isProd) minified = ".min"
     routes.Assets.at(base + "/" + name + minified + "." + _type).toString
   }
+
+  def urlToPicture(email: String, size: Int = 34) = {
+    "http://www.gravatar.com/avatar/" + MessageDigest.getInstance("MD5").digest(email.toLowerCase.getBytes).map("%02x".format(_)).mkString + "?s=" + size
+  }
+
 }

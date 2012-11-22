@@ -1,9 +1,13 @@
-@(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project) 
-@import helper._ 
+@(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project)
+@import helper._
 @import scala.collection.mutable.Map
 @import models.enumeration.Resource
+@import models.Milestone
+@import java.text.SimpleDateFormat
+@import java.security.MessageDigest
+@import utils.TemplateHelper._
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
   roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT, issue.id){
@@ -15,168 +19,147 @@
 @@IMPORT url("/assets/stylesheets/issue.css");
 </style>
 
-<div class="row">
-	<div class="span2 offset10">
-		<div id="board_btn_panel">
-		@isVisible(models.enumeration.Resource.ISSUE_POST) {
-			<a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a> <a
-				data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
-		} 
-			<a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
-		</div>
-	</div>
+<div class="page-padding">
+  <ul class="breadcrumb page-navi pull-right">
+      <li><a href="#" class="icon-home"></a><span class="divider">&gt;</span></li>
+      <li><a href="#">project home</a><span class="divider">&gt;</span></li>
+      <li class="active">Issue</li>
+  </ul>
+
+  <ul class="breadcrumb project-name">
+      <li><a href="#">@project.owner</a><span class="divider">/</span></li>
+      <li class="active"><a href="#">@project.name</a></li>
+  </ul>
 </div>
+
 <!-- 메인 글 -->
-<div>
-	<div class="row">
-		<div class="span1">
-			<span class="badge">#@issue.id</span></br>
-			<span class="badge">@Messages(issue.state.state)</span>
-		</div>
+<article>
 
-		<div class="span11">
-			<h1>@issue.title</h1>
-            <p>@for(label <- issue.labels) { <button class="issue-label" labelId="@label.id">@label.name</button> } </p>
-			<div>
-				<span>@issue.reporterName이 @agoString(issue.ago())에 작성함</span> |
-                <span>@issue.date</span>
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="span1">
-			<img class="pull-right" src="http://placehold.it/50x50" />
-		</div>
-		<div class="span11">
-			<div>
-				<div id="body" markdown resourceType=@Resource.ISSUE_POST resourceId="@issue.id">@issue.body</div>
-			</div>
-		</div>
-		<a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-	</div>
-	</br></br>
+  <hgroup class="row-fluid">
+    <div class="span1">
+      <img class="user-picture" src="@urlToPicture(User.findById(issue.authorId).email, 34)" />
+    </div>
+    <div class="info">
+      <p>
+        <span class="title">@issue.title</span>
+        <span class="pull-right">
+          <span>@issue.id</span>
+          <span class="badge badge-info">@Messages(issue.state.state)</span>
+        </span>
+      </p>
+      <p class="author">by <a href="/users/@issue.authorId">@Option(issue.getAuthorName).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
+    </div>
+  </hgroup>
 
-    @if(session.get("userId") != null && ProjectUser.isMember(session.get("userId").toLong, project.id)){
-       
-	   @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issue.id), 
-            'enctype -> "multipart/form-data",
-            'class -> "form-horizontal") {
+  <div class="row issue-info-group">
+    <div class="span4 issue-info">
+      <p class="assignee">@if(issue.assigneeName != null) {
+        <span class="assignee-name">@issue.assigneeName</span>
+      } else {
+        <span class="no-assignee">@Messages("issue.noAssignee")</span>
+      }
+      </p>
+      <p class="issue-etc-info">
+        Hit <span class="number">0</span>
+        | Comment <span class="number">@issue.numOfComments</span>
+        | Like <span class="number">0</span>
+        @if(issue.milestoneId != null) {
+        | Milestone <span class="number">@Milestone.findById(issue.milestoneId).title</span>
+        }
+      </p>
+    </div>
+    <div class="span5">
+      <p class="pull-right">@for(label <- issue.labels) { <button class="issue-label" labelId="@label.id">@label.name</button> } </p>
+    </div>
+  </div>
 
-            <!-- issue.label module make this as label selector -->
-            <fieldset class="labels"></fieldset>
+  <div class="body" markdown resourceType=@Resource.ISSUE_POST resourceId="@issue.id">@issue.body</div>
+</article>
 
-            <fieldset>
-	            <div class="well">
-	                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
-	                <div class="well form-inline">
-	                   @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
-	                        @select(
-	                            issueForm("assigneeId"), 
-	                            options(ProjectUser.options(project.id)),
-	                            '_label-> Messages("issue.new.detailInfo.assignee"),
-	                            '_default -> Messages("issue.new.selectDefault.assignee"),
-	                            '_showConstraints -> false)
-	                   }
-	                   @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
-	                        @select(
-	                            issueForm("milestoneId"), 
-	                            options(Milestone.options(project.id)),
-	                            '_label-> Messages("issue.new.detailInfo.milestone"),
-	                            '_default -> Messages("issue.new.selectDefault.milestone"),
-	                            '_showConstraints -> false)
-	                   }
-	                </div>      
-	            </div>
-            </fieldset>
-           <input type="hidden" value="@issue.title" name="title"/>
-        <input type="hidden" value="@issue.body" name="body"/>
-        <input type="hidden" value="@issue.authorId" name="authorId"/>
-        <div class = "btn pull-right">
-            <input type="submit" value=@Messages("issue.committer.edit") />
-           <!--   <input type="button" id=makeFinished value="이슈 해결" /> -->
-        </div>
-    }
-   }
-  
-</div>
 <!-- 여기서 부터 덧글 -->
-@for(comment <- issue.comments){
-<br/>
-<div class="row">
-	<div class="span1">
-		<img class="pull-right" src="http://placehold.it/50x50" />
-	</div>
-	<div class="span11">
-		<div>
-			<span>@comment.authorName이 @agoString(comment.ago())에 작성함</span>|
-            <span>@comment.date</span>
-		</div>
-		@roleCheck(session.get("userId"), project.id, models.enumeration.Resource.ISSUE_COMMENT, models.enumeration.Operation.EDIT, comment.id) {
-		<div class="pull-right"> 
-		      <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
-		</div>
-		
-		<div class="modal hide" id="deleteCommentConfirm">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
-                <h3>@Messages("issue.delete.window")</h3>
-            </div>
-            <div class="modal-body">
-                <p>@Messages("issue.comment.delete.confirm")</p>
-            </div>
-            <div class="modal-footer">
-                <a class="btn btn-danger"
-                    href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">@Messages("button.yes")</a>
-                <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-            </div>
+<div class="comment-area">
+<p class="info">Comments <span class="number">@issue.numOfComments</span></p>
+@if(issue.comments.size > 0) {
+<div class="comments">
+  @for(comment <- issue.comments){
+  <div class="comment row-fluid">
+    <div class="span1"><img class="user-picture" src="@urlToPicture(User.findById(comment.authorId).email, 34)" /></div>
+    <div class="span11">
+      <div>
+        <span class="author">@comment.authorName</span>
+        <span class="date">@comment.date</span>
+      </div>
+      @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.ISSUE_COMMENT, models.enumeration.Operation.EDIT, comment.id) {
+      <div class="pull-right">
+        <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
+      </div>
+
+      <div class="modal hide" id="deleteCommentConfirm">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">×</button>
+          <h3>@Messages("issue.delete.window")</h3>
         </div>
-		}
-		<div markdown resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id>@comment.contents</div>
-	</div>
+        <div class="modal-body"><p>@Messages("issue.comment.delete.confirm")</p></div>
+        <div class="modal-footer">
+          <a class="btn btn-danger"
+            href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">@Messages("button.yes")</a>
+          <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+        </div>
+      </div>
+      }
+      <div markdown resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id>@comment.contents</div>
+    </div>
+  </div>
+  }
 </div>
 }
+
 <!-- 댓글 입력 폼 -->
-<br />
-<div class="row pull-left">
-	@form(routes.IssueApp.saveComment(project.owner, project.name, issue.id), 
-	   'enctype -> "multipart/form-data",
-	   'class -> "form-horizontal"){
-		<div class="span12">
-        @textarea(commentForm("contents"),
-            '_label-> Messages("post.new.contents"),
-            'rows -> 5,
-            'markdown -> true,
-            'class -> "input-xxlarge textbody")
-		</div>
-		<div class="span6">
-			<input class="btn pull-right" type="submit" value=@Messages( "button.comment.new") />
-		</div>
-	}
+@form(routes.IssueApp.saveComment(project.owner, project.name, issue.id),
+  'id -> "comment-form",
+  'enctype -> "multipart/form-data"){
+   <div>
+     <textarea id="contents" name="contents" class="span8 textbody .inputxx-large" rows="5" markdown="true"></textarea>
+     <input class="btn add-on" type="submit" value=@Messages( "button.comment.new") />
+   </div>
+   <div class="file-attachment"></div>
+}
+</div>
+
+<div class="pull-right">
+    <a class="btn" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+    <a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
+    @isVisible(models.enumeration.Resource.ISSUE_POST) {
+    <a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
+    }
 </div>
 
 <!--삭제확인상자-->
 <div class="modal hide" id="deleteIssueConfirm">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
-		<h3>@Messages("issue.delete.window")</h3>
-	</div>
-	<div class="modal-body">
-		<p>@Messages("post.delete.confirm")</p>
-	</div>
-	<div class="modal-footer">
-		<a class="btn btn-danger"
-			href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.id)">@Messages("button.yes")</a>
-		<a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-	</div>
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>@Messages("issue.delete.window")</h3>
+    </div>
+    <div class="modal-body">
+        <p>@Messages("post.delete.confirm")</p>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-danger"
+            href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.id)">@Messages("button.yes")</a>
+        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+    </div>
 </div>
 
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
-  @for(label <- issue.labels) {
-    $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
-  }
   nforge.require('nforge.issue.view');
-  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: false});
+  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: false}, function() {
+    @for(label <- issue.labels) {
+      $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
+      $('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
+      $('.labels button.btn[labelId="@label.id"]').addClass('active');
+    }
+  });
 </script>
 }

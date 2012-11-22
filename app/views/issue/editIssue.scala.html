@@ -1,7 +1,7 @@
-@(title:String, issueForm:Form[Issue], issueId:Long,  project:Project)
+@(title:String, issueForm:Form[Issue], issue:Issue,  project:Project)
 @import helper._
 @import scala.collection.mutable.Map
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 @import models.enumeration.Resource
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
@@ -11,98 +11,64 @@
 }
 
 @main(Messages(title), project) {
+<style>
+@@IMPORT url("/assets/stylesheets/issue.css");
+</style>
 
-<!-- FIXEME 
-(1) 수정했을 시에, 수정시간으로 업데이트 되는 것이 아니라, 본 글이 원래 작성된 시간을 그대로 가지고 있을 것!
-(2) 매니저 및 멤버가 해당 이슈를 수정시에, 작성자가 변하지 않아야 함.
---> 
-    @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issueId), 
-            'enctype -> "multipart/form-data",
-            'class -> "form-horizontal"){
+<div class="page-header">
+  <h1>@Messages(title)</h1>
+</div>
+
+    @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issue.id),
+            'id -> "issue-form",
+            'enctype -> "multipart/form-data"
+            ) {
     <fieldset>
-    	@inputText(
-    	   issueForm("title"), 
-    	   '_showConstraints -> false, 
-           '_label-> Messages("post.new.title"),
-           'class -> "input-xxlarge")
-
-    	@textarea(
-    	   issueForm("body"), 
-    	   '_showConstraints -> false, 
-           '_label-> Messages("post.new.contents"),
+        @inputText(
+           issueForm("title"),
+           '_showConstraints -> false,
+           '_label-> null,
+           'class -> "title",
+           'onkeypress -> "return event.keyCode !== 13"
+           )
+        @textarea(
+           issueForm("body"),
+           '_showConstraints -> false,
+           '_label-> null,
            'rows -> 16,
-           'class -> "input-xxlarge textbody",
+           'class -> "textbody",
            'resourceType -> Resource.ISSUE_POST,
            'markdown -> true,
-           'resourceId -> issueId)
-
+           'resourceId -> issue.id)
     </fieldset>
-    	</br></br>
-    	
-    	 <fieldset>
-            <div class="well">
-            <legend><b>@Messages("issue.new.environment")</b></legend>
-                <div class="well form-inline">
-                        @selectEx(
-                            issueForm("osType"), 
-                            options(Issue.osTypes),
-                            '_label-> Messages("issue.new.environment.osType"),
-                            '_default -> Messages("issue.new.selectDefault.osType"),
-                            '_showConstraints -> false)
-                        @selectEx(
-                            issueForm("browserType"), 
-                            options(Issue.browserTypes),
-                            '_label-> Messages("issue.new.environment.browserType"),
-                            '_default -> Messages("issue.new.selectDefault.browserType"),
-                            '_showConstraints -> false)
-                        @selectEx(
-                            issueForm("dbmsType"), 
-                            options(Issue.dbmsTypes),
-                            '_label-> Messages("issue.new.environment.dbmsType"),
-                            '_default -> Messages("issue.new.selectDefault.dbmsType"),
-                            '_showConstraints -> false)
-                </div>
-            </div>
-        </fieldset>
-    	
-    	
-    	
-    	@if(ProjectUser.isMember(session.get("userId").toLong, project.id)){
-    	<fieldset>
-            <div class="well">
-                <legend><b>@Messages("issue.new.detailInfo")</b></legend>
-                <div class="well form-inline">
-                @isVisible(models.enumeration.Resource.ISSUE_CATEGORY) {
-                    @selectEx(
-                            issueForm("issueType"), 
-                            options(Issue.issueTypes),
-                            '_label-> Messages("issue.new.detailInfo.issueType"),
-                            '_default -> Messages("issue.new.selectDefault.issueType"),
-                            '_showConstraints -> false)
-                    }
-                    @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {        
-                        @select(
-                            issueForm("assigneeId"), 
-                            options(ProjectUser.options(project.id)),
-                            '_label-> Messages("issue.new.detailInfo.assignee"),
-                            '_default -> Messages("issue.new.selectDefault.assignee"),
-                            '_showConstraints -> false)
-                    }        
-                     @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
-                        @select(
-                            issueForm("milestoneId"), 
-                            options(Milestone.options(project.id)),
-                            '_label-> Messages("issue.new.detailInfo.milestone"),
-                            '_default -> Messages("issue.new.selectDefault.milestone"),
-                            '_showConstraints -> false)
-                     }
-                </div>      
-            </div>
-        </fieldset>
-    	}
-    	<input type="hidden" value="@issueForm("authorId").value" name="authorId"/>
-    	<input type="submit" class="btn" value=@Messages("button.save") />
-    	<input type="reset" class="btn" value=@Messages("button.reset") />
+
+    <!-- issue.label js module appends a label selector here. -->
+    <fieldset class="labels">
+      @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
+            @select(
+                issueForm("assigneeId"),
+                options(ProjectUser.options(project.id)),
+                '_label-> Messages("issue.new.detailInfo.assignee"),
+                '_default -> Messages("issue.new.selectDefault.assignee"),
+                '_showConstraints -> false)
+            }
+      @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
+            @select(
+                issueForm("milestoneId"),
+                options(Milestone.options(project.id)),
+                '_label-> Messages("issue.new.detailInfo.milestone"),
+                '_default -> Messages("issue.new.selectDefault.milestone"),
+                '_showConstraints -> false)
+            }
+    </fieldset>
+
+    <input type="hidden" value="@issueForm("authorId").value" name="authorId"/>
+    <div class="row pull-right">
+      <div class="actions">
+        <input type="submit" class="btn btn-primary" value="@Messages("button.save")">
+        <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="btn">@Messages("button.cancel")</a>
+      </div>
+    </div>
     }
 
     @board.postVaildate()
@@ -110,5 +76,12 @@
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
+  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: false}, function() {
+    @for(label <- issue.labels) {
+      $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
+      $('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
+      $('.labels button.btn[labelId="@label.id"]').addClass('active');
+    }
+  });
 </script>
 }

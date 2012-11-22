@@ -66,6 +66,7 @@ public class IssueApp extends Controller {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
         } else {
             Issue newIssue = issueForm.get();
+            newIssue.date = JodaDateUtil.now();
             newIssue.authorId = UserApp.currentUser().id;
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
@@ -91,7 +92,7 @@ public class IssueApp extends Controller {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-        return ok(editIssue.render("title.editIssue", editForm, id, project));
+        return ok(editIssue.render("title.editIssue", editForm, targetIssue, project));
     }
 
     public static Result updateIssue(String userName, String projectName, Long id) throws IOException {
@@ -104,6 +105,13 @@ public class IssueApp extends Controller {
             issue.id = id;
             issue.date = Issue.findById(id).date;
             issue.project = project;
+            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds[]");
+            if (labelIds != null) {
+                for (String labelId: labelIds) {
+                    issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
+                }
+            }
+
             Issue.edit(issue);
 
             // Attach the files in the current user's temporary storage.

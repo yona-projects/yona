@@ -100,6 +100,7 @@ issues:
         body:           내용 불필요한~
         state:      OPEN
         milestoneId:    1
+        date: 2012-11-01 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -109,6 +110,7 @@ issues:
         body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         state:      OPEN
         milestoneId:    2
+        date: 2012-11-02 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -118,6 +120,7 @@ issues:
         body:           내용 gittracker.php의 메모리 제한 에러
         state:      CLOSED
         milestoneId:    2
+        date: 2012-11-03 08:00:00
         project:        !!models.Project
                             id: 1
         numOfComments:  1
@@ -128,6 +131,7 @@ issues:
         body:           내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         state:      CLOSED
         milestoneId:    2
+        date: 2012-11-04 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -137,6 +141,7 @@ issues:
         body:           IOS는 설치 못하나요?
         state:      OPEN
         milestoneId:    0
+        date: 2012-11-05 08:00:00
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -146,6 +151,7 @@ issues:
         body:           메모리가 너무 누수가 되는듯.
         state:      CLOSED
         milestoneId:    6
+        date: 2012-11-06 08:00:00
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -155,6 +161,7 @@ issues:
         body:           Please make it.
         state:      OPEN
         milestoneId:    5
+        date: 2012-11-07 08:00:00
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -164,6 +171,7 @@ issues:
         body:           CPU를 무한사용 중이에요.
         state:      CLOSED
         milestoneId:    5
+        date: 2012-11-08 08:00:00
         project:        !!models.Project
                             id: 3
     - !!models.Issue
@@ -173,6 +181,7 @@ issues:
         body:           When using Play, when I chain less files such as a.less imports b.less which in turn imports c.less
         state:      CLOSED
         milestoneId:    1
+        date: 2012-11-09 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -182,6 +191,7 @@ issues:
         body:           The following code works as expected in RC1-Snapshot, but breaks with an TypeDoesNotMatch exception in RC-3 and 2.0 final.
         state:      CLOSED
         milestoneId:    1
+        date: 2012-11-10 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -190,6 +200,7 @@ issues:
         body:           PostgreSQL allows you to insert a row and obtain the id of the new row in one query
         state:      OPEN
         milestoneId:    1
+        date: 2012-11-11 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue
@@ -199,6 +210,7 @@ issues:
         body:           Create sbt project definition module, if exists, for each subproject (pull 128)
         state:      CLOSED
         milestoneId:    3
+        date: 2012-11-12 08:00:00
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -208,6 +220,7 @@ issues:
         body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
         state:      CLOSED
         milestoneId:    3
+        date: 2012-11-13 08:00:00
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -217,6 +230,7 @@ issues:
         body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
         state:      OPEN
         milestoneId:    4
+        date: 2012-11-14 08:00:00
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -226,6 +240,7 @@ issues:
         body:           With Play 2.0.2, when creating a cookie with response().setCookie, HTTP output is like
         state:      OPEN
         milestoneId:    4
+        date: 2012-11-15 08:00:00
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -235,6 +250,7 @@ issues:
         body:           Test on Play2.1-Snapshot
         state:      OPEN
         milestoneId:    4
+        date: 2012-11-15 08:00:00
         project:        !!models.Project
                             id: 2
     - !!models.Issue
@@ -244,6 +260,7 @@ issues:
         body:           Test on Play2.1-Snapshot
         state:      OPEN
         milestoneId:    4
+        date: 2012-11-16 08:00:00
         project:        !!models.Project
                             id: 3
 issueComments:

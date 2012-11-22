@@ -4,9 +4,11 @@
 * Generate input according twitter bootsrap rules *
 **************************************************@
     <div class="control-group @if(elements.hasErrors) {error}">
+      @if(elements.label != null) {
       <label class="control-label" for="@elements.id">@capitalize(elements.label.toString())
       <em class="help-inline">@displayRequiredStar(elements.infos.mkString(", "))</em>
       </label>
+      }
       <div class="controls">
         @elements.input
         <em class="help-inline">@removeRequiredMessage(elements.infos.mkString(", "))</em>

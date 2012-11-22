@@ -83,6 +83,7 @@ public class Issue extends Model {
     public Set<IssueLabel> labels;
 
     public Issue(String title) {
+        this.title = title;
         this.date = JodaDateUtil.now();
     }
 
@@ -90,8 +91,13 @@ public class Issue extends Model {
         return JodaDateUtil.ago(this.date);
     }
 
-    public String reporterName() {
-        return User.findNameById(this.authorId);
+    public String getAuthorName() {
+        if (authorName == null) {
+            if (authorId == null) return null;
+            else return User.findById(this.authorId).name;
+        } else {
+            return authorName;
+        }
     }
 
     /**
@@ -99,8 +105,7 @@ public class Issue extends Model {
      * 있을듯.
      */
     public String assigneeName() {
-
-        return (this.assigneeId != null ? User.findNameById(this.assigneeId) : "issue.noAssignee");
+        return (this.assigneeId != null ? User.findNameById(this.assigneeId) : null);
     }
 
     /**

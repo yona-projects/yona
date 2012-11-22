@@ -13,7 +13,7 @@ nforge.issue.label = function () {
   var that;
 
   that = {
-    init: function(urlToLabels, urlToPost, options) {
+    init: function(urlToLabels, urlToPost, options, callback) {
       that.urlToLabels = urlToLabels;
       that.urlToPost = urlToPost;
       that.options = {
@@ -27,12 +27,13 @@ nforge.issue.label = function () {
         that.addLabelEditor();
       }
       that.setEvent();
-      that.updateLabels();
+      that.updateLabels(callback);
     },
 
     addLabelEditor: function() {
       var div = $('<div>')
-        .addClass('control-group');
+        .addClass('control-group')
+        .addClass('label-editor');
 
       var label = $('<label id="custom-label-label">')
         .addClass('control-label')
@@ -57,7 +58,7 @@ nforge.issue.label = function () {
       }
 
       var input_color = $('<input id="custom-label-color" type="text">')
-        .addClass('input-medium')
+        .addClass('input-small')
         .attr('placeholder', 'Custom Color');
 
       var input_category = $('<input id="custom-label-category" type="text">')
@@ -83,7 +84,7 @@ nforge.issue.label = function () {
       $('fieldset.labels').append(div);
     },
 
-    updateLabels: function() {
+    updateLabels: function(callback) {
       var form = $('<form>')
         .attr('method', 'get')
         .attr('action', that.urlToLabels);
@@ -100,33 +101,56 @@ nforge.issue.label = function () {
           for (var i = 0; i < labels.length; i++) {
             that.add_label_into_category(labels[i].id, labels[i].category, labels[i].name, labels[i].color);
           }
+
+          if (callback) callback();
         }
       });
 
       form.submit();
     },
 
+    updateSelectedColor: function(color) {
+      // Change the name input area's color to the selected color.
+      contrasted = contrasted_color(color);
+      $('#custom-label-name').css('background-color', color);
+      $('#custom-label-name').css('color', contrasted);
+      selectors = ['#custom-label-name:-moz-placeholder',
+        '#custom-label-name:-ms-input-placeholder',
+        '#custom-label-name::-webkit-input-placeholder'];
+      for (var i in selectors) {
+        try {
+          document.styleSheets[0].addRule(selectors[i], 'color: ' + contrasted + ' !important');
+          document.styleSheets[0].addRule(selectors[i], 'opacity: 0.8');
+        } catch (e) {
+          continue;
+        }
+      }
+    },
+
     setEvent: function() {
       $('#custom-label button.issue-label').click(function(e) {
+        var color, contrasted, selectors;
+
+        // Set clicked button active.
         $('#custom-label button.issue-label').removeClass('active');
         $(e.srcElement).addClass('active');
-        $('#custom-label-color').val($(e.srcElement).css('background-color'));
+
+        // Get the selected color.
+        color = $(e.srcElement).css('background-color');
+
+        // Fill the color input area with the hexadecimal value of
+        // the selected color.
+        $('#custom-label-color').val(new RGBColor(color).toHex());
+
+        that.updateSelectedColor(color);
+
+        // Focus to the category input area.
         $('#custom-label-category').focus();
-        $('#custom-label-name').css('background-color', $(e.srcElement).css('background-color'));
-        var contrasted = contrasted_color($(e.srcElement).css('background-color'));
-        $('#custom-label-name').css('color', contrasted);
-        try {
-          document.styleSheets[0].addRule('#custom-label-name:-moz-placeholder', 'color: ' + contrasted);
-          document.styleSheets[0].addRule('#custom-label-name:-ms-input-placeholder', 'color: ' + contrasted);
-        } catch (e) {
-          document.styleSheets[0].addRule('#custom-label-name::-webkit-input-placeholder', 'color: ' + contrasted);
-        }
       });
 
       var issueForm = $('form#issue-form');
       issueForm.submit(function() {
         var buttons = $('fieldset.labels div[category] button.active');
-
         for (var i = 0; i < buttons.length; i++) {
           issueForm.append(
             '<input type="hidden" name="labelIds[]" value="' + $(buttons[i]).attr('labelId') + '">');
@@ -142,6 +166,13 @@ nforge.issue.label = function () {
       $('#custom-label input').keyup(function(e) {
         if (e.keyCode == 13) {
           that.add_custom_label();
+        }
+      });
+
+      $('#custom-label-color').keyup(function(e) {
+        var color = $(e.srcElement).val();
+        if (new RGBColor(color).ok) {
+          that.updateSelectedColor(color);
         }
       });
     },
@@ -201,7 +232,13 @@ nforge.issue.label = function () {
         var controls = $('<div class="controls" data-toggle="buttons-checkbox" category="' + category + '">');
         div.append(label);
         div.append(controls);
-        $('fieldset.labels').prepend(div);
+        labelEditor = $('.label-editor');
+        console.log(labelEditor);
+        if (labelEditor.length > 0) {
+            $('.label-editor').before(div);
+        } else {
+            $('.labels').append(div);
+        }
 
         // Edit Button
         /*

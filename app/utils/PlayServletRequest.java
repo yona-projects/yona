@@ -45,9 +45,9 @@ import play.mvc.Http.Request;
 public class PlayServletRequest implements HttpServletRequest {
 
     private String characterEncoding;
-    private Request request;
+    private final Request request;
     Map<String, Object> attributes = new HashMap<String, Object>();
-    private HttpSession httpSession;
+    private final HttpSession httpSession;
 
     public PlayServletRequest(Request request, HttpSession httpSession, String pathInfo) {
         this.request = request;
@@ -57,7 +57,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     /**
      * The set of SimpleDateFormat formats to use in getDateHeader().
-     * 
+     *
      * Notice that because SimpleDateFormat is not thread-safe, we can't declare
      * formats[] as a static variable.
      */
@@ -65,7 +65,7 @@ public class PlayServletRequest implements HttpServletRequest {
             new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US),
             new SimpleDateFormat("EEEEEE, dd-MMM-yy HH:mm:ss zzz", Locale.US),
             new SimpleDateFormat("EEE MMMM d HH:mm:ss yyyy", Locale.US) };
-    private String pathInfo;
+    private final String pathInfo;
 
     @Override
     public AsyncContext getAsyncContext() {
