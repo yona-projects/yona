@@ -26,9 +26,9 @@ nforge.milestone.manage = function () {
         errors['dueDate'] = !dueDateValue ? 'error.required' : 'error.wrong.format';
       }
 
-      $title.next().html(errors['title'] || '');
-      $contents.next().html(errors['contents'] || '');
-      $dueDate.next().html(errors['dueDate'] || '');
+      if(errors['title']) $("#title_error").show(); else $("#title_error").hide();
+      if(errors['contents']) $("#contents_error").show(); else $("#contents_error").hide();
+      if(errors['dueDate']) $("#dueDate_error").show(); else $("#dueDate_error").hide();
 
       return $.isEmptyObject(errors);
     }

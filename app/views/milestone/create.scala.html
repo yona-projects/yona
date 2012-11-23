@@ -3,15 +3,48 @@
 @import helper.twitterBootstrap._
 @import utils.TemplateHelper._
 @project.projectMngMain(title, projectInst) {
-    @helper.form(action=routes.MilestoneApp.saveMilestone(projectInst.owner, projectInst.name)){
-        @helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("label.title"))
-        @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("label.contents"))
-        @helper.input(form("dueDate"), '_showConstraints -> false, '_label-> Messages("label.dueDate")) { (id, name, value, args) =>
-            <input type="text" name="@name" value="@value" id="dueDate" class="validate"/>
-        }
-        <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="btn">@Messages("button.cancel")</a>
-        <input type="submit" class="btn btn-primary save" value="@Messages("button.add")"/>
-    }
+    <h1 class="page-title"><span class="gray">K16wire/nforge4/</span>Milestone</h1>
+    <div class="form-wrap milestone">
+        <form class="nm" action="@routes.MilestoneApp.saveMilestone(projectInst.owner, projectInst.name)" method="post">
+            <div class="inner left">
+                <div class="n-alert hide" id="title_error">
+                    <div class="n-inner">
+                        <span class="msg">타이틀을 입력해주세요.</span>
+                        <a href="#!/close" class="ico btn-delete"></a>
+                    </div>
+                </div>
+                <label for="title">
+                    <input type="text" name="title" id="title" class="text" placeholder="새 마일스톤의 제목을 입력해주세요.">
+                </label>
+                <div class="n-alert hide" id="contents_error">
+                    <div class="n-inner">
+                        <span class="msg">내용을 입력해주세요.</span>
+                        <a href="#!/close" class="ico btn-delete"></a>
+                    </div>
+                </div>
+                <label for="contents">
+                    <textarea class="textarea" id="contents" name="contents" placeholder="내용을 입력해주세요."></textarea>
+                </label>
+                <div class="actions">
+                    <button type="submit" class="n-btn blue med btn-transparent save">SAVE</button>
+                    <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">CANCEL</a>
+                </div>
+            </div>
+            <div class="inner right">
+                <p>완료일을 선택하세요.</p>
+                <div class="n-alert hide" id="dueDate_error">
+                    <div class="n-inner">
+                        <span class="msg">완료일을 입력해주세요.</span>
+                        <a href="#!/close" class="ico btn-delete"></a>
+                    </div>
+                </div>
+                <label for="dueDate">
+                    <input type="text" name="dueDate" id="dueDate" class="validate due-date">
+                </label>
+            </div>
+        </form>
+    </div>
+
     <script type="text/javascript">nforge.require('milestone.manage');</script>
     <style>
         @@IMPORT url(@getCSSLink("pikaday"));
