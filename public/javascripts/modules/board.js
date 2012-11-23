@@ -31,9 +31,9 @@ nforge.board.list = function() {
         },
 
         onPager : function() {
-            var $input = $("#search-form input[name=pageNum]");
+            var $input = $("#option_form input[name=pageNum]");
             $input.val($(this).attr("pageNum"));
-            $("#search-form").submit();
+            $("#option_form").submit();
             return false;
         }
     };

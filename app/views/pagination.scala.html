@@ -17,7 +17,7 @@
       <ul class="page-nums">
         <li class="page-num ikon"><i class="ico btn-pg-first off"></i></li>
         @if(page.hasPrev){
-            <li class="page-num ikon"><a href="#" class="pg-prev" data-page-num="@page.getPageIndex"><i class="ico btn-pg-prev"></i><span>PREV</span></a></li>
+            <li class="page-num ikon"><a href="#" class="pg-prev" pageNum="@page.getPageIndex"><i class="ico btn-pg-prev"></i><span>PREV</span></a></li>
         } else {
             <li class="page-num ikon"><i class="ico btn-pg-prev off"></i><span class="off">PREV</span></li>
         }
@@ -33,7 +33,7 @@
         }
 
         @if(page.hasNext) {
-            <li class="page-num ikon"><a href="#" class="pg-prev" data-page-num="@page.getPageIndex + 2"><span>NEXT</span><i class="ico btn-pg-prev"></i></a></li>
+            <li class="page-num ikon"><a href="#" class="pg-prev" pageNum="@(page.getPageIndex + 2)"><span>NEXT</span><i class="ico btn-pg-next"></i></a></li>
         } else {
             <li class="page-num ikon"><span class="off">NEXT</span><i class="ico btn-pg-next off"></i></li>
         }
