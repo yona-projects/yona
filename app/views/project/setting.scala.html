@@ -5,7 +5,7 @@
 
 
 @projectMngMain(message, project) {
-    <h1 class="page-title"><span class="gray">@project.owner/@project.name/</span>Setting</h1>
+    @pageTitle(project,"Setting")
     <div class="bubble-wrap gray">
         <form class="nm" action="@routes.ProjectApp.saveSetting(project.owner, project.name)" method="post" enctype="multipart/form-data" id="saveSetting">
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">

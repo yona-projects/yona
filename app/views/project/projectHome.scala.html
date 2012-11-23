@@ -1,8 +1,7 @@
 @(message: String, project: Project) 
 
 @main(message, project) {
-
-    <h1 class="page-title"><span class="gray">@project.owner/@project.name/</span>Project Home</h1>
+    @pageTitle(project,"Project Home")
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
             <div class="logo-wrap">

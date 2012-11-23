@@ -1,9 +1,9 @@
 @(title:String, form: Form[Milestone], projectInst: Project)
 
-@import helper.twitterBootstrap._
+
 @import utils.TemplateHelper._
 @project.projectMngMain(title, projectInst) {
-    <h1 class="page-title"><span class="gray">K16wire/nforge4/</span>Milestone</h1>
+    @pageTitle(projectInst,"Milestone")
     <div class="form-wrap milestone">
         <form class="nm" action="@routes.MilestoneApp.saveMilestone(projectInst.owner, projectInst.name)" method="post">
             <div class="inner left">

@@ -1,8 +1,65 @@
 @(title: String, form: Form[Milestone], milestoneId: Long, projectInst: Project)
 
-@import helper.twitterBootstrap._
+@import utils.TemplateHelper._
 
 @project.projectMngMain(title, projectInst) {
+    @pageTitle(projectInst, "Milestone")
+    <div class="form-wrap milestone">
+        @helper.form(action=routes.MilestoneApp.updateMilestone(projectInst.owner, projectInst.name, milestoneId), '_class->"nm"){
+            <div class="inner left">
+                <div class="n-alert hide" id="title_error">
+                    <div class="n-inner">
+                        <span class="msg">타이틀을 입력해주세요.</span>
+                        <a href="#!/close" class="ico btn-delete"></a>
+                    </div>
+                </div>
+                <label for="title">
+                    <input type="text" name="title" id="title" class="text" placeholder="새 마일스톤의 제목을 입력해주세요.">
+                </label>
+                <div class="n-alert hide" id="contents_error">
+                    <div class="n-inner">
+                        <span class="msg">내용을 입력해주세요.</span>
+                        <a href="#!/close" class="ico btn-delete"></a>
+                    </div>
+                </div>
+                <label for="contents">
+                    <textarea class="textarea" id="contents" name="contents" placeholder="내용을 입력해주세요."></textarea>
+                </label>
+                <div class="actions">
+                    <button type="submit" class="n-btn blue med btn-transparent save">SAVE</button>
+                    <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">CANCEL</a>
+                </div>
+            </div>
+            <div class="inner right">
+                <p>완료일을 선택하세요.</p>
+                <div class="n-alert hide" id="dueDate_error">
+                    <div class="n-inner">
+                        <span class="msg">완료일을 입력해주세요.</span>
+                        <a href="#!/close" class="ico btn-delete"></a>
+                    </div>
+                </div>
+                <label for="dueDate">
+                    <input type="text" name="dueDate" id="dueDate" class="validate due-date">
+                </label>
+            </div>
+        }
+    </div>
+
+    <script type="text/javascript">nforge.require('milestone.manage');</script>
+    <style>
+        @@IMPORT url(@getCSSLink("pikaday"));
+    </style>
+    <script src="@getJSLink("moment.min")" type="text/javascript"></script>
+    <script src="@getJSLink("pikaday/pikaday")" type="text/javascript"></script>
+    <script>
+        var picker = new Pikaday({ 
+            field: document.getElementById('dueDate'), 
+            format: 'YYYY-MM-DD',
+        });
+    </script>
+
+
+    
     @helper.form(action=routes.MilestoneApp.updateMilestone(projectInst.owner, projectInst.name, milestoneId)){
         @helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("label.title"))
         @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("label.contents"))

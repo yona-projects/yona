@@ -37,7 +37,7 @@
 }
 
 @project.projectMngMain(title, projectInst) {
-    <h1 class="page-title"><span class="gray">@projectInst.owner/@projectInst.name/</span>Milestone</h1>
+    @pageTitle(projectInst,"Milestone")
     <div class="tab-wrap">
         <div class="pull-right btns">
             <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">MANAGE</a>
