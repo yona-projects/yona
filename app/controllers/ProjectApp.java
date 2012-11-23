@@ -62,11 +62,11 @@ public class ProjectApp extends Controller {
                 filledNewProjectForm.field("name").value())) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledNewProjectForm.reject("name");
-        }
-
-        if (filledNewProjectForm.hasErrors()) {
+            return badRequest(newProject.render("title.newProject",
+                    filledNewProjectForm));
+        } else if (filledNewProjectForm.hasErrors()) {
             filledNewProjectForm.reject("name");
-            flash(Constants.WARNING, filledNewProjectForm.errors().toString());
+            flash(Constants.WARNING, "project.name.alert");
             return badRequest(newProject.render("title.newProject",
                     filledNewProjectForm));
         } else {
