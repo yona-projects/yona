@@ -6,19 +6,19 @@ nforge.board.list = function() {
         },
 
         setUpEventListener : function() {
-            var $headers = $("th a");
+            var $headers = $("#order a");
             $headers.click(that.onHeader);
-            var $pagination = $("pagination a");
+            var $pagination = $("#pagination a");
             $pagination.click(that.onPager);
         },
 
         onHeader : function() {
             var key = $(this).attr("key");
-            var $input = $("#search-form input[name=key]");
+            var $input = $("#option_form input[name=key]");
             if (key !== $input.val()) {
                 $input.val(key)
             } else {
-                $input = $("#search-form input[name=order]");
+                $input = $("#option_form input[name=order]");
                 if ($input.val() === "desc"){
                   $input.val("asc");
                 }
@@ -26,7 +26,7 @@ nforge.board.list = function() {
                   $input.val("desc");
                 }
             }
-            $("#search-form").submit();
+            $("#option_form").submit();
             return false;
         },
 

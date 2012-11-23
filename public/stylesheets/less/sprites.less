@@ -77,46 +77,39 @@
 .btn-pg-first {
     width: 11px;
     height: 9px;
-    background-position: -2px -13px;
-    &:hover {
-        background-position: -185px -2px;
+    background-position: -185px -2px;
+    &.off {
+        background-position: -2px -13px;
     }
-}
-
-.btn-pg-latest-over {
-    width: 11px;
-    height: 9px;
-    background-position: -31px -13px;
 }
 
 .btn-pg-latest {
     width: 11px;
     height: 9px;
-    background-position: -172px -2px;
-}
-
-.btn-pg-next-over {
-    width: 6px;
-    height: 9px;
-    background-position: -15px -13px;
+    background-position: -31px -13px;
+    &.off {
+        background-position: -172px -2px;
+    }
 }
 
 .btn-pg-next {
     width: 6px;
     height: 9px;
-    background-position: -23px -13px;
-}
-
-.btn-pg-prev-over {
-    width: 6px;
-    height: 9px;
-    background-position: -229px -2px;
+    background-position: -15px -13px;
+    margin-left: 10px;
+    &.off {
+        background-position: -23px -13px;
+    }
 }
 
 .btn-pg-prev {
     width: 6px;
     height: 9px;
-    background-position: -164px -2px;
+    background-position: -229px -2px;
+    margin-right: 10px;
+    &.off {
+        background-position: -164px -2px;
+    }
 }
 
 .btn-plus {
@@ -171,6 +164,7 @@
     width: 2px;
     height: 2px;
     background-position: -6px -2px;
+    vertical-align: middle;
 }
 
 .ico-book {
@@ -231,6 +225,8 @@
     width: 2px;
     height: 2px;
     background-position: -2px -2px;
+    margin: 0 3px;
+    vertical-align: middle;
 }
 
 .ico-download {
@@ -444,3 +440,36 @@
     height: 11px;
     background-position: -131px -104px;
 }
+
+.ico-like-small {
+    width: 13px;
+    height: 12px;
+    background-position: -113px -102px;
+    vertical-align: middle;
+}
+
+.ico-comment-bubble-small {
+    width: 12px;
+    height: 12px;
+    background-position: -113px -115px;
+    vertical-align: middle;
+}
+
+.ico-white-arrow-right {
+    width: 5px;
+    height: 7px;
+    background-position: -131px -117px;
+}
+
+.btn-gray-arrow {
+    width: 7px;
+    height: 4px;
+    vertical-align: middle;
+    margin-right: 5px;
+    background-position: -151px -104px;
+    &.down {
+        background-position: -151px -113px;
+    }
+}
+
+

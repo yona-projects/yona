@@ -79,3 +79,40 @@ a {
     display: none !important;
     visibility: hidden !important;
 }
+
+.page-navigation-wrap {
+    text-align: center;
+    .page-nums {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        .inline-block;
+        font-size: 0;
+        .page-num {
+            .inline-block;
+            padding: 0 10px;
+            font-size: 12px;
+            color: #8E9094;
+            .current {
+                color: #4489A4;
+                font-weight: bold;
+            }
+            &.ikon {
+                &:nth-child(4n-2) { //--- prev
+                    padding-right: 10px;
+                }
+                &:nth-child(5n-2) { //--- next
+                    padding-left: 10px;
+                }
+                padding: 0 5px;
+                span {
+                    font-size: 11px;
+                    color: #4489A4;
+                    &.off {
+                        color: #8E9094;
+                    }
+                }
+            }
+        }
+    }
+}

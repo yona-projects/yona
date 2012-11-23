@@ -18,70 +18,62 @@
   <div class="header-wrap">
     <div class="search-wrap board">
       <div class="inner">
-        <form method="get">
+        <form method="get" id="option_form">
           <input type="hidden" name="key" value="@param.key">
           <input type="hidden" name="order" value="@param.order">
+          <input type="hidden" name="pageNum" value="@param.pageNum">
           <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn-transparent search-btn">SEARCH</button>
         </form>
       </div>
     </div>
   </div>
-  
-  <div class="row-fluid">
-    <div class="span12">
-      <div class="pull-right">
-        <form id="search-form" class="form-search form-inline" method="get">
-          <input type="hidden" name="key" value="@param.key">
-          <input type="hidden" name="order" value="@param.order">
-          <input type="hidden" name="pageNum" value="@param.pageNum">
-          <input type="text" name="filter" class="search-query">
-          <button type="submit" class="btn"><i class="icon-search"></i></button>
-          @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.WRITE){
-          <a class="btn btn-primary" href="@routes.BoardApp.newPost(project.owner, project.name)" >@Messages("post.new")</a>
-          }
-        </form>
-      </div>    
-    </div>  
-  </div>
-
-  <div class="row-fluid">
-    <div class="span12">
-	    <ul class="nav nav-tabs" id="board_list">
-	    	<li class="active"><a href="">전체</a></li>
-	    </ul>
-	    @if(page.getTotalRowCount == 0){
-	    <div class="well">
-	    	<p>등록된 글이 없습니다.</p>
-	    </div>
-	    }else{
-	    <table class="table table-striped">
-	    	<thead>
-	    		<tr id="board_header">
-	    		    @header("#", "id")
-	    		    @header(Messages("post.new.title"), "title")
-	    		    @header(Messages("post.author"), "authorName")
-	    		    @header(Messages("post.age"), "date")
-	    		</tr>
-	    	</thead>
-	    	<tbody>
-	    		@for(post <- page.getList()){
-	    		<tr>
-	    			<td>@post.id</td>
-	    			<td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.commentCount]</a></td>
-	    			<td>@post.authorName</td>
-	    			<td>@utils.TemplateHelper.agoString(post.ago())</td>
-	    		</tr>
-	    		}
-	    	</tbody>
-	    </table>
-	    }
+  <div class="filter-wrap board">
+    <div class="filters" id="order">
+      <a href="#" key="date" class="filter">
+        @if(param.key == "date"){
+        <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
+        }
+        날짜순
+      </a>
+      <a href="#" key="commentCount" class="filter active">
+        @if(param.key == "commentCount"){
+        <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
+        }
+        댓글순
+      </a>
     </div>
   </div>
 
-  <div class="row-fluid">  
-      <a class="btn pull-right" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-      @pagination(page, 5, "pagination")
+  @if(page.getTotalRowCount == 0){
+    <div class="well">
+      <p>등록된 글이 없습니다.</p>
+    </div>
+  } else {
+  <ul class="board-list">
+    @for(post <- page.getList()){
+    <li class="board">
+      <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.id</a></div>
+      <div class="attach-wrap"></div>
+      <div class="contents">
+        <p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
+        <p class="infos nm">by <a href="/uname" class="author">@post.authorName</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
+      </div>
+      <div class="right-panel">
+        <div class="comment-wrap">
+            <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
+        </div>
+        <a href="/uname" class="author-avatar img-rounded pull-right"><img src="/assets/images/default-avatar-34.png" width="32" height="32" alt="@post.authorName"></a>
+      </div>
+    </li>
+    }
+  </ul>
+  }
+  @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.WRITE){
+  <div class="write-btn-wrap">
+    <a href="@routes.BoardApp.newPost(project.owner, project.name)" class="n-btn blue small">WRITE</a>
   </div>
+  }
+  @pagination(page, 5, "pagination")
   <script type="text/javascript">
   nforge.require('board.list');
   </script>

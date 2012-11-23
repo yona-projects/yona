@@ -23,7 +23,7 @@
                 float: left;
                 width: 150px;
                 height: 70px;
-                background-image: url("@{base-image-path}/logo-blue-150.png");
+                background-image: url("@{base-image-path}/logo.png");
             }
             .gnb-menus {
                 float: left;
@@ -143,7 +143,7 @@
         .gnb-inner {
             .gnb-menu-wrap {
                 .logo {
-                    background-image: url("@{base-image-path}/logo-orange-150.png");
+                    background-image: url("@{base-image-path}/logo-orange.png");
                 }
                 background-color: @orange-gnb-color !important;
                 .gnb-menus {
@@ -759,11 +759,17 @@
         }
     }
     .search-wrap {
-        border-top: 1px solid #FFF;
-        padding: 10px 10px 0;
+        padding: 0 10px;
+        &.projects {
+            border-top: 1px solid #FFF;
+            padding: 10px 10px 0;
+        }
+        &.board {
+            .inner {
+                padding-left: 75px;
+            }
+        }
         &.help {
-            border: 0 none;
-            padding: 0 10px;
             .inner {
                 padding-left: 30px;
                 .labels {
@@ -1064,7 +1070,7 @@
     }
 }
 
-.members {
+.members.project {
     margin: 0;
     list-style: none;
     .member {
@@ -1114,6 +1120,16 @@
 .filter-wrap {
     &.milestone {
         margin-top: -8px;
+    }
+    &.board {
+        margin: 15px 0 10px;
+        padding-right: 20px;
+        .filter {
+            .opacity(70);
+            &.active {
+                .opacity(100);
+            }
+        }
     }
     margin-bottom: 15px;
     overflow: hidden;
@@ -1346,5 +1362,64 @@
             padding: 25px;
         }
     }
+}
+
+.board-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    .board {
+        border-bottom: 1px solid @gray-d4;
+        padding: 15px 20px;
+        > div {
+            display: table-cell;
+            vertical-align: top;
+        }
+        .num {
+            width: 35px;
+            color: #B2B2B2;
+        }
+        .attach-wrap {
+            width: 35px;
+            text-align: center;
+            .ico {
+                margin-top: 5px;
+            }
+        }
+        .contents {
+            width: 590px;
+            padding-right: 90px;
+            .title {
+                margin-bottom: 5px;
+            }
+            .infos {
+                line-height: 14px;
+                font-size: 11px;
+                color: #999;
+                .author {
+                    color: #696969;
+                }
+            }
+        }
+        .right-panel {
+            width: 90px;
+            .comment-wrap {
+                float: left;
+                margin-top: 7px;
+                .ico {
+                    vertical-align: bottom;
+                    margin-right: 5px;
+                }
+                .num {
+                    color: #4489A4;
+                }
+            }
+        }
+    }
+}
+
+.write-btn-wrap {
+    margin: 20px 0;
+    text-align: right;
 }
 

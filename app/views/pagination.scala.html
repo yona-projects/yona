@@ -13,12 +13,13 @@
     makeList(currentPageNum)
 }
 @makeList(currentPageNum:Int) = {
-    <div class="pagination pagination-centered" id="@divId" data-current-page-num="@currentPageNum">
-        <ul>
+    <div class="page-navigation-wrap" id="@divId" data-current-page-num="@currentPageNum">
+      <ul class="page-nums">
+        <li class="page-num ikon"><i class="ico btn-pg-first off"></i></li>
         @if(page.hasPrev){
-            @makeLink("Prev", page.getPageIndex)
+            <li class="page-num ikon"><a href="#" class="pg-prev" data-page-num="@page.getPageIndex"><i class="ico btn-pg-prev"></i><span>PREV</span></a></li>
         } else {
-            <li class="disabled"><a class="#">Prev</a></li>
+            <li class="page-num ikon"><i class="ico btn-pg-prev off"></i><span class="off">PREV</span></li>
         }
 
         @if(page.getTotalPageCount() < pageNum) {
@@ -31,15 +32,19 @@
             }
         }
 
-
         @if(page.hasNext) {
-            @makeLink("Next",page.getPageIndex + 2)
+            <li class="page-num ikon"><a href="#" class="pg-prev" data-page-num="@page.getPageIndex + 2"><span>NEXT</span><i class="ico btn-pg-prev"></i></a></li>
         } else {
-            <li class="disabled"><a href="#">Next</a></li>
+            <li class="page-num ikon"><span class="off">NEXT</span><i class="ico btn-pg-next off"></i></li>
         }
-        </ul>
+        <li class="page-num ikon"><a href="/html/board-list.html" class="pg-latest"><i class="ico btn-pg-latest"></i></a></li>
+      </ul>
     </div>
 }
 @makeLink(title:String, index:Int) = {
-    <li @if(page.getPageIndex+1 == index){class="disabled"}><a href="#" pageNum="@index" data-page-num="@index">@title</a></li>
+    @if(page.getPageIndex+1 != index){
+    <li class="page-num"><a href="#" pageNum="@index" data-page-num="@index">@title</a></li>
+    } else {
+    <li class="page-num"><span class="current">@index</span></li>
+    }
 }

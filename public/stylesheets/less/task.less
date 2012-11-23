@@ -1,4 +1,26 @@
-.task {
+html.task-body {
+    height: 100%;
+    body {
+        overflow-y: hidden;
+        overflow-x: auto;
+        height: 100%;
+    }
+    .page-wrap {
+        overflow: hidden;
+        min-height: 200px;
+        &.load {
+            .page {
+                .opacity(0);
+            }
+        }
+        .page {
+            height: 100%;
+            overflow: hidden;
+        }
+    }
+}
+
+.task-page {
     min-width: @base-width;
     margin: 0 50px;
     .gnb-outer {
@@ -12,29 +34,316 @@
     .page-wrap,
     .page-footer-outer {
         width: auto;
+        margin-bottom: 0;
     }
-
+    height: 100%;
 }
 
-.task-body {
+.task-main {
     position: relative;
-    margin-bottom: 40px;
     overflow: hidden;
-    min-height: 500px;
     .task-wrap {
         margin-right: 300px;
+        background-color: #DADADA;
+        overflow: hidden;
+        .border-radius(10px 10px);
+        height: 100%;
+    }
+    .task-wrap-footer {
+        height: 20px;
+        .box-shadow(0 -1px 5px rgba(0, 0, 0, 0.05));
     }
     .task-side {
+        height: 100%;
         position: absolute;
-        width: 240px;
+        width: 280px;
         right: 0;
-        padding: 10px 20px;
+        top: 0;
         background-color: #F2F2F2;
         .border-radius(10px);
+        .fixed-wrap {
+            padding: 10px 20px 0 20px;
+        }
         .bg-bubble-top {
             left: -27px;
             position: relative;
         }
+        .header {
+            line-height: 30px;
+            .title {
+                color: @white;
+                margin-left: 20px;
+            }
+            .ico {
+                margin-top: -7px;
+                position: absolute;
+                right: 10px;
+                top: 50%;
+            }
+        }
+        .members {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 13px 0;
+            font-size: 0;
+            border-bottom: 1px solid @white;
+            .box-shadow(inset 0 -1px 0 rgba(0, 0, 0, 0.15));
+            .member {
+                .inline-block;
+                margin: 0 7px 7px 0;
+                &:nth-child(6n) {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+    .activity-wrap {
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 0 20px;
+        .activities {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            .activity {
+                p {
+                    line-height: 12px;
+                    margin-bottom: 5px;
+                }
+                padding: 15px 0;
+                border-bottom: 1px solid @gray-d4;
+                .actor-wrap {
+                    margin-bottom: 10px;
+                    .actor-info {
+                        padding-left: 10px;
+                        font-size: 11px;
+                        color: #646464;
+                        overflow: hidden;
+                        .name {
+                            font-size: 10px;
+                        }
+                        .act-date {
+                            color: #B5B5B5;
+                            font-size: 10px;
+                            margin-bottom: 0;
+                        }
+                    }
+                }
+                .desc {
+                    color: @gray-66;
+                    &.mentioned {
+                        font-size: 11px;
+                        .border-radius(10px);
+                        border: 1px solid @gray-d4;
+                        background-color: #DBDBDB;
+                        padding: 10px 5px;
+                        .who {
+                            font-weight: bold;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
+.done-button-wrap {
+    text-align: right;
+    padding: 40px 20px 1px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid @white;
+    .box-shadow(inset 0 -1px 0 rgba(0, 0, 0, 0.15));
+    .btn-done {
+        font-size: 0;
+        line-height: 0;
+        height: 71px;
+        width: 166px;
+        .inline-block;
+        background-image: url('@{base-image-path}/assets/btn-done.png');
+    }
+}
+
+.tasks-proxy {
+    position: relative;
+    padding: 0 2px;
+    &.full {
+        overflow: hidden;
+    }
+    .tasks-proxy-header {
+        height: 55px;
+        width: 100%;
+        background-color: #4D4D4D;
+        .border-radius(10px 10px 0 0);
+        position: absolute;
+        z-index: 0;
+        left: 0;
+    }
+    overflow: hidden;
+    .task-header {
+        height: 55px;
+        text-align: center;
+        line-height: 55px;
+        background-color: #4D4D4D;
+        color: @white;
+        .card-count-wrap {
+            color: #4092A1;
+            font-size: 11px;
+            background-color: #333;
+            .inline-block;
+            padding: 1px 6px;
+            .border-radius(5px);
+            line-height: 11px;
+        }
+    }
+    .tasks {
+        height: 100%;
+        z-index: 1;
+        position: relative;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        overflow-y: hidden;
+        overflow-x: auto;
+        .task {
+            &:first-child {
+                padding-left: 10px;
+            }
+            &:last-child {
+                padding-right: 10px;
+            }
+            &.open {
+                width: 695px;
+                padding-right: 0;
+            }
+            max-height: 100%;
+            display: table-cell;
+            position: relative;
+            z-index: 1;
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+            .box-shadow(inset -1px 0 0 rgba(0, 0, 0, 0.15));
+            width: 235px;
+            min-width: 235px;
+            .task-card-wrap {
+                float: left;
+                width: 220px;
+            }
+            .task-footer {
+                text-align: center;
+                font-size: 0;
+                padding: 10px 0 5px;
+                width: 220px;
+                .btn-add-card {
+                    .inline-block;
+                    background-image: url('@{base-image-path}/assets/btn-add-card.png');
+                    font-size: 0;
+                    width: 130px;
+                    height: 20px;
+                    margin: 5px 0;
+                }
+            }
+        }
+    }
+}
+
+.card-wrap {
+    overflow-y: auto;
+    .cards {
+        list-style: none;
+        margin: 0;
+        padding: 10px 10px 0 10px;
+        .card {
+            cursor: pointer;
+            background-color: @white;
+            border: 1px solid @gray-d4;
+            .border-radius(8px);
+            margin-bottom: 8px;
+            .box-shadow(0 1px 0 rgba(0,0,0, .15));
+            overflow: hidden;
+            .card-body {
+                padding: 7px 10px 0;
+                .card-title {
+                    color: #999;
+                }
+                .card-assignees {
+                    margin: 10px 0 5px;
+                    padding: 0;
+                    list-style: none;
+                    > li {
+                        float: left;
+                        margin: 0 5px 5px 0;
+                    }
+                }
+            }
+            .card-footer {
+                padding: 0 10px;
+                height: 25px;
+                line-height: 25px;
+                background-color: #F5F5F5;
+                text-align: right;
+                color: #4092A1;
+            }
+        }
+    }
+}
+
+.card-labels {
+    font-size: 0;
+    line-height: 10px;
+}
+
+.card-label {
+    .inline-block;
+    min-height: 2px;
+    min-width: 2px;
+    font-size: 10px;
+    line-height: 12px;
+    font-weight: bold;
+    padding: 4px;
+    margin-right: 3px;
+    color: @white;
+    &.round {
+        .border-radius(3px);
+    }
+    &.red {
+        background-color: #DA5454;
+    }
+    &.navy {
+        background-color: #4B68B1;
+    }
+    &.blue {
+        background-color: #22B4B9;
+    }
+    &.purple {
+        background-color: #9966CC;
+    }
+    &.green {
+        background-color: #99CA3C;
+    }
+    &.yellow {
+        background-color: #FFCC33;
+    }
+    &.orange {
+        background-color: #FF9933;
+    }
+    &.gray {
+        background-color: #999999;
+    }
+}
+
+.task-card-detail-bg {
+    width: 440px;
+    float: right;
+    padding: 10px 20px 20px 15px;
+    background-color: #BEBEBE;
+    .box-shadow(0 0 5px 1px rgba(0, 0, 0, 0.10) inset);
+    .card-detail-wrap {
+        background-color: @white;
+        .border-radius(10px);
+        padding: 20px;
+        .title {
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            line-height: 18px;
+        }
+    }
+}
