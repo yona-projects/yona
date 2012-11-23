@@ -57,6 +57,11 @@ public class ProjectApp extends Controller {
     public static Result saveProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class)
                 .bindFromRequest();
+        if(request().body().asFormUrlEncoded().get("accept") == null){
+            flash(Constants.WARNING, "project.new.agreement.alert");
+            return badRequest(newProject.render("title.newProject",
+                    filledNewProjectForm));
+        }
 
         if (Project.isProject(UserApp.currentUser().loginId,
                 filledNewProjectForm.field("name").value())) {
