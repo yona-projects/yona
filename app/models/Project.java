@@ -11,6 +11,7 @@ import javax.persistence.OneToOne;
 
 import models.enumeration.RoleType;
 import models.task.TaskBoard;
+import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -77,8 +78,8 @@ public class Project extends Model {
         return find.byId(id);
     }
 
-    public static Project findByName(String name) {
-        return find.where().eq("name", name).findUnique();
+    public static Page<Project> findByName(String name, int pageSize, int pageNum) {
+        return find.where().ilike("name", "%" + name + "%").findPagingList(pageSize).getPage(pageNum);
     }
     
     public static Project findByNameAndOwner(String userName, String projectName) {

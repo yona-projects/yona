@@ -33,7 +33,7 @@ public class CodeHistoryApp extends Controller {
     public static Result history(String userName, String projectName, String branch) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        Project project = Project.findByName(projectName);
+        Project project = Project.findByNameAndOwner(userName, projectName);
         String url = CodeApp.getURL(userName, projectName);
         String pageStr = RequestUtil.getFirstValueFromQuery(request().queryString(), "page");
         int page = 0;
@@ -53,7 +53,7 @@ public class CodeHistoryApp extends Controller {
     public static Result show(String userName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        Project project = Project.findByName(projectName);
+        Project project = Project.findByNameAndOwner(userName, projectName);
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
 
         return ok(diff.render(project, patch));

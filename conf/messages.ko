@@ -211,6 +211,7 @@ site.sidebar.userList = 유저 관리
 site.sidebar.projectList = 프로젝트 관리
 site.sidebar.softwareMap = 소프트웨어 맵
 site.sidebar.mailSend = 메일 발송
+site.project.filter = 찾고자 하는 프로젝트의 이름을 입력하세요.
 site.userList.search = 찾고자하는 유저의 ID를 입력하세요...
 site.userList.isActive = 활성 상태
 site.userList.deleteAlert = 프로젝트의 유일한 관리자이므로 사이트에서 삭제할 수 없습니다.

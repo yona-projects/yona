@@ -87,13 +87,18 @@ public class SiteApp extends Controller {
         return redirect(routes.SiteApp.userList(0, null));
     }
         
-    public static Result projectList() {
-        Page<Project> projects = ProjectApp.projectList(0);
-        return ok(projectList.render("title.siteList", projects));
+    public static Result projectList(String filter) {
+        Page<Project> projects;
+        if(!filter.equals("")){
+            projects = Project.findByName(filter, 25, 0);
+        } else {
+            projects = ProjectApp.projectList(0);
+        }
+        return ok(projectList.render("title.siteList", projects, filter));
     }
     public static Result deleteProject(Long projectId){
         Project.delete(projectId);
-        return redirect(routes.SiteApp.projectList());
+        return redirect(routes.SiteApp.projectList(""));
     }
     
     public static Result softwareMap() {

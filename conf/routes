@@ -25,7 +25,7 @@ POST    /sites/mail                                     controllers.SiteApp.send
 GET     /sites/userList                                 controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
 POST    /sites/userList                                 controllers.SiteApp.searchUser()
 GET     /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
-GET     /sites/projectList                              controllers.SiteApp.projectList()
+GET     /sites/projectList                              controllers.SiteApp.projectList(filter:String ?= "")
 GET     /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
 GET     /sites/softwareMap                              controllers.SiteApp.softwareMap()
 
