@@ -186,6 +186,8 @@ public class Attachment extends Model {
     @Override
     public void delete() {
         super.delete();
-        new File(uploadDirectory, this.hash).delete();
+        if (!exists(this.hash)) {
+            new File(uploadDirectory, this.hash).delete();
+        }
     }
 }
