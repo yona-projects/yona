@@ -20,6 +20,7 @@ import views.html.project.memberList;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
+import views.html.projectList;
 
 import com.avaje.ebean.Page;
 
@@ -216,7 +217,13 @@ public class ProjectApp extends Controller {
         return Project.projects(pageNum);
     }
 
-    public static Result projects() {
-        return ok(views.html.underconstruction.render("projects"));
+    public static Result projects(String filter) {
+        Page<Project> projects;
+        if(!filter.equals("")){
+            projects = Project.findByName(filter, 25, 0);
+        } else {
+            projects = ProjectApp.projectList(0);
+        }
+        return ok(projectList.render("title.siteList", projects, filter));
     }
 }

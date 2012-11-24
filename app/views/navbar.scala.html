@@ -25,8 +25,8 @@
                 <li><a href="@routes.UserApp.signup()" class="d-link signup">@Messages("title.signup")</a></li>
                 }
                 <li class="search-bar">
-                    <form action="/search">
-                        <input type="text" autocomplete="off" class="query" name="query" /><button type="submit" class="ico ico-o-search btn-transparent"></button>
+                    <form action="@routes.ProjectApp.projects()">
+                        <input type="text" autocomplete="off" class="query" name="query" placeholder="전체 프로젝트에서 검색"/><button type="submit" class="ico ico-o-search btn-transparent"></button>
                     </form>
                 </li>
             </ul>

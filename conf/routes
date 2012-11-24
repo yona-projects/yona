@@ -53,7 +53,7 @@ GET     /:user/:projectName/board/:id/delete/:commentId controllers.BoardApp.del
 # Projects
 GET     /projects/new                                   controllers.ProjectApp.newProject()
 POST    /projects/new                                   controllers.ProjectApp.saveProject()
-GET     /projectList                                    controllers.ProjectApp.projects()
+GET     /projectList                                    controllers.ProjectApp.projects(filter:String ?= "")
 GET     /:userName/:projectName                         controllers.ProjectApp.project(userName: String, projectName:String)
 GET     /:userName/:projectName/setting                 controllers.ProjectApp.setting(userName: String, projectName:String)
 POST    /:userName/:projectName/setting                 controllers.ProjectApp.saveSetting(userName: String, projectName:String)

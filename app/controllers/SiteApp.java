@@ -96,6 +96,7 @@ public class SiteApp extends Controller {
         }
         return ok(projectList.render("title.siteList", projects, filter));
     }
+    
     public static Result deleteProject(Long projectId){
         Project.delete(projectId);
         return redirect(routes.SiteApp.projectList(""));
