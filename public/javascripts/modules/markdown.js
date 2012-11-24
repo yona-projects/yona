@@ -121,7 +121,7 @@ var fileUploader = function (textarea, action) {
     filelist.addClass('files');
 
     div = $('<div>');
-    div.addClass('attachmentList');
+    div.addClass('attachment-list');
     div.append($('<strong>' + title + '</strong>'));
     div.append(filelist);
 
@@ -138,7 +138,7 @@ var fileUploader = function (textarea, action) {
   };
 
   var _replaceFileInputControl = function() {
-    label.after(createAttachment());
+    progress.before(createAttachment());
   };
 
   var insertLinkInto = function(textarea, link) {
@@ -197,8 +197,6 @@ var fileUploader = function (textarea, action) {
       tempFileList.css('display', '');
       tempFileList.append(createFileItem(file, link));
 
-      notification.text(file.name + ' is uploaded successfully.');
-
       setProgressBar(100);
     },
 
@@ -230,25 +228,25 @@ var fileUploader = function (textarea, action) {
         form.append(attachment);
         form.ajaxForm(fileUploadOptions);
         form.submit();
-        notification.text(filename + ' is uploading...');
       }
     });
 
     return attachment;
   }
 
+  var fileAttachment, attachment, progressbar, progress, attachmentList,
+      tempFileList, notification;
+
   if (!textarea || !action) {
     throw new Error('textarea and action is required.');
   }
 
-  var label = $('<label for="attachment">').text('Select file to upload');
-  var attachment = createAttachment();
-  var progressbar = $('<div class="bar">');
-  var progress = $('<div class="progress progress-warning">')
-      .append(progressbar);
-  var attachmentList = createFileList('Attachments');
-  var tempFileList = createFileList('Temporary files (attached if you save)');
-  var notification = $('<div>');
+  attachment = createAttachment();
+  progressbar = $('<div class="bar">');
+  progress = $('<div class="progress progress-warning">').append(progressbar);
+  attachmentList = createFileList('Attachments');
+  tempFileList = createFileList('Temporary files (attached if you save)');
+  notification = $('<div>');
 
   attachmentList.css('display', 'none');
   tempFileList.css('display', 'none');
@@ -269,12 +267,21 @@ var fileUploader = function (textarea, action) {
     addFiles(responseBody.tempFiles, tempFileList);
   });
 
-  textarea.after(label);
-  label.after(notification);
-  notification.after(attachment);
-  attachment.after(progress);
-  progress.after(attachmentList);
-  attachmentList.after(tempFileList);
+  fileAttachment = textarea.siblings('.file-attachment');
+  if (fileAttachment.length <= 0) {
+    fileAttachment = textarea.parent().siblings('.file-attachment');
+  }
+  if (fileAttachment.length <= 0) {
+    fileAttachment = $('<div>').addClass('file-attachment');
+    textarea.after(fileAttachment);
+  }
+
+  fileAttachment
+    .append(notification)
+    .append(attachment)
+    .append(progress)
+    .append(attachmentList)
+    .append(tempFileList);
 }
 
 var fileDownloader = function (div, urlToGetFileList) {
