@@ -218,7 +218,7 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = finder.byId(id);
-        if (!issue.milestoneId.equals(0l) || issue.milestoneId != null) {
+        if (issue.milestoneId != null && !issue.milestoneId.equals(0l)) {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
         }
