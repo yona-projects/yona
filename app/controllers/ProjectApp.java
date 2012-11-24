@@ -170,15 +170,18 @@ public class ProjectApp extends Controller {
     public static Result newMember(String userName, String projectName) {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
-        if (user == null) {
+        Project project = getProject(userName, projectName);
+        if (!ProjectUser.isManager(UserApp.currentUser().id, project.id)){
+            flash(Constants.WARNING, "project.member.isManager");
+            return redirect(routes.ProjectApp.members(userName, projectName));
+        } else if (user == null) {
             flash(Constants.WARNING, "project.member.notExist");
             return redirect(routes.ProjectApp.members(userName, projectName));
-        }
-        Project project = getProject(userName, projectName);
-        if (!ProjectUser.isMember(user.id, project.id))
+        } else if (!ProjectUser.isMember(user.id, project.id)){
             ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
-        else
+        } else{
             flash(Constants.WARNING, "project.member.alreadyMember");
+        }
         return redirect(routes.ProjectApp.members(userName, projectName));
     }
 
