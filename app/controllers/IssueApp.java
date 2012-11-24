@@ -97,27 +97,32 @@ public class IssueApp extends Controller {
 
     public static Result updateIssue(String userName, String projectName, Long id) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
+
         if (issueForm.hasErrors()) {
             return badRequest(issueForm.errors().toString());
-        } else {
-            Issue issue = issueForm.get();
-            issue.id = id;
-            issue.date = Issue.findById(id).date;
-            issue.project = project;
-            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds[]");
-            if (labelIds != null) {
-                for (String labelId: labelIds) {
-                    issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
-                }
-            }
-
-            Issue.edit(issue);
-
-            // Attach the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, id);
         }
-        return redirect(routes.IssueApp.issues(project.owner, project.name, State.ALL.name()));
+
+        Issue issue = issueForm.get();
+        Issue originalIssue = Issue.findById(id);
+
+        issue.id = id;
+        issue.date = originalIssue.date;
+        issue.authorId = originalIssue.authorId;
+        issue.authorName = originalIssue.authorName;
+        issue.project = originalIssue.project;
+        String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds[]");
+        if (labelIds != null) {
+            for (String labelId: labelIds) {
+                issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
+            }
+        }
+
+        Issue.edit(issue);
+
+        // Attach the files in the current user's temporary storage.
+        Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);
+
+        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.ALL.name()));
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {

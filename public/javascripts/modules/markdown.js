@@ -66,17 +66,15 @@ var fileUploader = function (textarea, action) {
   };
 
   var createFileItem = function(file, link) {
-    var fileitem, icon, filelink, insertButton, deleteButton;
+    var fileitem, filelink, filesize, insertButton, deleteButton;
 
     fileitem = $('<li>');
     fileitem.attr('tabindex', 0);
 
-    icon = $('<i>');
-    icon.addClass('icon-upload');
-
     filelink = $('<a>');
     filelink.attr('href', file.url);
     filelink.text(file.name);
+    filesize = $('<span>').text('(' + humanize.filesize(file.size) + ')');
 
     insertButton = $('<input type="button">');
     insertButton.attr('id', file.name);
@@ -105,10 +103,10 @@ var fileUploader = function (textarea, action) {
       form.submit();
     });
 
-    fileitem.append(icon);
-    icon.after(filelink);
-    filelink.after(insertButton);
-    insertButton.after(deleteButton);
+    fileitem.append(filelink);
+    fileitem.append(filesize);
+    fileitem.append(insertButton);
+    fileitem.append(deleteButton);
 
     return fileitem;
   };

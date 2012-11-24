@@ -50,6 +50,8 @@ public class Attachment extends Model {
 
     public String mimeType;
 
+    public Long size;
+
     public Long containerId;
 
     public static List<Attachment> findTempFiles(Long userId) {
@@ -96,7 +98,7 @@ public class Attachment extends Model {
     }
 
     // Store the files in the filesystem.
-    private static String storeFileInFilesystem(File file)
+    private static String moveFileIntoTemporaryArea(File file)
             throws NoSuchAlgorithmException, IOException {
         // Compute sha1 checksum.
         MessageDigest algorithm = MessageDigest.getInstance("SHA1");
@@ -153,7 +155,10 @@ public class Attachment extends Model {
         if (this.mimeType == null) {
             this.mimeType = new Tika().detect(file);
         }
-        this.hash = Attachment.storeFileInFilesystem(file);
+
+        // the size must be set before it is moved.
+        this.size = file.length();
+        this.hash = Attachment.moveFileIntoTemporaryArea(file);
 
         // Add the attachment into the Database only if there is no same record.
         Attachment sameAttach = Attachment.findBy(this);

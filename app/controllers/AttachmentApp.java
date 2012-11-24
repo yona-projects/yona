@@ -64,6 +64,7 @@ public class AttachmentApp extends Controller {
         fileInfo.put("mimeType", attach.mimeType);
         fileInfo.put("name", attach.name);
         fileInfo.put("url", url);
+        fileInfo.put("size", attach.size.toString());
         JsonNode responseBody = toJson(fileInfo);
 
         if (isCreated) {
@@ -153,6 +154,7 @@ public class AttachmentApp extends Controller {
         file.put("mimeType", attach.mimeType);
         file.put("name", attach.name);
         file.put("url", routes.AttachmentApp.getFile(attach.id).url());
+        file.put("size", attach.size.toString());
 
         return file;
     }
