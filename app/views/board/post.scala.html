@@ -1,16 +1,17 @@
 @(post:Post, commentForm:Form[Comment],  project:Project)
 
 @import utils.TemplateHelper._
+@import models.enumeration.Resource
 
 @main("상세보기", project){
 @pageTitle(project,"Board")
 <div class="row-fluid">
     <div class="span2 offset10">
 	    <div id="board_btn_panel">
-            @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.EDIT){
+            @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.EDIT){
 	        <a class="btn btn-primary" href="@routes.BoardApp.editPost(project.owner, project.name, post.id)">수정</a>
             }
-            @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.DELETE){
+            @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.DELETE){
 	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
             }
 	        <a class="btn" href="@routes.BoardApp.posts(project.owner, project.name)">목록</a>
@@ -32,7 +33,7 @@
 	<div class="row-fluid">
 		<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
 		<div class="span11">
-			<pre>@post.contents</pre>
+			<div markdown resourceType=@Resource.BOARD_POST resourceId="@post.id">@post.contents</div>
 			@if(post.filePath != null){
 			<p><a href='@routes.Assets.at("uploadFiles/" + post.filePath)'><i class="icon-download"></i>@post.filePath</a></p>
 			}
@@ -50,24 +51,23 @@
 			<span>@comment.authorName가 @utils.TemplateHelper.agoString(comment.ago())에 작성함</span> |
 			<span>@comment.date</span>
             <!-- TODO 권한설정 잘할것. -->
-            @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_COMMENT, models.enumeration.Operation.DELETE, comment.id){
+            @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.DELETE, comment.id){
             <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
             }
 		</div>
-		<pre>@comment.contents</pre>
+        <div markdown resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id>@comment.contents</div>
 		@if(comment.filePath != null){
 		<p><a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i class="icon-download"></i>@comment.filePath</a></p>
 		}
 	</div>
 </div>
 }
-@roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_COMMENT, models.enumeration.Operation.WRITE){
+@roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.WRITE){
 <!-- 댓글 입력 폼 -->
 <hr/>
 <div class="row-fluid">
 	@helper.form(routes.BoardApp.saveComment(project.owner, project.name, post.id), 'enctype -> "multipart/form-data"){
-		<div class="span12">@helper.textarea(commentForm("contents"), '_showConstraints -> false, 'label-> "덧글내용")</div>
-		<div class="span6">@helper.inputFile(commentForm("filePath"), '_showConstraints -> false, 'label->"파일첨부")</div>		
+    <div class="span12">@helper.textarea(commentForm("contents"), '_showConstraints -> false, 'label-> "덧글내용", 'markdown -> true)</div>
 		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
 	}
 </div>
@@ -87,5 +87,10 @@
     <a href="#" class="btn" data-dismiss="modal">아니오</a>
   </div>
 </div>
+
+@views.html.markdown()
+<script type="text/javascript">
+  nforge.require('shortcut.submit');
+</script>
 }
             

@@ -10,10 +10,14 @@
     </div>
     @helper.form(action=routes.BoardApp.savePost(project.owner, project.name), 'enctype -> "multipart/form-data"){
     	@helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("post.new.title"))
-    	@helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("post.new.contents"))
-    	@helper.inputFile(form("filePath"))
+        @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("post.new.contents"), 'markdown -> true)
     	<input type="submit" class="btn btn-primary" value="@Messages("button.save")"/>
     	<input type="reset" class="btn" value="@Messages("button.reset")"/>
     }
     <script>nforge.require("board.vaildate");</script>
+
+    @views.html.markdown()
+    <script type="text/javascript">
+      nforge.require('shortcut.submit');
+    </script>
 }

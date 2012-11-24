@@ -64,7 +64,7 @@ public class BoardApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         if (postForm.hasErrors()) {
             flash(Constants.WARNING, "board.post.empty");
-            
+
             return redirect(routes.BoardApp.newPost(userName, projectName));
         } else {
             Post post = postForm.get();
@@ -74,6 +74,9 @@ public class BoardApp extends Controller {
             post.filePath = saveFile(request());
             post.project = project;
             Post.write(post);
+
+            // Attach all of the files in the current user's temporary storage.
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_POST, post.id);
         }
 
         return redirect(routes.BoardApp.posts(project.owner, project.name));
@@ -108,6 +111,9 @@ public class BoardApp extends Controller {
             Comment.write(comment);
             Post.countUpCommentCounter(postId);
 
+            // Attach all of the files in the current user's temporary storage.
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_COMMENT, comment.id);
+
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         }
     }
@@ -115,6 +121,7 @@ public class BoardApp extends Controller {
     public static Result deletePost(String userName, String projectName, Long postId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Post.delete(postId);
+        Attachment.deleteAll(Resource.BOARD_POST, postId);
         return redirect(routes.BoardApp.posts(project.owner, project.name));
     }
 
@@ -123,7 +130,7 @@ public class BoardApp extends Controller {
         Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
         Project project = ProjectApp.getProject(userName, projectName);
 
-        
+
         if (AccessControl.isAllowed(UserApp.currentUser().id, project.id, Resource.BOARD_POST, Operation.EDIT, postId)) {
             return ok(editPost.render("board.post.modify", editForm, postId, project));
         } else {
@@ -149,15 +156,19 @@ public class BoardApp extends Controller {
             post.project = project;
 
             Post.edit(post);
+
+            // Attach the files in the current user's temporary storage.
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_POST, post.id);
         }
 
         return redirect(routes.BoardApp.posts(project.owner, project.name));
-        
+
     }
-    
+
     public static Result deleteComment(String userName, String projectName, Long postId, Long commentId) {
         Comment.delete(commentId);
         Post.countDownCommentCounter(postId);
+        Attachment.deleteAll(Resource.BOARD_COMMENT, commentId);
         return redirect(routes.BoardApp.post(userName, projectName, postId));
     }
 
@@ -173,5 +184,5 @@ public class BoardApp extends Controller {
         }
         return null;
     }
-    
+
 }
