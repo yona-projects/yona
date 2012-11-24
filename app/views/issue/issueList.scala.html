@@ -4,15 +4,32 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 @import utils.TemplateHelper._
 
+@urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state)}
+
+@ordering(label:String, sortBy:String) = {
+  @if(sortBy == param.sortBy) {
+    @if(param.orderBy == "desc") {
+      <a selected href="@urlToList&sortBy=@sortBy&orderBy=asc">▼@label</a>
+    } else {
+      <a selected href="@urlToList&sortBy=@sortBy&orderBy=desc">▲@label</a>
+    }
+  } else {
+    <a href="@urlToList&sortBy=@sortBy">@label</a>
+  }
+}
+
 @header(label:String, sortBy:String) = {
     <th>
-        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)" data-sort-by="@sortBy">@label</a>
         @if(sortBy == param.sortBy){
         @if(param.orderBy == "desc"){
+        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBy=asc" data-sort-by="@sortBy">@label</a>
         <i class="icon-chevron-down"></i>
         } else {
+        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBY=desc" data-sort-by="@sortBy">@label</a>
         <i class="icon-chevron-up"></i>
         }
+        } else {
+        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy" data-sort-by="@sortBy">@label</a>
         }
     </th>
 
@@ -60,9 +77,9 @@
   </div>
 
   <p class="ordering">
-      <span>▲상태순</span>
-      <span>▲날짜순</span>
-      <span selected>▼댓글순</span>
+      @ordering(Messages("order.state"), "state")
+      @ordering(Messages("order.date"), "date")
+      @ordering(Messages("order.comments"), "numOfComments")
   </p>
 
   <table class="table issue-list">

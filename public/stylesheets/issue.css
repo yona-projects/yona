@@ -31,8 +31,8 @@ body { font-size: 12px; }
 .issue-list td.assignee { min-width: 34px; }
 
 p.ordering { text-align: right; }
-p.ordering span { color: #949494 }
-p.ordering span[selected] { color: #666666 }
+p.ordering a { color: #949494 }
+p.ordering a[selected] { color: #666666 }
 
 /* dashboard */
 .dashboard { background-color: #ececec; padding: 10px; border-radius: 6px; }

@@ -41,6 +41,10 @@ label.date = Date
 label.id = #
 label.dueDate = Due Date
 
+order.date = Date
+order.state = State
+order.comments = Comments
+
 button.save = Save
 button.confirm = Confirm
 button.cancel = Cancel

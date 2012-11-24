@@ -41,6 +41,10 @@ label.date = 작성일
 label.id = #
 label.dueDate = 완료일
 
+order.date = 날짜순
+order.state = 상태순
+order.comments = 댓글순
+
 button.save = 저장
 button.confirm = 확인
 button.cancel = 취소
