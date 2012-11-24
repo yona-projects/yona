@@ -21,15 +21,14 @@
         @for(project <- currentPage.getList()) {
           <tr>
             <td>
-            
-            
-                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-                        <strong>
-                            @project.name
-                            <i class="ico ico-lock"></i>
-                        </strong>
-                    </a>
-            
+              <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+                  <strong>
+                    @project.name
+                    @if(!project.share_option){
+                    <i class="ico ico-lock"></i>
+                    }
+                  </strong>
+              </a>            
             </td>
             <td>@project.owner</td>
           </tr>
