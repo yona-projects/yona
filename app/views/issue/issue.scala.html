@@ -126,6 +126,12 @@
 }
 </div>
 
+@isVisible(models.enumeration.Resource.ISSUE_POST) {
+<div class="pull-left">
+  <a data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
+</div>
+}
+
 <div class="pull-right">
     <a class="btn" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
     <a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
