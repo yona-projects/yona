@@ -1,13 +1,14 @@
 @(message: String)(projectForm: Form[Project], project:Project)
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@import utils.TemplateHelper._
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 
 @projectMngMain(message, project) {
     @pageTitle(project,"Setting")
     <div class="bubble-wrap gray">
-        <form class="nm" action="@routes.ProjectApp.saveSetting(project.owner, project.name)" method="post" enctype="multipart/form-data" id="saveSetting">
+        @form(action=routes.ProjectApp.saveSetting(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">
             <div class="box-wrap top clearfix">
                 <div class="setting-box left">
@@ -40,10 +41,10 @@
                         </div>
                     </div>
                     <label for="project-name">
-                        <input class="text" type="text" name="name" placeholder="프로젝트 이름을 입력해주세요." id="project-name" value="@project.name">
+                        @inputText(projectForm("name"), 'class->"text", 'placeholder->"프로젝트 이름을 입력해주세요.")
                     </label>
                     <label for="project-desc">
-                        <textarea class="textarea" id="project-desc" name="overview" placeholder="프로젝트 설명을 입력해주세요.">@project.overview</textarea>
+                        @textarea(projectForm("overview"), 'placeholder->"프로젝트 설명을 입력해주세요.", 'class->"textarea")
                     </label>
                 </div>
             </div>
@@ -61,7 +62,7 @@
             <!-- 현재 레이아웃에 존재하지 않는 기능 -->
             <input type="hidden" name="isAuthorEditable" value="true"/>
             <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(project.owner, project.name)"/>
-        </form>
+        }
     </div>
     <div class="bubble-wrap gray wp">
         <div class="n-alert project-del">

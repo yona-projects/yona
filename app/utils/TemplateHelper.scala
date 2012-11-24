@@ -5,6 +5,7 @@ import org.joda.time.DateTimeConstants
 import play.i18n.Messages
 import controllers.routes
 import java.security.MessageDigest
+import views.html._
 
 object TemplateHelper {
 
@@ -57,4 +58,7 @@ object TemplateHelper {
     "http://www.gravatar.com/avatar/" + MessageDigest.getInstance("MD5").digest(email.toLowerCase.getBytes).map("%02x".format(_)).mkString + "?s=" + size
   }
 
+  def simpleForm(elements: helper.FieldElements) = {
+    elements.input
+  }
 }

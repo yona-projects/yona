@@ -1,10 +1,11 @@
 @(title: String, form: Form[Milestone], milestoneId: Long, projectInst: Project)
 
 @import utils.TemplateHelper._
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @project.projectMngMain(title, projectInst) {
     @pageTitle(projectInst, "Milestone")
-    <!--<div class="form-wrap milestone">
+    <div class="form-wrap milestone">
         @helper.form(action=routes.MilestoneApp.updateMilestone(projectInst.owner, projectInst.name, milestoneId), '_class->"nm"){
             <div class="inner left">
                 <div class="n-alert hide" id="title_error">
@@ -14,7 +15,9 @@
                     </div>
                 </div>
                 <label for="title">
-                    <input type="text" name="title" id="title" class="text" placeholder="새 마일스톤의 제목을 입력해주세요.">
+                    @helper.input(form("title")){(id, name, value, args) =>
+                    <input type="text" name="@name" id="@id" class="text" placeholder="새 마일스톤의 제목을 입력해주세요." value="@value">
+                    }
                 </label>
                 <div class="n-alert hide" id="contents_error">
                     <div class="n-inner">
@@ -23,7 +26,9 @@
                     </div>
                 </div>
                 <label for="contents">
-                    <textarea class="textarea" id="contents" name="contents" placeholder="내용을 입력해주세요."></textarea>
+                    @helper.input(form("contents")){(id, name, value, args) =>
+                    <textarea class="textarea" id="@id" name="@name" placeholder="내용을 입력해주세요.">@value</textarea>
+                    }
                 </label>
                 <div class="actions">
                     <button type="submit" class="n-btn blue med btn-transparent save">SAVE</button>
@@ -39,7 +44,9 @@
                     </div>
                 </div>
                 <label for="dueDate">
-                    <input type="text" name="dueDate" id="dueDate" class="validate due-date">
+                    @helper.input(form("dueDate")){(id, name, value, args) =>
+                    <input type="text" name="@name" id="@id" class="validate due-date" value="@value">
+                    }
                 </label>
             </div>
         }
@@ -56,18 +63,5 @@
             field: document.getElementById('dueDate'), 
             format: 'YYYY-MM-DD',
         });
-    </script>-->
-
-
-    
-    @helper.form(action=routes.MilestoneApp.updateMilestone(projectInst.owner, projectInst.name, milestoneId)){
-        @helper.inputText(form("title"), '_showConstraints -> false, '_label-> Messages("label.title"))
-        @helper.textarea(form("contents"), '_showConstraints -> false, '_label-> Messages("label.contents"))
-        @helper.input(form("dueDate"), '_showConstraints -> false, '_label-> Messages("label.dueDate")) { (id, name, value, args) =>
-            <input type="text" name="@name" value="@value" id="dueDate" />
-        }
-        <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="btn">@Messages("button.cancel")</a>
-        <input type="submit" class="btn btn-primary save" value="@Messages("button.save")"/>
-    }
-    <script type="text/javascript">nforge.require('milestone.manage');</script>
+    </script>
 }
