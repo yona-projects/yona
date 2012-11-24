@@ -1,5 +1,7 @@
 @(title:String, project:Project, page:Page[Post], param:BoardApp.SearchCondition)
 
+@import utils.TemplateHelper._
+
 @header(label:String, key:String) = {
   <th>
     <a key="@key" href="@routes.BoardApp.posts(project.owner, project.name)">@label</a>
