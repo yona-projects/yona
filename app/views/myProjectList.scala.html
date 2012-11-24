@@ -1,14 +1,16 @@
 @(projects:List[Project])
 
 @if(projects != null){
-    @for(singleProject <- projects){
+    @for(project <- projects){
         <li class="my-project">
             <div class="project-header">
                 <div class="name-wrap">
-                    <a href="@routes.ProjectApp.project(singleProject.owner, singleProject.name)" class="project-name">
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
                         <strong>
-                            @singleProject.name (@singleProject.owner)
+                            @project.name (@project.owner)
+                            @if(!project.share_option){
                             <i class="ico ico-lock"></i>
+                            }
                         </strong>
                     </a>
                 </div>
