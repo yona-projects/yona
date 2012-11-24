@@ -190,4 +190,11 @@ public class Attachment extends Model {
             new File(uploadDirectory, this.hash).delete();
         }
     }
+
+    public static void deleteAll(Resource containerType, Long containerId) {
+        List<Attachment> attachments = findByContainer(containerType, containerId);
+        for (Attachment attachment : attachments) {
+            attachment.delete();
+        }
+    }
 }

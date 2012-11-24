@@ -132,6 +132,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         Issue.delete(issueId);
+        Attachment.deleteAll(Resource.ISSUE_POST, issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 State.ALL.state()));
     }
@@ -163,6 +164,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         IssueComment.delete(commentId);
         Issue.updateNumOfComments(issueId);
+        Attachment.deleteAll(Resource.ISSUE_COMMENT, commentId);
         return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
     }
 
