@@ -32,6 +32,9 @@ object ApplicationBuild extends Build {
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.tika" % "tika-core" % "1.2",
       "commons-io" % "commons-io" % "2.4"
+//      "org.jacoco" % "org.jacoco.core" % "0.6.1-SNAPSHOT",
+//      "org.jacoco" % "org.jacoco.report" % "0.6.1-SNAPSHOT"
+      
     )
 
     val projectSettings = Play2WarPlugin.play2WarSettings ++ Seq(
@@ -41,9 +44,12 @@ object ApplicationBuild extends Build {
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
       templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less"),
+//      jacoco.settings:_*,
       Play2WarKeys.servletVersion := "3.0"
       // Or Play2WarKeys.servletVersion := "2.5"
     )
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(projectSettings: _*)
+    val main = PlayProject(appName, appVersion, appDependencies, mainLang = JAVA).settings(projectSettings: _*
+//        parallelExecution in jacoco.Config := false
+    )
 }
