@@ -25,7 +25,7 @@
             <td>@user.name</td>
             <td>@user.email</td>
             <td>
-              <a class="btn"data-toggle="modal" href="#alertEdit@user.loginId">@Messages("button.edit")</a>
+              <a class="btn"data-toggle="modal" href="@routes.UserApp.memberInfo(user.id)">@Messages("button.detail")</a>
               <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion@user.loginId">@Messages("button.delete")</a>
             </td> 
           </tr>

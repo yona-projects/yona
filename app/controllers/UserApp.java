@@ -200,11 +200,24 @@ public class UserApp extends Controller {
 			newUserForm.reject("loginId", "user.loginId.duplicate");
 		}
 	}
+	
+	public static Result memberInfo(Long userId) {
+		User user = User.findById(userId);
+		return ok(memberInfo.render(user));
+	}
+	
 	public static Result info() {
         User user = UserApp.currentUser();
         return ok(info.render(user));
     }
 
+	public static Result memberEdit(Long userId) {
+		User user = User.findById(userId);
+		Form<User> userForm = new Form<User>(User.class);
+        userForm = userForm.fill(user);
+        return ok(edit.render(userForm));
+	}
+	
     public static Result edit() {
         User user = UserApp.currentUser();
         Form<User> userForm = new Form<User>(User.class);
@@ -223,6 +236,7 @@ public class UserApp extends Controller {
         Attachment.attachFiles(currentUser().id, null, Resource.USER, currentUser().id);
         return redirect(routes.UserApp.info());
     }
+    
     public static Result getProfilePic(String userName){
         Long fileId = Attachment.findByContainer(Resource.USER, User.findByName(userName).id).get(0).containerId;
         return TODO;

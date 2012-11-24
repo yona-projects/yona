@@ -59,6 +59,7 @@ button.add = Add
 button.login = Login
 button.signup = Create an account
 button.newProject = Create your project
+button.detail = Detail
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached

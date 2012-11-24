@@ -1,0 +1,22 @@
+@(user:User)
+
+@home("Users Info") {
+<div class="page">
+  <div>name : @user.name</div>
+  <div>
+    email : @user.email
+  </div>
+  <div>
+  프로젝트 갯수 : @user.myProjects().size()
+  </div>
+  <div>
+    <ul>
+    @for(project <- user.myProjects()){
+        <li>
+            @project.name
+        </li>
+    }
+    </ul>
+  </div>
+</div>
+}

@@ -15,7 +15,9 @@ GET     /users/logout                                   controllers.UserApp.logo
 GET     /users/signup                                   controllers.UserApp.signup()
 POST    /users/signup                                   controllers.UserApp.saveUser()
 GET     /info                                           controllers.UserApp.info()
+GET     /memberinfo                                     controllers.UserApp.memberInfo(userId:Long)
 GET     /info/edit                                      controllers.UserApp.edit()
+GET     /memberinfo/edit                                controllers.UserApp.memberEdit(userId:Long)
 POST    /info/edit                                      controllers.UserApp.save()
 
 # Site

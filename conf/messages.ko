@@ -59,6 +59,7 @@ button.add = 추가
 button.login = 로그인
 button.signup = 가입하기
 button.newProject = 여러분의 프로젝트를 만드세요.
+button.detail = 상세조회
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
