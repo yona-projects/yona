@@ -50,8 +50,8 @@
             <div class="box-wrap middle">
                 <div class="cu-label">공개설정</div>
                 <div class="cu-desc">
-                    <input name="share_option" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
-                    <input name="share_option" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
+                    <input name="share_option" type="radio" @if(project.share_option == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn">공개</label>
+                    <input name="share_option" type="radio" @if(project.share_option == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn">비공개</label>
                     <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
                 </div>
             </div>
