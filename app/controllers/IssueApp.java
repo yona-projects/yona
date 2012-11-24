@@ -14,7 +14,10 @@ import utils.*;
 import views.html.issue.*;
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.util.Set;
+
+import org.apache.tika.Tika;
 
 public class IssueApp extends Controller {
 
@@ -172,9 +175,20 @@ public class IssueApp extends Controller {
                 State.getValue(state), issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
                 issueParam.commentedCheck);
-        Issue.excelSave(issues.getList(), project.name + "_" + state + "_filter_"
+        File excelFile = Issue.excelSave(issues.getList(), project.name + "_" + state + "_filter_"
                 + issueParam.filter + "_milestone_" + issueParam.milestone);
-        return ok(issueList.render("title.issueList", issues, issueParam, project));
+
+         // Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
+        // are not supported. See
+        String filename = excelFile.getName().replaceAll("[:\\x5c\\/{?]", "_");
+        filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
+        filename = "filename*=UTF-8''" + filename;
+
+        response().setHeader("Content-Length", Long.toString(excelFile.length()));
+        response().setHeader("Content-Type", new Tika().detect(excelFile));
+        response().setHeader("Content-Disposition", "attachment; " + filename);
+
+        return ok(excelFile);
     }
 
     public static Result enrollAutoNotification(String userName, String projectName)

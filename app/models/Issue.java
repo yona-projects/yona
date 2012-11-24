@@ -397,7 +397,7 @@ public class Issue extends Model {
      * @return
      * @throws Exception
      */
-    public static String excelSave(List<Issue> resultList, String pageName) throws Exception {
+    public static File excelSave(List<Issue> resultList, String pageName) throws Exception {
         String excelFile = pageName + "_" + JodaDateUtil.today().getTime() + ".xls";
         String fullPath = "public/uploadFiles/" + excelFile;
         WritableWorkbook workbook = null;
@@ -449,7 +449,7 @@ public class Issue extends Model {
                 e.printStackTrace();
             }
         }
-        return excelFile;
+        return new File(fullPath);
     }
 
     /**
