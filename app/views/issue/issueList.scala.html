@@ -107,9 +107,7 @@
   <div class="pull-right">
     <a class="btn btn-primary" href="@routes.IssueApp.newIssue(project.owner, project.name)" >@Messages("issue.menu.new")</a>
   </div>
-  <div class="pagination pagination-centered">
-    @pagination(currentPage, 5, "pagination")
-  </div>
+  @pagination(currentPage, 5, "pagination")
 </div>
 
 <script type="text/javascript">
