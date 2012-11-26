@@ -321,7 +321,7 @@ nforge.issue.list = function() {
 
   that = {
     init: function() {
-      $('#labels-form').css('display', 'none');
+      // $('#labels-form').css('display', 'none');
       $('#advanced-search').click(function(e) {
         if ($(e.srcElement).hasClass('active')) {
           $('#labels-form').css('display', 'none');
