@@ -1,3 +1,5 @@
+@import utils.TemplateHelper._
+
 <header class="gnb-outer">
     <div class="gnb-inner">
         <div class="gnb-knob left"><i class="ico gnb-left orange"></i></div>
@@ -16,7 +18,7 @@
             </ul>
             <ul class="gnb-menus right unstyled">
                 @if(session.contains("userId")){
-                <li><a href="@routes.UserApp.info()" class="d-link signin"><i class="ico ico-user"></i>@session.get("userName")</a></li>
+                <li><a href="@routes.UserApp.info()" class="d-link signin"><img class="user-thumb" src="@urlToPicture(User.findById(session.get("userId").toLong).email, 24)" alt="avatar" width="24" height="24">@session.get("userName")</a></li>
                 <li class="sp-line">|</li>
                 <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
                 } else {
