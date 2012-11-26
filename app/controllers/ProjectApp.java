@@ -15,6 +15,7 @@ import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import playRepository.RepositoryService;
+import utils.AccessControl;
 import utils.Constants;
 import views.html.project.memberList;
 import views.html.project.newProject;
@@ -35,6 +36,11 @@ public class ProjectApp extends Controller {
     }
 
     public static Result project(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         return ok(projectHome.render("title.projectHome",
                 getProject(userName, projectName)));
     }
@@ -50,6 +56,10 @@ public class ProjectApp extends Controller {
 
     public static Result setting(String userName, String projectName) {
         Project project = getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         Form<Project> projectForm = form(Project.class).fill(project);
         return ok(setting.render("title.projectSetting", projectForm, project));
     }

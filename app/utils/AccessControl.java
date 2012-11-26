@@ -75,6 +75,8 @@ public class AccessControl {
                 return userId == resourceId;
             case ISSUE_LABEL:
                 return ProjectUser.isMember(userId, projectId);
+            case PROJECT:
+                return Project.findById(projectId).share_option || ProjectUser.isMember(userId, projectId);
             default:
                 isAuthorEditible = false;
                 break;
@@ -92,7 +94,7 @@ public class AccessControl {
     }
 
     /**
-     * 
+     *
      * @param userId
      * @param resourceId
      * @param finder
@@ -102,5 +104,13 @@ public class AccessControl {
         int findRowCount = finder.where().eq("authorId", userId).eq("id", resourceId)
                 .findRowCount();
         return (findRowCount != 0) ? true : false;
+    }
+
+    public static boolean isAllowed(Object userSessionId, Project project) {
+        if (isAllowed(userSessionId, project.id, Resource.PROJECT, Operation.READ, project.id)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

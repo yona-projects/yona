@@ -32,6 +32,10 @@ public class IssueApp extends Controller {
      */
     public static Result issues(String userName, String projectName, String state) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
         Page<Issue> issues = Issue.find(project.id, issueParam.pageNum,
@@ -59,6 +63,10 @@ public class IssueApp extends Controller {
 
     public static Result newIssue(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         return ok(newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
@@ -95,6 +103,10 @@ public class IssueApp extends Controller {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         return ok(editIssue.render("title.editIssue", editForm, targetIssue, project));
     }
 
@@ -171,6 +183,10 @@ public class IssueApp extends Controller {
     public static Result extractExcelFile(String userName, String projectName, String state)
             throws Exception {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
         Page<Issue> issues = Issue.find(project.id, issueParam.pageNum,

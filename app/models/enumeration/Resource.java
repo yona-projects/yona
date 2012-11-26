@@ -18,7 +18,8 @@ public enum Resource {
     WIKI_PAGE("wiki_page"),
     PROJECT_SETTING("project_setting"),
     SITE_SETTING("site_setting"),
-    USER("user");
+    USER("user"),
+    PROJECT("project");
 
     private String resource;
 

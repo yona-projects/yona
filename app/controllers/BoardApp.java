@@ -45,6 +45,9 @@ public class BoardApp extends Controller {
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
 
         Logger.debug(postSearchCondition.filter);
         return ok(postList.render(
@@ -56,6 +59,10 @@ public class BoardApp extends Controller {
 
     public static Result newPost(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         return ok(newPost.render("board.post.new", new Form<Post>(Post.class), project));
     }
 
@@ -85,6 +92,10 @@ public class BoardApp extends Controller {
     public static Result post(String userName, String projectName, Long postId) {
         Post post = Post.findById(postId);
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         if (post == null) {
             flash(Constants.WARNING, "board.post.notExist");
             return redirect(routes.BoardApp.posts(project.owner, project.name));

@@ -14,34 +14,54 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.WebSocket;
+import utils.AccessControl;
 import views.html.task.cardView;
 import views.html.task.taskView;
 import controllers.webSocket.WebSocketServer;
 
 public class TaskApp extends Controller {
     public static Result index(String userName, String projectName) {
-        return ok(taskView.render(ProjectApp.getProject(userName, projectName)));
+        Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+        return ok(taskView.render(project));
     }
 
     public static Result card(String userName, String projectName, Long cardId) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         return ok(Card.findById(cardId).toJSON());
     }
 
     public static Result getLabels(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
         TaskBoard taskBoard = TaskBoard.findByProject(project);
         return ok(taskBoard.getLabel());
     }
 
     public static Result getMember(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
         TaskBoard taskBoard = TaskBoard.findByProject(project);
         return ok(taskBoard.getMember());
     }
 
     // TestCode 나중에 전부 웹소켓으로 바꾼다. 당연히 그걸 고려해서 짜야한다.
     public static Result cardView(String userName, String projectName) {
-        return ok(cardView.render(ProjectApp.getProject(userName, projectName)));
+        Project project = ProjectApp.getProject(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+        return ok(cardView.render(project));
     }
 
     @BodyParser.Of(BodyParser.Json.class)

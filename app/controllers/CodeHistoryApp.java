@@ -15,6 +15,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.Commit;
 import playRepository.RepositoryService;
+import utils.AccessControl;
 import utils.RequestUtil;
 import views.html.code.history;
 import views.html.code.nohead;
@@ -34,6 +35,10 @@ public class CodeHistoryApp extends Controller {
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByNameAndOwner(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         String url = CodeApp.getURL(userName, projectName);
         String pageStr = RequestUtil.getFirstValueFromQuery(request().queryString(), "page");
         int page = 0;
@@ -54,6 +59,9 @@ public class CodeHistoryApp extends Controller {
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByNameAndOwner(userName, projectName);
+        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
 
         return ok(diff.render(project, patch));
