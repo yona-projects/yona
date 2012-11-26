@@ -57,7 +57,6 @@ public class Issue extends Model {
     @Constraints.Required
     public String title;
 
-    @Constraints.Required
     @Column(length=4000)
     public String body;
 
