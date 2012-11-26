@@ -329,6 +329,13 @@ nforge.issue.list = function() {
           $('#labels-form').css('display', '');
         }
       });
+      $("#pagination a").click(function(){
+        $this = $(this);
+        var targetPageNum = $this.attr("pagenum");
+        console.log(targetPageNum);
+        location.href = location.href.replace(/(pageNum=)(\d+)/, "pageNum=" + (targetPageNum - 1));
+        return false;
+      })
     }
   }
 
