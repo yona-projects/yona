@@ -15,7 +15,9 @@
 @makeList(currentPageNum:Int) = {
     <div class="page-navigation-wrap" id="@divId" data-current-page-num="@currentPageNum">
       <ul class="page-nums">
+        <!--
         <li class="page-num ikon"><i class="ico btn-pg-first off"></i></li>
+        -->
         @if(page.hasPrev){
             <li class="page-num ikon"><a href="#" class="pg-prev" pageNum="@page.getPageIndex"><i class="ico btn-pg-prev"></i><span>PREV</span></a></li>
         } else {
@@ -37,7 +39,9 @@
         } else {
             <li class="page-num ikon"><span class="off">NEXT</span><i class="ico btn-pg-next off"></i></li>
         }
+        <!--
         <li class="page-num ikon"><a href="/html/board-list.html" class="pg-latest"><i class="ico btn-pg-latest"></i></a></li>
+        -->
       </ul>
     </div>
 }
