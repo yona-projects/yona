@@ -20,6 +20,7 @@ title.signup = Sign Up
 title.codeHistory = Commit History
 title.mailSetting = Mail Configuration
 title.sendMail = Send Mail
+title.siteList = Project List
 
 menu.home = Home
 menu.board = Board

@@ -20,6 +20,7 @@ title.signup = 회원 가입
 title.commitHistory = 커밋 히스토리
 title.mailSetting = 메일 설정
 title.sendMail = 메일 발송
+title.projectList = 프로젝트 리스트
 
 menu.home = 홈
 menu.board = 게시판
