@@ -152,4 +152,9 @@ public class Project extends Model {
     public static Page<Project> projects(int pageNum) {
         return find.findPagingList(25).getPage(pageNum);
     }
+
+    public static int getOpenProjectNum() {
+        // TODO write Test Method
+        return find.where().eq("share_option", true).findRowCount();
+    }
 }

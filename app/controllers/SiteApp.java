@@ -88,12 +88,7 @@ public class SiteApp extends Controller {
     }
         
     public static Result projectList(String filter) {
-        Page<Project> projects;
-        if(!filter.equals("")){
-            projects = Project.findByName(filter, 25, 0);
-        } else {
-            projects = ProjectApp.projectList(0);
-        }
+        Page<Project> projects = Project.findByName(filter, 25, 0);
         return ok(projectList.render("title.siteList", projects, filter));
     }
     

@@ -226,17 +226,9 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Page<Project> projectList(int pageNum) {
-        return Project.projects(pageNum);
-    }
-
     public static Result projects(String filter) {
-        Page<Project> projects;
-        if(!filter.equals("")){
-            projects = Project.findByName(filter, 25, 0);
-        } else {
-            projects = ProjectApp.projectList(0);
-        }
-        return ok(projectList.render("title.siteList", projects, filter));
+        Page<Project> projects = Project.findByName(filter, 25, 0);
+        int openNum = openNum = Project.getOpenProjectNum(); 
+        return ok(projectList.render("title.siteList", projects, filter, openNum));
     }
 }

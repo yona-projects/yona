@@ -1,4 +1,4 @@
-@(message: String, currentPage: Page[Project], filter:String)
+@(message: String, currentPage: Page[Project], filter:String, openNum:Int)
 
 @home(message) {
   <div class="page">
@@ -8,15 +8,14 @@
           <span class="desc"><strong>All</strong> projects</span>
           <strong class="num all">@currentPage.getList().size()</strong>
         </div>
-        <!--
         <div class="stat">
           <span class="desc"><strong>Open</strong> projects</span>
-          <strong class="num open">1</strong>
+          <strong class="num open">@openNum</strong>
         </div>
         <div class="stat">
           <span class="desc"><strong>Closed</strong> projects</span>
-          <strong class="num closed">3</strong>
-        </div>-->
+          <strong class="num closed">@(currentPage.getList().size() - openNum)</strong>
+        </div>
       </div>
       <div class="search-wrap projects">
         <div class="inner">
