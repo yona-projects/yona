@@ -36,12 +36,12 @@
   <ul class="comments">
     @for(comment <-post.comments){
     <li class="comment">
-      <a href="/uname" class="pull-left img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32" class="media-object" alt="avatar"></a>
+      <a href="@routes.UserApp.userInfo(comment.authorName)" class="pull-left img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32" class="media-object" alt="avatar"></a>
       <div class="media-body">
         @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.DELETE, comment.id){
         <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
         }
-          <p class="commenter"><a href="/umane"><strong>@comment.authorName</strong></a><!-- <span class="name">(Sam sstephenson)</span> --> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
+          <p class="commenter"><a href="@routes.UserApp.userInfo(comment.authorName)"><strong>@comment.authorName</strong></a><!-- <span class="name">(Sam sstephenson)</span> --> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
           <div class="comment-body" markdown resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id>@comment.contents</div>
           <!--
           <ul class="attaches">
