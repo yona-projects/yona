@@ -1,4 +1,4 @@
-@(message: String, currentPage: Page[Project], filter:String, openNum:Int)
+@(message: String, currentPage: Page[Project], filter:String, allNum:Int, openNum:Int)
 
 @home(message) {
   <div class="page">
@@ -6,7 +6,7 @@
       <div class="stats-wrap">
         <div class="stat">
           <span class="desc"><strong>All</strong> projects</span>
-          <strong class="num all">@currentPage.getList().size()</strong>
+          <strong class="num all">@allNum</strong>
         </div>
         <div class="stat">
           <span class="desc"><strong>Public</strong> projects</span>
@@ -14,7 +14,7 @@
         </div>
         <div class="stat">
           <span class="desc"><strong>Private</strong> projects</span>
-          <strong class="num closed">@(currentPage.getList().size() - openNum)</strong>
+          <strong class="num closed">@(allNum - openNum)</strong>
         </div>
       </div>
       <div class="search-wrap projects">
@@ -38,7 +38,7 @@
           <div class="desc">
             @project.overview
           </div>
-          <p class="name-tag">by <a href="uname">nforge.user</a> <span>20 days ago.</span></p>
+          <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> <!--<span>20 days ago.--></span></p>
         </div>
         <div class="stats-wrap">
           <!--<div class="like">
