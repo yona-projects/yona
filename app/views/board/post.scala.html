@@ -2,76 +2,125 @@
 
 @import utils.TemplateHelper._
 @import models.enumeration.Resource
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main("상세보기", project){
 @pageTitle(project,"Board")
-<div class="row-fluid">
-    <div class="span2 offset10">
-	    <div id="board_btn_panel">
-            @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.EDIT){
-	        <a class="btn btn-primary" href="@routes.BoardApp.editPost(project.owner, project.name, post.id)">수정</a>
-            }
-            @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.DELETE){
-	        <a data-toggle="modal" href="#deleteConfirm" class="btn">삭제</a>
-            }
-	        <a class="btn" href="@routes.BoardApp.posts(project.owner, project.name)">목록</a>
-	    </div>
-	</div>
+<div class="board-header">
+  <div class="board-id div">@post.id</div>
+  <h1 class="title div">@post.title</h1>
+  <div class="date div">@utils.TemplateHelper.agoString(post.ago())</div>
 </div>
-<!-- 메인 글 -->
-<div>
-	<div class="row-fluid">
-		<div class="span1"><span class="badge">#@post.id</span></div>
-		<div class="span11">
-			<h1>@post.title</h1>
-			<div>
-				<span>@post.authorName가 @utils.TemplateHelper.agoString(post.ago())에 작성함<span> |
-				<span>@post.date</span>
-			</div>
-		</div>
-	</div>
-	<div class="row-fluid">
-		<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
-		<div class="span11">
-			<div markdown resourceType=@Resource.BOARD_POST resourceId="@post.id">@post.contents</div>
-			@if(post.filePath != null){
-			<p><a href='@routes.Assets.at("uploadFiles/" + post.filePath)'><i class="icon-download"></i>@post.filePath</a></p>
-			}
-		</div>
-        <a class="btn pull-right" href=""><i class="icon-ok"></i>자동알림</a>
-	</div>
+<div class="board-body">
+  <div class="author-info">
+    <a href="@routes.UserApp.userInfo(post.authorName)" class="pull-left img-rounded"><img src="/assets/images/default-avatar-34.png" class="media-object" width="32" height="32" alt="avatar"></a>
+    <div class="media-body">
+      <p>
+        <a href="@routes.UserApp.userInfo(post.authorName)"><strong>@post.authorName</strong></a> <!--<span class="name">(Loren Brichter)</span>-->
+      </p>
+      <p class="status">
+        <!--Hit <strong class="num">777</strong> -->Comment <strong class="num">@post.commentCount</strong><!-- Like <i class="ico ico-like-small"></i> <strong class="num">522</strong>-->
+      </p>
+        </div>
+    </div>
+    <div class="content" markdown resourceType=@Resource.BOARD_POST resourceId="@post.id">@post.contents</div>
+    <!--
+    <ul class="attaches wm">
+      <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
+      <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
+      <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
+    </ul>-->
 </div>
-<!-- 여기서 부터 덧글 -->
-@for(comment <-post.comments){
-<hr/>
-<div class="row-fluid">
-	<div class="span1"><img class="pull-right" src="http://placehold.it/50x50"/></div>
-	<div class="span11">
-		<div>
-			<span>@comment.authorName가 @utils.TemplateHelper.agoString(comment.ago())에 작성함</span> |
-			<span>@comment.date</span>
-            <!-- TODO 권한설정 잘할것. -->
-            @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.DELETE, comment.id){
-            <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
-            }
-		</div>
-        <div markdown resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id>@comment.contents</div>
-		@if(comment.filePath != null){
-		<p><a href='@routes.Assets.at("uploadFiles/" + comment.filePath)'><i class="icon-download"></i>@comment.filePath</a></p>
-		}
-	</div>
+<div class="board-comment-wrap">
+  <div class="comment-header"><strong>Comment</strong> <strong class="num">5</strong></div>
+  <ul class="comments">
+    @for(comment <-post.comments){
+    <li class="comment">
+      <a href="/uname" class="pull-left img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32" class="media-object" alt="avatar"></a>
+      <div class="media-body">
+        @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.DELETE, comment.id){
+        <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
+        }
+          <p class="commenter"><a href="/umane"><strong>@comment.authorName</strong></a><!-- <span class="name">(Sam sstephenson)</span> --> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
+          <div class="comment-body" markdown resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id>@comment.contents</div>
+          <!--
+          <ul class="attaches">
+              <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>
+          </ul>-->
+      </div>
+    </li>
+    }
+  </ul>
+    @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.WRITE){
+    <div class="write-comment-box">
+      @helper.form(routes.BoardApp.saveComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
+        <div class="write-comment-wrap">
+          <!-- when the user signed in..
+          <textarea class="text comment" name="comment></textarea>
+          -->
+          <style>
+          .write-comment-wrap div[div=preview] {
+            font-size: 12px;
+             width : 729px; 
+             min-height: 80px; 
+             margin:0px; 
+             display: inline-block;
+             vertical-align : middle;
+           }
+          .write-comment-wrap div{font-size: 10px;}
+          </style>
+          @helper.textarea(commentForm("contents"), 'placeholder->"로그인 후 댓글 입력이 가능합니다.", 'class->"text comment", 'markdown->true)
+          <button class="comment-btn">COMMENT</button>
+          <div class="file-attachment"></div>
+        </div>
+        <!--
+        <div class="attach-wrap">
+          <div class="thumb-wrap">
+            <img src="/images/default-avatar-34.png" class="img-rounded" width="32" height="32" alt="avatar">
+          </div>
+          <div class="attach-info-wrap">
+            <div>
+              <span class="progress-num">15%</span>
+              <span class="sp-line">&nbsp;</span>
+              <strong>total</strong>
+              <span class="total-num">50MB</span>
+            </div>
+            <div class="progress-wrap">
+              <div class="progress n4">
+                <div class="bar orange" style="width: 40%;"></div>
+              </div>
+            </div>
+            <a href="#!/cancel"><i class="ico btn-cancel"></i></a>
+          </div>
+          <div class="btn-wrap">
+            <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
+              <input type="file" class="file">
+            </div>
+          </div>
+        </div>
+        -->
+      }
+        <!--<div class="attached-files-wrap">
+          <ul class="attached-files">
+            <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
+            <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
+            <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
+          </ul>
+        </div>-->
+    </div>
+  }
 </div>
-}
-@roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.WRITE){
-<!-- 댓글 입력 폼 -->
-<hr/>
-<div class="row-fluid">
-	@helper.form(routes.BoardApp.saveComment(project.owner, project.name, post.id), 'enctype -> "multipart/form-data"){
-    <div class="span12">@helper.textarea(commentForm("contents"), '_showConstraints -> false, 'label-> "덧글내용", 'markdown -> true)</div>
-		<div class="span6"><input class="btn pull-right" type="submit" value="댓글입력"/></div>
-	}
+<div class="board-footer">
+    <!--<a href="/add-notification" class="add-btn"><i class="ico ico-plus-blue"></i>자동알림추가</a>-->
+    <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray small">LIST</a>
+    @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.DELETE){
+    <a data-toggle="modal" href="#deleteConfirm" class="n-btn gray small">DELETE</a>
+  }
+    @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.EDIT){
+    <a href="@routes.BoardApp.editPost(project.owner, project.name, post.id)" class="n-btn blue small">EDIT</a>
+  }
 </div>
-}
+
 <!--삭제확인상자-->
 <div class="modal hide fade" id="deleteConfirm">
   <div class="modal-header">
