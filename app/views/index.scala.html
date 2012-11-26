@@ -15,7 +15,7 @@
                 <li class="intro"><img src="@routes.Assets.at("images/img-task-198.png")" width="198" height="180"/></li>
             </ul>
             @if(session.contains("userId")){
-            <a href="#!/toggle-intro"><i class="ico btn-open-close"></i></a>
+            <a href="#!/toggle-intro" class="toggle-intro"><i class="ico btn-open-close"></i></a>
             }
         </div>
         
@@ -48,4 +48,13 @@
         </div>
         }
     </div>
+    <script>
+        jQuery(function ($) {
+            $('.toggle-intro').on('click', function(e) {
+                nforge.stopEvent(e);
+                var target = $(this).prev();
+                target[(target.hasClass('closed')?'remove':'add')+'Class']('closed');
+            })
+        });
+    </script>
 }

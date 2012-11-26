@@ -1,7 +1,7 @@
 .ico {
     .inline-block;
     background-repeat: no-repeat;
-    background-image: url('@{base-image-path}/sprite.png');
+    background-image: url('/images/sprite.png');
 }
 
 .bg-bubble-top {
@@ -37,16 +37,12 @@
 .btn-close-folder {
     width: 16px;
     height: 14px;
-    background-position: -103px -27px;
 }
 
 .btn-delete {
     width: 5px;
     height: 5px;
     background-position: -54px -2px;
-    &:hover {
-        background-position: -129px -103px;
-    }
 }
 
 .btn-new-project {
@@ -68,10 +64,15 @@
     }
 }
 
-.btn-open-folder {
+.btn-folder {
     width: 19px;
     height: 15px;
+    vertical-align: middle;
+    margin-right: 5px;
     background-position: -2px -44px;
+    &.closed {
+        background-position: -101px -26px;
+    }
 }
 
 .btn-pg-first {
@@ -323,9 +324,6 @@
     width: 9px;
     height: 9px;
     background-position: -140px -2px;
-    &:hover {
-        background-position: -140px -2px;
-    }
 }
 
 .ico-setting {

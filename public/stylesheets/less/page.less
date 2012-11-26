@@ -242,6 +242,9 @@
         padding: 0;
     }
     margin-bottom: 40px;
+    &.code-browse {
+        padding: 0 20px;
+    }
 }
 
 .user-thumb-wrap {
@@ -366,7 +369,11 @@
             padding: 0 15px;
             .inline-block;
         }
-
+        &.closed {
+            height: 0;
+            overflow: hidden;
+            padding: 5px 0 0;
+        }
     }
 }
 .content-container {
@@ -1172,21 +1179,6 @@
                 overflow: hidden;
                 color: #999;
                 font-size: 11px;
-                .progress {
-                    height: 7px;
-                    margin-bottom: 5px;
-                    .orange {
-                        bacbackground-color: #f28149;
-                        background-image: -moz-linear-gradient(top, #f28149, #f28149);
-                        background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f28149), to(#f28149));
-                        background-image: -webkit-linear-gradient(top, #f281490, #f28149);
-                        background-image: -o-linear-gradient(top, #f28149, #f28149);
-                        background-image: linear-gradient(to bottom, #f28149, #f28149);
-                        background-repeat: repeat-x;
-                        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff28149', endColorstr='#ff28149', GradientType=0);
-                        .box-shadow(none);
-                    }
-                }
             }
             .desc {
                 font-size: 11px;
@@ -1423,3 +1415,500 @@
     text-align: right;
 }
 
+.board-view {
+    .num {
+        color: #51AACC;
+        margin-right: 5px;
+    }
+}
+.board-header{
+    padding: 15px 20px;
+    border-top: 1px solid @gray-d4;
+    border-bottom: 1px solid @gray-d4;
+    .div {
+        display: table-cell;
+        vertical-align: top;
+    }
+    .board-id {
+        width: 35px;
+        padding-right: 10px;
+    }
+    .title {
+        width: 655px;
+        padding-right: 20px;
+        font-size: 14px;
+        line-height: 16px;
+        color: #000;
+    }
+    .date {
+        width: 120px;
+        color: #999;
+    }
+}
+
+.board-body {
+    padding: 20px;
+    .author-info {
+        margin-bottom: 34px;
+        .media-body {
+            padding-left: 10px;
+            p {
+                margin-bottom: 5px;
+                line-height: 14px;
+            }
+            .name {
+                font-size: 11px;
+            }
+            .status {
+                margin: 0;
+                color: #646464;
+                font-size: 11px;
+                .ico {
+                    vertical-align: top;
+                }
+            }
+        }
+    }
+    .content {
+        width: 700px;
+        margin-bottom: 20px;
+    }
+}
+
+.board-comment-wrap {
+    background-color: #F5F5F5;
+    .border-radius(10px);
+    .comment-header {
+        padding: 0 20px;
+        color: #222;
+        font-size: 14px;
+        line-height: 40px;
+        border-bottom: 1px solid @white;
+        .box-shadow(inset 0 -1px 0 rgba(0, 0, 0, 0.15));
+    }
+    .comments {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        .comment {
+            padding: 20px;
+            border-bottom: 1px solid @white;
+            .box-shadow(inset 0 -1px 0 rgba(0, 0, 0, 0.15));
+            .media-body {
+                padding-left: 17px;
+                .commenter {
+                    line-height: 1.3;
+                    font-size: 11px;
+                    color: #646464;
+                    .name {
+                        font-size: 10px;
+                    }
+                    .date {
+                        font-size: 10px;
+                        color: #BDBDBD;
+                    }
+                }
+                .attach {
+                    color: #4489A4;
+                }
+                .comment-body {
+                    color: #999;
+                }
+            }
+            .attach-preview-wrap {
+                margin-top: 10px;
+            }
+        }
+    }
+
+}
+
+.write-comment-box {
+    padding: 17px 20px 15px;
+    .write-comment-wrap {
+        font-size: 0;
+        margin-bottom: 10px;
+    }
+    .comment-btn {
+        background-color: @white;
+        color: @orange;
+        line-height: 1;
+        font-weight: bold;
+        border: 1px solid @gray-cc;
+        border-left: 0 none;
+        .border-radius(0 4px 4px 0);
+        width: 110px;
+        height: 90px;
+    }
+    .comment {
+        width: 715px;
+        height: 80px;
+        margin: 0;
+        .border-radius(4px 0 0 4px);
+        .box-shadow(none);
+        &:focus {
+            border: 1px solid @gray-cc;
+        }
+    }
+}
+
+.board-footer {
+    text-align: right;
+    font-size: 0;
+    margin-top: 20px;
+    .add-btn {
+        font-size: 12px;
+        color: #888;
+        .ico {
+            margin-right: 5px;
+        }
+    }
+    a {
+        margin-left: 5px;
+    }
+}
+
+.attach-wrap {
+    > div {
+        display: table-cell;
+        vertical-align: top;
+    }
+    .thumb-wrap {
+        width: 45px;
+    }
+    .attach-info-wrap {
+        width: 715px;
+        font-size: 11px;
+        .sp-line {
+            border-left: 1px solid @white;
+            .box-shadow(inset 1px 0 0 rgba(0, 0, 0, 0.15));
+        }
+        .progress-num {
+            color: #777;
+        }
+        .total-num {
+            color: #999;
+        }
+        .progress-wrap {
+            width: 380px;
+            float: left;
+            margin: 6px 5px 0 0;
+
+        }
+    }
+    .btn-wrap {
+        width: 80px;
+        text-align: right;
+    }
+}
+
+.attached-files-wrap {
+    .box-shadow(inset 0 1px 0 rgba(0, 0, 0, 0.15));
+    margin-top: 10px;
+    padding: 15px 20px;
+    background-color: #DFDFDF;
+    .border-radius(5px);
+    .attached-files {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        .attached-file {
+            color: #999;
+            font-size: 11px;
+        }
+        .attached-delete {
+            margin-left: 10px;
+        }
+    }
+}
+.attaches {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    &.wm {
+        margin-bottom: 20px;
+    }
+    .attach {
+        font-size: 11px;
+        color: #929292;
+        .ico-clip {
+            vertical-align: text-bottom;
+            margin-right: 5px;
+        }
+        margin-bottom: 5px;
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+.content-wrap {
+    .text {
+        width: 866px;
+    }
+    .title {
+        margin-bottom: 15px;
+    }
+    .content {
+        height: 320px;
+        background-color: #F9F9F9;
+    }
+    .actions {
+        margin-top: 20px;
+        text-align: center;
+        position: relative;
+        .cancel {
+            position: absolute;
+            right: 0;
+        }
+    }
+}
+.content-footer {
+    padding: 20px;
+    background-color: #F5F5F5;
+    .border-radius(5px);
+}
+
+
+//---- code browse
+.code-browse {
+    .bubble-wrap {
+        padding: 10px;
+        .inner-bubble {
+            padding: 20px 15px 20px 20px;
+            margin-bottom: 15px;
+        }
+    }
+}
+.code-tab {
+    margin: 15px 0 20px;
+}
+
+.repo-info {
+    .clone-label {
+        color: #4D4D4D;
+        margin-right: 10px;
+    }
+    .repo-url {
+        cursor: text;
+        margin: 0;
+        width: 359px;
+        .box-shadow(none);
+        .border-radius(4px 0 0 4px);
+        &:focus {
+            .box-shadow(none);
+            border: 1px solid #CCC;
+        }
+    }
+    .copy-btn {
+        font-size: 10px;
+        color: #B2B2B2;
+        border: 1px solid #CCC;
+        border-left: 0 none;
+        line-height: 26px;
+        .inline-block;
+        vertical-align: top;
+        text-decoration: none;
+        .border-radius(0 4px 4px 0);
+        padding: 0 9px;
+        margin-right: 10px;
+        font-weight: bold;
+        &:hover {
+            color: @orange;
+        }
+    }
+    .btn-group {
+        .d-label {
+            width: 155px;
+        }
+    }
+}
+
+.double-sp {
+    margin: 15px 0 17px;
+}
+
+.code-browse-wrap {
+    .border-radius(10px);
+    .box-shadow(0 1px 0 rgba(0,0,0, .15));
+    overflow: hidden;
+    .code-browse-header {
+        color: @white;
+        background-color: #4D4D4D;
+        line-height: 34px;
+        font-size: 11px;
+        padding: 0 20px;
+    }
+    .commit-wrap {
+        background-color: @white;
+    }
+    .cell {
+        display: table-cell;
+        background-color: @white;
+        vertical-align: top;
+        &.directory-wrap {
+            width: 196px;
+            min-width: 196px;
+            max-width: 196px;
+            overflow: auto;
+        }
+        &.sp-wrap {
+            border-left: 4px solid #E6E6E6;
+        }
+        &.file-wrap {
+            width: 700px;
+            min-width: 700px;
+            max-width: 700px;
+            overflow-x: auto;
+        }
+    }
+    .directory-header {
+        line-height: 34px;
+        background-color: #9C9C9C;
+        color: @white;
+        font-size: 10px;
+        padding-left: 20px;
+        position: absolute;
+        width: 180px;
+    }
+    .directories {
+        margin: 0;
+        margin-top: 34px;
+        padding: 0;
+        overflow: auto;
+        list-style: none;
+        &.view {
+            margin-top: 0;
+        }
+        .directory {
+            padding-left: 20px;
+            line-height: 50px;
+            border-bottom: 1px solid #E6E6E6;
+            a {
+                white-space: nowrap;
+                color: #337581;
+            }
+            &.selected {
+                background-color: #F2F2F2;
+            }
+        }
+    }
+    .code-table {
+        width: 100%;
+        &.sources {
+            width: 700px;
+        }
+        td {
+            padding: 0 15px 0 5px;
+        }
+        .thead {
+            background-color: #9C9C9C;
+            line-height: 34px;
+            font-size: 10px;
+            color: @white;
+            .author {
+                text-align: left;
+            }
+        }
+        .tbody {
+            font-size: 11px;
+            color: #666;
+            td {
+                line-height: 50px;
+            }
+            tr {
+                border-bottom: 1px solid #E6E6E6;
+            }
+        }
+        .commit-id {
+            padding-left: 20px;
+            width: 80px;
+        }
+        .filename {
+            padding-left: 20px;
+            width: 100px;
+            max-width: 150px;
+            .text-overflow;
+        }
+        .messages {
+            .text-overflow;
+        }
+        .author {
+            width: 40px;
+            text-align: right;
+        }
+        .date {
+            width: 80px;
+        }
+    }
+    .file-header {
+        line-height: 34px;
+        background-color: #D7D7D7;
+        color: #767676;
+        font-size: 11px;
+        padding-left: 15px;
+        overflow: hidden;
+        .file-info {
+            float: left;
+            .text-overflow;
+            max-width: 590px;
+        }
+        .btn-raw {
+            float: right;
+            padding: 0 30px;
+            line-height: 34px;
+            background-color: #BFBFBF;
+            text-decoration: none;
+            color: #4D4D4D;
+            &:hover {
+                background-color: #F2F2F2;
+                color: #959595;
+                .ico {
+                    background-position: -228px -28px;
+                }
+            }
+            .ico {
+                margin-right: 5px;
+
+            }
+        }
+    }
+    .code-wrap {
+        overflow-x: auto;
+    }
+}
+
+.code-view-table {
+    td {
+        vertical-align: top;
+    }
+    pre {
+        line-height: 1.5;
+        padding: 0;
+        margin: 0;
+        background-color: transparent;
+        border: 0 none;
+        .border-radius(0);
+        font-size: 12px;
+    }
+    .line-num {
+        padding: 10px 6px;
+        text-align: right;
+        background-color: #F7F7F7;
+        border-right: 1px solid #EEE;
+        width: 22px;
+        > a {
+            color: #AAA;
+        }
+    }
+    .code-lines {
+        padding: 10px;
+        font-size: 0;
+        white-space: pre;
+        .line {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+        }
+    }
+}
