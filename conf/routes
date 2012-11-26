@@ -141,3 +141,4 @@ GET     /help                                           controllers.HelpApp.help
 
 # Statistics
 GET     /:userName/:projectName/statistics              controllers.StatisticsApp.statistics(userName:String, projectName:String)
+GET     /:userName										controllers.UserApp.userInfo(userName:String)

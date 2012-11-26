@@ -205,6 +205,10 @@ public class UserApp extends Controller {
 		User user = User.findById(userId);
 		return ok(memberInfo.render(user));
 	}
+	public static Result userInfo(String userName){
+	    User user = User.findByLoginId(userName);
+	    return ok(memberInfo.render(user));
+	}
 	
 	public static Result info() {
         User user = UserApp.currentUser();
