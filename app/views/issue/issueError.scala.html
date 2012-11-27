@@ -1,6 +1,6 @@
 @(message:String, returnURL:Call, project:Project)
 
-@main("Warnning!", project){
+@main("Warnning!", project, utils.MenuType.ISSUE){
 	<div class="alert alert-error">
 	@Messages(message)
 	</div>

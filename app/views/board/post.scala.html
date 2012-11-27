@@ -4,7 +4,7 @@
 @import models.enumeration.Resource
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main("상세보기", project){
+@main("상세보기", project, utils.MenuType.BOARD){
 @pageTitle(project,"Board")
 <div class="board-header">
   <div class="board-id div">@post.id</div>

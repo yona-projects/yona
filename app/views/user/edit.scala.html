@@ -5,7 +5,7 @@
 
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
  
-@home("Users Info") {
+@home("Users Info", utils.MenuType.USER) {
     @helper.form(action=routes.UserApp.save()){
         @helper.inputText(userForm("email"))
         <div id="picPath">업로드된 파일이 없습니다.</div>

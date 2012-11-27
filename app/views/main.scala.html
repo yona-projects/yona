@@ -1,14 +1,16 @@
-@(title:String, project:Project)(content: Html)
+@(title:String, project:Project, menuType:utils.MenuType)(content: Html)
+
+@import utils._
 
 @layout(Messages(title))("") {
     <header class="gnb-outer">
-      @topmenu(project)
+      @topmenu(project, menuType)
       <div class="sub-menu-sp"></div>
       @sidemenu(project)
     </header>
     <div class="container page-wrap">
       <div class="page">
-	    @views.html.alert()
+	      @views.html.alert()
         @content    
       </div>
     </div>

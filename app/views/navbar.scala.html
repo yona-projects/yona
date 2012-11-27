@@ -1,4 +1,11 @@
+@(menuType:utils.MenuType)
+
 @import utils.TemplateHelper._
+@import utils._
+
+@isActiveMenu(m_type:MenuType) = @{
+    if(m_type == menuType){ "selected" }
+}
 
 <header class="gnb-outer">
     <div class="gnb-inner">
@@ -7,13 +14,13 @@
             <a href="@routes.Application.index()" class="logo"></a>
             <ul class="gnb-menus unstyled">
                 <li class="menu">
-                    <a href="@routes.ProjectApp.newProject()">NEW PROJECT</a>
+                    <a href="@routes.ProjectApp.newProject()" class="@isActiveMenu(MenuType.NEW_PROJECT)">NEW PROJECT</a>
                 </li>
                 <li class="menu">
-                    <a href="@routes.ProjectApp.projects()">PROJECTS</a>
+                    <a href="@routes.ProjectApp.projects()" class="@isActiveMenu(MenuType.PROJECTS)">PROJECTS</a>
                 </li>
                 <li class="menu">
-                    <a href="@routes.HelpApp.help()">HELP</a>
+                    <a href="@routes.HelpApp.help()" class="@isActiveMenu(MenuType.HELP)">HELP</a>
                 </li>
             </ul>
             <ul class="gnb-menus right unstyled">

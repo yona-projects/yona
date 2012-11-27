@@ -1,7 +1,7 @@
 @(title: String, project: Project, filter: String, resultIssues: Page[Issue], resultPosts: Page[Post])
 @import utils.TemplateHelper._
 
-@main(title, project) {
+@main(title, project, utils.MenuType.NONE) {
 <input class="filter" type="hidden" value="@filter" />
 <div class="row">
     <div class="span12">

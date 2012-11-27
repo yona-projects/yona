@@ -3,7 +3,7 @@
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 
-@main(Messages("title.commitHistory"), project) {
+@main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 
 @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
     @if(branches.length > 0) {

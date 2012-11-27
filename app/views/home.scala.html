@@ -1,7 +1,7 @@
-@(title: String)(content: Html)
+@(title: String, menuType:utils.MenuType)(content: Html)
 
 @layout(Messages(title))("orange") {
-    @views.html.navbar()
+    @views.html.navbar(menuType)
     <div class="container page-wrap">
         @views.html.alert()
         @content

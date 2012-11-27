@@ -1,6 +1,6 @@
 @(msg : String, project:Project, branches:List[String])
 
-@main("코드", project){
+@main("코드", project, utils.MenuType.CODE){
 <ul class="nav nav-tabs">
     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a></li>
     <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("Commits")</a></li>

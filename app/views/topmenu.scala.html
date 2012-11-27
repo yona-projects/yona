@@ -1,7 +1,12 @@
-@(project:Project)
-@isActiveMenu(call: Call) = @{
-  if(request().uri().toString().equals(call.toString())){"active"}
+@(project:Project, menuType:utils.MenuType)
+
+@import utils._
+
+
+@isActiveMenu(m_type:MenuType) = @{
+    if(m_type == menuType) {"selected"}
 }
+
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
   roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.READ){
     content
@@ -15,21 +20,21 @@
             <a href="@routes.Application.index()" class="logo"></a>
             <ul class="gnb-menus unstyled">
                 <li class="menu">
-                    <a href="@routes.ProjectApp.project(project.owner, project.name)">PROJECT HOME</a>
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="@isActiveMenu(MenuType.PROJECT_HOME)">PROJECT HOME</a>
                 </li>
                 @isVisible(models.enumeration.Resource.BOARD_POST){
-                <li class="menu @isActiveMenu(routes.ProjectApp.project(project.owner, project.name))">
-                    <a href="@routes.BoardApp.posts(project.owner, project.name)">BOARD</a>
+                <li class="menu">
+                    <a href="@routes.BoardApp.posts(project.owner, project.name)" class="@isActiveMenu(MenuType.BOARD)">BOARD</a>
                 </li>
                 }
                 @isVisible(models.enumeration.Resource.CODE){
                 <li class="menu">
-                    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">CODE</a>
+                    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="@isActiveMenu(MenuType.CODE)">CODE</a>
                 </li>
                 }
                 @isVisible(models.enumeration.Resource.ISSUE_POST){
                 <li class="menu">
-                    <a href="@routes.IssueApp.issues(project.owner, project.name,"open")">ISSUE</a>
+                    <a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="@isActiveMenu(MenuType.ISSUE)">ISSUE</a>
                 </li>
                 }
                 @isVisible(models.enumeration.Resource.WIKI_PAGE){

@@ -2,7 +2,7 @@
 
 @layout(Messages(title))("") {
     <header class="gnb-outer">
-      @topmenu(project)
+      @topmenu(project, utils.MenuType.PROJECT_SETTING)
       <div class="sub-menu-sp"></div>
       @submenu(title, project)
       @sidemenu(project)

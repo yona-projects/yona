@@ -1,6 +1,6 @@
 @(projects:List[Project]) 
 
-@home("Welcome to nForge") {
+@home("Welcome to nForge", utils.MenuType.SITE_HOME) {
     <div class="page@if(!session.contains("userId")){ full}">
         <div class="center-wrap tag-line-wrap">
             <h1 class="title"><span class="high-light">Open Source</span> N4</h1>
