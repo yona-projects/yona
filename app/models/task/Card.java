@@ -53,6 +53,10 @@ public class Card extends Model {
         return find.byId(id);
     }
 
+    public static List<Card> findByAssignee(Long userId) {
+        return find.where().eq("assignee.id", userId).findList();
+    }
+
     public void addComment(TaskComment comment) {
         comments.add(comment);
         comment.card = this;
@@ -152,4 +156,5 @@ public class Card extends Model {
         }
         this.save();
     }
+
 }

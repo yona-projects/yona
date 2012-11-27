@@ -7,6 +7,7 @@ import models.ProjectUser;
 import models.Role;
 import models.User;
 import models.enumeration.RoleType;
+import models.task.CardAssignee;
 import play.Logger;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -197,9 +198,17 @@ public class ProjectApp extends Controller {
 
     public static Result deleteMember(String userName, String projectName,
             Long userId) {
-        Long projectId = getProject(userName, projectName).id;
-        if (ProjectUser.isManager(UserApp.currentUser().id, projectId)) {
-            ProjectUser.delete(userId, projectId);
+        Project project = getProject(userName, projectName);
+        if (UserApp.currentUser().id == userId
+                || ProjectUser.isManager(UserApp.currentUser().id, project.id)) {
+            if (project.owner.equals((UserApp.currentUser().name).toLowerCase())) {
+                flash(Constants.WARNING, "project.member.ownerCannotLeave");
+                return redirect(routes.ProjectApp.members(userName, projectName));
+            }
+            for (CardAssignee cardAssignee : CardAssignee.findByAssignee(userId)) {
+                cardAssignee.delete();
+            }
+            ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
             flash(Constants.WARNING, "project.member.isManager");

@@ -13,7 +13,9 @@
     <ul>
     @for(project <- user.myProjects()){
         <li>
-            @project.name
+            <form action="@routes.UserApp.leave(project.owner, project.name)" method="post">
+                @project.name <input type="submit" class="btn btn-danger" value="탈퇴">
+            </form>
         </li>
     }
     </ul>

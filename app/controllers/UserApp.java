@@ -245,4 +245,9 @@ public class UserApp extends Controller {
         Long fileId = Attachment.findByContainer(Resource.USER, User.findByName(userName).id).get(0).containerId;
         return TODO;
     }
+
+    public static Result leave(String userName, String projectName) {
+        ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
+        return redirect(routes.UserApp.info());
+    }
 }

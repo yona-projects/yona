@@ -187,6 +187,7 @@ project.member.alreadyMember = 이미 프로젝트에 가입되어 있는 맴버
 project.member.deleteConfirm = 정말로 해당 유저를 프로젝트에서 탈퇴시키겠습니까?
 project.member.delete = 프로젝트 유저 삭제
 project.member.notExist = 존재하지 않는 유저입니다.
+project.member.ownerCannotLeave = 프로젝트 소유자는 탈퇴할 수 없습니다.
 project.sidebar = 프로젝트 관리
 project.sidebar.setting = 설정
 project.sidebar.memberList = 맴버

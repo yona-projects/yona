@@ -1,5 +1,7 @@
 package models.task;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
@@ -9,6 +11,9 @@ import play.db.ebean.Model;
 
 @Entity
 public class CardAssignee extends Model {
+    private static Finder<Long, CardAssignee> find = new Finder<Long, CardAssignee>(Long.class,
+        CardAssignee.class);
+
     public CardAssignee() {
 
     }
@@ -25,4 +30,8 @@ public class CardAssignee extends Model {
 
     @ManyToOne
     public ProjectUser projectUser;
+
+    public static List<CardAssignee> findByAssignee(Long userId) {
+        return find.where().eq("projectUser.user.id", userId).findList();
+    }
 }
