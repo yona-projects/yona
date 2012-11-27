@@ -14,6 +14,7 @@ import models.task.TaskBoard;
 import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import playRepository.RepositoryService;
 
 import com.avaje.ebean.Page;
 
@@ -159,5 +160,13 @@ public class Project extends Model {
     public static int getOpenProjectNum() {
         // TODO write Test Method
         return find.where().eq("share_option", true).findRowCount();
+    }
+
+    public String readme() {
+        try {
+            return new String(RepositoryService.getRepository(this).getRawFile("README.md"));
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

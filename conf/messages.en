@@ -214,6 +214,7 @@ project.delete.reaccept = Are you sure?
 project.delete.alert = You should agree with deleting this project.
 project.new.vcsType.git = Git
 project.new.vcsType.subversion = Subversion
+project.readme = You can see README.md here if you add it into the code repository.
 
 #Site
 site.sidebar = Site Management

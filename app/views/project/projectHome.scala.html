@@ -54,11 +54,17 @@
         </div>
     </div>
     <div class="bubble-wrap dark-gray readme">
+        @if(project.readme == null) {
+            @Messages("project.readme")
+        } else {
         <div class="readme-wrap">
-            <header><i class="ico ico-readme-book"></i><strong>README.md</strong></header>
-            <div class="readme-body">
-                @project.overview
-            </div>
+           <header><i class="ico ico-readme-book"></i><strong>README.md</strong></header>
+           <div class="readme-body" markdown>
+               @project.readme
+           </div>
         </div>
+        }
     </div>
+
+@views.html.markdown()
 }
