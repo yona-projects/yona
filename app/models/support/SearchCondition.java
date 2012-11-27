@@ -1,5 +1,7 @@
 package models.support;
 
+import java.util.Set;
+
 import models.enumeration.*;
 /**
  *
@@ -17,6 +19,7 @@ public class SearchCondition {
     public Boolean commentedCheck;
     public Boolean fileAttachedCheck;
     public Long milestone;
+    public Set<Long> labelIds;
 
     public SearchCondition() {
         filter = "";

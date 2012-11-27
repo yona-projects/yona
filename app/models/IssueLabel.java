@@ -40,6 +40,9 @@ public class IssueLabel extends Model {
     @ManyToOne
     public Project project;
 
+    @ManyToMany(mappedBy="labels", fetch = FetchType.EAGER)
+    public Set<Issue> issues;
+
     public static List<IssueLabel> findByProjectId(Long projectId) {
         return finder.where().eq("project.id", projectId).findList();
     }

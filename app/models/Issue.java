@@ -78,7 +78,7 @@ public class Issue extends Model {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public List<IssueComment> comments;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     public Set<IssueLabel> labels;
 
     public Issue(String title) {
@@ -270,7 +270,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssues(Long projectId, State state) {
         return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                "", null, false);
+                "", null, null, false);
     }
 
     /**
@@ -285,7 +285,7 @@ public class Issue extends Model {
     public static Page<Issue> findFilteredIssues(Long projectId, String filter,
                                                  State state, boolean commentedCheck) {
         return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                filter, null, commentedCheck);
+                filter, null, null, commentedCheck);
     }
 
     /**
@@ -297,7 +297,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findCommentedIssues(Long projectId, String filter) {
         return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER,
-                Direction.DESC, filter, null, true);
+                Direction.DESC, filter, null, null, true);
     }
 
     /**
@@ -309,7 +309,7 @@ public class Issue extends Model {
      */
     public static Page<Issue> findIssuesByMilestoneId(Long projectId, Long milestoneId) {
         return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER,
-                Direction.DESC, "", milestoneId, false);
+                Direction.DESC, "", milestoneId, null, false);
     }
 
     /**
@@ -326,7 +326,7 @@ public class Issue extends Model {
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
     public static Page<Issue> find(Long projectId, int pageNumber, State state,
-                                   String sortBy, Direction order, String filter, Long milestoneId,
+                                   String sortBy, Direction order, String filter, Long milestoneId, Set<Long> labelIds,
                                    boolean commentedCheck) {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
         SearchParams searchParams = new SearchParams().add("project.id", projectId,
@@ -337,6 +337,12 @@ public class Issue extends Model {
         }
         if (milestoneId != null) {
             searchParams.add("milestoneId", milestoneId, Matching.EQUALS);
+        }
+        if (labelIds != null) {
+            // searchParams.add("labels.id", labelIds, Matching.IN);
+            for (Long labelId : labelIds) {
+                searchParams.add("labels.id", labelId, Matching.EQUALS);
+            }
         }
         if (commentedCheck) {
             searchParams.add("numOfComments", NUMBER_OF_ONE_MORE_COMMENTS, Matching.GE);

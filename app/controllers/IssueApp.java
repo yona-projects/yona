@@ -38,9 +38,15 @@ public class IssueApp extends Controller {
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
+        String[] labelIds = request().queryString().get("labelIds");
+        if (labelIds != null) {
+            for (String labelId : labelIds) {
+                issueParam.labelIds.add(Long.valueOf(labelId));
+            }
+        }
         Page<Issue> issues = Issue.find(project.id, issueParam.pageNum,
                 State.getValue(state), issueParam.sortBy,
-                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
+                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone, issueParam.labelIds,
                 issueParam.commentedCheck);
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
@@ -83,7 +89,7 @@ public class IssueApp extends Controller {
             newIssue.project = project;
             newIssue.state = State.OPEN;
 
-            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds[]");
+            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds");
             if (labelIds != null) {
                 for (String labelId: labelIds) {
                     newIssue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
@@ -125,7 +131,7 @@ public class IssueApp extends Controller {
         issue.authorId = originalIssue.authorId;
         issue.authorName = originalIssue.authorName;
         issue.project = originalIssue.project;
-        String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds[]");
+        String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds");
         if (labelIds != null) {
             for (String labelId: labelIds) {
                 issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
@@ -191,7 +197,7 @@ public class IssueApp extends Controller {
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
         Page<Issue> issues = Issue.find(project.id, issueParam.pageNum,
                 State.getValue(state), issueParam.sortBy,
-                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone,
+                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone, issueParam.labelIds,
                 issueParam.commentedCheck);
         File excelFile = Issue.excelSave(issues.getList(), project.name + "_" + state + "_filter_"
                 + issueParam.filter + "_milestone_" + issueParam.milestone);
