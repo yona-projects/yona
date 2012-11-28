@@ -73,7 +73,7 @@ public class Global extends GlobalSettings {
         }
 
         public static void makeTestRepository() {
-            for (Project project : Project.findAll()) {
+            for (Project project : Project.find.all()) {
                 Logger.debug("makeTestRepository: " + project.name);
                 try {
                     RepositoryService.createRepository(project);

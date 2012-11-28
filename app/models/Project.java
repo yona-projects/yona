@@ -11,7 +11,6 @@ import javax.persistence.OneToOne;
 
 import models.enumeration.RoleType;
 import models.task.TaskBoard;
-import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import playRepository.RepositoryService;
@@ -19,23 +18,23 @@ import playRepository.RepositoryService;
 import com.avaje.ebean.Page;
 
 /**
- * 
+ *
  * @author "Hwi Ahn"
  */
 
 @Entity
 public class Project extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Project> find = new Finder<Long, Project>(
+    public static Finder<Long, Project> find = new Finder<Long, Project>(
             Long.class, Project.class);
 
     @Id
     public Long id;
-    
+
     @Constraints.Required
     @Constraints.Pattern("^[a-zA-Z0-9_]*$")
     public String name;
-    
+
     public String overview;
     public String vcs;
     public String siteurl;
@@ -68,15 +67,7 @@ public class Project extends Model {
     }
 
     public static void delete(Long id) {
-        Project.findById(id).delete();
-    }
-
-    public static List<Project> findAll() {
-        return find.all();
-    }
-
-    public static Project findById(Long id) {
-        return find.byId(id);
+        Project.find.byId(id).delete();
     }
 
     public static Page<Project> findByName(String name, int pageSize, int pageNum) {

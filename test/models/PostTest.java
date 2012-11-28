@@ -101,7 +101,7 @@ public class PostTest extends ModelTest<Post> {
 		condition.filter = "많은";
 		condition.page = 1;
 		condition.pageSize = 10;
-		Project project = Project.findById(1l);
+		Project project = Project.find.byId(1l);
 
 		// When
 		Page<Post> postPage = Post.find(project, condition);

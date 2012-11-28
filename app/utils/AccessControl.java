@@ -57,7 +57,7 @@ public class AccessControl {
             case ISSUE_POST:
                 isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, Issue>(
                         Long.class, Issue.class))
-                        && Project.findById(projectId).isAuthorEditable;
+                        && Project.find.byId(projectId).isAuthorEditable;
                 break;
             case ISSUE_COMMENT:
                 isAuthorEditible = isAuthor(userId, resourceId, new Finder<Long, IssueComment>(
@@ -76,7 +76,7 @@ public class AccessControl {
             case ISSUE_LABEL:
                 return ProjectUser.isMember(userId, projectId);
             case PROJECT:
-                return Project.findById(projectId).share_option || ProjectUser.isMember(userId, projectId);
+                return Project.find.byId(projectId).share_option || ProjectUser.isMember(userId, projectId);
             default:
                 isAuthorEditible = false;
                 break;
@@ -85,7 +85,7 @@ public class AccessControl {
             return isAuthorEditible
                     || Permission.hasPermission(userId, projectId, resource, operation);
         } else { // Anonymous
-            if (!Project.findById(projectId).share_option) {
+            if (!Project.find.byId(projectId).share_option) {
                 return false;
             }
             return isAuthorEditible

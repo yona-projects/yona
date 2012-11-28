@@ -38,7 +38,7 @@ public class ProjectUser extends Model {
 
     public ProjectUser(Long userId, Long projectId, Long roleId) {
         this.user = User.findById(userId);
-        this.project = Project.findById(projectId);
+        this.project = Project.find.byId(projectId);
         this.role = Role.findById(roleId);
     }
 

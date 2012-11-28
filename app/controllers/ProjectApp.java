@@ -141,7 +141,7 @@ public class ProjectApp extends Controller {
 
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render("title.projectSetting",
-                    filledUpdatedProjectForm, Project.findById(project.id)));
+                    filledUpdatedProjectForm, Project.find.byId(project.id)));
         } else {
             Logger.debug(project.siteurl);
 

@@ -185,7 +185,7 @@ public class IssueTest extends ModelTest<Issue> {
 		condition.filter = "git";
 		condition.page = 1;
 		condition.pageSize = 10;
-		Project project = Project.findById(1l);
+		Project project = Project.find.byId(1l);
 
 		// When
 		Page<Issue> issuePage = Issue.find(project, condition);

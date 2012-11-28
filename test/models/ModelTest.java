@@ -72,7 +72,7 @@ public class ModelTest<T> {
      * @return Project
      */
     protected Project getTestProject() {
-        return Project.findById(1l);
+        return Project.find.byId(1l);
     }
 
     /**
@@ -81,7 +81,7 @@ public class ModelTest<T> {
      * @return Project
      */
     protected Project getTestProject(Long projectId) {
-        return Project.findById(projectId);
+        return Project.find.byId(projectId);
     }
 
     @SuppressWarnings("unchecked")

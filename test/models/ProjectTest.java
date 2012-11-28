@@ -26,7 +26,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project.create(project);
         // Then
-        Project actualProject = Project.findById(project.id);
+        Project actualProject = Project.find.byId(project.id);
         
         assertThat(actualProject).isNotNull();
         assertThat(actualProject.name).isEqualTo("prj_test");
@@ -37,7 +37,7 @@ public class ProjectTest extends ModelTest<Project> {
     public void findMilestonesById() throws Exception {
         // Given
         // When
-        Project sut = Project.findById(1l);
+        Project sut = Project.find.byId(1l);
         // Then
         assertThat(sut.milestones.size()).isEqualTo(2);
     }
@@ -45,7 +45,7 @@ public class ProjectTest extends ModelTest<Project> {
     public void findIssueById() throws Exception {
         // Given
         // When
-        Project sut = Project.findById(1l);
+        Project sut = Project.find.byId(1l);
         // Then
         assertThat(sut.issues.size()).isEqualTo(7);
     }
@@ -57,7 +57,7 @@ public class ProjectTest extends ModelTest<Project> {
         Project.delete(1l);
         flush();
         // Then
-        assertThat(Project.findById(1l)).isNull();
+        assertThat(Project.find.byId(1l)).isNull();
         assertThat(ProjectUser.findByIds(1l, 1l)).isNull();
         assertThat(Issue.findById(1l)).isNull();
         assertThat(Milestone.findById(1l)).isNull();
@@ -67,7 +67,7 @@ public class ProjectTest extends ModelTest<Project> {
     public void findById() throws Exception {
         // Given
         // When
-        Project project = Project.findById(1l);
+        Project project = Project.find.byId(1l);
         // Then
         assertThat(project.name).isEqualTo("nForge4java");
         assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
