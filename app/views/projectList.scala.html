@@ -1,25 +1,22 @@
-@(message: String, currentPage: Page[Project], filter:String, allNum:Int, openNum:Int)
+@(message: String, currentPage: Page[Project], filter:String, state:String)
 
 @home(message, utils.MenuType.PROJECTS) {
   <div class="page">
     <div class="header-wrap">
       <div class="stats-wrap">
+        @for(state <- Array("all", "public", "private")) {
         <div class="stat">
-          <span class="desc"><strong>All</strong> projects</span>
-          <strong class="num all">@allNum</strong>
+          <a href="@routes.ProjectApp.projects(state=state)">
+          <span class="desc"><strong>@state.toUpperCase</strong> projects</span>
+          <strong class="num @state">@Project.countByState(state)</strong>
+          </a>
         </div>
-        <div class="stat">
-          <span class="desc"><strong>Public</strong> projects</span>
-          <strong class="num open">@openNum</strong>
-        </div>
-        <div class="stat">
-          <span class="desc"><strong>Private</strong> projects</span>
-          <strong class="num closed">@(allNum - openNum)</strong>
-        </div>
+        }
       </div>
       <div class="search-wrap projects">
         <div class="inner">
           <form action="@routes.ProjectApp.projects()" method="get">
+            <input name="state" type="hidden" value="@state">
             <input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><button type="submit" class="btn-transparent search-btn">SEARCH</button>
           </form>
         </div>

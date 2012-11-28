@@ -24,6 +24,7 @@ import views.html.project.projectHome;
 import views.html.project.setting;
 import views.html.projectList;
 
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
 /**
@@ -235,10 +236,15 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Result projects(String filter) {
-        Page<Project> projects = Project.findByName(filter, 25, 0);
-        int allNum = Project.getAllProjectNum();
-        int openNum = Project.getOpenProjectNum(); 
-        return ok(projectList.render("title.siteList", projects, filter, allNum, openNum));
+    public static Result projects(String filter, String state) {
+       ExpressionList<Project> el = Project.find.where()
+                .ilike("name", "%" + filter + "%");
+        if (state.equals("public")) {
+            el.eq("share_option", true);
+        } if (state.equals("private")) {
+            el.eq("share_option", false);
+        }
+        Page<Project> projects = el.findPagingList(25).getPage(0);
+        return ok(projectList.render("title.siteList", projects, filter, state));
     }
 }

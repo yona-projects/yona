@@ -144,13 +144,17 @@ public class Project extends Model {
     public static Page<Project> projects(int pageNum) {
         return find.findPagingList(25).getPage(pageNum);
     }
-    public static int getAllProjectNum(){
-        //TODO write TestMethod
-        return find.findRowCount();
-    }
-    public static int getOpenProjectNum() {
-        // TODO write Test Method
-        return find.where().eq("share_option", true).findRowCount();
+
+    public static int countByState(String state) {
+        if (state == "all") {
+            return find.findRowCount();
+        } else if (state == "public") {
+            return find.where().eq("share_option", true).findRowCount();
+        } else if (state == "private") {
+            return find.where().eq("share_option", false).findRowCount();
+        } else {
+            return 0;
+        }
     }
 
     public String readme() {
