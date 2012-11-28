@@ -31,6 +31,12 @@
                 </div>
             </div>
             <div class="inner right">
+                <div class="cu-label">상태</div>
+                <div class="cu-desc">
+                    <input name="state" type="radio" checked class="radio-btn" value=@State.OPEN><label for="state" class="bg-radiobtn">Open</label>
+                    <input name="state" type="radio" class="radio-btn" value=@State.CLOSED><label for="state" class="bg-radiobtn">Closed</label>
+                </div>
+                <hr/>
                 <p>완료일을 선택하세요.</p>
                 <div class="n-alert hide" id="dueDate_error">
                     <div class="n-inner">

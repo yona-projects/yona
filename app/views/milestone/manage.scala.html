@@ -2,11 +2,8 @@
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
 
-@completionRateName(completionRate: Int) = @{
-    /* TODO It will be chnaged. */
-    if(completionRate == 100) Messages("milestone.state.closed")
-    else Messages("milestone.state.open")
-}
+@stateMessage(state: State) = @{ Messages("milestone.state." + state.name.toLowerCase) }
+
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */
     if(mCondition.sort.equals(_sort)) {
@@ -57,7 +54,7 @@
                     </td>
                     <td>@milestone.contents</td>
                     <td>@milestone.getDueDateString</td>
-                    <td>@completionRateName(milestone.completionRate)</td>
+                    <td>@stateMessage(milestone.state)</td>
                     <td><a href="@routes.MilestoneApp.deleteMilestone(projectInst.owner, projectInst.name, milestone.id)">@Messages("button.delete")</a></td>
                 </tr>
         }

@@ -32,6 +32,9 @@ public class Milestone extends Model {
     @Constraints.Required
     public String contents;
 
+    @Constraints.Required
+    public State state;
+
     public int numClosedIssues;
     public int numOpenIssues;
     public int numTotalIssues;
@@ -136,16 +139,8 @@ public class Milestone extends Model {
                                                  State state, String sort, Direction direction) {
         OrderParams orderParams = new OrderParams().add(sort, direction);
         SearchParams searchParams = new SearchParams().add("project.id", projectId, Matching.EQUALS);
-        if (state == null) {
-            state = State.ALL;
-        }
-        switch (state) {
-            case OPEN:
-                searchParams.add("numOpenIssues", 0, Matching.GT);
-                break;
-            case CLOSED:
-                searchParams.add("numOpenIssues", 0, Matching.EQUALS);
-                break;
+        if (state != null && state != State.ALL) {
+            searchParams.add("state", state, Matching.EQUALS);
         }
         return FinderTemplate.findBy(orderParams, searchParams, find);
     }
