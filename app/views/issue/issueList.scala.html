@@ -48,9 +48,9 @@
 
   <div class="dashboard">
     <dl class="row-fluid">
-      <div class="span4"><dt><b>All</b> issues</dt><dd class="all inner-shadow pull-right" title="312,549">@Issue.countIssues(project.id, State.ALL)</dd></div>
-      <div class="span4"><dt><b>Open</b> issues</dt><dd class="open inner-shadow pull-right" title="32,047">@Issue.countIssues(project.id, State.OPEN)</dd></div>
-      <div class="span4"><dt><b>Closed</b> issues</dt><dd class="closed inner-shadow pull-right" title="4,086">@Issue.countIssues(project.id, State.CLOSED)</dd></div>
+      @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+      <div class="span4 @if(state.state == param.state) { active }"><a href="@routes.IssueApp.issues(project.owner, project.name, state.state)"><dt><b>@state.name</b> issues</dt><dd class="@state.state inner-shadow pull-right">@Issue.countIssues(project.id, state)</dd></a></div>
+      }
     </dl>
 
     <hr/>
