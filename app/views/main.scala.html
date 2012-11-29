@@ -3,20 +3,18 @@
 @import utils._
 
 @layout(Messages(title))("") {
-    <header class="gnb-outer">
-      @topmenu(project, menuType)
-      <div class="sub-menu-sp"></div>
-      @sidemenu(project)
-    </header>
-    <div class="container page-wrap">
-      <div class="page">
-	      @views.html.alert()
-        @content    
-      </div>
+  <header class="gnb-outer">
+    @topmenu(project, menuType)
+    <div class="sub-menu-sp"></div>
+    @sidemenu(project)
+  </header>
+  <div class="container page-wrap">
+    @views.html.alert()
+    @content
+  </div>
+  <footer class="page-footer-outer">
+    <div class="page-footer">
+      <span class="provider">Powered by <strong>nFORGE.</strong></span>
     </div>
-    <footer class="page-footer-outer">
-        <div class="page-footer">
-            <span class="provider">Powered by <strong>nFORGE.</strong></span>
-        </div>
-    </footer>  
+  </footer>
 }

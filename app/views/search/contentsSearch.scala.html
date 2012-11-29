@@ -2,6 +2,8 @@
 @import utils.TemplateHelper._
 
 @main(title, project, utils.MenuType.NONE) {
+<div class="page">
+
 <input class="filter" type="hidden" value="@filter" />
 <div class="row">
     <div class="span12">
@@ -66,4 +68,5 @@
     </div>
 </div>
 <script type="text/javascript">nforge.require('pages.contentSearch');</script>
+</div>
 }

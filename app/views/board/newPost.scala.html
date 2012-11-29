@@ -4,7 +4,8 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main(title, project, utils.MenuType.BOARD) {
-@pageTitle(project,"Board")
+<div class="page">
+  @pageTitle(project,"Board")
   <div class="content-wrap">
     
     @helper.form(action=routes.BoardApp.savePost(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
@@ -60,11 +61,11 @@
       </div>
     }
   </div>
+</div>
+<script>nforge.require("board.vaildate");</script>
 
-  <script>nforge.require("board.vaildate");</script>
-
-  @views.html.markdown()
-  <script type="text/javascript">
-  nforge.require('shortcut.submit');
-  </script>
+@views.html.markdown()
+<script type="text/javascript">
+nforge.require('shortcut.submit');
+</script>
 }

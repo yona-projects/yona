@@ -11,6 +11,7 @@
 }
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
+<div class="page">
     <style>
     @@IMPORT url("/assets/stylesheets/issue.css");
     </style>
@@ -75,4 +76,5 @@
   nforge.require('shortcut.submit');
   nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)');
 </script>
+</div>
 }

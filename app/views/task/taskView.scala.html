@@ -1,6 +1,7 @@
 @(project:Project) 
 @import utils.TemplateHelper._
 @main("TaskManager", project, utils.MenuType.TASK){
+<div class="page">
 <style>
     @@IMPORT url(@getCSSLink("taskboard"));
 </style>
@@ -183,4 +184,5 @@
 <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
 <script type="text/javascript" src="https://raw.github.com/angular-ui/angular-ui/master/build/angular-ui.min.js"></script>
+</div>
 }

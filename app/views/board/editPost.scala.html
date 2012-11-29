@@ -5,6 +5,7 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main(title, project, utils.MenuType.BOARD) {
+<div class="page">
   @pageTitle(project,"Board")
   <div class="content-wrap">
     
@@ -61,10 +62,13 @@
       </div>
     }
   </div>
-  <script>nforge.require("board.vaildate");</script>
+</div>
 
-  @views.html.markdown()
-  <script type="text/javascript">
-    nforge.require('shortcut.submit');
-  </script>
+<script>nforge.require("board.vaildate");</script>
+
+@views.html.markdown()
+<script type="text/javascript">
+  nforge.require('shortcut.submit');
+</script>
+
 }

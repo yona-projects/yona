@@ -16,6 +16,7 @@
 }
 
 @main(title, project, utils.MenuType.BOARD) {
+<div class="page">
   @pageTitle(project,"Board")
   <div class="header-wrap">
     <div class="search-wrap board">
@@ -76,6 +77,7 @@
   </div>
   }
   @pagination(page, 5, "pagination")
+</div>
   <script type="text/javascript">
   nforge.require('board.list');
   </script>

@@ -1,6 +1,7 @@
 @(message: String, project: Project) 
 
 @main(message, project, utils.MenuType.PROJECT_HOME) {
+<div class="page">
     @pageTitle(project,"Project Home")
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
@@ -64,7 +65,7 @@
            </div>
         </div>
         }
+  @views.html.markdown()
     </div>
-
-@views.html.markdown()
+</div>
 }

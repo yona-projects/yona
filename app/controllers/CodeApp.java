@@ -11,7 +11,9 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.Config;
+import play.Logger;
 import views.html.code.codeView;
+import views.html.code.nohead;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -25,6 +27,9 @@ public class CodeApp extends Controller {
         if (RepositoryService.VCS_GIT.equals(project.vcs)) {
             String msg = "Clone this Repository : git clone " + CodeApp.getURL(userName, projectName);
             List<String> branches = RepositoryService.getRepository(project).getBranches();
+            if(branches.size() == 0){
+                return ok(nohead.render("no Head", project));
+            }
             return ok(codeView.render(msg, project, branches));
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             String msg = "Check out Repository : svn checkout " + CodeApp.getSvnURL(userName, projectName);
