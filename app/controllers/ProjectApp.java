@@ -8,7 +8,6 @@ import models.Role;
 import models.User;
 import models.enumeration.RoleType;
 import models.task.CardAssignee;
-import play.Logger;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
@@ -144,8 +143,6 @@ public class ProjectApp extends Controller {
             return badRequest(setting.render("title.projectSetting",
                     filledUpdatedProjectForm, Project.find.byId(project.id)));
         } else {
-            Logger.debug(project.siteurl);
-
             project.update();
             return redirect(routes.ProjectApp.setting(userName, project.name));
         }
@@ -225,7 +222,6 @@ public class ProjectApp extends Controller {
             if(ProjectUser.checkOneMangerPerOneProject(projectId)){
                 return redirect(routes.ProjectApp.members(userName, projectName));
             } else {
-                Logger.info("test12");
                 ProjectUser.assignRole(userId, projectId, RoleType.MANAGER);
                 flash(Constants.WARNING, "project.member.isManager");
                 return redirect(routes.ProjectApp.members(userName, projectName));

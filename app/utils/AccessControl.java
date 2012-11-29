@@ -13,7 +13,6 @@ import models.enumeration.RoleType;
 
 import org.h2.util.StringUtils;
 
-import play.Logger;
 import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
 

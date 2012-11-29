@@ -14,7 +14,6 @@ import play.mvc.Result;
 import utils.AccessControl;
 import utils.RequestUtil;
 import static play.libs.Json.toJson;
-import play.Logger;
 
 import play.data.*;
 import java.util.ArrayList;
@@ -73,7 +72,6 @@ public class IssueLabelApp extends Controller {
         IssueLabel label = IssueLabel.findById(id);
 
         if (label == null) {
-            Logger.debug(id.toString());
             return notFound();
         }
 

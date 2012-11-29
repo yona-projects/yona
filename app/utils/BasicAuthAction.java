@@ -6,7 +6,6 @@ import org.apache.commons.codec.binary.Base64;
 
 import controllers.UserApp;
 import models.User;
-import play.Logger;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.Context;

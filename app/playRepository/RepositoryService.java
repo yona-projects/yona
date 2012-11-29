@@ -29,7 +29,6 @@ import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
-import play.Logger;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Response;
 import play.mvc.Http.Request;
