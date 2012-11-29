@@ -165,6 +165,7 @@ post.update.error = 입력값 오류
 #Project
 project.create = 프로젝트 생성
 project.name = 프로젝트 이름
+project.owner = 소유자 이름
 project.name.alert = 프로젝트 이름은 URL 형식(영문자,숫자만 허용)을 따릅니다.
 project.name.duplicate = 이미 해당 이름과 동일한 프로젝트를 가지고 있습니다.
 project.description = 설명
