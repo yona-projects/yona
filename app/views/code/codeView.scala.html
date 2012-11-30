@@ -11,7 +11,7 @@
       <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("Commits")</a>
     </li>
   </ul>
-  <span id="breadcrumbs">Breadcrumbs</span>
+  
   <div class="bubble-wrap gray">
     <div class="inner-bubble repo-info">
       <strong class="clone-label">CLONE THIS REPOSITORY</strong>
@@ -28,7 +28,7 @@
     </div>
     <hr class="double-sp"/>
     <div class="code-browse-wrap">
-      <div class="code-browse-header">리비전 619e11d0dcae4fa88b56f94d1462faa566e82e16</div>
+      <div class="code-browse-header"><span id="breadcrumbs">Breadcrumbs</span></div>
       <div class="directory-wrap cell">
         <div class="directory-header"><strong>FOLDER NAME</strong></div>
         <!-- note..
@@ -48,8 +48,8 @@
         </ul>
       </div>
       <div class="sp-wrap cell"></div>
-      <div class="file-wrap cell">
-        <table class="code-table sources" id="folderView">
+      <div class="file-wrap cell" id="folderView">
+        <table class="code-table sources">
           <thead class="thead">
             <tr>
               <td class="filename"><strong>FILENAME</strong></td>
@@ -67,15 +67,14 @@
             </tr>
           </tbody>
         </table>
-        <div id="codeView" class="hide">
-          <div>
-            <span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span>
-            <span class="pull-right"><a id="rawCode" class="btn btn-mini" target="_blank">Raw</a></span>
-          </div>
-          <hr />
-          <div>
-            <pre><code style="overflow:hidden"></code></pre>
-          </div>
+      </div>
+      <div id="codeView" class="hide file-wrap cell">
+        <div class="file-header nm">
+          <div class="file-info"><span id="commiter"></span> | <span id="commitDate"></span> | <span id="commitMessage"></span></div>
+          <a id="rawCode" target="_blank" class="btn-raw"><i class="ico ico-raw"></i>raw</a>
+        </div>
+        <div>
+          <pre><code style="overflow:hidden"></code></pre>
         </div>
       </div>
     </div>

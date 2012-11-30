@@ -26,7 +26,7 @@ $(document).ready(function(){
             //파일을 표시한다.
             $("#commiter").text(data.author);
             $("#commitMessage").text(data.msg);
-            $("#commitDate").text(data.date.substr(0,3));
+            $("#commitDate").text(data.date);
             $("code").text(data.data);
             $("#rawCode").attr("href", path.replace(/\/!/, ""));//TODO 현재 동작하지 않음.
             
@@ -52,6 +52,9 @@ $(document).ready(function(){
             $("#codeView").hide();
         }
         function makeTableRow(name, message, date, author){
+          if (message.length > 70){
+            message = message.substr(0, 70) + "...";
+          }
           return $("<tr>")
               .append(
                   $("<td>").append(
