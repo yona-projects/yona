@@ -28,7 +28,7 @@ $(document).ready(function(){
             $("#commitMessage").text(data.msg);
             $("#commitDate").text(data.date);
             $("code").text(data.data);
-            $("#rawCode").attr("href", path.replace(/\/!/, ""));//TODO 현재 동작하지 않음.
+            $("#rawCode").attr("href", "rawcode"+path);//TODO 현재 동작하지 않음.
             
             $("#folderView").hide();
             $("#codeView").show();
