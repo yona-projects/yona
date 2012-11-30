@@ -1,4 +1,4 @@
-@(msg : String, project:Project, branches:List[String])
+@(url : String, project:Project, branches:List[String])
 
 @main("코드", project, utils.MenuType.CODE){
 <div class="page code-browse">
@@ -15,7 +15,7 @@
   <div class="bubble-wrap gray">
     <div class="inner-bubble repo-info">
       <strong class="clone-label">CLONE THIS REPOSITORY</strong>
-      <input type="text" class="text repo-url" readonly value="@msg"><a href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
+      <input type="text" class="text repo-url" readonly value="@url"><a href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
       <div class="btn-group">
         <button data-toggle="dropdown" class="btn dropdown-toggle d-label">HEAD</button>
         <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
