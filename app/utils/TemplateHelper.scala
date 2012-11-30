@@ -50,7 +50,7 @@ object TemplateHelper {
 
   def loadAssetsLink(base: String, name: String, _type: String): String = {
     var minified = ""
-    if (play.Play.isProd) minified = ".min"
+//    if (play.Play.isProd) minified = ".min"
     routes.Assets.at(base + "/" + name + minified + "." + _type).toString
   }
 
