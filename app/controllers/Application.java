@@ -27,4 +27,8 @@ public class Application extends Controller {
 
         return ok(index.render(null));
     }
+
+    public static Result jsMessages() {
+        return ok(jsmessages.JsMessages.generate("Messages")).as("application/javascript");
+    }
 }

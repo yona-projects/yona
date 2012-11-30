@@ -1,5 +1,49 @@
 nforge.namespace("project");
 
+nforge.project.new = function() {
+  var that = {
+    init: function(formName) {
+      var errorMessages = {
+        'name': Messages('project.name.alert'),
+        'accept': Messages('project.new.agreement.alert')
+      };
+      new FormValidator(formName, [{
+        name: 'name',
+        rules: 'required|alpha_dash'
+      }, {
+        name: 'accept',
+        rules: 'required'
+      }], function(errors, event) {
+        var label;
+        var div = $('div.alert').empty();
+
+        if (errors.length == 0) {
+            return;
+        }
+
+        if (div.length == 0) {
+          div = $('<div>');
+          div.addClass('alert');
+          div.append($('<a>').addClass('close').attr('data-dismiss', 'alert').text('x'));
+          $('div.page').before(div);
+        }
+
+        for(var i = 0; i < errors.length; i ++) {
+          label =
+            $('<label>').attr('for', errors[i].name)
+            .append($('<strong>').text(Messages('message.warning')))
+            .append($('<span>').text(' ' + errorMessages[errors[i].name]));
+          div.append(label);
+        }
+
+        event.returnValue = false;
+      });
+    }
+  }
+
+  return that;
+}
+
 nforge.project.nameCheck = function() {
 	var that = {
 		init : function() {

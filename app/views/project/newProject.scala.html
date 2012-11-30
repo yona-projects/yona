@@ -12,7 +12,7 @@
                     <span>new project</span>
                 </div>
             </div>
-            <form action="@routes.ProjectApp.saveProject()" method="post">
+            <form action="@routes.ProjectApp.saveProject()" method="post" name="newproject">
                 <label for="name">
                     <input id="project-name" type="text" name="name" class="text" placeholder="새 프로젝트 이름을 입력해주세요. (프로젝트 이름은 영문으로 공백없이 작성해 주세요)">
                 </label>
@@ -79,5 +79,6 @@
       $("#vcs").attr("value",data);
       $("#vcs_msg").text(msg);
     });
+    nforge.require('validation.newProject', 'newproject');
     </script>
 }

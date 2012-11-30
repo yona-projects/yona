@@ -31,17 +31,18 @@ object ApplicationBuild extends Build {
       "org.apache.commons" % "commons-email" % "1.2",
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.tika" % "tika-core" % "1.2",
-      "commons-io" % "commons-io" % "2.4"
+      "commons-io" % "commons-io" % "2.4",
+      "com.github.julienrf" %% "play-jsmessages" % "1.2.1"
 //      "org.jacoco" % "org.jacoco.core" % "0.6.1-SNAPSHOT",
 //      "org.jacoco" % "org.jacoco.report" % "0.6.1-SNAPSHOT"
       
     )
-
     val projectSettings = Play2WarPlugin.play2WarSettings ++ Seq(
       // Add your own project settings here
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
+      resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
       templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "nforge.less"),
         //      jacoco.settings:_*,
