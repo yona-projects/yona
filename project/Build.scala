@@ -43,8 +43,8 @@ object ApplicationBuild extends Build {
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
       templatesImport += "models.enumeration._",
-      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "*.less"),
-//      jacoco.settings:_*,
+      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "nforge.less"),
+        //      jacoco.settings:_*,
       Play2WarKeys.servletVersion := "3.0"
       // Or Play2WarKeys.servletVersion := "2.5"
     )

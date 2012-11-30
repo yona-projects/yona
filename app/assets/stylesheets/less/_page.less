@@ -56,8 +56,14 @@
                     .uname {
                         color: @white;
                     }
+                    .img-rounded {
+                        .inline-block;
+                        width: 22px;
+                        height: 22px;
+                    }
                     .user-thumb {
-                        vertical-align: bottom;
+                        .inline-block;
+                        vertical-align: top;
                         margin-right: 5px;
                     }
                     .signout {
@@ -759,7 +765,7 @@
                 &.all {
                     color: @orange;
                 }
-                &.open, &.public {
+                &.open {
                     color: #51AACC;
                 }
             }
@@ -767,6 +773,18 @@
     }
     .search-wrap {
         padding: 0 10px;
+        &.user-setting {
+            .inner {
+                padding: 10px 20px;
+                background-position: 570px bottom;
+                .text {
+                    width: 400px;
+                }
+                .search-btn {
+                    width: 120px;
+                }
+            }
+        }
         &.projects {
             border-top: 1px solid #FFF;
             padding: 10px 10px 0;
@@ -774,6 +792,9 @@
         &.board {
             .inner {
                 padding-left: 75px;
+                .text {
+                    width: 547px;
+                }
             }
         }
         &.help {
@@ -817,9 +838,13 @@
                 width: 568px;
                 margin: 5px 0 0;
                 background-color: #F3F3F3;
-                border: 1px solid #CFCFCF;
+                border: 1px solid #CCC;
                 border-right: 0 none;
+                .box-shadow(none);
                 .border-radius(4px 0 0 4px);
+                &:focus {
+                    .box-shadow(none);
+                }
             }
             .search-btn {
                 margin: 5px 0 0;
@@ -830,6 +855,7 @@
                 font-weight: bold;
                 font-size: 10px;
                 color: #666;
+                background-color: @white;
                 .opacity(50);
                 &:hover {
                     .opacity(100);
@@ -1128,7 +1154,7 @@
     &.milestone {
         margin-top: -8px;
     }
-    &.board {
+    &.board, &.user-setting {
         margin: 15px 0 10px;
         padding-right: 20px;
         .filter {
@@ -1842,6 +1868,7 @@
         }
     }
     .file-header {
+        margin-top: 10px;
         line-height: 34px;
         background-color: #D7D7D7;
         color: #767676;
@@ -1852,6 +1879,21 @@
             float: left;
             .text-overflow;
             max-width: 590px;
+            &.path {
+                color: #666;
+                .num {
+                    color: #4D4D4D;
+                    .inline-block;
+                    padding: 1px 2px;
+                    line-height: 14px;
+                    &.plus {
+                        background-color: #46A4A4;
+                    }
+                    &.minus {
+                        background-color: #FFA86A;
+                    }
+                }
+            }
         }
         .btn-raw {
             float: right;
@@ -1875,6 +1917,7 @@
     }
     .code-wrap {
         overflow-x: auto;
+        background-color: @white;
     }
 }
 
@@ -1910,5 +1953,208 @@
             padding: 0;
             font-size: 12px;
         }
+    }
+}
+
+
+//-- user setting.
+.user-info-box {
+    float: left;
+    padding: 10px;
+    width: 180px;
+    background-color: #F2F2F2;
+    .border-radius(10px);
+    .box-shadow(0 -1px 0 rgba(0,0,0, .15));
+    .whoami-wrap {
+        background-color: @white;
+        .border-radius(10px);
+        .box-shadow(0 1px 0 rgba(0,0,0, .15));
+        padding: 10px;
+        text-align: center;
+        .uname {
+            font-size: 18px;
+        }
+        .name {
+            font-weight: bold;
+            color: #707070;
+        }
+    }
+    .user-location {
+        color: #707070;
+        font-size: 11px;
+        .ico {
+            margin-right: 5px;
+        }
+        .u-location {
+            margin: 10px 0 0;
+        }
+
+    }
+    .user-status {
+        .labels {
+            .inline-block;
+            color: #707070;
+            width: 80px;
+        }
+        .num {
+            color: @orange;
+        }
+    }
+    .user-other-info {
+        p {
+            color: #707070;
+            margin-bottom: 2px;
+            &.since {
+                margin-top: 14px;
+            }
+            &.social-btns {
+                margin-top: 18px;
+            }
+        }
+        .focuses {
+            font-size: 10px;
+            color: #4092A1;
+        }
+        .since {
+            font-size: 11px;
+        }
+    }
+    .info-box {
+        padding: 0 20px;
+    }
+    .btn-wrap {
+        text-align: center;
+    }
+}
+
+.user-box {
+    margin: 15px 0 25px;
+    overflow: hidden;
+}
+
+.user-stream-box {
+    margin-left: 220px;
+    overflow: hidden;
+    .user-streams {
+        margin: 0;
+        padding: 0 10px;
+        list-style: none;
+        .user-stream {
+            overflow: hidden;
+            &:first-child {
+                padding-top: 10px;
+            }
+            padding: 20px 0;
+            border-bottom: 1px solid @gray-d4;
+            .project-name {
+                margin: 0 0 10px 0;
+                color: #888;
+                font-size: 20px;
+                line-height: 1.3;
+            }
+            .stream-desc {
+                width: 510px;
+                float: left;
+            }
+            .date {
+                margin: 0;
+                color: #999;
+                font-size: 11px;
+            }
+            .project-status {
+                text-align: right;
+                padding-right: 10px;
+                .ico {
+                    vertical-align: middle;
+                }
+                .ico-activity {
+                    margin-left: 40px;
+                }
+                .ico-like {
+                    margin-right: 5px;
+                }
+                .num {
+                    color: #4489A4;
+                }
+            }
+        }
+    }
+}
+
+//commit view
+.commit-info-wrap {
+    padding-left: 10px;
+    span {
+        .inline-block;
+        margin-right: 5px;
+        font-size: 11px;
+        &.date {
+            color: #646464;
+        }
+        &.sp {
+            color: #999;
+        }
+        &.sha-block {
+            color: #646464;
+            .num {
+                color: #51AACC;
+            }
+            .commit-id {
+                color: #646464;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.diff-code-view-table {
+    width: 100%;
+    .diff-line-num {
+        &:first-child {
+            border-left: 1px solid #EEEEEE;
+        }
+        width: 22px;
+        background-color: #F7F7F7;
+        padding: 0 6px;
+        text-align: right;
+        border-right: 1px solid #EEEEEE;
+        font-size: 12px;
+        line-height: 1.5;
+        > a {
+            color: #AAA;
+        }
+    }
+    .raw-code {
+        padding-left: 10px;
+        .point {
+            .inline-block;
+        }
+        &.gc {
+            background-color: #EEE;
+        }
+        &.plus {
+            background-color: #CFEAEA;
+            .point {
+                background-color: #46A4A4;
+            }
+        }
+        &.minus {
+            background-color: #FFEBDD;
+            .point {
+                background-color: #FFA86A;
+            }
+        }
+        pre {
+            background-color: transparent;
+            border: 0 none;
+            .border-radius(0);
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+    }
+    tr:last-child {
+        border-bottom: 1px solid #EEE;
     }
 }
