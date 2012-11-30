@@ -4,20 +4,36 @@
 
 package controllers;
 
-import com.avaje.ebean.*;
-import models.*;
-import models.enumeration.*;
-import models.support.*;
-import play.data.*;
-import play.mvc.*;
-import utils.*;
-import views.html.issue.*;
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.Set;
+
+import models.Attachment;
+import models.Issue;
+import models.IssueComment;
+import models.IssueLabel;
+import models.Project;
+import models.enumeration.Direction;
+import models.enumeration.Resource;
+import models.enumeration.State;
+import models.support.SearchCondition;
 
 import org.apache.tika.Tika;
+
+import play.cache.Cached;
+import play.data.Form;
+import play.mvc.Controller;
+import play.mvc.Result;
+import utils.AccessControl;
+import utils.Constants;
+import utils.JodaDateUtil;
+import views.html.issue.editIssue;
+import views.html.issue.issue;
+import views.html.issue.issueList;
+import views.html.issue.newIssue;
+import views.html.issue.notExistingPage;
+
+import com.avaje.ebean.Page;
 
 public class IssueApp extends Controller {
 
@@ -30,6 +46,7 @@ public class IssueApp extends Controller {
      *            이슈 해결 상태
      * @return
      */
+	@Cached(key = "issues")
     public static Result issues(String userName, String projectName, String state) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(session().get("userId"), project)) {
@@ -51,6 +68,7 @@ public class IssueApp extends Controller {
         return ok(issueList.render("title.issueList", issues, issueParam, project));
     }
 
+	@Cached(key = "issue")
     public static Result issue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.findById(issueId);
