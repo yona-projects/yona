@@ -21,6 +21,7 @@ import org.apache.shiro.util.ByteSource;
 import org.apache.shiro.util.Factory;
 
 import play.Logger;
+import play.cache.Cached;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http.Cookie;
@@ -38,6 +39,7 @@ public class UserApp extends Controller {
 
 	public static User anonymous = new User();
 
+	@Cached(key = "login")
 	public static Result login() {
 		return ok(login.render("title.login", form(User.class)));
 	}
@@ -50,6 +52,7 @@ public class UserApp extends Controller {
 		return redirect(routes.Application.index());
 	}
 
+	@Cached(key = "authenticate")
 	public static Result authenticate() {
 		User sourceUser = form(User.class).bindFromRequest().get();
 		
