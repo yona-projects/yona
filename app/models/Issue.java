@@ -78,7 +78,7 @@ public class Issue extends Model {
     @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
     public List<IssueComment> comments;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     public Set<IssueLabel> labels;
 
     public Issue(String title) {
