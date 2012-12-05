@@ -6,7 +6,10 @@ package controllers;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import jxl.write.WriteException;
 
 import models.Attachment;
 import models.Issue;
@@ -16,6 +19,8 @@ import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.Resource;
 import models.enumeration.State;
+import models.support.FinderTemplate;
+import models.support.OrderParams;
 import models.support.SearchCondition;
 
 import org.apache.tika.Tika;
@@ -26,6 +31,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.Constants;
+import utils.HttpUtil;
 import utils.JodaDateUtil;
 import views.html.issue.editIssue;
 import views.html.issue.issue;
@@ -45,9 +51,11 @@ public class IssueApp extends Controller {
      * @param state
      *            이슈 해결 상태
      * @return
+     * @throws IOException
+     * @throws WriteException
      */
 	@Cached(key = "issues")
-    public static Result issues(String userName, String projectName, String state) {
+    public static Result issues(String userName, String projectName, String state, String format) throws WriteException, IOException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(session().get("userId"), project)) {
             return unauthorized(views.html.project.unauthorized.render(project));
@@ -55,17 +63,40 @@ public class IssueApp extends Controller {
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
+        OrderParams orderParams = new OrderParams().add(issueParam.sortBy,
+                Direction.getValue(issueParam.orderBy));
+        issueParam.state = state;
+
         String[] labelIds = request().queryString().get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
                 issueParam.labelIds.add(Long.valueOf(labelId));
             }
         }
-        Page<Issue> issues = Issue.find(project.id, issueParam.pageNum,
-                State.getValue(state), issueParam.sortBy,
-                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone, issueParam.labelIds,
-                issueParam.commentedCheck);
-        return ok(issueList.render("title.issueList", issues, issueParam, project));
+
+
+        if (format.equals("xls")) {
+            return issuesAsExcel(issueParam, orderParams, project, state);
+        } else {
+            Page<Issue> issues = FinderTemplate.getPage(orderParams, issueParam.asSearchParam(project),
+                Issue.finder, Issue.ISSUE_COUNT_PER_PAGE, issueParam.pageNum);
+            return ok(issueList.render("title.issueList", issues, issueParam, project));
+        }
+    }
+
+    public static Result issuesAsExcel(SearchCondition issueParam, OrderParams orderParams, Project project,
+            String state) throws WriteException, IOException, UnsupportedEncodingException {
+        List<Issue> issues = FinderTemplate.findBy(orderParams, issueParam.asSearchParam(project), Issue.finder);
+        File excelFile = Issue.excelSave(issues, project.name + "_" + state + "_filter_"
+                + issueParam.filter + "_milestone_" + issueParam.milestone);
+
+        String filename = HttpUtil.encodeContentDisposition(excelFile.getName());
+
+        response().setHeader("Content-Length", Long.toString(excelFile.length()));
+        response().setHeader("Content-Type", new Tika().detect(excelFile));
+        response().setHeader("Content-Disposition", "attachment; " + filename);
+
+        return ok(excelFile);
     }
 
 	@Cached(key = "issue")
@@ -125,7 +156,7 @@ public class IssueApp extends Controller {
             Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.ALL.state()));
+                State.ALL.state(), "html"));
     }
 
     public static Result editIssue(String userName, String projectName, Long id) {
@@ -175,7 +206,7 @@ public class IssueApp extends Controller {
         // Attach the files in the current user's temporary storage.
         Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);
 
-        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.ALL.name()));
+        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.ALL.name(), "html"));
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
@@ -184,7 +215,7 @@ public class IssueApp extends Controller {
         Issue.delete(issueId);
         Attachment.deleteAll(Resource.ISSUE_POST, issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.ALL.state()));
+                State.ALL.state(), "html"));
     }
 
     public static Result saveComment(String userName, String projectName, Long issueId) throws IOException {
@@ -216,35 +247,6 @@ public class IssueApp extends Controller {
         Issue.updateNumOfComments(issueId);
         Attachment.deleteAll(Resource.ISSUE_COMMENT, commentId);
         return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
-    }
-
-    public static Result extractExcelFile(String userName, String projectName, String state)
-            throws Exception {
-        Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
-        Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
-        SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        Page<Issue> issues = Issue.find(project.id, issueParam.pageNum,
-                State.getValue(state), issueParam.sortBy,
-                Direction.getValue(issueParam.orderBy), issueParam.filter, issueParam.milestone, issueParam.labelIds,
-                issueParam.commentedCheck);
-        File excelFile = Issue.excelSave(issues.getList(), project.name + "_" + state + "_filter_"
-                + issueParam.filter + "_milestone_" + issueParam.milestone);
-
-         // Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
-        // are not supported. See
-        String filename = excelFile.getName().replaceAll("[:\\x5c\\/{?]", "_");
-        filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
-        filename = "filename*=UTF-8''" + filename;
-
-        response().setHeader("Content-Length", Long.toString(excelFile.length()));
-        response().setHeader("Content-Type", new Tika().detect(excelFile));
-        response().setHeader("Content-Disposition", "attachment; " + filename);
-
-        return ok(excelFile);
     }
 
     public static Result enrollAutoNotification(String userName, String projectName)

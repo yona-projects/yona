@@ -74,10 +74,8 @@ POST    /:userName/:projectName/milestone/:id/edit      controllers.MilestoneApp
 GET     /:userName/:projectName/milestone/:id/delete    controllers.MilestoneApp.deleteMilestone(userName: String, projectName:String, id: Long)
 GET     /:userName/:projectName/milestone/:id/edit      controllers.MilestoneApp.editMilestone(userName: String, projectName:String, id: Long)
 
-# Issues
-GET     /:userName/:projectName/issueList               controllers.IssueApp.issues(userName:String, projectName:String, state:String ?= "open")
+GET     /:userName/:projectName/issueList               controllers.IssueApp.issues(userName:String, projectName:String, state:String ?= "open", format:String ?= "html")
 GET     /:userName/:projectName/issueList/autonotify    controllers.IssueApp.enrollAutoNotification(userName:String, projectName:String)
-GET     /:userName/:projectName/issueList/excel         controllers.IssueApp.extractExcelFile(userName:String, projectName:String, state:String)
 GET     /:userName/:projectName/issues/new              controllers.IssueApp.newIssue(userName:String, projectName:String)
 POST    /:userName/:projectName/issues/new              controllers.IssueApp.saveIssue(userName:String, projectName:String)
 GET     /:userName/:projectName/issues/:id              controllers.IssueApp.issue(userName:String, projectName:String, id:Long)

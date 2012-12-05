@@ -58,7 +58,7 @@
     <hr/>
     <form class="form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
       <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">Advanced Search</button>
-      <a href="@routes.IssueApp.extractExcelFile(project.owner, project.name, param.state)" class="btn btn-small btn-flat">Download Excel file</a>
+      <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="btn btn-small btn-flat">Download Excel file</a>
       <div class="input-append pull-right">
         <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
         <input type="hidden" name="state" value="@param.state">
