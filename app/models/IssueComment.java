@@ -46,7 +46,7 @@ public class IssueComment extends Model {
     }
 
     public String authorName() {
-        return User.findNameById(this.authorId);
+        return User.find.byId(this.authorId).name;
     }
 
     public static void delete(Long id) {

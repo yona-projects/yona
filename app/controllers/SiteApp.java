@@ -80,7 +80,7 @@ public class SiteApp extends Controller {
     
     public static Result deleteUser(Long userId) {
         if(Project.isOnlyManager(userId).size() == 0)
-            User.findById(userId).delete();
+            User.find.byId(userId).delete();
         else
             flash(Constants.WARNING, "site.userList.deleteAlert");
             

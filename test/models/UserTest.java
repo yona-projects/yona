@@ -16,7 +16,7 @@ public class UserTest extends ModelTest<User> {
 	public void findById() throws Exception {
 		// Given
 		// When
-		User user = User.findById(2l);
+		User user = User.find.byId(2l);
 		// Then
 		assertThat(user.name).isEqualTo("Hobi");
 	}
@@ -34,7 +34,7 @@ public class UserTest extends ModelTest<User> {
     public void findNameById() throws Exception {
         //Given
         //When
-	    String name = User.findNameById(2l);
+	    String name = User.find.byId(2l).name;
         //Then
 	    assertThat(name).isEqualTo("Hobi");
     }

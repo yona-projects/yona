@@ -93,7 +93,7 @@
           <td class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</td>
           <td class="comments">@issue.numOfComments</td>
           <td class="assignee">
-            <a href="#"><img class="user-picture" src="@urlToPicture(User.findById(issue.authorId).email, 34)"></a>
+            <a href="#"><img class="user-picture" src="@urlToPicture(User.find.byId(issue.authorId).email, 34)"></a>
           </td>
 
         </tr>

@@ -32,7 +32,7 @@
 
   <hgroup class="row-fluid">
     <div class="span1">
-      <img class="user-picture" src="@urlToPicture(User.findById(issue.authorId).email, 34)" />
+      <img class="user-picture" src="@urlToPicture(User.find.byId(issue.authorId).email, 34)" />
     </div>
     <div class="info">
       <p>
@@ -78,7 +78,7 @@
 <div class="comments">
   @for(comment <- issue.comments){
   <div class="comment row-fluid">
-    <div class="span1"><img class="user-picture" src="@urlToPicture(User.findById(comment.authorId).email, 34)" /></div>
+    <div class="span1"><img class="user-picture" src="@urlToPicture(User.find.byId(comment.authorId).email, 34)" /></div>
     <div class="span11">
       <div>
         <span class="author">@comment.authorName</span>

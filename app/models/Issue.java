@@ -92,8 +92,10 @@ public class Issue extends Model {
 
     public String getAuthorName() {
         if (authorName == null) {
-            if (authorId == null) return null;
-            else return User.findById(this.authorId).name;
+            if (authorId == null)
+                return null;
+            else
+                return User.find.byId(this.authorId).name;
         } else {
             return authorName;
         }

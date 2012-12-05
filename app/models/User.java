@@ -20,6 +20,7 @@ import models.support.SearchParams;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;
+import play.db.ebean.Model.Finder;
 
 import com.avaje.ebean.Page;
 
@@ -29,7 +30,7 @@ import controllers.UserApp;
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, User> find = new Finder<Long, User>(Long.class,
+    public static Finder<Long, User> find = new Finder<Long, User>(Long.class,
             User.class);
 
     public static final int USER_COUNT_PER_PAGE = 30;
@@ -54,10 +55,6 @@ public class User extends Model {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
-    public String getName() {
-        return this.name;
-    }
-    
     public List<Project> myProjects(){
         return Project.findProjectsByMember(id);
     }
@@ -69,10 +66,6 @@ public class User extends Model {
 
     public static User findByName(String name) {
         return find.where().eq("name", name).findUnique();
-    }
-
-    public static User findById(Long id) {
-        return find.byId(id);
     }
 
     public static User findProjectsById(Long id) {
@@ -93,14 +86,6 @@ public class User extends Model {
     public static boolean isLoginId(String loginId) {
         int findRowCount = find.where().eq("loginId", loginId).findRowCount();
         return (findRowCount != 0) ? true : false;
-    }
-
-    public static String findNameById(long id) {
-        return find.byId(id).name;
-    }
-
-    public static String findLoginIdById(long id) {
-        return find.byId(id).loginId;
     }
 
     public static Map<String, String> options() {

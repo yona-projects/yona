@@ -184,7 +184,7 @@ public class UserApp extends Controller {
 			anonymous.id = -1l;
 			return anonymous;
 		}
-		return User.findById(Long.valueOf(userId));
+		return User.find.byId(Long.valueOf(userId));
 	}
 
 	public static void validate(Form<User> newUserForm) {
@@ -205,7 +205,7 @@ public class UserApp extends Controller {
 	}
 	
 	public static Result memberInfo(Long userId) {
-		User user = User.findById(userId);
+		User user = User.find.byId(userId);
 		return ok(memberInfo.render(user));
 	}
 	public static Result userInfo(String userName){
@@ -219,7 +219,7 @@ public class UserApp extends Controller {
     }
 
 	public static Result memberEdit(Long userId) {
-		User user = User.findById(userId);
+		User user = User.find.byId(userId);
 		Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
         return ok(edit.render(userForm));

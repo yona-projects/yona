@@ -53,7 +53,7 @@ public class ModelTest<T> {
      * @return User
      */
     protected User getTestUser() {
-        return User.findById(2l);
+        return User.find.byId(2l);
     }
 
     /**
@@ -63,7 +63,7 @@ public class ModelTest<T> {
      * @return
      */
     protected User getTestUser(Long userId) {
-        return User.findById(userId);
+        return User.find.byId(userId);
     }
 
     /**
