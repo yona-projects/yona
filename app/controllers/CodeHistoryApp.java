@@ -16,7 +16,7 @@ import play.mvc.Result;
 import playRepository.Commit;
 import playRepository.RepositoryService;
 import utils.AccessControl;
-import utils.RequestUtil;
+import utils.HttpUtil;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.diff;
@@ -40,7 +40,7 @@ public class CodeHistoryApp extends Controller {
         }
 
         String url = CodeApp.getURL(userName, projectName);
-        String pageStr = RequestUtil.getFirstValueFromQuery(request().queryString(), "page");
+        String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
         int page = 0;
         if (pageStr != null) {
             page = Integer.parseInt(pageStr);

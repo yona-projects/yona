@@ -18,7 +18,7 @@ public enum State {
                 return issueState;
             }
         }
-        return State.OPEN;
+        return State.ALL;
     }
 }
 

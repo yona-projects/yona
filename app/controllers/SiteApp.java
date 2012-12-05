@@ -27,14 +27,14 @@ public class SiteApp extends Controller {
         Mailer email = new Mailer(play.Play.application());
 
         Map<String, String[]> formData = request().body().asFormUrlEncoded();
-        email.addFrom(utils.RequestUtil.getFirstValueFromQuery(formData, "from"));
-        email.setSubject(utils.RequestUtil.getFirstValueFromQuery(formData, "subject"));
-        email.addRecipient(utils.RequestUtil.getFirstValueFromQuery(formData, "to"));
+        email.addFrom(utils.HttpUtil.getFirstValueFromQuery(formData, "from"));
+        email.setSubject(utils.HttpUtil.getFirstValueFromQuery(formData, "subject"));
+        email.addRecipient(utils.HttpUtil.getFirstValueFromQuery(formData, "to"));
 
         String errorMessage = null;
         boolean sended = false;
         try {
-            email.send(utils.RequestUtil.getFirstValueFromQuery(formData, "body"));
+            email.send(utils.HttpUtil.getFirstValueFromQuery(formData, "body"));
             sended = true;
         } catch (EmailException e) {
             errorMessage = e.toString();

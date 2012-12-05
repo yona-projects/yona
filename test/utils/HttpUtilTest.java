@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class RequestUtilTest {
+public class HttpUtilTest {
 
     @Test
     public void getFirstValueFromQuery() {
@@ -14,7 +14,7 @@ public class RequestUtilTest {
             HashMap<String, String[]> query = new HashMap<String, String[]>();
             String[] values = {"a", "b", "c"};
             query.put("test", values);
-            String actual = RequestUtil.getFirstValueFromQuery(query, "test");
+            String actual = HttpUtil.getFirstValueFromQuery(query, "test");
             assertThat(actual).isEqualTo("a");
         }
 
@@ -22,13 +22,13 @@ public class RequestUtilTest {
             HashMap<String, String[]> query = new HashMap<String, String[]>();
             String[] values = {};
             query.put("test", values);
-            String actual = RequestUtil.getFirstValueFromQuery(query, "test");
+            String actual = HttpUtil.getFirstValueFromQuery(query, "test");
             assertThat(actual).isEqualTo(null);
         }
 
         {
             HashMap<String, String[]> query = new HashMap<String, String[]>();
-            String actual = RequestUtil.getFirstValueFromQuery(query, "test");
+            String actual = HttpUtil.getFirstValueFromQuery(query, "test");
             assertThat(actual).isEqualTo(null);
         }
     }

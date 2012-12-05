@@ -22,7 +22,7 @@ import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
 import utils.AccessControl;
-import utils.RequestUtil;
+import utils.HttpUtil;
 
 public class AttachmentApp extends Controller {
 
@@ -111,7 +111,7 @@ public class AttachmentApp extends Controller {
         // _method must be 'delete'
         Map<String, String[]> data =
                 request().body().asMultipartFormData().asFormUrlEncoded();
-        if (!RequestUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
+        if (!HttpUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
                 .equals("delete")) {
             return badRequest("_method must be 'delete'.");
         }
@@ -172,8 +172,8 @@ public class AttachmentApp extends Controller {
 
         // Get attached files only if the user has permission to read it.
         Map<String, String[]> query = request().queryString();
-        String containerType = RequestUtil.getFirstValueFromQuery(query, "containerType");
-        String containerId = RequestUtil.getFirstValueFromQuery(query, "containerId");
+        String containerType = HttpUtil.getFirstValueFromQuery(query, "containerType");
+        String containerId = HttpUtil.getFirstValueFromQuery(query, "containerId");
 
         if (containerType != null && containerId != null) {
             List<Map<String, String>> attachments = new ArrayList<Map<String, String>>();

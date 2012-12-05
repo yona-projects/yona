@@ -12,7 +12,7 @@ import models.enumeration.Resource;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
-import utils.RequestUtil;
+import utils.HttpUtil;
 import static play.libs.Json.toJson;
 
 import play.data.*;

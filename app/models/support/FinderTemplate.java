@@ -1,9 +1,14 @@
 package models.support;
 
 import com.avaje.ebean.*;
+
+import play.Logger;
 import play.db.ebean.*;
+import play.db.ebean.Model.Finder;
 
 import java.util.*;
+
+import models.Issue;
 
 public class FinderTemplate {
 
@@ -74,7 +79,14 @@ public class FinderTemplate {
     public static <K, T> Page<T> getPage(OrderParams mop,
                                          SearchParams msp,
                                          Model.Finder<K, T> finder, int pageSize, int page) {
-        return makeExpressionList(mop, msp, finder).findPagingList(pageSize).getPage(page);
+        ExpressionList<T> el = makeExpressionList(mop, msp, finder);
+        Query<T> q = el.query();
+        Page<T> result = q.findPagingList(pageSize).getPage(page);
+        q.findList();
+
+        Logger.debug(q.getGeneratedSql());
+
+        return result;
     }
 
 }

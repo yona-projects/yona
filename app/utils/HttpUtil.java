@@ -1,8 +1,10 @@
 package utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Map;
 
-public class RequestUtil {
+public class HttpUtil {
 
     public static String getFirstValueFromQuery(Map<String, String[]> query, String name) {
         String[] values = query.get(name);
@@ -13,4 +15,5 @@ public class RequestUtil {
             return null;
         }
     }
+
 }

@@ -43,7 +43,7 @@ import static com.avaje.ebean.Expr.*;
 public class Issue extends Model {
     private static final long serialVersionUID = -2409072006294045262L;
 
-    private static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
+    public static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
 
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int ISSUE_COUNT_PER_PAGE = 25;
@@ -69,7 +69,7 @@ public class Issue extends Model {
     public String authorName;
     public State state;
     @OneToMany
-	public List<IssueDetail> issueDetails;
+    public List<IssueDetail> issueDetails;
 
     @ManyToOne
     public Project project;
@@ -278,8 +278,8 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findIssues(Long projectId, State state) {
-        return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                "", null, null, false);
+        return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC, "", null,
+                null, false);
     }
 
     /**
@@ -291,10 +291,10 @@ public class Issue extends Model {
      * @param commentedCheck
      * @return
      */
-    public static Page<Issue> findFilteredIssues(Long projectId, String filter,
-                                                 State state, boolean commentedCheck) {
-        return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC,
-                filter, null, null, commentedCheck);
+    public static Page<Issue> findFilteredIssues(Long projectId, String filter, State state,
+            boolean commentedCheck) {
+        return find(projectId, FIRST_PAGE_NUMBER, state, DEFAULT_SORTER, Direction.DESC, filter,
+                null, null, commentedCheck);
     }
 
     /**
@@ -305,8 +305,8 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findCommentedIssues(Long projectId, String filter) {
-        return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER,
-                Direction.DESC, filter, null, null, true);
+        return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER, Direction.DESC,
+                filter, null, null, true);
     }
 
     /**
@@ -317,29 +317,36 @@ public class Issue extends Model {
      * @return
      */
     public static Page<Issue> findIssuesByMilestoneId(Long projectId, Long milestoneId) {
-        return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER,
-                Direction.DESC, "", milestoneId, null, false);
+        return find(projectId, FIRST_PAGE_NUMBER, State.ALL, DEFAULT_SORTER, Direction.DESC, "",
+                milestoneId, null, false);
     }
 
     /**
      * 이슈들을 아래의 parameter들의 조건에 의거하여 Page형태로 반환한다.
      *
-     * @param projectId       project ID to finder issues
-     * @param pageNumber        Page to display
-     * @param state             state type of issue(OPEN or CLOSED
-     * @param sortBy            Issue property used for sorting, but, it might be fixed to
-     *                          enum type
-     * @param order             Sort order(either asc or desc)
-     * @param filter            filter applied on the title column
-     * @param commentedCheck    filter applied on the commetedCheck column, 댓글이 존재하는 이슈만 필터링
+     * @param projectId
+     *            project ID to finder issues
+     * @param pageNumber
+     *            Page to display
+     * @param state
+     *            state type of issue(OPEN or CLOSED
+     * @param sortBy
+     *            Issue property used for sorting, but, it might be fixed to
+     *            enum type
+     * @param order
+     *            Sort order(either asc or desc)
+     * @param filter
+     *            filter applied on the title column
+     * @param commentedCheck
+     *            filter applied on the commetedCheck column, 댓글이 존재하는 이슈만 필터링
      * @return 위의 조건에 따라 필터링된 이슈들을 Page로 반환.
      */
-    public static Page<Issue> find(Long projectId, int pageNumber, State state,
-                                   String sortBy, Direction order, String filter, Long milestoneId, Set<Long> labelIds,
-                                   boolean commentedCheck) {
+    public static Page<Issue> find(Long projectId, int pageNumber, State state, String sortBy,
+            Direction order, String filter, Long milestoneId, Set<Long> labelIds,
+            boolean commentedCheck) {
         OrderParams orderParams = new OrderParams().add(sortBy, order);
-        SearchParams searchParams = new SearchParams().add("project.id", projectId,
-                Matching.EQUALS);
+        SearchParams searchParams = new SearchParams()
+                .add("project.id", projectId, Matching.EQUALS);
 
         if (filter != null && !filter.isEmpty()) {
             searchParams.add("title", filter, Matching.CONTAINS);
@@ -409,59 +416,55 @@ public class Issue extends Model {
      * @param resultList 엑셀로 저장하고자 하는 리스트
      * @param pageName   엑셀로 저장하고자 하는 목록의 페이지(내용, ex 이슈, 게시물 등) 이름
      * @return
+     * @throws WriteException
+     * @throws IOException
      * @throws Exception
      */
-    public static File excelSave(List<Issue> resultList, String pageName) throws Exception {
+    public static File excelSave(List<Issue> resultList, String pageName) throws WriteException, IOException {
         String excelFile = pageName + "_" + JodaDateUtil.today().getTime() + ".xls";
         String fullPath = "public/uploadFiles/" + excelFile;
         WritableWorkbook workbook = null;
         WritableSheet sheet = null;
 
+        WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
+                UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);
+        WritableCellFormat cf1 = new WritableCellFormat(wf1);
+        cf1.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
+        cf1.setAlignment(Alignment.CENTRE);
+
+        WritableFont wf2 = new WritableFont(WritableFont.TAHOMA, 11, WritableFont.NO_BOLD, false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
+        WritableCellFormat cf2 = new WritableCellFormat(wf2);
+        cf2.setShrinkToFit(true);
+        cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
+        cf2.setAlignment(Alignment.CENTRE);
+
+        workbook = Workbook.createWorkbook(new File(fullPath));
+        sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
+
+        String[] labalArr = {"ID", "STATE", "TITLE", "ASSIGNEE", "DATE"};
+
+        for (int i = 0; i < labalArr.length; i++) {
+            sheet.addCell(new Label(i, 0, labalArr[i], cf1));
+            sheet.setColumnView(i, 20);
+        }
+        for (int i = 1; i < resultList.size() + 1; i++) {
+            Issue issue = resultList.get(i - 1);
+            int colcnt = 0;
+            sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
+            sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
+        }
+        workbook.write();
+
         try {
-            WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
-                    UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);
-            WritableCellFormat cf1 = new WritableCellFormat(wf1);
-            cf1.setBorder(Border.ALL, BorderLineStyle.DOUBLE);
-            cf1.setAlignment(Alignment.CENTRE);
-
-            WritableFont wf2 = new WritableFont(WritableFont.TAHOMA, 11, WritableFont.NO_BOLD,
-                    false, UnderlineStyle.NO_UNDERLINE, Colour.BLACK, ScriptStyle.NORMAL_SCRIPT);
-            WritableCellFormat cf2 = new WritableCellFormat(wf2);
-            cf2.setShrinkToFit(true);
-            cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
-            cf2.setAlignment(Alignment.CENTRE);
-
-            workbook = Workbook.createWorkbook(new File(fullPath));
-            sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
-
-            String[] labalArr = {"ID", "STATE", "TITLE", "ASSIGNEE", "DATE"};
-
-            for (int i = 0; i < labalArr.length; i++) {
-                sheet.addCell(new Label(i, 0, labalArr[i], cf1));
-                sheet.setColumnView(i, 20);
-            }
-            for (int i = 1; i < resultList.size() + 1; i++) {
-                Issue issue = resultList.get(i - 1);
-                int colcnt = 0;
-                sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
-                sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
-                sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
-                sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
-                sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
-            }
-            workbook.write();
-        } catch (Exception e) {
+            if (workbook != null)
+                workbook.close();
+        } catch (WriteException e) {
             e.printStackTrace();
-            throw e;
-        } finally {
-            try {
-                if (workbook != null)
-                    workbook.close();
-            } catch (WriteException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return new File(fullPath);
     }
