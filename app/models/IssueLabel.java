@@ -55,4 +55,13 @@ public class IssueLabel extends Model {
         return finder.where().eq("project.id", project.id)
                 .eq("name", name).eq("color", color).findRowCount() > 0;
     }
+
+    @Override
+    public void delete() {
+        for(Issue issue: issues) {
+            issue.labels.remove(this);
+            issue.save();
+        }
+        super.delete();
+    }
 }
