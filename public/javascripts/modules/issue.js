@@ -64,7 +64,8 @@ nforge.issue.label = function () {
       var input_category = $('<input id="custom-label-category" type="text">')
         .addClass('input-small')
         .attr('data-provider', 'typeahead')
-        .attr('placeholder', 'Category');
+        .attr('placeholder', 'Category')
+        .attr('autocomplete', 'off');
 
       var input_name = $('<input id="custom-label-name" type="text">')
         .addClass('input-small')
