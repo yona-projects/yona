@@ -16,4 +16,13 @@ public class HttpUtil {
         }
     }
 
+    public static String encodeContentDisposition(String filename)
+            throws UnsupportedEncodingException {
+        // Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
+        // are not supported. See http://greenbytes.de/tech/tc2231/
+        filename = filename.replaceAll("[:\\x5c\\/{?]", "_");
+        filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
+        filename = "filename*=UTF-8''" + filename;
+        return filename;
+    }
 }

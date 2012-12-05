@@ -93,11 +93,7 @@ public class AttachmentApp extends Controller {
 
         File file = attachment.getFile();
 
-        // Encode the filename with RFC 2231; IE 8 or less, and Safari 5 or less
-        // are not supported. See
-        String filename = attachment.name.replaceAll("[:\\x5c\\/{?]", "_");
-        filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
-        filename = "filename*=UTF-8''" + filename;
+        String filename = HttpUtil.encodeContentDisposition(attachment.name);
 
         response().setHeader("Content-Length", Long.toString(file.length()));
         response().setHeader("Content-Type", attachment.mimeType);
