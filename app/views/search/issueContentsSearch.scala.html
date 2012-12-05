@@ -8,7 +8,7 @@
       <td><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">
               @issue.title @if(issue.comments.size > 0){[@issue.comments.size]}</a></td>
       <td>
-        @if(issue.assigneeId == null){
+        @if(issue.assignee == null){
         <em>@Messages("issue.noAssignee")</em>
         } else {
         <em>@issue.assigneeName</em>

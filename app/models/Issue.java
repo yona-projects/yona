@@ -65,7 +65,6 @@ public class Issue extends Model {
 
     public int numOfComments;
     public Long milestoneId;
-    public Long assigneeId;
     public Long authorId;
     public String authorName;
     public State state;
@@ -80,6 +79,9 @@ public class Issue extends Model {
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     public Set<IssueLabel> labels;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    public Assignee assignee;
 
     public Issue(String title) {
         this.title = title;
@@ -106,7 +108,7 @@ public class Issue extends Model {
      * 있을듯.
      */
     public String assigneeName() {
-        return (this.assigneeId != null ? User.findNameById(this.assigneeId) : null);
+        return (this.assignee != null ? assignee.user.name : null);
     }
 
     /**
@@ -223,7 +225,12 @@ public class Issue extends Model {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
         }
+        Assignee a = issue.assignee;
         issue.delete();
+        if (a != null) {
+            a.refresh();
+            a.deleteIfEmpty();
+        }
     }
 
     /**
@@ -381,7 +388,7 @@ public class Issue extends Model {
     }
 
     public static Long findAssigneeIdByIssueId(Long issueId) {
-        return finder.byId(issueId).assigneeId;
+        return finder.byId(issueId).assignee.user.id;
     }
 
     /**
@@ -439,7 +446,7 @@ public class Issue extends Model {
                 sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
                 sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
                 sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
-                sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assigneeId), cf2));
+                sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
                 sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
             }
             workbook.write();
@@ -465,8 +472,8 @@ public class Issue extends Model {
      * @param uId
      * @return
      */
-    private static String getAssigneeName(Long uId) {
-        return (uId != null ? User.findNameById(uId) : TO_BE_ASSIGNED);
+    private static String getAssigneeName(Assignee assignee) {
+        return (assignee != null ? assignee.user.name : TO_BE_ASSIGNED);
     }
 
     // FIXME 이것이 없이 테스트는 잘 작동하나, view에서 댓글이 달린 이슈들을 필터링하는 라디오버튼을 작동시에 이 메쏘드에서

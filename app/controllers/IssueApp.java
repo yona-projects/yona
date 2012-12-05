@@ -106,10 +106,15 @@ public class IssueApp extends Controller {
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = State.OPEN;
-
-            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds");
+            if (newIssue.assignee.id != null) {
+                newIssue.assignee.project = project;
+            } else {
+                newIssue.assignee = null;
+            }
+            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded()
+                    .get("labelIds");
             if (labelIds != null) {
-                for (String labelId: labelIds) {
+                for (String labelId : labelIds) {
                     newIssue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
                 }
             }
@@ -150,6 +155,11 @@ public class IssueApp extends Controller {
         issue.authorName = originalIssue.authorName;
         issue.project = originalIssue.project;
         String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds");
+        if (issue.assignee.id != null) {
+            issue.assignee.project = originalIssue.project;
+        } else {
+            issue.assignee = null;
+        }
         if (labelIds != null) {
             for (String labelId: labelIds) {
                 issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
@@ -157,6 +167,10 @@ public class IssueApp extends Controller {
         }
 
         Issue.edit(issue);
+
+        if (originalIssue.assignee != null) {
+            originalIssue.assignee.deleteIfEmpty();
+        }
 
         // Attach the files in the current user's temporary storage.
         Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);

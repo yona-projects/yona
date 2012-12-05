@@ -20,6 +20,8 @@ public class SearchCondition {
     public Boolean fileAttachedCheck;
     public Long milestone;
     public Set<Long> labelIds;
+    public String authorLoginId;
+    public Long assigneeId;
 
     public SearchCondition() {
         filter = "";

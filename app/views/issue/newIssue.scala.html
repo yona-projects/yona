@@ -46,7 +46,7 @@
         <fieldset class="labels">
           @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
                 @select(
-                    issueForm("assigneeId"),
+                    issueForm("assignee.user.id"),
                     options(ProjectUser.options(project.id)),
                     '_label-> Messages("issue.new.detailInfo.assignee"),
                     '_default -> Messages("issue.new.selectDefault.assignee"),
