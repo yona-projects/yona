@@ -1,16 +1,7 @@
 .gnb-outer .gnb-inner .gnb-menu-wrap .gnb-menus .menu.active { color: #5dd4ff }
 
 /* issue common */
-.page-padding { padding-top: 30px; }
-
 .user-picture { border: 1px solid #cccccc; border-radius: 4px; }
-
-.breadcrumb { background: none; }
-.breadcrumb .divider { color: #adadad }
-.breadcrumb.page-navi { color: #444444; font-size: 11px; top: -20px; position: relative; padding: 0px; }
-.breadcrumb.page-navi .icon-home { opacity: 0.35; }
-.breadcrumb.project-name { color: #4092A1; font-size: 26px; font-family: Din; font-weight: normal; padding: 0px; letter-spacing: -1px; }
-.breadcrumb.project-name .active { color: #4092A1; font-weight: lighter; }
 
 .info .author { color: #999999; }
 .info .author a { color: #696969; }
