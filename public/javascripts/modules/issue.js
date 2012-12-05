@@ -151,7 +151,7 @@ nforge.issue.label = function () {
 
       var issueForm = $('form#issue-form,form.form-search');
       issueForm.submit(function() {
-        var buttons = $('fieldset.labels div[category] button.active');
+        var buttons = $('fieldset.labels div[category] button.active[labelId]');
         for (var i = 0; i < buttons.length; i++) {
           issueForm.append(
             '<input type="hidden" name="labelIds" value="' + $(buttons[i]).attr('labelId') + '">');
@@ -162,6 +162,12 @@ nforge.issue.label = function () {
 
       $('#custom-label-submit').click(function(e) {
         that.add_custom_label();
+      });
+
+      $('#custom-label input').keypress(function(e) {
+        if (e.keyCode == 13) {
+          return false;
+        }
       });
 
       $('#custom-label input').keyup(function(e) {
@@ -234,7 +240,6 @@ nforge.issue.label = function () {
         div.append(label);
         div.append(controls);
         labelEditor = $('.label-editor');
-        console.log(labelEditor);
         if (labelEditor.length > 0) {
             $('.label-editor').before(div);
         } else {
@@ -322,21 +327,47 @@ nforge.issue.list = function() {
 
   that = {
     init: function() {
-      $('#labels-form').css('display', 'none');
+      var searchForm = $('form.form-search');
+
+      $('#advanced-search-form').css('display', 'none');
       $('#advanced-search').click(function(e) {
         if ($(e.srcElement).hasClass('active')) {
-          $('#labels-form').css('display', 'none');
+          $('#advanced-search-form').css('display', 'none');
         } else {
-          $('#labels-form').css('display', '');
+          $('#advanced-search-form').css('display', '');
         }
       });
+
+      $('.properties div.controls button').click(function(e) {
+        if ($(e.srcElement).hasClass('active')) {
+          $(e.srcElement).removeClass('active');
+          return false;
+        }
+      });
+
+      searchForm.submit(function() {
+        var assigneeId = $('fieldset.properties button.active[assigneeId]')
+          .attr('assigneeId');
+        var milestoneId = $('fieldset.properties button.active[milestoneId]')
+          .attr('milestoneId');
+
+        if (assigneeId !== undefined) {
+          searchForm.append(
+            '<input type="hidden" name="assigneeId" value="' + assigneeId + '">');
+        }
+
+        if (milestoneId !== undefined) {
+          searchForm.append(
+            '<input type="hidden" name="milestone" value="' + milestoneId + '">');
+        }
+      });
+
       $("#pagination a").click(function(){
         $this = $(this);
         var targetPageNum = $this.attr("pagenum");
-        console.log(targetPageNum);
         location.href = location.href.replace(/(pageNum=)(\d+)/, "pageNum=" + (targetPageNum - 1));
         return false;
-      })
+      });
     }
   }
 

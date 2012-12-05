@@ -56,27 +56,52 @@
     </dl>
 
     <hr/>
-    <form class="form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
+    <form class="form-horizontal form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
+      <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
+      <input type="hidden" name="state" value="@param.state">
       <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">Advanced Search</button>
       <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="btn btn-small btn-flat">Download Excel file</a>
       <div class="input-append pull-right">
-        <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
-        <input type="hidden" name="state" value="@param.state">
         <input name="filter" class="span2" id="appendedInputButton" size="16" type="text"><button class="btn" type="submit"  placeholder="현재 게시글에서 검색">SEARCH</button>
       </div>
-    </form>
-
-    <form class="form-horizontal" id="labels-form">
-      <!-- issue.label module make this as label filter and editor -->
+    <div class="form-horizontal" id="advanced-search-form">
+      <fieldset class="properties">
+        <div class="control-group">
+          <label class="control-label">@Messages("author")</label>
+          <div class="controls">
+            <input type="text" name="authorLoginId" class="input-medium">
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">@Messages("assignee")</label>
+          <div class="controls" data-toggle="buttons-radio">
+            <button type="button" class="btn" assigneeId="0">@Messages("none")</button>
+            @for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
+              <button type="button" class="btn" assigneeId="@assignee.user.id">@User.find.byId(assignee.user.id).name <img class="user-picture" src="@urlToPicture(User.find.byId(assignee.user.id).email, 16)"></button>
+            }
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label">@Messages("milestone")</label>
+          <div class="controls" data-toggle="buttons-radio">
+            <button type="button" class="btn" milestoneId="0">@Messages("none")</button>
+            @for(milestone <- Milestone.findByProjectId(project.id)) {
+              <button type="button" class="btn" milestoneId="@milestone.id">@milestone.title</button>
+            }
+          </div>
+        </div>
+      </fieldset>
+      <!-- issue.label module make 'labels' fieldset as label filter and editor -->
       <fieldset class="labels"></fieldset>
+    </div>
     </form>
 
   </div>
 
   <p class="ordering">
-      @ordering(Messages("order.state"), "state")
-      @ordering(Messages("order.date"), "date")
-      @ordering(Messages("order.comments"), "numOfComments")
+    @ordering(Messages("order.state"), "state")
+    @ordering(Messages("order.date"), "date")
+    @ordering(Messages("order.comments"), "numOfComments")
   </p>
 
   <table class="table issue-list">

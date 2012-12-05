@@ -308,3 +308,8 @@ mail.body = Body
 mail.send = Send
 mail.fail = Failed to send a mail.
 mail.sended = Mail is sended.
+
+author = Author
+assignee = Assignee
+milestone = Milestone
+none = None

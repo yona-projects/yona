@@ -99,7 +99,7 @@ public class IssueApp extends Controller {
         return ok(excelFile);
     }
 
-	@Cached(key = "issue")
+    @Cached(key = "issue")
     public static Result issue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.findById(issueId);
@@ -185,14 +185,15 @@ public class IssueApp extends Controller {
         issue.authorId = originalIssue.authorId;
         issue.authorName = originalIssue.authorName;
         issue.project = originalIssue.project;
-        String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded().get("labelIds");
         if (issue.assignee.id != null) {
             issue.assignee.project = originalIssue.project;
         } else {
             issue.assignee = null;
         }
+        String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded()
+                .get("labelIds");
         if (labelIds != null) {
-            for (String labelId: labelIds) {
+            for (String labelId : labelIds) {
                 issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
             }
         }

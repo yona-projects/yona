@@ -1,8 +1,8 @@
 package models.support;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
-
-import play.Logger;
 
 import models.Issue;
 import models.Project;
@@ -45,7 +45,16 @@ public class SearchCondition {
         searchParams.add("project.id", project.id, Matching.EQUALS);
 
         if (authorLoginId != null && !authorLoginId.isEmpty()) {
-            searchParams.add("authorId", User.findByLoginId(authorLoginId).id, Matching.EQUALS);
+            User user = User.findByLoginId(authorLoginId);
+            if (user != null) {
+                searchParams.add("authorId", user.id, Matching.EQUALS);
+            } else {
+                List<Long> ids = new ArrayList<Long>();
+                for (User u : User.find.where().contains("loginId", authorLoginId).findList()) {
+                    ids.add(u.id);
+                }
+                searchParams.add("authorId", ids, Matching.IN);
+            }
         }
 
         if (assigneeId != null) {

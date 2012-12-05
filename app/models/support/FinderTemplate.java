@@ -45,6 +45,9 @@ public class FinderTemplate {
                     case CONTAINS:
                         el.contains(sp.getField(), (String) value);
                         break;
+                    case IN:
+                        el.in(sp.getField(), (Collection<?>) value);
+                        break;
                     default: /*TODO*/
                         break;
                 }

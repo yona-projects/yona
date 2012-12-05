@@ -79,6 +79,7 @@ milestone.state.closed = 완료
 milestone.is.empty = 등록된 마일스톤이 없습니다.
 milestone.menu.manage = 마일스톤 관리
 milestone.menu.new = 새 마일스톤
+milestone.none = 없음
 sort.by.dueDate = 완료일순
 sort.by.completionRate = 완료울순
 
@@ -305,3 +306,8 @@ mail.body = 본문
 mail.send = 발송
 mail.fail = 메일 발송에 실패했습니다.
 mail.sended = 메일을 발송하였습니다.
+
+author = 작성자
+assignee = 담당자
+milestone = 마일스톤
+none = 없음

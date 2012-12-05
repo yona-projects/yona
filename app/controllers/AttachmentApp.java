@@ -4,7 +4,6 @@ import static play.libs.Json.toJson;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;

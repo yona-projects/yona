@@ -43,16 +43,25 @@ p.ordering a[selected] { color: #666666 }
 
 .dashboard form { background-color: #fff; padding: 15px 10px 15px 10px; border-radius: 6px; border-bottom: 1px solid #c5c5c5; margin: 0px; }
 .dashboard form.form-search button { margin: 0px 0px 0px 7px; }
-.dashboard form.form-search button:first-child { margin-left: 10px; }
 .dashboard .btn-flat { background-color: #fff; border: 1px solid; border-color: #e1e1e1 #c4c4c4 #c4c4c4 #e1e1e1; color: #707070; background: none; }
 .dashboard .btn-small { font-weight: bold; }
+
+/* properties */
+.properties { background-color: #f6f6f6; }
+.properties { border-top: 1px solid #e2e2e2; }
+.properties .controls button { margin-left: 5px; }
+.properties .control-group { padding-bottom: 9px; padding-top: 10px; margin: 0px;}
+.properties div.control-group {
+  border-top: 1px solid #fdfdfd;
+  border-bottom: 1px solid #e2e2e2;
+}
 
 /* label */
 .labels { background-color: #f6f6f6; }
 .labels { border-top: 1px solid #e2e2e2; }
-.labels .controls button.btn { margin-left: 5px; }
+.labels .controls button { margin-left: 5px; }
 .labels .control-group { padding-bottom: 9px; padding-top: 10px; margin: 0px;}
-.labels .controls button.btn.active { text-shadow: rgba(0, 0, 0, 0.25) 0px -1px 0px; }
+.labels .controls button.btn.active { text-shadow: none; }
 .labels div.control-group {
   border-top: 1px solid #fdfdfd;
   border-bottom: 1px solid #e2e2e2;
@@ -137,3 +146,5 @@ article .body { color: #666666; margin-top: 22px; } /* 34px = 22px + 9px of <p> 
 #issue-form .attachment-list { border-radius: 4px; background-color: #dfdfdf; padding: 20px; }
 #issue-form .attachment-list li { list-style-type: none; }
 #issue-form .file-attachment .close { margin-left: 10px; float: none; }
+
+#advanced-search-form { margin-top: 15px; }
