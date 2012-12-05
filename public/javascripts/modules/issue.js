@@ -185,7 +185,7 @@ nforge.issue.label = function () {
         label.remove();
       } else {
         category = $(label.parents('div').get(0)).attr('category');
-        $('[category="' + category + '"]').remove();
+        $('[category="' + category + '"]').parent().remove();
         source = $('#custom-label-category').typeahead().data('typeahead').source;
         source.pop(source.indexOf(category));
       }
