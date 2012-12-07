@@ -42,7 +42,7 @@
           <span class="badge badge-info">@Messages(issue.state.state)</span>
         </span>
       </p>
-      <p class="author">by <a href="/users/@issue.authorId">@Option(issue.getAuthorName).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
+      <p class="author">by <a href="@routes.IssueApp.newIssue(project.owner, project.name)">@Option(issue.getAuthorName).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
     </div>
   </hgroup>
 
