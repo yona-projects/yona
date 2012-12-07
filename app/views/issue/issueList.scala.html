@@ -116,7 +116,10 @@
             <p class="author">by <a href="/users/@issue.authorId">@Option(issue.getAuthorName).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
           </td>
           <td class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</td>
-          <td class="comments">@issue.numOfComments</td>
+          <td class="comments">
+            <i class="ico ico-comment-bubble"></i>
+            <span class="num">@issue.numOfComments</span>
+          </td>
           <td class="assignee">
             <a href="#"><img class="user-picture" src="@urlToPicture(User.find.byId(issue.authorId).email, 34)"></a>
           </td>

@@ -14,7 +14,7 @@ body { font-size: 12px; }
 .issue-list tr:first-child td { border-top: none; }
 .issue-list tr:last-child td { border-bottom: 1px solid #cdcdcd; }
 .issue-list td.no { font-size: 11px; color: #b2b2b2; }
-.issue-list td.info { width: 100%; }
+.issue-list td.info { width: 77%; }
 .issue-list td.state { font-weight: bold; }
 .issue-list td.state.opened { color: #51AACC; }
 .issue-list td.state.closed { color: #bbbbbb; }
