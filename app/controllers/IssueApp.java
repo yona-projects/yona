@@ -11,6 +11,7 @@ import java.util.List;
 
 import jxl.write.WriteException;
 
+import models.Assignee;
 import models.Attachment;
 import models.Issue;
 import models.IssueComment;
@@ -137,8 +138,8 @@ public class IssueApp extends Controller {
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = State.OPEN;
-            if (newIssue.assignee.id != null) {
-                newIssue.assignee.project = project;
+            if (newIssue.assignee.user.id != null) {
+                newIssue.assignee = Assignee.add(newIssue.assignee.user.id, project.id);
             } else {
                 newIssue.assignee = null;
             }
@@ -185,8 +186,8 @@ public class IssueApp extends Controller {
         issue.authorId = originalIssue.authorId;
         issue.authorName = originalIssue.authorName;
         issue.project = originalIssue.project;
-        if (issue.assignee.id != null) {
-            issue.assignee.project = originalIssue.project;
+        if (issue.assignee.user.id != null) {
+            issue.assignee = Assignee.add(issue.assignee.user.id, originalIssue.project.id);
         } else {
             issue.assignee = null;
         }
@@ -199,10 +200,6 @@ public class IssueApp extends Controller {
         }
 
         Issue.edit(issue);
-
-        if (originalIssue.assignee != null) {
-            originalIssue.assignee.deleteIfEmpty();
-        }
 
         // Attach the files in the current user's temporary storage.
         Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);

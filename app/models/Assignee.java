@@ -54,29 +54,13 @@ public class Assignee extends Model {
         return assignee;
     }
 
-    @Override
-    public boolean equals(Object that) {
-        if (!(that instanceof Assignee))
-            return false;
-        Assignee castedThat = (Assignee) that;
-        if (id == castedThat.id)
-            return true;
-        return (this == castedThat) || (user.id == castedThat.user.id)
-                && (project.id == castedThat.project.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder().append(user.hashCode()).append(project.hashCode())
-                .toHashCode();
-    }
-
-    public void deleteIfEmpty() {
-        Logger.debug("empty?");
-        Logger.debug(String.valueOf(issues.size()));
-        if (this.issues.isEmpty()) {
-            Logger.debug("del");
-            super.delete();
+    public static Assignee add(Long userId, Long projectId) {
+        Assignee assignee = finder.where()
+                .eq("user.id", userId).eq("project.id", projectId).findUnique();
+        if (assignee != null) {
+            return assignee;
+        } else {
+            return new Assignee(userId, projectId);
         }
     }
 }

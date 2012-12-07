@@ -103,11 +103,6 @@ issues:
                             id: 1
     - !!models.Issue
         authorId:     3
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 2
-                     project: !!models.Project
-                                id: 1
         title:          다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         state:      OPEN
@@ -117,11 +112,6 @@ issues:
                             id: 1
     - !!models.Issue
         authorId:     4
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 2
-                     project: !!models.Project
-                                id: 1
         title:          gittracker.php의 메모리 제한 에러
         body:           내용 gittracker.php의 메모리 제한 에러
         state:      CLOSED
@@ -132,11 +122,6 @@ issues:
         numOfComments:  1
     - !!models.Issue
         authorId:     4
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 1
         title:          git/hg 코드 브라우저에 i18n이 적용되지 않음
         body:           내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
         state:      CLOSED
@@ -146,11 +131,6 @@ issues:
                             id: 1
     - !!models.Issue
         authorId:     4
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 1
         title:          CUBRID 설치 문제
         body:           IOS는 설치 못하나요?
         state:      OPEN
@@ -160,11 +140,6 @@ issues:
                             id: 3
     - !!models.Issue
         authorId:     4
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 1
         title:          메모리 누수 현상
         body:           메모리가 너무 누수가 되는듯.
         state:      CLOSED
@@ -174,11 +149,6 @@ issues:
                             id: 3
     - !!models.Issue
         authorId:     4
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 1
         title:          Client application for Mac.
         body:           Please make it.
         state:      OPEN
@@ -188,11 +158,6 @@ issues:
                             id: 3
     - !!models.Issue
         authorId:     4
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 1
         title:          CPU 무한 점유울 문제.
         body:           CPU를 무한사용 중이에요.
         state:      CLOSED
@@ -202,11 +167,6 @@ issues:
                             id: 3
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 1
         title:          Less chained imports causes compile error
         body:           When using Play, when I chain less files such as a.less imports b.less which in turn imports c.less
         state:      CLOSED
@@ -216,11 +176,6 @@ issues:
                             id: 1
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 2
-                     project: !!models.Project
-                                id: 1
         title:          Weird TypeDoesNotMatch exception in RC-3 and final
         body:           The following code works as expected in RC1-Snapshot, but breaks with an TypeDoesNotMatch exception in RC-3 and 2.0 final.
         state:      CLOSED
@@ -239,11 +194,6 @@ issues:
                             id: 1
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 2
         title:          Update sbt-idea to 1.1.0
         body:           Create sbt project definition module, if exists, for each subproject (pull 128)
         state:      CLOSED
@@ -253,11 +203,6 @@ issues:
                             id: 2
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 2
         title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
         body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
         state:      CLOSED
@@ -267,11 +212,6 @@ issues:
                             id: 2
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 2
         title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
         body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
         state:      OPEN
@@ -281,11 +221,6 @@ issues:
                             id: 2
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 2
         title:          Cookie Expires date
         body:           With Play 2.0.2, when creating a cookie with response().setCookie, HTTP output is like
         state:      OPEN
@@ -295,11 +230,6 @@ issues:
                             id: 2
     - !!models.Issue
         authorId:     1
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 2
         title:          require is not work in windows (Closure Compiler)
         body:           Test on Play2.1-Snapshot
         state:      OPEN
@@ -309,11 +239,6 @@ issues:
                             id: 2
     - !!models.Issue
         authorId:     2
-        assignee: !!models.Assignee
-                     user: !!models.User
-                                id: 3
-                     project: !!models.Project
-                                id: 3
         title:          Remember me is not working
         body:           Test on Play2.1-Snapshot
         state:      OPEN

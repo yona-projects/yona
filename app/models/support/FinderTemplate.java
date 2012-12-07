@@ -4,11 +4,8 @@ import com.avaje.ebean.*;
 
 import play.Logger;
 import play.db.ebean.*;
-import play.db.ebean.Model.Finder;
 
 import java.util.*;
-
-import models.Issue;
 
 public class FinderTemplate {
 

@@ -122,10 +122,17 @@ public class IssueTest extends ModelTest<Issue> {
 
     @Test
     public void findAssigneeByIssueId() {
+        // Given
+        Long issueId = 2l;
+        Long userId = 1l;
+
         // When
-        Long assignee = Issue.findAssigneeIdByIssueId(2l);
+        Issue issue = Issue.findById(issueId);
+        issue.assignee = Assignee.add(userId, issue.project.id);
+        issue.save();
+
         // Then
-        assertThat(assignee).isEqualTo(2l);
+        assertThat(Issue.findAssigneeIdByIssueId(issueId)).isEqualTo(userId);
     }
 
     @Test

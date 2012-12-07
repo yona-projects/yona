@@ -225,12 +225,7 @@ public class Issue extends Model {
             Milestone milestone = Milestone.findById(issue.milestoneId);
             milestone.delete(issue);
         }
-        Assignee a = issue.assignee;
         issue.delete();
-        if (a != null) {
-            a.refresh();
-            a.deleteIfEmpty();
-        }
     }
 
     /**
