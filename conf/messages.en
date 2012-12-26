@@ -41,6 +41,10 @@ label.assignee = Assignee
 label.date = Date
 label.id = #
 label.dueDate = Due Date
+label.new = New Label
+label.customColor = Custom Color
+label.category = Category
+label.name = Name
 
 order.date = Date
 order.state = State
@@ -149,6 +153,9 @@ issue.new.selectDefault.importance = --Select an Importance--
 issue.new.selectDefault.diagnosisResult = --Select a Diagnosis Result--
 issue.comment.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
 issue.committer.edit = Edit Issue
+issue.advancedSearch = Advanced Search
+issue.downloadAsExcel = Download as Excel
+issue.search = SEARCH
 
 #Post
 post.new = New

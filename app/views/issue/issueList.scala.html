@@ -59,10 +59,10 @@
     <form class="form-horizontal form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
       <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
       <input type="hidden" name="state" value="@param.state">
-      <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">Advanced Search</button>
-      <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="btn btn-small btn-flat">Download Excel file</a>
+      <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">@Messages("issue.advancedSearch")</button>
+      <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="btn btn-small btn-flat">@Messages("issue.downloadAsExcel")</a>
       <div class="input-append pull-right">
-        <input name="filter" class="span2" id="appendedInputButton" size="16" type="text"><button class="btn" type="submit"  placeholder="현재 게시글에서 검색">SEARCH</button>
+        <input name="filter" class="span2" id="appendedInputButton" size="16" type="text"><button class="btn" type="submit"  placeholder="현재 게시글에서 검색">@Messages("issue.search")</button>
       </div>
     <div class="form-horizontal" id="advanced-search-form">
       <fieldset class="properties">

@@ -37,7 +37,7 @@ nforge.issue.label = function () {
 
       var label = $('<label id="custom-label-label">')
         .addClass('control-label')
-        .text('New Label');
+        .text(Messages('label.new'));
 
       var controls = $('<div id="custom-label">')
         .addClass('controls');
@@ -59,21 +59,21 @@ nforge.issue.label = function () {
 
       var input_color = $('<input id="custom-label-color" type="text">')
         .addClass('input-small')
-        .attr('placeholder', 'Custom Color');
+        .attr('placeholder', Messages('label.customColor'));
 
       var input_category = $('<input id="custom-label-category" type="text">')
         .addClass('input-small')
         .attr('data-provider', 'typeahead')
-        .attr('placeholder', 'Category')
+        .attr('placeholder', Messages('label.category'))
         .attr('autocomplete', 'off');
 
       var input_name = $('<input id="custom-label-name" type="text">')
         .addClass('input-small')
-        .attr('placeholder', 'Name');
+        .attr('placeholder', Messages('label.name'));
 
       var input_submit = $('<button id="custom-label-submit" type="button">')
         .addClass('btn')
-        .text('Add');
+        .text(Messages('label.add'));
 
       controls.append(input_color);
       controls.append(input_category);
