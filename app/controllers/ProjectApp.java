@@ -244,6 +244,6 @@ public class ProjectApp extends Controller {
             el.eq("share_option", false);
         }
         Page<Project> projects = el.findPagingList(25).getPage(0);
-        return ok(projectList.render("title.siteList", projects, filter, state));
+        return ok(projectList.render("title.projectList", projects, filter, state));
     }
 }

@@ -89,7 +89,7 @@ public class SiteApp extends Controller {
         
     public static Result projectList(String filter) {
         Page<Project> projects = Project.findByName(filter, 25, 0);
-        return ok(projectList.render("title.siteList", projects, filter));
+        return ok(projectList.render("title.projectList", projects, filter));
     }
     
     public static Result deleteProject(Long projectId){
