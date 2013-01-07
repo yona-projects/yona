@@ -13,7 +13,7 @@
 }
 <div class="sub-menu-wrap">
     <ul class="sub-menus">
-        @makeMenu(routes.ProjectApp.setting(projectInst.owner, projectInst.name), "SETTING")
+        @makeMenu(routes.ProjectApp.settingForm(projectInst.owner, projectInst.name), "SETTING")
         @makeMenu(routes.ProjectApp.members(projectInst.owner, projectInst.name), "MEMBER")
         @makeMenu(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name), "MILESTONE")
         <li class="menu"></li>

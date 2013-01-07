@@ -208,8 +208,9 @@ public class UserApp extends Controller {
 		User user = User.find.byId(userId);
 		return ok(memberInfo.render(user));
 	}
-	public static Result userInfo(String userName){
-	    User user = User.findByLoginId(userName);
+	
+	public static Result userInfo(String loginId){
+	    User user = User.findByLoginId(loginId);
 	    return ok(memberInfo.render(user));
 	}
 	

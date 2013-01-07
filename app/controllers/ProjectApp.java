@@ -48,7 +48,7 @@ public class ProjectApp extends Controller {
                 getProject(userName, projectName)));
     }
 
-    public static Result newProject() {
+    public static Result newProjectForm() {
         if (session().get(UserApp.SESSION_USERID) == null) {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.Application.index());
@@ -57,7 +57,7 @@ public class ProjectApp extends Controller {
                     .render("title.newProject", form(Project.class)));
     }
 
-    public static Result setting(String userName, String projectName) {
+    public static Result settingForm(String userName, String projectName) {
         Project project = getProject(userName, projectName);
         if (!AccessControl.isAllowed(session().get("userId"), project)) {
             return unauthorized(views.html.project.unauthorized.render(project));
@@ -68,7 +68,7 @@ public class ProjectApp extends Controller {
     }
 
     @Transactional
-    public static Result saveProject() throws Exception {
+    public static Result newProject() throws Exception {
         Form<Project> filledNewProjectForm = form(Project.class)
                 .bindFromRequest();
         if(request().body().asFormUrlEncoded().get("accept") == null){
@@ -101,14 +101,14 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Result saveSetting(String userName, String projectName) {
+    public static Result settingProject(String userName, String projectName) {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
           
         if(!ProjectUser.isManager(UserApp.currentUser().id, project.id)){
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.setting(userName, project.name));
+            return redirect(routes.ProjectApp.settingForm(userName, project.name));
         }
 
         if (!Project.projectNameChangeable(project.id, userName, project.name)) {
@@ -146,7 +146,7 @@ public class ProjectApp extends Controller {
                     filledUpdatedProjectForm, Project.find.byId(project.id)));
         } else {
             project.update();
-            return redirect(routes.ProjectApp.setting(userName, project.name));
+            return redirect(routes.ProjectApp.settingForm(userName, project.name));
         }
     }
 
@@ -167,7 +167,7 @@ public class ProjectApp extends Controller {
             return redirect(routes.Application.index());
         } else {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.setting(userName, projectName));
+            return redirect(routes.ProjectApp.settingForm(userName, projectName));
         }
     }
 
@@ -216,7 +216,7 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Result updateMember(String userName, String projectName, Long userId) {
+    public static Result editMember(String userName, String projectName, Long userId) {
         Long projectId = getProject(userName, projectName).id;
         if(ProjectUser.isManager(UserApp.currentUser().id, projectId)){
             ProjectUser.assignRole(userId, projectId, form(Role.class)

@@ -50,7 +50,7 @@
             @for(milestone <- milestones){
                 <tr>
                     <td>
-                        <a href="@routes.MilestoneApp.editMilestone(projectInst.owner, projectInst.name, milestone.id)">@milestone.title</a>
+                        <a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)">@milestone.title</a>
                     </td>
                     <td>@milestone.contents</td>
                     <td>@milestone.getDueDateString</td>
@@ -63,6 +63,6 @@
     </div>
     }
     <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestone(projectInst.owner, projectInst.name)" >@Messages("milestone.menu.new")</a>
+        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" >@Messages("milestone.menu.new")</a>
     </div>
 }

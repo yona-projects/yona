@@ -8,7 +8,7 @@
 @projectMngMain(message, project) {
     @pageTitle(project,"Setting")
     <div class="bubble-wrap gray">
-        @form(action=routes.ProjectApp.saveSetting(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
+        @form(action=routes.ProjectApp.settingProject(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">
             <div class="box-wrap top clearfix">
                 <div class="setting-box left">

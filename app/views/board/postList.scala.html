@@ -65,7 +65,8 @@
         <div class="comment-wrap">
             <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
         </div>
-        <a href="@routes.UserApp.userInfo(post.authorName)" class="author-avatar img-rounded pull-right"><img src="/assets/images/default-avatar-34.png" width="32" height="32" alt="@post.authorName"></a>
+        <a href="@routes.UserApp.userInfo(post.authorName)" class="author-avatar img-rounded pull-right">
+        <img class="user-picture" src="@urlToPicture(User.find.byId(post.authorId).email, 34)" alt="@post.authorName">
       </div>
     </li>
     }

@@ -38,7 +38,7 @@ public class MilestoneApp extends Controller {
         return ok(list.render("title.milestoneList", milestones, project, mCondition));
     }
 
-    public static Result newMilestone(String userName, String projectName) {
+    public static Result newMilestoneForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
@@ -47,7 +47,7 @@ public class MilestoneApp extends Controller {
         return ok(create.render("title.newMilestone", new Form<Milestone>(Milestone.class), project));
     }
 
-    public static Result saveMilestone(String userName, String projectName) {
+    public static Result newMilestone(String userName, String projectName) {
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
@@ -76,7 +76,7 @@ public class MilestoneApp extends Controller {
         return ok(manage.render("title.milestoneManage", milestones, project, mCondition));
     }
 
-    public static Result editMilestone(String userName, String projectName, Long milestoneId) {
+    public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();
@@ -87,7 +87,7 @@ public class MilestoneApp extends Controller {
         return ok(edit.render("title.editMilestone", editForm, milestoneId, project));
     }
 
-    public static Result updateMilestone(String userName, String projectName, Long milestoneId) {
+    public static Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
             return notFound();

@@ -15,7 +15,7 @@
             <tr>
                 <td>@member.user.loginId</td>
                 <td>
-	                <form action="@routes.ProjectApp.updateMember(project.owner, project.name, member.user.id)" method="post">
+	                <form action="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" method="post">
 	                    <select id="role" name="id">
 	                        @memberRole(member.role.name)
 	                    </select>

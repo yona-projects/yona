@@ -41,7 +41,7 @@
     <div class="tab-wrap">
         <div class="pull-right btns">
             <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">MANAGE</a>
-            <a href="@routes.MilestoneApp.newMilestone(projectInst.owner, projectInst.name)" class="n-btn small blue">NEW MILESTONE</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="n-btn small blue">NEW MILESTONE</a>
         </div>
         <ul class="nav nav-tabs">
             <li class="@if(mCondition.state.equals("all")){active}">

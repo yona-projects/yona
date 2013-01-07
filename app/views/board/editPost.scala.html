@@ -9,7 +9,7 @@
   @pageTitle(project,"Board")
   <div class="content-wrap">
     
-    @helper.form(action=routes.BoardApp.updatePost(project.owner, project.name, postId), 'enctype -> "multipart/form-data", 'class->"nm"){
+    @helper.form(action=routes.BoardApp.editPost(project.owner, project.name, postId), 'enctype -> "multipart/form-data", 'class->"nm"){
       <div id="warning" class="n-alert hide">
         <div class="n-inner">
           <span class="msg">제목과 본문에 빈칸이 있습니다.</span>

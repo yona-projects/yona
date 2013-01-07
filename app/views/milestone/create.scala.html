@@ -5,7 +5,7 @@
 @project.projectMngMain(title, projectInst) {
     @pageTitle(projectInst,"Milestone")
     <div class="form-wrap milestone">
-        <form class="nm" action="@routes.MilestoneApp.saveMilestone(projectInst.owner, projectInst.name)" method="post">
+        <form class="nm" action="@routes.MilestoneApp.newMilestone(projectInst.owner, projectInst.name)" method="post">
             <div class="inner left">
                 <div class="n-alert hide" id="title_error">
                     <div class="n-inner">

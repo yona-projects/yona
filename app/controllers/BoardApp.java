@@ -57,7 +57,7 @@ public class BoardApp extends Controller {
                         Direction.getValue(postSearchCondition.order), postSearchCondition.key, postSearchCondition.filter), postSearchCondition));
     }
 
-    public static Result newPost(String userName, String projectName) {
+    public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(session().get("userId"), project)) {
             return unauthorized(views.html.project.unauthorized.render(project));
@@ -66,7 +66,7 @@ public class BoardApp extends Controller {
         return ok(newPost.render("board.post.new", new Form<Post>(Post.class), project));
     }
 
-    public static Result savePost(String userName, String projectName) {
+    public static Result newPost(String userName, String projectName) {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (postForm.hasErrors()) {
@@ -105,7 +105,7 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result saveComment(String userName, String projectName, Long postId) {
+    public static Result newComment(String userName, String projectName, Long postId) {
         Form<Comment> commentForm = new Form<Comment>(Comment.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(userName, projectName);
@@ -136,7 +136,7 @@ public class BoardApp extends Controller {
         return redirect(routes.BoardApp.posts(project.owner, project.name));
     }
 
-    public static Result editPost(String userName, String projectName, Long postId) {
+    public static Result editPostForm(String userName, String projectName, Long postId) {
         Post existPost = Post.findById(postId);
         Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
         Project project = ProjectApp.getProject(userName, projectName);
@@ -150,7 +150,7 @@ public class BoardApp extends Controller {
         }
     }
 
-    public static Result updatePost(String userName, String projectName, Long postId) {
+    public static Result editPost(String userName, String projectName, Long postId) {
         Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
 

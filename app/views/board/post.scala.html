@@ -54,7 +54,7 @@
     </ul>
       @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.WRITE){
       <div class="write-comment-box">
-        @helper.form(routes.BoardApp.saveComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
+        @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
           <div class="write-comment-wrap">
             <!-- when the user signed in..
             <textarea class="text comment" name="comment></textarea>
