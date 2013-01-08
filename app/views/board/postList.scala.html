@@ -74,7 +74,7 @@
   }
   @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.WRITE){
   <div class="write-btn-wrap">
-    <a href="@routes.BoardApp.newPost(project.owner, project.name)" class="n-btn blue small">WRITE</a>
+    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">WRITE</a>
   </div>
   }
   @pagination(page, 5, "pagination")
