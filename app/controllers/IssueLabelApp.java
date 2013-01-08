@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 public class IssueLabelApp extends Controller {
 
-    public static Result getAll(String userName, String projectName) {
+    public static Result labels(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
 
         List<Map<String, String>> labels = new ArrayList<Map<String, String>>();
@@ -38,7 +38,7 @@ public class IssueLabelApp extends Controller {
         return ok(toJson(labels));
     }
 
-    public static Result post(String userName, String projectName) {
+    public static Result newLabel(String userName, String projectName) {
         Form<IssueLabel> labelForm = new Form<IssueLabel>(IssueLabel.class).bindFromRequest();
 
         IssueLabel label = labelForm.get();

@@ -136,7 +136,7 @@
 </div>
 
 <script type="text/javascript">
-  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: true});
+  nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: true});
   nforge.require('issue.list');
 </script>
 </div>

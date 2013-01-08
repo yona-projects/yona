@@ -155,7 +155,7 @@
 <script type="text/javascript">
   nforge.require('shortcut.submit');
   nforge.require('nforge.issue.view');
-  nforge.require('issue.label', '@routes.IssueLabelApp.getAll(project.owner, project.name)', '@routes.IssueLabelApp.post(project.owner, project.name)', {editable: false}, function() {
+  nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: false}, function() {
     @for(label <- issue.labels) {
       $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
       $('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
