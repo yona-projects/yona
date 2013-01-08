@@ -21,7 +21,7 @@
   <h1>@Messages(title)</h1>
 </div>
 
-    @form(action = routes.IssueApp.updateIssue(project.owner, project.name, issue.id),
+    @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.id),
             'id -> "issue-form",
             'enctype -> "multipart/form-data"
             ) {

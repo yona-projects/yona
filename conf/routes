@@ -78,16 +78,12 @@ GET     /:user/:project/milestone/:id/delete            controllers.MilestoneApp
 GET     /:user/:project/issues                          controllers.IssueApp.issues(user, project, state:String ?= "open", format:String ?= "html")
 GET     /:user/:project/issueform                       controllers.IssueApp.newIssueForm(user, project)
 POST    /:user/:project/issues                          controllers.IssueApp.newIssue(user, project)
-
-GET     /:user/:project/issueList/autonotify            controllers.IssueApp.enrollAutoNotification(user, project)
-
-GET     /:user/:project/issues/:id                      controllers.IssueApp.issue(user, project, id:Long)
-POST    /:user/:project/issue/:id/reply                 controllers.IssueApp.saveComment(user, project, id:Long)
+GET     /:user/:project/issue/:id                       controllers.IssueApp.issue(user, project, id:Long)
+GET     /:user/:project/issue/:id/editform              controllers.IssueApp.editIssueForm(user, project, id:Long)
+POST    /:user/:project/issue/:id/edit                  controllers.IssueApp.editIssue(user, project, id:Long)
 GET     /:user/:project/issue/:id/delete                controllers.IssueApp.deleteIssue(user, project, id:Long)
-GET     /:user/:project/issue/:id/deleteComment         controllers.IssueApp.deleteComment(user, project, id:Long, commentId:Long)
-GET     /:user/:project/issues/:id/edit                 controllers.IssueApp.editIssue(user, project, id:Long)
-POST    /:user/:project/issues/:id/edit                 controllers.IssueApp.updateIssue(user, project, id:Long)
-GET		/issuedetail									controllers.IssueApp.getIssueDatil()
+POST    /:user/:project/issue/:id/comments              controllers.IssueApp.newComment(user, project, id:Long)
+GET     /:user/:project/issue/:id/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, id:Long, commentId:Long)
 
 # Label
 POST	/:user/:project/labels					        controllers.IssueLabelApp.post(user, project)

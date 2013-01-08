@@ -110,7 +110,7 @@
 }
 
 <!-- 댓글 입력 폼 -->
-@form(routes.IssueApp.saveComment(project.owner, project.name, issue.id),
+@form(routes.IssueApp.newComment(project.owner, project.name, issue.id),
   'id -> "comment-form",
   'enctype -> "multipart/form-data"){
    <div>
@@ -131,7 +131,7 @@
     <a class="btn" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
     <a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
     @isVisible(models.enumeration.Resource.ISSUE_POST) {
-    <a class="btn btn-primary" href="@routes.IssueApp.editIssue(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
+    <a class="btn btn-primary" href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
     }
 </div>
 

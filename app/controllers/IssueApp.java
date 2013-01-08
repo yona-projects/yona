@@ -160,7 +160,7 @@ public class IssueApp extends Controller {
                 State.ALL.state(), "html"));
     }
 
-    public static Result editIssue(String userName, String projectName, Long id) {
+    public static Result editIssueForm(String userName, String projectName, Long id) {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
@@ -171,7 +171,7 @@ public class IssueApp extends Controller {
         return ok(editIssue.render("title.editIssue", editForm, targetIssue, project));
     }
 
-    public static Result updateIssue(String userName, String projectName, Long id) throws IOException {
+    public static Result editIssue(String userName, String projectName, Long id) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
 
         if (issueForm.hasErrors()) {
@@ -216,7 +216,7 @@ public class IssueApp extends Controller {
                 State.ALL.state(), "html"));
     }
 
-    public static Result saveComment(String userName, String projectName, Long issueId) throws IOException {
+    public static Result newComment(String userName, String projectName, Long issueId) throws IOException {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -247,12 +247,4 @@ public class IssueApp extends Controller {
         return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
     }
 
-    public static Result enrollAutoNotification(String userName, String projectName)
-            throws Exception {
-        return TODO;
-    }
-
-    public static Result getIssueDatil(){
-    	return TODO;
-    }
 }
