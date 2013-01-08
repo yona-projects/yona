@@ -117,7 +117,7 @@ public class IssueApp extends Controller {
         }
     }
 
-    public static Result newIssue(String userName, String projectName) {
+    public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(session().get("userId"), project)) {
             return unauthorized(views.html.project.unauthorized.render(project));
@@ -126,7 +126,7 @@ public class IssueApp extends Controller {
         return ok(newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
-    public static Result saveIssue(String ownerName, String projectName) throws IOException {
+    public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (issueForm.hasErrors()) {

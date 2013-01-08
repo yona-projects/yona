@@ -75,10 +75,12 @@ POST    /:user/:project/milestone/:id/edit              controllers.MilestoneApp
 GET     /:user/:project/milestone/:id/delete            controllers.MilestoneApp.deleteMilestone(user, project, id: Long)
 
 # Issues
-GET     /:user/:project/issueList                       controllers.IssueApp.issues(user, project, state:String ?= "open", format:String ?= "html")
+GET     /:user/:project/issues                          controllers.IssueApp.issues(user, project, state:String ?= "open", format:String ?= "html")
+GET     /:user/:project/issueform                       controllers.IssueApp.newIssueForm(user, project)
+POST    /:user/:project/issues                          controllers.IssueApp.newIssue(user, project)
+
 GET     /:user/:project/issueList/autonotify            controllers.IssueApp.enrollAutoNotification(user, project)
-GET     /:user/:project/issues/new                      controllers.IssueApp.newIssue(user, project)
-POST    /:user/:project/issues/new                      controllers.IssueApp.saveIssue(user, project)
+
 GET     /:user/:project/issues/:id                      controllers.IssueApp.issue(user, project, id:Long)
 POST    /:user/:project/issue/:id/reply                 controllers.IssueApp.saveComment(user, project, id:Long)
 GET     /:user/:project/issue/:id/delete                controllers.IssueApp.deleteIssue(user, project, id:Long)

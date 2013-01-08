@@ -20,7 +20,7 @@
         <h1>@Messages(title)</h1>
     </div>
 
-    @form(action = routes.IssueApp.saveIssue(project.owner, project.name),
+    @form(action = routes.IssueApp.newIssue(project.owner, project.name),
                     'id -> "issue-form",
                     'enctype -> "multipart/form-data"
                     ) {
