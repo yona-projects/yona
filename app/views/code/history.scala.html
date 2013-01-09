@@ -1,63 +1,94 @@
 @(url: String, project: Project, history: List[playRepository.Commit], page: Integer, selectedBranch: String)
 
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+@import utils.Url
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
+@import org.joda.time.Duration
+@import controllers.CodeApp
 
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
-<div class="page">
-@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-    @if(branches.length > 0) {
-        <select id="branch" name="branch">
-            @branches.map { branch =>
-                @defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
-                    <option @(if(branch == selectedBranch) "selected" else "") value="@url" >@branch</option>
-                }
-            }
-        </select>
-    }
+<div class="page code-browse">
+  @pageTitle(project, "Code Browser")
 
-}
-
-@defining(
+  @defining(
     if(selectedBranch) {
         routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
     } else {
         routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
     }
 ) { url =>
-    <ul class="nav nav-tabs">
-        <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a></li>
-        <a href="@url">@Messages("code.commits")</a></li>
+    <ul class="nav nav-tabs code-tab">
+      <li>
+        <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+      </li>
+      <li class="active">
+        <a href="@url">@Messages("code.commits")</a>
+      </li>
     </ul>
 
     @if(history.size() > 0) {
-        <div class="row" id="history">
-            <table class="table">
-                <tbody>
-                @for(commit <- history.iterator()) {
-                    <tr>
-                        <td>@commit.getAuthorName()</td>
-                        <td><pre>@commit.getMessage()</pre></td>
-                        <td>@commit.getAuthorDate()</td>
-                        <td><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
-                    </tr>
+      <div class="bubble-wrap gray">
+        <div class="inner-bubble repo-info">
+          <strong class="clone-label">CLONE THIS REPOSITORY</strong>
+          <input id="repo-url" type="text" class="text repo-url" readonly value="@CodeApp.getURL(project.owner, project.name)"><a id="copy-url" href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
+          <div class="btn-group">
+            <button data-toggle="dropdown" class="btn dropdown-toggle d-label">@selectedBranch</span></button>
+            <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
+            @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+              @if(branches.length > 0) {
+                <ul class="dropdown-menu">
+                @branches.map { branch =>
+                  @defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
+                    <li><a href="@url">@branch</a></li>
+                  }
                 }
-                </tbody>
-            </table>
-            <ul class="pager">
-            @if(page > 0) {
-                <li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
+                </ul>
+              }
             }
-
-            @if(history.get(history.size() - 1).getParentCount() > 0) {
-                <li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
-            }
-            </ul>
+          </div>
         </div>
-        <script type="text/javascript">
-        nforge.require('code.branch');
-        </script>
+        <hr class="double-sp"/>
+        <div class="code-browse-wrap">
+          <div class="commit-wrap" id="history">
+            <table class="code-table commits">
+              <thead class="thead">
+                <tr>
+                  <td class="commit-id"><strong>#</strong></td>
+                  <td class="messages"><strong>COMMIT MESSAGES</strong></td>
+                  <td class="date"><strong>COMMIT DATE</strong></td>
+                  <td class="author"><strong>AUTHOR</strong></td>
+                </tr>
+              </thead>
+              <tbody class="tbody">
+              @for(commit <- history.iterator()) {
+                <tr>
+                  <td class="commit-id"><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
+                  <td class="messages">@commit.getMessage()</td>
+                  <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                  <td class="author"><img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)"></td>
+                </tr>
+              }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        @if(page > 0) {
+        <ul class="pager">
+          <li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
+        </ul>
+        }
+        @if(history.get(history.size() - 1).getParentCount() > 0) {
+        <ul class="pager">
+          <li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
+        </ul>
+        }
+      </div>
     }
-}
+  }
 </div>
 }
+<script type="text/javascript">
+nforge.require('code.copy');
+</script>
