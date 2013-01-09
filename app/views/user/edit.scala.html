@@ -1,4 +1,4 @@
-@(userForm:Form[User])
+@(userForm:Form[User], user:User)
 
 @import helper._
 @import utils.TemplateHelper._
@@ -6,8 +6,27 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
  
 @home("Users Info", utils.MenuType.USER) {
+  
+  <div class="page">
+  <div>
+  프로젝트 갯수 : @user.myProjects().size()
+  </div>
+  <div>
+    <ul>
+    @for(project <- user.myProjects()){
+        <li>
+            <form action="@routes.UserApp.leave(project.owner, project.name)" method="post">
+                @project.name <input type="submit" class="btn btn-danger" value="탈퇴">
+            </form>
+        </li>
+    }
+    </ul>
+  </div>
+</div>
+
     @helper.form(action=routes.UserApp.save()){
-        @helper.inputText(userForm("email"))
+      @helper.inputText(userForm("name"))
+      @helper.inputText(userForm("email"))
         <div id="picPath">업로드된 파일이 없습니다.</div>
         <input id="attachmemt" type="file" name="filePath"/>
         <div id="noti"></div>

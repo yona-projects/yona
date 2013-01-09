@@ -15,12 +15,10 @@ POST    /users/login                                    controllers.UserApp.logi
 GET     /users/logout                                   controllers.UserApp.logout()
 GET     /users/signupform                               controllers.UserApp.signupForm()
 POST    /users/signup                                   controllers.UserApp.newUser()
-GET     /info                                           controllers.UserApp.info()
-GET     /info/edit                                      controllers.UserApp.edit()
+GET     /user/editform                                  controllers.UserApp.editUserForm()
 POST    /info/edit                                      controllers.UserApp.save()
 
 POST	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
-GET     /memberinfo                                     controllers.UserApp.memberInfo(userId:Long)
 GET     /memberinfo/edit                                controllers.UserApp.memberEdit(userId:Long)
 
 # Site

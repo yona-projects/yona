@@ -33,6 +33,7 @@ import views.html.user.*;
 public class UserApp extends Controller {
 
 	public static final String SESSION_USERID = "userId";
+	public static final String SESSION_LOGINID = "loginId";
 	public static final String SESSION_USERNAME = "userName";
 	public static final String TOKEN = "nforge.token";
 	public static final int MAX_AGE = 30*24*60*60;
@@ -174,6 +175,7 @@ public class UserApp extends Controller {
 
 	public static void setUserInfoInSession(User user) {
 		session(SESSION_USERID, String.valueOf(user.id));
+		session(SESSION_LOGINID, user.loginId);
 		session(SESSION_USERNAME, user.name);
 	}
 
@@ -205,33 +207,28 @@ public class UserApp extends Controller {
 		}
 	}
 	
-	public static Result memberInfo(Long userId) {
-		User user = User.find.byId(userId);
-		return ok(memberInfo.render(user));
-	}
+//	public static Result memberInfo(Long userId) {
+//		User user = User.find.byId(userId);
+//		return ok(memberInfo.render(user));
+//	}
 	
 	public static Result userInfo(String loginId){
 	    User user = User.findByLoginId(loginId);
-	    return ok(memberInfo.render(user));
+	    return ok(info.render(user));
 	}
-	
-	public static Result info() {
-        User user = UserApp.currentUser();
-        return ok(info.render(user));
-    }
 
 	public static Result memberEdit(Long userId) {
 		User user = User.find.byId(userId);
 		Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
-        return ok(edit.render(userForm));
+        return ok(edit.render(userForm, user));
 	}
 	
-    public static Result edit() {
+    public static Result editUserForm() {
         User user = UserApp.currentUser();
         Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
-        return ok(edit.render(userForm));
+        return ok(edit.render(userForm, user));
     }
 
     public static Result save() {
@@ -243,7 +240,7 @@ public class UserApp extends Controller {
         user.email = email;
         user.update();
         Attachment.attachFiles(currentUser().id, null, Resource.USER, currentUser().id);
-        return redirect(routes.UserApp.info());
+        return redirect(routes.UserApp.userInfo(user.loginId));
     }
     
     public static Result getProfilePic(String userName){
@@ -253,6 +250,6 @@ public class UserApp extends Controller {
 
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.info());
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId));
     }
 }
