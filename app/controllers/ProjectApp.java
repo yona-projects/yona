@@ -22,7 +22,7 @@ import views.html.project.memberList;
 import views.html.project.newProject;
 import views.html.project.projectHome;
 import views.html.project.setting;
-import views.html.projectList;
+import views.html.project.projectList;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;

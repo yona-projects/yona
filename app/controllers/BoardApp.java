@@ -4,18 +4,27 @@
 
 package controllers;
 
-import models.*;
-import models.enumeration.*;
+import java.io.File;
+
+import models.Attachment;
+import models.Comment;
+import models.Post;
+import models.Project;
+import models.enumeration.Direction;
+import models.enumeration.Operation;
+import models.enumeration.Resource;
 import play.Logger;
 import play.data.Form;
-import play.mvc.*;
+import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Http.Request;
-import utils.*;
-import views.html.board.*;
-
-import java.io.*;
+import play.mvc.Result;
+import utils.AccessControl;
+import utils.Constants;
+import views.html.board.editPost;
+import views.html.board.newPost;
+import views.html.board.postList;
 
 public class BoardApp extends Controller {
     
@@ -76,6 +85,7 @@ public class BoardApp extends Controller {
         } else {
             Post post = postForm.get();
             post.authorId = UserApp.currentUser().id;
+            post.authorLoginId = UserApp.currentUser().loginId;
             post.authorName = UserApp.currentUser().name;
             post.commentCount = 0;
             post.filePath = saveFile(request());
@@ -116,6 +126,7 @@ public class BoardApp extends Controller {
             Comment comment = commentForm.get();
             comment.post = Post.findById(postId);
             comment.authorId = UserApp.currentUser().id;
+            comment.authorLoginId = UserApp.currentUser().loginId;
             comment.authorName = UserApp.currentUser().name;
             comment.filePath = saveFile(request());
 
