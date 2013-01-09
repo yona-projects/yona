@@ -24,6 +24,7 @@ public class Comment extends Model {
 
     public String filePath;
     public Long authorId;
+    public String authorLoginId;
     public String authorName;
     @ManyToOne
     public Post post;

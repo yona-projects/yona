@@ -66,6 +66,7 @@ public class Issue extends Model {
     public int numOfComments;
     public Long milestoneId;
     public Long authorId;
+    public String authorLoginId;
     public String authorName;
     public State state;
     @OneToMany

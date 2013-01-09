@@ -41,6 +41,7 @@ public class Post extends Model {
     public String filePath;
 
     public Long authorId;
+    public String authorLoginId;
     public String authorName;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
