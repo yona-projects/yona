@@ -1,12 +1,14 @@
 nforge.namespace('code');
-nforge.code.branch = function () {
+
+nforge.code.copy = function() {
     return {
         init: function() {
-            $('#branch').click(this.update);
-        },
-
-        update: function() {
-            window.location.replace($('#branch').val());
+            $('#copy-url').zclip({
+                path: '/assets/javascripts/ZeroClipboard.swf',
+                copy: function() {
+                    return $("#repo-url").attr('value');
+                }
+            });
         }
-    };
-};
+    }
+}
