@@ -7,7 +7,7 @@
             <p class="tag-line">Software development platform for Open Source project.</p>
         </div>
         <div class="login-form-wrap">
-            <form action="@routes.UserApp.authenticate()" method="POST">
+            <form action="@routes.UserApp.login()" method="POST">
                 <label for="email">
                     <input type="text" class="text email" id="email" placeholder="ID" autocomplete="off" name="loginId">
                 </label>
@@ -20,7 +20,7 @@
                 </div>
                 <div class="btns-row">
                     <button type="submit" class="n-btn orange log-in"><i class="ico ico-user-white"></i>@Messages("button.login")</button><!--
-                 --><a href="@routes.UserApp.signup()" class="n-btn blue join"><i class="ico ico-join"></i>Join</a>
+                 --><a href="@routes.UserApp.signupForm()" class="n-btn blue join"><i class="ico ico-join"></i>Join</a>
                 </div>
             </form>
         </div>

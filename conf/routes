@@ -10,17 +10,18 @@ GET     /assets/*file                                   controllers.Assets.at(pa
 GET     /messages.js                                    controllers.Application.jsMessages()
 
 # User
-GET     /users/login                                    controllers.UserApp.login()
-POST    /users/login                                    controllers.UserApp.authenticate()
+GET     /users/loginform                                controllers.UserApp.loginForm()
+POST    /users/login                                    controllers.UserApp.login()
 GET     /users/logout                                   controllers.UserApp.logout()
-GET     /users/signup                                   controllers.UserApp.signup()
-POST    /users/signup                                   controllers.UserApp.saveUser()
+GET     /users/signupform                               controllers.UserApp.signupForm()
+POST    /users/signup                                   controllers.UserApp.newUser()
 GET     /info                                           controllers.UserApp.info()
+GET     /info/edit                                      controllers.UserApp.edit()
+POST    /info/edit                                      controllers.UserApp.save()
+
 POST	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
 GET     /memberinfo                                     controllers.UserApp.memberInfo(userId:Long)
-GET     /info/edit                                      controllers.UserApp.edit()
 GET     /memberinfo/edit                                controllers.UserApp.memberEdit(userId:Long)
-POST    /info/edit                                      controllers.UserApp.save()
 
 # Site
 GET     /sites/setting                                  controllers.SiteApp.setting()
@@ -140,4 +141,4 @@ GET     /help                                           controllers.HelpApp.help
 
 # Statistics
 GET     /:user/:project/statistics                      controllers.StatisticsApp.statistics(user, project)
-GET     /:user										    controllers.UserApp.userInfo(user)
+GET     /:user                                          controllers.UserApp.userInfo(user)

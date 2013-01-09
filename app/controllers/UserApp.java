@@ -39,8 +39,8 @@ public class UserApp extends Controller {
 
 	public static User anonymous = new User();
 
-	@Cached(key = "login")
-	public static Result login() {
+	@Cached(key = "loginForm")
+	public static Result loginForm() {
 		return ok(login.render("title.login", form(User.class)));
 	}
 
@@ -52,8 +52,8 @@ public class UserApp extends Controller {
 		return redirect(routes.Application.index());
 	}
 
-	@Cached(key = "authenticate")
-	public static Result authenticate() {
+	@Cached(key = "login")
+	public static Result login() {
 		User sourceUser = form(User.class).bindFromRequest().get();
 		
 		Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
@@ -145,11 +145,11 @@ public class UserApp extends Controller {
 		Logger.debug("remember me enabled");
 	}
 
-	public static Result signup() {
+	public static Result signupForm() {
 		return ok(signup.render("title.signup", form(User.class)));
 	}
 
-	public static Result saveUser() {
+	public static Result newUser() {
 		Form<User> newUserForm = form(User.class).bindFromRequest();
 		validate(newUserForm);
 		if (newUserForm.hasErrors())
@@ -184,6 +184,7 @@ public class UserApp extends Controller {
 			anonymous.id = -1l;
 			return anonymous;
 		}
+		Logger.debug("userId="+userId);
 		return User.find.byId(Long.valueOf(userId));
 	}
 
