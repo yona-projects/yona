@@ -16,6 +16,8 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.treewalk.EmptyTreeIterator;
+import org.eclipse.jgit.diff.DiffEntry;
 
 import play.Logger;
 import play.libs.Json;
@@ -228,20 +230,24 @@ public class GitRepository implements PlayRepository {
     @Override
     public String getPatch(String rev) throws GitAPIException, MissingObjectException,
             IncorrectObjectTypeException, IOException {
-        // Get the current commit.
+        // Get the trees, from current commit and its parent, as treeWalk.
         ObjectId commitId = repository.resolve(rev);
-        RevWalk walk = new RevWalk(repository);
-        RevCommit commit = walk.parseCommit(commitId);
+        TreeWalk treeWalk = new TreeWalk(repository);
+        RevWalk revWalk = new RevWalk(repository);
+        RevCommit commit = revWalk.parseCommit(commitId);
+        if (commit.getParentCount() > 0) {
+            RevTree tree = revWalk.parseCommit(commit.getParent(0).getId()).getTree();
+            treeWalk.addTree(tree);
+        } else {
+            treeWalk.addTree(new EmptyTreeIterator());
+        }
+        treeWalk.addTree(commit.getTree());
 
-        // Get the current and parent commit's trees.
-        RevTree a = commit.getTree();
-        RevTree b = walk.parseCommit(commit.getParent(0).getId()).getTree();
-
-        // Render the difference.
+        // Render the difference from treeWalk which has two trees.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DiffFormatter diffFormatter = new DiffFormatter(out);
         diffFormatter.setRepository(repository);
-        diffFormatter.format(diffFormatter.scan(b, a));
+        diffFormatter.format(DiffEntry.scan(treeWalk));
 
         return out.toString("UTF-8");
     }
