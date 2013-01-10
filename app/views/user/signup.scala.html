@@ -8,14 +8,20 @@
         </div>
         <div class="signup-form-wrap">
             <form action="@routes.UserApp.newUser()" method="POST">
-                <label for="email" class="inline">
-                    <input type="text" class="text email" id="email" placeholder="ID" autocomplete="off" name="loginId">
-                </label><!--
-             --><label for="uname" class="inline">
-                    <input type="text" class="text uname" id="uname" placeholder="NAME" autocomplete="off" name="name">
+                <label for="loginId" class="inline">
+                    <input type="text" class="text loginId" id="loginId" placeholder="ID" autocomplete="off" name="loginId">
+                </label>
+                <label for="username" class="inline">
+                    <input type="text" class="text uname" id="username" placeholder="NAME" autocomplete="off" name="name">
+                </label>
+                <label for="email">
+                    <input type="text" class="text" id="email" placeholder="Email" autocomplete="off" name="email">
                 </label>
                 <label for="password">
                     <input type="password" class="text password" id="password" placeholder="PASSWORD" autocomplete="off" name="password">
+                </label>
+                <label for="retypedPassword">
+                    <input type="password" class="text password" id="retypedPassword" placeholder="PASSWORD Retype" autocomplete="off" name="retypedPassword">
                 </label>
                 <div class="act-row">
                     HAVE AN ACCOUNT ALREADY? <a href="@routes.UserApp.login()" class="go-login">LOG IN</a>
