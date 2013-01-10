@@ -17,11 +17,11 @@
       <strong class="clone-label">CLONE THIS REPOSITORY</strong>
       <input id="repo-url" type="text" class="text repo-url" readonly value="@CodeApp.getURL(project.owner, project.name)"><a id="copy-url" href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
       <div class="btn-group">
-        <button data-toggle="dropdown" class="btn dropdown-toggle d-label"></button>
+        <button id="selected-branch" data-toggle="dropdown" class="btn dropdown-toggle d-label"></button>
         <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
         <ul class="dropdown-menu">
           @for(name <- branches){
-          <li><a class="branchItem" href="#">@name</a></li>
+          <li><a class="branch-item" href="#">@name</a></li>
           }
         </ul>
       </div>
