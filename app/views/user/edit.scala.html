@@ -33,7 +33,6 @@
             </header>
             <div class="member-wrap">
      @helper.form(action=routes.UserApp.editUser()){
-        @helper.hidden(userForm("id"))
       @helper.inputText(userForm("name"))
       @helper.inputText(userForm("email"))       
       <input class="btn" type="submit" value="저장"/>
