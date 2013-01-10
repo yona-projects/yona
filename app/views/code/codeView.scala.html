@@ -15,13 +15,13 @@
   <div class="bubble-wrap gray">
     <div class="inner-bubble repo-info">
       <strong class="clone-label">CLONE THIS REPOSITORY</strong>
-      <input type="text" class="text repo-url" readonly value="@url"><a href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
+      <input id="repo-url" type="text" class="text repo-url" readonly value="@CodeApp.getURL(project.owner, project.name)"><a id="copy-url" href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
       <div class="btn-group">
-        <button data-toggle="dropdown" class="btn dropdown-toggle d-label">HEAD</button>
+        <button data-toggle="dropdown" class="btn dropdown-toggle d-label"></button>
         <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
         <ul class="dropdown-menu">
           @for(name <- branches){
-          <li><a href="">@name</a></li>
+          <li><a class="branchItem" href="#">@name</a></li>
           }
         </ul>
       </div>
@@ -90,4 +90,7 @@
 @@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
 </style>
 <script src="/assets/javascripts/code.js"></script>
+<script type="text/javascript">
+nforge.require('code.copy');
+</script>
 }

@@ -63,7 +63,7 @@ public class CodeApp extends Controller {
             return status(403);
         }
     }
-    public static Result ajaxRequestWithBranch(String userName, String projectName, String path, String branch) throws AmbiguousObjectException, NoHeadException, UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
+    public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path) throws AmbiguousObjectException, NoHeadException, UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
         if(findFileInfo != null) {
             return ok(findFileInfo);

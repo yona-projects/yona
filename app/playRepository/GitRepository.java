@@ -96,12 +96,12 @@ public class GitRepository implements PlayRepository {
             }
         } catch (IllegalArgumentException e) {
             // root
-            return folderList(git, treeWalk);
+            return folderList(git, treeWalk, headCommit);
         }
 
         if (treeWalk.isSubtree()) {
             treeWalk.enterSubtree();
-            return folderList(git, treeWalk);
+            return folderList(git, treeWalk, headCommit);
         } else {
             // 파일 내려주기
             ObjectId objectId = treeWalk.getObjectId(0);
@@ -156,12 +156,12 @@ public class GitRepository implements PlayRepository {
             }
         } catch (IllegalArgumentException e) {
             // root
-            return folderList(git, treeWalk);
+            return folderList(git, treeWalk, headCommit);
         }
 
         if (treeWalk.isSubtree()) {
             treeWalk.enterSubtree();
-            return folderList(git, treeWalk);
+            return folderList(git, treeWalk, headCommit);
         } else {
             // 파일 내려주기
             ObjectId objectId = treeWalk.getObjectId(0);
@@ -185,7 +185,7 @@ public class GitRepository implements PlayRepository {
         }
     }
 
-    private ObjectNode folderList(Git git, TreeWalk treeWalk) throws MissingObjectException,
+    private ObjectNode folderList(Git git, TreeWalk treeWalk, AnyObjectId commitId) throws MissingObjectException,
             IncorrectObjectTypeException, CorruptObjectException, IOException, GitAPIException,
             NoHeadException {
         ObjectNode result = Json.newObject();
@@ -194,7 +194,9 @@ public class GitRepository implements PlayRepository {
         ObjectNode listData = Json.newObject();
 
         while (treeWalk.next()) {
-            RevCommit commit = git.log().addPath(treeWalk.getPathString()).call().iterator().next();
+            LogCommand logCommand = git.log();
+            logCommand.add(commitId);
+            RevCommit commit = logCommand.addPath(treeWalk.getPathString()).call().iterator().next();
 
             ObjectNode data = Json.newObject();
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
