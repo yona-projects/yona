@@ -3,8 +3,9 @@ $(document).ready(function(){
         //대기 표시 한다.
         //여기서 요청을 보내고
         var path = getHash().replace(/^#/, "");
+        var branch = encodeURIComponent($("#selected-branch").text());
         
-        $.ajax("code/!" + path, {
+        $.ajax("code/" + branch + "/!" + path, {
           datatype : "json",
           success : function(data, textStatus, jqXHR){
             updateBreadcrumbs(path);
@@ -80,6 +81,8 @@ $(document).ready(function(){
           }
         }
       });
+
+      if (!$("#selected-branch").text()) $("#selected-branch").text('HEAD');
       $(window).trigger('hashchange');
   });
   
@@ -121,8 +124,10 @@ $(document).ready(function(){
     //request all
     //check response
     var count = stack.length;
+    var branch = encodeURIComponent($("#selected-branch").text());
+
     stack.map(function(path){
-      $.ajax("code/!" + path, {
+      $.ajax("code/" + branch + "/!" + path, {
         success : function(data){
           stack = stack.map(function(d){
             if(path == d){
@@ -171,6 +176,7 @@ $(document).ready(function(){
     }
   }
   
-  $("#branchSelector option").click(function(){
-      alert($(this).text());
+  $(".branch-item").click(function(ev){
+    $("#selected-branch").text($(this).text());
+    $(window).trigger('hashchange');
   });
