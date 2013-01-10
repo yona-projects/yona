@@ -48,7 +48,7 @@ public class User extends Model {
     @Email(message = "user.wrongEmail.alert")
     public String email;
 
-    public String avatarPath;
+    public Long avatarPath;
 
     public boolean rememberMe;
 

@@ -15,7 +15,7 @@
         <div class="inner logo">
             <div class="logo-wrap">
                 @if(user.avatarPath != null) {
-                <img src="/assets/uploadFiles/@user.avatarPath" />
+                <img src="@routes.AttachmentApp.getFile(user.avatarPath)" width="34"/>
                 } else {
                 <img src="@routes.Assets.at("images/default-avatar-128.png")" />
                 }
@@ -32,7 +32,7 @@
                 <h3>프로파일 정보</h3>
             </header>
             <div class="member-wrap">
-     @helper.form(action=routes.UserApp.editUser()){
+     @helper.form(action=routes.UserApp.editUserInfo()){
       @helper.inputText(userForm("name"))
       @helper.inputText(userForm("email"))       
       <input class="btn" type="submit" value="저장"/>

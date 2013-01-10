@@ -1,5 +1,7 @@
 package controllers;
 
+import java.util.List;
+
 import models.Attachment;
 import models.User;
 import models.enumeration.Resource;
@@ -206,33 +208,47 @@ public class UserApp extends Controller {
 			newUserForm.reject("loginId", "user.loginId.duplicate");
 		}
 	}
-	
-//	public static Result memberInfo(Long userId) {
-//		User user = User.find.byId(userId);
-//		return ok(memberInfo.render(user));
-//	}
-	
-	public static Result userInfo(String loginId){
-	    User user = User.findByLoginId(loginId);
-	    return ok(info.render(user));
-	}
 
 	public static Result memberEdit(Long userId) {
 		User user = User.find.byId(userId);
 		Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
+        
+        Attachment attachment = null;
+        List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, currentUser().id);
+        if(!list.isEmpty()) {
+        	attachment = list.get(0);
+        	user.avatarPath = attachment.id;        	
+        }
         return ok(edit.render(userForm, user));
 	}
+
+	public static Result userInfo(String loginId){
+	    User user = User.findByLoginId(loginId);
+
+	    List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, user.id);
+        if(!list.isEmpty()) {
+        	Attachment attachment = list.get(0);
+        	user.avatarPath = attachment.id;        	
+        }	    
+	    return ok(info.render(user));
+	}
 	
-    public static Result editUserForm() {
+    public static Result editUserInfoForm() {
         User user = UserApp.currentUser();
+	    List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, user.id);
+        if(!list.isEmpty()) {
+        	Attachment attachment = list.get(0);
+        	user.avatarPath = attachment.id;        	
+        }	        
         Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
+        
         return ok(edit.render(userForm, user));
     }
 
-    public static Result editUser() {
-        //FIXME email검증이 필요함.
+    public static Result editUserInfo() {
+    	//FIXME email검증이 필요함.
         Form<User> userForm = new Form<User>(User.class).bindFromRequest();        
         User user = UserApp.currentUser();
         user.email = userForm.data().get("email");
