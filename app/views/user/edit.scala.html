@@ -7,7 +7,6 @@
  
 @home("Users Info", utils.MenuType.USER) {
 <div class="page">
-
     <h1 class="page-title">
         @user.loginId
     </h1>
@@ -21,22 +20,25 @@
                 <img src="@routes.Assets.at("images/default-avatar-128.png")" />
                 }
             </div>
+            <div id="picPath">업로드된 파일이 없습니다.</div>
+                <input id="attachmemt" type="file" name="filePath"/>
+                <div id="noti"></div>
+                <div id ="progress" class="progress progress-warning">
+                <div class="bar"></div>
+            </div>
         </div>
         <div class="inner project-info">
             <header>
                 <h3>프로파일 정보</h3>
             </header>
-            <ul class="infos">
-                <li class="info">
-                    <strong>로그인 아이디 :</strong> @user.loginId
-                </li>
-                <li class="info">
-                    <strong>이름 :</strong> @user.name
-                </li>
-                <li class="info">
-                    <strong>이메일 :</strong> @user.email
-                </li>
-            </ul>
+            <div class="member-wrap">
+     @helper.form(action=routes.UserApp.editUser()){
+        @helper.hidden(userForm("id"))
+      @helper.inputText(userForm("name"))
+      @helper.inputText(userForm("email"))       
+      <input class="btn" type="submit" value="저장"/>
+    }                
+            </div>
         </div>
         <div class="inner member-info">
             <header>
@@ -58,18 +60,6 @@
     </div>
 </div>  
 
-
-    @helper.form(action=routes.UserApp.save()){
-      @helper.inputText(userForm("name"))
-      @helper.inputText(userForm("email"))
-        <div id="picPath">업로드된 파일이 없습니다.</div>
-        <input id="attachmemt" type="file" name="filePath"/>
-        <div id="noti"></div>
-        <div id ="progress" class="progress progress-warning">
-            <div class="bar"></div>
-        </div>
-        <input class="btn" type="submit" value="저장"/>
-    }
     <script src="@getJSLink("jquery.form")" type="text/javascript"></script>
     <script>
     (function(){

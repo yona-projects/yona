@@ -231,15 +231,15 @@ public class UserApp extends Controller {
         return ok(edit.render(userForm, user));
     }
 
-    public static Result save() {
+    public static Result editUser() {
         //FIXME email검증이 필요함.
-        Form<User> userForm = new Form<User>(User.class);
-        userForm = userForm.bindFromRequest();
-        String email = userForm.data().get("email");
+        Form<User> userForm = new Form<User>(User.class).bindFromRequest();        
         User user = UserApp.currentUser();
-        user.email = email;
+        user.email = userForm.data().get("email");
+        user.name = userForm.data().get("name");
         user.update();
-        Attachment.attachFiles(currentUser().id, null, Resource.USER, currentUser().id);
+        
+        Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
     

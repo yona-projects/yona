@@ -19,6 +19,7 @@ public enum Resource {
     PROJECT_SETTING("project_setting"),
     SITE_SETTING("site_setting"),
     USER("user"),
+    USER_AVATAR("user_avatar"),
     PROJECT("project");
 
     private String resource;

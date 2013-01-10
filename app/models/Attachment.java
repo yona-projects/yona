@@ -54,6 +54,12 @@ public class Attachment extends Model {
 
     public Long containerId;
 
+    /**
+     * 모든 임시파일은 컨테이너 타입 Resource.USER 에 해당한다. 
+     * 
+     * @param userId
+     * @return
+     */
     public static List<Attachment> findTempFiles(Long userId) {
         return find.where()
                 .eq("containerType", Resource.USER)
