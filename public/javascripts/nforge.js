@@ -5,7 +5,11 @@ var NForge = function () {
       nforge = this;
     proto = {
       init : function () {
+          nforge.preLoadFn();
+      },
 
+      preLoadFn : function() {
+        $('.n-tooltip').tooltip();
       },
 
       log : function () {
@@ -154,8 +158,7 @@ var NForge = function () {
 
     nforge = NForge.prototype = proto;
     return nforge;
-  }
-  ;
+  };
 
 var nforge = new NForge();
 jQuery(function ($) {

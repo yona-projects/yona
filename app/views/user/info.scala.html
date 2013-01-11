@@ -7,14 +7,14 @@
 		@user.loginId
 	</h1>
 	@if(user.loginId == session.get("loginId")){
-		<a href="@routes.UserApp.editUserForm()" class="btn">수정</a>
+		  <a href="@routes.UserApp.editUserInfoForm()" class="btn">수정</a>
 	}
 	
 	<div class="bubble-wrap dark-gray project-home">
 		<div class="inner logo">
             <div class="logo-wrap">
                 @if(user.avatarPath != null) {
-                <img src="/assets/uploadFiles/@user.avatarPath" />
+                <img src="@routes.AttachmentApp.getFile(user.avatarPath)" />
                 } else {
                 <img src="@routes.Assets.at("images/default-avatar-128.png")" />
                 }

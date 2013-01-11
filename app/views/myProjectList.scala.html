@@ -1,5 +1,5 @@
 @(projects:List[Project])
-
+@import utils.TemplateHelper._
 @if(projects != null){
     @for(project <- projects){
         <li class="my-project">
@@ -17,8 +17,19 @@
                 <div class="ico-wrap">
                     <i class="ico ico-gray-arrow-right"></i>
                 </div>
-            <div class="project-detail hidden"></div>
+            <div class="project-detail hidden">
+                <ul class="contributors unstyled">
+                    @project.projectUser.map{ member =>
+                        @defining(User.find.byId(member.user.id)) { user =>
+                            <li class="contributor">
+                                <a class="n-tooltip" href="@routes.UserApp.userInfo(user.loginId)" data-original-title="@user.loginId" data-placement="bottom" rel="tooltip">
+                                    <img src="@urlToPicture(user.email, 32)" alt="contributor" width="32" height="32">
+                                </a>
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
         </li>
     }
 }
-

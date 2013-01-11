@@ -1,23 +1,31 @@
 package controllers;
 
+import java.util.List;
 import models.*;
 import models.enumeration.Resource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.LockedAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.config.IniSecurityManagerFactory;
-import org.apache.shiro.crypto.*;
+import org.apache.shiro.crypto.RandomNumberGenerator;
+import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.*;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
+import org.apache.shiro.util.ByteSource;
+import org.apache.shiro.util.Factory;
+
 import play.Logger;
 import play.cache.Cached;
 import play.data.Form;
-import play.libs.Json;
-import play.mvc.*;
+import play.mvc.Controller;
+import play.mvc.Http.Cookie;
+import play.mvc.Result;
 import utils.Constants;
 import views.html.login;
 import views.html.user.*;
@@ -120,7 +128,7 @@ public class UserApp extends Controller {
 	
 	public static boolean isRememberMe() {
 		// Remember Me
-		Http.Cookie cookie = request().cookies().get(TOKEN);
+		Cookie cookie = request().cookies().get(TOKEN);
 		
 		if (cookie != null) {
 			String[] subject = cookie.value().split(":");
@@ -243,18 +251,5 @@ public class UserApp extends Controller {
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
         return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId));
-    }
-
-    @BodyParser.Of(BodyParser.Json.class)
-    public static Result isUserExist(String loginId) {
-        JsonNode json = request().body().asJson();
-        User user = User.findByLoginId(loginId);
-        ObjectNode result = Json.newObject();
-        if( user == null){
-            result.put("isExist", "false");
-        } else {
-            result.put("isExist", "true");
-        }
-        return ok(result);
     }
 }
