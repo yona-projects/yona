@@ -1,6 +1,8 @@
 package controllers;
 
 import models.*;
+import java.util.List;
+
 import models.enumeration.Resource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -48,19 +50,19 @@ public class UserApp extends Controller {
 	@Cached(key = "login")
 	public static Result login() {
 		User sourceUser = form(User.class).bindFromRequest().get();
-		
+
 		Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
 		SecurityManager securityManager = factory.getInstance();
 		SecurityUtils.setSecurityManager(securityManager);
-		
+
         Subject currentUser = SecurityUtils.getSubject();
         if(!currentUser.isAuthenticated()) {
         	UsernamePasswordToken token = new UsernamePasswordToken(sourceUser.loginId,
     				sourceUser.password);
         	token.setRememberMe(sourceUser.rememberMe);
-        	
+
         	//Object principal = token.getPrincipal();
-        	
+
         	try {
                 currentUser.login(token);
             } catch (UnknownAccountException uae) {
@@ -76,9 +78,9 @@ public class UserApp extends Controller {
                 //unexpected condition?  error?
             }
         }
-		
+
 		User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
-		
+
 		if(authenticate!=null) {
 			setUserInfoInSession(authenticate);
 			if (sourceUser.rememberMe) {
@@ -90,7 +92,7 @@ public class UserApp extends Controller {
 		flash(Constants.WARNING, "user.login.failed");
 		return redirect(routes.UserApp.login());
 	}
-	
+
 	public static User authenticateWithHashedPassword(String loginId, String password) {
 		User user = User.findByLoginId(loginId);
 		if (user != null) {
@@ -100,7 +102,7 @@ public class UserApp extends Controller {
 		}
 		return null;
 	}
-	
+
 	public static User authenticateWithPlainPassword(String loginId, String password) {
 		User user = User.findByLoginId(loginId);
 		if (user != null) {
@@ -111,17 +113,17 @@ public class UserApp extends Controller {
 		}
 		return null;
 	}
-	
+
 	private static String hashedPassword(String plaintextPassword,
 			String passwordSalt) {
 		return new Sha256Hash(plaintextPassword,
 				ByteSource.Util.bytes(passwordSalt), 1024).toBase64();
 	}
-	
+
 	public static boolean isRememberMe() {
 		// Remember Me
 		Http.Cookie cookie = request().cookies().get(TOKEN);
-		
+
 		if (cookie != null) {
 			String[] subject = cookie.value().split(":");
 			User user = authenticateWithHashedPassword(subject[0], subject[1]);
@@ -198,43 +200,58 @@ public class UserApp extends Controller {
 			newUserForm.reject("loginId", "user.loginId.duplicate");
 		}
 	}
-	
-//	public static Result memberInfo(Long userId) {
-//		User user = User.find.byId(userId);
-//		return ok(memberInfo.render(user));
-//	}
-	
-	public static Result userInfo(String loginId){
-	    User user = User.findByLoginId(loginId);
-	    return ok(info.render(user));
-	}
 
 	public static Result memberEdit(Long userId) {
 		User user = User.find.byId(userId);
 		Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
+
+        Attachment attachment = null;
+        List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, currentUser().id);
+        if(!list.isEmpty()) {
+        	attachment = list.get(0);
+        	user.avatarPath = attachment.id;
+        }
         return ok(edit.render(userForm, user));
 	}
-	
-    public static Result editUserForm() {
+
+	public static Result userInfo(String loginId){
+	    User user = User.findByLoginId(loginId);
+
+	    List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, user.id);
+        if(!list.isEmpty()) {
+        	Attachment attachment = list.get(0);
+        	user.avatarPath = attachment.id;
+        }
+	    return ok(info.render(user));
+	}
+
+    public static Result editUserInfoForm() {
         User user = UserApp.currentUser();
+	    List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, user.id);
+        if(!list.isEmpty()) {
+        	Attachment attachment = list.get(0);
+        	user.avatarPath = attachment.id;
+        }
         Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
+
         return ok(edit.render(userForm, user));
     }
 
-    public static Result editUser() {
-        //FIXME email검증이 필요함.
-        Form<User> userForm = new Form<User>(User.class).bindFromRequest();        
+    public static Result editUserInfo() {
+    	//FIXME email검증이 필요함.
+        Form<User> userForm = new Form<User>(User.class).bindFromRequest();
         User user = UserApp.currentUser();
         user.email = userForm.data().get("email");
         user.name = userForm.data().get("name");
         user.update();
-        
+
+        Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
         Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
-    
+
     public static Result getProfilePic(String userName){
         Long fileId = Attachment.findByContainer(Resource.USER, User.findByName(userName).id).get(0).containerId;
         return TODO;

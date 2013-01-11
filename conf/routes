@@ -15,8 +15,8 @@ POST    /users/login                                    controllers.UserApp.logi
 GET     /users/logout                                   controllers.UserApp.logout()
 GET     /users/signupform                               controllers.UserApp.signupForm()
 POST    /users/signup                                   controllers.UserApp.newUser()
-GET     /user/editform                                  controllers.UserApp.editUserForm()
-POST    /user/edit                                      controllers.UserApp.editUser()
+GET     /user/editform                                  controllers.UserApp.editUserInfoForm()
+POST    /user/edit                                      controllers.UserApp.editUserInfo()
 GET     /user/isExist/:loginId                          controllers.UserApp.isUserExist(loginId)
 
 POST	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
@@ -114,7 +114,7 @@ GET     /:user/:project/code/:branch/!/*path            controllers.CodeApp.ajax
 #for normal
 GET     /:user/:project/code                            controllers.CodeApp.codeBrowser(user, project)
 GET     /:user/:project/rawcode/*path                   controllers.CodeApp.showRawFile(user, project, path:String)
-GET     /:user/:project/code/:branch                    controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String) 
+GET     /:user/:project/code/:branch                    controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String)
 
 # Commits
 GET     /:user/:project/commits                         controllers.CodeHistoryApp.historyUntilHead(user, project)
