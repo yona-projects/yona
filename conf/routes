@@ -17,6 +17,7 @@ GET     /users/signupform                               controllers.UserApp.sign
 POST    /users/signup                                   controllers.UserApp.newUser()
 GET     /user/editform                                  controllers.UserApp.editUserForm()
 POST    /user/edit                                      controllers.UserApp.editUser()
+GET     /user/isExist/:loginId                          controllers.UserApp.isUserExist(loginId)
 
 POST	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
 GET     /memberinfo/edit                                controllers.UserApp.memberEdit(userId:Long)
