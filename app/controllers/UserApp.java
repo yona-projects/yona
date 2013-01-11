@@ -1,28 +1,37 @@
 package controllers;
 
-import models.*;
 import java.util.List;
-
+import models.*;
 import models.enumeration.Resource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.LockedAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.config.IniSecurityManagerFactory;
-import org.apache.shiro.crypto.*;
+import org.apache.shiro.crypto.RandomNumberGenerator;
+import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.*;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
+import org.apache.shiro.util.ByteSource;
+import org.apache.shiro.util.Factory;
+
 import play.Logger;
 import play.cache.Cached;
 import play.data.Form;
-import play.libs.Json;
 import play.mvc.*;
+import play.mvc.Http.Cookie;
 import utils.Constants;
 import views.html.login;
 import views.html.user.*;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
+import play.libs.Json;
 
 public class UserApp extends Controller {
 
@@ -122,7 +131,7 @@ public class UserApp extends Controller {
 
 	public static boolean isRememberMe() {
 		// Remember Me
-		Http.Cookie cookie = request().cookies().get(TOKEN);
+		Cookie cookie = request().cookies().get(TOKEN);
 
 		if (cookie != null) {
 			String[] subject = cookie.value().split(":");
@@ -246,7 +255,6 @@ public class UserApp extends Controller {
         user.email = userForm.data().get("email");
         user.name = userForm.data().get("name");
         user.update();
-
         Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
         Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
         return redirect(routes.UserApp.userInfo(user.loginId));
@@ -261,6 +269,7 @@ public class UserApp extends Controller {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
         return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId));
     }
+
 
     @BodyParser.Of(BodyParser.Json.class)
     public static Result isUserExist(String loginId) {
