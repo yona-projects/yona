@@ -75,8 +75,8 @@ public class AccessControl {
 		case PROJECT:
 			return Project.find.byId(projectId).share_option
 					|| ProjectUser.isMember(userId, projectId);
-		case USER_AVATAR:
-			return userId == resourceId;
+		case USER_AVATAR:	// Public Acess
+			return true;
 		default:
 			isAuthorEditible = false;
 			break;

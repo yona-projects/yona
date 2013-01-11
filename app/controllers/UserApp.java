@@ -255,6 +255,7 @@ public class UserApp extends Controller {
         user.name = userForm.data().get("name");
         user.update();
         
+        Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
         Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
