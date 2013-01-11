@@ -164,6 +164,8 @@ var fileUploader = function (textarea, action) {
   };
 
   var fileUploadOptions = {
+    dataType: 'json',
+
     beforeSubmit: function() {
       var filename = _getFileNameOnly(attachment.val());
 

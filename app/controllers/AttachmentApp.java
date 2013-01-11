@@ -53,7 +53,21 @@ public class AttachmentApp extends Controller {
 
         // The entity format is specified by the media type given in the
         // Content-Type header field. -- RFC 2616, 10.2.2. 201 Created
-        response().setHeader("Content-Type", "application/json");
+        // While upload a file using Internet Explorer, if the response is not in
+        // text/html, the browser will prompt the user to download it as a file.
+        // To avoid this, if application/json is not acceptable by client, the
+        // Content-Type field of response is set to "text/html". But, ACTUALLY
+        // IT WILL BE SEND IN JSON!
+        String contentType = "text/html";
+        List<String> accepts = request().accept();
+        for (String  accept : accepts) {
+            accept = accept.toLowerCase();
+            if (accept.equals("application/json") || accept.equals("application/*") || accept.equals("*/*")) {
+                contentType = "application/json";
+                break;
+            }
+        }
+        response().setHeader("Content-Type", contentType);
 
         // The response SHOULD include an entity containing a list of resource
         // characteristics and location(s) from which the user or user agent can
