@@ -5,8 +5,6 @@ import org.junit.*;
 import java.util.*;
 
 import play.mvc.*;
-import play.test.*;
-import play.libs.F.*;
 
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
@@ -21,13 +19,13 @@ public class UserAppTest {
     public void findById_doesntExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
-                Map<String,String> data = new HashMap<String,String>();
+                Map<String,String> data = new HashMap<>();
                 data.put("loginId", "nekure");
 
                 Result result = callAction(
                         controllers.routes.ref.UserApp.isUserExist("nekure"),
                         fakeRequest().withFormUrlEncodedBody(data)
-                );
+                );  // fakeRequest doesn't need here, but remains for example
 
                 assertThat(status(result)).isEqualTo(OK);
                 assertThat(contentAsString(result)).contains("{\"isExist\":\"false\"}");
@@ -39,18 +37,17 @@ public class UserAppTest {
     public void findById_alreadyExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
-                Map<String,String> data = new HashMap<String,String>();
+                Map<String,String> data = new HashMap<>();
                 data.put("loginId", "hobi");
 
                 Result result = callAction(
                         controllers.routes.ref.UserApp.isUserExist("hobi"),
                         fakeRequest().withFormUrlEncodedBody(data)
-                );
+                ); // fakeRequest doesn't need here, but remains for example
 
                 assertThat(status(result)).isEqualTo(OK);
                 assertThat(contentAsString(result)).contains("{\"isExist\":\"true\"}");
             }
         });
     }
-
 }
