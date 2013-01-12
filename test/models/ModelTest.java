@@ -1,15 +1,20 @@
 package models;
 
 import com.avaje.ebean.Ebean;
+import controllers.routes;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
 import support.EbeanUtil;
 
 import java.lang.reflect.ParameterizedType;
+
+import static play.test.Helpers.callAction;
+import static play.test.Helpers.fakeRequest;
 
 public class ModelTest<T> {
     protected static FakeApplication app;
@@ -27,7 +32,9 @@ public class ModelTest<T> {
     public static void startApp() {
         app = Helpers.fakeApplication(Helpers.inMemoryDatabase()); 
         Helpers.start(app);
-        
+        callAction(
+                routes.ref.Application.init()
+        );
     }
 
     @AfterClass

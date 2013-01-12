@@ -5,8 +5,10 @@ import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.running;
 
 import org.codehaus.jackson.JsonNode;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore
 public class LineTest {
     @Test
     public void toJson() throws Exception {
