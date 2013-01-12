@@ -23,7 +23,7 @@ users:
         loginId:        doortts
         password:       rB5DBMe0hxMWs5FlQOJi5GmK+wj2Txx09MdgFqH83+k=
         passwordSalt:   '[B@1032a4'        
-        email:          sw@korea.com
+        email:          doortts@gmail.com
     - !!models.User
         name:           eungjun
         loginId:        nori
