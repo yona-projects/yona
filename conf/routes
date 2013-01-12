@@ -9,6 +9,9 @@ GET     /                                               controllers.Application.
 GET     /assets/*file                                   controllers.Assets.at(path="/public", file)
 GET     /messages.js                                    controllers.Application.jsMessages()
 
+# Bootstrapping for test
+GET     /init                                           controllers.Application.init()
+
 # User
 GET     /users/loginform                                controllers.UserApp.loginForm()
 POST    /users/login                                    controllers.UserApp.login()
