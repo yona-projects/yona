@@ -163,6 +163,8 @@ public class RepositoryService {
             receivePack.sendAdvertisedRefs(packetLineOutRefAdvertiser);
         }
 
+        byteArrayOutputStream.close();
+
         return byteArrayOutputStream.toByteArray();
     }
 
