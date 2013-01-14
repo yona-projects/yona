@@ -26,6 +26,7 @@ public class IssueComment extends Model {
 
     public Date date;
     public Long authorId;
+    public String authorLoginId;
     public String authorName;
     public String filePath;
 

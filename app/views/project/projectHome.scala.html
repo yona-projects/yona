@@ -46,7 +46,8 @@
                 <ul class="project-members">
                     @for(member <- User.findUsersByProject(project.id)){
                     <li class="member">
-                        <a href="/uname" class="user-thumb"><img src="/assets/images/default-avatar-34.png" alt="uname"></a>
+                        <a href="/uname" class="user-thumb">
+                        <img src="@member.avatarUrl" alt="uname"></a>
                         <a href="@routes.UserApp.userInfo(member.loginId)"><strong>@member.loginId</strong></a>
                     </li>
                     }

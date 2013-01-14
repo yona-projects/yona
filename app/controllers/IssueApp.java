@@ -135,6 +135,7 @@ public class IssueApp extends Controller {
             Issue newIssue = issueForm.get();
             newIssue.date = JodaDateUtil.now();
             newIssue.authorId = UserApp.currentUser().id;
+            newIssue.authorLoginId = UserApp.currentUser().loginId;
             newIssue.authorName = UserApp.currentUser().name;
             newIssue.project = project;
             newIssue.state = State.OPEN;
@@ -184,6 +185,7 @@ public class IssueApp extends Controller {
         issue.id = id;
         issue.date = originalIssue.date;
         issue.authorId = originalIssue.authorId;
+        issue.authorLoginId = originalIssue.authorLoginId;
         issue.authorName = originalIssue.authorName;
         issue.project = originalIssue.project;
         if (issue.assignee.user.id != null) {
@@ -227,6 +229,7 @@ public class IssueApp extends Controller {
             IssueComment comment = commentForm.get();
             comment.issue = Issue.findById(issueId);
             comment.authorId = UserApp.currentUser().id;
+            comment.authorLoginId = UserApp.currentUser().loginId;
             comment.authorName = UserApp.currentUser().name;
             Long commentId = IssueComment.create(comment);
             Issue.updateNumOfComments(issueId);

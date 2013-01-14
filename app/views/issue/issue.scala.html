@@ -32,7 +32,7 @@
 
   <hgroup class="row-fluid">
     <div class="span1">
-      <img class="user-picture" src="@urlToPicture(User.find.byId(issue.authorId).email, 34)" />
+      <img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" />
     </div>
     <div class="info">
       <p>
@@ -42,7 +42,8 @@
           <span class="badge badge-info">@Messages(issue.state.state)</span>
         </span>
       </p>
-      <p class="author">by <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)">@Option(issue.getAuthorName).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
+      <p class="author">by <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)">
+      @Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
     </div>
   </hgroup>
 
@@ -78,7 +79,8 @@
 <div class="comments">
   @for(comment <- issue.comments){
   <div class="comment row-fluid">
-    <div class="span1"><img class="user-picture" src="@urlToPicture(User.find.byId(comment.authorId).email, 34)" /></div>
+    <div class="span1">
+    <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorName"/></div>
     <div class="span11">
       <div>
         <span class="author">@comment.authorName</span>

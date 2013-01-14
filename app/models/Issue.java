@@ -93,16 +93,16 @@ public class Issue extends Model {
         return JodaDateUtil.ago(this.date);
     }
 
-    public String getAuthorName() {
-        if (authorName == null) {
-            if (authorId == null)
-                return null;
-            else
-                return User.find.byId(this.authorId).name;
-        } else {
-            return authorName;
-        }
-    }
+//    public String getAuthorName() {
+//        if (authorName == null) {
+//            if (authorId == null)
+//                return null;
+//            else
+//                return User.find.byId(this.authorId).name;
+//        } else {
+//            return authorName;
+//        }
+//    }
 
     /**
      * issueList, issue view에서 assignee의 이름을 출력해준다. 아래의 getAssigneeName과 합쳐질 수

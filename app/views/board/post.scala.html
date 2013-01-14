@@ -14,7 +14,8 @@
   </div>
   <div class="board-body">
     <div class="author-info">
-      <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="pull-left img-rounded"><img src="/assets/images/default-avatar-34.png" class="media-object" width="32" height="32" alt="avatar"></a>
+      <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="pull-left img-rounded">
+      <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="34" height="34" alt="@post.authorName"></a>
       <div class="media-body">
         <p>
           <a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorName</strong></a> <!--<span class="name">(Loren Brichter)</span>-->
@@ -37,7 +38,8 @@
     <ul class="comments">
       @for(comment <-post.comments){
       <li class="comment">
-        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32" class="media-object" alt="avatar"></a>
+        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded">
+        <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorName">
         <div class="media-body">
           @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.DELETE, comment.id){
           <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>

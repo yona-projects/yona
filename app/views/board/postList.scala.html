@@ -59,14 +59,14 @@
       <div class="attach-wrap"></div>
       <div class="contents">
         <p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
-        <p class="infos nm">by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
+        <p class="infos nm">by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
       </div>
       <div class="right-panel">
         <div class="comment-wrap">
             <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
         </div>
         <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
-        <img class="user-picture" src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="34" height="34" alt="@post.authorName">
+        <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="34" height="34" alt="@post.authorName">
       </div>
     </li>
     }

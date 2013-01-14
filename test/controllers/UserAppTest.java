@@ -27,7 +27,7 @@ public class UserAppTest {
         running(fakeApplication(), new Runnable() {
             public void run() {
                 //Given
-                Map<String,String> data = new HashMap<>();
+                Map<String,String> data = new HashMap<String,String>();
                 data.put("loginId", "nekure");
 
                 //When
@@ -48,7 +48,7 @@ public class UserAppTest {
         running(fakeApplication(), new Runnable() {
             public void run() {
                 //Given
-                Map<String,String> data = new HashMap<>();
+                Map<String,String> data = new HashMap<String,String>();
                 data.put("loginId", "hobi");
 
                 //When

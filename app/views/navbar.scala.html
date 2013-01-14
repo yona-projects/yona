@@ -29,8 +29,10 @@
                 <!-- for Testing end here-->
             </ul>
             <ul class="gnb-menus right unstyled">
-                @if(session.contains("userId")){
-                <li><a href="@routes.UserApp.userInfo(session.get("loginId"))" class="d-link signin"><img class="user-thumb img-rounded" src="@urlToPicture(User.find.byId(session.get("userId").toLong).email, 22)" alt="avatar" width="22" height="22">@session.get("userName")</a></li>
+                @if(session.contains("loginId")){
+                <li><a href="@routes.UserApp.userInfo(session.get("loginId"))" class="d-link signin">
+                    <img class="user-thumb img-rounded" 
+                    src="@User.findByLoginId(session.get("loginId")).avatarUrl" alt="avatar" width="22" height="22">@session.get("loginId")</a></li>
                 <li class="sp-line">|</li>
                 <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
                 } else {

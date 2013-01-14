@@ -100,7 +100,7 @@ public class UserApp extends Controller {
 		}
 
 		flash(Constants.WARNING, "user.login.failed");
-		return redirect(routes.UserApp.login());
+		return redirect(routes.UserApp.loginForm());
 	}
 
 	public static User authenticateWithHashedPassword(String loginId, String password) {
