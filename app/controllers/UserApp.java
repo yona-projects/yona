@@ -214,33 +214,16 @@ public class UserApp extends Controller {
 		Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
         
-        Attachment attachment = null;
-        List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, currentUser().id);
-        if(!list.isEmpty()) {
-        	attachment = list.get(0);
-        	user.avatarPath = attachment.id;        	
-        }
         return ok(edit.render(userForm, user));
 	}
 
 	public static Result userInfo(String loginId){
 	    User user = User.findByLoginId(loginId);
-
-	    List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, user.id);
-        if(!list.isEmpty()) {
-        	Attachment attachment = list.get(0);
-        	user.avatarPath = attachment.id;        	
-        }	    
 	    return ok(info.render(user));
 	}
 	
     public static Result editUserInfoForm() {
         User user = UserApp.currentUser();
-	    List<Attachment> list = Attachment.findByContainer(Resource.USER_AVATAR, user.id);
-        if(!list.isEmpty()) {
-        	Attachment attachment = list.get(0);
-        	user.avatarPath = attachment.id;        	
-        }	        
         Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
         
@@ -248,6 +231,9 @@ public class UserApp extends Controller {
     }
 
     public static Result editUserInfo() {
+        Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
+        Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
+        
     	//FIXME email검증이 필요함.
         Form<User> userForm = new Form<User>(User.class).bindFromRequest();        
         User user = UserApp.currentUser();
@@ -255,14 +241,16 @@ public class UserApp extends Controller {
         user.name = userForm.data().get("name");
         user.update();
         
-        Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
-        Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
     
-    public static Result getProfilePic(String userName){
-        Long fileId = Attachment.findByContainer(Resource.USER, User.findByName(userName).id).get(0).containerId;
-        return TODO;
+    public static Long changeAvatar(User user) {
+    	
+    	
+        Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
+        Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
+        
+        return user.avatarId();
     }
 
     public static Result leave(String userName, String projectName) {

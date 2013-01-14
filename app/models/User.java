@@ -17,6 +17,7 @@ import models.enumeration.RoleType;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
+import play.cache.Cached;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;
@@ -48,8 +49,8 @@ public class User extends Model {
     @Email(message = "user.wrongEmail.alert")
     public String email;
 
-    public Long avatarPath;
-
+    public String avatarUrl;
+    
     public boolean rememberMe;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -130,8 +131,17 @@ public class User extends Model {
                 .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType())
                 .findList();
     }
-
-    public Long getPictureId(){
-        return Attachment.findByContainer(Resource.USER, id).get(0).containerId;
+    
+    public static Long avatartIdByLoginId(String loginId) {
+    	return findByLoginId(loginId).avatarId();
+    }
+    
+    @Cached(key = "isCustomAvatar")
+    public boolean isCustomAvatar() {
+    	return Attachment.findByContainer(Resource.USER_AVATAR, id).size()>0 ? true : false;
+    }
+    
+    public Long avatarId(){
+        return Attachment.findByContainer(Resource.USER_AVATAR, id).get(0).id;
     }
 }

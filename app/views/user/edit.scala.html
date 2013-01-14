@@ -14,8 +14,8 @@
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
             <div class="logo-wrap">
-                @if(user.avatarPath != null) {
-                <img src="@routes.AttachmentApp.getFile(user.avatarPath)" width="34"/>
+                @if(user.isCustomAvatar()) {
+                <img src="@routes.AttachmentApp.getFile(user.avatarId())" width="34"/>
                 } else {
                 <img src="@routes.Assets.at("images/default-avatar-128.png")" />
                 }
