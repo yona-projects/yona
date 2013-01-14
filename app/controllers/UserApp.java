@@ -40,6 +40,7 @@ public class UserApp extends Controller {
 	public static final String SESSION_USERNAME = "userName";
 	public static final String TOKEN = "nforge.token";
 	public static final int MAX_AGE = 30*24*60*60;
+	public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
 
 	public static User anonymous = new User();
 
@@ -160,7 +161,7 @@ public class UserApp extends Controller {
 			return badRequest(signup.render("title.signup", newUserForm));
 		else {
 			User user = newUserForm.get();
-			user.avatarUrl = "/assets/images/default-avatar-128.png";
+			user.avatarUrl = DEFAULT_AVATAR_URL;
 			User.create(hashedPassword(user));
 
 			setUserInfoInSession(user);
