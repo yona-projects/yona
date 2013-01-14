@@ -29,7 +29,7 @@
                 <!-- for Testing end here-->
             </ul>
             <ul class="gnb-menus right unstyled">
-                @if(session.contains("loginId")){
+                @if(session.contains("loginId")){                
                 <li><a href="@routes.UserApp.userInfo(session.get("loginId"))" class="d-link signin">
                     <img class="user-thumb img-rounded" 
                     src="@User.findByLoginId(session.get("loginId")).avatarUrl" alt="avatar" width="22" height="22">@session.get("loginId")</a></li>

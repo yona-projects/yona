@@ -1,6 +1,218 @@
 @(user:User)
 
 @home("Users Info", utils.MenuType.USER) {
+
+<div class="page-wrap container">
+    <div class="page">
+        <h1 class="page-title"><span class="gray">nforge4/</span>SW.CHAE</h1>
+        <section class="user-box">
+            <div class="user-info-box">
+                <div class="whoami-wrap">
+                    <p class="uname">SW.CHAE</p>
+                    <p class="name">(doortts)</p>
+                    <img src="/images/default-avatar-128.png" width="127" height="127" class="img-rounded">
+                </div>
+                <div class="user-location info-box">
+                    <p class="u-location"><i class="ico ico-location"></i>Seoul, Korea, South</p>
+                </div>
+                <hr/>
+                <div class="user-status info-box">
+                    <p><span class="labels">My projects</span><span class="num">6350</span></p>
+                    <p><span class="labels">Followers</span><span class="num">6350</span></p>
+                    <p><span class="labels">Following</span><span class="num">521385</span></p>
+                    <p><span class="labels">Starred</span><span class="num">323</span></p>
+                </div>
+                <hr/>
+                <div class="user-other-info info-box">
+                    <p><strong>FOCUS</strong></p>
+                    <p class="focuses">C#, JAVA, SQL, JAVASCRIPT</p>
+                    <p class="since"><strong>MEMBER SINCE</strong></p>
+                    <p><span class="since">November 22, 2012</span></p>
+                    <p class="social-btns">
+                        <a href="http://twitter.com/nforge"><i class="ico btn-tw"></i></a>
+                        <a href="http://facebook.com/nforge"><i class="ico btn-fb"></i></a>
+                        <a href="http://me2.com/nforge"><i class="ico btn-m2"></i></a>
+                    </p>
+                </div>
+                <hr/>
+                <div class="btn-wrap">
+                    <a href="/new-project"><i class="ico btn-new-project"></i></a>
+                </div>
+            </div>
+            <div class="user-stream-box">
+                <ul class="nav nav-tabs user-stream-tab">
+                    <li class="active"><a href="user-setting.html">Repositories</a></li>
+                    <li><a href="user-activities.html">Activities</a></li>
+                </ul>
+                <div class="user-stream-wrap">
+                    <div class="header-wrap">
+                        <div class="search-wrap user-setting">
+                            <div class="inner">
+                                <form action="/activity-search" method="get">
+                                    <input name="query" class="text" type="text" placeholder="검색"><button type="submit" class="btn-transparent search-btn">SEARCH</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="filter-wrap user-setting">
+                        <div class="filters">
+                            <a href="/html/user-setting.html" class="filter"><i class="ico btn-gray-arrow"></i>전체</a>
+                            <a href="/html/user-activities.html?order=staus" class="filter active"><i class="ico btn-gray-arrow down"></i>상태순</a>
+                        </div>
+                    </div>
+                </div>
+                <ul class="user-streams">
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.  활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-stream">
+                        <h3 class="project-name">nforge4</h3>
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <p class="nm">최근 활동 관련 영역입니다.</p>
+                                <p class="date">Last updated 2 months ago</p>
+                            </div>
+                            <div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+
 <div class="page">
 
 	<h1 class="page-title">
