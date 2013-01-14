@@ -131,16 +131,7 @@ public class User extends Model {
                 .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType())
                 .findList();
     }
-    
-    public static Long avatartIdByLoginId(String loginId) {
-    	return findByLoginId(loginId).avatarId();
-    }
-    
-    @Cached(key = "isCustomAvatar")
-    public boolean isCustomAvatar() {
-    	return Attachment.findByContainer(Resource.USER_AVATAR, id).size()>0 ? true : false;
-    }
-    
+        
     public Long avatarId(){
         return Attachment.findByContainer(Resource.USER_AVATAR, id).get(0).id;
     }

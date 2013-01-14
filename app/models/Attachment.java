@@ -91,7 +91,7 @@ public class Attachment extends Model {
     }
 
     // Attach the files from the user's temporary area to the given container.
-    public static void attachFiles(
+    public static int attachFiles(
             Long userId, Long projectId, Resource containerType, Long containerId) {
         // Move the attached files in the temporary area to the issue area.
         List<Attachment> attachments = Attachment.findTempFiles(userId);
@@ -101,6 +101,7 @@ public class Attachment extends Model {
             attachment.containerId = containerId;
             attachment.save();
         }
+        return attachments.size();
     }
 
     // Store the files in the filesystem.

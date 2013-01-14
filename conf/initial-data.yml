@@ -6,35 +6,41 @@ users:
         password:       5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=
         passwordSalt:   '[B@1032a4'
         email:          admin@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
     - !!models.User
         name:           Hobi
         loginId:        hobi
         password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
         passwordSalt:   '[B@1032a4'        
         email:          hobi@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
     - !!models.User
         name:           scott
         loginId:        k16wire
         password:       v1O5ggs2TqM0prM1pLUD/zC+g7cavbWMXayVA9pvGHY=
         passwordSalt:   '[B@1032a4'        
         email:          k16wire@naver.com
+        avatarUrl:      /assets/images/default-avatar-128.png
     - !!models.User
         name:           suwon
         loginId:        doortts
         password:       rB5DBMe0hxMWs5FlQOJi5GmK+wj2Txx09MdgFqH83+k=
         passwordSalt:   '[B@1032a4'        
         email:          doortts@gmail.com
+        avatarUrl:      /assets/images/default-avatar-128.png
     - !!models.User
         name:           eungjun
         loginId:        nori
         password:       yOF0X0iKA1MVkaAJESNcdGE1n/3SWM8vDOKRYCXV2E0=
         passwordSalt:   '[B@1032a4'        
         email:          ejlee@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
     - !!models.User
         name:           anonymous
         loginId:        anonymous
         password:       
         email:          anonymous@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
         
 # Projects
 projects:

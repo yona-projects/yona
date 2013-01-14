@@ -160,6 +160,7 @@ public class UserApp extends Controller {
 			return badRequest(signup.render("title.signup", newUserForm));
 		else {
 			User user = newUserForm.get();
+			user.avatarUrl = "/assets/images/default-avatar-128.png";
 			User.create(hashedPassword(user));
 
 			setUserInfoInSession(user);
@@ -236,10 +237,14 @@ public class UserApp extends Controller {
         User user = UserApp.currentUser();
         user.email = userForm.data().get("email");
         user.name = userForm.data().get("name");
-        user.update();
-
+        
         Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
-        Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
+        int attachFiles = Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
+        if(attachFiles>0) {
+        	user.avatarUrl = "/files/" + user.avatarId();
+        }
+    	
+        user.update();
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
 
