@@ -541,6 +541,7 @@
             }
             .contributors {
                 overflow: hidden;
+                font-size: 12px;
                 .contributor {
                     float: left;
                     width: 32px;
@@ -549,6 +550,9 @@
                     margin: 0 8px 10px 0;
                     &:nth-child(4n) {
                         margin-right: 0;
+                    }
+                    > a {
+                        .inline-block;
                     }
                 }
             }
@@ -584,6 +588,7 @@
             outline: none;
         }
         &.password {
+            width: 350px;
             margin-bottom: 15px;
         }
     }
@@ -632,11 +637,13 @@
     }
     .text {
         &.loginId{
-          width: 181px;
-          margin-right: 6px;
+          width: 350px;
         }
         &.uname {
-            width: 181px;
+            width: 350px;
+        }
+        &.email {
+            width: 350px;
         }
     }
     .act-row {

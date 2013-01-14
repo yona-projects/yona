@@ -12,6 +12,7 @@ import org.junit.Test;
 import play.libs.Json;
 import controllers.ProjectApp;
 
+@Ignore
 public class TaskBoardTest {
 
     @Test
@@ -49,7 +50,6 @@ public class TaskBoardTest {
         });
     }
 
-    @Ignore
     @Test
     public void accecptJSON() throws Exception {
         // Given

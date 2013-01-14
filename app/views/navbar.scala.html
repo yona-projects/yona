@@ -22,6 +22,11 @@
                 <li class="menu">
                     <a href="@routes.HelpApp.help()" class="@isActiveMenu(MenuType.HELP)">HELP</a>
                 </li>
+                <!-- for Testing -->
+                <li class="menu">
+                    <a href="@routes.Application.init()" class="@isActiveMenu(MenuType.HELP)">Init(forTest)</a>
+                </li>
+                <!-- for Testing end here-->
             </ul>
             <ul class="gnb-menus right unstyled">
                 @if(session.contains("userId")){

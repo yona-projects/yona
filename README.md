@@ -1,5 +1,6 @@
 nforge4
 =======
+[![Build Status](https://travis-ci.org/nforge/nforge4.png?branch=master)](https://travis-ci.org/nforge/nforge4)
 
 협업 개발 플랫폼
 

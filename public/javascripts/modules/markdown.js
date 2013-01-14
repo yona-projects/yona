@@ -90,8 +90,10 @@ var fileUploader = function (textarea, action) {
       var form = $('<form>')
         .attr('method', 'post')
         .attr('enctype', 'multipart/form-data')
-        .attr('action', file.url);
+        .attr('action', file.url)
+        .css('display', 'none');
       form.append('<input type="hidden" name="_method" value="delete">');
+      $('body').append(form);
       form.ajaxForm({
         success: function() {
           fileitem.remove();
@@ -162,6 +164,8 @@ var fileUploader = function (textarea, action) {
   };
 
   var fileUploadOptions = {
+    dataType: 'json',
+
     beforeSubmit: function() {
       var filename = _getFileNameOnly(attachment.val());
 
@@ -222,8 +226,10 @@ var fileUploader = function (textarea, action) {
         var form = $('<form>')
           .attr('method', 'post')
           .attr('enctype', 'multipart/form-data')
-          .attr('action', action);
+          .attr('action', action)
+          .css('display', 'none');
         form.append(attachment);
+        $('body').append(form);
         form.ajaxForm(fileUploadOptions);
         form.submit();
       }

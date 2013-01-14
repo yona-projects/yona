@@ -1,4 +1,4 @@
-@(message: String, newUserForm: Form[User]) 
+@(message: String, newUserForm: Form[User])
 
 @home(message, utils.MenuType.NONE) {
     <div class="page full">
@@ -10,12 +10,13 @@
             <form action="@routes.UserApp.newUser()" method="POST">
                 <label for="loginId" class="inline">
                     <input type="text" class="text loginId" id="loginId" placeholder="ID" autocomplete="off" name="loginId">
+                    <a id="loginIdCheck"></a>
                 </label>
                 <label for="username" class="inline">
                     <input type="text" class="text uname" id="username" placeholder="NAME" autocomplete="off" name="name">
                 </label>
                 <label for="email">
-                    <input type="text" class="text" id="email" placeholder="Email" autocomplete="off" name="email">
+                    <input type="text" class="text email" id="email" placeholder="Email" autocomplete="off" name="email">
                 </label>
                 <label for="password">
                     <input type="password" class="text password" id="password" placeholder="PASSWORD" autocomplete="off" name="password">
@@ -32,4 +33,41 @@
             </form>
         </div>
     </div>
+    <script type="text/javascript">
+        var isExist = function(){
+	        var signupId = $("#loginId");
+	        console.log(signupId.val());
+            signupId.popover({
+            	title: "Alreday exist!",
+            	content: "choose another id",
+                delay: { show: 500, hide: 100 },
+                placement: "left",
+                trigger: "manual"
+            });
+	        $.ajax({
+	            url: "/user/isExist/" + signupId.val()
+	            }
+	        ).done(function(data){
+	        	console.log(data);
+	        	var loginIdCheck = $("#loginIdCheck");
+                if(data.isExist === "true"){
+                	loginIdCheck.removeClass("label label-success");
+	        		loginIdCheck.addClass("label label-important");
+                    loginIdCheck.html("x");
+                    signupId.popover("show");
+	        	} else {
+	        		loginIdCheck.removeClass("label label-important");
+	        		loginIdCheck.addClass("label label-success");
+                    loginIdCheck.html("V");
+                    signupId.popover("hide");
+	        	}
+	    	});
+    	};
+    	$("#loginId").focusout(function(){
+    		console.log("focustout!");
+    		isExist();
+    	});
+
+
+    </script>
 }
