@@ -4,56 +4,85 @@
 @import utils.TemplateHelper._
 
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
- 
+
 @home("Users Info", utils.MenuType.USER) {
-<div class="page">
-    <h1 class="page-title">
-        @user.loginId
-    </h1>
-    
-    <div class="bubble-wrap dark-gray project-home">
-        <div class="inner logo">
-            <div class="logo-wrap">
-                <img src="@user.avatarUrl" />
-            </div>
-            <div id="picPath">업로드된 파일이 없습니다.</div>
-                <input id="attachmemt" type="file" name="filePath"/>
-                <div id="noti"></div>
-                <div id ="progress" class="progress progress-warning">
-                <div class="bar"></div>
-            </div>
+
+<div class="page-wrap container">
+    <div class="page">
+        <div>
+            <div><h1 class="page-title">@user.loginId</h1></div>
         </div>
-        <div class="inner project-info">
-            <header>
-                <h3>프로파일 정보</h3>
-            </header>
-            <div class="member-wrap">
-     @helper.form(action=routes.UserApp.editUserInfo()){
-      @helper.inputText(userForm("name"))
-      @helper.inputText(userForm("email"))       
-      <input class="btn" type="submit" value="저장"/>
-    }                
+    @helper.form(action=routes.UserApp.editUserInfo()){
+        <section class="user-box">
+            <div class="user-info-box">
+                <div class="whoami-wrap">
+                    <p class="uname">
+                        @helper.inputText(userForm("name"), '_label -> null, 'class -> "span2")
+                    </p>
+                    <p class="name">(@user.loginId)</p>
+                    <img src="@user.avatarUrl" width="127" height="127" class="img-rounded">
+
+		            <div id="picPath">128*128, 이미지파일</div>
+		                <input id="attachmemt" type="file" name="filePath"/>
+		                <div id ="progress" class="progress progress-warning">
+		                <div class="bar"></div>
+		            </div>                
+                </div>
+
+                <div class="user-location info-box">
+                    <p class="u-location"><i class="ico ico-location"></i>
+                    @helper.inputText(userForm("email"),'_showConstraints -> false,'_label -> null, 'class -> "span2")</p>
+                </div>
+                
+                <input class="btn" type="submit" value="저장"/>
+    }
+                <hr/>
+                <div class="user-other-info info-box">
+                    <p class="since"><strong>MEMBER SINCE</strong></p>
+                    <p><span class="since">@user.getDateString</span></p>
+                    <p class="social-btns">
+                        <a href="http://twitter.com/nforge"><i class="ico btn-tw"></i></a>
+                        <a href="http://facebook.com/nforge"><i class="ico btn-fb"></i></a>
+                        <a href="http://me2.com/nforge"><i class="ico btn-m2"></i></a>
+                    </p>
+                </div>
             </div>
-        </div>
-        <div class="inner member-info">
-            <header>
-                <h3>프로젝트 정보</h3>
-            </header>
-            <div class="member-wrap">
-                <ul class="project-members">
-                    @for(project <- user.myProjects()){
-                    <li class="member">
-                        <form action="@routes.UserApp.leave(project.owner, project.name)" method="post">
-                            <a href="@routes.ProjectApp.project(project.owner, project.name)"><strong>@project.name</strong></a>
-                             <input type="submit" class="btn btn-danger" value="탈퇴">
-                        </form>                    
+            <div class="user-stream-box">
+                <ul class="nav nav-tabs user-stream-tab">
+                    <li class="active"><a href="user-setting.html">Repositories</a></li>
+                    <!-- li><a href="user-activities.html">Activities</a></li-->
+                </ul>
+                <!-- div class="user-stream-wrap">
+                    <div class="filter-wrap user-setting">
+                        <div class="filters">
+                            <a href="/html/user-setting.html" class="filter"><i class="ico btn-gray-arrow"></i>전체</a>
+                            <a href="/html/user-activities.html?order=staus" class="filter active"><i class="ico btn-gray-arrow down"></i>상태순</a>
+                        </div>
+                    </div>
+                </div-->
+                <ul class="user-streams">
+                @for(project <- user.myProjects()){                
+                    <li class="user-stream">
+                        <h3 class="project-name">
+                            <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.owner/@project.name</a></h3> 
+                            <a href="@routes.UserApp.leave(project.owner, project.name)" class="btn">탈퇴</a>                                                           
+                        <div class="stream-desc-wrap">
+                            <div class="stream-desc">
+                                <!-- p class="nm">최근 활동 관련 영역입니다.</p-->
+                                <p class="date">Last updated @agoString(project.ago)</p>
+                            </div>
+                            <!-- div class="project-status">
+                                <i class="ico ico-like"></i><span class="num">1</span>
+                                <i class="ico ico-activity high"></i>
+                            </div-->
+                        </div>
                     </li>
-                    }
+                }
                 </ul>
             </div>
-        </div>
+        </section>
     </div>
-</div>  
+</div>
 
     <script src="@getJSLink("jquery.form")" type="text/javascript"></script>
     <script>

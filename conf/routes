@@ -22,7 +22,7 @@ GET     /user/editform                                  controllers.UserApp.edit
 POST    /user/edit                                      controllers.UserApp.editUserInfo()
 GET     /user/isExist/:loginId                          controllers.UserApp.isUserExist(loginId)
 
-POST	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
+GET 	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
 GET     /memberinfo/edit                                controllers.UserApp.memberEdit(userId:Long)
 
 # Site
