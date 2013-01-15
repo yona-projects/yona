@@ -309,12 +309,20 @@ nforge.issue.view = function () {
   var that;
 
   that = {
-    init: function() {
-      var labels, label;
+    init: function(filesUrl) {
+      var labels, label, attachments;
+
       labels = $('.issue-label');
       for (var i = 0; i < labels.length; i++) {
         label = $(labels[i]);
         label.css('color', contrasted_color(label.css('background-color')));
+      }
+
+      fileDownloader($('.body-attachments'), filesUrl);
+      fileUploader($('#comment-uploader'), $('#comment-editor'), filesUrl);
+      attachments = $('.comment-attachments');
+      for (var i = 0; i < attachments.length; i++) {
+        fileDownloader($(attachments[i]), filesUrl);
       }
     }
   }
@@ -373,3 +381,17 @@ nforge.issue.list = function() {
 
   return that;
 }
+
+nforge.issue.new = function() {
+  var that;
+
+  that = {
+    init: function(filesUrl) {
+      fileUploader($('#upload-form'), $('#body'), filesUrl);
+    }
+  }
+
+  return that;
+};
+
+nforge.issue.edit = nforge.issue.new;

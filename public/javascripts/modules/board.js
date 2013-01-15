@@ -1,4 +1,5 @@
 nforge.namespace("board");
+
 nforge.board.list = function() {
     var that = {
         init : function() {
@@ -57,3 +58,32 @@ nforge.board.vaildate = function() {
     };
     return that;
 };
+
+nforge.board.view = function() {
+    var that = {
+        init : function(filesUrl) {
+            fileDownloader($('.body-attachments'), filesUrl);
+            fileUploader($('#upload-form'), $('#contents'), filesUrl);
+            attachments = $('.comment-attachments');
+            for (var i = 0; i < attachments.length; i++) {
+                fileDownloader($(attachments[i]), filesUrl);
+            }
+        }
+    }
+
+    return that;
+};
+
+nforge.board.new = function() {
+  var that;
+
+  that = {
+    init: function(filesUrl) {
+      fileUploader($('#upload-form'), $('#contents'), filesUrl);
+    }
+  }
+
+  return that;
+};
+
+nforge.board.edit = nforge.issue.new;

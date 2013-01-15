@@ -69,7 +69,8 @@
     </div>
   </div>
 
-  <div class="body" markdown resourceType=@Resource.ISSUE_POST resourceId="@issue.id">@issue.body</div>
+  <div class="body" markdown>@issue.body</div>
+  <div class="body-attachments" resourceType=@Resource.ISSUE_POST resourceId="@issue.id"></div>
 </article>
 
 <!-- 여기서 부터 덧글 -->
@@ -104,7 +105,8 @@
         </div>
       </div>
       }
-      <div markdown resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id>@comment.contents</div>
+      <div markdown>@comment.contents</div>
+      <div class="comment-attachments" resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id></div>
     </div>
   </div>
   }
@@ -116,10 +118,10 @@
   'id -> "comment-form",
   'enctype -> "multipart/form-data"){
    <div>
-     <textarea id="contents" name="contents" class="span8 textbody .inputxx-large" rows="5" markdown="true"></textarea>
+     <textarea id="comment-editor" name="contents" class="span8 textbody .inputxx-large" rows="5" markdown></textarea>
      <input class="btn add-on" type="submit" value=@Messages( "button.comment.new") />
    </div>
-   <div class="file-attachment"></div>
+   <div id="comment-uploader"></div>
 }
 </div>
 
@@ -156,7 +158,7 @@
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
-  nforge.require('nforge.issue.view');
+  nforge.require('issue.view', "@routes.AttachmentApp.newFile");
   nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: false}, function() {
     @for(label <- issue.labels) {
       $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
