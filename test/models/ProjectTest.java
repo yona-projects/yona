@@ -1,13 +1,22 @@
 package models;
 
+import static org.fest.assertions.Assertions.assertThat;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.List;
+
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoFilepatternException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import controllers.UserApp;
-
-import java.util.List;
-
-import static org.fest.assertions.Assertions.assertThat;
+import playRepository.Commit;
+import playRepository.GitRepository;
 
 /**
  * @author "Hwi Ahn"
@@ -135,5 +144,36 @@ public class ProjectTest extends ModelTest<Project> {
         // Then
         assertThat(result1).isEqualTo(false);
         assertThat(result2).isEqualTo(true);
+    }
+    
+    @Test
+    public void lastUpdate() throws Exception {
+        // given
+        String userName = "hobi";
+        String projectName = "testProject";
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+
+        String repoPath = wcPath + "/.git";
+        File repoDir = new File(repoPath);
+        Repository repo = new RepositoryBuilder().setGitDir(repoDir).build();
+        repo.create(false);
+
+        Git git = new Git(repo);
+        String testFilePath = wcPath + "/readme.txt";
+        BufferedWriter out = new BufferedWriter(new FileWriter(testFilePath));
+
+        out.write("hello 1");
+        out.flush();
+        git.add().addFilepattern("readme.txt").call();
+        git.commit().setMessage("commit 1").call();
+
+        GitRepository gitRepo = new GitRepository(userName, projectName + "/");
+        
+//    	Project project = Project.findByNameAndOwner(userName, projectName);
+    	// When
+    	List<Commit> history = gitRepo.getHistory(0, 2, "HEAD");
+    	Commit commit = history.get(0);
+    	// Then
+    	assertThat(commit.getAuthorDate()).isNotNull();
     }
 }
