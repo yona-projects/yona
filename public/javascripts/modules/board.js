@@ -62,9 +62,10 @@ nforge.board.vaildate = function() {
 nforge.board.view = function() {
     var that = {
         init : function(filesUrl) {
-            fileDownloader($('.body-attachments'), filesUrl);
-            fileUploader($('#upload-form'), $('#contents'), filesUrl);
-            attachments = $('.comment-attachments');
+            var attachments;
+
+            fileUploader($('#upload'), $('#contents'), filesUrl);
+            attachments = $('.attachments');
             for (var i = 0; i < attachments.length; i++) {
                 fileDownloader($(attachments[i]), filesUrl);
             }
@@ -79,7 +80,7 @@ nforge.board.new = function() {
 
   that = {
     init: function(filesUrl) {
-      fileUploader($('#upload-form'), $('#contents'), filesUrl);
+      fileUploader($('#upload'), $('#contents'), filesUrl);
     }
   }
 

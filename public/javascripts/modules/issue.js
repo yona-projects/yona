@@ -318,9 +318,8 @@ nforge.issue.view = function () {
         label.css('color', contrasted_color(label.css('background-color')));
       }
 
-      fileDownloader($('.body-attachments'), filesUrl);
-      fileUploader($('#comment-uploader'), $('#comment-editor'), filesUrl);
-      attachments = $('.comment-attachments');
+      fileUploader($('#upload'), $('#comment-editor'), filesUrl);
+      attachments = $('.attachments');
       for (var i = 0; i < attachments.length; i++) {
         fileDownloader($(attachments[i]), filesUrl);
       }
@@ -387,7 +386,7 @@ nforge.issue.new = function() {
 
   that = {
     init: function(filesUrl) {
-      fileUploader($('#upload-form'), $('#body'), filesUrl);
+      fileUploader($('#upload'), $('#body'), filesUrl);
     }
   }
 

@@ -70,7 +70,7 @@
   </div>
 
   <div class="body" markdown>@issue.body</div>
-  <div class="body-attachments" resourceType=@Resource.ISSUE_POST resourceId="@issue.id"></div>
+  <div class="attachments" resourceType=@Resource.ISSUE_POST resourceId="@issue.id"></div>
 </article>
 
 <!-- 여기서 부터 덧글 -->
@@ -106,7 +106,7 @@
       </div>
       }
       <div markdown>@comment.contents</div>
-      <div class="comment-attachments" resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id></div>
+      <div class="attachments" resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id></div>
     </div>
   </div>
   }
@@ -121,7 +121,7 @@
      <textarea id="comment-editor" name="contents" class="span8 textbody .inputxx-large" rows="5" markdown></textarea>
      <input class="btn add-on" type="submit" value=@Messages( "button.comment.new") />
    </div>
-   <div id="comment-uploader"></div>
+   <div id="upload" resourceType=@Resource.ISSUE_COMMENT></div>
 }
 </div>
 
