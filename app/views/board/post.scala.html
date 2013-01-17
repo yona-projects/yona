@@ -25,7 +25,8 @@
         </p>
           </div>
       </div>
-      <div class="content" markdown resourceType=@Resource.BOARD_POST resourceId="@post.id">@post.contents</div>
+      <div class="content" markdown>@post.contents</div>
+      <div class="attachments" resourceType=@Resource.BOARD_POST resourceId=@post.id></div>
       <!--
       <ul class="attaches wm">
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
@@ -45,7 +46,8 @@
           <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
           }
             <p class="commenter"><a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorName</strong></a><!-- <span class="name">(Sam sstephenson)</span> --> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
-            <div class="comment-body" markdown resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id>@comment.contents</div>
+            <div class="comment-body" markdown>@comment.contents</div>
+            <div class="attachments" resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id></div>
             <!--
             <ul class="attaches">
                 <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>
@@ -74,7 +76,7 @@
             </style>
             @helper.textarea(commentForm("contents"), 'placeholder->"로그인 후 댓글 입력이 가능합니다.", 'class->"text comment", 'markdown->true)
             <button class="comment-btn">COMMENT</button>
-            <div class="file-attachment"></div>
+            <div id="upload" resourceType=@Resource.BOARD_COMMENT></div>
           </div>
           <!--
           <div class="attach-wrap">
@@ -143,6 +145,6 @@
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
+  nforge.require('board.view', "@routes.AttachmentApp.newFile");
 </script>
 }
-            

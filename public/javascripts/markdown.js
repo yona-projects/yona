@@ -1,5 +1,3 @@
-nforge.namespace('markdown');
-
 var renderMarkdown = function(text) {
   text = text
     .replace(/```(\w+)(?:\r\n|\r|\n)((\r|\n|.)*?)(\r|\n)```/gm, function(match, p1, p2) {
@@ -43,21 +41,5 @@ var viewer = function (target) {
   target.html(renderMarkdown(target.text()));
 };
 
-nforge.markdown.enable = function() {
-  var that = {
-    init: function(targets) {
-      for(var i = 0; i < targets.length; i++) {
-        var target = targets[i];
-        var tagname = target.tagName.toLowerCase();
-        if (tagname == 'textarea' || tagname == 'input'
-                || target.contentEditable == 'true') {
-          editor($(target));
-        } else {
-          viewer($(target));
-        }
-      }
-    }
-  };
-
-  return that;
-}
+var markdownEditor = editor;
+var markdownViewer = viewer;

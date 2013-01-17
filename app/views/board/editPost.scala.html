@@ -20,7 +20,8 @@
         @helper.inputText(form("title"), 'class->"text title", 'placeholder->"제목을 입력해주세요.")
       </label>
       <label for="content">
-        @helper.textarea(form("contents"), 'resourceType -> Resource.BOARD_POST, 'resourceId -> postId, 'markdown -> true, 'class->"text content")
+        @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content")
+        <div id="upload" resourceType=@Resource.BOARD_POST resourceId=@postId></div>
       </label>
       <!--
       <div class="content-footer">
@@ -69,6 +70,7 @@
 @views.html.markdown()
 <script type="text/javascript">
   nforge.require('shortcut.submit');
+  nforge.require('board.edit', "@routes.AttachmentApp.newFile");
 </script>
 
 }

@@ -21,6 +21,7 @@
       <label for="content">
         @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content")
       </label>
+      <div id="upload" resourceType=@Resource.BOARD_POST></div>
       <!--
       <div class="content-footer">
         <div class="attach-wrap">
@@ -67,5 +68,6 @@
 @views.html.markdown()
 <script type="text/javascript">
 nforge.require('shortcut.submit');
+nforge.require('board.new', "@routes.AttachmentApp.newFile");
 </script>
 }

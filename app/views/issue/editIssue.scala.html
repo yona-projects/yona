@@ -38,10 +38,9 @@
            '_showConstraints -> false,
            '_label-> null,
            'rows -> 16,
-           'class -> "textbody",
-           'resourceType -> Resource.ISSUE_POST,
            'markdown -> true,
-           'resourceId -> issue.id)
+           'class -> "textbody")
+        <div id="upload" resourceType=@Resource.ISSUE_POST resourceId=@issue.id></div>
     </fieldset>
 
     <!-- issue.label js module appends a label selector here. -->
@@ -92,6 +91,7 @@
       $('.labels button.btn[labelId="@label.id"]').addClass('active');
     }
   });
+  nforge.require('issue.edit', "@routes.AttachmentApp.newFile");
 </script>
 </div>
 }

@@ -1,5 +1,7 @@
 package models;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,9 +19,12 @@ import models.enumeration.RoleType;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
-import play.db.ebean.Model;
-
+import play.cache.Cached;
+import play.data.format.Formats;
 import play.data.validation.Constraints.*;
+import play.db.ebean.Model;
+import play.db.ebean.Model.Finder;
+import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
 
@@ -51,15 +56,29 @@ public class User extends Model {
     public String avatarUrl;
     
     public boolean rememberMe;
+    
+    @Formats.DateTime(pattern = "yyyy-MM-dd")
+    public Date date;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
+    /**
+     * 완료일을 yyyy-MM-dd 형식의 문자열로 변환시킵니다.
+     *
+     * @return
+     */
+    public String getDateString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
+        return sdf.format(this.date);
+    }
+    
     public List<Project> myProjects(){
         return Project.findProjectsByMember(id);
     }
 
     public static Long create(User user) {
+    	user.date = JodaDateUtil.now();
         user.save();
         return user.id;
     }

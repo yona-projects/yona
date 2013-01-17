@@ -7,6 +7,7 @@ users:
         passwordSalt:   '[B@1032a4'
         email:          admin@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
+        date:           2012-11-01 08:00:00
     - !!models.User
         name:           Hobi
         loginId:        hobi
@@ -14,6 +15,7 @@ users:
         passwordSalt:   '[B@1032a4'        
         email:          hobi@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
+        date:           2012-12-01 08:00:00
     - !!models.User
         name:           scott
         loginId:        k16wire
@@ -21,6 +23,7 @@ users:
         passwordSalt:   '[B@1032a4'        
         email:          k16wire@naver.com
         avatarUrl:      /assets/images/default-avatar-128.png
+        date:           2012-01-01 08:00:00
     - !!models.User
         name:           suwon
         loginId:        doortts
@@ -28,6 +31,7 @@ users:
         passwordSalt:   '[B@1032a4'        
         email:          doortts@gmail.com
         avatarUrl:      /assets/images/default-avatar-128.png
+        date:           2012-07-01 08:00:00
     - !!models.User
         name:           eungjun
         loginId:        nori
@@ -35,12 +39,14 @@ users:
         passwordSalt:   '[B@1032a4'        
         email:          ejlee@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
+        date:           2012-05-01 08:00:00
     - !!models.User
         name:           anonymous
         loginId:        anonymous
         password:       
         email:          anonymous@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
+        date:           2012-02-01 08:00:00
         
 # Projects
 projects:
@@ -52,6 +58,7 @@ projects:
         siteurl:       http://localhost:9000/nForge4java
         owner:          hobi
         isAuthorEditable: true
+        date:           2012-02-01 08:00:00
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
@@ -60,6 +67,7 @@ projects:
         siteurl:       http://localhost:9000/Jindo
         owner:          k16wire
         isAuthorEditable: false
+        date:           2012-01-01 08:00:00        
     - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
@@ -68,6 +76,7 @@ projects:
         siteurl:       http://localhost:9000/CUBRID
         owner:          doortts
         isAuthorEditable: true
+        date:           2012-08-01 08:00:00        
     - !!models.Project
         name:           HelloSocialApp
         overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
@@ -76,6 +85,7 @@ projects:
         siteurl:       http://localhost:9000/HelloSocialApp
         owner:          hobi
         isAuthorEditable: true
+        date:           2012-12-01 08:00:00        
 
 # Board
 posts:
@@ -107,7 +117,7 @@ issues:
         body:           내용 불필요한~
         state:          OPEN
         milestoneId:    1
-        date: 2012-11-01 08:00:00
+        date:           2012-11-01 08:00:00
         project:        !!models.Project
                             id: 1
     - !!models.Issue

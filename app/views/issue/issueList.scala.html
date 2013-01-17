@@ -121,7 +121,7 @@
             <span class="num">@issue.numOfComments</span>
           </td>
           <td class="assignee">
-            <a href="#">
+            <a href="@routes.UserApp.userInfo(issue.authorLoginId)">
             <img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="34" height="34" alt="@issue.authorName"></a>
           </td>
 
