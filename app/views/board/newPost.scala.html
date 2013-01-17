@@ -21,7 +21,9 @@
       <label for="content">
         @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content")
       </label>
+      @if(UserApp.currentUser() != UserApp.anonymous) {
       <div id="upload" resourceType=@Resource.BOARD_POST></div>
+      }
       <!--
       <div class="content-footer">
         <div class="attach-wrap">

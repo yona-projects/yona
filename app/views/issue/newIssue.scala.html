@@ -3,6 +3,7 @@
 @import helper._
 @import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
+@import controllers.UserApp;
 
 @isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
   roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT){
@@ -40,7 +41,9 @@
             'rows -> 16,
             'class -> "textbody",
             'markdown -> true)
+        @if(UserApp.currentUser() != UserApp.anonymous) {
         <div id="upload" resourceType=@Resource.ISSUE_POST></div>
+        }
         </fieldset>
 
         <!-- issue.label js module appends a label selector here. -->
