@@ -101,4 +101,23 @@ public class UserTest extends ModelTest<User> {
 	    assertThat(result2).isEqualTo(false);
 	    assertThat(result3).isEqualTo(false);
 	}
+
+    @Test
+    public void isEmailExist() throws Exception {
+        // Given
+        String expectedUser = "doortts@gmail.com";
+
+    	// When // Then
+        assertThat(User.isEmailExist(expectedUser)).isTrue();
+    }
+
+    @Test
+    public void isEmailExist_nonExist() throws Exception {
+        // Given
+        String expectedEmail = "nekure@gmail.com";
+
+        // When // Then
+        assertThat(User.isEmailExist(expectedEmail)).isFalse();
+    }
+
 }

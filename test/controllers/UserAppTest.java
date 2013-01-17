@@ -38,7 +38,7 @@ public class UserAppTest {
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);
-                assertThat(contentAsString(result)).contains("{\"isExist\":\"false\"}");
+                assertThat(contentAsString(result)).contains("{\"isExist\":false}");
             }
         });
     }
@@ -59,7 +59,24 @@ public class UserAppTest {
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);
-                assertThat(contentAsString(result)).contains("{\"isExist\":\"true\"}");
+                assertThat(contentAsString(result)).contains("{\"isExist\":true}");
+            }
+        });
+    }
+
+    @Test
+    public void isEmailExist() {
+        running(fakeApplication(), new Runnable() {
+            public void run() {
+                //Given
+                //When
+                Result result = callAction(
+                        controllers.routes.ref.UserApp.isEmailExist("doortts@gmail.com")
+                );
+
+                //Then
+                assertThat(status(result)).isEqualTo(OK);
+                assertThat(contentAsString(result)).contains("{\"isExist\":true}");
             }
         });
     }
