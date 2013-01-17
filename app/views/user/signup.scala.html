@@ -7,22 +7,23 @@
             <p class="tag-line signup"><span>Open Source</span> Project. <span>Code</span> Repository. <span>Issue</span> Tracker. <span>Task</span> Managspanent</p>
         </div>
         <div class="signup-form-wrap">
-            <form action="@routes.UserApp.newUser()" method="POST">
+            <form action="@routes.UserApp.newUser()" name="signup" method="POST">
                 <label for="loginId" class="inline">
                     <input type="text" class="text loginId" id="loginId" placeholder="ID" autocomplete="off" name="loginId">
-                    <a id="loginIdCheck"></a>
+                    <a class="isValid"></a>
                 </label>
                 <label for="username" class="inline">
                     <input type="text" class="text uname" id="username" placeholder="NAME" autocomplete="off" name="name">
                 </label>
                 <label for="email">
                     <input type="text" class="text email" id="email" placeholder="Email" autocomplete="off" name="email">
+                    <a class="isValid"></a>
                 </label>
                 <label for="password">
-                    <input type="password" class="text password" id="password" placeholder="PASSWORD" autocomplete="off" name="password">
+                    <input type="password" class="text password" id="password" placeholder="@Messages("user.password")" autocomplete="off" name="password">
                 </label>
                 <label for="retypedPassword">
-                    <input type="password" class="text password" id="retypedPassword" placeholder="PASSWORD Retype" autocomplete="off" name="retypedPassword">
+                    <input type="password" class="text password" id="retypedPassword" placeholder="@Messages("validation.retypePassword")" autocomplete="off" name="retypedPassword">
                 </label>
                 <div class="act-row">
                     HAVE AN ACCOUNT ALREADY? <a href="@routes.UserApp.login()" class="go-login">LOG IN</a>
@@ -34,40 +35,115 @@
         </div>
     </div>
     <script type="text/javascript">
-        var isExist = function(){
-	        var signupId = $("#loginId");
-	        console.log(signupId.val());
-            signupId.popover({
-            	title: "Alreday exist!",
-            	content: "choose another id",
-                delay: { show: 500, hide: 100 },
-                placement: "left",
-                trigger: "manual"
+        var passwordField = $('#password');
+        var emailField = $('#email');
+        var loginIdField = $('#loginId');
+        var passwordPlaceholder = passwordField.attr("placeholder");
+        var errorMessage = {
+            required: {
+                title: "Required",
+                content: "@Messages("validation.required")"
+            },
+            duplicated: {
+                title: "Duplicated",
+                content: "@Messages("validation.duplicated")"
+            },
+            passwordMismatch: {
+                title: "Password confirmation",
+                content: "@Messages("validation.passwordMismatch")"
+            },
+            tooShortPassword: {
+                title: "Too short password",
+                content: "@Messages("validation.tooShortPassword")"
+            },
+            invalidEmail: {
+                title: "Invalid email",
+                content: "@Messages("validation.invalidEmail")"
+            }
+        }
+
+        // Bootstrap popover function has some limitation.
+        // In this case, popover doesn't provide easy way to change title and contents.
+        // So, unfortunately I had to change data value in directly.
+        var showErrorMessage = function(field, errorMessage){
+                field.popover({trigger:'manual', placement: 'left'});
+                var popover = field.data('popover');
+                popover.options.title = errorMessage.title;
+                popover.options.content = errorMessage.content;
+                popover.options.placement = 'left';
+                popover.options.trigger = 'manual';
+                field.popover('show');
+        }
+        var isExist = function(checkId, url){
+            var checkPosition = checkId.next(".isValid");
+            if( url[url.length-1] != "/" ) url = url.concat("/");
+            $.ajax({
+                url: url + checkId.val()
+                }
+            ).done(function(data){
+                if(data.isExist === true){
+                    showErrorMessage(checkId, errorMessage.duplicated);
+                    checkPosition.removeClass("label label-success").addClass("label label-important");
+                    checkPosition.html("x");
+                    checkId.popover("show");
+                } else {
+                    checkPosition.removeClass("label label-important").addClass("label label-success");
+                    checkPosition.html("V");
+                    checkId.popover("hide");
+                }
             });
-	        $.ajax({
-	            url: "/user/isExist/" + signupId.val()
-	            }
-	        ).done(function(data){
-	        	console.log(data);
-	        	var loginIdCheck = $("#loginIdCheck");
-                if(data.isExist === "true"){
-                	loginIdCheck.removeClass("label label-success");
-	        		loginIdCheck.addClass("label label-important");
-                    loginIdCheck.html("x");
-                    signupId.popover("show");
-	        	} else {
-	        		loginIdCheck.removeClass("label label-important");
-	        		loginIdCheck.addClass("label label-success");
-                    loginIdCheck.html("V");
-                    signupId.popover("hide");
-	        	}
-	    	});
-    	};
-    	$("#loginId").focusout(function(){
-    		console.log("focustout!");
-    		isExist();
-    	});
-
-
+        };
+        $("#loginId").focusout(function(){
+            if ($(this).val() !== "") isExist($(this), "/user/isExist/");
+        });
+        $("#email").focusout(function(){
+            if ($(this).val() !== "") isExist($(this), "/user/isEmailExist/");
+        });
+    </script>
+    <script type="text/javascript">
+        var validator = new FormValidator('signup', [{
+            name: 'loginId',
+            rules: 'required'
+        },
+        {
+            name: 'email',
+            rules: 'required|valid_email'
+        },
+        {
+          name: 'password',
+          rules: 'required|min_length[4]'
+        },
+        {
+            name: 'retypedPassword',
+            rules: 'required|matches[password]'
+        }], function(errors, event){
+            console.log(errors[0]);
+          if( errors.length > 0 ){
+            switch(errors[0].id){
+                case "retypedPassword" :
+                    showErrorMessage(passwordField, errorMessage.passwordMismatch);
+                    break;
+                case "password" :
+                    showErrorMessage(passwordField, errorMessage.tooShortPassword);
+                    break;
+                case "email" :
+                    showErrorMessage(emailField, errorMessage.invalidEmail);
+                    break;
+                case "loginId" :
+                    showErrorMessage(loginIdField, errorMessage.required);
+                    break;
+                default:
+                    break;
+            }
+          } else {
+            if(passwordField.popover !== undefined) passwordField.popover('hide');
+            if(emailField.popover !== undefined) emailField.popover('hide');
+            if(loginIdField.popover !== undefined) loginIdField.popover('hide');
+            validator._validateForm();
+          }
+        });
+        $('#retypedPassword').focusout(function(){
+            validator._validateForm();
+        });
     </script>
 }

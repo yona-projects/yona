@@ -17,21 +17,20 @@ import models.enumeration.RoleType;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
-import play.cache.Cached;
-import play.data.validation.Constraints;
-import play.data.validation.Constraints.Email;
 import play.db.ebean.Model;
-import play.db.ebean.Model.Finder;
+
+import play.data.validation.Constraints.*;
 
 import com.avaje.ebean.Page;
 
 import controllers.UserApp;
+import sun.security.x509.UniqueIdentity;
 
 @Table(name = "n4user")
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, User> find = new Finder<Long, User>(Long.class,
+    public static Model.Finder<Long, User> find = new Finder<Long, User>(Long.class,
             User.class);
 
     public static final int USER_COUNT_PER_PAGE = 30;
@@ -41,12 +40,12 @@ public class User extends Model {
     public Long id;
     public String name;
 
-    @Constraints.Pattern(value = "^[a-zA-Z0-9_]*$", message = "user.wrongloginId.alert")
+    @Pattern(value = "^[a-zA-Z0-9_]*$", message = "user.wrongloginId.alert") @Required
     public String loginId;
     public String password;
     public String passwordSalt;
 
-    @Email(message = "user.wrongEmail.alert")
+    @Email(message = "user.wrongEmail.alert") @Required
     public String email;
 
     public String avatarUrl;
@@ -86,7 +85,7 @@ public class User extends Model {
      */
     public static boolean isLoginId(String loginId) {
         int findRowCount = find.where().eq("loginId", loginId).findRowCount();
-        return (findRowCount != 0) ? true : false;
+        return (findRowCount != 0);
     }
 
     public static Map<String, String> options() {
@@ -134,5 +133,10 @@ public class User extends Model {
         
     public Long avatarId(){
         return Attachment.findByContainer(Resource.USER_AVATAR, id).get(0).id;
+    }
+
+    public static boolean isEmailExist(String emailAddress) {
+        User user = find.where().ieq("email", emailAddress).findUnique();
+        return user != null;
     }
 }

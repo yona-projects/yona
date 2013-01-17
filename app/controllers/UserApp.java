@@ -255,16 +255,21 @@ public class UserApp extends Controller {
     }
 
 
-    @BodyParser.Of(BodyParser.Json.class)
     public static Result isUserExist(String loginId) {
-        JsonNode json = request().body().asJson();
         User user = User.findByLoginId(loginId);
         ObjectNode result = Json.newObject();
         if( user == null){
-            result.put("isExist", "false");
+            result.put("isExist", false);
         } else {
-            result.put("isExist", "true");
+            result.put("isExist", true);
         }
+        return ok(result);
+    }
+
+    @BodyParser.Of(BodyParser.Json.class)
+    public static Result isEmailExist(String email) {
+        ObjectNode result = Json.newObject();
+        result.put("isExist", User.isEmailExist(email));
         return ok(result);
     }
 }
