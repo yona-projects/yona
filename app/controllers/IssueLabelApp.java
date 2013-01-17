@@ -19,6 +19,8 @@ import play.data.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static play.data.Form.form;
+
 public class IssueLabelApp extends Controller {
 
     public static Result labels(String userName, String projectName) {

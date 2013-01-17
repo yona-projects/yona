@@ -8,6 +8,8 @@ import views.html.milestone.*;
 
 import java.util.*;
 
+import static play.data.Form.form;
+
 public class MilestoneApp extends Controller {
 
     public static class MilestoneCondition {

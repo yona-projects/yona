@@ -5,6 +5,8 @@ import models.*;
 import play.mvc.*;
 import views.html.search.*;
 
+import static play.data.Form.form;
+
 public class SearchApp extends Controller {
 
     public static class ContentSearchCondition {

@@ -18,3 +18,5 @@ db
 *.iml
 uploads
 RUNNING_PID
+*.db
+

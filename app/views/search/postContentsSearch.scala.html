@@ -1,4 +1,4 @@
-@(project: Project, resultPosts: Page[Post])
+@(project: Project, resultPosts: com.avaje.ebean.Page[Post])
 @import utils.TemplateHelper._
 
 @for(post <- resultPosts.getList()){

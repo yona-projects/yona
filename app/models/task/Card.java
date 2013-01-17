@@ -46,7 +46,7 @@ public class Card extends Model {
     public String body;
     public Date dueDate;
 
-    private static Finder<Long, Card> find = new Finder<Long, Card>(Long.class,
+    public static Finder<Long, Card> find = new Finder<Long, Card>(Long.class,
             Card.class);
 
     public static Card findById(Long id) {

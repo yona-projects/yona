@@ -29,7 +29,6 @@ import utils.JodaDateUtil;
 import com.avaje.ebean.Page;
 
 import controllers.UserApp;
-import sun.security.x509.UniqueIdentity;
 
 @Table(name = "n4user")
 @Entity
@@ -50,7 +49,7 @@ public class User extends Model {
     public String password;
     public String passwordSalt;
 
-    @Email(message = "user.wrongEmail.alert") @Required
+    @Email(message = "user.wrongEmail.alert") 
     public String email;
 
     public String avatarUrl;

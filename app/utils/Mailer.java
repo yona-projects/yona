@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,7 +18,7 @@ import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.MultiPartEmail;
 
 import play.Application;
-import scala.actors.threadpool.Arrays;
+//import scala.actors.threadpool.Arrays;
 
 public class Mailer {
     private final String smtpHost;

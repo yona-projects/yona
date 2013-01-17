@@ -1,4 +1,4 @@
-@(page:Page[_ <: play.db.ebean.Model], pageNum:Int, divId:String)
+@(page:com.avaje.ebean.Page[_ <: play.db.ebean.Model], pageNum:Int, divId:String)
 
 @{
     var currentPageNum = page.getPageIndex + 1

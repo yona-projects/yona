@@ -20,6 +20,7 @@ import views.html.site.userList;
 import views.html.site.projectList;
 
 import com.avaje.ebean.Page;
+import static play.data.Form.form;
 
 public class SiteApp extends Controller {
 
