@@ -62,8 +62,9 @@ public class TestEbeanPlugin extends Plugin {
                 for (String load : toLoad) {
                     load = load.trim();
                     if (load.endsWith(".*")) {
-                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length() - 2), javax.persistence.Entity.class));
-                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length() - 2), javax.persistence.Embeddable.class));
+                    	
+//                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length() - 2), javax.persistence.Entity.class));
+//                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length() - 2), javax.persistence.Embeddable.class));
                     } else {
                         classes.add(load);
                     }
@@ -80,7 +81,7 @@ public class TestEbeanPlugin extends Plugin {
                     }
                 }
 
-                config.add(new TestBeanPersistController());
+//                config.add(new TestBeanPersistController());
 
                 servers.put(key, EbeanServerFactory.create(config));
 

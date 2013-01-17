@@ -9,7 +9,7 @@ import org.junit.BeforeClass;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
-import support.EbeanUtil;
+//import support.EbeanUtil;
 
 import java.lang.reflect.ParameterizedType;
 
@@ -18,41 +18,43 @@ import static play.test.Helpers.fakeRequest;
 
 public class ModelTest<T> {
     protected static FakeApplication app;
-    protected static EbeanUtil ebeanUiUtil;
+//    protected static EbeanUtil ebeanUiUtil;
     protected Class<T> type;
 
     @SuppressWarnings("unchecked")
     public ModelTest() {
         this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
                 .getActualTypeArguments()[0];
-        ebeanUiUtil = new EbeanUtil<T>(type);
+//        ebeanUiUtil = new EbeanUtil<T>(type);
     }
 
-    @BeforeClass
-    public static void startApp() {
+//    @BeforeClass
+    @Before
+    public void startApp() {
         app = Helpers.fakeApplication(Helpers.inMemoryDatabase()); 
         Helpers.start(app);
-        callAction(
-                routes.ref.Application.init()
-        );
+//        callAction(
+//                routes.ref.Application.init()
+//        );
     }
 
-    @AfterClass
-    public static void stopApp() {
+//    @AfterClass
+    @After
+    public void stopApp() {
         Helpers.stop(app);
     }
 
-    @Before
-    public void beginTransaction() {
-        Ebean.beginTransaction();
-    }
-
-    @After
-    public void rollbackTransaction() {
-        if (Ebean.currentTransaction() != null) {
-            Ebean.rollbackTransaction();
-        }
-    }
+//    @Before
+//    public void beginTransaction() {
+//        Ebean.beginTransaction();
+//    }
+//
+//    @After
+//    public void rollbackTransaction() {
+//        if (Ebean.currentTransaction() != null) {
+//            Ebean.rollbackTransaction();
+//        }
+//    }
 
     /**
      * Returns the first user. (id : 2 / name : hobi)
@@ -93,11 +95,11 @@ public class ModelTest<T> {
 
     @SuppressWarnings("unchecked")
     protected void flush(T model) {
-        ebeanUiUtil.flush(model);
+//        ebeanUiUtil.flush(model);
     }
 
     protected void flush(Long id) {
-        ebeanUiUtil.flush(id);
+//        ebeanUiUtil.flush(id);
     }
 
     protected void flush() {
