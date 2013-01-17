@@ -288,6 +288,7 @@ code.files = Files
 code.commits = Commits
 code.newer = Newer
 code.older = Older
+code.repoUrl = REPOSITORY URL
 
 #mail
 mail.from = From

@@ -287,6 +287,7 @@ code.files = 파일
 code.commits = 커밋
 code.newer = 이전
 code.older = 다음
+code.repoUrl = 저장소 URL
 
 #mail
 mail.from = 발신 메일주소
