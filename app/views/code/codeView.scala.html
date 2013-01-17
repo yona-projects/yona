@@ -5,10 +5,10 @@
   @pageTitle(project, "Code Browser")
   <ul class="nav nav-tabs code-tab">
     <li class="active">
-      <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("Files")</a>
+      <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
     </li>
     <li>
-      <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("Commits")</a>
+      <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
     </li>
   </ul>
   
