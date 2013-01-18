@@ -46,20 +46,19 @@ public class UserApp extends Controller {
 
 	public static User anonymous = new User();
 
-//	@Cached(key = "loginForm")
+	@Cached(key = "loginForm")
 	public static Result loginForm() {
 		return ok(login.render("title.login", form(User.class)));
 	}
 
 	public static Result logout() {
 		session().clear();
-		response().discardCookies(TOKEN);
+		response().discardCookie(TOKEN);
 
 		flash(Constants.SUCCESS, "user.logout.success");
 		return redirect(routes.Application.index());
 	}
 
-//	@Cached(key = "login")
 	public static Result login() {
 		Form<User> userForm = form(User.class).bindFromRequest();
 		if(userForm.hasErrors()) {
@@ -156,6 +155,7 @@ public class UserApp extends Controller {
 		Logger.debug("remember me enabled");
 	}
 
+	@Cached(key="signupForm")
 	public static Result signupForm() {
 		return ok(signup.render("title.signup", form(User.class)));
 	}
