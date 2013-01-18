@@ -77,8 +77,7 @@ public class IssueLabelApp extends Controller {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser().id, label.project.id,
-            Resource.ISSUE_LABEL, Operation.DELETE, label.id)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), label.asResource(), Operation.DELETE)) {
             return forbidden();
         }
 

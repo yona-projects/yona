@@ -3,6 +3,8 @@ package playRepository;
 import java.io.IOException;
 import java.util.List;
 
+import models.resource.ProjectResource;
+
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.*;
 import org.eclipse.jgit.errors.*;
@@ -11,26 +13,26 @@ import org.tmatesoft.svn.core.SVNException;
 
 public interface PlayRepository {
 
-    public void create() throws IOException, ClientException;
+    public abstract void create() throws IOException, ClientException;
 
-
-    public ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
+    public abstract ObjectNode findFileInfo(String path) throws IOException, NoHeadException,
             GitAPIException, SVNException;
 
-    public byte[] getRawFile(String path) throws MissingObjectException,
+    public abstract byte[] getRawFile(String path) throws MissingObjectException,
             IncorrectObjectTypeException, AmbiguousObjectException, IOException, SVNException;
 
-    public void delete();
+    public abstract void delete();
 
-    public String getPatch(String commitId) throws GitAPIException, MissingObjectException,
+    public abstract String getPatch(String commitId) throws GitAPIException, MissingObjectException,
             IncorrectObjectTypeException, IOException, SVNException;
 
-    public List<Commit> getHistory(int page, int limit, String branch) throws AmbiguousObjectException,
+    public abstract List<Commit> getHistory(int page, int limit, String branch) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException;
 
-    public List<String> getBranches();
+    public abstract List<String> getBranches();
 
 
-    public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException, IOException, SVNException, NoHeadException, GitAPIException;
+    public abstract ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException, IOException, SVNException, NoHeadException, GitAPIException;
 
+    public abstract ProjectResource asResource();
 }

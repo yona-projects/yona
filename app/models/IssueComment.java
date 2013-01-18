@@ -4,6 +4,9 @@
 
 package models;
 
+import models.enumeration.Resource;
+import models.resource.ProjectResource;
+
 import org.joda.time.*;
 import play.data.validation.*;
 import play.db.ebean.*;
@@ -62,4 +65,25 @@ public class IssueComment extends Model {
     public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
+
+    public ProjectResource asResource() {
+
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return issue.project;
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.ISSUE_COMMENT;
+            }
+        };
+    }
 }
+

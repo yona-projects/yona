@@ -1,6 +1,7 @@
 @(post:Post, commentForm:Form[Comment],  project:Project)
 
 @import utils.TemplateHelper._
+@import utils.AccessControl._
 @import models.enumeration.Resource
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
@@ -42,7 +43,7 @@
         <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded">
         <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorName">
         <div class="media-body">
-          @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.DELETE, comment.id){
+          @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
           <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
           }
             <p class="commenter"><a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorName</strong></a><!-- <span class="name">(Sam sstephenson)</span> --> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
@@ -56,7 +57,7 @@
       </li>
       }
     </ul>
-      @roleCheck(session.get("userId"), project.id, Resource.BOARD_COMMENT, Operation.WRITE){
+      @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.Resource.BOARD_POST)){
       <div class="write-comment-box">
         @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
           <div class="write-comment-wrap">
@@ -120,12 +121,12 @@
   <div class="board-footer">
       <!--<a href="/add-notification" class="add-btn"><i class="ico ico-plus-blue"></i>자동알림추가</a>-->
       <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray small">LIST</a>
-      @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.DELETE){
+      @isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
       <a data-toggle="modal" href="#deleteConfirm" class="n-btn gray small">DELETE</a>
-    }
-      @roleCheck(session.get("userId"), project.id, Resource.BOARD_POST, Operation.EDIT){
+      }
+      @isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
       <a href="@routes.BoardApp.editPost(project.owner, project.name, post.id)" class="n-btn blue small">EDIT</a>
-    }
+      }
   </div>
 
   <!--삭제확인상자-->

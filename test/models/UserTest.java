@@ -29,7 +29,7 @@ public class UserTest extends ModelTest<User> {
 		// Then
 		assertThat(user.id).isEqualTo(2l);
 	}
-	
+
 	@Test
     public void findNameById() throws Exception {
         //Given
@@ -46,9 +46,9 @@ public class UserTest extends ModelTest<User> {
         // When
         Map<String, String> userOptions = User.options();
         // Then
-        assertThat(userOptions).hasSize(6);
+        assertThat(userOptions).hasSize(5);
     }
-	
+
 	@Test
 	public void findByLoginId() throws Exception {
 	    // Given
@@ -57,7 +57,7 @@ public class UserTest extends ModelTest<User> {
 	    // Then
 	    assertThat(user.id).isEqualTo(3l);
 	}
-	
+
 	@Test
 	public void findUsers() throws Exception {
 	    // Given
@@ -65,27 +65,27 @@ public class UserTest extends ModelTest<User> {
 	    Page<User> users = User.findUsers(0, null);
 	    Page<User> searchUsers = User.findUsers(0, "ho");
 	    // Then
-	    assertThat(users.getTotalRowCount()).isEqualTo(5);
+	    assertThat(users.getTotalRowCount()).isEqualTo(4);
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}
-	
+
 	@Test
 	public void findProjectsById() throws Exception {
 	    // Given
 	    // When
-	    User user = User.findProjectsById(1l);
+	    User user = User.findProjectsById(2l);
 	    // Then
-	    assertThat(user.projectUser.size()).isEqualTo(3);
+	    assertThat(user.projectUser.size()).isEqualTo(2);
 	    assertThat(user.projectUser.iterator().next().project.name).isEqualTo("nForge4java");
 	}
-	
+
 	@Test
     public void findUsersByProject() throws Exception {
         // Given
         // When
         List<User> users = User.findUsersByProject(2l);
         // Then
-        assertThat(users.size()).isEqualTo(3);
+        assertThat(users.size()).isEqualTo(2);
     }
 	
     // FIXME after finding travis out of memory error

@@ -14,6 +14,7 @@ import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
+import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
@@ -26,16 +27,17 @@ public class GitApp extends Controller {
                 && (service.equals("git-upload-pack") || service.equals("git-receive-pack"));
     }
 
-    public static boolean isAllowed(String userName, String projectName, String service) {
+    public static boolean isAllowed(String userName, String projectName, String service) throws UnsupportedOperationException, IOException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 
-        Operation operation = Operation.WRITE;
+        Operation operation = Operation.UPDATE;
         if (service.equals("git-upload-pack")) {
             operation = Operation.READ;
         }
 
-        if (AccessControl.isAllowed(
-                UserApp.currentUser().id, project.id, Resource.CODE, operation, null)) {
+        PlayRepository repository = RepositoryService.getRepository(project);
+        if (AccessControl
+                .isAllowed(UserApp.currentUser(), repository.asResource(), operation)) {
             return true;
         }
 

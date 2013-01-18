@@ -4,12 +4,9 @@
 @import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 @import controllers.UserApp;
-
-@isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
-  roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT){
-    content
-  }
-}
+@import models.enumeration.Resource
+@import models.enumeration.Operation
+@import utils.AccessControl._
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
@@ -49,7 +46,7 @@
 
         <!-- issue.label js module appends a label selector here. -->
         <fieldset class="labels">
-          @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
+          @if(isCreatable(UserApp.currentUser(), project, Resource.ISSUE_ASSIGNEE)) {
                 @select(
                     issueForm("assignee.user.id"),
                     options(ProjectUser.options(project.id)),
@@ -57,7 +54,7 @@
                     '_default -> Messages("issue.new.selectDefault.assignee"),
                     '_showConstraints -> false)
                 }
-          @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
+          @if(isCreatable(UserApp.currentUser(), project, Resource.ISSUE_MILESTONE)) {
                 @select(
                     issueForm("milestoneId"),
                     options(Milestone.options(project.id)),

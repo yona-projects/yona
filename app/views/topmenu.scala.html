@@ -1,19 +1,13 @@
 @(project:Project, menuType:utils.MenuType)
 
 @import utils._
-
+@import models.enumeration.Resource;
+@import utils.TemplateHelper._
+@import utils.AccessControl._
 
 @isActiveMenu(m_type:MenuType) = @{
     if(m_type == menuType) {"selected"}
 }
-
-@isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
-  roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.READ){
-    content
-  }
-}
-@import utils.TemplateHelper._
-
     <div class="gnb-inner">
         <div class="gnb-knob left"><i class="ico gnb-left"></i></div>
         <div class="gnb-menu-wrap">
@@ -22,29 +16,21 @@
                 <li class="menu">
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="@isActiveMenu(MenuType.PROJECT_HOME)">PROJECT HOME</a>
                 </li>
-                @isVisible(models.enumeration.Resource.BOARD_POST){
                 <li class="menu">
                     <a href="@routes.BoardApp.posts(project.owner, project.name)" class="@isActiveMenu(MenuType.BOARD)">BOARD</a>
                 </li>
-                }
-                @isVisible(models.enumeration.Resource.CODE){
                 <li class="menu">
                     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="@isActiveMenu(MenuType.CODE)">CODE</a>
                 </li>
-                }
-                @isVisible(models.enumeration.Resource.ISSUE_POST){
                 <li class="menu">
                     <a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="@isActiveMenu(MenuType.ISSUE)">ISSUE</a>
                 </li>
-                }
-                @isVisible(models.enumeration.Resource.WIKI_PAGE){
                 <!-- >li class="menu">
                     <a href="@routes.TaskApp.index(project.owner, project.name)">TASK</a>
                 </li-->
-                }
             </ul>
             <ul class="gnb-menus right unstyled">
-                @if(session.contains("userId")){
+                @if(!UserApp.currentUser().isAnonymous()){
                 <li><a href="@routes.UserApp.userInfo(session.get("loginId"))">
                 <img class="user-thumb img-rounded" src="@User.findByLoginId(session.get("loginId")).avatarUrl" alt="avatar" width="22" height="22"></a>
                     <a href="@routes.UserApp.userInfo(session.get("loginId"))">@session.get("userName")</a>
@@ -65,4 +51,3 @@
         </div>
         <div class="gnb-knob right"><i class="ico gnb-right"></i></div>
     </div>
-

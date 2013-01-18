@@ -2,31 +2,38 @@ package utils;
 
 import models.Issue;
 import models.Post;
+import models.Project;
 import models.Role;
+import models.User;
+
 import org.junit.Test;
+
+import controllers.UserApp;
 import static org.fest.assertions.Assertions.assertThat;
 import models.ModelTest;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
-import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
 
 public class AccessControlTest extends ModelTest<Role>{
     @Test
-    public void isAllowed() throws Exception {
+    public void isAllowed() {
         // Given
-        Long userSessionId1 = 1l;
-        Long userSessionId2 = 2l;
-        Long projectId1 = 1l;
-        Long projectId2 = 3l;
+        User admin = User.findByLoginId("admin");
+        User hobi = User.findByLoginId("hobi");
+        Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
+        Project jindo = Project.findByNameAndOwner("k16wire", "Jindo");
+
         // When
-        boolean result1 = AccessControl.isAllowed(userSessionId1, projectId1, Resource.PROJECT_SETTING, Operation.WRITE, null);
-        boolean result2 = AccessControl.isAllowed(userSessionId2, projectId2, Resource.BOARD_POST, Operation.READ, null);
+        boolean result1 = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.UPDATE);
+        boolean result2 = AccessControl.isAllowed(hobi, jindo.asResource(), Operation.UPDATE);
+        boolean result3 = AccessControl.isAllowed(UserApp.anonymous, jindo.asResource(), Operation.READ);
+
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
+        assertThat(result3).isEqualTo(false);
     }
-    
+
     @Test
     public void isAuthor() throws Exception {
         // Given

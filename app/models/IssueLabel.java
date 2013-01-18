@@ -14,6 +14,10 @@ import play.data.validation.*;
 import play.db.ebean.*;
 
 import javax.persistence.*;
+
+import models.enumeration.Resource;
+import models.resource.ProjectResource;
+
 import java.util.*;
 
 @Entity
@@ -63,5 +67,24 @@ public class IssueLabel extends Model {
             issue.save();
         }
         super.delete();
+    }
+
+    public ProjectResource asResource() {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.ISSUE_LABEL;
+            }
+        };
     }
 }

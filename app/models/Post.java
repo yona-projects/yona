@@ -7,6 +7,7 @@ package models;
 import com.avaje.ebean.*;
 import controllers.*;
 import models.enumeration.*;
+import models.resource.ProjectResource;
 import models.support.*;
 import org.joda.time.*;
 import play.data.format.*;
@@ -32,7 +33,7 @@ public class Post extends Model {
 
     @Constraints.Required
     public String contents;
- 
+
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date;
@@ -114,7 +115,7 @@ public class Post extends Model {
         }
         post.update();
     }
-    
+
     public static boolean isAuthor(Long currentUserId, Long id) {
         int findRowCount = finder.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
         return (findRowCount != 0) ? true : false;
@@ -139,5 +140,24 @@ public class Post extends Model {
         Post post = finder.byId(id);
         post.commentCount--;
         post.update();
+    }
+
+    public ProjectResource asResource() {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.BOARD_POST;
+            }
+        };
     }
 }

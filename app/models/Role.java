@@ -20,16 +20,11 @@ public class Role extends Model {
     private static Finder<Long, Role> find = new Finder<Long, Role>(Long.class,
             Role.class);
 
-
-
     @Id
     public Long id;
 
     public String name;
     public boolean active;
-
-    @ManyToMany
-    public List<Permission> permissions;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUsers;

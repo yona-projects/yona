@@ -30,12 +30,8 @@ public class Global extends GlobalSettings {
             Ebean.save(all.get("issueComments"));
             Ebean.save(all.get("posts"));
             Ebean.save(all.get("comments"));
-            Ebean.save(all.get("permissions"));
 
             Ebean.save(all.get("roles"));
-            for (Object role : all.get("roles")) {
-                Ebean.saveManyToManyAssociations(role, "permissions");
-            }
             Ebean.save(all.get("projectUsers"));
 
             Ebean.save(all.get("taskBoards"));
@@ -43,6 +39,8 @@ public class Global extends GlobalSettings {
             Ebean.save(all.get("cards"));
             Ebean.save(all.get("labels"));
             Ebean.save(all.get("checkLists"));
+
+            Ebean.save(all.get("siteAdmins"));
         }
     }
     

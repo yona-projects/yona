@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import models.Attachment;
+import models.Project;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
 
@@ -99,8 +100,7 @@ public class AttachmentApp extends Controller {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser().id, attachment.projectId,
-                attachment.containerType, Operation.READ, attachment.containerId)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), attachment.getContainerAsResource(), Operation.READ)) {
             return forbidden();
         }
 
@@ -131,8 +131,7 @@ public class AttachmentApp extends Controller {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser().id, attach.projectId,
-                attach.containerType, Operation.DELETE, attach.containerId)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), attach.getContainerAsResource(), Operation.DELETE)) {
             return forbidden();
         }
 
@@ -188,8 +187,8 @@ public class AttachmentApp extends Controller {
             List<Map<String, String>> attachments = new ArrayList<Map<String, String>>();
             for (Attachment attach : Attachment.findByContainer(Resource.valueOf(containerType),
                     Long.parseLong(containerId))) {
-                if (!AccessControl.isAllowed(UserApp.currentUser().id, attach.projectId,
-                        attach.containerType, Operation.READ, attach.containerId)) {
+                if (!AccessControl.isAllowed(UserApp.currentUser(),
+                        attach.getContainerAsResource(), Operation.READ)) {
                     return forbidden();
                 }
                 attachments.add(fileAsMap(attach));

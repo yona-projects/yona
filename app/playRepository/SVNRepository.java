@@ -5,6 +5,10 @@ import java.util.*;
 
 import javax.servlet.*;
 
+import models.Project;
+import models.enumeration.Resource;
+import models.resource.ProjectResource;
+
 import org.codehaus.jackson.node.ObjectNode;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -17,6 +21,8 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+
+import controllers.ProjectApp;
 
 import play.libs.Json;
 
@@ -35,68 +41,69 @@ public class SVNRepository implements PlayRepository {
         SVNRepository.repoPrefix = repoPrefix;
     }
 
-    private String projectName;
+    private final String projectName;
 
-    private String userName;
+    private final String ownerName;
 
     public SVNRepository(final String userName, String projectName) throws ServletException {
-        this.userName = userName;
+        this.ownerName = userName;
         this.projectName = projectName;
     }
 
-
+    @Override
     public byte[] getRawFile(String path) throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         repository.getFile(path, -1l, null, baos);
         return baos.toByteArray();
     }
 
+    @Override
     public ObjectNode findFileInfo(String path) throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
-        
+
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
-        
+
         if(nodeKind == SVNNodeKind.DIR){
             //폴더 내용 출력
             ObjectNode result = Json.newObject();
-            
+
             result.put("type", "folder");
             ObjectNode listData = Json.newObject();
-            
+
             SVNProperties prop = new SVNProperties();
-            
+
             Collection entries = repository.getDir(path, -1, prop, (Collection)null);
-            
+
             Iterator iterator = entries.iterator( );
             while ( iterator.hasNext( ) ) {
                 SVNDirEntry entry = ( SVNDirEntry ) iterator.next( );
-                
+
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
                 data.put("author", entry.getAuthor());
                 data.put("date", entry.getDate().toString());
-                
+
                 listData.put(entry.getName(), data);
             }
             result.put("data", listData);
-            
+
             return result;
-            
+
         } else if(nodeKind == SVNNodeKind.FILE) {
             //파일 내용 출력
             ObjectNode result = Json.newObject();
-            
-            
+
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             SVNProperties prop = new SVNProperties();
             repository.getFile(path, -1l, prop, baos);
-            
+
             result.put("type", "file");
-            
+
             result.put("msg", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
             result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
 
@@ -111,49 +118,49 @@ public class SVNRepository implements PlayRepository {
     @Override
     public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException,
             IOException, SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
-        
+
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
-        
+
         if(nodeKind == SVNNodeKind.DIR){
             //폴더 내용 출력
             ObjectNode result = Json.newObject();
-            
+
             result.put("type", "folder");
             ObjectNode listData = Json.newObject();
-            
+
             SVNProperties prop = new SVNProperties();
-            
+
             Collection entries = repository.getDir(path, -1, prop, (Collection)null);
-            
+
             Iterator iterator = entries.iterator( );
             while ( iterator.hasNext( ) ) {
                 SVNDirEntry entry = ( SVNDirEntry ) iterator.next( );
-                
+
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
                 data.put("author", entry.getAuthor());
                 data.put("date", entry.getDate().toString());
-                
+
                 listData.put(entry.getName(), data);
             }
             result.put("data", listData);
-            
+
             return result;
-            
+
         } else if(nodeKind == SVNNodeKind.FILE) {
             //파일 내용 출력
             ObjectNode result = Json.newObject();
-            
-            
+
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             SVNProperties prop = new SVNProperties();
             repository.getFile(path, -1l, prop, baos);
-            
+
             result.put("type", "file");
-            
+
             result.put("msg", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
             result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
 
@@ -168,20 +175,20 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public void create() throws ClientException {
-        String svnPath = new File(SVNRepository.getRepoPrefix() + userName + "/" + projectName)
+        String svnPath = new File(SVNRepository.getRepoPrefix() + ownerName + "/" + projectName)
                 .getAbsolutePath();
         new org.tigris.subversion.javahl.SVNAdmin().create(svnPath, false, false, null, "fsfs");
     }
 
     @Override
     public void delete() {
-        FileUtil.rm_rf(new File(getRepoPrefix() + userName + "/" + projectName));
+        FileUtil.rm_rf(new File(getRepoPrefix() + ownerName + "/" + projectName));
     }
 
     @Override
     public String getPatch(String commitId) throws SVNException {
         // Prepare required arguments.
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
         long rev = Integer.parseInt(commitId);
 
         // Get diffClient.
@@ -201,7 +208,7 @@ public class SVNRepository implements PlayRepository {
     public List<Commit> getHistory(int page, int limit, String until) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException {
         // Get the repository
-        SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + userName + "/" + projectName));
+        SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
 
         // path to get log
@@ -228,5 +235,24 @@ public class SVNRepository implements PlayRepository {
         return new ArrayList<String>();
     }
 
-    
+    @Override
+    public ProjectResource asResource() {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return null;
+            }
+
+            @Override
+            public Project getProject() {
+                return ProjectApp.getProject(ownerName, projectName);
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.CODE;
+            }
+
+        };
+    }
 }

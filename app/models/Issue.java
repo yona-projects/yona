@@ -10,6 +10,7 @@ import jxl.format.Border;
 import jxl.format.Alignment;
 import jxl.write.*;
 import models.enumeration.*;
+import models.resource.ProjectResource;
 import models.support.*;
 import org.joda.time.*;
 import play.data.format.*;
@@ -493,4 +494,54 @@ public class Issue extends Model {
 	public boolean isClosed() {
 	    return this.state == State.CLOSED;
 	}
+
+	public ProjectResource asResource() {
+	    return new ProjectResource() {
+	        @Override
+	        public Long getId() {
+	            return null;
+	        }
+
+	        @Override
+	        public Project getProject() {
+	            return project;
+	        }
+
+	        @Override
+	        public Resource getType() {
+	            return Resource.ISSUE_POST;
+	        }
+	    };
+	}
+
+    public ProjectResource fieldAsResource(final Resource resourceType) {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public Resource getType() {
+                return resourceType;
+            }
+        };
+    }
+
+    public ProjectResource stateAsResource() {
+        return fieldAsResource(Resource.ISSUE_STATE);
+    }
+
+    public ProjectResource milestoneAsResource() {
+        return fieldAsResource(Resource.ISSUE_MILESTONE);
+    }
+
+    public ProjectResource assigneeAsResource() {
+        return fieldAsResource(Resource.ISSUE_ASSIGNEE);
+    }
 }

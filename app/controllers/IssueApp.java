@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import play.Logger;
 
 import jxl.write.WriteException;
 
@@ -18,6 +19,7 @@ import models.IssueComment;
 import models.IssueLabel;
 import models.Project;
 import models.enumeration.Direction;
+import models.enumeration.Operation;
 import models.enumeration.Resource;
 import models.enumeration.State;
 import models.support.FinderTemplate;
@@ -58,7 +60,7 @@ public class IssueApp extends Controller {
 	@Cached(key = "issues")
     public static Result issues(String userName, String projectName, String state, String format) throws WriteException, IOException {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -119,7 +121,7 @@ public class IssueApp extends Controller {
 
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (UserApp.currentUser() == UserApp.anonymous) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -165,7 +167,7 @@ public class IssueApp extends Controller {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), targetIssue.asResource(), Operation.UPDATE)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 

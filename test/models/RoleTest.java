@@ -30,7 +30,7 @@ public class RoleTest extends ModelTest<Role> {
         // Then
         assertThat(role.id).isEqualTo(1l);
     }
-    
+
     @Test
     public void getAllProjectRoles() throws Exception {
         // Given
@@ -40,12 +40,12 @@ public class RoleTest extends ModelTest<Role> {
         assertThat(roles.contains(Role.findByName("siteManager"))).isEqualTo(false);
         assertThat(roles.contains(Role.findByName("manager"))).isEqualTo(true);
     }
-    
+
     @Test
     public void findRoleByIds() throws Exception {
         // Given
         // When
-        Role role = Role.findRoleByIds(1l, 1l);
+        Role role = Role.findRoleByIds(2l, 1l);
 
         // Then
         assertThat(role).isNotNull();
