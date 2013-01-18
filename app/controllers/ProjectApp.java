@@ -39,7 +39,7 @@ public class ProjectApp extends Controller {
         return Project.findByNameAndOwner(userName, projectName);
     }
 
-    @Cached(key = "project")
+//    @Cached(key = "project")
     public static Result project(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(session().get("userId"), project)) {
