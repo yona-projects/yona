@@ -60,7 +60,7 @@
                 title: "Invalid email",
                 content: "@Messages("validation.invalidEmail")"
             }
-        }
+        };
 
         // Bootstrap popover function has some limitation.
         // In this case, popover doesn't provide easy way to change title and contents.
@@ -99,8 +99,7 @@
         $("#email").focusout(function(){
             if ($(this).val() !== "") isExist($(this), "/user/isEmailExist/");
         });
-    </script>
-    <script type="text/javascript">
+
         var validator = new FormValidator('signup', [{
             name: 'loginId',
             rules: 'required'
@@ -117,7 +116,6 @@
             name: 'retypedPassword',
             rules: 'required|matches[password]'
         }], function(errors, event){
-            console.log(errors[0]);
           if( errors.length > 0 ){
             switch(errors[0].id){
                 case "retypedPassword" :
@@ -139,7 +137,6 @@
             if(passwordField.popover !== undefined) passwordField.popover('hide');
             if(emailField.popover !== undefined) emailField.popover('hide');
             if(loginIdField.popover !== undefined) loginIdField.popover('hide');
-            validator._validateForm();
           }
         });
         $('#retypedPassword').focusout(function(){

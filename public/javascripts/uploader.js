@@ -160,8 +160,8 @@ var fileUploader = function (target, textarea, action) {
       setProgressBar(100);
     },
 
-    error: function(responseBody, statusText, xhr) {
-      notification.text('Failed to upload.');
+    error: function(response) {
+      notification.text('Failed to upload: ' + response.status + ' ' + response.statusText);
       _replaceFileInputControl();
       setProgressBar(0);
     },
