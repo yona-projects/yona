@@ -34,11 +34,15 @@
     <script src="@getJSLink("validate")" type="text/javascript"></script>
     <script src="@getJSLink("jquery.zclip.min")" type="text/javascript"></script>
     <script src="@getJSLink("uploader")" type="text/javascript"></script>
+    <script src="@getJSLink("jquery.placeholder.min")" type="text/javascript"></script>
     <script src="@routes.Application.jsMessages()" type="text/javascript"></script>
 </head>
 
 <body class="@thema">
 @content
-<script src="http://platform.twitter.com/widgets.js" type="text/javascript"></script>
+    <script src="http://platform.twitter.com/widgets.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $('input, textarea').placeholder();
+    </script>
 </body>
 </html>
