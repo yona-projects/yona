@@ -8,9 +8,9 @@ import org.codehaus.jackson.JsonNode;
 import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class LineTest {
-    @Test
+	
+	@Ignore
     public void toJson() throws Exception {
         running(fakeApplication(), new Runnable() {
             @Override
