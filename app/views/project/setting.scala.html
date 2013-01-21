@@ -41,7 +41,7 @@
                         </div>
                     </div>
                     <label for="project-name">
-                        @inputText(projectForm("name"), 'class->"text", 'placeholder->"프로젝트 이름을 입력해주세요.")
+                        @inputText(projectForm("name"), 'class->"text", 'placeholder->"프로젝트 이름을 입력해주세요.", 'maxlength -> "250")
                     </label>
                     <label for="project-desc">
                         @textarea(projectForm("overview"), 'placeholder->"프로젝트 설명을 입력해주세요.", 'class->"textarea")

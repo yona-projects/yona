@@ -16,7 +16,7 @@
         </div>
       </div>
       <label for="title">
-        @helper.inputText(form("title"), 'class->"text title", 'placeholder->"제목을 입력해주세요.")
+        @helper.inputText(form("title"), 'class->"text title", 'placeholder -> Messages("post.new.title"), 'maxlength -> "250")
       </label>
       <label for="content">
         @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content")

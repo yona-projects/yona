@@ -32,7 +32,8 @@
             '_label -> null,
             'class -> "title",
             'placeholder -> Messages("post.new.title"),
-            'onkeypress -> "return event.keyCode !== 13"
+            'onkeypress -> "return event.keyCode !== 13",
+            'maxlength -> "250"
             )
         @textarea(
             issueForm("body"),
