@@ -23,8 +23,8 @@ public class ModelTest<T> {
 
     @SuppressWarnings("unchecked")
     public ModelTest() {
-        this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
-                .getActualTypeArguments()[0];
+//        this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
+//                .getActualTypeArguments()[0];
 //        ebeanUiUtil = new EbeanUtil<T>(type);
     }
 
