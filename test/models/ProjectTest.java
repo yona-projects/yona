@@ -88,7 +88,7 @@ public class ProjectTest extends ModelTest<Project> {
       
     }
     
-    @Ignore @Test
+    @Ignore 
     public void isOnlyManager() throws Exception {
         // Given
         // When
