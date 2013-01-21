@@ -39,7 +39,6 @@ public class UserTest extends ModelTest<User> {
 	    assertThat(name).isEqualTo("Hobi");
     }
 	
-
     // FIXME after finding travis out of memory error
 	@Ignore
     public void options() throws Exception {
