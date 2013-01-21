@@ -1,6 +1,10 @@
 import sbt._
 import Keys._
-import play.Project._
+import play.Project.javaCore
+import play.Project.javaJdbc
+import play.Project.javaEbean
+import play.Project.templatesImport
+import play.Project.lessEntryPoints
 
 object ApplicationBuild extends Build {
 
@@ -45,14 +49,18 @@ object ApplicationBuild extends Build {
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
       resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo-snapshots/",
       templatesImport += "models.enumeration._",
-      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "nforge.less")
+      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "nforge.less"),
         //      jacoco.settings:_*,
+      fork in Test := false,  
+      parallelExecution in Test := false
 //      Play2WarKeys.servletVersion := "3.0"
       // Or Play2WarKeys.servletVersion := "2.5"
     )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     projectSettings: _*
+    // fork in Test := true
+    // 
     // Add your own project settings here      
   )
 
