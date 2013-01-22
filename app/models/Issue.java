@@ -70,8 +70,6 @@ public class Issue extends Model {
     public String authorLoginId;
     public String authorName;
     public State state;
-    @OneToMany
-    public List<IssueDetail> issueDetails;
 
     @ManyToOne
     public Project project;
@@ -479,13 +477,6 @@ public class Issue extends Model {
         issue.numOfComments = issue.comments.size();
         issue.update();
     }
-
-	public void addIssueDetails(IssueDetail issueDetail) {
-		if(this.issueDetails == null) {
-			this.issueDetails = new ArrayList<IssueDetail>();
-		}
-		this.issueDetails.add(issueDetail);
-	}
 
 	public boolean isOpen() {
 	    return this.state == State.OPEN;
