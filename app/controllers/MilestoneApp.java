@@ -37,6 +37,10 @@ public class MilestoneApp extends Controller {
                 State.getValue(mCondition.state),
                 mCondition.sort,
                 Direction.getValue(mCondition.direction));
+
+        for(Milestone milestone: milestones) {
+            milestone.updateIssueInfo();
+        }
         return ok(list.render("title.milestoneList", milestones, project, mCondition));
     }
 
