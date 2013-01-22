@@ -48,14 +48,14 @@ nforge.project.nameCheck = function() {
 	var that = {
 		init : function() {
 			$("#save").click(function() {
-				var reg_name = /^[a-zA-Z0-9_]+$/;
+				var reg_name = /^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$/;
 				if(!reg_name.test($("input#project-name").val())) {
-		      $("#alert_msg").show();
-		      return false;
-			  } else {
-			    $("#alert_msg").hide();
+		            $("#alert_msg").show();
+		            return false;
+			    } else {
+			        $("#alert_msg").hide();
 					return true;
-			  }
+			    }
 			});
 		}
 	};

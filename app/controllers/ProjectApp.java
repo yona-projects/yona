@@ -87,6 +87,7 @@ public class ProjectApp extends Controller {
             return badRequest(newProject.render("title.newProject",
                     filledNewProjectForm));
         } else if (filledNewProjectForm.hasErrors()) {
+            System.out.println("=====" + filledNewProjectForm.errorsAsJson());
             filledNewProjectForm.reject("name");
             flash(Constants.WARNING, "project.name.alert");
             return badRequest(newProject.render("title.newProject",
