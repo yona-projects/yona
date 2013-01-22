@@ -131,13 +131,14 @@ nforge.issue.label = function () {
     setEvent: function() {
       $('#custom-label button.issue-label').click(function(e) {
         var color, contrasted, selectors;
+        var target = $(e.target || e.srcElement || e.originalTarget);
 
         // Set clicked button active.
         $('#custom-label button.issue-label').removeClass('active');
-        $(e.srcElement).addClass('active');
+        target.addClass('active');
 
         // Get the selected color.
-        color = $(e.srcElement).css('background-color');
+        color = target.css('background-color');
 
         // Fill the color input area with the hexadecimal value of
         // the selected color.
@@ -177,7 +178,8 @@ nforge.issue.label = function () {
       });
 
       $('#custom-label-color').keyup(function(e) {
-        var color = $(e.srcElement).val();
+        var target = $(e.target || e.srcElement || e.originalTarget);
+        var color = target.val();
         if (new RGBColor(color).ok) {
           that.updateSelectedColor(color);
         }
@@ -338,7 +340,8 @@ nforge.issue.list = function() {
 
       $('#advanced-search-form').css('display', 'none');
       $('#advanced-search').click(function(e) {
-        if ($(e.srcElement).hasClass('active')) {
+        var target = $(e.target || e.srcElement || e.originalTarget);
+        if (target.hasClass('active')) {
           $('#advanced-search-form').css('display', 'none');
         } else {
           $('#advanced-search-form').css('display', '');
@@ -346,8 +349,9 @@ nforge.issue.list = function() {
       });
 
       $('.properties div.controls button').click(function(e) {
-        if ($(e.srcElement).hasClass('active')) {
-          $(e.srcElement).removeClass('active');
+        var target = $(e.target || e.srcElement || e.originalTarget);
+        if (target.hasClass('active')) {
+          target.removeClass('active');
           return false;
         }
       });
