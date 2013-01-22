@@ -57,9 +57,9 @@ public class IssueApp extends Controller {
      * @throws IOException
      * @throws WriteException
      */
-	@Cached(key = "issues")
     public static Result issues(String userName, String projectName, String state, String format) throws WriteException, IOException {
         Project project = ProjectApp.getProject(userName, projectName);
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
@@ -102,7 +102,6 @@ public class IssueApp extends Controller {
         return ok(excelFile);
     }
 
-    @Cached(key = "issue")
     public static Result issue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.findById(issueId);
