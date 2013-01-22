@@ -205,7 +205,7 @@ public class ProjectApp extends Controller {
         Project project = getProject(userName, projectName);
         if (UserApp.currentUser().id == userId
                 || ProjectUser.isManager(UserApp.currentUser().id, project.id)) {
-            if (project.owner.equals((UserApp.currentUser().name).toLowerCase())) {
+            if (project.owner.equals((User.find.byId(userId).name).toLowerCase())) {
                 flash(Constants.WARNING, "project.member.ownerCannotLeave");
                 return redirect(routes.ProjectApp.members(userName, projectName));
             }
