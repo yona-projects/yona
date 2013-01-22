@@ -5,13 +5,6 @@
 @home(title, utils.MenuType.NEW_PROJECT){
     <div class="page">
         <div class="form-wrap new-project">
-            <div class="bread-crumb-wrap">
-                <div class="bread-crumb">
-                    <a href="/"><i class="ico ico-home"></i></a>
-                    <i class="ico ico-location-arrow"></i>
-                    <span>new project</span>
-                </div>
-            </div>
             <form action="@routes.ProjectApp.newProject()" method="post" name="newproject">
                 <label for="name">
                     <input id="project-name" type="text" name="name" class="text" placeholder="새 프로젝트 이름을 입력해주세요. (프로젝트 이름은 영문으로 공백없이 작성해 주세요)" maxlength="250">
