@@ -146,6 +146,8 @@ public class Milestone extends Model {
         this.contents = newMilestone.contents;
         this.title = newMilestone.title;
         this.dueDate = newMilestone.dueDate;
+        this.state = newMilestone.state;
+        save();
     }
 
     /**
