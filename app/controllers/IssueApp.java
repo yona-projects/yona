@@ -159,7 +159,7 @@ public class IssueApp extends Controller {
             Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.ALL.state(), "html"));
+                State.OPEN.state(), "html"));
     }
 
     public static Result editIssueForm(String userName, String projectName, Long id) {
@@ -207,7 +207,7 @@ public class IssueApp extends Controller {
         // Attach the files in the current user's temporary storage.
         Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);
 
-        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.ALL.name(), "html"));
+        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.OPEN.name(), "html"));
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
@@ -216,7 +216,7 @@ public class IssueApp extends Controller {
         Issue.delete(issueId);
         Attachment.deleteAll(Resource.ISSUE_POST, issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.ALL.state(), "html"));
+                State.OPEN.state(), "html"));
     }
 
     public static Result newComment(String userName, String projectName, Long issueId) throws IOException {
