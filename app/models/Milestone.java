@@ -35,11 +35,6 @@ public class Milestone extends Model {
     @Constraints.Required
     public State state;
 
-    public int numClosedIssues;
-    public int numOpenIssues;
-    public int numTotalIssues;
-    public int completionRate;
-
     @ManyToOne
     public Project project;
 
@@ -47,18 +42,20 @@ public class Milestone extends Model {
         milestone.save();
     }
 
-    public static void update(Milestone milestone, Long id) {
-        int completionRate = 0;
-        if (milestone.numTotalIssues != 0) {
-            completionRate =
-                    calculateCompletionRate(milestone.numTotalIssues, milestone.numClosedIssues);
-        }
-        milestone.completionRate = completionRate;
-        milestone.update(id);
+    public int getNumClosedIssues() {
+        return Issue.finder.where().eq("milestoneId", this.id).eq("state", State.CLOSED).findRowCount();
     }
 
-    private static int calculateCompletionRate(int numTotalIssues, int numClosedIssues) {
-        return new Double(((double) numClosedIssues / (double) numTotalIssues) * 100).intValue();
+    public int getNumOpenIssues() {
+        return Issue.finder.where().eq("milestoneId", this.id).eq("state", State.OPEN).findRowCount();
+    }
+
+    public int getNumTotalIssues() {
+        return Issue.findByMilestoneId(this.id).size();
+    }
+
+    public int getCompletionRate() {
+        return new Double(((double) getNumClosedIssues() / (double) getNumTotalIssues()) * 100).intValue();
     }
 
     public static void delete(Milestone milestone) {
@@ -162,55 +159,5 @@ public class Milestone extends Model {
             options.put(milestone.id.toString(), milestone.title);
         }
         return options;
-    }
-
-    public void add(Issue issue) {
-        findIssuesNUpdateTotalCount();
-        checkIssueState(issue, 1);
-        this._save();
-    }
-
-    public void updateIssueInfo() {
-        List<Issue> issues = findIssuesNUpdateTotalCount();
-
-        this.numOpenIssues = 0;
-        this.numClosedIssues = 0;
-
-        for (Issue issue : issues) {
-            checkIssueState(issue, 1);
-        }
-
-        this.completionRate = calculateCompletionRate(this.numTotalIssues, this.numClosedIssues);
-        update(this.id);
-    }
-
-    public void delete(Issue issue) {
-        this.numTotalIssues -= 1;
-        checkIssueState(issue, -1);
-        this._save();
-    }
-
-    private void checkIssueState(Issue issue, int count) {
-        if (issue.isOpen()) {
-            this.numOpenIssues += count;
-        } else {
-            this.numClosedIssues += count;
-        }
-    }
-
-    private void _save() {
-        this.completionRate = calculateCompletionRate(this.numTotalIssues, this.numClosedIssues);
-        this.save();
-    }
-
-    /**
-     * 마일스톤에 연결된 이슈들을 찾아주며 해당 마일스톤에 할당된 이슈의 총 갯수를 update 해준다.
-     *
-     * @return
-     */
-    private List<Issue> findIssuesNUpdateTotalCount() {
-        List<Issue> issues = Issue.findByMilestoneId(this.id);
-        this.numTotalIssues = issues.size();
-        return issues;
     }
 }

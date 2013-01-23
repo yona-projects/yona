@@ -196,10 +196,6 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
-        if (issue.milestoneId != null) {
-            Milestone milestone = Milestone.findById(issue.milestoneId);
-            milestone.add(issue);
-        }
         return issue.id;
     }
 
@@ -210,10 +206,6 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = finder.byId(id);
-        if (issue.milestoneId != null && !issue.milestoneId.equals(0l)) {
-            Milestone milestone = Milestone.findById(issue.milestoneId);
-            milestone.delete(issue);
-        }
         issue.delete();
     }
 

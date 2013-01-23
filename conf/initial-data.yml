@@ -293,10 +293,6 @@ milestones:
         dueDate:         2012-07-12 10:59:59
         contents:        nFORGE 첫번째 버전.
         state:      OPEN
-        numClosedIssues: 2
-        numOpenIssues:   2
-        numTotalIssues:  4
-        completionRate:  50
         project:         !!models.Project
                              id: 1
     - !!models.Milestone
@@ -304,10 +300,6 @@ milestones:
         dueDate:         2012-07-19 10:59:59
         contents:        nFORGE 두번째 버전 (Stable).
         state:      OPEN
-        numClosedIssues: 2
-        numOpenIssues:   1
-        numTotalIssues:  3
-        completionRate:  66
         project:         !!models.Project
                              id: 1
     - !!models.Milestone
@@ -315,10 +307,6 @@ milestones:
         dueDate:         2011-08-10 10:59:59
         contents:        Jindo 안정화 버전
         state:      CLOSED
-        numClosedIssues: 2
-        numOpenIssues:   0
-        numTotalIssues:  2
-        completionRate:  100
         project:         !!models.Project
                              id: 2
     - !!models.Milestone
@@ -326,10 +314,6 @@ milestones:
         dueDate:         2012-04-11 10:59:59
         contents:        Jindo2
         state:      OPEN
-        numClosedIssues: 0
-        numOpenIssues:   3
-        numTotalIssues:  3
-        completionRate:  0
         project:         !!models.Project
                              id: 2
     - !!models.Milestone
@@ -337,10 +321,6 @@ milestones:
         dueDate:         2012-12-31 10:59:59
         contents:        CUBRID v.0.1
         state:      OPEN
-        numClosedIssues: 1
-        numOpenIssues:   1
-        numTotalIssues:  2
-        completionRate:  50
         project:         !!models.Project
                              id: 3
     - !!models.Milestone
@@ -348,10 +328,6 @@ milestones:
         dueDate:         2013-11-09 10:59:59
         contents:        CUBRID v.0.2
         state:      CLOSED
-        numClosedIssues: 1
-        numOpenIssues:   0
-        numTotalIssues:  1
-        completionRate:  100
         project:         !!models.Project
                              id: 3
 

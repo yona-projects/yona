@@ -38,9 +38,6 @@ public class MilestoneApp extends Controller {
                 mCondition.sort,
                 Direction.getValue(mCondition.direction));
 
-        for(Milestone milestone: milestones) {
-            milestone.updateIssueInfo();
-        }
         return ok(list.render("title.milestoneList", milestones, project, mCondition));
     }
 
@@ -105,7 +102,6 @@ public class MilestoneApp extends Controller {
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());
-            Milestone.update(existingMilestone, milestoneId);
             return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
         }
     }
