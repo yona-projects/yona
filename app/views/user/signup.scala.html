@@ -41,38 +41,33 @@
         var passwordPlaceholder = passwordField.attr("placeholder");
         var errorMessage = {
             required: {
-                title: "Required",
-                content: "@Messages("validation.required")"
+                title: "@Messages("validation.required")"
             },
             duplicated: {
-                title: "Duplicated",
-                content: "@Messages("validation.duplicated")"
+                title: "@Messages("validation.duplicated")"
             },
             passwordMismatch: {
-                title: "Password confirmation",
-                content: "@Messages("validation.passwordMismatch")"
+                title: "@Messages("validation.passwordMismatch")"
             },
             tooShortPassword: {
-                title: "Too short password",
-                content: "@Messages("validation.tooShortPassword")"
+                title: "@Messages("validation.tooShortPassword")"
             },
             invalidEmail: {
-                title: "Invalid email",
-                content: "@Messages("validation.invalidEmail")"
+                title: "@Messages("validation.invalidEmail")"
             }
         };
 
-        // Bootstrap popover function has some limitation.
-        // In this case, popover doesn't provide easy way to change title and contents.
+        // Bootstrap tooltip function has some limitation.
+        // In this case, tooltip doesn't provide easy way to change title and contents.
         // So, unfortunately I had to change data value in directly.
         var showErrorMessage = function(field, errorMessage){
-                field.popover({trigger:'manual', placement: 'left'});
-                var popover = field.data('popover');
-                popover.options.title = errorMessage.title;
-                popover.options.content = errorMessage.content;
-                popover.options.placement = 'left';
-                popover.options.trigger = 'manual';
-                field.popover('show');
+                field.tooltip({trigger:'manual', placement: 'left'});
+                var tooltip = field.data('tooltip');
+                tooltip.options.title = errorMessage.title;
+                tooltip.options.content = errorMessage.content;
+                tooltip.options.placement = 'left';
+                tooltip.options.trigger = 'manual';
+                field.tooltip('show');
         }
         var isExist = function(checkId, url){
             var checkPosition = checkId.next(".isValid");
@@ -83,13 +78,12 @@
             ).done(function(data){
                 if(data.isExist === true){
                     showErrorMessage(checkId, errorMessage.duplicated);
-                    checkPosition.removeClass("label label-success").addClass("label label-important");
-                    checkPosition.html("x");
-                    checkId.popover("show");
+                    checkId.tooltip("show");
                 } else {
-                    checkPosition.removeClass("label label-important").addClass("label label-success");
-                    checkPosition.html("V");
-                    checkId.popover("hide");
+                    checkId.tooltip("hide");
+                    try{
+                        checkId.tooltip("destory");
+                    } catch(err){} // to avoid boostrap bug
                 }
             });
         };
@@ -134,9 +128,11 @@
                     break;
             }
           } else {
-            if(passwordField.popover !== undefined) passwordField.popover('hide');
-            if(emailField.popover !== undefined) emailField.popover('hide');
-            if(loginIdField.popover !== undefined) loginIdField.popover('hide');
+            try{
+                passwordField.tooltip('destory');
+                emailField.tooltip('destory');
+                loginIdField.tooltip('destory');
+            } catch(err){} // to avoid boostrap bug
           }
         });
         $('#retypedPassword').focusout(function(){
