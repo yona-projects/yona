@@ -28,7 +28,8 @@
            '_label-> null,
            'class -> "title",
            'onkeypress -> "return event.keyCode !== 13",
-           'maxlength -> "250"
+           'maxlength -> "250",
+           'tabindex -> 1
            )
         @textarea(
            issueForm("body"),
@@ -36,7 +37,9 @@
            '_label-> null,
            'rows -> 16,
            'markdown -> true,
-           'class -> "textbody")
+           'class -> "textbody",
+           'tabindex -> 2
+           )
         <div id="upload" resourceType=@Resource.ISSUE_POST resourceId=@issue.id></div>
     </fieldset>
 

@@ -30,7 +30,8 @@
             'class -> "title",
             'placeholder -> Messages("post.new.title"),
             'onkeypress -> "return event.keyCode !== 13",
-            'maxlength -> "250"
+            'maxlength -> "250",
+            'tabindex -> 1
             )
         @textarea(
             issueForm("body"),
@@ -38,7 +39,9 @@
             '_label -> null,
             'rows -> 16,
             'class -> "textbody",
-            'markdown -> true)
+            'markdown -> true,
+            'tabindex -> 2
+            )
         @if(UserApp.currentUser() != UserApp.anonymous) {
         <div id="upload" resourceType=@Resource.ISSUE_POST></div>
         }

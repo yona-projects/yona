@@ -17,10 +17,10 @@
         </div>
       </div>
       <label for="title">
-        @helper.inputText(form("title"), 'class->"text title", 'placeholder -> Messages("post.new.title"), 'maxlength -> "250")
+        @helper.inputText(form("title"), 'class->"text title", 'placeholder -> Messages("post.new.title"), 'maxlength -> "250", 'tabindex -> 1)
       </label>
       <label for="content">
-        @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content")
+        @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
         <div id="upload" resourceType=@Resource.BOARD_POST resourceId=@postId></div>
       </label>
       <!--
