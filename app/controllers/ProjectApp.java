@@ -110,7 +110,7 @@ public class ProjectApp extends Controller {
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
 
-        if(!ProjectUser.isManager(UserApp.currentUser().id, project.id)){
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
             return redirect(routes.ProjectApp.settingForm(userName, project.name));
         }
@@ -165,7 +165,8 @@ public class ProjectApp extends Controller {
 
     public static Result deleteProject(String userName, String projectName) throws Exception {
         Project project = getProject(userName, projectName);
-        if (ProjectUser.isManager(UserApp.currentUser().id, project.id)) {
+
+        if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(userName, projectName, project.vcs);
             Project.delete(project.id);
             return redirect(routes.Application.index());
@@ -186,7 +187,8 @@ public class ProjectApp extends Controller {
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         Project project = getProject(userName, projectName);
-        if (!ProjectUser.isManager(UserApp.currentUser().id, project.id)){
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
             return redirect(routes.ProjectApp.members(userName, projectName));
         } else if (user == null) {
@@ -204,7 +206,7 @@ public class ProjectApp extends Controller {
             Long userId) {
         Project project = getProject(userName, projectName);
         if (UserApp.currentUser().id == userId
-                || ProjectUser.isManager(UserApp.currentUser().id, project.id)) {
+                || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.owner.equals((User.find.byId(userId).name).toLowerCase())) {
                 flash(Constants.WARNING, "project.member.ownerCannotLeave");
                 return redirect(routes.ProjectApp.members(userName, projectName));
@@ -221,14 +223,14 @@ public class ProjectApp extends Controller {
     }
 
     public static Result editMember(String userName, String projectName, Long userId) {
-        Long projectId = getProject(userName, projectName).id;
-        if(ProjectUser.isManager(UserApp.currentUser().id, projectId)){
-            ProjectUser.assignRole(userId, projectId, form(Role.class)
+        Project project = getProject(userName, projectName);
+        if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            ProjectUser.assignRole(userId, project.id, form(Role.class)
                     .bindFromRequest().get().id);
-            if(ProjectUser.checkOneMangerPerOneProject(projectId)){
+            if(ProjectUser.checkOneMangerPerOneProject(project.id)){
                 return redirect(routes.ProjectApp.members(userName, projectName));
             } else {
-                ProjectUser.assignRole(userId, projectId, RoleType.MANAGER);
+                ProjectUser.assignRole(userId, project.id, RoleType.MANAGER);
                 flash(Constants.WARNING, "project.member.isManager");
                 return redirect(routes.ProjectApp.members(userName, projectName));
             }
