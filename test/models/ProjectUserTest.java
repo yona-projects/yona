@@ -45,14 +45,14 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         assertThat(ProjectUser.findByIds(2l, 3l).role.id).isEqualTo(2l);
     }
     
-    @Ignore @Test
+    @Test
     public void isManager() throws Exception {
         // Given
         ProjectUser.assignRole(2l, 3l, 1l);
         flush();
         // When
         // Then
-        assertThat(ProjectUser.checkOneMangerPerOneProject(1l)).isEqualTo(false);
+        assertThat(ProjectUser.checkOneMangerPerOneProject(1l)).isEqualTo(true);
         assertThat(ProjectUser.checkOneMangerPerOneProject(3l)).isEqualTo(true);
     }
     
