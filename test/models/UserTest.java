@@ -39,8 +39,7 @@ public class UserTest extends ModelTest<User> {
 	    assertThat(name).isEqualTo("Hobi");
     }
 	
-    // FIXME after finding travis out of memory error
-	@Ignore
+	@Test
     public void options() throws Exception {
         // Given
         // When
@@ -88,8 +87,7 @@ public class UserTest extends ModelTest<User> {
         assertThat(users.size()).isEqualTo(2);
     }
 	
-    // FIXME after finding travis out of memory error
-	@Ignore
+	@Test
 	public void isLoginId() throws Exception {
 	    // Given
 	    String existingId = "hobi";
