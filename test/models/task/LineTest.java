@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class LineTest {
 	
-	@Ignore
+	@Test
     public void toJson() throws Exception {
         running(fakeApplication(), new Runnable() {
             @Override
