@@ -20,8 +20,9 @@ import views.html.index;
 
 public class Application extends Controller {
 
-//	@Cached(key = "index")
     public static Result index() {  
+//    	changeLang("ko");
+    	
     	UserApp.isRememberMe();
     	
         if (session().containsKey(UserApp.SESSION_LOGINID)) {        	

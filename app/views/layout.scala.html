@@ -1,4 +1,4 @@
-@(title: String)(thema:String)(content: Html)
+@(title: String)(thema:String)(content: Html)(implicit lang:Lang)
 @import utils.TemplateHelper._
 <!DOCTYPE html>
 
@@ -44,5 +44,6 @@
     <script type="text/javascript">
         $('input, textarea').placeholder();
     </script>
+@debug()    
 </body>
 </html>
