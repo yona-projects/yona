@@ -62,7 +62,6 @@ public class PostTest extends ModelTest<Post> {
         // Given
         // When
         Post.delete(1l);
-//        flush();
         // Then
         assertThat(Post.findById(1l)).isNull();
         assertThat(Comment.findById(1l)).isNull();
@@ -76,7 +75,6 @@ public class PostTest extends ModelTest<Post> {
         post.id = 1l;
         // When
         Post.edit(post);
-//        flush();
         // Then
         Post actual = Post.findById(1l);
         assertThat(actual.contents).isEqualTo("수정되었습니다.");

@@ -42,8 +42,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(actualProject.siteurl).isEqualTo("http://localhost:9000/prj_test");
     }
     
-    // FIXME after finding travis out of memory error
-    @Ignore
+    @Test
     public void findMilestonesById() throws Exception {
         // Given
         // When
@@ -88,7 +87,7 @@ public class ProjectTest extends ModelTest<Project> {
       
     }
     
-    @Ignore 
+    @Test
     public void isOnlyManager() throws Exception {
         // Given
         // When
