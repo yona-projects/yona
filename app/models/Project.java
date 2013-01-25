@@ -1,9 +1,7 @@
 package models;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -12,6 +10,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.servlet.ServletException;
 
+import com.avaje.ebean.Ebean;
 import models.enumeration.RoleType;
 import models.task.TaskBoard;
 
@@ -19,7 +18,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 
-import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import playRepository.Commit;
@@ -39,6 +37,11 @@ public class Project extends Model {
 	private static final long serialVersionUID = 1L;
 	public static Finder<Long, Project> find = new Finder<Long, Project>(
 			Long.class, Project.class);
+
+    public static Comparator sortByNameWithIgnoreCase = new SortByNameWithIgnoreCase();
+    public static Comparator sortByNameWithIgnoreCaseDesc = new SortByNameWithIgnoreCaseDesc();
+    public static Comparator sortByDate = new SortByDate();
+    public static Comparator sortByDateDesc = new SortByDateDesc();
 
 	@Id
 	public Long id;
@@ -75,7 +78,8 @@ public class Project extends Model {
 
 	public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;
-		newProject.save();
+        newProject.date = new Date();
+        newProject.save();
 		ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id,
 				RoleType.SITEMANAGER);
 		return newProject.id;
@@ -151,14 +155,46 @@ public class Project extends Model {
 	/**
 	 * 해당 유저가 속해있는 프로젝트들의 리스트를 제공합니다.
 	 * 
-	 * @param ownerId
+	 * @param userId
 	 * @return
 	 */
 	public static List<Project> findProjectsByMember(Long userId) {
-		return find.where().eq("projectUser.user.id", userId).findList();
+        return find.where().eq("projectUser.user.id", userId).findList();
 	}
 
-	public static Page<Project> projects(int pageNum) {
+    /**
+     * 해당 유저가 속해있는 프로젝트들의 리스트를 필터를 적용해서 보여준다.
+     *
+     * @param userId
+     * @param  orderString 오름차순/내림차순 등 필터로 사용할 스트링
+     * @return
+     */
+    public static List<Project> findProjectsByMemberWithFilter(Long userId, String orderString) {
+        List<Project> userProjectList = find.where().eq("projectUser.user.id", userId).findList();
+        if( orderString == null ){
+            return userProjectList;
+        }
+
+        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
+        Collections.sort(filteredList, determineComparator(orderString));
+        return filteredList;
+    }
+
+    private static Comparator determineComparator(String orderString) {  //TODO: Some ugly coding...
+        if( orderString.contains("name desc")){
+            return sortByNameWithIgnoreCaseDesc;
+        } else if ( orderString.contains("name") ) {
+            return sortByNameWithIgnoreCase;
+        } else if ( orderString.contains("date desc") ){
+            return sortByDateDesc;
+        } else if ( orderString.contains("date") ){
+            return sortByDate;
+        } else {  // TODO: another sorting case doesn't exist in this moment
+            throw new UnsupportedOperationException("unsupported sorting type");
+        }
+    }
+
+    public static Page<Project> projects(int pageNum) {
 		return find.findPagingList(25).getPage(pageNum);
 	}
 
@@ -209,4 +245,30 @@ public class Project extends Model {
 			return null;
 		}
 	}
+
+    public static class SortByNameWithIgnoreCase implements Comparator<Object> {
+        public int compare(Object o1, Object o2) {
+            Project s1 = (Project) o1;
+            Project s2 = (Project) o2;
+            return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+        }
+    }
+    public static class SortByNameWithIgnoreCaseDesc implements Comparator<Object> {
+        public int compare(Object o1, Object o2) {
+            return -sortByNameWithIgnoreCase.compare(o1, o2);
+        }
+    }
+
+    public static class SortByDate implements Comparator<Object> {
+        public int compare(Object o1, Object o2) {
+            Project s1 = (Project) o1;
+            Project s2 = (Project) o2;
+            return s1.date.compareTo(s2.date);
+        }
+    }
+    public static class SortByDateDesc implements Comparator<Object> {
+        public int compare(Object o1, Object o2) {
+            return -sortByDate.compare(o1, o2);
+        }
+    }
 }

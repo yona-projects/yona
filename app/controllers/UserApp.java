@@ -46,7 +46,7 @@ public class UserApp extends Controller {
 
 	public static User anonymous = new User();
 
-	@Cached(key = "loginForm")
+
 	public static Result loginForm() {
 		return ok(login.render("title.login", form(User.class)));
 	}
@@ -155,7 +155,6 @@ public class UserApp extends Controller {
 		Logger.debug("remember me enabled");
 	}
 
-	@Cached(key="signupForm")
 	public static Result signupForm() {
 		return ok(signup.render("title.signup", form(User.class)));
 	}

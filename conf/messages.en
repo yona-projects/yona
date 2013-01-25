@@ -17,10 +17,15 @@ title.site.userEdit = Edit a User
 title.login = Log in
 title.logout = Log out
 title.signup = Sign Up
-title.codeHistory = Commit History
+title.forgotpassword = Forgot password?
+title.rememberMe = REMEMBER ME
+title.commitHistory = Commit History
 title.mailSetting = Mail Configuration
 title.sendMail = Send Mail
 title.siteList = Project List
+
+orderby.name = Name
+orderby.recent = Recent
 
 menu.home = Home
 menu.board = Board
@@ -45,6 +50,7 @@ label.new = New Label
 label.customColor = Custom Color
 label.category = Category
 label.name = Name
+label.add = Add
 
 order.date = Date
 order.state = State

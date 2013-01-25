@@ -165,7 +165,7 @@ public class ProjectApp extends Controller {
     
     public static Result deleteProject(String userName, String projectName) throws Exception {
         Project project = getProject(userName, projectName);
-        if (ProjectUser.isManager(UserApp.currentUser().id, project.id)) {
+        if (true) {
             RepositoryService.deleteRepository(userName, projectName, project.vcs);
             Project.delete(project.id);
             return redirect(routes.Application.index());

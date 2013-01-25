@@ -20,19 +20,20 @@ import views.html.index;
 
 public class Application extends Controller {
 
-//	@Cached(key = "index")
-    public static Result index() {  
+    public static Result index() {
     	UserApp.isRememberMe();
-    	
-        if (session().containsKey(UserApp.SESSION_LOGINID)) {        	
+
+        String orderString = request().getQueryString("order");
+
+        if (session().containsKey(UserApp.SESSION_LOGINID)) {
         	String userId = session().get("userId");
         	if(StringUtils.isNumber(userId)) {
-        		List<Project> projects = Project.findProjectsByMember(Long.parseLong(userId));
-        		return ok(index.render(projects));
+        		List<Project> projects = Project.findProjectsByMemberWithFilter(Long.parseLong(userId), orderString);
+        		return ok(index.render(projects, orderString));
         	}
         }
 
-        return ok(index.render(null));
+        return ok(index.render(null, null));
     }
 
     public static Result init() {
@@ -59,7 +60,4 @@ public class Application extends Controller {
             }
         }
     }
-
-
-
 }

@@ -17,10 +17,15 @@ title.site.userEdit = 유저 설정
 title.login = 로그인
 title.logout = 로그아웃
 title.signup = 회원 가입
+title.forgotpassword = 패스워드를 잊어버리셨나요?
+title.rememberMe = 로그인 유지하기
 title.commitHistory = 커밋 히스토리
 title.mailSetting = 메일 설정
 title.sendMail = 메일 발송
 title.projectList = 프로젝트 리스트
+
+orderby.name = 이름순
+orderby.recent = 생성일자순
 
 menu.home = 홈
 menu.board = 게시판
@@ -320,7 +325,6 @@ author = 작성자
 assignee = 담당자
 milestone = 마일스톤
 none = 없음
-
 
 #validation
 validation.tooShortPassword = 패스워드를 4자 이상으로 만들어 주세요!
