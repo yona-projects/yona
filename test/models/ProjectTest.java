@@ -42,8 +42,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(actualProject.siteurl).isEqualTo("http://localhost:9000/prj_test");
     }
     
-    // FIXME after finding travis out of memory error
-    @Ignore
+    @Test
     public void findMilestonesById() throws Exception {
         // Given
         // When
@@ -88,14 +87,14 @@ public class ProjectTest extends ModelTest<Project> {
       
     }
     
-    @Ignore 
+    @Test
     public void isOnlyManager() throws Exception {
         // Given
         // When
         List<Project> projectsHobi = Project.isOnlyManager(2l);
         List<Project> projectsEungjun = Project.isOnlyManager(5l);
         // Then
-        assertThat(projectsHobi.size()).isEqualTo(1);
+        assertThat(projectsHobi.size()).isEqualTo(0);
         assertThat(projectsEungjun.size()).isEqualTo(0);
     }
 
@@ -105,9 +104,9 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         List<Project> projects = Project.findProjectsByMember(2l);
         // Then
-        assertThat(projects.size()).isEqualTo(3);
+        assertThat(projects.size()).isEqualTo(2);
     }
-    
+
     @Test
     public void findByNameAndOwner() throws Exception {
         // Given
@@ -118,7 +117,7 @@ public class ProjectTest extends ModelTest<Project> {
         // Then
         assertThat(project.id).isEqualTo(1l);
     }
-    
+
     @Test
     public void isProject() throws Exception {
         // Given
@@ -132,7 +131,7 @@ public class ProjectTest extends ModelTest<Project> {
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
     }
-    
+
     @Test
     public void projectNameChangeable() throws Exception {
         // Given

@@ -10,6 +10,7 @@ import jxl.format.Border;
 import jxl.format.Alignment;
 import jxl.write.*;
 import models.enumeration.*;
+import models.resource.ProjectResource;
 import models.support.*;
 import org.joda.time.*;
 import play.data.format.*;
@@ -69,8 +70,6 @@ public class Issue extends Model {
     public String authorLoginId;
     public String authorName;
     public State state;
-    @OneToMany
-    public List<IssueDetail> issueDetails;
 
     @ManyToOne
     public Project project;
@@ -197,10 +196,6 @@ public class Issue extends Model {
      */
     public static Long create(Issue issue) {
         issue.save();
-        if (issue.milestoneId != null) {
-            Milestone milestone = Milestone.findById(issue.milestoneId);
-            milestone.add(issue);
-        }
         return issue.id;
     }
 
@@ -211,10 +206,6 @@ public class Issue extends Model {
      */
     public static void delete(Long id) {
         Issue issue = finder.byId(id);
-        if (issue.milestoneId != null && !issue.milestoneId.equals(0l)) {
-            Milestone milestone = Milestone.findById(issue.milestoneId);
-            milestone.delete(issue);
-        }
         issue.delete();
     }
 
@@ -479,13 +470,6 @@ public class Issue extends Model {
         issue.update();
     }
 
-	public void addIssueDetails(IssueDetail issueDetail) {
-		if(this.issueDetails == null) {
-			this.issueDetails = new ArrayList<IssueDetail>();
-		}
-		this.issueDetails.add(issueDetail);
-	}
-
 	public boolean isOpen() {
 	    return this.state == State.OPEN;
 	}
@@ -493,4 +477,54 @@ public class Issue extends Model {
 	public boolean isClosed() {
 	    return this.state == State.CLOSED;
 	}
+
+	public ProjectResource asResource() {
+	    return new ProjectResource() {
+	        @Override
+	        public Long getId() {
+	            return null;
+	        }
+
+	        @Override
+	        public Project getProject() {
+	            return project;
+	        }
+
+	        @Override
+	        public Resource getType() {
+	            return Resource.ISSUE_POST;
+	        }
+	    };
+	}
+
+    public ProjectResource fieldAsResource(final Resource resourceType) {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public Resource getType() {
+                return resourceType;
+            }
+        };
+    }
+
+    public ProjectResource stateAsResource() {
+        return fieldAsResource(Resource.ISSUE_STATE);
+    }
+
+    public ProjectResource milestoneAsResource() {
+        return fieldAsResource(Resource.ISSUE_MILESTONE);
+    }
+
+    public ProjectResource assigneeAsResource() {
+        return fieldAsResource(Resource.ISSUE_ASSIGNEE);
+    }
 }

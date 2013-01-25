@@ -3,12 +3,8 @@
 @import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 @import models.enumeration.Resource
-
-@isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
-  roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT){
-    content
-  }
-}
+@import models.enumeration.Operation
+@import utils.AccessControl._
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
@@ -32,7 +28,8 @@
            '_label-> null,
            'class -> "title",
            'onkeypress -> "return event.keyCode !== 13",
-           'maxlength -> "250"
+           'maxlength -> "250",
+           'tabindex -> 1
            )
         @textarea(
            issueForm("body"),
@@ -40,20 +37,22 @@
            '_label-> null,
            'rows -> 16,
            'markdown -> true,
-           'class -> "textbody")
+           'class -> "textbody",
+           'tabindex -> 2
+           )
         <div id="upload" resourceType=@Resource.ISSUE_POST resourceId=@issue.id></div>
     </fieldset>
 
     <!-- issue.label js module appends a label selector here. -->
     <fieldset class="labels">
-      @isVisible(models.enumeration.Resource.ISSUE_STATE) {
+      @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
             @select(
                 issueForm("state"),
                 options(State.OPEN.name -> "Open", State.CLOSED.name -> "Closed"),
                 '_label-> Messages("issue.state"),
                 '_showConstraints -> false)
             }
-      @isVisible(models.enumeration.Resource.ISSUE_ASSIGNEE) {
+      @if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
             @select(
                 issueForm("assignee.user.id"),
                 options(ProjectUser.options(project.id)),
@@ -61,7 +60,7 @@
                 '_default -> Messages("issue.new.selectDefault.assignee"),
                 '_showConstraints -> false)
             }
-      @isVisible(models.enumeration.Resource.ISSUE_MILESTONE) {
+      @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
             @select(
                 issueForm("milestoneId"),
                 options(Milestone.options(project.id)),

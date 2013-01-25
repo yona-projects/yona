@@ -6,6 +6,7 @@ import java.util.List;
 import javax.servlet.ServletException;
 
 import models.Project;
+import models.enumeration.Operation;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -14,6 +15,7 @@ import org.tmatesoft.svn.core.SVNException;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.Commit;
+import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.HttpUtil;
@@ -35,7 +37,9 @@ public class CodeHistoryApp extends Controller {
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByNameAndOwner(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        PlayRepository repository = RepositoryService.getRepository(project);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -46,8 +50,7 @@ public class CodeHistoryApp extends Controller {
         }
 
         try {
-            List<Commit> commits = RepositoryService.getRepository(project).getHistory(page,
-                    HISTORY_ITEM_LIMIT, branch);
+            List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch);
             return ok(history.render(project, commits, page, branch));
         } catch (NoHeadException e) {
             return ok(nohead.render(project));
@@ -58,7 +61,7 @@ public class CodeHistoryApp extends Controller {
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByNameAndOwner(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
         String patch = RepositoryService.getRepository(project).getPatch(commitId);

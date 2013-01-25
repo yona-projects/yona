@@ -1,5 +1,8 @@
 package models;
 
+import models.enumeration.Resource;
+import models.resource.ProjectResource;
+
 import org.joda.time.*;
 import play.data.validation.*;
 import play.db.ebean.*;
@@ -58,5 +61,24 @@ public class Comment extends Model {
 
     public static void delete(Long commentId) {
         find.byId(commentId).delete();
+    }
+
+    public ProjectResource asResource() {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return post.project;
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.BOARD_COMMENT;
+            }
+        };
     }
 }

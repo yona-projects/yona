@@ -16,14 +16,13 @@ import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.enumeration.Resource;
 import models.enumeration.RoleType;
+import models.resource.GlobalResource;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
-import play.cache.Cached;
 import play.data.format.Formats;
 import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
-import play.db.ebean.Model.Finder;
 import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
@@ -49,13 +48,13 @@ public class User extends Model {
     public String password;
     public String passwordSalt;
 
-    @Email(message = "user.wrongEmail.alert") 
+    @Email(message = "user.wrongEmail.alert")
     public String email;
 
     public String avatarUrl;
-    
+
     public boolean rememberMe;
-    
+
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date date;
 
@@ -71,7 +70,7 @@ public class User extends Model {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
         return sdf.format(this.date);
     }
-    
+
     public List<Project> myProjects(){
         return Project.findProjectsByMember(id);
     }
@@ -97,7 +96,7 @@ public class User extends Model {
 
     /**
      * 존재하는 유저인지를 검사합니다.
-     * 
+     *
      * @param loginId
      * @return
      */
@@ -116,7 +115,7 @@ public class User extends Model {
 
     /**
      * Site manager를 제외한 사이트에 가입된 유저들의 리스트를 Page 형태로 반환합니다.
-     * 
+     *
      * @param pageNum
      * @param loginId
      * @return
@@ -139,7 +138,7 @@ public class User extends Model {
 
     /**
      * 해당 프로젝트에 속하는 유저들의 리스트를 제공합니다. (Site manager는 hidden role로서 반환되지 않습니다.)
-     * 
+     *
      * @param projectId
      * @return
      */
@@ -148,7 +147,7 @@ public class User extends Model {
                 .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType())
                 .findList();
     }
-        
+
     public Long avatarId(){
         return Attachment.findByContainer(Resource.USER_AVATAR, id).get(0).id;
     }
@@ -156,5 +155,27 @@ public class User extends Model {
     public static boolean isEmailExist(String emailAddress) {
         User user = find.where().ieq("email", emailAddress).findUnique();
         return user != null;
+    }
+
+    public boolean isAnonymous() {
+        return this == UserApp.anonymous;
+    }
+
+    public GlobalResource asResource() {
+        return new GlobalResource() {
+            @Override
+            public Long getId() {
+                return null;
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.USER;
+            }
+        };
+    }
+
+    public boolean isSiteManager() {
+        return SiteAdmin.exists(this);
     }
 }

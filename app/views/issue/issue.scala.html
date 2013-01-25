@@ -2,18 +2,15 @@
 @import helper._
 @import scala.collection.mutable.Map
 @import models.enumeration.Resource
+@import models.enumeration.Operation
 @import models.Milestone
 @import java.text.SimpleDateFormat
 @import java.security.MessageDigest
 @import utils.TemplateHelper._
+@import utils.AccessControl._
 
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
-@isVisible(resource: models.enumeration.Resource)(content: => Html) = @{
-  roleCheck(session.get("userId"), project.id, resource, models.enumeration.Operation.EDIT, issue.id){
-    content
-  }
-}
 @main(Messages(title),project, utils.MenuType.ISSUE) {
 <div class="page">
 <style>
@@ -87,7 +84,7 @@
         <span class="author">@comment.authorName</span>
         <span class="date">@comment.date</span>
       </div>
-      @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.ISSUE_COMMENT, models.enumeration.Operation.EDIT, comment.id) {
+      @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
       <div class="pull-right">
         <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
       </div>
@@ -127,7 +124,7 @@
 }
 </div>
 
-@isVisible(models.enumeration.Resource.ISSUE_POST) {
+@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
 <div class="pull-left">
   <a data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
 </div>
@@ -136,7 +133,7 @@
 <div class="pull-right">
     <a class="btn" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
     <a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
-    @isVisible(models.enumeration.Resource.ISSUE_POST) {
+    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
     <a class="btn btn-primary" href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
     }
 </div>

@@ -3,6 +3,7 @@ package controllers;
 import java.util.Map;
 
 import models.Project;
+import models.enumeration.Operation;
 import models.task.Card;
 import models.task.Line;
 import models.task.TaskBoard;
@@ -22,7 +23,7 @@ import controllers.webSocket.WebSocketServer;
 public class TaskApp extends Controller {
     public static Result index(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
         return ok(taskView.render(project));
@@ -30,7 +31,7 @@ public class TaskApp extends Controller {
 
     public static Result card(String userName, String projectName, Long cardId) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -39,7 +40,7 @@ public class TaskApp extends Controller {
 
     public static Result getLabels(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
         TaskBoard taskBoard = TaskBoard.findByProject(project);
@@ -48,7 +49,7 @@ public class TaskApp extends Controller {
 
     public static Result getMember(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
         TaskBoard taskBoard = TaskBoard.findByProject(project);
@@ -58,7 +59,7 @@ public class TaskApp extends Controller {
     // TestCode 나중에 전부 웹소켓으로 바꾼다. 당연히 그걸 고려해서 짜야한다.
     public static Result cardView(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
         return ok(cardView.render(project));
@@ -100,7 +101,7 @@ public class TaskApp extends Controller {
     }
 
     // TestCode End
-    
+
     public static WebSocket<String> connect(String userName, String projectName) {
         return WebSocketServer.handelWebSocket(userName, projectName);
     }

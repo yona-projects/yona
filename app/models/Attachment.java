@@ -18,7 +18,11 @@ import javax.persistence.Id;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 
+import controllers.ProjectApp;
+
 import models.enumeration.Resource;
+import models.resource.GlobalResource;
+import models.resource.ProjectResource;
 
 import play.data.validation.*;
 
@@ -55,8 +59,8 @@ public class Attachment extends Model {
     public Long containerId;
 
     /**
-     * 모든 임시파일은 컨테이너 타입 Resource.USER 에 해당한다. 
-     * 
+     * 모든 임시파일은 컨테이너 타입 Resource.USER 에 해당한다.
+     *
      * @param userId
      * @return
      */
@@ -203,5 +207,24 @@ public class Attachment extends Model {
         for (Attachment attachment : attachments) {
             attachment.delete();
         }
+    }
+
+    public ProjectResource getContainerAsResource() {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return containerId;
+            }
+
+            @Override
+            public Project getProject() {
+                return Project.find.byId(projectId);
+            }
+
+            @Override
+            public Resource getType() {
+                return containerType;
+            }
+        };
     }
 }

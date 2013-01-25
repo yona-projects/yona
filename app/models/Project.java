@@ -11,7 +11,9 @@ import javax.persistence.OneToOne;
 import javax.servlet.ServletException;
 
 import com.avaje.ebean.Ebean;
+import models.enumeration.Resource;
 import models.enumeration.RoleType;
+import models.resource.GlobalResource;
 import models.task.TaskBoard;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -28,7 +30,7 @@ import utils.JodaDateUtil;
 import com.avaje.ebean.Page;
 
 /**
- * 
+ *
  * @author "Hwi Ahn"
  */
 
@@ -103,7 +105,7 @@ public class Project extends Model {
 	/**
 	 * 해당 프로젝트가 존재하는지 여부를 검사합니다. 해당 파라미터에 대하여 프로젝트가 존재하면 true, 존재하지 않으면 false를
 	 * 반환합니다.
-	 * 
+	 *
 	 * @param userName
 	 * @param projectName
 	 * @return
@@ -116,7 +118,7 @@ public class Project extends Model {
 
 	/**
 	 * 프로젝트 이름을 해당 이름(projectName)으로 변경이 가능한지 검사합니다.
-	 * 
+	 *
 	 * @param id
 	 * @param userName
 	 * @param projectName
@@ -132,7 +134,7 @@ public class Project extends Model {
 	/**
 	 * 해당 유저가 속해있는 프로젝트들 중에서 해당 유저가 유일한 Manager인 프로젝트가 있는지 검사하고, 있다면 그 프로젝트들의
 	 * 리스트를 반환합니다.
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 */
@@ -154,7 +156,7 @@ public class Project extends Model {
 
 	/**
 	 * 해당 유저가 속해있는 프로젝트들의 리스트를 제공합니다.
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 */
@@ -271,4 +273,20 @@ public class Project extends Model {
             return -sortByDate.compare(o1, o2);
         }
     }
+	public GlobalResource asResource() {
+	    return new GlobalResource() {
+
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.PROJECT;
+            }
+
+	    };
+	}
+
 }

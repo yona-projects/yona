@@ -6,6 +6,10 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import models.Project;
+import models.enumeration.Resource;
+import models.resource.ProjectResource;
+
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;
@@ -18,6 +22,8 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.diff.DiffEntry;
+
+import controllers.ProjectApp;
 
 import play.Logger;
 import play.libs.Json;
@@ -35,8 +41,12 @@ public class GitRepository implements PlayRepository {
     }
 
     private final Repository repository;
+    private final String ownerName;
+    private final String projectName;
 
     public GitRepository(String userName, String projectName) throws IOException {
+        this.ownerName = userName;
+        this.projectName = projectName;
         this.repository = createGitRepository(userName, projectName);
     }
 
@@ -108,7 +118,7 @@ public class GitRepository implements PlayRepository {
 
             RevCommit commit = git.log().addPath(path).call().iterator().next();
             ObjectNode result = Json.newObject();
-            
+
             result.put("type", "file");
             result.put("msg", commit.getShortMessage());
             result.put("author", commit.getAuthorIdent().getName());
@@ -168,7 +178,7 @@ public class GitRepository implements PlayRepository {
 
             RevCommit commit = git.log().addPath(path).call().iterator().next();
             ObjectNode result = Json.newObject();
-            
+
             result.put("type", "file");
             result.put("msg", commit.getShortMessage());
             result.put("author", commit.getAuthorIdent().getName());
@@ -190,7 +200,7 @@ public class GitRepository implements PlayRepository {
             NoHeadException {
         ObjectNode result = Json.newObject();
         result.put("type", "folder");
-        
+
         ObjectNode listData = Json.newObject();
 
         while (treeWalk.next()) {
@@ -284,5 +294,24 @@ public class GitRepository implements PlayRepository {
         return new ArrayList<String>(repository.getAllRefs().keySet());
     }
 
+    @Override
+    public ProjectResource asResource() {
+        return new ProjectResource() {
+            @Override
+            public Long getId() {
+                return null;
+            }
 
+            @Override
+            public Project getProject() {
+                return ProjectApp.getProject(ownerName, projectName);
+            }
+
+            @Override
+            public Resource getType() {
+                return Resource.CODE;
+            }
+
+        };
+    }
 }

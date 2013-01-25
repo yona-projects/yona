@@ -10,6 +10,7 @@ import models.Attachment;
 import models.Comment;
 import models.Post;
 import models.Project;
+import models.User;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.enumeration.Resource;
@@ -27,14 +28,14 @@ import views.html.board.newPost;
 import views.html.board.postList;
 
 public class BoardApp extends Controller {
-    
+
     //TODO 이 클래스는 원래 따로 존재해야 함.
     public static class SearchCondition{
         public final static String ORDERING_KEY_ID = "id";
         public final static String ORDERING_KEY_TITLE = "title";
         public final static String ORDERING_KEY_AGE = "date";
         public final static String ORDERING_KEY_AUTHOR = "authorName";
-        
+
         public SearchCondition() {
             this.order = Direction.DESC.direction();
             this.key = ORDERING_KEY_ID;
@@ -47,14 +48,14 @@ public class BoardApp extends Controller {
         public String filter;
         public int pageNum;
     }
-    
+
 
     public static Result posts(String userName, String projectName) {
-
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, Resource.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -68,7 +69,7 @@ public class BoardApp extends Controller {
 
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (UserApp.currentUser() == UserApp.anonymous) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -102,7 +103,7 @@ public class BoardApp extends Controller {
     public static Result post(String userName, String projectName, Long postId) {
         Post post = Post.findById(postId);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, Resource.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -152,8 +153,7 @@ public class BoardApp extends Controller {
         Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
         Project project = ProjectApp.getProject(userName, projectName);
 
-
-        if (AccessControl.isAllowed(UserApp.currentUser().id, project.id, Resource.BOARD_POST, Operation.EDIT, postId)) {
+        if (AccessControl.isAllowed(UserApp.currentUser(), existPost.asResource(), Operation.UPDATE)) {
             return ok(editPost.render("board.post.modify", editForm, postId, project));
         } else {
             flash(Constants.WARNING, "board.notAuthor");

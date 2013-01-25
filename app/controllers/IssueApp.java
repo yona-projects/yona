@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import play.Logger;
 
 import jxl.write.WriteException;
 
@@ -18,6 +19,7 @@ import models.IssueComment;
 import models.IssueLabel;
 import models.Project;
 import models.enumeration.Direction;
+import models.enumeration.Operation;
 import models.enumeration.Resource;
 import models.enumeration.State;
 import models.support.FinderTemplate;
@@ -57,7 +59,8 @@ public class IssueApp extends Controller {
      */
     public static Result issues(String userName, String projectName, String state, String format) throws WriteException, IOException {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -99,7 +102,6 @@ public class IssueApp extends Controller {
         return ok(excelFile);
     }
 
-    @Cached(key = "issue")
     public static Result issue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.findById(issueId);
@@ -118,7 +120,7 @@ public class IssueApp extends Controller {
 
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (UserApp.currentUser() == UserApp.anonymous) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -157,14 +159,14 @@ public class IssueApp extends Controller {
             Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.ALL.state(), "html"));
+                State.OPEN.state(), "html"));
     }
 
     public static Result editIssueForm(String userName, String projectName, Long id) {
         Issue targetIssue = Issue.findById(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(session().get("userId"), project)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), targetIssue.asResource(), Operation.UPDATE)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -205,7 +207,7 @@ public class IssueApp extends Controller {
         // Attach the files in the current user's temporary storage.
         Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);
 
-        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.ALL.name(), "html"));
+        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.OPEN.name(), "html"));
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
@@ -214,7 +216,7 @@ public class IssueApp extends Controller {
         Issue.delete(issueId);
         Attachment.deleteAll(Resource.ISSUE_POST, issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.ALL.state(), "html"));
+                State.OPEN.state(), "html"));
     }
 
     public static Result newComment(String userName, String projectName, Long issueId) throws IOException {

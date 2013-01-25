@@ -18,6 +18,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
+import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.BasicAuthAction;
@@ -28,7 +29,7 @@ import utils.PlayServletSession;
 
 public class SvnApp extends Controller {
     static DAVServlet davServlet;
-    
+
     @With(BasicAuthAction.class)
     @BodyParser.Of(BodyParser.Raw.class)
     public static Result serviceWithPath(String path) throws ServletException, IOException {
@@ -68,9 +69,10 @@ public class SvnApp extends Controller {
         User currentUser = UserApp.currentUser();
         // Check the user has a permission to access this repository.
         Project project = Project.findByNameAndOwner(userName, projectName);
-        
-        if (!AccessControl.isAllowed(currentUser.id, project.id,
-                Resource.CODE, getRequestedOperation(request().method()), null)) {
+
+        PlayRepository repository = RepositoryService.getRepository(project);
+        if (!AccessControl.isAllowed(currentUser, repository.asResource(),
+                getRequestedOperation(request().method()))) {
             if (currentUser.id == UserApp.anonymous.id) {
                 return BasicAuthAction.unauthorized(response());
             } else {
@@ -99,7 +101,7 @@ public class SvnApp extends Controller {
                 || DAVHandlerFactory.METHOD_REPORT.equals(method)) {
             return Operation.READ;
         } else {
-            return Operation.WRITE;
+            return Operation.UPDATE;
         }
     }
 

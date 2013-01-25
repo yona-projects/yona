@@ -8,12 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
-import play.Logger;
 import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
-import play.db.ebean.Model.Finder;
 
 @Entity
 public class Assignee extends Model {
@@ -37,7 +33,7 @@ public class Assignee extends Model {
     @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL)
     public Set<Issue> issues;
 
-    public static Finder<Long, Assignee> finder = new Finder<Long, Assignee>(Long.class,
+    public static Model.Finder<Long, Assignee> finder = new Finder<Long, Assignee>(Long.class,
             Assignee.class);
 
     public Assignee(Long userId, Long projectId) {

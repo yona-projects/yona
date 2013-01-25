@@ -28,6 +28,7 @@ public class CommentTest extends ModelTest<Comment> {
         // Then
         assertThat(Comment.findById(id)).isNotNull();
     }
+    
     @Test
     public void delete() throws Exception {
         //Given

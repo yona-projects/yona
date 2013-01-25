@@ -1,6 +1,7 @@
 @(title:String, project:Project, page:com.avaje.ebean.Page[Post], param:BoardApp.SearchCondition)
 
 @import utils.TemplateHelper._
+@import utils.AccessControl._
 
 @header(label:String, key:String) = {
   <th>
@@ -72,7 +73,7 @@
     }
   </ul>
   }
-  @roleCheck(session.get("userId"), project.id, models.enumeration.Resource.BOARD_POST, models.enumeration.Operation.WRITE){
+  @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.Resource.BOARD_POST)){
   <div class="write-btn-wrap">
     <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">WRITE</a>
   </div>
