@@ -77,7 +77,7 @@ public class Post extends Model {
             .add("project.name", projectName, Matching.EQUALS)
             .add("contents", filter, Matching.CONTAINS);
         OrderParams orderParams = new OrderParams().add(key, direction);
-        return FinderTemplate.getPage(orderParams, searchParam, finder, 10, pageNum - 1);
+        return FinderTemplate.getPage(orderParams, searchParam, finder, 10, pageNum);
     }
 
     public static Long write(Post post) {

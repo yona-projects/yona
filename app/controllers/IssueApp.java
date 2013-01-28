@@ -57,7 +57,7 @@ public class IssueApp extends Controller {
      * @throws IOException
      * @throws WriteException
      */
-    public static Result issues(String userName, String projectName, String state, String format) throws WriteException, IOException {
+    public static Result issues(String userName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -69,6 +69,7 @@ public class IssueApp extends Controller {
         OrderParams orderParams = new OrderParams().add(issueParam.sortBy,
                 Direction.getValue(issueParam.orderBy));
         issueParam.state = state;
+        issueParam.pageNum = pageNum - 1;
 
         String[] labelIds = request().queryString().get("labelIds");
         if (labelIds != null) {
@@ -76,7 +77,6 @@ public class IssueApp extends Controller {
                 issueParam.labelIds.add(Long.valueOf(labelId));
             }
         }
-
 
         if (format.equals("xls")) {
             return issuesAsExcel(issueParam, orderParams, project, state);
@@ -159,7 +159,7 @@ public class IssueApp extends Controller {
             Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.OPEN.state(), "html"));
+                State.OPEN.state(), "html", 1));
     }
 
     public static Result editIssueForm(String userName, String projectName, Long id) {
@@ -207,7 +207,7 @@ public class IssueApp extends Controller {
         // Attach the files in the current user's temporary storage.
         Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);
 
-        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.OPEN.name(), "html"));
+        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.OPEN.name(), "html", 1));
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
@@ -216,7 +216,7 @@ public class IssueApp extends Controller {
         Issue.delete(issueId);
         Attachment.deleteAll(Resource.ISSUE_POST, issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.OPEN.state(), "html"));
+                State.OPEN.state(), "html", 1));
     }
 
     public static Result newComment(String userName, String projectName, Long issueId) throws IOException {

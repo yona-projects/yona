@@ -1,7 +1,10 @@
 @(title:String, project:Project, page:com.avaje.ebean.Page[Post], param:BoardApp.SearchCondition)
 
+@play.Logger.debug("board view")
+
 @import utils.TemplateHelper._
 @import utils.AccessControl._
+@import scala.collection.immutable.Map
 
 @header(label:String, key:String) = {
   <th>
@@ -78,9 +81,15 @@
     <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">WRITE</a>
   </div>
   }
-  @pagination(page, 5, "pagination")
+  <div id="pagination">
+    <!-- pagination.js will fill here. -->
+  </div>
 </div>
+  <script src="@getJSLink("pagination")" type="text/javascript"></script>
   <script type="text/javascript">
   nforge.require('board.list');
+  $(document).ready(function() {
+    Pagination.update($('#pagination'), @page.getTotalPageCount);
+  });
   </script>
 }

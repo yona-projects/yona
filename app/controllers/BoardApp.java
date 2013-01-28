@@ -6,6 +6,8 @@ package controllers;
 
 import java.io.File;
 
+import com.avaje.ebean.Page;
+
 import models.Attachment;
 import models.Comment;
 import models.Post;
@@ -50,21 +52,19 @@ public class BoardApp extends Controller {
     }
 
 
-    public static Result posts(String userName, String projectName) {
+    public static Result posts(String userName, String projectName, int pageNum) {
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
+        postSearchCondition.pageNum = pageNum - 1;
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, Resource.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
-        Logger.debug(postSearchCondition.filter);
-        return ok(postList.render(
-                "menu.board",
-                project,
-                Post.findOnePage(project.owner, project.name, postSearchCondition.pageNum,
-                        Direction.getValue(postSearchCondition.order), postSearchCondition.key, postSearchCondition.filter), postSearchCondition));
+        Page<Post> posts = Post.findOnePage(project.owner, project.name, postSearchCondition.pageNum,
+                        Direction.getValue(postSearchCondition.order), postSearchCondition.key, postSearchCondition.filter);
+        return ok(postList.render("menu.board", project, posts, postSearchCondition));
     }
 
     public static Result newPostForm(String userName, String projectName) {
@@ -89,7 +89,6 @@ public class BoardApp extends Controller {
             post.authorLoginId = UserApp.currentUser().loginId;
             post.authorName = UserApp.currentUser().name;
             post.commentCount = 0;
-            post.filePath = saveFile(request());
             post.project = project;
             Post.write(post);
 
@@ -97,7 +96,7 @@ public class BoardApp extends Controller {
             Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_POST, post.id);
         }
 
-        return redirect(routes.BoardApp.posts(project.owner, project.name));
+        return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
     }
 
     public static Result post(String userName, String projectName, Long postId) {
@@ -109,7 +108,7 @@ public class BoardApp extends Controller {
 
         if (post == null) {
             flash(Constants.WARNING, "board.post.notExist");
-            return redirect(routes.BoardApp.posts(project.owner, project.name));
+            return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
         } else {
             Form<Comment> commentForm = new Form<Comment>(Comment.class);
             return ok(views.html.board.post.render(post, commentForm, project));
@@ -129,7 +128,6 @@ public class BoardApp extends Controller {
             comment.authorId = UserApp.currentUser().id;
             comment.authorLoginId = UserApp.currentUser().loginId;
             comment.authorName = UserApp.currentUser().name;
-            comment.filePath = saveFile(request());
 
             Comment.write(comment);
             Post.countUpCommentCounter(postId);
@@ -145,7 +143,7 @@ public class BoardApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         Post.delete(postId);
         Attachment.deleteAll(Resource.BOARD_POST, postId);
-        return redirect(routes.BoardApp.posts(project.owner, project.name));
+        return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
     }
 
     public static Result editPostForm(String userName, String projectName, Long postId) {
@@ -174,7 +172,6 @@ public class BoardApp extends Controller {
             post.authorId = UserApp.currentUser().id;
             post.authorName = UserApp.currentUser().name;
             post.id = postId;
-            post.filePath = saveFile(request());
             post.project = project;
 
             Post.edit(post);
@@ -183,7 +180,7 @@ public class BoardApp extends Controller {
             Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_POST, post.id);
         }
 
-        return redirect(routes.BoardApp.posts(project.owner, project.name));
+        return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
 
     }
 
@@ -192,19 +189,6 @@ public class BoardApp extends Controller {
         Post.countDownCommentCounter(postId);
         Attachment.deleteAll(Resource.BOARD_COMMENT, commentId);
         return redirect(routes.BoardApp.post(userName, projectName, postId));
-    }
-
-    private static String saveFile(Request request) {
-        MultipartFormData body = request.body().asMultipartFormData();
-
-        FilePart filePart = body.getFile("filePath");
-
-        if (filePart != null) {
-            File saveFile = new File("public/uploadFiles/" + filePart.getFilename());
-            filePart.getFile().renameTo(saveFile);
-            return filePart.getFilename();
-        }
-        return null;
     }
 
 }

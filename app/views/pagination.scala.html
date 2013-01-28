@@ -1,54 +1,33 @@
-@(page:com.avaje.ebean.Page[_ <: play.db.ebean.Model], pageNum:Int, divId:String)
+@(page:com.avaje.ebean.Page[_ <: play.db.ebean.Model], divId:String, params: Map[String, String] = scala.collection.immutable.Map[String, String](), action: (Int) => play.api.mvc.Call, submit: String = "")
 
 @{
     var currentPageNum = page.getPageIndex + 1
     var lastPageNum = page.getTotalPageCount()
-    var str = ""
-    
-    if(currentPageNum <= pageNum/2) {
-        currentPageNum = pageNum/2 +1
-    } else if(currentPageNum > lastPageNum - pageNum/2) {
-        currentPageNum = lastPageNum - pageNum/2 - 1
-    }
     makeList(currentPageNum)
 }
 @makeList(currentPageNum:Int) = {
     <div class="page-navigation-wrap" id="@divId" data-current-page-num="@currentPageNum">
+      <form method="GET" action="@action(1)">
+      @for(param <- params) {
+      <input type="hidden" name="@param._1" value="@param._2">
+      }
       <ul class="page-nums">
-        <!--
-        <li class="page-num ikon"><i class="ico btn-pg-first off"></i></li>
-        -->
         @if(page.hasPrev){
-            <li class="page-num ikon"><a href="#" class="pg-prev" pageNum="@page.getPageIndex"><i class="ico btn-pg-prev"></i><span>PREV</span></a></li>
+            <li class="page-num ikon"><a href="@action(currentPageNum - 1)" class="pg-prev" pageNum="@(currentPageNum - 1)"><i class="ico btn-pg-prev"></i><span>PREV</span></a></li>
         } else {
             <li class="page-num ikon"><i class="ico btn-pg-prev off"></i><span class="off">PREV</span></li>
         }
 
-        @if(page.getTotalPageCount() < pageNum) {
-            @for(x <- (1 to page.getTotalPageCount())){
-                @makeLink(x + "", x)
-            }
-        } else {
-            @for( x <- (currentPageNum - pageNum/2 to currentPageNum + pageNum/2)){
-                @makeLink(x + "", x)
-            }
-        }
+        <li class="page-num"><input name="pageNum" type="number" min="1" max="@page.getTotalPageCount" class="input-mini" value="@currentPageNum"></li>
+        <li class="page-num">/</li>
+        <li class="page-num">@page.getTotalPageCount</li>
 
         @if(page.hasNext) {
-            <li class="page-num ikon"><a href="#" class="pg-prev" pageNum="@(page.getPageIndex + 2)"><span>NEXT</span><i class="ico btn-pg-next"></i></a></li>
+            <li class="page-num ikon"><a href="@action(currentPageNum + 1)" class="pg-prev" pageNum="@(currentPageNum + 1)"><span>NEXT</span><i class="ico btn-pg-next"></i></a></li>
         } else {
             <li class="page-num ikon"><span class="off">NEXT</span><i class="ico btn-pg-next off"></i></li>
         }
-        <!--
-        <li class="page-num ikon"><a href="/html/board-list.html" class="pg-latest"><i class="ico btn-pg-latest"></i></a></li>
-        -->
       </ul>
+      </form>
     </div>
-}
-@makeLink(title:String, index:Int) = {
-    @if(page.getPageIndex+1 != index){
-    <li class="page-num"><a href="#" pageNum="@index" data-page-num="@index">@title</a></li>
-    } else {
-    <li class="page-num"><span class="current">@index</span></li>
-    }
 }

@@ -30,9 +30,7 @@
                 </tbody>
             </table>
         </div>
-        <div>
-            @pagination(resultIssues, 5, "issue-pagination")
-        </div>
+        <div id="pagination-issue"></div>
         }
     </div>
 </div>
@@ -62,11 +60,63 @@
             </table>
         </div>
         <div>
-            @pagination(resultPosts, 5, "post-pagination")
         </div>
         }
     </div>
+    <div id="pagination-post"></div>
 </div>
-<script type="text/javascript">nforge.require('pages.contentSearch');</script>
+<script src="@getJSLink("pagination")" type="text/javascript"></script>
+<script type="text/javascript">
+  var createUpdater = function(type, targetBody, paginationDiv) {
+    var update = function(pageNum) {
+      $.ajax({
+        url: '@routes.SearchApp.contentsSearch(project.owner, project.name)',
+        type: 'GET',
+        data: {
+          filter: '@filter', // @filter should have been escaped to avoid xss.
+          type: type
+        },
+        dataType: 'html',
+        headers: { 'Range': 'pages=' + pageNum },
+        success: function(data, status, xhr) {
+          var pattern = /(.*?)\s+(.*?)\/(.*)/;
+          var contentRange, totalPages;
+
+          contentRange = pattern.exec(xhr.getResponseHeader('Content-Range'));
+          totalPages = parseInt(contentRange[3]);
+
+          // update the list
+          $(targetBody).html(data);
+
+          // Update pagination in $(paginationDiv)
+          Pagination.update($(paginationDiv), totalPages, {
+            current: parseInt(contentRange[2]),
+            submit: update
+          });
+        }
+      });
+    }
+
+    return update;
+  }
+
+  $(document).ready(function() {
+    // Update pagination in #pagination-post.
+    Pagination.update(
+      $('#pagination-post'),
+      @resultPosts.getTotalPageCount,
+      { current: @resultPosts.getPageIndex + 1,
+        submit: createUpdater('post', $('.post-tbody'), $('#pagination-post'))}
+    );
+
+    // Update pagination in #pagination-issue.
+    Pagination.update(
+      $('#pagination-issue'),
+      @resultIssues.getTotalPageCount,
+      { current: @resultIssues.getPageIndex + 1,
+        submit: createUpdater('issue', $('.issue-tbody'), $('#pagination-issue'))}
+    );
+  });
+</script>
 </div>
 }

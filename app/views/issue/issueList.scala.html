@@ -3,8 +3,9 @@
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 @import utils.TemplateHelper._
+@import scala.collection.immutable.Map
 
-@urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state)}
+@urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
 @ordering(label:String, sortBy:String) = {
   @if(sortBy == param.sortBy) {
@@ -133,12 +134,18 @@
   <div class="pull-right">
     <a class="btn btn-primary" href="@routes.IssueApp.newIssueForm(project.owner, project.name)" >@Messages("issue.menu.new")</a>
   </div>
-  @pagination(currentPage, 5, "pagination")
+  <div id="pagination">
+    <!-- pagination.js will fill here. -->
+  </div>
 </div>
 
+<script src="@getJSLink("pagination")" type="text/javascript"></script>
 <script type="text/javascript">
   nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: true});
   nforge.require('issue.list');
+  $(document).ready(function() {
+    Pagination.update($('#pagination'), @currentPage.getTotalPageCount);
+  });
 </script>
 </div>
 }

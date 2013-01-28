@@ -333,8 +333,7 @@ nforge.issue.view = function () {
 
 nforge.issue.list = function() {
   var that;
-
-  that = {
+that = {
     init: function() {
       var searchForm = $('form.form-search');
 
@@ -371,13 +370,6 @@ nforge.issue.list = function() {
           searchForm.append(
             '<input type="hidden" name="milestone" value="' + milestoneId + '">');
         }
-      });
-
-      $("#pagination a").click(function(){
-        $this = $(this);
-        var targetPageNum = $this.attr("pagenum");
-        location.href = location.href.replace(/(pageNum=)(\d+)/, "pageNum=" + (targetPageNum - 1));
-        return false;
       });
     }
   }

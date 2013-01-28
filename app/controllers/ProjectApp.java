@@ -50,7 +50,7 @@ public class ProjectApp extends Controller {
         return ok(projectHome.render("title.projectHome",
                 getProject(userName, projectName)));
     }
-    
+
     @Cached(key = "newProjectForm")
     public static Result newProjectForm() {
         if (session().get(UserApp.SESSION_USERID) == null) {
