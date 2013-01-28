@@ -31,7 +31,7 @@ import com.avaje.ebean.Page;
 
 /**
  *
- * @author "Hwi Ahn"
+ * @author "nForge Team"
  */
 
 @Entity
@@ -106,8 +106,8 @@ public class Project extends Model {
 	 * 해당 프로젝트가 존재하는지 여부를 검사합니다. 해당 파라미터에 대하여 프로젝트가 존재하면 true, 존재하지 않으면 false를
 	 * 반환합니다.
 	 *
-	 * @param userName
-	 * @param projectName
+	 * @param userName 사용자이름
+	 * @param projectName 프로젝트이름
 	 * @return
 	 */
 	public static boolean isProject(String userName, String projectName) {
@@ -167,9 +167,9 @@ public class Project extends Model {
     /**
      * 해당 유저가 속해있는 프로젝트들의 리스트를 필터를 적용해서 보여준다.
      *
-     * @param userId
+     * @param userId 유저 아이디
      * @param  orderString 오름차순/내림차순 등 필터로 사용할 스트링
-     * @return
+     * @return 정렬된 프로젝트 목록
      */
     public static List<Project> findProjectsByMemberWithFilter(Long userId, String orderString) {
         List<Project> userProjectList = find.where().eq("projectUser.user.id", userId).findList();
@@ -182,6 +182,11 @@ public class Project extends Model {
         return filteredList;
     }
 
+    /**
+     * 요청 문자열로 부터 정렬 방법을 정한다.
+     * @param orderString
+     * @return
+     */
     private static Comparator determineComparator(String orderString) {  //TODO: Some ugly coding...
         if( orderString.contains("name desc")){
             return sortByNameWithIgnoreCaseDesc;

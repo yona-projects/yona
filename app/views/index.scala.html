@@ -42,7 +42,7 @@
                                     <a href="@routes.Application.index()?order=date">@Messages("orderby.recent")</a>
                                 }
                             }
-                            </span> | <span class="ordertype-name">
+                            </span><span class="delimeter"> | </span><span class="ordertype-name">
                             @if( orderString == "name desc" ){
                                 <a href="@routes.Application.index()?order=name"><strong>@Messages("orderby.name")</strong> <i class="icon-chevron-down"></i></a>
                             } else {
