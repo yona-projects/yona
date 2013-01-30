@@ -51,7 +51,6 @@ public class ProjectApp extends Controller {
                 getProject(userName, projectName)));
     }
 
-    @Cached(key = "newProjectForm")
     public static Result newProjectForm() {
         if (session().get(UserApp.SESSION_USERID) == null) {
             flash(Constants.WARNING, "user.login.alert");
