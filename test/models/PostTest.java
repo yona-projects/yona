@@ -32,7 +32,7 @@ public class PostTest extends ModelTest<Post> {
     public void findOnePage() throws Exception {
         // Given
         // When
-        Page<Post> page = Post.findOnePage("hobi", "nForge4java", 1, Direction.DESC,
+        Page<Post> page = Post.findOnePage("hobi", "nForge4java", 0, Direction.DESC,
                 BoardApp.SearchCondition.ORDERING_KEY_ID, "");
         // Then
         assertThat(page.getList()).hasSize(1);
