@@ -49,7 +49,8 @@ public class Project extends Model {
 	public Long id;
 
 	@Constraints.Required
-	@Constraints.Pattern("^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$")
+	@Constraints.Pattern("^[-a-zA-Z0-9_]*$")
+	@Constraints.MinLength(2)
 	public String name;
 
 	public String overview;
