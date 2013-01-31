@@ -61,8 +61,9 @@
         }
       </p>
     </div>
-    <div class="span5">
-      <p class="pull-right">@for(label <- issue.labels) { <button class="issue-label" labelId="@label.id">@label.name</button> } </p>
+    <div class="span7">
+
+      <p class="pull-right">@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { <button class="issue-label" labelId="@label.id">@label.name</button> } </p>
     </div>
   </div>
 

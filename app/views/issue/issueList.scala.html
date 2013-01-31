@@ -115,8 +115,9 @@
           <td class="info">
             <p>
               <a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
-              @for(label <- issue.labels){
-              <button class="issue-label" labelId="@label.id">@label.name</button>
+
+              @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                <button class="issue-label" labelId="@label.id">@label.name</button>
               }
             </p>
             <p class="author">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>

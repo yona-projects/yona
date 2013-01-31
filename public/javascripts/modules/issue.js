@@ -99,6 +99,14 @@ nforge.issue.label = function () {
             return;
           }
 
+          labels = labels.sort(function(a, b) {
+            if (a.category == b.category) {
+              return a.name > b.name;
+            } else {
+              return a.category > b.category;
+            }
+          });
+
           for (var i = 0; i < labels.length; i++) {
             that.add_label_into_category(labels[i].id, labels[i].category, labels[i].name, labels[i].color);
           }
