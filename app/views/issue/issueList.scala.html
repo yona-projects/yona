@@ -117,7 +117,7 @@
               <a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
 
               @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                <button class="issue-label" labelId="@label.id">@label.name</button>
+                <button class="issue-label" labelId="@label.id" data-color="@label.color">@label.name</button>
               }
             </p>
             <p class="author">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
@@ -147,18 +147,14 @@
 
 <script src="@getJSLink("pagination")" type="text/javascript"></script>
 <script type="text/javascript">
-    nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: true},  function() {
-    @for(issue <- currentPage.getList) {
-      @for(label <- issue.labels) {
-        $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
-        $('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
-        $('.labels button.btn[labelId="@label.id"]').addClass('active');
-      }
-    }
-  });
+    nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: true});
   nforge.require('issue.list');
   $(document).ready(function() {
     Pagination.update($('#pagination'), @currentPage.getTotalPageCount);
+    $('button.issue-label[data-color]').each(function() {
+      $(this).css('background-color', $(this).data('color'));
+      $(this).css('color', contrasted_color($(this).data('color')));
+    });
   });
 </script>
 </div>
