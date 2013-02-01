@@ -8,7 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import play.Logger;
+
+import models.enumeration.ResourceType;
 
 import jxl.write.WriteException;
 
@@ -20,7 +21,6 @@ import models.IssueLabel;
 import models.Project;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
 import models.enumeration.State;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
@@ -28,7 +28,6 @@ import models.support.SearchCondition;
 
 import org.apache.tika.Tika;
 
-import play.cache.Cached;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -156,7 +155,7 @@ public class IssueApp extends Controller {
             Long issueId = Issue.create(newIssue);
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_POST, issueId);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.ISSUE_POST, issueId);
         }
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 State.OPEN.state(), "html", 1));
@@ -205,7 +204,7 @@ public class IssueApp extends Controller {
         Issue.edit(issue);
 
         // Attach the files in the current user's temporary storage.
-        Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, Resource.ISSUE_POST, id);
+        Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, ResourceType.ISSUE_POST, id);
 
         return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.OPEN.name(), "html", 1));
     }
@@ -214,7 +213,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         Issue.delete(issueId);
-        Attachment.deleteAll(Resource.ISSUE_POST, issueId);
+        Attachment.deleteAll(ResourceType.ISSUE_POST, issueId);
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 State.OPEN.state(), "html", 1));
     }
@@ -236,7 +235,7 @@ public class IssueApp extends Controller {
             Issue.updateNumOfComments(issueId);
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.ISSUE_COMMENT, commentId);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.ISSUE_COMMENT, commentId);
 
             return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
         }
@@ -247,7 +246,7 @@ public class IssueApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
         IssueComment.delete(commentId);
         Issue.updateNumOfComments(issueId);
-        Attachment.deleteAll(Resource.ISSUE_COMMENT, commentId);
+        Attachment.deleteAll(ResourceType.ISSUE_COMMENT, commentId);
         return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
     }
 

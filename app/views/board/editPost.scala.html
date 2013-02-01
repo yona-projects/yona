@@ -1,7 +1,7 @@
 @(title:String, form:Form[Post], postId:Long,  project:Project)
 
 @import utils.TemplateHelper._
-@import models.enumeration.Resource
+@import models.enumeration.ResourceType
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main(title, project, utils.MenuType.BOARD) {
@@ -21,7 +21,7 @@
       </label>
       <label for="content">
         @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
-        <div id="upload" resourceType=@Resource.BOARD_POST resourceId=@postId></div>
+        <div id="upload" resourceType=@ResourceType.BOARD_POST resourceId=@postId></div>
       </label>
       <!--
       <div class="content-footer">

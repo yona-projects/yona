@@ -7,7 +7,7 @@ package models;
 import com.avaje.ebean.*;
 import controllers.*;
 import models.enumeration.*;
-import models.resource.ProjectResource;
+import models.resource.Resource;
 import models.support.*;
 import org.joda.time.*;
 import play.data.format.*;
@@ -142,8 +142,8 @@ public class Post extends Model {
         post.update();
     }
 
-    public ProjectResource asResource() {
-        return new ProjectResource() {
+    public Resource asResource() {
+        return new Resource() {
             @Override
             public Long getId() {
                 return id;
@@ -155,8 +155,8 @@ public class Post extends Model {
             }
 
             @Override
-            public Resource getType() {
-                return Resource.BOARD_POST;
+            public ResourceType getType() {
+                return ResourceType.BOARD_POST;
             }
         };
     }

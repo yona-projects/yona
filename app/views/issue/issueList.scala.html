@@ -111,7 +111,7 @@
       @for(issue <- currentPage.getList){
         <tr>
           <td class="no">@issue.id</td>
-          <td class="attachmend attached">@if(Attachment.findByContainer(Resource.ISSUE_POST, issue.id).size > 0){<span class="icon-file"/>}</td>
+          <td class="attachmend attached">@if(Attachment.findByContainer(ResourceType.ISSUE_POST, issue.id).size > 0){<span class="icon-file"/>}</td>
           <td class="info">
             <p>
               <a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>

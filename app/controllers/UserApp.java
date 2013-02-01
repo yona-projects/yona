@@ -1,8 +1,7 @@
 package controllers;
 
-import java.util.List;
 import models.*;
-import models.enumeration.Resource;
+import models.enumeration.ResourceType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -21,7 +20,6 @@ import org.apache.shiro.util.ByteSource;
 import org.apache.shiro.util.Factory;
 
 import play.Logger;
-import play.cache.Cached;
 import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
@@ -29,7 +27,6 @@ import utils.Constants;
 import views.html.login;
 import views.html.user.*;
 
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 
@@ -244,8 +241,8 @@ public class UserApp extends Controller {
         user.email = userForm.data().get("email");
         user.name = userForm.data().get("name");
         
-        Attachment.deleteAll(Resource.USER_AVATAR, currentUser().id);
-        int attachFiles = Attachment.attachFiles(currentUser().id, null, Resource.USER_AVATAR, currentUser().id);
+        Attachment.deleteAll(ResourceType.USER_AVATAR, currentUser().id);
+        int attachFiles = Attachment.attachFiles(currentUser().id, null, ResourceType.USER_AVATAR, currentUser().id);
         if(attachFiles>0) {
         	user.avatarUrl = "/files/" + user.avatarId();
         }

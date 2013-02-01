@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import models.Project;
 import models.User;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
 
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory;

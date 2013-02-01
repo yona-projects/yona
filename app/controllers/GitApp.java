@@ -6,7 +6,6 @@ import javax.servlet.ServletException;
 
 import models.Project;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
 
 import org.eclipse.jgit.transport.ServiceMayNotContinueException;
 

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import models.enumeration.Resource;
+import models.enumeration.ResourceType;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,8 +49,8 @@ public class AttachmentTest extends ModelTest<Attachment> {
         // When
         new Attachment().storeInUserTemporaryArea(0L, foo, "foo.txt");
         new Attachment().storeInUserTemporaryArea(0L, bar, "bar.html");
-        Attachment.attachFiles(0L, 0L, Resource.ISSUE_POST, 1L);
-        List<Attachment> attachedFiles = Attachment.findByContainer(Resource.ISSUE_POST, 1L);
+        Attachment.attachFiles(0L, 0L, ResourceType.ISSUE_POST, 1L);
+        List<Attachment> attachedFiles = Attachment.findByContainer(ResourceType.ISSUE_POST, 1L);
 
         // Then
         assertThat(attachedFiles.size()).isEqualTo(2);

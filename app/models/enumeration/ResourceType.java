@@ -1,6 +1,6 @@
 package models.enumeration;
 
-public enum Resource {
+public enum ResourceType {
     ISSUE_POST("issue_post"),
     ISSUE_COMMENT("issue_comment"),
     ISSUE_ASSIGNEE("issue_assignee"),
@@ -20,11 +20,12 @@ public enum Resource {
     SITE_SETTING("site_setting"),
     USER("user"),
     USER_AVATAR("user_avatar"),
-    PROJECT("project");
+    PROJECT("project"),
+    ATTACHMENT("attachment");
 
     private String resource;
 
-    Resource(String resource) {
+    ResourceType(String resource) {
         this.resource = resource;
     }
 
@@ -32,12 +33,12 @@ public enum Resource {
         return this.resource;
     }
 
-    public static Resource getValue(String value) {
-        for (Resource resource : Resource.values()) {
-            if (resource.resource().equals(value)) {
-                return resource;
+    public static ResourceType getValue(String value) {
+        for (ResourceType resourceType : ResourceType.values()) {
+            if (resourceType.resource().equals(value)) {
+                return resourceType;
             }
         }
-        return Resource.ISSUE_POST;
+        return ResourceType.ISSUE_POST;
     }
 }

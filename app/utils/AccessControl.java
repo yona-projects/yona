@@ -8,10 +8,9 @@ import models.Project;
 import models.ProjectUser;
 import models.User;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
-import models.resource.GlobalResource;
-import models.resource.ProjectResource;
+import models.enumeration.ResourceType;
 
+import models.resource.Resource;
 import play.db.ebean.Model;
 import play.db.ebean.Model.Finder;
 
@@ -21,12 +20,12 @@ import play.db.ebean.Model.Finder;
  */
 public class AccessControl {
 
-    public static boolean isCreatable(User user, Resource resourceType) {
+    public static boolean isCreatable(User user, ResourceType resourceType) {
         // Only login users can create a resource.
         return !user.isAnonymous();
     }
 
-    public static boolean isCreatable(User user, Project project, Resource resourceType) {
+    public static boolean isCreatable(User user, Project project, ResourceType resourceType) {
         if (user.isSiteManager()) {
             return true;
         }
@@ -55,15 +54,22 @@ public class AccessControl {
         }
     }
 
-    public static boolean isAllowed(User user, GlobalResource resource, Operation operation) {
+    private static boolean isGlobalResourceAllowed(User user, Resource resource, Operation operation) {
         if (user.isSiteManager()) {
             return true;
         }
 
+        // Temporary attachments are allowed only for the user who uploads them.
+        if (resource.getType().equals(ResourceType.ATTACHMENT)) {
+            if (resource.getContainer().getType() == ResourceType.USER) {
+                return user.id == resource.getContainer().getId();
+            }
+        }
+
         if (operation.equals(Operation.READ)) {
-            if (resource.getType().equals(Resource.PROJECT)) {
+            if (resource.getType().equals(ResourceType.PROJECT)) {
                 Project project = Project.find.byId(resource.getId());
-                return project.share_option || ProjectUser.isMember(user.id, project.id);
+                return project != null && (project.share_option || ProjectUser.isMember(user.id, project.id));
             }
 
             // anyone can read all resources which doesn't belong to a project.
@@ -83,15 +89,30 @@ public class AccessControl {
         }
     }
 
-    public static boolean isAllowed(User user, ProjectResource resource, Operation operation) {
+    public static boolean isAllowed(User user, Resource resource, Operation operation) {
         if (user.isSiteManager()) {
             return true;
         }
 
         Project project = resource.getProject();
 
+        if (project == null) {
+            return isGlobalResourceAllowed(user, resource, operation);
+        }
+
         if (ProjectUser.isManager(user.id, project.id)) {
             return true;
+        }
+
+        // If the resource is an attachment, the permission depends on its container.
+        if (resource.getType() == ResourceType.ATTACHMENT) {
+            switch(operation) {
+                case READ:
+                    return isAllowed(user, resource.getContainer(), Operation.READ);
+                case UPDATE:
+                case DELETE:
+                    return isAllowed(user, resource.getContainer(), Operation.UPDATE);
+            }
         }
 
         switch(operation) {
@@ -100,7 +121,7 @@ public class AccessControl {
             return project.share_option || ProjectUser.isMember(user.id, project.id);
         case UPDATE:
             // Any members can update repository
-            if (resource.getType() == Resource.CODE) {
+            if (resource.getType() == ResourceType.CODE) {
                 return ProjectUser.isMember(user.id, project.id);
             } else {
                 return isEditableAsAuthor(user, project, resource);
@@ -113,7 +134,7 @@ public class AccessControl {
         }
     }
 
-    private static boolean isEditableAsAuthor(User user, Project project, ProjectResource resource) {
+    private static boolean isEditableAsAuthor(User user, Project project, Resource resource) {
         // author can update or delete her/his own article.
         if (!project.isAuthorEditable) {
             return false;

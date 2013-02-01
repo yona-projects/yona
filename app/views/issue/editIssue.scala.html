@@ -2,7 +2,7 @@
 @import helper._
 @import scala.collection.mutable.Map
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
-@import models.enumeration.Resource
+@import models.enumeration.ResourceType
 @import models.enumeration.Operation
 @import utils.AccessControl._
 
@@ -40,7 +40,7 @@
            'class -> "textbody",
            'tabindex -> 2
            )
-        <div id="upload" resourceType=@Resource.ISSUE_POST resourceId=@issue.id></div>
+        <div id="upload" resourceType=@ResourceType.ISSUE_POST resourceId=@issue.id></div>
     </fieldset>
 
     <!-- issue.label js module appends a label selector here. -->

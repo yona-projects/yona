@@ -3,16 +3,13 @@ package controllers;
 import java.util.List;
 import java.util.Map;
 
-import controllers.ProjectApp;
 import models.IssueLabel;
 import models.Project;
-import models.Issue;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
-import utils.HttpUtil;
+
 import static play.libs.Json.toJson;
 
 import play.data.*;

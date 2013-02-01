@@ -6,17 +6,12 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 import play.data.validation.Constraints.Required;
-import play.data.validation.*;
 import play.db.ebean.Model;
 
-import play.data.validation.*;
-import play.db.ebean.*;
-
 import javax.persistence.*;
-
-import models.enumeration.Resource;
-import models.resource.ProjectResource;
 
 import java.util.*;
 
@@ -69,8 +64,8 @@ public class IssueLabel extends Model {
         super.delete();
     }
 
-    public ProjectResource asResource() {
-        return new ProjectResource() {
+    public Resource asResource() {
+        return new Resource() {
             @Override
             public Long getId() {
                 return id;
@@ -82,8 +77,8 @@ public class IssueLabel extends Model {
             }
 
             @Override
-            public Resource getType() {
-                return Resource.ISSUE_LABEL;
+            public ResourceType getType() {
+                return ResourceType.ISSUE_LABEL;
             }
         };
     }

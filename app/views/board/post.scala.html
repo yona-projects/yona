@@ -2,7 +2,7 @@
 
 @import utils.TemplateHelper._
 @import utils.AccessControl._
-@import models.enumeration.Resource
+@import models.enumeration.ResourceType
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main("상세보기", project, utils.MenuType.BOARD){
@@ -27,7 +27,7 @@
           </div>
       </div>
       <div class="content" markdown>@post.contents</div>
-      <div class="attachments" resourceType=@Resource.BOARD_POST resourceId=@post.id></div>
+      <div class="attachments" resourceType=@ResourceType.BOARD_POST resourceId=@post.id></div>
       <!--
       <ul class="attaches wm">
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
@@ -48,7 +48,7 @@
           }
             <p class="commenter"><a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorName</strong></a><!-- <span class="name">(Sam sstephenson)</span> --> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
             <div class="comment-body" markdown>@comment.contents</div>
-            <div class="attachments" resourceType=@Resource.BOARD_COMMENT resourceId=@comment.id></div>
+            <div class="attachments" resourceType=@ResourceType.BOARD_COMMENT resourceId=@comment.id></div>
             <!--
             <ul class="attaches">
                 <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>
@@ -57,7 +57,7 @@
       </li>
       }
     </ul>
-      @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.Resource.BOARD_POST)){
+      @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
       <div class="write-comment-box">
         @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
           <div class="write-comment-wrap">
@@ -78,7 +78,7 @@
             @helper.textarea(commentForm("contents"), 'placeholder->"로그인 후 댓글 입력이 가능합니다.", 'class->"text comment", 'markdown->true)
             <button class="comment-btn">COMMENT</button>
             @if(UserApp.currentUser() != UserApp.anonymous) {
-            <div id="upload" resourceType=@Resource.BOARD_COMMENT></div>
+            <div id="upload" resourceType=@ResourceType.BOARD_COMMENT></div>
             }
           </div>
           <!--

@@ -76,7 +76,7 @@
     }
   </ul>
   }
-  @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.Resource.BOARD_POST)){
+  @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
   <div class="write-btn-wrap">
     <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">WRITE</a>
   </div>
