@@ -165,7 +165,7 @@ public class User extends Model {
         return new Resource() {
             @Override
             public Long getId() {
-                return null;
+                return id;
             }
 
             @Override
