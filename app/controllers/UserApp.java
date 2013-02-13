@@ -141,6 +141,7 @@ public class UserApp extends Controller {
 
 		if (cookie != null) {
 			String[] subject = cookie.value().split(":");
+            if(subject == null) return false;
 			User user = authenticateWithHashedPassword(subject[0], subject[1]);
 			if(user!=null) {
 				setUserInfoInSession(user);
