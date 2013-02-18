@@ -16,6 +16,7 @@ import play.libs.Yaml;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
+import views.html.code.codeNavi;
 import views.html.index;
 
 public class Application extends Controller {
@@ -60,4 +61,9 @@ public class Application extends Controller {
             }
         }
     }
+
+    public static Result navi() {
+        return ok(codeNavi.render());
+    }
+
 }
