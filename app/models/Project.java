@@ -11,9 +11,9 @@ import javax.persistence.OneToOne;
 import javax.servlet.ServletException;
 
 import com.avaje.ebean.Ebean;
-import models.enumeration.Resource;
+import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
-import models.resource.GlobalResource;
+import models.resource.Resource;
 import models.task.TaskBoard;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -279,8 +279,8 @@ public class Project extends Model {
             return -sortByDate.compare(o1, o2);
         }
     }
-	public GlobalResource asResource() {
-	    return new GlobalResource() {
+	public Resource asResource() {
+	    return new Resource() {
 
             @Override
             public Long getId() {
@@ -288,8 +288,13 @@ public class Project extends Model {
             }
 
             @Override
-            public Resource getType() {
-                return Resource.PROJECT;
+            public Project getProject() {
+                return null;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.PROJECT;
             }
 
 	    };

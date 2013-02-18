@@ -22,7 +22,7 @@
         @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
       </label>
       @if(UserApp.currentUser() != UserApp.anonymous) {
-      <div id="upload" resourceType=@Resource.BOARD_POST></div>
+      <div id="upload" resourceType=@ResourceType.BOARD_POST></div>
       }
       <!--
       <div class="content-footer">

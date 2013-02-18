@@ -15,14 +15,11 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
+import models.resource.Resource;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 
-import controllers.ProjectApp;
-
-import models.enumeration.Resource;
-import models.resource.GlobalResource;
-import models.resource.ProjectResource;
+import models.enumeration.ResourceType;
 
 import play.data.validation.*;
 
@@ -50,7 +47,7 @@ public class Attachment extends Model {
     public Long projectId;
 
     @Enumerated(EnumType.STRING)
-    public Resource containerType;
+    public ResourceType containerType;
 
     public String mimeType;
 
@@ -59,14 +56,14 @@ public class Attachment extends Model {
     public Long containerId;
 
     /**
-     * 모든 임시파일은 컨테이너 타입 Resource.USER 에 해당한다.
+     * 모든 임시파일은 컨테이너 타입 ResourceType.USER 에 해당한다.
      *
      * @param userId
      * @return
      */
     public static List<Attachment> findTempFiles(Long userId) {
         return find.where()
-                .eq("containerType", Resource.USER)
+                .eq("containerType", ResourceType.USER)
                 .eq("containerId", userId).findList();
     }
 
@@ -88,7 +85,7 @@ public class Attachment extends Model {
     }
 
     public static List<Attachment> findByContainer(
-            Resource containerType, Long containerId) {
+            ResourceType containerType, Long containerId) {
         return find.where()
                 .eq("containerType", containerType)
                 .eq("containerId", containerId).findList();
@@ -96,7 +93,7 @@ public class Attachment extends Model {
 
     // Attach the files from the user's temporary area to the given container.
     public static int attachFiles(
-            Long userId, Long projectId, Resource containerType, Long containerId) {
+            Long userId, Long projectId, ResourceType containerType, Long containerId) {
         // Move the attached files in the temporary area to the issue area.
         List<Attachment> attachments = Attachment.findTempFiles(userId);
         for (Attachment attachment : attachments) {
@@ -154,7 +151,7 @@ public class Attachment extends Model {
             throws NoSuchAlgorithmException, IOException {
         // Store the file in the filesystem and compute SHA1 hash.
         this.projectId = 0L;
-        this.containerType = Resource.USER;
+        this.containerType = ResourceType.USER;
         this.containerId = userId;
 
         if (name == null) {
@@ -202,28 +199,57 @@ public class Attachment extends Model {
         }
     }
 
-    public static void deleteAll(Resource containerType, Long containerId) {
+    public static void deleteAll(ResourceType containerType, Long containerId) {
         List<Attachment> attachments = findByContainer(containerType, containerId);
         for (Attachment attachment : attachments) {
             attachment.delete();
         }
     }
 
-    public ProjectResource getContainerAsResource() {
-        return new ProjectResource() {
+    public Resource getContainerAsResource() {
+        return new Resource() {
             @Override
             public Long getId() {
-                return containerId;
+                return id;
             }
 
             @Override
             public Project getProject() {
-                return Project.find.byId(projectId);
+                if (projectId != null) {
+                    return Project.find.byId(projectId);
+                } else {
+                    return null;
+                }
             }
 
             @Override
-            public Resource getType() {
-                return containerType;
+            public ResourceType getType() {
+                return ResourceType.ATTACHMENT;
+            }
+
+            @Override
+            public Resource getContainer() {
+                return new Resource() {
+
+                    @Override
+                    public Long getId() {
+                        return containerId;
+                    }
+
+                    @Override
+                    public Project getProject() {
+                        if (projectId != null) {
+                            return Project.find.byId(projectId);
+                        } else {
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    public ResourceType getType() {
+                        return containerType;
+                    }
+                };
             }
         };
     }

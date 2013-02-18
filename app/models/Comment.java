@@ -1,7 +1,7 @@
 package models;
 
-import models.enumeration.Resource;
-import models.resource.ProjectResource;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 
 import org.joda.time.*;
 import play.data.validation.*;
@@ -63,8 +63,8 @@ public class Comment extends Model {
         find.byId(commentId).delete();
     }
 
-    public ProjectResource asResource() {
-        return new ProjectResource() {
+    public Resource asResource() {
+        return new Resource() {
             @Override
             public Long getId() {
                 return id;
@@ -76,8 +76,8 @@ public class Comment extends Model {
             }
 
             @Override
-            public Resource getType() {
-                return Resource.BOARD_COMMENT;
+            public ResourceType getType() {
+                return ResourceType.BOARD_COMMENT;
             }
         };
     }

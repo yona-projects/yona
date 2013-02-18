@@ -3,7 +3,7 @@ package playRepository;
 import java.io.IOException;
 import java.util.List;
 
-import models.resource.ProjectResource;
+import models.resource.Resource;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.*;
@@ -34,5 +34,5 @@ public interface PlayRepository {
 
     public abstract ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException, IOException, SVNException, NoHeadException, GitAPIException;
 
-    public abstract ProjectResource asResource();
+    public abstract Resource asResource();
 }

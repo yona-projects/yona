@@ -7,8 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import models.Project;
-import models.enumeration.Resource;
-import models.resource.ProjectResource;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.Git;
@@ -248,8 +248,8 @@ public class GitRepository implements PlayRepository {
     }
 
     @Override
-    public ProjectResource asResource() {
-        return new ProjectResource() {
+    public Resource asResource() {
+        return new Resource() {
             @Override
             public Long getId() {
                 return null;
@@ -261,8 +261,8 @@ public class GitRepository implements PlayRepository {
             }
 
             @Override
-            public Resource getType() {
-                return Resource.CODE;
+            public ResourceType getType() {
+                return ResourceType.CODE;
             }
 
         };

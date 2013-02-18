@@ -4,8 +4,6 @@
 
 package controllers;
 
-import java.io.File;
-
 import com.avaje.ebean.Page;
 
 import models.Attachment;
@@ -15,13 +13,9 @@ import models.Project;
 import models.User;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
-import play.Logger;
+import models.enumeration.ResourceType;
 import play.data.Form;
 import play.mvc.Controller;
-import play.mvc.Http.MultipartFormData;
-import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Http.Request;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.Constants;
@@ -58,7 +52,7 @@ public class BoardApp extends Controller {
         postSearchCondition.pageNum = pageNum - 1;
         Project project = ProjectApp.getProject(userName, projectName);
 
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, Resource.BOARD_POST)) {
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -93,7 +87,7 @@ public class BoardApp extends Controller {
             Post.write(post);
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_POST, post.id);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.BOARD_POST, post.id);
         }
 
         return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
@@ -102,7 +96,7 @@ public class BoardApp extends Controller {
     public static Result post(String userName, String projectName, Long postId) {
         Post post = Post.findById(postId);
         Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, Resource.BOARD_POST)) {
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -133,7 +127,7 @@ public class BoardApp extends Controller {
             Post.countUpCommentCounter(postId);
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_COMMENT, comment.id);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.BOARD_COMMENT, comment.id);
 
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));
         }
@@ -142,7 +136,7 @@ public class BoardApp extends Controller {
     public static Result deletePost(String userName, String projectName, Long postId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Post.delete(postId);
-        Attachment.deleteAll(Resource.BOARD_POST, postId);
+        Attachment.deleteAll(ResourceType.BOARD_POST, postId);
         return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
     }
 
@@ -177,7 +171,7 @@ public class BoardApp extends Controller {
             Post.edit(post);
 
             // Attach the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, Resource.BOARD_POST, post.id);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.BOARD_POST, post.id);
         }
 
         return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
@@ -187,7 +181,7 @@ public class BoardApp extends Controller {
     public static Result deleteComment(String userName, String projectName, Long postId, Long commentId) {
         Comment.delete(commentId);
         Post.countDownCommentCounter(postId);
-        Attachment.deleteAll(Resource.BOARD_COMMENT, commentId);
+        Attachment.deleteAll(ResourceType.BOARD_COMMENT, commentId);
         return redirect(routes.BoardApp.post(userName, projectName, postId));
     }
 

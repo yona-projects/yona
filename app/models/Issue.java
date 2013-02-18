@@ -10,7 +10,7 @@ import jxl.format.Border;
 import jxl.format.Alignment;
 import jxl.write.*;
 import models.enumeration.*;
-import models.resource.ProjectResource;
+import models.resource.Resource;
 import models.support.*;
 import org.joda.time.*;
 import play.data.format.*;
@@ -478,8 +478,8 @@ public class Issue extends Model {
 	    return this.state == State.CLOSED;
 	}
 
-	public ProjectResource asResource() {
-	    return new ProjectResource() {
+	public Resource asResource() {
+	    return new Resource() {
 	        @Override
 	        public Long getId() {
 	            return null;
@@ -491,14 +491,14 @@ public class Issue extends Model {
 	        }
 
 	        @Override
-	        public Resource getType() {
-	            return Resource.ISSUE_POST;
+	        public ResourceType getType() {
+	            return ResourceType.ISSUE_POST;
 	        }
 	    };
 	}
 
-    public ProjectResource fieldAsResource(final Resource resourceType) {
-        return new ProjectResource() {
+    public Resource fieldAsResource(final ResourceType resourceType) {
+        return new Resource() {
             @Override
             public Long getId() {
                 return id;
@@ -510,21 +510,21 @@ public class Issue extends Model {
             }
 
             @Override
-            public Resource getType() {
+            public ResourceType getType() {
                 return resourceType;
             }
         };
     }
 
-    public ProjectResource stateAsResource() {
-        return fieldAsResource(Resource.ISSUE_STATE);
+    public Resource stateAsResource() {
+        return fieldAsResource(ResourceType.ISSUE_STATE);
     }
 
-    public ProjectResource milestoneAsResource() {
-        return fieldAsResource(Resource.ISSUE_MILESTONE);
+    public Resource milestoneAsResource() {
+        return fieldAsResource(ResourceType.ISSUE_MILESTONE);
     }
 
-    public ProjectResource assigneeAsResource() {
-        return fieldAsResource(Resource.ISSUE_ASSIGNEE);
+    public Resource assigneeAsResource() {
+        return fieldAsResource(ResourceType.ISSUE_ASSIGNEE);
     }
 }

@@ -2,10 +2,6 @@ package models;
 
 import java.util.List;
 
-import models.enumeration.Operation;
-import models.enumeration.Resource;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 

@@ -1,7 +1,7 @@
 @(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project)
 @import helper._
 @import scala.collection.mutable.Map
-@import models.enumeration.Resource
+@import models.enumeration.ResourceType
 @import models.enumeration.Operation
 @import models.Milestone
 @import java.text.SimpleDateFormat
@@ -68,7 +68,7 @@
   </div>
 
   <div class="body" markdown>@issue.body</div>
-  <div class="attachments" resourceType=@Resource.ISSUE_POST resourceId="@issue.id"></div>
+  <div class="attachments" resourceType=@ResourceType.ISSUE_POST resourceId="@issue.id"></div>
 </article>
 
 <!-- 여기서 부터 덧글 -->
@@ -104,7 +104,7 @@
       </div>
       }
       <div markdown>@comment.contents</div>
-      <div class="attachments" resourceType=@Resource.ISSUE_COMMENT resourceId=@comment.id></div>
+      <div class="attachments" resourceType=@ResourceType.ISSUE_COMMENT resourceId=@comment.id></div>
     </div>
   </div>
   }
@@ -120,7 +120,7 @@
      <input class="btn add-on" type="submit" value=@Messages( "button.comment.new") />
    </div>
    @if(UserApp.currentUser() != UserApp.anonymous) {
-   <div id="upload" resourceType=@Resource.ISSUE_COMMENT></div>
+   <div id="upload" resourceType=@ResourceType.ISSUE_COMMENT></div>
    }
 }
 </div>

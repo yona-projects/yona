@@ -14,9 +14,9 @@ import javax.persistence.Table;
 
 import models.enumeration.Direction;
 import models.enumeration.Matching;
-import models.enumeration.Resource;
+import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
-import models.resource.GlobalResource;
+import models.resource.Resource;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
@@ -149,7 +149,7 @@ public class User extends Model {
     }
 
     public Long avatarId(){
-        return Attachment.findByContainer(Resource.USER_AVATAR, id).get(0).id;
+        return Attachment.findByContainer(ResourceType.USER_AVATAR, id).get(0).id;
     }
 
     public static boolean isEmailExist(String emailAddress) {
@@ -161,16 +161,21 @@ public class User extends Model {
         return this == UserApp.anonymous;
     }
 
-    public GlobalResource asResource() {
-        return new GlobalResource() {
+    public Resource asResource() {
+        return new Resource() {
             @Override
             public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
                 return null;
             }
 
             @Override
-            public Resource getType() {
-                return Resource.USER;
+            public ResourceType getType() {
+                return ResourceType.USER;
             }
         };
     }

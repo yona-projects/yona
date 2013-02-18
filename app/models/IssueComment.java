@@ -4,8 +4,8 @@
 
 package models;
 
-import models.enumeration.Resource;
-import models.resource.ProjectResource;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 
 import org.joda.time.*;
 import play.data.validation.*;
@@ -66,9 +66,9 @@ public class IssueComment extends Model {
         return JodaDateUtil.ago(this.date);
     }
 
-    public ProjectResource asResource() {
+    public Resource asResource() {
 
-        return new ProjectResource() {
+        return new Resource() {
             @Override
             public Long getId() {
                 return id;
@@ -80,8 +80,8 @@ public class IssueComment extends Model {
             }
 
             @Override
-            public Resource getType() {
-                return Resource.ISSUE_COMMENT;
+            public ResourceType getType() {
+                return ResourceType.ISSUE_COMMENT;
             }
         };
     }

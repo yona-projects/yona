@@ -11,9 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import models.Attachment;
-import models.Project;
 import models.enumeration.Operation;
-import models.enumeration.Resource;
+import models.enumeration.ResourceType;
 
 import org.codehaus.jackson.JsonNode;
 
@@ -185,7 +184,7 @@ public class AttachmentApp extends Controller {
 
         if (containerType != null && containerId != null) {
             List<Map<String, String>> attachments = new ArrayList<Map<String, String>>();
-            for (Attachment attach : Attachment.findByContainer(Resource.valueOf(containerType),
+            for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf(containerType),
                     Long.parseLong(containerId))) {
                 if (!AccessControl.isAllowed(UserApp.currentUser(),
                         attach.getContainerAsResource(), Operation.READ)) {
