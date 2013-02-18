@@ -8,8 +8,9 @@ $(document).ready(function(){
         $.ajax("code/" + branch + "/!" + path, {
           datatype : "json",
           success : function(data, textStatus, jqXHR){
+              console.log(data);
             updateBreadcrumbs(path);
-            updateNav(path);
+//            updateNav(path);
             switch(data.type){
               case "file" :
                   handleFile(data);
@@ -27,7 +28,7 @@ $(document).ready(function(){
             //파일을 표시한다.
             $("#commiter").text(data.author);
             $("#commitMessage").text(data.msg);
-            $("#commitDate").text(data.date);
+            $("#commitDate").text(moment(new Date(data.date)).fromNow());
             $("code").text(data.data);
             $("#rawCode").attr("href", "rawcode"+path);//TODO 현재 동작하지 않음.
             
@@ -40,13 +41,13 @@ $(document).ready(function(){
             $("#commiter").text(data.author);
             $("#commitMessage").text(data.msg);
             $("#commitDate").text(data.date);
-            
-            $("tbody").children().remove();
-            
+
+            $(".contents").children().remove();
+
             for(var name in data.data){
               var info = data.data[name];
               var tablerow = makeTableRow(name, info.msg, info.date, info.author);
-              $("tbody").append(tablerow);
+              $(".contents").append(tablerow);
             }
 
             $("#folderView").show();
@@ -63,9 +64,9 @@ $(document).ready(function(){
                     ).addClass("filename")
                   )
               .append($("<td>").text(message).addClass("message"))
-              .append($("<td>").text("just now"/*date*/).addClass("date"))
+              .append($("<td>").text(moment(new Date(date)).fromNow()).addClass("date"))
               //.append($("<td>").text(author).addClass("author"))
-              .append($('<td class="author"><a href="/'+ author+'" class="img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32" alt="avatar"></a></td>'));
+              .append($('<td class="author"><a href="/'+ author+'"><img src="/assets/images/default-avatar-34.png" alt="avatar" class="img-rounded"></a></td>'));
         }
         function updateBreadcrumbs(path){
           var $breadcrumbs = $("#breadcrumbs");
@@ -85,11 +86,10 @@ $(document).ready(function(){
       if (!$("#selected-branch").text()) $("#selected-branch").text('HEAD');
       $(window).trigger('hashchange');
   });
-  
+
   function getHash(){
       //혹시 있을지도 모를 호완성을 위해.
       return location.hash;
-      
   }
   function setHash(hash){
       return location.hash = hash;
@@ -109,7 +109,10 @@ $(document).ready(function(){
     console.log("update triggered!");
     var stack = [];
     var pathSeg = path.split("/");
-    pathSeg = pathSeg.filter(function(data){if(data == "") return false; else return true;});
+    pathSeg = pathSeg.filter(function(data){
+        if(data == "") return false;
+        else return true;
+    });
     path = "/" + pathSeg.join("/");
     while(true){
       if($("#folderNav").find("li[data-path='" + path +"']").length == 0){
@@ -146,8 +149,9 @@ $(document).ready(function(){
       return path;
     });
   }
+
   function addItem(stack){
-    
+
     $folderNav = $("#folderNav");
 
     while(stack.length !== 0){
@@ -175,8 +179,123 @@ $(document).ready(function(){
       return $("<li>").addClass("directory").attr("data-path", tpath).css({paddingLeft: margin}).append($a);
     }
   }
-  
+
   $(".branch-item").click(function(ev){
     $("#selected-branch").text($(this).text());
     $(window).trigger('hashchange');
   });
+
+
+
+// adaptorForDynatree adaptor function is used for existed function
+// Also, it pass the below tests
+//
+// it("file & folder combine", function() {
+//     //Given
+//     var target = {
+//         "attachment": {
+//             "type": "folder",
+//             "msg": "add folders",
+//             "author": "doortts",
+//             "date": "Mon Jan 28 14:21:07 KST 2013"
+//         },
+//         "favicon.ico": {
+//             "type": "file",
+//             "msg": "add folders",
+//             "author": "doortts",
+//             "date": "Mon Jan 28 14:21:07 KST 2013"
+//         }
+//     };
+//     var expected = [
+//         {title: "attachment", isFolder: true, isLazy: true},
+//         {title: "favicon.ico"}
+//     ];
+//     //When
+//     var result = adaptorForDynatree(target);
+//     //Then
+//     assert.deepEqual(result, expected);
+// });
+
+var result = [];
+function adaptorForDynatree(target){
+    result = [];
+    _.each(target, function(value, key, list){
+        if(value.type === "folder") {
+            result.push({ title: key, isFolder: true, isLazy: true});
+        } else {
+            result.push({ title: key});
+        }
+    })
+    return _.sortBy(result, function(elm){
+        return -elm.hasOwnProperty("isFolder");
+    })
+}
+
+// Traverse the path of selected tree item
+function getTreePath(node){
+    var path = "";
+    var title = "";
+    if( node.getParent() && node.getParent().data.title !== null ){
+        path = getTreePath(node.getParent()) + "/" + node.data.title;
+    } else {
+        path = node.data.title;
+    }
+    return path;
+}
+
+// initial path loading
+var rootPath = "";
+$(function(){
+    var path = getHash().replace(/^#/, "");
+    var branch = encodeURIComponent($("#selected-branch").text());
+    rootPath = "code/" + branch + "/!/";
+    console.log("rootPath=", rootPath);
+    $.ajax({
+        url: rootPath,
+        success: function(result, textStatus){
+            treeInit(adaptorForDynatree(result.data));
+        }
+    });
+});
+
+// DynaTree Init function
+// see: http://wwwendt.de/tech/dynatree/doc/dynatree-doc.html
+function treeInit(initData){
+    $("#folderNav").dynatree({
+        fx: { height: "toggle", duration: 200 },
+        autoFocus: false,
+        isLazy: true,
+        onLazyRead: function(node){
+
+            $.ajax({
+                url: rootPath + getTreePath(node),
+                success: function(result, textStatus) {
+                    // Called after nodes have been created and the waiting icon was removed.
+                    // 'this' is the options for this Ajax request
+                    if(result){
+                        node.setLazyNodeStatus(DTNodeStatus_Ok);
+                        node.addChild(adaptorForDynatree(result.data));
+                    }else{
+                        // Server returned an error condition: set node status accordingly
+                        node.setLazyNodeStatus(DTNodeStatus_Error, {
+                            tooltip: result.faultDetails,
+                            info: result.faultString
+                        });
+                    }
+                },
+                error: function(node, XMLHttpRequest, textStatus, errorThrown) {
+                    // Called on error, after error icon was created.
+                    console.log(node);
+                },
+                cache: false // Append random '_' argument to url to prevent caching.
+            });
+        },
+        onActivate: function(node) {
+            // A DynaTreeNode object is passed to the activation handler
+            // Note: we also get this event, if persistence is on, and the page is reloaded.
+            window.location = "#/" + getTreePath(node);
+        },
+        title: "/",
+        children: initData
+    });
+}

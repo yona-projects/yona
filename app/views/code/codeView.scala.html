@@ -31,41 +31,27 @@
     <div class="code-browse-wrap">
       <div class="code-browse-header"><span id="breadcrumbs">Breadcrumbs</span></div>
       <div class="directory-wrap cell">
-        <div class="directory-header"><strong>FOLDER NAME</strong></div>
+        <div class="directory-header">FOLDER NAME</div>
         <!-- note..
             depth : 20px + (depth * 5);
             start depth : 0
             first folder : 20 + (1 * 5 ) = 25px;
             second folder : 20 + (2 * 5 ) = 30px;
          -->
-        <ul class="directories" id="folderNav">
-          <li class="directory" data-path="/"><a href="#/"><i class="ico btn-folder open"></i>/</a></li>
-          <!--
-          <li class="directory selected" style="padding-left: 25px;"><a href="#!/folder" data-path="html"><i class="ico btn-folder closed"></i>html</a></li>
-          <li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="images"><i class="ico btn-folder closed"></i>images</a></li>
-          <li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="javascript"><i class="ico btn-folder closed"></i>javaspript</a></li>
-          <li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="psd"><i class="ico btn-folder closed"></i>psd</a></li>
-          <li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="stylesheets"><i class="ico btn-folder closed"></i>stylesheets</a></li>-->
-        </ul>
+        <div class="directories" id="folderNav"></div>
       </div>
       <div class="sp-wrap cell"></div>
       <div class="file-wrap cell" id="folderView">
         <table class="code-table sources">
           <thead class="thead">
             <tr>
-              <td class="filename"><strong>FILENAME</strong></td>
-              <td class="messages"><strong>COMMIT MESSAGES</strong></td>
-              <td class="date"><strong>COMMIT DATE</strong></td>
-              <td class="author"><strong>AUTHOR</strong></td>
+              <td class="filename">FILENAME</td>
+              <td class="messages">COMMIT MESSAGES</td>
+              <td class="date">COMMIT DATE</td>
+              <td class="author">AUTHOR</td>
             </tr>
           </thead>
-          <tbody class="tbody">
-            <tr>
-              <td class="filename"><a href="/code-file.html?filenema=gitignore">.gitignore</a></td>
-              <td class="messages"><a href="/code-commit.html?id=xxxx">fix bug</a></td>
-              <td class="date">5 days ago</td>
-              <td class="author"><a href="/uname" class="img-rounded"><img src="/images/default-avatar-34.png" width="32" height="32" alt="avatar"></a></td>
-            </tr>
+          <tbody class="contents">
           </tbody>
         </table>
       </div>
@@ -90,6 +76,14 @@
 <style>
 @@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
 </style>
+<script src='/assets/javascripts/jquery-ui.custom.js' type="text/javascript"></script>
+<script src='/assets/javascripts/jquery.cookie.js' type="text/javascript"></script>
+
+<link rel='stylesheet' type='text/css' href='/assets/stylesheets/dynatree/skin/ui.dynatree.css'>
+<script src='/assets/javascripts/jquery.dynatree.js' type="text/javascript"></script>
+
+<script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
+<script type="text/javascript" src="https://raw.github.com/timrwood/moment/2.0.0/min/moment.min.js"></script>
 <script src="/assets/javascripts/code.js"></script>
 <script type="text/javascript">
 nforge.require('code.copy');

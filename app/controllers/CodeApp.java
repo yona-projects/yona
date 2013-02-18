@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CodeApp extends Controller {
-    //TODO 리팩토링이 시급합니다.
-	public static Result codeBrowser(String userName, String projectName) throws IOException, UnsupportedOperationException, ServletException {
+	public static Result codeBrowser(String userName, String projectName)
+            throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
@@ -37,7 +37,8 @@ public class CodeApp extends Controller {
 
         return ok(codeView.render(project, branches));
     }
-	public static Result codeBrowserWithBranch(String userName, String projectName, String branch) throws IOException, UnsupportedOperationException, ServletException {
+	public static Result codeBrowserWithBranch(String userName, String projectName, String branch)
+            throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
@@ -57,7 +58,8 @@ public class CodeApp extends Controller {
             return status(403);
         }
     }
-    public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path) throws AmbiguousObjectException, NoHeadException, UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
+    public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
+            throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
         if(findFileInfo != null) {
             return ok(findFileInfo);
