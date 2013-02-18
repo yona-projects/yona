@@ -159,7 +159,6 @@ function adaptorForDynatree(target){
 // Traverse the path of selected tree item
 function getTreePath(node){
     var path = "";
-    var title = "";
     if( node.getParent() && node.getParent().data.title !== null ){
         path = getTreePath(node.getParent()) + "/" + node.data.title;
     } else {
