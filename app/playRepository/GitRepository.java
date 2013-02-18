@@ -132,16 +132,16 @@ public class GitRepository implements PlayRepository {
 
     private ObjectNode getJsonNodes(String type, ObjectId objectId, RevCommit commit) throws IOException {
         ObjectNode result = Json.newObject();
-
+        long commitTime = commit.getCommitTime() * 1000L;
         result.put("type", type);
         result.put("msg", commit.getShortMessage());
         result.put("author", commit.getAuthorIdent().getName());
-        result.put("date", new Date(commit.getCommitTime() * 1000L).toString());
+        result.put("date", commitTime);
 
         result.put("commitMessage", commit.getShortMessage());
         result.put("commiter", commit.getAuthorIdent().getName());
 
-        result.put("commitDate", new Date(commit.getCommitTime() * 1000l).toString());
+        result.put("commitDate", commitTime);
 
         String str = new String(repository.open(objectId).getBytes());
         result.put("data", str);
@@ -165,7 +165,7 @@ public class GitRepository implements PlayRepository {
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
             data.put("msg", commit.getShortMessage());
             data.put("author", commit.getAuthorIdent().getName());
-            data.put("date", new Date(commit.getCommitTime() * 1000l).toString());
+            data.put("date", commit.getCommitTime() * 1000l);
             listData.put(treeWalk.getNameString(), data);
         }
         result.put("data", listData);
