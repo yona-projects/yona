@@ -3,7 +3,7 @@
 @import utils.TemplateHelper._
 
 @home("Users Info", utils.MenuType.USER) {
-    @if(user.loginId == session.get("loginId")){
+    @if(user != null && session != null && user.loginId == session.get("loginId")){
 		<div class="side-menu-wrap">
 		    <ul class="side-menus ico bg-side-menu unstyled">
 		        <li class="side-menu"><a href="@routes.UserApp.editUserInfoForm()"><i class="ico ico-setting on"></i></a></li>
