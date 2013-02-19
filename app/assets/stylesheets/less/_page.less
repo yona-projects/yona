@@ -1537,7 +1537,7 @@
         }
     }
     .content {
-        width: 700px;
+        width: @fileViewContentWidth;
         margin-bottom: 20px;
     }
 }
@@ -1792,8 +1792,10 @@
 }
 
 .double-sp {
-    margin: 15px 0 17px;
+    margin: 5px 0 5px;
 }
+
+@fileViewContentWidth: 710px;
 
 .code-browse-wrap {
     .border-radius(5px);
@@ -1818,14 +1820,15 @@
             min-width: 196px;
             max-width: 196px;
             overflow: auto;
+            border-right: 1px solid #f1f1f1;
         }
         &.sp-wrap {
             border-left: 4px solid #E6E6E6;
         }
         &.file-wrap {
-            width: 700px;
-            min-width: 700px;
-            max-width: 700px;
+            width: @fileViewContentWidth;
+            min-width: @fileViewContentWidth;
+            max-width: @fileViewContentWidth;
             overflow-x: auto;
         }
     }
@@ -1834,12 +1837,13 @@
         background-color: #9C9C9C;
         color: @white;
         font-size: 12px;
-        padding-left: 20px;
+        padding-left: 16px;
         position: absolute;
         width: 180px;
     }
     .directories {
-        margin: 0;
+        margin: 10px;
+        border-right: 2px sold #808080;
         margin-top: 34px;
         padding: 0;
         overflow: auto;
@@ -1863,7 +1867,7 @@
     .code-table {
         width: 100%;
         &.sources {
-            width: 700px;
+            width: @fileViewContentWidth;
         }
         td {
             padding: 0 15px 0 5px;
