@@ -19,7 +19,7 @@
       <pathelement location="src" />
     </path>
  
-    <path id="classpath.junittest"2
+    <path id="classpath.junittest">
        <path refid="classpath.base" />
        <pathelement location="/opt/lib/junit-4.9b2.jar" />
        <pathelement location="${test.dir}" />
