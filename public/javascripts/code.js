@@ -113,14 +113,14 @@ $(document).ready(function(){
         }
         function updateBreadcrumbs(path){
           var $breadcrumbs = $("#breadcrumbs");
-          $($breadcrumbs).html('<a href="#/">/</a>');
+          $($breadcrumbs).html('<a href="#/">'+project_name+'</a>');
                       
           var names = path.split("/");
           var str = "#"
           for(var i = 1; i < names.length; i++){
             var name = names[i];
             str += "/" + name;
-            $breadcrumbs.append(" &gt; ");
+            $breadcrumbs.append("/");
             $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
           }
         }
