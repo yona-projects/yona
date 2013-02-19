@@ -1,16 +1,14 @@
-$(document).ready(function(){      
+$(document).ready(function(){
       $(window).bind('hashchange', function(e){
         //대기 표시 한다.
         //여기서 요청을 보내고
         var path = getHash().replace(/^#/, "");
         var branch = encodeURIComponent($("#selected-branch").text());
-        
+
         $.ajax("code/" + branch + "/!" + path, {
           datatype : "json",
           success : function(data, textStatus, jqXHR){
-              console.log(data);
             updateBreadcrumbs(path);
-//            updateNav(path);
             switch(data.type){
               case "file" :
                   handleFile(data);
@@ -156,6 +154,23 @@ function adaptorForDynatree(target){
     })
 }
 
+
+function findTreeNode(path){
+    var root = $("#folderNav").dynatree("getRoot");
+    var nodes = path.split("/");  // "a/b/c" => a, b, c
+    var currentNode = root;
+    for(var idx in nodes){
+        var searchTarget = currentNode.getChildren()
+        for( var jdx in  searchTarget){
+            if ( searchTarget[jdx].data.title === nodes[idx] ) {
+                currentNode = searchTarget[jdx];
+                currentNode.expand();
+                break;
+            }
+        }
+    }
+}
+
 // Traverse the path of selected tree item
 function getTreePath(node){
     var path = "";
@@ -169,24 +184,26 @@ function getTreePath(node){
 
 // initial path loading
 var rootPath = "";
+var treeSelectorId = "#folderNav";
 $(function(){
     var path = getHash().replace(/^#/, "");
     var branch = encodeURIComponent($("#selected-branch").text());
     rootPath = "code/" + branch + "/!/";
-    console.log("rootPath=", rootPath);
     $.ajax({
         url: rootPath,
         success: function(result, textStatus){
             treeInit(adaptorForDynatree(result.data));
+            findTreeNode(path.substr(1));  // path.substr(1) "/a/b/c" => "a/b/c"
         }
     });
 });
 
 // DynaTree Init function
 // see: http://wwwendt.de/tech/dynatree/doc/dynatree-doc.html
+
 function treeInit(initData){
-    $("#folderNav").dynatree({
-        fx: { height: "toggle", duration: 200 },
+    $(treeSelectorId).dynatree({
+        fx: {  duration: 200 },
         autoFocus: false,
         isLazy: true,
         onLazyRead: function(node){
@@ -202,8 +219,8 @@ function treeInit(initData){
                     }else{
                         // Server returned an error condition: set node status accordingly
                         node.setLazyNodeStatus(DTNodeStatus_Error, {
-                            tooltip: result.faultDetails,
-                            info: result.faultString
+                            tooltip: "Loading failed",
+                            info: result
                         });
                     }
                 },
@@ -220,6 +237,8 @@ function treeInit(initData){
             window.location = "#/" + getTreePath(node);
         },
         title: "/",
-        children: initData
+        children: initData,
+        debugLevel: 0
     });
 }
+
