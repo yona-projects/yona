@@ -13,25 +13,44 @@ nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리�
 --
 nFORGE는 GNU GPL v2로 배포되는 오픈소스입니다.
 
+## 설치하기
 
-주요 사용자 그룹
---
-  특정 조직내에서 프로젝트 저장소(프로젝트 관리기능포함)를 직접 운영하고 싶어하는 개발자/조직.
+### playframework 내려 받기
+    
+    curl -O http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
 
-주요 특징
---
-- 로컬 소스코드 저장소(Git,Svn)를 쉽게 구축할수 있다.
-- 보안이 필요한 사내 협업개발, 문서축적 기능을 제공한다.
-- 커스터마이징이 쉽게 가능한다.
-- 오픈소스이다.
+혹은
 
-nForge 프로젝트에 참여했을때 얻을 수 있는 가치
----
-- 최신 기술에 대한 학습 및 적용경험
-- 오픈소스 프로젝트에 기여
-- 개인 네임밸류
-- 다양한 개발자들과의 교류
+    wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
 
-빌드서버
----
-- [http://travis-ci.org/#!/nforge/nforge4](http://travis-ci.org/#!/nforge/nforge4)
+### 압출풀기
+
+    unzip play-2.1.0.zip
+
+### 압축을 푼 다음 하위 디렉터리로 이동
+
+    cd play-2.1.0
+
+### nforge 소스 내려 받기
+
+    git clone https://github.com/nforge/nforge4.git
+
+### clone 받은 nforge4 디렉터리로 이동
+
+    cd nforge4
+
+### 상단에 있는 play 실행파일 실행
+
+    ../play
+
+실행하면 필요한 파일들을 web에서 내려받는다. 
+
+### 콘솔이 뜨면 run 명령어로 기동
+    
+    run
+
+필요한 파일들을 web에서 내려받고 컴파일 한다.
+
+### 브라우저로 접속
+
+    http://127.0.0.1:9000
