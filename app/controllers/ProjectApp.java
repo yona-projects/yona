@@ -184,6 +184,13 @@ public class ProjectApp extends Controller {
     }
 
     public static Result newMember(String userName, String projectName) {
+        // TODO change into view validation
+        Form<User> addMemberForm = form(User.class).bindFromRequest();
+        if (addMemberForm.hasErrors()){
+            flash(Constants.WARNING, "project.member.notExist");
+            return redirect(routes.ProjectApp.members(userName, projectName));
+        }
+
         User user = User
                 .findByLoginId(form(User.class).bindFromRequest().get().loginId);
         Project project = getProject(userName, projectName);
