@@ -134,11 +134,16 @@
 
         </tr>
       }
+      @if( currentPage.getList().size() == 0 ){
+      <tr>
+          <td colspan="6">@Messages("issue.is.empty")</td>
+      </tr>
+      }
 
     <tbody>
   </table>
-  <div class="pull-right">
-    <a class="btn btn-primary" href="@routes.IssueApp.newIssueForm(project.owner, project.name)" >@Messages("issue.menu.new")</a>
+  <div class="write-btn-wrap">
+    <a class="n-btn blue small" href="@routes.IssueApp.newIssueForm(project.owner, project.name)" >@Messages("issue.menu.new")</a>
   </div>
   <div id="pagination">
     <!-- pagination.js will fill here. -->

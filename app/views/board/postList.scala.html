@@ -29,20 +29,20 @@
           <input type="hidden" name="key" value="@param.key">
           <input type="hidden" name="order" value="@param.order">
           <input type="hidden" name="pageNum" value="@param.pageNum">
-          <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn-transparent search-btn">SEARCH</button>
+          <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn-transparent search-btn underConstruction">SEARCH</button>
         </form>
       </div>
     </div>
   </div>
   <div class="filter-wrap board">
     <div class="filters" id="order">
-      <a href="#" key="date" class="filter">
+      <a href="#" key="date" class="filter underConstruction">
         @if(param.key == "date"){
         <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
         }
         날짜순
       </a>
-      <a href="#" key="commentCount" class="filter active">
+      <a href="#" key="commentCount" class="filter active underConstruction">
         @if(param.key == "commentCount"){
         <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
         }

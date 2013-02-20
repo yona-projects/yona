@@ -125,17 +125,14 @@
 }
 </div>
 
-@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-<div class="pull-left">
-  <a data-toggle="modal" href="#deleteIssueConfirm" class="btn">@Messages("button.delete")</a>
-</div>
-}
-
-<div class="pull-right">
-    <a class="btn" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-    <a class="btn" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
+<div class="board-footer">
+    <a class="n-btn gray small" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
+    <a class="n-btn orange small" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
+    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+        <a data-toggle="modal" href="#deleteIssueConfirm" class="n-btn red small">@Messages("button.delete")</a>
+    }
     @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-    <a class="btn btn-primary" href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
+    <a class="n-btn blue small" href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
     }
 </div>
 
@@ -149,9 +146,9 @@
         <p>@Messages("post.delete.confirm")</p>
     </div>
     <div class="modal-footer">
-        <a class="btn btn-danger"
+        <a class="n-btn red small"
             href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.id)">@Messages("button.yes")</a>
-        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+        <a href="#" class="n-btn blue small" data-dismiss="modal">@Messages("button.no")</a>
     </div>
 </div>
 

@@ -81,48 +81,16 @@
             <div id="upload" resourceType=@ResourceType.BOARD_COMMENT></div>
             }
           </div>
-          <!--
-          <div class="attach-wrap">
-            <div class="thumb-wrap">
-              <img src="/images/default-avatar-34.png" class="img-rounded" width="32" height="32" alt="avatar">
-            </div>
-            <div class="attach-info-wrap">
-              <div>
-                <span class="progress-num">15%</span>
-                <span class="sp-line">&nbsp;</span>
-                <strong>total</strong>
-                <span class="total-num">50MB</span>
-              </div>
-              <div class="progress-wrap">
-                <div class="progress n4">
-                  <div class="bar orange" style="width: 40%;"></div>
-                </div>
-              </div>
-              <a href="#!/cancel"><i class="ico btn-cancel"></i></a>
-            </div>
-            <div class="btn-wrap">
-              <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
-                <input type="file" class="file">
-              </div>
-            </div>
-          </div>
           -->
         }
-          <!--<div class="attached-files-wrap">
-            <ul class="attached-files">
-              <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
-              <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
-              <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
-            </ul>
-          </div>-->
       </div>
     }
   </div>
   <div class="board-footer">
       <!--<a href="/add-notification" class="add-btn"><i class="ico ico-plus-blue"></i>자동알림추가</a>-->
-      <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray small">LIST</a>
+      <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn orange small">LIST</a>
       @isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-      <a data-toggle="modal" href="#deleteConfirm" class="n-btn gray small">DELETE</a>
+      <a data-toggle="modal" href="#deleteConfirm" class="n-btn red small">DELETE</a>
       }
       @isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
       <a href="@routes.BoardApp.editPost(project.owner, project.name, post.id)" class="n-btn blue small">EDIT</a>
@@ -140,8 +108,8 @@
       <p>그래도 삭제하시겠습니까?</p>
     </div>
     <div class="modal-footer">
-      <a class="btn btn-primary" href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">예</a>
-      <a href="#" class="btn" data-dismiss="modal">아니오</a>
+      <a class="n-btn red small" href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">예</a>
+      <a href="#" class="n-btn blue small" data-dismiss="modal">아니오</a>
     </div>
   </div>
 </div>

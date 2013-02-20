@@ -36,10 +36,16 @@
             background-color: #FF9F6B;
         }
     }
+    &.red {
+      background-color: @red;
+      &:hover {
+        background-color: lighten(@red, 10%)
+      }
+    }
     &.gray {
-        background-color: @gray-cc;
+        background-color: @gray-66;
         &:hover {
-            background-color : #E1E1E1;
+            background-color : darken(@gray-66, 10%)
         }
     }
     &.black {
