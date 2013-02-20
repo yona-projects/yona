@@ -47,8 +47,12 @@
 
         // show setting menu tooltips with bootstrap if it can (temporary before redesign)
         $(function(){
-            $(".bg-side-menu").tooltip({trigger:'manual', placement: 'left', title: '설정'});
-            $(".bg-side-menu").tooltip('show');
+            $(".bg-side-menu").tooltip({placement: 'left', title: '설정'});
+        });
+
+        // show on developing message
+        $(function(){
+            $(".underConstruction").tooltip({placement: 'left', title: 'Sorry! Under construction...'});
         });
     </script>
 </body>
