@@ -20,9 +20,9 @@ var editor = function (textarea) {
   previewDiv.attr('div', 'preview');
   previewDiv.css('display', 'none');
 
-  previewSwitch = $('<div>');
-  previewSwitch.append($('<input type="radio" name="edit-mode" value="edit" checked>Edit</input>'));
-  previewSwitch.append($('<input type="radio" name="edit-mode" value="preview">Preview</input>'));
+  previewSwitch = $('<div id="mode-select">');
+  previewSwitch.append($('<input type="radio" name="edit-mode" id="edit-mode" value="edit" checked>Edit</input>'));
+  previewSwitch.append($('<input type="radio" name="edit-mode" id="preview-mode" value="preview">Preview</input>'));
   previewSwitch.change(function() {
     var val = $('input:radio[name=edit-mode]:checked').val();
     if (val == 'preview') {
