@@ -14,19 +14,19 @@
             <a href="@routes.Application.index()" class="logo"></a>
             <ul class="gnb-menus unstyled">
                 <li class="menu">
-                    <a href="@routes.ProjectApp.newProjectForm()" class="@isActiveMenu(MenuType.NEW_PROJECT)">NEW PROJECT</a>
+                    <a href="@routes.ProjectApp.newProjectForm()" class="@isActiveMenu(MenuType.NEW_PROJECT)">@Messages("title.newProject")</a>
                 </li>
                 <li class="menu">
-                    <a href="@routes.ProjectApp.projects()" class="@isActiveMenu(MenuType.PROJECTS)">PROJECTS</a>
+                    <a href="@routes.ProjectApp.projects()" class="@isActiveMenu(MenuType.PROJECTS)">@Messages("title.projectList")</a>
                 </li>
                 <li class="menu">
-                    <a href="@routes.HelpApp.help()" class="@isActiveMenu(MenuType.HELP)">HELP</a>
+                    <a href="@routes.HelpApp.help()" class="@isActiveMenu(MenuType.HELP)">@Messages("title.help")</a>
                 </li>
-                <!-- for Testing -->
+                <!-- for Testing
                 <li class="menu">
                     <a href="@routes.Application.init()" class="@isActiveMenu(MenuType.HELP)">Init(forTest)</a>
                 </li>
-                <!-- for Testing end here-->
+                for Testing end here-->
             </ul>
             <ul class="gnb-menus right unstyled">
                 @if(session.contains("loginId")){                

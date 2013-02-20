@@ -22,7 +22,12 @@ title.rememberMe = 로그인 유지하기
 title.commitHistory = 커밋 히스토리
 title.mailSetting = 메일 설정
 title.sendMail = 메일 발송
-title.projectList = 프로젝트 리스트
+title.projectList = 프로젝트 목록
+title.help = 도움말
+
+hive.name = nFORGE
+hive.title = 협업개발 플랫폼
+hive.description = Makte it better and simpler!
 
 orderby.name = 이름순
 orderby.recent = 생성일자순
@@ -90,8 +95,8 @@ milestone.is.empty = 등록된 마일스톤이 없습니다.
 milestone.menu.manage = 마일스톤 관리
 milestone.menu.new = 새 마일스톤
 milestone.none = 없음
-sort.by.dueDate = 완료일순
-sort.by.completionRate = 완료울순
+sort.by.dueDate = 완료일 순
+sort.by.completionRate = 완료울 순
 
 #Issue
 issue.state = 상태
@@ -163,6 +168,7 @@ issue.search = 검색
 
 #Post
 post.new = 새글
+post.write = 글쓰기
 post.new.title = 제목
 post.new.contents = 내용
 post.new.filePath = 파일 경로
@@ -177,16 +183,21 @@ post.edit.rejectNotAuthor = 글쓴이가 아닙니다.
 post.update.error = 입력값 오류
 
 #Project
+project.myproject = 내 프로젝트
 project.create = 프로젝트 생성
 project.name = 프로젝트 이름
+project.name.placeholder = 프로젝트 이름을 입력해주세요.
 project.owner = 소유자 이름
 project.name.alert = 프로젝트 이름은 URL로 사용할 수 있는 글자(영문자,숫자,-'하이픈')만 허용합니다.
 project.name.duplicate = 이미 해당 이름과 동일한 프로젝트를 가지고 있습니다.
 project.description = 설명
+project.description.placeholder = 프로젝트 설명을 입력해주세요.
 project.shareOption = 공개 설정
-project.shareOption.public = 공개
-project.shareOption.private = 비공개
-project.shareOption.private.description = 비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼수 있습니다.
+projects = 프로젝트
+project.all = 모든
+project.public = 공개
+project.private = 비공개
+project.private.notice = 비공개 프로젝트도 프로젝트 이름,설명,로고 등은 모든 사용자가 볼수 있습니다.
 project.isAuthorEditable = 작성자 수정/삭제 권한 설정
 project.isAuthorEditable.on =  가능
 project.isAuthorEditable.off = 불가능
@@ -205,20 +216,21 @@ project.member.delete = 프로젝트 유저 삭제
 project.member.notExist = 존재하지 않는 유저입니다.
 project.member.ownerCannotLeave = 프로젝트 소유자는 탈퇴할 수 없습니다.
 project.sidebar = 프로젝트 관리
-project.sidebar.setting = 설정
-project.sidebar.memberList = 멤버
-project.sidebar.milestone = 마일스톤
+project.setting = 설정
+project.member = 멤버
+project.milestone = 마일스톤
 project.sidebar.plugin = 플러그인
 project.sidebar.help = 도움말
 project.logo.type = 파일형식: bmp, jpg, gif, png
-project.logo.fileSize = 파일크기: 1.00 MB 이하
+project.logo.maxFileSize = 최대파일크기
 project.logo.fileSizeAlert = 이미지 용량은 1MB 이하여야 합니다.
-project.logo.size = 사이즈: 234px * 168px
+project.logo.size = 사이즈
 project.logo = 로고
 project.logo.alert = 이미지 파일이 아닙니다.
 project.siteurl = 사이트 주소
 project.siteurl.alert = 사이트 URL은 http://로 시작하여야 합니다.
 project.delete = 프로젝트 삭제
+project.delete.this = 프로젝트를 삭제합니다.
 project.delete.description = 프로젝트를 삭제하게되면 코드,위키,이슈관리 등 모든 데이터가 삭제되며 한번 삭제된 데이터는 복구가 불가능합니다.
 project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
 project.delete.requestion = 프로젝트를 삭제하시겠습니까?
@@ -227,6 +239,8 @@ project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.
 project.new.vcsType.git = Git
 project.new.vcsType.subversion = Subversion
 project.readme = 프로젝트에 대한 설명을 README.md 파일로 작성해서 코드저장소에 추가하면 이 곳에 나타납니다.
+project.searchPlaceholder = 현재 프로젝트에서 검색
+project.wrongName = 프로젝트 이름이 올바르지 않습니다.
 
 #Site
 site.sidebar = 사이트 관리
@@ -283,6 +297,7 @@ label.writer = 글쓴이
 post.is.empty = 등록된 게시물이 없습니다.
 title.contentSearchResult = 컨텐츠 검색 결과
 
+
 #Vaildation
 error.required = 필수 입력란입니다.
 error.wrong.format = 잘못된 형식의 값 입니다.
@@ -295,7 +310,7 @@ code.older = 다음
 code.repoUrl = 저장소 URL
 
 #mail
-mail.from = 발신 메일주소
+
 mail.password = 비밀번호
 mail.passwordPlaceholder = 이 비밀번호는 서버에 평문으로 저장됩니다.
 mail.host =	호스트
@@ -311,7 +326,7 @@ mail.save = 저장
 mail.authMethodPlaceholder = LOGIN 혹은 PLAIN
 
 mail.notConfigured = 메일러가 설정되지 않았습니다. conf/application.conf에서 다음의 속성을 설정해주세요.
-mail.from = 보내는 사람
+mail.from = 보내는 메일 주소
 mail.fromPlaceholder = sender@mail.com
 mail.to = 받는 사람
 mail.toPlaceholder = recipient@mail.com

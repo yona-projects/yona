@@ -22,7 +22,7 @@
 	                </form>
                 </td>
                 <td>
-                    <a id="deletion" data-toggle="modal" class="btn btn-danger" href="#alertDeletion@member.user.loginId">@Messages("button.delete")</a>
+                    <a id="deletion" data-toggle="modal" class="n-btn small red" href="#alertDeletion@member.user.loginId">@Messages("button.delete")</a>
                 </td>
             </tr>
             
@@ -44,10 +44,10 @@
             <form action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
 	            <td colspan="2">
 	                <input type="text" id="loginId" name="loginId" class="span8"
-	                placeholder="@Messages("project.members.addMember")" pattern="[a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")">
+	                placeholder="@Messages("project.members.addMember")" pattern="[a-zA-Z0-9_][a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")">
 	            </td>
 	            <td>
-	                <input type="submit" class="btn btn-primary" value="@Messages("button.add")">
+	                <input type="submit" class="btn-transparent n-btn blue med" value="@Messages("button.add")">
 	            </td>
             </form>
     </table>

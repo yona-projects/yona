@@ -7,7 +7,7 @@
         @for(state <- Array("all", "public", "private")) {
         <div class="stat">
           <a href="@routes.ProjectApp.projects(state=state)">
-          <span class="desc"><strong>@state.toUpperCase</strong> projects</span>
+          <span class="desc"><strong>@Messages("project." + state.toLowerCase)</strong> @Messages("projects")</span>
           <strong class="num @state">@Project.countByState(state)</strong>
           </a>
         </div>

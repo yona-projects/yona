@@ -22,7 +22,12 @@ title.rememberMe = REMEMBER ME
 title.commitHistory = Commit History
 title.mailSetting = Mail Configuration
 title.sendMail = Send Mail
-title.siteList = Project List
+title.projectList = Project List
+title.help = HELP
+
+hive.name = nFORGE
+hive.title = Collaborative Software Development Platform
+hive.description = Makte it better and simpler!
 
 orderby.name = Name
 orderby.recent = Recent
@@ -165,6 +170,7 @@ issue.search = SEARCH
 
 #Post
 post.new = New
+post.write = WRITE
 post.new.title = Title
 post.new.contents = Contents
 post.new.filePath = File Path
@@ -179,16 +185,21 @@ post.edit.rejectNotAuthor = You don't have permisstion to access.
 post.update.error = Errors on Input Value
 
 #Project
+project.myproject = MY PROJECTS
 project.create = Create a project
 project.name = Project Name
+project.name.placeholder = input project name
 project.owner = Owner Name
 project.name.alert = Wrong project name. (Characters which can be used in URL are allowed)
 project.name.duplicate = Already existing project.
 project.description = Description
+project.description.placeholder = input project description
 project.shareOption = Share Option
-project.shareOption.public = Public
-project.shareOption.private = Private
-project.shareOption.private.description = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project.
+projects = projects
+project.all = ALL
+project.public = PUBLIC
+project.private = PRIVATE
+project.private.notice = Basic information (name, description, etc.) is exposed to all users, even thought it is a private project.
 project.isAuthorEditable = Can the author do edit/delete his post/issue?
 project.isAuthorEditable.on =  Yes
 project.isAuthorEditable.off = No
@@ -207,20 +218,21 @@ project.member.delete = Delete a project member
 project.member.notExist = Not existing user
 project.member.ownerCannotLeave = Owner cannot leave.
 project.sidebar = Project Management
-project.sidebar.setting = Setting
-project.sidebar.memberList = Member
-project.sidebar.milestone = Milestone
+project.setting = Setting
+project.member = Member
+project.milestone = Milestone
 project.sidebar.plugin = Plugin
 project.sidebar.help = Help
 project.logo.type = File type: bmp, jpg, gif, png
-project.logo.fileSize = File size: less than 1.00 MB
+project.logo.maxfileSize = Max File size
 project.logo.fileSizeAlert = The size of an image should be less than 1MB.
-project.logo.size = Image size: 234px * 168px
+project.logo.size = Image size
 project.logo = Logo
 project.logo.alert = This is not an image.
 project.siteurl = Site URL
 project.siteurl.alert = URL should start with 'http://'.
-project.delete = Delete this project
+project.delete = Delete project
+project.delete.this = Delete this project
 project.delete.description = If this project is deleted, all data related to this project are deleted and they cannot be recovered.
 project.delete.accept = I agree with deleting this project.
 project.delete.requestion = Do you want to delete this project?
@@ -229,6 +241,8 @@ project.delete.alert = You should agree with deleting this project.
 project.new.vcsType.git = Git
 project.new.vcsType.subversion = Subversion
 project.readme = You can see README.md here if you add it into the code repository.
+project.searchPlaceholder = search at current project
+project.wrongName = Project name is wrong
 
 #Site
 site.sidebar = Site Management
@@ -276,6 +290,7 @@ time.days = {0} days ago
 board.post.empty = you have to write title and contents.
 board.post.notExist = Not Exsit Post!
 board.post.new = New Post
+board.write = WRITE
 board.post.modify = Edit Post
 board.comment.empty = you have to write contents.
 board.notAuthor = You are not author!
@@ -297,7 +312,6 @@ code.older = Older
 code.repoUrl = REPOSITORY URL
 
 #mail
-mail.from = From
 mail.password = Password
 mail.passwordPlaceholder = This will be stored as a plain text in the server.
 mail.host =	Host

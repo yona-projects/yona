@@ -3,8 +3,8 @@
 @home("Welcome to nForge", utils.MenuType.SITE_HOME) {
     <div class="page@if(!session.contains("userId")){ full}">
         <div class="center-wrap tag-line-wrap">
-            <h1 class="title"><span class="high-light">Open Source</span> N4</h1>
-            <p class="tag-line">Software development platform for Open Source project.</p>
+            <h1 class="title"><span class="high-light">@Messages("hive.title")</span> nFORGE</h1>
+            <p class="tag-line">@Messages("hive.description")</p>
         </div>
         
         <div class="@if(session.contains("userId")){fn-intro-wrap}else{intro-wrap}">
@@ -29,7 +29,7 @@
                 <div class="gray-bubble-wrap">
                     <div class="bg-bubble-top ico">
                         <div class="project-count-wrap">
-                            MY PROJECTS <i class="ico ico-dot-white"></i><span class="p-num">@projects.size()</span>
+                            @Messages("project.myproject") <i class="ico ico-dot-white"></i><span class="p-num">@projects.size()</span>
                         </div>
                         <div class="project-list-sort">
                             <span class="ordertype-date">

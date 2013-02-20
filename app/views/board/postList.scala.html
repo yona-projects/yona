@@ -52,8 +52,8 @@
   </div>
 
   @if(page.getTotalRowCount == 0){
-    <div class="well">
-      <p>등록된 글이 없습니다.</p>
+    <div>
+        <p class="emptyMessage">@Messages("post.is.empty")</p>
     </div>
   } else {
   <ul class="board-list">
@@ -78,7 +78,7 @@
   }
   @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
   <div class="write-btn-wrap">
-    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">WRITE</a>
+    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">@Messages("post.write")</a>
   </div>
   }
   <div id="pagination">
