@@ -26,10 +26,10 @@
                     <input type="password" class="text password" id="retypedPassword" placeholder="@Messages("validation.retypePassword")" autocomplete="off" name="retypedPassword">
                 </label>
                 <div class="act-row">
-                    HAVE AN ACCOUNT ALREADY? <a href="@routes.UserApp.login()" class="go-login">LOG IN</a>
+                    @Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
                 </div>
                 <div class="btns-row">
-                    <button type="submit" class="n-btn orange sign-up">Sign Up</button>
+                    <button type="submit" class="n-btn orange sign-up">@Messages("title.signup")</button>
                 </div>
             </form>
         </div>

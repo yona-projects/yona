@@ -272,6 +272,7 @@ user.email = 이메일
 user.wrongEmail.alert = 이메일이 잘못되었습니다.
 user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
 user.logout.success = 성공적으로 로그아웃되었습니다.
+user.isAlreadySignupUser = 이미 가입하셨나요?
 
 #Time
 time.just = 방금 전
