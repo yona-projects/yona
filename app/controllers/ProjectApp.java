@@ -54,7 +54,7 @@ public class ProjectApp extends Controller {
     public static Result newProjectForm() {
         if (session().get(UserApp.SESSION_USERID) == null) {
             flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.Application.index());
+            return redirect(routes.UserApp.loginForm());
         } else
             return ok(newProject
                     .render("title.newProject", form(Project.class)));
