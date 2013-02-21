@@ -72,7 +72,7 @@
 </article>
 
 <!-- 여기서 부터 덧글 -->
-<div class="comment-area">
+<div class="board-comment-wrap write-comment-box">
 <p class="info">Comments <span class="number">@issue.numOfComments</span></p>
 @if(issue.comments.size > 0) {
 <div class="comments">
@@ -116,8 +116,8 @@
   'id -> "comment-form",
   'enctype -> "multipart/form-data"){
    <div>
-     <textarea id="comment-editor" name="contents" class="span8 textbody .inputxx-large" rows="5" markdown></textarea>
-     <input class="btn add-on" type="submit" value=@Messages( "button.comment.new") />
+     <textarea id="comment-editor" name="contents" class="text comment" rows="5" markdown></textarea>
+     <input class="comment-btn" type="submit" value=@Messages( "button.comment.new") />
    </div>
    @if(UserApp.currentUser() != UserApp.anonymous) {
    <div id="upload" resourceType=@ResourceType.ISSUE_COMMENT></div>
