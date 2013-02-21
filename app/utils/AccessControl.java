@@ -26,6 +26,7 @@ public class AccessControl {
     }
 
     public static boolean isCreatable(User user, Project project, ResourceType resourceType) {
+        if (user == null) return false;
         if (user.isSiteManager()) {
             return true;
         }
