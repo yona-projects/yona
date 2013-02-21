@@ -42,7 +42,7 @@
             <i class="ico ico-like"></i><span class="num">1</span>
           </div>
           <i class="ico ico-activity low"></i>-->
-          <a href="@routes.UserApp.userInfo(project.owner)" class="user-thumb-wrap"><img src="/assets/images/default-avatar-34.png"></a>
+          <a href="@routes.UserApp.userInfo(project.owner)" class="user-thumb-wrap"><img src="@project.getOwnerByName(project.owner).avatarUrl"></a>
         </div>
       </li>
       }

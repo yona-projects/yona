@@ -186,7 +186,7 @@ public class Project extends Model {
     /**
      * 요청 문자열로 부터 정렬 방법을 정한다.
      * @param orderString
-     * @return
+     * @return ordered
      */
     private static Comparator determineComparator(String orderString) {  //TODO: Some ugly coding...
         if( orderString.contains("name desc")){
@@ -299,5 +299,9 @@ public class Project extends Model {
 
 	    };
 	}
+
+    public User getOwnerByName(String userId){
+        return User.findByLoginId(userId);
+    }
 
 }
