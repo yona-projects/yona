@@ -27,7 +27,7 @@ title.help = 도움말
 
 hive.name = nFORGE
 hive.title = 협업개발 플랫폼
-hive.description = Makte it better and simpler!
+hive.description = Make it better and simpler!
 
 orderby.name = 이름순
 orderby.recent = 생성일자순

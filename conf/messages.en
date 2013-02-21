@@ -27,7 +27,7 @@ title.help = HELP
 
 hive.name = nFORGE
 hive.title = Collaborative Software Development Platform
-hive.description = Makte it better and simpler!
+hive.description = Make it better and simpler!
 
 orderby.name = Name
 orderby.recent = Recent
