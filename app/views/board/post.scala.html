@@ -81,19 +81,18 @@
             <div id="upload" resourceType=@ResourceType.BOARD_COMMENT></div>
             }
           </div>
-          -->
         }
       </div>
     }
   </div>
   <div class="board-footer">
       <!--<a href="/add-notification" class="add-btn"><i class="ico ico-plus-blue"></i>자동알림추가</a>-->
-      <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn orange small">LIST</a>
+      <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn orange small">@Messages("button.list")</a>
       @isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-      <a data-toggle="modal" href="#deleteConfirm" class="n-btn red small">DELETE</a>
+      <a data-toggle="modal" href="#deleteConfirm" class="n-btn red small">@Messages("button.delete")</a>
       }
       @isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-      <a href="@routes.BoardApp.editPost(project.owner, project.name, post.id)" class="n-btn blue small">EDIT</a>
+      <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="n-btn blue small">@Messages("button.edit")</a>
       }
   </div>
 
