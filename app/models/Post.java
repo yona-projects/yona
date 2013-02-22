@@ -16,9 +16,11 @@ import play.db.ebean.*;
 import utils.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.*;
+import static play.data.validation.Constraints.*;
 
 @Entity
 public class Post extends Model {
@@ -28,13 +30,13 @@ public class Post extends Model {
     @Id
     public Long id;
 
-    @Constraints.Required
+    @Required @Size(max=255)
     public String title;
 
-    @Constraints.Required
+    @Required @Lob
     public String contents;
 
-    @Constraints.Required
+    @Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date date;
 

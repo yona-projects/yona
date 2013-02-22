@@ -29,7 +29,7 @@ public class Milestone extends Model {
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
 
-    @Constraints.Required
+    @Constraints.Required @Lob
     public String contents;
 
     @Constraints.Required

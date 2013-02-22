@@ -19,29 +19,28 @@ import play.db.ebean.*;
 import utils.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.io.*;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.*;
+import static play.data.validation.Constraints.*;
 
-/**
- * @param id              이슈 ID
- * @param title           이슈 제목
- * @param body            이슈 내용
- * @param state           이슈 상태(열림, 닫힘)
- * @param date            이슈 등록 날짜
- * @param authorId        이슈 작성자 ID
- * @param project         이슈가 등록된 프로젝트
- * @param issueType       이슈 상세정보의 유형
- * @param assigneeId      이슈에 배정된 담당자 Id
- * @param milestone       이슈가 등록된 마일스톤
- * @param importance      이슈 상세정보의 중요도
- * @author Taehyun Park
- *         <p/>
- *         Issue entity mangaed by Ebean
- */
-@Entity
 public class Issue extends Model {
+    /**
+     * @param id              이슈 ID
+     * @param title           이슈 제목
+     * @param body            이슈 내용
+     * @param state           이슈 상태(열림, 닫힘)
+     * @param date            이슈 등록 날짜
+     * @param authorId        이슈 작성자 ID
+     * @param project         이슈가 등록된 프로젝트
+     * @param issueType       이슈 상세정보의 유형
+     * @param assigneeId      이슈에 배정된 담당자 Id
+     * @param milestone       이슈가 등록된 마일스톤
+     * @param importance      이슈 상세정보의 중요도
+     * @author HIVE team
+     */
     private static final long serialVersionUID = -2409072006294045262L;
 
     public static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
@@ -55,10 +54,10 @@ public class Issue extends Model {
     @Id
     public Long id;
 
-    @Constraints.Required
+    @Required @Size(max=255)
     public String title;
 
-    @Column(length=4000)
+    @Lob
     public String body;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
