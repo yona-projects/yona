@@ -39,7 +39,7 @@ object ApplicationBuild extends Build {
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.tika" % "tika-core" % "1.2",
       "commons-io" % "commons-io" % "2.4",
-      "com.github.julienrf" %% "play-jsmessages" % "1.4-SNAPSHOT"    
+      "com.github.julienrf" %% "play-jsmessages" % "1.4.1"
   )
 
     val projectSettings = Seq(
@@ -47,7 +47,7 @@ object ApplicationBuild extends Build {
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
-      resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo-snapshots/",
+      resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
       templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "nforge.less"),
         //      jacoco.settings:_*,
