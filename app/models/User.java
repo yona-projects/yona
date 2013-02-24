@@ -61,6 +61,11 @@ public class User extends Model {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
+    public User(){}
+
+    public User(Long id){
+        this.id = id;
+    }
     /**
      * 완료일을 yyyy-MM-dd 형식의 문자열로 변환시킵니다.
      *

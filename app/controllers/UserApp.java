@@ -41,7 +41,7 @@ public class UserApp extends Controller {
 	public static final int MAX_AGE = 30*24*60*60;
 	public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
 
-	public static User anonymous = new User();
+	public static User anonymous = new User(-1l);
 
 
 	public static Result loginForm() {
@@ -188,15 +188,18 @@ public class UserApp extends Controller {
 		session(SESSION_USERNAME, user.name);
 	}
 
-	// FIXME
 	public static User currentUser() {
 		String userId = session().get(SESSION_USERID);
 		if (StringUtils.isEmpty(userId) || !StringUtils.isNumeric(userId)) {
-			anonymous.id = -1l;
 			return anonymous;
 		}
-		Logger.debug("userId="+userId);
-		return User.find.byId(Long.valueOf(userId));
+        User foundUser = User.find.byId(Long.valueOf(userId));
+        if (foundUser == null) {
+            session().clear();
+            response().discardCookie(TOKEN);
+            return anonymous;
+        }
+		return foundUser;
 	}
 
 	public static void validate(Form<User> newUserForm) {
