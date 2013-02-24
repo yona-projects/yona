@@ -13,6 +13,7 @@ import play.db.ebean.*;
 import utils.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 @Entity
@@ -24,7 +25,7 @@ public class IssueComment extends Model {
     @Id
     public Long id;
 
-    @Constraints.Required
+    @Constraints.Required @Column(length = 4000) @Size(max=4000)
     public String contents;
 
     public Date date;
