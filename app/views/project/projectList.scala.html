@@ -1,4 +1,4 @@
-@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, state:String)
+@(message: String, currentPage: List[Project], filter:String, state:String)
 
 @home(message, utils.MenuType.PROJECTS) {
   <div class="page">
@@ -23,7 +23,7 @@
       </div>
     </div>
     <ul class="all-projects">
-      @for(project <- currentPage.getList()) {
+      @for(project <- currentPage) {
       <li class="project">
         <div class="info-wrap">
           <div class="header">

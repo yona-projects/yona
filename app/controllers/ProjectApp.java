@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import models.Project;
@@ -21,6 +22,8 @@ import utils.Constants;
 import views.html.project.*;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 import static play.data.Form.form;
 
@@ -248,7 +251,11 @@ public class ProjectApp extends Controller {
         } if (state.equals("private")) {
             el.eq("share_option", false);
         }
+
+        // TODO change simple sorted projectList to Paging List
+        List<Project> filteredList = Ebean.filter(Project.class).sort("date desc").filter(el.findList());
+
         Page<Project> projects = el.findPagingList(25).getPage(0);
-        return ok(projectList.render("title.projectList", projects, filter, state));
+        return ok(projectList.render("title.projectList", filteredList, filter, state));
     }
 }
