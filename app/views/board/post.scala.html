@@ -75,7 +75,7 @@
              }
             .write-comment-wrap div{font-size: 10px;}
             </style>
-            @helper.textarea(commentForm("contents"), 'placeholder->"로그인 후 댓글 입력이 가능합니다.", 'class->"text comment", 'markdown->true)
+            @helper.textarea(commentForm("contents"), 'class->"text comment", 'markdown->true)
             <button class="comment-btn">COMMENT</button>
             @if(UserApp.currentUser() != UserApp.anonymous) {
             <div id="upload" resourceType=@ResourceType.BOARD_COMMENT></div>
