@@ -1,23 +1,16 @@
 package controllers;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
-import com.avaje.ebean.Ebean;
 import models.Project;
-import models.User;
-
 import org.h2.util.StringUtils;
-
 import play.Logger;
-import play.cache.Cached;
-import play.libs.Yaml;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import views.html.code.codeNavi;
 import views.html.index;
+
+import java.io.File;
+import java.util.List;
 
 public class Application extends Controller {
 

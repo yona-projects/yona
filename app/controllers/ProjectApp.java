@@ -1,7 +1,7 @@
 package controllers;
 
-import java.io.File;
-
+import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
 import models.Project;
 import models.ProjectUser;
 import models.Role;
@@ -9,7 +9,6 @@ import models.User;
 import models.enumeration.Operation;
 import models.enumeration.RoleType;
 import models.task.CardAssignee;
-import play.cache.Cached;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
@@ -19,14 +18,9 @@ import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
-import views.html.project.memberList;
-import views.html.project.newProject;
-import views.html.project.projectHome;
-import views.html.project.setting;
-import views.html.project.projectList;
+import views.html.project.*;
 
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Page;
+import java.io.File;
 
 import static play.data.Form.form;
 

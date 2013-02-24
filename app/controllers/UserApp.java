@@ -87,14 +87,14 @@ public class UserApp extends Controller {
             }
             // ... catch more exceptions here (maybe custom ones specific to your application?
             catch (AuthenticationException ae) {
-                //unexpected condition?  error?
+                Logger.error(String.valueOf(ae.getStackTrace()));
             }
         }
 
 		User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
 		if(authenticate!=null) {
-			setUserInfoInSession(authenticate);
+			addUserInfoToSession(authenticate);
 			if (sourceUser.rememberMe) {
 				setupRememberMe(authenticate);
 			}
@@ -142,7 +142,7 @@ public class UserApp extends Controller {
             if(subject.length < 2) return false;
 			User user = authenticateWithHashedPassword(subject[0], subject[1]);
 			if(user!=null) {
-				setUserInfoInSession(user);
+				addUserInfoToSession(user);
 			}
 			return true;
 		}
@@ -168,7 +168,7 @@ public class UserApp extends Controller {
 			user.avatarUrl = DEFAULT_AVATAR_URL;
 			User.create(hashedPassword(user));
 
-			setUserInfoInSession(user);
+			addUserInfoToSession(user);
 			return redirect(routes.Application.index());
 		}
 	}
@@ -182,7 +182,7 @@ public class UserApp extends Controller {
 		return user;
 	}
 
-	public static void setUserInfoInSession(User user) {
+	public static void addUserInfoToSession(User user) {
 		session(SESSION_USERID, String.valueOf(user.id));
 		session(SESSION_LOGINID, user.loginId);
 		session(SESSION_USERNAME, user.name);
@@ -207,6 +207,10 @@ public class UserApp extends Controller {
 		if (newUserForm.field("loginId").value() == "") {
 			newUserForm.reject("loginId", "user.wrongloginId.alert");
 		}
+
+        if (newUserForm.field("loginId").value().contains(" ")) {
+            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        }
 
 		// password가 빈 값이 들어오면 안된다.
 		if (newUserForm.field("password").value() == "") {
