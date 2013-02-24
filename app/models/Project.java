@@ -29,8 +29,6 @@ import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
 
-import static play.data.validation.Constraints.*;
-
 /**
  *
  * @author "nForge Team"
@@ -50,12 +48,11 @@ public class Project extends Model {
 	@Id
 	public Long id;
 
-	@Required
-	@Pattern("^[-a-zA-Z0-9_]*$")
-	@MinLength(2)
+	@Constraints.Required
+	@Constraints.Pattern("^[-a-zA-Z0-9_]*$")
+	@Constraints.MinLength(2)
 	public String name;
 
-    @
 	public String overview;
 	public String vcs;
 	public String siteurl;
