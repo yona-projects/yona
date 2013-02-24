@@ -23,7 +23,7 @@ nforge.project.new = function() {
 
         if (div.length == 0) {
           div = $('<div>');
-          div.addClass('alert');
+          div.addClass('alert alert-error');
           div.append($('<a>').addClass('close').attr('data-dismiss', 'alert').text('x'));
           $('div.page').before(div);
         }

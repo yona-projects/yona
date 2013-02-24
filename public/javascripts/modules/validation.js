@@ -8,7 +8,7 @@ var createMessageBox = function() {
       return div;
   }
 
-  div = $('<div>').addClass('alert').append($('<a>').addClass('close')
+  div = $('<div>').addClass('alert alert-error').append($('<a>').addClass('close')
           .attr('data-dismiss', 'alert').text('x'));
 
   $('.page').before(div);
