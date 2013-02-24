@@ -34,45 +34,45 @@
       </div>
     </div>
   </div>
-  <div class="filter-wrap board">
-    <div class="filters" id="order">
-      <a href="#" key="date" class="filter underConstruction">
-        @if(param.key == "date"){
-        <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
-        }
-        날짜순
-      </a>
-      <a href="#" key="commentCount" class="filter active underConstruction">
-        @if(param.key == "commentCount"){
-        <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
-        }
-        댓글순
-      </a>
-    </div>
-  </div>
 
   @if(page.getTotalRowCount == 0){
     <div>
         <p class="emptyMessage">@Messages("post.is.empty")</p>
     </div>
   } else {
+  <div class="filter-wrap board">
+      <div class="filters" id="order">
+          <a href="#" key="date" class="filter underConstruction">
+              @if(param.key == "date"){
+                  <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
+              }
+                  날짜순
+          </a>
+          <a href="#" key="commentCount" class="filter active underConstruction">
+              @if(param.key == "commentCount"){
+                  <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
+              }
+                  댓글순
+          </a>
+      </div>
+  </div>
   <ul class="board-list">
     @for(post <- page.getList()){
-    <li class="board">
-      <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.id</a></div>
-      <div class="attach-wrap"></div>
-      <div class="contents">
-        <p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
-        <p class="infos nm">by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
-      </div>
-      <div class="right-panel">
-        <div class="comment-wrap">
-            <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
-        </div>
-        <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
-        <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName"></a>
-      </div>
-    </li>
+        <li class="board">
+          <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.id</a></div>
+          <div class="attach-wrap"></div>
+          <div class="contents">
+            <p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
+            <p class="infos nm">by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
+          </div>
+          <div class="right-panel">
+            <div class="comment-wrap">
+                <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
+            </div>
+            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
+            <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName"></a>
+          </div>
+        </li>
     }
   </ul>
   }
