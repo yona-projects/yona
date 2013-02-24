@@ -275,6 +275,7 @@ user.wrongEmail.alert = Wrong email address.
 user.login.failed = Your login ID or password is not valid.
 user.logout.success = Logout successfully
 user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
+user.signupId = ID (lower case)
 
 #Time
 time.just = just now

@@ -3,20 +3,20 @@
 @home(message, utils.MenuType.NONE) {
     <div class="page full">
         <div class="center-wrap tag-line-wrap signup">
-            <h1 class="title"><span class="high-light">Sign Up For</span> N4</h1>
+            <h1 class="title">@Messages("hive.name") <span class="high-light">@Messages("title.signup")</span></h1>
             <p class="tag-line signup"><span>Open Source</span> Project. <span>Code</span> Repository. <span>Issue</span> Tracker. <span>Task</span> Managspanent</p>
         </div>
         <div class="signup-form-wrap">
             <form action="@routes.UserApp.newUser()" name="signup" method="POST">
                 <label for="loginId" class="inline">
-                    <input type="text" class="text loginId" id="loginId" placeholder="ID" autocomplete="off" name="loginId">
+                    <input type="text" class="text loginId" id="loginId" placeholder='@Messages("user.signupId")' autocomplete="off" name="loginId">
                     <a class="isValid"></a>
                 </label>
                 <label for="username" class="inline">
-                    <input type="text" class="text uname" id="username" placeholder="NAME" autocomplete="off" name="name">
+                    <input type="text" class="text uname" id="username" placeholder='@Messages("user.name")' autocomplete="off" name="name">
                 </label>
                 <label for="email">
-                    <input type="text" class="text email" id="email" placeholder="Email" autocomplete="off" name="email">
+                    <input type="text" class="text email" id="email" placeholder='@Messages("user.email")' autocomplete="off" name="email">
                     <a class="isValid"></a>
                 </label>
                 <label for="password">
@@ -87,16 +87,18 @@
                 }
             });
         };
-        $("#loginId").focusout(function(){
-            if ($(this).val() !== "") isExist($(this), "/user/isExist/");
-        });
+        $("#loginId")
+            .focusout(function(){
+                $(this).val( $(this).val().trim().toLowerCase().replace(/\s+/g, '')); //양쪽 공백을 없애고 소문자로 변경 후 중간 공백 없앰
+                if ($(this).val() !== "") isExist($(this), "/user/isExist/");
+            });
         $("#email").focusout(function(){
             if ($(this).val() !== "") isExist($(this), "/user/isEmailExist/");
         });
 
         var validator = new FormValidator('signup', [{
             name: 'loginId',
-            rules: 'required'
+            rules: 'required|alpha_numeric'
         },
         {
             name: 'email',
@@ -111,6 +113,7 @@
             rules: 'required|matches[password]'
         }], function(errors, event){
           if( errors.length > 0 ){
+            console.log(errors);
             switch(errors[0].id){
                 case "retypedPassword" :
                     showErrorMessage(passwordField, errorMessage.passwordMismatch);
@@ -129,10 +132,12 @@
             }
           } else {
             try{
-                passwordField.tooltip('destory');
-                emailField.tooltip('destory');
-                loginIdField.tooltip('destory');
-            } catch(err){} // to avoid boostrap bug
+                passwordField.tooltip('destroy');
+                emailField.tooltip('destroy');
+                loginIdField.tooltip('destroy');
+            } catch(err){
+                console.log(err);
+            } // to avoid boostrap bug
           }
         });
         $('#retypedPassword').focusout(function(){
