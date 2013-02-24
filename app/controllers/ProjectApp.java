@@ -40,7 +40,6 @@ public class ProjectApp extends Controller {
         return Project.findByNameAndOwner(userName, projectName);
     }
 
-//    @Cached(key = "project")
     public static Result project(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -247,7 +246,6 @@ public class ProjectApp extends Controller {
         }
     }
 
-    @Cached(key = "projects")
     public static Result projects(String filter, String state) {
        ExpressionList<Project> el = Project.find.where()
                 .ilike("name", "%" + filter + "%");
