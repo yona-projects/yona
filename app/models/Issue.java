@@ -24,8 +24,8 @@ import java.io.*;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.*;
-import static play.data.validation.Constraints.*;
 
+@Entity
 public class Issue extends Model {
     /**
      * @param id              이슈 ID
@@ -39,7 +39,7 @@ public class Issue extends Model {
      * @param assigneeId      이슈에 배정된 담당자 Id
      * @param milestone       이슈가 등록된 마일스톤
      * @param importance      이슈 상세정보의 중요도
-     * @author HIVE team
+     * @author HIVE TEAM
      */
     private static final long serialVersionUID = -2409072006294045262L;
 
@@ -54,7 +54,7 @@ public class Issue extends Model {
     @Id
     public Long id;
 
-    @Required @Size(max=255)
+    @Constraints.Required
     public String title;
 
     @Lob
