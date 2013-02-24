@@ -527,3 +527,4 @@ public class Issue extends Model {
         return fieldAsResource(ResourceType.ISSUE_ASSIGNEE);
     }
 }
+

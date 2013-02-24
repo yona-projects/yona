@@ -10,30 +10,30 @@
 @ordering(label:String, sortBy:String) = {
   @if(sortBy == param.sortBy) {
     @if(param.orderBy == "desc") {
-      <a selected href="@urlToList&sortBy=@sortBy&orderBy=asc" class="underConstruction">▼@label</a>
+      <a selected href="@urlToList&sortBy=@sortBy&orderBy=asc">▼@label</a>
     } else {
-      <a selected href="@urlToList&sortBy=@sortBy&orderBy=desc" class="underConstruction">▲@label</a>
+      <a selected href="@urlToList&sortBy=@sortBy&orderBy=desc">▲@label</a>
     }
   } else {
-    <a href="@urlToList&sortBy=@sortBy" class="underConstruction">@label</a>
+    <a href="@urlToList&sortBy=@sortBy">@label</a>
   }
 }
 
 @header(label:String, sortBy:String) = {
     <th>
         @if(sortBy == param.sortBy){
-        @if(param.orderBy == "desc"){
-        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBy=asc" data-sort-by="@sortBy">@label</a>
-        <i class="icon-chevron-down"></i>
+            @(param.state = "")
+            @if(param.orderBy == "desc"){
+                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBy=asc" data-sort-by="@sortBy">@label</a>
+                <i class="icon-chevron-down"></i>
+            } else {
+                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBY=desc" data-sort-by="@sortBy">@label</a>
+                <i class="icon-chevron-up"></i>
+            }
         } else {
-        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBY=desc" data-sort-by="@sortBy">@label</a>
-        <i class="icon-chevron-up"></i>
-        }
-        } else {
-        <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy" data-sort-by="@sortBy">@label</a>
+            <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy" data-sort-by="@sortBy">@label</a>
         }
     </th>
-
 }
 
 @main(Messages(title), project, utils.MenuType.ISSUE){
@@ -125,7 +125,7 @@
           <td class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</td>
           <td class="comments">
             <i class="ico ico-comment-bubble"></i>
-            <span class="num">@issue.numOfComments</span>
+            <span class="num">@issue.comments.size()</span>
           </td>
           <td class="assignee">
             <a href="@routes.UserApp.userInfo(issue.authorLoginId)">

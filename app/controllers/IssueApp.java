@@ -222,6 +222,10 @@ public class IssueApp extends Controller {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
+        if (session(UserApp.SESSION_USERID) == null){
+            flash(Constants.WARNING, "user.login.alert");
+            return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
+        }
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "board.comment.empty");
             return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));

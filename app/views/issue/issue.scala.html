@@ -54,8 +54,7 @@
       </p>
       <p class="issue-etc-info">
         Hit <span class="number">0</span>
-        | Comment <span class="number">@issue.numOfComments</span>
-        | Like <span class="number">0</span>
+        | Comment <span class="number">@issue.comments.size</span>
         @if(issue.milestoneId != null) {
         | Milestone <span class="number">@Milestone.findById(issue.milestoneId).title</span>
         }
@@ -73,7 +72,7 @@
 
 <!-- 여기서 부터 덧글 -->
 <div class="board-comment-wrap write-comment-box">
-<p class="info">Comments <span class="number">@issue.numOfComments</span></p>
+<p class="info">Comments <span class="number">@issue.comments.size</span></p>
 @if(issue.comments.size > 0) {
 <div class="comments">
   @for(comment <- issue.comments){
