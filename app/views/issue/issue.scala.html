@@ -33,10 +33,11 @@
     </div>
     <div class="info">
       <p>
-        <span class="title">@issue.title</span>
+        <span class="title">@issue.title </span>
+        <i class="ico ico-comment-bubble"></i> <span class="number">@issue.comments.size</span>
         <span class="pull-right">
-          <span>@issue.id</span>
-          <span class="badge badge-info">@Messages(issue.state.state)</span>
+          <span>#@issue.id</span>
+          <span class="badge @if(issue.state.state.toLowerCase == "open"){badge-important}">@Messages(issue.state.state)</span>
         </span>
       </p>
       <p class="author">by <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)">
@@ -53,8 +54,6 @@
       }
       </p>
       <p class="issue-etc-info">
-        Hit <span class="number">0</span>
-        | Comment <span class="number">@issue.comments.size</span>
         @if(issue.milestoneId != null) {
         | Milestone <span class="number">@Milestone.findById(issue.milestoneId).title</span>
         }
@@ -80,10 +79,10 @@
     <div class="span1">
     <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorName"/></div>
     <div class="span11">
-      <div>
-        <span class="author">@comment.authorName</span>
-        <span class="date">@comment.date</span>
-      </div>
+      <p class="commenter">
+        <span class="author"><a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a></span>
+        <span class="date">@utils.TemplateHelper.agoString(comment.ago())</span>
+      </[>
       @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
       <div class="pull-right">
         <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
