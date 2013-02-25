@@ -14,9 +14,10 @@ var renderMarkdown = function(text) {
 };
 
 var editor = function (textarea) {
-  var previewDiv, previewSwitch;
+  var previewDiv, previewSwitch, commentBtn;
 
   previewDiv = $('<div>');
+  commentBtn = $('.comment-btn');
   previewDiv.attr('div', 'preview');
   previewDiv.css('display', 'none');
 
@@ -29,9 +30,11 @@ var editor = function (textarea) {
       previewDiv.html(renderMarkdown(textarea.val()));
       textarea.css('display', 'none');
       previewDiv.css('display', '');
+      commentBtn.css('display', 'none');
     } else {
       textarea.css('display', '');
       previewDiv.css('display', 'none');
+      commentBtn.css('display', '');
     }
   });
 
