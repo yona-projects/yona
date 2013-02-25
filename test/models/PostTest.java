@@ -9,6 +9,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import controllers.SearchApp;
 import models.enumeration.Direction;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.junit.*;
 
 import com.avaje.ebean.Page;
@@ -49,9 +50,9 @@ public class PostTest extends ModelTest<Post> {
         Long id = Post.write(post);
         // Then
         Post actual = Post.findById(id);
-
+        System.out.println(ToStringBuilder.reflectionToString(actual) );
         assertThat(actual.title).isEqualTo(post.title);
-        assertThat(actual.contents).isEqualTo(post.contents);
+        assertThat(actual.getContents()).isEqualTo(post.contents);
         assertThat(actual.date).isEqualTo(post.date);
         assertThat(actual.authorId).isEqualTo(getTestUser().id);
         assertThat(actual.id).isEqualTo(id);
@@ -77,7 +78,8 @@ public class PostTest extends ModelTest<Post> {
         Post.edit(post);
         // Then
         Post actual = Post.findById(1l);
-        assertThat(actual.contents).isEqualTo("수정되었습니다.");
+        System.out.println(ToStringBuilder.reflectionToString(actual) );
+        assertThat(actual.getContents()).isEqualTo("수정되었습니다.");
         assertThat(actual.commentCount).isEqualTo(1);
     }
     

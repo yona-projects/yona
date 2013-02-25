@@ -34,7 +34,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         Milestone firstMilestone = Milestone.findById(1l);
         // Then
         assertThat(firstMilestone.title).isEqualTo("v.0.1");
-        assertThat(firstMilestone.contents).isEqualTo("nFORGE 첫번째 버전.");
+        assertThat(firstMilestone.getContents()).isEqualTo("nFORGE 첫번째 버전.");
 
         Calendar expactDueDate = new GregorianCalendar();
         expactDueDate.set(2012, Calendar.JULY, 12, 23, 59, 59); // 2012-07-12
