@@ -99,12 +99,13 @@
 
   </div>
 
+  @if( currentPage.getList().size() != 0 ){
   <p class="ordering">
     @ordering(Messages("order.state"), "state")
     @ordering(Messages("order.date"), "date")
     @ordering(Messages("order.comments"), "numOfComments")
   </p>
-
+  }
   <table class="table issue-list">
     <tbody>
 
