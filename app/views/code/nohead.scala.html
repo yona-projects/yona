@@ -2,6 +2,9 @@
 
 @main(Messages("Commit History"), project, utils.MenuType.CODE) {
 <div class="page">
+
+	@views.html.prjmenu(project, utils.MenuType.CODE)
+	
     <div id="codeError" class="row-fluid">
         <div class="well span12">
             <p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>

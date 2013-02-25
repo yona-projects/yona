@@ -6,12 +6,10 @@
 @isActiveMenu(m_type:MenuType) = @{
     if(m_type == menuType){ "selected" }
 }
-
 <header class="gnb-outer">
     <div class="gnb-inner">
-        <div class="gnb-knob left"><i class="ico gnb-left orange"></i></div>
         <div class="gnb-menu-wrap">
-            <a href="@routes.Application.index()" class="logo"></a>
+            <a href="@routes.Application.index()" class="logo">HIVE</a>
             <ul class="gnb-menus unstyled">
                 <li class="menu">
                     <a href="@routes.ProjectApp.newProjectForm()" class="@isActiveMenu(MenuType.NEW_PROJECT)">@Messages("title.newProject")</a>
@@ -22,37 +20,45 @@
                 <li class="menu">
                     <a href="@routes.HelpApp.help()" class="@isActiveMenu(MenuType.HELP)">@Messages("title.help")</a>
                 </li>
-                <!-- for Testing
-                <li class="menu">
-                    <a href="@routes.Application.init()" class="@isActiveMenu(MenuType.HELP)">Init(forTest)</a>
-                </li>
-                for Testing end here-->
             </ul>
             <ul class="gnb-menus right unstyled">
-                @if(session.contains("loginId")){                
-                <li><a href="@routes.UserApp.userInfo(session.get("loginId"))" class="d-link signin">
-                    <img class="user-thumb img-rounded" 
-                    src="@User.findByLoginId(session.get("loginId")).avatarUrl" alt="avatar" width="22" height="22">@session.get("loginId")</a></li>
+            	@if(session.contains("loginId")){
+                <li class="d-link-wrap d-link-l">
+                	<a href="@routes.UserApp.userInfo(session.get("loginId"))" class="d-link signin">
+                		<i><img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="22" height="22"></i>
+                		@session.get("loginId")
+                	</a>
+                </li>
                 <li class="sp-line">|</li>
-                <li><a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a></li>
-                } else {
-                <li><a href="@routes.UserApp.loginForm()" class="d-link signin"><i class="ico ico-user"></i>@Messages("title.login")</a></li>
+                <li class="d-link-wrap d-link-r">
+                	<a href="@routes.UserApp.logout()" class="d-link signup">@Messages("title.logout")</a>
+                </li>
+            	} else {
+                <li class="d-link-wrap d-link-l">
+                	<a href="@routes.UserApp.loginForm()" class="d-link signin">
+                		<i><img src="@routes.Assets.at("images/default-avatar-34.png")" width="22" height="22"></i>
+                		@Messages("title.login")
+                	</a>
+                </li>
                 <li class="sp-line">|</li>
-                <li><a href="@routes.UserApp.signupForm()" class="d-link signup">@Messages("title.signup")</a></li>
-                }
+                <li class="d-link-wrap d-link-r">
+                	<a href="@routes.UserApp.signupForm()" class="d-link signup">@Messages("title.signup")</a>
+                </li>
+            	}
                 <li class="search-bar">
                     <form action="@routes.ProjectApp.projects()">
-                        <input type="text" autocomplete="off" class="query" name="filter" placeholder="전체 프로젝트에서 검색"/><button type="submit" class="ico ico-o-search btn-transparent"></button>
+                        <input type="text" autocomplete="off" class="query" name="filter" /><button type="submit" class="ico ico-search btn-transparent"></button>
                     </form>
                 </li>
             </ul>
         </div>
-        <div class="gnb-knob right"><i class="ico gnb-right orange"></i></div>
     </div>
-     @if(session.contains("userId") && session.get("userId").equals("1")){
-    <div class="sub-menu-sp"></div>
-        <div class="side-menu-wrap">
-        <ul class="side-menus ico bg-side-menu unstyled">
+    
+    
+    @if(session.contains("userId") && session.get("userId").equals("1")){
+    <div class="side-menu-wrap">
+        <ul class="side-menus unstyled bg">
+            <li class="side-menu"><a href="/statistics"><i class="ico ico-statistics"></i></a></li>
             <li class="side-menu"><a href="@routes.SiteApp.userList()"><i class="ico ico-setting"></i></a></li>
         </ul>
     </div>

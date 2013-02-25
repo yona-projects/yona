@@ -2,14 +2,15 @@
 
 @main(message, project, utils.MenuType.PROJECT_HOME) {
 <div class="page">
-    @pageTitle(project,"Project Home")
+	@views.html.prjmenu(project, utils.MenuType.PROJECT_HOME)
+    
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
             <div class="logo-wrap">
                 @if(project.logoPath != null) {
                 <img src="/assets/uploadFiles/@project.logoPath" />
                 } else {
-                <img src="@routes.Assets.at("images/bg-default-project.png")" />
+                <img src="@routes.Assets.at("images/bg-default-project.jpg")" />
                 }
             </div>
         </div>

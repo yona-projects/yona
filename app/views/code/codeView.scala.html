@@ -1,8 +1,9 @@
 @(project:Project, branches:List[String])
 
 @main("코드", project, utils.MenuType.CODE){
-<div class="page code-browse">
-  @pageTitle(project, "Code Browser")
+<div class="page" style="padding-bottom:20px;"><!--  code-browse -->
+  @views.html.prjmenu(project, utils.MenuType.CODE)
+  
   <ul class="nav nav-tabs code-tab">
     <li class="active">
       <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
@@ -60,7 +61,6 @@
     </div>
   </div>
 </div>
-
 
 
 <script type="text/javascript" src="/assets/javascripts/hljs.js"></script>

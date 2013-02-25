@@ -19,3 +19,4 @@ RUNNING_PID
 db
 *.db
 .DS_Store
+bin

@@ -6,7 +6,8 @@
 
 
 @projectMngMain(message, project) {
-    @pageTitle(project,Messages("project.setting"))
+    @views.html.prjmenu(project, utils.MenuType.PROJECT_SETTING)
+    
     <div class="bubble-wrap gray">
         @form(action=routes.ProjectApp.settingProject(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">
@@ -16,7 +17,7 @@
                         @if(projectForm("logoPath").value != null) {
                         <img src="/assets/uploadFiles/@projectForm("logoPath").value" alt="project-logo">
                         } else {
-                        <img src="@routes.Assets.at("images/bg-default-project.png")" alt="project-logo">
+                        <img src="@routes.Assets.at("images/bg-default-project.jpg")" alt="project-logo">
                         }
                     </div>
                     <div class="logo-desc">
@@ -25,7 +26,7 @@
                             <li>@Messages("project.logo.type") <span class="point">bmp, jpg, gif, png</span></li>
                             <li>@Messages("project.logo.maxFileSize") <span class="point">1MB</span></li>
                             <li>@Messages("project.logo.size") <span class="point">234px * 168px</span></li>
-                            <li>ㄷ
+                            <li>
                                 <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
                                     <input type="file" class="file" name="logoPath">
                                 </div>
@@ -57,7 +58,7 @@
                 </div>
             </div>
             <div class="box-wrap bottom">
-                <button class="btn-transparent n-btn blue med" type="submit" id="save">@Messages("button.save")</button>
+                <button class="btn-transparent n-btn orange med" type="submit" id="save">@Messages("button.save")</button>
             </div>
             <!-- 현재 레이아웃에 존재하지 않는 기능 -->
             <input type="hidden" name="isAuthorEditable" value="true"/>
@@ -75,7 +76,7 @@
         <div class="cu-desc">
             <p><strong class="notice">@Messages("project.delete.description")</strong></p>
             <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="agreement" class="bg-checkbox">@Messages("project.delete.accept")</label>
-                <a id="deletion" data-toggle="modal" href="#alertDeletion" class="n-btn small red"><i class="ico ico-delete-small"></i>@Messages("project.delete.this")</a>
+                <a id="deletion" data-toggle="modal" href="#alertDeletion" class="n-btn small black"><i class="ico ico-delete-small"></i>@Messages("project.delete.this")</a>
             </p>
         </div>
     </div>
@@ -95,5 +96,7 @@
         <a href="@routes.ProjectApp.deleteProject(project.owner, project.name)" class="btn btn-danger">@Messages("button.yes")</a>
     </div>
 </div>
-<script>nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.acceptCheck"], "deletion");</script>    
+<script type="text/javascript">
+	nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.acceptCheck"], "deletion");
+</script>    
 }

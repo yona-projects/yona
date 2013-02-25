@@ -1,0 +1,28 @@
+@(project:Project, menuType:utils.MenuType)
+
+@import utils._
+@import models.enumeration.ResourceType;
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+
+@isActiveMenu(m_type:MenuType) = @{
+    if(m_type == menuType) {"highlight"}
+}
+
+<div class="project-menu main-menu-only">
+	<div class="project-menu-wrap main">
+		<ul class="unstyled">
+			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
+			<li class="sp-line">|</li>
+			<li class="@isActiveMenu(MenuType.BOARD)"><a href="@routes.BoardApp.posts(project.owner, project.name)">@Messages("menu.board")</a></li>
+			<li class="sp-line">|</li>
+			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a></li>
+			<li class="sp-line">|</li>
+			<li class="@isActiveMenu(MenuType.ISSUE)"><a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("menu.issue")</a></li>
+			<li class="sp-line">|</li>
+			<li class="@isActiveMenu(MenuType.TASK)"><a href="@routes.TaskApp.index(project.owner, project.name)">@Messages("menu.task")</a>
+			<li class="sp-line">|</li>
+			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
+		</ul>
+	</div>
+</div>

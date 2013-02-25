@@ -1,13 +1,3 @@
-/*!
- * Bootstrap Responsive v2.0.4
- *
- * Copyright 2012 Twitter, Inc
- * Licensed under the Apache License v2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Designed and built with all the love in the world @twitter by @mdo and @fat.
- */
-
 // CSS3 PROPERTIES
 // --------------------------------------------------
 
@@ -16,6 +6,15 @@
     -webkit-border-radius: @radius;
     -moz-border-radius: @radius;
     border-radius: @radius;
+}
+.border-radius-bottom(@radius: 5px){
+    -webkit-border-bottom-left-radius:@radius;
+    -moz-border-bottom-left-radius:@radius;
+    border-bottom-left-radius:@radius;
+
+    -webkit-border-bottom-right-radius:@radius;
+    -moz-border-bottom-right-radius:@radius;
+    border-bottom-right-radius:@radius;
 }
 
 // Drop shadows
@@ -80,6 +79,18 @@
     opacity: @opacity / 100;
 }
 
+// Gradient
+.linear-gradient(@startColor:'#f9fcf7', @endColor:'#f5f9f0'){
+    background: @startColor; /* Old browsers */
+    background: -moz-linear-gradient(top, @startColor 0%, @endColor 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,@startColor), color-stop(100%,@endColor)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, @startColor 0%, @endColor 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, @startColor 0%, @endColor 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, @startColor 0%, @endColor 100%); /* IE10+ */
+    background: linear-gradient(to bottom, @startColor 0%, @endColor 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='@{startColor}', endColorstr='@{endColor}',GradientType=0 ); /* IE6-9 */    
+}
+
 // Text overflow
 // -------------------------
 // Requires inline-block or block for proper styling
@@ -132,7 +143,7 @@
 }
 
 .helvetic-light {
-    font-family: "나눔고딕","굴림","HelveticaNeueLight", "HelveticaNeue-Light", "Helvetica Neue Light", "HelveticaNeue", "Helvetica Neue", "Helvetica";
+    font-family: "HelveticaNeueLight", "HelveticaNeue-Light", "Helvetica Neue Light", "HelveticaNeue", "Helvetica Neue", "Helvetica";
     font-weight:200;
     font-stretch:normal;
 }

@@ -1,21 +1,21 @@
 @(title: String, project:Project)(content: Html)
 
-@layout(Messages(title))("") {
+@layout(Messages(title))("prj") {
     <header class="gnb-outer">
-      @topmenu(project, utils.MenuType.PROJECT_SETTING)
-      <div class="sub-menu-sp"></div>
-      @submenu(title, project)
+      @topmenu(project)
       @sidemenu(project)
     </header>
+    
     <div class="container page-wrap">
       <div class="page">
         @views.html.alert()
         @content
       </div>
     </div>
+    
     <footer class="page-footer-outer">
         <div class="page-footer">
-            <span class="provider">Powered by <strong>nFORGE.</strong></span>
+            <span class="provider">Powered by <strong>HIVE</strong></span>
         </div>
     </footer>
 }

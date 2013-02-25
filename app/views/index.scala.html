@@ -1,83 +1,309 @@
 @(projects:List[Project], orderString:String)
 
-@home("Welcome to nForge", utils.MenuType.SITE_HOME) {
-    <div class="page@if(!session.contains("userId")){ full}">
-        <div class="center-wrap tag-line-wrap">
-            <h1 class="title"><span class="high-light">@Messages("hive.title")</span> nFORGE</h1>
-            <p class="tag-line">@Messages("hive.description")</p>
+@home("HIVE", utils.MenuType.SITE_HOME) {
+    <div class="page">
+        <div class="tag-line-wrap tag-line-wrap-index">
+            <h1 class="title"><span class="high-light">Software development platform</span></h1>
+            <p class="tag-line">
+            	<span>Open Source</span> Project. 
+            	<span>Code</span> Repository. 
+            	<span>Issue</span> Tracker. 
+            	<span>Task</span> Management
+            </p>
         </div>
-        
-        <div class="@if(session.contains("userId")){fn-intro-wrap}else{intro-wrap}">
-            <ul class="intros@if(!session.contains("userId")){ unstyled}">
-                <li class="intro"><img src="@routes.Assets.at("images/img-project-198.png")" width="198" height="180"/></li>
-                <li class="intro"><img src="@routes.Assets.at("images/img-repository-198.png")" width="198" height="180"/></li>
-                <li class="intro"><img src="@routes.Assets.at("images/img-issue-198.png")" width="198" height="180"/></li>
-                <li class="intro"><img src="@routes.Assets.at("images/img-task-198.png")" width="198" height="180"/></li>
+        <div class="fn-intro-wrap">
+            <ul class="intros @if(!session.contains("userId")){ index }">
+				<li class="project">
+					<strong>프로젝트</strong>
+					
+					원하는 이름으로
+					프로젝트를 원하는 만큼 만들어보세요.
+					유일한 한계는 상상력의 한계일 뿐입니다.
+				</li>
+				<li class="repository">
+					<strong>코드 저장소</strong>
+					
+					작성한 코드는
+					모두 이력이 관리되는 형태로 안전하게 서버에 보관됩니다
+				</li>
+				<li class="tracker">
+					<strong>이슈 트래커</strong>
+					
+					팀이 함께 고민하고
+					처리해야 하는 내용들을 적고
+					거친 파도를 합심해 헤쳐나가듯 해결해 나갑니다.
+				</li>
+				<li class="tasks">
+					<strong>태스크 관리</strong>
+					
+					문서와 자료도
+					팀에서 개발하는 소프트웨어 만큼이나
+					함께 만들고 함께 성장해 갑니다
+				</li>
             </ul>
+            
             @if(session.contains("userId")){
-            <a href="#!/toggle-intro" class="toggle-intro"><i class="ico btn-open-close"></i></a>
+            <a href="#" id="toggleIntro"><i class="ico btn-open-close"></i></a>
+			<script type="text/javascript">
+				$(document).ready(function(){
+					$("#toggleIntro").click(function(){
+						$(".container").toggleClass("on-fold-intro");
+					});		
+				});
+			</script>
             }
         </div>
-        
-        @if(session.contains("userId")){
         <div class="content-container">
-            <div class="main-stream">
-                <ul>
+        	@if(session.contains("userId")){
+        	
+ 			<div class="main-stream">
+                <ul class="activity-streams unstyled">
+                   <li class="activity-stream">
+                       <a href="/uname" class="user-thumb-wrap">
+                           <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
+                       </a>
+                       <div class="activity-desc">
+                           <h5 class="header-text">
+                               <a href="/username" class="actor">mojomobo</a>님이 <strong class="whereis">issue 707, jquery/jquery-ui</strong>에 새로운 댓글을 달았습니다.
+                           </h5>
+                           <div class="desc">
+                                C++ STL 라이브러리를 사용한 SIP stack 라이브러리 개발 프로젝트입니다. 본 프로젝트의 최종 목표는 C++ SIP stack 라이브러를 사용한 SIP 서버개발입니다.
+                           </div>
+                           <p class="others">
+                               <i class="ico ico-comment-bubble"></i><span class="num">23</span>
+                               <i class="ico ico-sp-dot"></i>
+                               <i class="ico ico-like"></i><span class="num">0</span>
+                               <span class="date">5 days ago</span>
+                           </p>
+                       </div>
+                   </li>
+                   <li class="activity-stream">
+                        <a href="/uname" class="user-thumb-wrap">
+                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
+                        </a>
+                        <div class="activity-desc">
+                            <h5 class="header-text">
+                                <a href="/username" class="actor">k16wire</a>님이 <strong class="whereis">playframework/Play20</strong>를 즐겨찾기 추가 하였습니다.
+                            </h5>
+                            <div class="desc">
+                                <ul class="commit-logs unstyled">
+                                   <li class="commit-log">
+                                       <div class="user-thumb-wrap">
+                                           <a href="/username">
+                                               <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                           </a>
+                                       </div>
+                                       <div class="commit-detail">
+                                           <a href="/commit-log/4a2b004" class="commit-id">4a2boo4</a>
+                                           <span class="commit-msg">운영체제(을)를 &quot;없음&quot;에서 &quot;모든 윈도우 계열 공통&quot;(으)로 변경했습니다.</span>
+                                       </div>
+                                   </li>
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/6aa41bf" class="commit-id">6aa41bf</a>
+                                            <span class="commit-msg">마일스톤(을)를 &quot;없음&quot;에서 &quot;6.3 릴리스&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/6aa41bf" class="commit-id">6aa41bf</a>
+                                            <span class="commit-msg">마일스톤(을)를 &quot;없음&quot;에서 &quot;6.3 릴리스&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <p class="others">
+                                <i class="ico ico-comment-bubble"></i><span class="num">23</span>
+                                <i class="ico ico-sp-dot"></i>
+                                <i class="ico ico-like"></i><span class="num">0</span>
+                                <span class="date">5 days ago</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="activity-stream">
+                        <a href="/uname" class="user-thumb-wrap">
+                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
+                        </a>
+                        <div class="activity-desc">
+                            <h5 class="header-text">
+                                <a href="/username" class="actor">mojomobo</a>님이 <strong class="whereis">issue 707, jquery/jquery-ui</strong>에 새로운 댓글을 달았습니다.
+                            </h5>
+                            <div class="desc">
+                                C++ STL 라이브러리를 사용한 SIP stack 라이브러리 개발 프로젝트입니다. 본 프로젝트의 최종 목표는 C++ SIP stack 라이브러를 사용한 SIP 서버개발입니다.
+                            </div>
+                            <p class="others">
+                                <i class="ico ico-comment-bubble"></i><span class="num">23</span>
+                                <i class="ico ico-sp-dot"></i>
+                                <i class="ico ico-like"></i><span class="num">0</span>
+                                <span class="date">5 days ago</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="activity-stream">
+                        <a href="/uname" class="user-thumb-wrap">
+                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
+                        </a>
+                        <div class="activity-desc">
+                            <h5 class="header-text">
+                                <a href="/username" class="actor">k16wire</a>님이 <strong class="whereis">playframework/Play20</strong>를 즐겨찾기 추가 하였습니다.
+                            </h5>
+                            <div class="desc">
+                                <ul class="commit-logs unstyled">
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/4a2b004" class="commit-id">4a2boo4</a>
+                                            <span class="commit-msg">운영체제(을)를 &quot;없음&quot;에서 &quot;모든 윈도우 계열 공통&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/6aa41bf" class="commit-id">6aa41bf</a>
+                                            <span class="commit-msg">마일스톤(을)를 &quot;없음&quot;에서 &quot;6.3 릴리스&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/6aa41bf" class="commit-id">6aa41bf</a>
+                                            <span class="commit-msg">마일스톤(을)를 &quot;없음&quot;에서 &quot;6.3 릴리스&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <p class="others">
+                                <i class="ico ico-comment-bubble"></i><span class="num">23</span>
+                                <i class="ico ico-sp-dot"></i>
+                                <i class="ico ico-like"></i><span class="num">0</span>
+                                <span class="date">5 days ago</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="activity-stream">
+                        <a href="/uname" class="user-thumb-wrap">
+                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
+                        </a>
+                        <div class="activity-desc">
+                            <h5 class="header-text">
+                                <a href="/username" class="actor">mojomobo</a>님이 <strong class="whereis">issue 707, jquery/jquery-ui</strong>에 새로운 댓글을 달았습니다.
+                            </h5>
+                            <div class="desc">
+                                C++ STL 라이브러리를 사용한 SIP stack 라이브러리 개발 프로젝트입니다. 본 프로젝트의 최종 목표는 C++ SIP stack 라이브러를 사용한 SIP 서버개발입니다.
+                            </div>
+                            <p class="others">
+                                <i class="ico ico-comment-bubble"></i><span class="num">23</span>
+                                <i class="ico ico-sp-dot"></i>
+                                <i class="ico ico-like"></i><span class="num">0</span>
+                                <span class="date">5 days ago</span>
+                            </p>
+                        </div>
+                    </li>
+                    <li class="activity-stream">
+                        <a href="/uname" class="user-thumb-wrap">
+                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
+                        </a>
+                        <div class="activity-desc">
+                            <h5 class="header-text">
+                                <a href="/username" class="actor">k16wire</a>님이 <strong class="whereis">playframework/Play20</strong>를 즐겨찾기 추가 하였습니다.
+                            </h5>
+                            <div class="desc">
+                                <ul class="commit-logs unstyled">
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/4a2b004" class="commit-id">4a2boo4</a>
+                                            <span class="commit-msg">운영체제(을)를 &quot;없음&quot;에서 &quot;모든 윈도우 계열 공통&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/6aa41bf" class="commit-id">6aa41bf</a>
+                                            <span class="commit-msg">마일스톤(을)를 &quot;없음&quot;에서 &quot;6.3 릴리스&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                    <li class="commit-log">
+                                        <div class="user-thumb-wrap">
+                                            <a href="/username">
+                                                <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20" alt="avatar">
+                                            </a>
+                                        </div>
+                                        <div class="commit-detail">
+                                            <a href="/commit-log/6aa41bf" class="commit-id">6aa41bf</a>
+                                            <span class="commit-msg">마일스톤(을)를 &quot;없음&quot;에서 &quot;6.3 릴리스&quot;(으)로 변경했습니다.</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <p class="others">
+                                <i class="ico ico-comment-bubble"></i><span class="num">23</span>
+                                <i class="ico ico-sp-dot"></i>
+                                <i class="ico ico-like"></i><span class="num">0</span>
+                                <span class="date">5 days ago</span>
+                            </p>
+                        </div>
+                    </li>
                 </ul>
             </div>
+            
             <div class="right-aside">
                 <div class="gray-bubble-wrap">
-                    <div class="bg-bubble-top ico">
-                        <div class="project-count-wrap">
-                            @Messages("project.myproject") <i class="ico ico-dot-white"></i><span class="p-num">@projects.size()</span>
-                        </div>
-                        <div class="project-list-sort">
-                            <span class="ordertype-date">
-                            @if( orderString == "date desc" ){
-                                <a href="@routes.Application.index()?order=date"><strong>@Messages("orderby.recent")</strong> <i class="icon-chevron-down"></i></a>
-                            } else {
-                                @if( orderString == "date" ){
-                                    <a href="@routes.Application.index()?order=date desc"><strong>@Messages("orderby.recent")</strong> <i class="icon-chevron-up"></i></a>
-                                } else {
-                                    <a href="@routes.Application.index()?order=date">@Messages("orderby.recent")</a>
-                                }
-                            }
-                            </span><span class="delimeter"> | </span><span class="ordertype-name">
-                            @if( orderString == "name desc" ){
-                                <a href="@routes.Application.index()?order=name"><strong>@Messages("orderby.name")</strong> <i class="icon-chevron-down"></i></a>
-                            } else {
-                                @if( orderString == "name" ){
-                                    <a href="@routes.Application.index()?order=name desc"><strong>@Messages("orderby.name")</strong> <i class="icon-chevron-up"></i></a>
-                                } else {
-                                    <a href="@routes.Application.index()?order=name">@Messages("orderby.name")</a>
-                                }
-                            }
-                            </span>
-                        </div>
+                    
+                    <div class="project-count-wrap">
+                        @Messages("project.myproject") <i>&middot;</i><span class="p-num">@projects.size()</span>
                     </div>
-                    <ul class="my-projects unstyled">
+
+					<div class="my-projects">
+                    <ul class="unstyled">
                         @views.html.myProjectList(projects)
                     </ul>
-                    <div class="sp-line"></div>
+
                     <div class="btn-wrap">
-                        <a href="@routes.ProjectApp.newProjectForm()"><i class="ico btn-new-project"></i></a>
+                        <a href="@routes.ProjectApp.newProjectForm()"><i class="ico ico-pencil"></i> @Messages("button.newProject")</a>
+                    </div>
+                    
                     </div>
                 </div>
             </div>
+            
+        	} else {
+            <div class="front">
+                <div class="btn-wrap">
+                    <a href="@routes.ProjectApp.newProjectForm()"><i class="ico ico-pencil"></i> @Messages("button.newProject")</a>
+                </div>
+			</div>
+			}
         </div>
-        } else {
-        <div class="center-wrap">
-            <a href="@routes.ProjectApp.newProjectForm()" class="n-btn blue create-project"><i class="ico ico-pencil"></i>@Messages("button.newProject")</a>
-        </div>
-        }
     </div>
-    <script>
-        jQuery(function ($) {
-            $('.toggle-intro').on('click', function(e) {
-                nforge.stopEvent(e);
-                var target = $(this).prev();
-                target[(target.hasClass('closed')?'remove':'add')+'Class']('closed');
-            })
-        });
-    </script>
 }

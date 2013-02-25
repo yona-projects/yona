@@ -39,6 +39,7 @@ menu.issue = 이슈
 menu.wiki = 위키
 menu.admin = 프로젝트 관리
 menu.siteAdmin = 사이트 관리
+menu.task = 작업 
 
 message.warning = 경고
 message.success = 성공
@@ -221,7 +222,7 @@ project.member = 멤버
 project.milestone = 마일스톤
 project.sidebar.plugin = 플러그인
 project.sidebar.help = 도움말
-project.logo.type = 파일형식: bmp, jpg, gif, png
+project.logo.type = 파일형식:
 project.logo.maxFileSize = 최대파일크기
 project.logo.fileSizeAlert = 이미지 용량은 1MB 이하여야 합니다.
 project.logo.size = 사이즈

@@ -43,11 +43,7 @@
 @@IMPORT url("/assets/stylesheets/issue.css");
 </style>
 <div class="page-padding">
-  @pageTitle(project,"Issue")
-  <!--<ul class="breadcrumb project-name">
-      <li><a href="#">@project.owner</a><span class="divider">/</span></li>
-      <li class="active"><a href="#">@project.name</a></li>
-  </ul>-->
+  @views.html.prjmenu(project, utils.MenuType.ISSUE)
 
   <div class="dashboard">
     <dl class="row-fluid">
@@ -143,7 +139,7 @@
     <tbody>
   </table>
   <div class="write-btn-wrap">
-    <a class="n-btn blue small" href="@routes.IssueApp.newIssueForm(project.owner, project.name)" >@Messages("issue.menu.new")</a>
+    <a class="n-btn orange med" href="@routes.IssueApp.newIssueForm(project.owner, project.name)" >@Messages("issue.menu.new")</a>
   </div>
   <div id="pagination">
     <!-- pagination.js will fill here. -->

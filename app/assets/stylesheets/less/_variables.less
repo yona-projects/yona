@@ -5,23 +5,24 @@
 // --------------------------------------------------
 
 // Typography
-@base-font-size:          13px;
-@base-font-family:        '돋음', Tahoma, Arial, sans-serif;
-@base-line-height:        18px;
-@base-text-color:         #333;
+@base-font-size:   13px;
+//@base-font-family: '돋음', Tahoma, Arial, sans-serif;
+//@base-font-family: 'Droid Sans', 'Myriad Pro', Tahoma, dotum, '돋움', Arial, sans-serif; 
+@base-font-family: 'Droid Sans', Tahoma;/*, '돋움', Dotum, Arial, sans-serif;*/
+@base-line-height: 18px;
+@base-text-color:  #333;
 @base-width: 960px;
 
-@base-image-path: "/assets/images";
-//--@base-image-path: "/images";
+@base-image-path:   "/assets/images";
+@base-webfont-path: "/assets/images/webfont";
 
 // Color
-@link-color: #40849F;
-@link-hover-color: #40849F;
+@link-color: #F36C22; /*#40849F;*/
+@link-hover-color: #F36C22; /*40849F;*/
 @white:  #FFF;
 @black:  #000;
 @orange: #F36C22;
-@blue: #4DB1C8;
-@red: #B22222;
+@blue:   #5DBBE0; /*#56B5D9;*/ /*4DB1C8;*/
 
 @gray-d4: #D4D4D4;
 @gray-ec: #ECECEC;
@@ -30,20 +31,29 @@
 @gray-87: #878787;
 @gray-99: #999;
 @gray-66: #666;
-@gray-33: #333;
 @gray-cc: #CCC;
 @gray-52: #5D5D5D;
 @gray-f2: #F2F2F2;
 @gray-d9: #D9D9D9;
 
-@orange-gnb-color: #110D08;
-@orange-search-bar-bg-color: #525252;
-@search-bar-bg-color: #2C4E55;
-@gnb-color: #3B5C63;
+@search-bar-bg-color: #fff;/*2C4E55;*/ /*#525252;*/
+@gnb-color: #3B5C63; /*#110D08;*/
 @gnb-active-color: #2C4E55;
 
-@gnb-link-color: #FFF;
-@gnb-link-hover-color: #5DD4FF;
-@orange-gnb-link-hover-color: #F36C22;
+@gnb-link-color: #111;
+@gnb-link-hover-color: #F36C22; /*#5DD4FF;*/
 @activity-separate-border-color: #E7E7E7;
 
+// FONT-FACE (webfont)
+/**/
+@font-face {
+    font-family:'Droid Sans';
+    src: url('@{base-webfont-path}/DroidSans.eot');
+    src: url('@{base-webfont-path}/DroidSans.eot?#iefix') format('embedded-opentype'),
+         url('@{base-webfont-path}/DroidSans.woff') format('woff'),
+         url('@{base-webfont-path}/DroidSans.ttf') format('truetype'),
+         url('@{base-webfont-path}/DroidSans.svg#DroidSans') format('svg');
+    font-weight: 400;
+    font-style: normal;
+}
+/**/

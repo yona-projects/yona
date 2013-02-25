@@ -21,7 +21,8 @@
 
 @main(title, project, utils.MenuType.BOARD) {
 <div class="page">
-  @pageTitle(project,"Board")
+  @views.html.prjmenu(project, utils.MenuType.BOARD)
+  
   <div class="header-wrap">
     <div class="search-wrap board">
       <div class="inner">
@@ -78,7 +79,7 @@
   }
   @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
   <div class="write-btn-wrap">
-    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn blue small">@Messages("post.write")</a>
+    <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn orange med">@Messages("post.write")</a>
   </div>
   }
   <div id="pagination">

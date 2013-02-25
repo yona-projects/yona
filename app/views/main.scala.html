@@ -2,19 +2,20 @@
 
 @import utils._
 
-@layout(Messages(title))("") {
+@layout(Messages(title))("prj") {
   <header class="gnb-outer">
-    @topmenu(project, menuType)
-    <div class="sub-menu-sp"></div>
-    @sidemenu(project)
+    @topmenu(project)
+	@sidemenu(project)
   </header>
+  
   <div class="container page-wrap">
     @views.html.alert()
     @content
   </div>
+  
   <footer class="page-footer-outer">
     <div class="page-footer">
-      <span class="provider">Powered by <strong>nFORGE.</strong></span>
+      <span class="provider">Powered by <strong>HIVE</strong></span>
     </div>
   </footer>
 }

@@ -3,6 +3,7 @@ html, body {
 }
 
 body {
+    /*
     background-repeat: no-repeat;
     background-color: #8cc8ce;
     background-position: center bottom, center top;
@@ -11,18 +12,10 @@ body {
         background-color: #22262c;
         background-image: url("/images/bg_night.png");
     }
-
+    */
+   font-family: @base-font-family;
 }
-
-code {
-    font-size: 12px;
-}
-
-pre {
-  padding: 0px;
-  margin: 10px;
-  border: none;
-}
+input, button, select, textarea { font-family: @base-font-family !important; }
 
 a {
     color: inherit;
@@ -55,19 +48,17 @@ a {
 .n-alert {
     overflow: hidden;
     .n-inner {
+        cursor:pointer;
+        
         float: left;
         font-size: 11px;
-        border: 1px solid #93C0C8;
-        color: #4092A1;
-        background-color: #E8f6f9;
+        border: 1px solid #FAC7AB;
+        /*border: 1px solid #93C0C8;*/
+        color: @orange; /*#4092A1;*/
+        background-color: #FFF0E8; /*#E8f6f9;*/
         padding: 0 7px;
         line-height: 25px;
         .border-radius(2px);
-        &.orange {
-            color: @orange;
-            background-color: #FFF0E8;
-            border: 1px solid #FAC7AB;
-        }
     }
     margin-bottom: 5px;
 }
@@ -104,7 +95,7 @@ a {
             font-size: 12px;
             color: #8E9094;
             .current {
-                color: #4489A4;
+                color: @orange; /*#4489A4;*/
                 font-weight: bold;
             }
             &.ikon {
@@ -117,7 +108,7 @@ a {
                 padding: 0 5px;
                 span {
                     font-size: 11px;
-                    color: #4489A4;
+                    color: @orange; /*#4489A4;*/
                     &.off {
                         color: #8E9094;
                     }
@@ -127,26 +118,50 @@ a {
     }
 }
 .progress {
-    &.n4 {
-        height: 7px;
-        margin-bottom: 5px;
-        .orange {
-            background-color: #f28149;
-            background-image: -moz-linear-gradient(top, #f28149, #f28149);
-            background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f28149), to(#f28149));
-            background-image: -webkit-linear-gradient(top, #f281490, #f28149);
-            background-image: -o-linear-gradient(top, #f28149, #f28149);
-            background-image: linear-gradient(to bottom, #f28149, #f28149);
-            background-repeat: repeat-x;
-            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff28149', endColorstr='#ff28149', GradientType=0);
-            .box-shadow(none);
-        }
+    height: 7px;
+    margin-bottom: 5px;
+    background:#b1b1b1;
+    .box-shadow(inset 0px 1px 1px rgba(0,0,0,0.25));
+    .bar {
+        &.orange { background:@orange; .box-shadow(none); } // #f28149
+        &.blue   { background:@blue;   .box-shadow(none); }
     }
 }
 .img-rounded {
     .border-radius(3px) !important;
     border: 1px solid #CCC;
 }
-.gray {
-  color: @gray-99
+
+.orange-txt {
+    color:@orange !important;
+}
+.center-txt {
+    text-align:center;
+}
+
+.bgblack {
+    background:#000;
+}
+.bgwhite {
+    background:#fff;
+}
+.bgblue {
+    background:@blue; /*#56B5D9;*/
+}
+.bgorange {
+    background:@orange;
+}
+.vmiddle {
+    vertical-align:middle !important
+}
+
+.mandatory-text-wrap {
+    overflow:hidden; position:relative;
+}
+.mandatory-text-flag {
+    position:absolute;
+    right:-7px; top:-7px; 
+    width:14px; height:14px; 
+    background:#f00;
+    -webkit-transform:rotate(45deg);
 }
