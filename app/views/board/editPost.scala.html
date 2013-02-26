@@ -6,7 +6,8 @@
 
 @main(title, project, utils.MenuType.BOARD) {
 <div class="page">
-  @pageTitle(project,"Board")
+  @views.html.prjmenu(project, utils.MenuType.BOARD)
+  
   <div class="content-wrap">
     
     @helper.form(action=routes.BoardApp.editPost(project.owner, project.name, postId), 'enctype -> "multipart/form-data", 'class->"nm"){
@@ -58,7 +59,7 @@
         </div>
       </div>-->
       <div class="actions">
-        <button class="btn-transparent n-btn blue med">@Messages("button.save")</button>
+        <button class="btn-transparent n-btn orange med">@Messages("button.save")</button>
         <a href="javascript:history.back();return false;" class="n-btn gray med cancel">@Messages("button.cancel")</a>
       </div>
     }
