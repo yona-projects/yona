@@ -9,11 +9,6 @@ import play.mvc.*;
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
-/**
- * User: doortts
- * Date: 12. 9. 3
- * Time: 오후 5:36
- */
 public class UserAppTest {
     @BeforeClass
     public static void beforeClass() {
@@ -23,7 +18,6 @@ public class UserAppTest {
     }
 
     // FIXME after finding travis out of memory error
-    @Ignore
     public void findById_doesntExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
@@ -45,7 +39,6 @@ public class UserAppTest {
     }
 
     // FIXME after finding travis out of memory error
-    @Ignore
     public void findById_alreadyExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
@@ -67,7 +60,6 @@ public class UserAppTest {
     }
 
     // FIXME after finding travis out of memory error
-    @Ignore
     public void isEmailExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
