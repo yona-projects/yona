@@ -166,7 +166,7 @@ options.submit에 자바스크립트 함수를 설정했다면 비동기로 동�
     page-number       = 1*DIGIT
     DIGIT             = <any US-ASCII digit "0".."9">
 
-예:
+예를 들어 첫번째 페이지만 요청하는 응답에서의 Range 헤더는 다음과 같다.
 
     Range: pages=1
 
@@ -180,7 +180,7 @@ options.submit에 자바스크립트 함수를 설정했다면 비동기로 동�
     complete-length   = 1*DIGIT
     SP                = <US-ASCII SP, space (32)>
 
-예:
+예를 들어 총 두 페이지 중 첫번째 페이지만을 반환하는 응답에서의 Content-Range 헤더는 다음과 같다.
 
     Content-Range: pages 1/2
 
