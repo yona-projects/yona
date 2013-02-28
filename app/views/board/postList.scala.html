@@ -21,7 +21,7 @@
 
 @main(title, project, utils.MenuType.BOARD) {
 <div class="page">
-  @views.html.prjmenu(project, utils.MenuType.BOARD)
+  @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
   
   <div class="header-wrap">
     <div class="search-wrap board">
@@ -30,7 +30,7 @@
           <input type="hidden" name="key" value="@param.key">
           <input type="hidden" name="order" value="@param.order">
           <input type="hidden" name="pageNum" value="@param.pageNum">
-          <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn-transparent search-btn underConstruction">SEARCH</button>
+          <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn search-btn underConstruction">SEARCH</button>
         </form>
       </div>
     </div>
@@ -71,7 +71,7 @@
                 <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
             </div>
             <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
-            <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName"></a>
+            <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="34" height="34"></a>
           </div>
         </li>
     }

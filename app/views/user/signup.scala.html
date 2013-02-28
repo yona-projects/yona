@@ -1,23 +1,23 @@
 @(message: String, newUserForm: Form[User])
 
 @home(message, utils.MenuType.NONE) {
-    <div class="page full">
+	@** Messages("title.signup") **@
+	<div class="page full">
         <div class="center-wrap tag-line-wrap signup">
-            <h1 class="title">@Messages("hive.name") <span class="high-light">@Messages("title.signup")</span></h1>
-            <p class="tag-line signup"><span>Open Source</span> Project. <span>Code</span> Repository. <span>Issue</span> Tracker. <span>Task</span> Managspanent</p>
+            <h1 class="title"><span class="high-light">Sign Up for</span> @Messages("hive.name")</h1>
+            <p class="tag-line">Software development platform for Open Source project.</p>
         </div>
+        
         <div class="signup-form-wrap">
-            <form action="@routes.UserApp.newUser()" name="signup" method="POST">
-                <label for="loginId" class="inline">
-                    <input type="text" class="text loginId" id="loginId" placeholder='@Messages("user.signupId")' autocomplete="off" name="loginId">
-                    <a class="isValid"></a>
+            <form action="@routes.UserApp.newUser()" method="POST" name="signup">
+				<label for="loginId">
+                    <input type="text" class="text password" id="loginId" placeholder="@Messages("user.signupId")" autocomplete="off" name="loginId">
                 </label>
-                <label for="username" class="inline">
-                    <input type="text" class="text uname" id="username" placeholder='@Messages("user.name")' autocomplete="off" name="name">
+				<label for="uname">
+                    <input type="text" class="text password" id="uname" placeholder="@Messages("user.name")" autocomplete="off" name="name">
                 </label>
                 <label for="email">
-                    <input type="text" class="text email" id="email" placeholder='@Messages("user.email")' autocomplete="off" name="email">
-                    <a class="isValid"></a>
+                    <input type="text" class="text password" id="email" placeholder="@Messages("user.email")" autocomplete="off" name="email">
                 </label>
                 <label for="password">
                     <input type="password" class="text password" id="password" placeholder="@Messages("user.password")" autocomplete="off" name="password">
@@ -29,11 +29,12 @@
                     @Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
                 </div>
                 <div class="btns-row">
-                    <button type="submit" class="n-btn orange sign-up">@Messages("title.signup")</button>
+                    <button type="submit" class="n-btn orange sign-up">@Messages("user.signupBtn")</button>
                 </div>
             </form>
         </div>
     </div>
+    
     <script type="text/javascript">
         var passwordField = $('#password');
         var emailField = $('#email');

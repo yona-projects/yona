@@ -5,19 +5,29 @@
 @home(title, utils.MenuType.NEW_PROJECT){
     <div class="page">
         <div class="form-wrap new-project">
-            <form action="@routes.ProjectApp.newProject()" method="post" name="newproject">
-                <label for="name">
-                    <input id="project-name" type="text" name="name" class="text" placeholder="새 프로젝트 이름을 입력해주세요. (프로젝트 이름은 영문으로 공백없이 작성해 주세요)" maxlength="250">
-                </label>
-                <label for="overview">
-                    <textarea id="description" name="overview" class="text textarea.span4" placeholder="프로젝트 설명을 입력해주세요."></textarea>
-                </label>
+            <form action="@routes.ProjectApp.newProject()" method="post" name="newproject" class="frm-wrap">
+            	<dl>
+            		<dt>
+            			<label for="name">새 프로젝트 이름을 입력해주세요</label>
+            		</dt>
+            		<dd>
+            			<input id="project-name" type="text" name="name" class="text" placeholder="영문으로 공백없이 작성해 주세요" maxlength="250">
+            		</dd>
+            		
+            		<dt>
+						<label for="overview">프로젝트 설명을 입력해주세요</label>
+					</dt>
+					<dd>
+						<textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
+					</dd>
+            	</dl>
+
                 <ul class="options unstyled">
                     <li class="option">
                         <div class="option-label">공개설정</div>
                         <div class="option-desc">
-                            <input name="share_option" type="radio" checked="checked" id="public" value="true" class="radio-btn-"><label for="public" class="bg-radiobtn">공개</label>
-                            <input name="share_option" type="radio" id="private" value="false" class="radio-btn-"><label for="private" class="bg-radiobtn">비공개</label>
+                            <input name="share_option" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">공개</label>
+                            <input name="share_option" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">비공개</label>
                             <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
                         </div>
                     </li>
@@ -52,7 +62,7 @@
                           </div>
                         </div>
                         <div class="option-desc">
-                            <input type="checkbox" class="stipulation checkbox" autocomplete="off" id="stipulation" name="accept"><label for="stipulation" class="bg-checkbox">본인은 약관에 대한 안내를 읽었으며 동의 합니다.</label>
+                            <input type="checkbox" class="stipulation checkbox checkbox-btn" autocomplete="off" id="stipulation" name="accept"><label for="stipulation" class="bg-checkbox label-agreement">본인은 약관에 대한 안내를 읽었으며 동의 합니다.</label>
                         </div>
                     </li>
                 </ul>

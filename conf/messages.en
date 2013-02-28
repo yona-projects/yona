@@ -25,7 +25,7 @@ title.sendMail = Send Mail
 title.projectList = Project List
 title.help = HELP
 
-hive.name = nFORGE
+hive.name = HIVE
 hive.title = Collaborative Software Development Platform
 hive.description = Make it better and simpler!
 
@@ -80,6 +80,7 @@ button.login = Login
 button.signup = Create an account
 button.newProject = Create your project
 button.detail = Detail
+button.apply = Apply
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -276,6 +277,7 @@ user.login.failed = Your login ID or password is not valid.
 user.logout.success = Logout successfully
 user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
 user.signupId = ID (lower case)
+user.signupBtn = Sign Up 
 
 #Time
 time.just = just now

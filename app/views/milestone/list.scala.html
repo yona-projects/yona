@@ -27,7 +27,8 @@
         "up"
         }
     } else {
-        "up hidden"
+    	/*"up hidden"*/
+        "up"
     }
 }
 @makeMilestoneListLink(_state: String) = @{
@@ -37,13 +38,15 @@
 }
 
 @project.projectMngMain(title, projectInst) {
-    @pageTitle(projectInst,"Milestone")
+    @views.html.prjmenu(projectInst, utils.MenuType.PROJECT_SETTING, "")
+    
     <div class="tab-wrap">
         <div class="pull-right btns">
             <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">MANAGE</a>
-            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="n-btn small blue">NEW MILESTONE</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="n-btn small orange">NEW MILESTONE</a>
         </div>
-        <ul class="nav nav-tabs">
+        
+        <ul class="nav nav-tabs hive-tabs">
             <li class="@if(mCondition.state.equals("all")){active}">
                 <a href="@makeMilestoneListLink("all")">All Milestones</a>
             </li>
@@ -55,12 +58,19 @@
             </li>
         </ul>
     </div>
-    <div class="filter-wrap milestone">
-        <div class="filters">
-            <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>완료일순</a>
-            <a href="@makeSortLink("completionRate")" class="filter"><i class="ico ico-sort @sortMark("completionRate")"></i>완료율순</a>
-        </div>
+    
+	<div class="filter-wrap milestone">
+		<div class="filters">
+               <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>완료일순</a>
+               <a href="@makeSortLink("completionRate")" class="filter active"><i class="ico ico-sort @sortMark("completionRate")"></i>완료율순</a>
+           </div>
+       	<div class="legend">
+       		<i class="orange"></i>완료
+       		<i class="blue"></i>진행중
+       		<i class="gray"></i>미할당
+       	</div>
     </div>
+
     <ul class="milestones">
         @for(milestone <- milestones){
         <li class="milestone">
@@ -76,28 +86,44 @@
                         <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
                     </li>
                 </ul>
+                
                 <div class="meta-info">
                     <strong class="version"></strong>
                     <span class="title">@milestone.title</span>
                     <span class="sp">|</span>
                     <span class="due-date">완료일 <strong>@milestone.getDueDateString</strong></span>
                 </div>
+                
                 <div class="progress-wrap">
-                    <div class="progress">
-                        <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
-                    </div>
-                    <div class="pull-left">
-                        <a href="@makeIssuesLink(milestone.id,"closed")">완료 @milestone.getNumClosedIssues (@milestone.getCompletionRate%)</a>
-                    </div>
-                    <div class="pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")">미완료 @milestone.getNumOpenIssues (@{100 - milestone.getCompletionRate}%)</a>
-                    </div>
-                </div>
+					<div class="progress">
+						<div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
+						<!-- 
+						<div class="bar blue" style="width: 30%"></div>  
+						-->
+					</div>
+					<div class="progress-label">
+						<div class="pull-left" style="width: @milestone.getCompletionRate%;">
+							<a href="@makeIssuesLink(milestone.id,"closed")">완료 <strong>@milestone.getCompletionRate%</strong></a>
+						</div>
+						<!-- 
+						<div class="pull-left center-txt" style="width: 30%;">
+							진행중 <strong>30%</strong>
+						</div> 
+						-->
+						<div class="pull-right">
+							<a href="@makeIssuesLink(milestone.id,"open")">미완료 <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+						</div>
+					</div>
+				</div>
+				
                 <div class="desc">
                     @milestone.contents
                 </div>
             </div>
-            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">@milestone.getCompletionRate%</div>
+            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">
+            	@milestone.getCompletionRate
+            	<i>%</i>
+			</div>
         </li>
         }
     </ul>

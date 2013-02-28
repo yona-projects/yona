@@ -6,8 +6,8 @@
 
 
 @projectMngMain(message, project) {
-    @views.html.prjmenu(project, utils.MenuType.PROJECT_SETTING)
-    
+    @views.html.prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
+
     <div class="bubble-wrap gray">
         @form(action=routes.ProjectApp.settingProject(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">

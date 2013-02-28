@@ -2,23 +2,22 @@
 
 @home(message, utils.MenuType.HELP) {
 <div class="page">
-        <!--<div class="header-wrap">
+        <div class="header-wrap">
             <div class="search-wrap help">
                 <div class="inner">
                     <form action="/project/search" method="get">
-                        <span class="labels">FAQ</span>
-                        <span class="sp-line"></span>
-                        <span class="sub labels">Help me with</span>
-                        <input name="query" class="text" type="text" placeholder="FAQ 검색"><button type="submit" class="btn-transparent search-btn">SEARCH</button>
+                        <span class="labels">FAQ</span><!-- 
+                         --><input name="query" class="text" type="text" placeholder="현재 게시글에서 검색"><button type="submit" class="btn search-btn">SEARCH</button>
                     </form>
                 </div>
             </div>
-        </div>-->
+        </div>
         <ul class="qas">
             <li class="qa">
                 <div class="question-wrap">
                     <i class="ico ico-q"></i>
                     <a href="#!/toggle" class="question">N4를 설치하고 싶어요.</a>
+                    <i class="ico icor"></i>
                 </div>
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
@@ -40,6 +39,7 @@
                 <div class="question-wrap">
                     <i class="ico ico-q"></i>
                     <a href="#!/toggle" class="question">프로젝트를 새로 생성하고 싶어요.</a>
+                    <i class="ico icor"></i>
                 </div>
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
@@ -69,6 +69,7 @@
                 <div class="question-wrap">
                     <i class="ico ico-q"></i>
                     <a href="#!/toggle" class="question">내가 참여하는 프로젝트들은 어디서 볼수 있나요?</a>
+                    <i class="ico icor"></i>
                 </div>
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
@@ -86,6 +87,7 @@
                 <div class="question-wrap">
                     <i class="ico ico-q"></i>
                     <a href="#!/toggle" class="question">프로젝트 탈퇴는 어떻게 하나요.</a>
+                    <i class="ico icor"></i>
                 </div>
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
@@ -99,6 +101,7 @@
                 <div class="question-wrap">
                     <i class="ico ico-q"></i>
                     <a href="#!/toggle" class="question">게시판에서는 어떠한 것들을 할수 있나요?</a>
+                    <i class="ico icor"></i>
                 </div>
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
@@ -119,6 +122,7 @@
                 <div class="question-wrap">
                     <i class="ico ico-q"></i>
                     <a href="#!/toggle" class="question">N4의 버그를 발견했어요.</a>
+                    <i class="ico icor"></i>
                 </div>
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
@@ -131,11 +135,14 @@
             </li>
         </ul>
     </div>
-    <script>
-    $("a.question").click(function(){
-        $(this).parents("li").toggleClass("open");
-    });
-    </script>
+    
+<script type="text/javascript">
+	$(document).ready(function(){
+		$(".qas > .qa").click(function(e){
+			$(e.currentTarget).toggleClass("open");
+		});		
+	});
+</script>
 }
 
 
