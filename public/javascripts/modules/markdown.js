@@ -10,7 +10,7 @@ var renderMarkdown = function(text) {
     }
   });
 
-  return new Showdown.converter().makeHtml(text);
+  return Markdown.getSanitizingConverter().makeHtml(text);
 };
 
 var editor = function (textarea) {
