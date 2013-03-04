@@ -9,7 +9,10 @@ import models.Role;
 import models.User;
 import models.enumeration.Operation;
 import models.enumeration.RoleType;
+import models.enumeration.Direction;
+import models.enumeration.Matching;
 import models.task.CardAssignee;
+import models.support.*;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
@@ -243,19 +246,21 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Result projects(String filter, String state) {
-       ExpressionList<Project> el = Project.find.where()
-                .ilike("name", "%" + filter + "%");
-        if (state.equals("public")) {
-            el.eq("share_option", true);
-        } if (state.equals("private")) {
-            el.eq("share_option", false);
+    public static Result projects(String filter, String state, int pageNum) {
+        OrderParams orderParams = new OrderParams();
+        SearchParams searchParams = new SearchParams();
+
+        orderParams.add("date", Direction.DESC);
+        searchParams.add("name", filter, Matching.CONTAINS);
+        if (state.toLowerCase().equals("public")) {
+            searchParams.add("share_option", true, Matching.EQUALS);
+        } else if (state.toLowerCase().equals("private")) {
+            searchParams.add("share_option", false, Matching.EQUALS);
         }
 
-        // TODO change simple sorted projectList to Paging List
-        List<Project> filteredList = Ebean.filter(Project.class).sort("date desc").filter(el.findList());
+        Page<Project> projects = FinderTemplate.getPage(
+                orderParams, searchParams, Project.find, 10, pageNum - 1);
 
-        Page<Project> projects = el.findPagingList(25).getPage(0);
-        return ok(projectList.render("title.projectList", filteredList, filter, state));
+        return ok(projectList.render("title.projectList", projects, filter, state));
     }
 }

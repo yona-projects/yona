@@ -1,4 +1,6 @@
-@(message: String, currentPage: List[Project], filter:String, state:String)
+@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, state:String)
+
+@import utils.TemplateHelper._
 
 @home(message, utils.MenuType.PROJECTS) {
   <div class="page">
@@ -23,7 +25,7 @@
       </div>
     </div>
     <ul class="all-projects">
-      @for(project <- currentPage) {
+      @for(project <- currentPage.getList) {
       <li class="project">
         <div class="info-wrap">
           <div class="header">
@@ -47,5 +49,14 @@
       </li>
       }
     </ul>
+    <div id="pagination">
+      <!-- pagination.js will fill here. -->
+    </div>
+    <script src="@getJSLink("pagination")" type="text/javascript"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        Pagination.update($('#pagination'), @currentPage.getTotalPageCount);
+      });
+    </script>
   </div>
 }

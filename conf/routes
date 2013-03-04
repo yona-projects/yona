@@ -61,7 +61,7 @@ GET     /:user/:project/post/:id/comment/:commentId/delete     controllers.Board
 # Projects
 GET     /projectform                                    controllers.ProjectApp.newProjectForm()
 POST    /projects                                       controllers.ProjectApp.newProject()
-GET     /projects                                       controllers.ProjectApp.projects(filter:String ?= "", state: String ?= "all")
+GET     /projects                                       controllers.ProjectApp.projects(filter:String ?= "", state: String ?= "all", pageNum: Int ?= 1)
 GET     /:user/:project                                 controllers.ProjectApp.project(user, project)
 GET     /:user/:project/settingform                     controllers.ProjectApp.settingForm(user, project)
 POST    /:user/:project/setting                         controllers.ProjectApp.settingProject(user, project)
