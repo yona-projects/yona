@@ -30,13 +30,13 @@ public class SvnApp extends Controller {
     static DAVServlet davServlet;
 
     @With(BasicAuthAction.class)
-    @BodyParser.Of(BodyParser.Raw.class)
+    @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)
     public static Result serviceWithPath(String path) throws ServletException, IOException {
         return service();
     }
 
     @With(BasicAuthAction.class)
-    @BodyParser.Of(BodyParser.Raw.class)
+    @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)
     public static Result service() throws ServletException, IOException {
         // FIXME DAVServlet 들어내고 싶다.
         String path;
