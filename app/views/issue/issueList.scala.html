@@ -7,6 +7,7 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
+@**
 @ordering(label:String, sortBy:String) = {
   @if(sortBy == param.sortBy) {
     @if(param.orderBy == "desc") {
@@ -35,128 +36,147 @@
         }
     </th>
 }
+**@
 
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 
-<style>
-@@IMPORT url("/assets/stylesheets/issue.css");
-</style>
-<div class="page-padding">
-  @views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	@views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	
+	<div class="header-wrap">
+		<div class="stats-wrap">
+			@for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+			<div class="stat stat-issue @if(param.state == state.state) { active }">
+				<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)">
+				<span class="desc"><strong>@state.name</strong> issues</span><!-- 
+				 --><span class="num @state.state">@Issue.countIssues(project.id, state)</span>
+				</a>
+			</div>
+			}
+		</div>
+		<div class="search-wrap projects">
+			<div class="inner">
+				<form action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
+				<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
+				<input type="hidden" name="state"   value="@param.state">
+				<input type="text"   name="filter"  class="text" placeholder="현재 프로젝트에서 검색"><!-- 
+				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
+                <a href="#" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
+                </form>
+                
+				<div id="advanced-search-form" class="srch-advanced form-horizontal">
+					<fieldset class="properties">
+						<div class="control-group">
+							<label class="control-label">@Messages("author")</label>
+							<div class="controls">
+								<input type="text" name="authorLoginId" class="input-medium">
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">@Messages("assignee")</label>
+							<div class="controls" data-toggle="buttons-radio">
+								<button type="button" class="btn" assigneeId="0">@Messages("none")</button>
+								@for(assignee <- Assignee.finder.where.eq("project.id",
+								project.id).findSet) {
+								<button type="button" class="btn" assigneeId="@assignee.user.id">
+									@User.find.byId(assignee.user.id).name <img class="user-picture" src="@urlToPicture(User.find.byId(assignee.user.id).email, 16)">
+								</button>
+								}
+							</div>
+						</div>
+						<div class="control-group">
+							<label class="control-label">@Messages("milestone")</label>
+							<div class="controls" data-toggle="buttons-radio">
+								<button type="button" class="btn" milestoneId="0">@Messages("none")</button>
+								@for(milestone <- Milestone.findByProjectId(project.id)) {
+								<button type="button" class="btn" milestoneId="@milestone.id">@milestone.title</button>
+								}
+							</div>
+						</div>
+					</fieldset>
+					<!-- issue.label module make 'labels' fieldset as label filter and editor -->
+					<fieldset class="labels"></fieldset>
+				</div>
+				
+				
+			</div>
+		</div>
+	</div>
 
-  <div class="dashboard">
-    <dl class="row-fluid">
-      @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
-      <div class="span4 @if(state.state == param.state) { active }"><a href="@routes.IssueApp.issues(project.owner, project.name, state.state)"><dt><b>@state.name</b> issues</dt><dd class="@state.state inner-shadow pull-right">@Issue.countIssues(project.id, state)</dd></a></div>
-      }
-    </dl>
+	<div class="filter-wrap board">
+		<div class="filters">
+			<a href="@urlToList&sortBy=state&orderBy=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
+			<a href="@urlToList&sortBy=date&orderBy=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
+			<a href="@urlToList&sortBy=numOfComments&orderBy=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.comments")</a>
+		</div>
+	</div>
 
-    <hr/>
-    <form class="form-horizontal form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
-      <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
-      <input type="hidden" name="state" value="@param.state">
-      <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">@Messages("issue.advancedSearch")</button>
-      <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="btn btn-small btn-flat">@Messages("issue.downloadAsExcel")</a>
-      <div class="input-append pull-right">
-        <input name="filter" class="span2" id="appendedInputButton" size="16" type="text"><button class="btn" type="submit"  placeholder="현재 게시글에서 검색">@Messages("issue.search")</button>
-      </div>
-    <div class="form-horizontal" id="advanced-search-form">
-      <fieldset class="properties">
-        <div class="control-group">
-          <label class="control-label">@Messages("author")</label>
-          <div class="controls">
-            <input type="text" name="authorLoginId" class="input-medium">
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">@Messages("assignee")</label>
-          <div class="controls" data-toggle="buttons-radio">
-            <button type="button" class="btn" assigneeId="0">@Messages("none")</button>
-            @for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
-              <button type="button" class="btn" assigneeId="@assignee.user.id">@User.find.byId(assignee.user.id).name <img class="user-picture" src="@urlToPicture(User.find.byId(assignee.user.id).email, 16)"></button>
-            }
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">@Messages("milestone")</label>
-          <div class="controls" data-toggle="buttons-radio">
-            <button type="button" class="btn" milestoneId="0">@Messages("none")</button>
-            @for(milestone <- Milestone.findByProjectId(project.id)) {
-              <button type="button" class="btn" milestoneId="@milestone.id">@milestone.title</button>
-            }
-          </div>
-        </div>
-      </fieldset>
-      <!-- issue.label module make 'labels' fieldset as label filter and editor -->
-      <fieldset class="labels"></fieldset>
-    </div>
-    </form>
+@if(currentPage.getList().size() > 0){
+	<ol class="issue-list">
+		@for(issue <- currentPage.getList){
+	    <li class="issue">
+	        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.id</a></div>
+	        <div class="attach-wrap">
+	        	@if(Attachment.findByContainer(ResourceType.ISSUE_POST, issue.id).size > 0){
+	        	<i class="ico ico-clip"></i>
+	        	}
+	        </div>
+	        <div class="contents">
+	            <p class="title">
+	            	<a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
+	            	@** TODO: label 을 <button> 태그를 사용하는게 맞는지 검토 필요 **@
+					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                		<button class="issue-label" labelId="@label.id" data-color="@label.color">@label.name</button>
+              		}
+	            </p>
+	            <p class="infos nm">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a><!-- 
+	             --><span class="date">@agoString(issue.ago)</span></p>
+	        </div>
+	        <div class="right-panel">
+	        	<div class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</div>
+	            <div class="comment-wrap">
+	                <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
+	            </div>
+	            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author-avatar img-rounded pull-right"><!-- 
+	             --><img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName"></a>
+	        </div>
+	    </li>
+	    }
+	</ol>
+} else {
+	<div class="error-wrap">
+		<i class="ico ico-err1"></i>
+		<p>@Messages("issue.is.empty")</p>
+	</div>
+}
 
-  </div>
+	<div class="write-btn-wrap">
+		<a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="n-btn med white btn-save-xls"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
+		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="n-btn med orange">@Messages("issue.menu.new")</a>
+	</div>
 
-  <p class="ordering">
-    @ordering(Messages("order.state"), "state")
-    @ordering(Messages("order.date"), "date")
-    @ordering(Messages("order.comments"), "numOfComments")
-  </p>
-
-  <table class="table issue-list">
-    <tbody>
-
-      @for(issue <- currentPage.getList){
-        <tr>
-          <td class="no">@issue.id</td>
-          <td class="attachmend attached">@if(Attachment.findByContainer(ResourceType.ISSUE_POST, issue.id).size > 0){<span class="icon-file"/>}</td>
-          <td class="info">
-            <p>
-              <a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
-
-              @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                <button class="issue-label" labelId="@label.id" data-color="@label.color">@label.name</button>
-              }
-            </p>
-            <p class="author">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
-          </td>
-          <td class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</td>
-          <td class="comments">
-            <i class="ico ico-comment-bubble"></i>
-            <span class="num">@issue.comments.size()</span>
-          </td>
-          <td class="assignee">
-            <a href="@routes.UserApp.userInfo(issue.authorLoginId)">
-            <img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="34" height="34" alt="@issue.authorName"></a>
-          </td>
-
-        </tr>
-      }
-      @if( currentPage.getList().size() == 0 ){
-      <tr>
-          <td colspan="6"><p class="emptyMessage">@Messages("issue.is.empty")</p></td>
-      </tr>
-      }
-
-    <tbody>
-  </table>
-  <div class="write-btn-wrap">
-    <a class="n-btn orange med" href="@routes.IssueApp.newIssueForm(project.owner, project.name)" >@Messages("issue.menu.new")</a>
-  </div>
-  <div id="pagination">
-    <!-- pagination.js will fill here. -->
-  </div>
+	<div id="pagination">
+		<!-- pagination.js will fill here. -->
+	</div>
 </div>
 
-<script src="@getJSLink("pagination")" type="text/javascript"></script>
+<script type="text/javascript" src="@getJSLink("pagination")"></script>
 <script type="text/javascript">
-    nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: true});
-  nforge.require('issue.list');
-  $(document).ready(function() {
-    Pagination.update($('#pagination'), @currentPage.getTotalPageCount);
-    $('button.issue-label[data-color]').each(function() {
-      $(this).css('background-color', $(this).data('color'));
-      $(this).css('color', contrasted_color($(this).data('color')));
-    });
-  });
+	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {'editable': true});
+	nforge.require('issue.list');
+	  
+	$(document).ready(function() {
+		Pagination.update($('#pagination'), @currentPage.getTotalPageCount);
+	    $('button.issue-label[data-color]').each(function() {
+			$(this).css('background-color', $(this).data('color'));
+			$(this).css('color', contrasted_color($(this).data('color')));
+	    });
+	    
+	   	$(".btn-advanced").click(function(){
+	   		$(".inner").toggleClass("advanced");
+	   	});
+	    
+	});  
 </script>
 </div>
 }

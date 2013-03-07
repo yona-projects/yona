@@ -8,70 +8,82 @@
 <div class="page">
   @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
   
-  <div class="content-wrap">
+  <div class="content-wrap frm-wrap">
     
     @helper.form(action=routes.BoardApp.editPost(project.owner, project.name, postId), 'enctype -> "multipart/form-data", 'class->"nm"){
-      <div id="warning" class="n-alert hide">
-        <div class="n-inner">
-          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
-          <a href="#" class="ico btn-delete"></a>
-        </div>
-      </div>
-      <label for="title">
-        @helper.inputText(form("title"), 'class->"text title", 'placeholder -> Messages("post.new.title"), 'maxlength -> "250", 'tabindex -> 1)
-      </label>
-      <label for="content">
-        @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
-        <div id="upload" resourceType=@ResourceType.BOARD_POST resourceId=@postId></div>
-      </label>
-      <!--
-      <div class="content-footer">
-        <div class="attach-wrap">
-          <div class="thumb-wrap">
-            <img src="/images/default-avatar-34.png" class="img-rounded" width="32" height="32" alt="avatar">
-          </div>
-          <div class="attach-info-wrap">
-            <div>
-              <span class="progress-num">15%</span>
-              <span class="sp-line">&nbsp;</span>
-              <strong>total</strong>
-              <span class="total-num">50MB</span>
-            </div>
-            <div class="progress-wrap">
-              <div class="progress n4">
-                <div class="bar orange" style="width: 40%;"></div>
-              </div>
-            </div>
-            <a href="#!/cancel"><i class="ico btn-cancel"></i></a>
-          </div>
-          <div class="btn-wrap">
-            <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
-              <input type="file" class="file">
-            </div>
-          </div>
-        </div>
-        <div class="attached-files-wrap">
-          <ul class="attached-files">
-            <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
-            <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
-            <li class="attached-file"><strong>test-image.jpg(15MB)</strong><a href="#!/delete-attached-file" class="attached-delete"><i class="ico btn-delete"></i></a></li>
-          </ul>
-        </div>
-      </div>-->
-      <div class="actions">
-        <button class="btn-transparent n-btn orange med">@Messages("button.save")</button>
-        <a href="javascript:history.back();return false;" class="n-btn gray med cancel">@Messages("button.cancel")</a>
-      </div>
-    }
+    
+    <dl>
+    	<dt>
+	      <div id="warning" class="n-alert hide">
+	        <div class="n-inner">
+	          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
+	          <a href="#" class="ico btn-delete"></a>
+	        </div>
+	      </div>
+	      <label for="title">@Messages("post.new.title")</label>
+    	</dt>
+    	<dd>
+    		@helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
+    	</dd>
+    </dl>
+        
+	@helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+
+	@** fileUploader **@
+    @if(UserApp.currentUser() != UserApp.anonymous) {
+
+	<div class="content-footer">
+		<div class="attach-wrap">
+			<div class="thumb-wrap">
+				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
+			</div>
+			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_POST">
+				<div>
+					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
+					<strong>total</strong> <span class="total-num">0MB</span>
+				</div>
+				<div class="progress-wrap">
+					<div class="progress n4">
+						<div class="bar orange" style="width: 0%;"></div>
+					</div>
+				</div>
+				<!-- <a href="#!/cancel"><i class="ico btn-cancel"></i></a> -->
+			</div>
+		
+			<div class="btn-wrap">
+				<div class="ns-btn fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>UPLOAD <input type="file" class="file" name="filePath">
+				</div>
+			</div>
+	</div>
+	<script type="text/template" id="tplAttachedFile"><!--
+	--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+		<strong>${fileName}(${fileSizeReadable})</strong><!--
+		--><a class="attached-delete"><i class="ico btn-delete"></i></a>
+	</li>
+	</script>
+
+	<div class="attached-files-wrap">
+		<ul class="attached-files"></ul>
+	</div>
+	}
+	@** end of fileUploader **@
+			      
   </div>
+
+  <div class="actions">
+      <button class="btn-transparent n-btn orange med">@Messages("button.save")</button>
+      <a href="javascript:history.back(); return false;" class="n-btn gray med cancel">@Messages("button.cancel")</a>
+  </div>
+
+  } @** end of form **@
 </div>
 
-<script>nforge.require("board.vaildate");</script>
-
 @views.html.markdown()
-<script type="text/javascript">
-  nforge.require('shortcut.submit');
-  nforge.require('board.edit', "@routes.AttachmentApp.newFile");
-</script>
 
+<script type="text/javascript">
+	nforge.require("board.vaildate");
+	nforge.require('shortcut.submit');
+	nforge.require('board.edit', "@routes.AttachmentApp.newFile");
+</script>
 }

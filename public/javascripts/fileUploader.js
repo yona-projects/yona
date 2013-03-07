@@ -1,32 +1,5 @@
 /**
- * getFileList
- */
-var getFileList = function(target, urlToGetFileList, fn) {
-	var form = $('<form>').attr('method', 'get').attr('action', urlToGetFileList);
-
-	var resourceType = target.attr('resourceType');
-	if (typeof resourceType !== "undefined") {
-		form.append('<input type="hidden" name="containerType" value="' + resourceType + '">');
-	}
-
-	var resourceId = target.attr('resourceId');
-	if (typeof resourceId !== "undefined") {
-		form.append('<input type="hidden" name="containerId" value="' + resourceId + '">');
-	}
-
-	form.ajaxForm({
-		"success" : fn
-	});
-	
-	try {
-		form.submit();
-	} finally {
-		form = resourceType = resourceId = null;
-	}
-};
-
-/**
- * fileUploader
+ * fileUploader.js
  */
 var fileUploader = (function() {
 	
@@ -353,3 +326,31 @@ var fileDownloader = function(target, urlToGetFileList) {
 
 	target.append(filelist);
 };
+
+/**
+ * getFileList
+ */
+var getFileList = function(target, urlToGetFileList, fn) {
+	var form = $('<form>').attr('method', 'get').attr('action', urlToGetFileList);
+
+	var resourceType = target.attr('resourceType');
+	if (typeof resourceType !== "undefined") {
+		form.append('<input type="hidden" name="containerType" value="' + resourceType + '">');
+	}
+
+	var resourceId = target.attr('resourceId');
+	if (typeof resourceId !== "undefined") {
+		form.append('<input type="hidden" name="containerId" value="' + resourceId + '">');
+	}
+
+	form.ajaxForm({
+		"success" : fn
+	});
+	
+	try {
+		form.submit();
+	} finally {
+		form = resourceType = resourceId = null;
+	}
+};
+

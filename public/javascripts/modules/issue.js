@@ -328,7 +328,13 @@ nforge.issue.view = function () {
         label.css('color', contrasted_color(label.css('background-color')));
       }
 
-      fileUploader($('#upload'), $('#comment-editor'), filesUrl);
+      //fileUploader($('#upload'), $('#comment-editor'), filesUrl);
+      fileUploader.init({
+      	"elTarget"    : $('#upload'),   // upload area
+      	"elTextarea"  : $('#comment-editor'), // textarea
+      	"sTplFileItem": $('#tplAttachedFile').text(),
+      	"sAction"     : filesUrl
+      });
       attachments = $('.attachments');
       for (var i = 0; i < attachments.length; i++) {
         fileDownloader($(attachments[i]), filesUrl);
@@ -345,6 +351,7 @@ that = {
     init: function() {
       var searchForm = $('form.form-search');
 
+      /*
       $('#advanced-search-form').css('display', 'none');
       $('#advanced-search').click(function(e) {
         var target = $(e.target || e.srcElement || e.originalTarget);
@@ -354,6 +361,7 @@ that = {
           $('#advanced-search-form').css('display', '');
         }
       });
+      */
 
       $('.properties div.controls button').click(function(e) {
         var target = $(e.target || e.srcElement || e.originalTarget);
@@ -390,7 +398,13 @@ nforge.issue.new = function() {
 
   that = {
     init: function(filesUrl) {
-      fileUploader($('#upload'), $('#body'), filesUrl);
+      //fileUploader($('#upload'), $('#body'), filesUrl);
+      fileUploader.init({
+      	"elTarget"    : $('#upload'),   // upload area
+      	"elTextarea"  : $('#body'), // textarea
+      	"sTplFileItem": $('#tplAttachedFile').text(),
+      	"sAction"     : filesUrl
+      });
     }
   }
 

@@ -156,16 +156,15 @@
 <div id="deleteConfirm" class="modal hide fade">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal">×</button>
-		<h3>확인</h3>
+		<h3>@Messages("button.confirm")</h3>
 	</div>
 	<div class="modal-body">
-		<p>게시글이 삭제되며 영원히 복구할수 없습니다.</p>
-		<p>그래도 삭제하시겠습니까?</p>
+		<p>@Messages("post.delete.confirm")</p>
 	</div>
 	<div class="modal-footer">
 		<a class="btn btn-danger med"
-			href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">예</a>
-		<a href="#" class="btn med" data-dismiss="modal">아니오</a>
+			href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">@Messages("button.yes")</a>
+		<a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
 	</div>
 </div>
 
