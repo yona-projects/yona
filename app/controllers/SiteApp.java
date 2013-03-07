@@ -94,7 +94,7 @@ public class SiteApp extends Controller {
     }
     
     public static Result deleteProject(Long projectId){
-        Project.delete(projectId);
+        Project.find.byId(projectId).delete();
         return redirect(routes.SiteApp.projectList(""));
     }
     

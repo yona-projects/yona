@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import models.enumeration.Direction;
 import models.enumeration.Matching;
@@ -153,6 +154,7 @@ public class User extends Model {
                 .findList();
     }
 
+    @Transient
     public Long avatarId(){
         return Attachment.findByContainer(ResourceType.USER_AVATAR, id).get(0).id;
     }

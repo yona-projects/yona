@@ -3,11 +3,7 @@ package models.task;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 import models.Project;
 import models.ProjectUser;
@@ -93,6 +89,7 @@ public class TaskBoard extends Model {
         save();
     }
 
+    @Transient
     public JsonNode toJSON() {
         // 라인중에서 넣을 것만 넣고 나머지는 다 위임한다.
         ArrayNode json = Json.newObject().arrayNode();
@@ -103,6 +100,7 @@ public class TaskBoard extends Model {
         return json;
     }
 
+    @Transient
     public JsonNode getLabel() {
         ArrayNode json = Json.newObject().arrayNode();
         for (Label label : labels) {
@@ -111,6 +109,7 @@ public class TaskBoard extends Model {
         return json;
     }
 
+    @Transient
     public JsonNode getMember() {
         ArrayNode json = Json.newObject().arrayNode();
         for (ProjectUser member : ProjectUser.findMemberListByProject(project.id)) {

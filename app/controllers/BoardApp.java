@@ -6,85 +6,84 @@ package controllers;
 
 import com.avaje.ebean.Page;
 
-import models.Attachment;
-import models.Comment;
-import models.Post;
-import models.Project;
-import models.User;
-import models.enumeration.Direction;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-import play.data.Form;
-import play.mvc.Controller;
-import play.mvc.Result;
-import utils.AccessControl;
-import utils.Constants;
+
+import models.support.FinderTemplate;
+import models.support.OrderParams;
+import models.support.SearchParams;
+import models.enumeration.Direction;
+import models.enumeration.Matching;
 import views.html.board.editPost;
 import views.html.board.newPost;
 import views.html.board.postList;
 
-public class BoardApp extends Controller {
+import utils.AccessControl;
+import utils.Callback;
+import utils.Constants;
+import utils.JodaDateUtil;
 
-    //TODO 이 클래스는 원래 따로 존재해야 함.
-    public static class SearchCondition{
-        public final static String ORDERING_KEY_ID = "id";
-        public final static String ORDERING_KEY_TITLE = "title";
-        public final static String ORDERING_KEY_AGE = "date";
-        public final static String ORDERING_KEY_AUTHOR = "authorName";
+import play.data.Form;
+import play.mvc.Call;
+import play.mvc.Result;
 
-        public SearchCondition() {
-            this.order = Direction.DESC.direction();
-            this.key = ORDERING_KEY_ID;
-            this.filter = "";
-            this.pageNum = 1;
+import java.io.IOException;
+
+public class BoardApp extends AbstractPostingApp {
+    public static class SearchCondition extends AbstractPostingApp.SearchCondition {
+        OrderParams getOrderParams() {
+            return new OrderParams().add(
+                        orderBy, Direction.getValue(orderDir));
         }
 
-        public String order;
-        public String key;
-        public String filter;
-        public int pageNum;
+        SearchParams getSearchParam(Project project) {
+            return new SearchParams()
+                    .add("project.owner", project.owner, Matching.EQUALS)
+                    .add("project.name", project.name, Matching.EQUALS)
+                    .add("body", filter, Matching.CONTAINS);
+        }
     }
-
 
     public static Result posts(String userName, String projectName, int pageNum) {
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
-        SearchCondition postSearchCondition = postParamForm.bindFromRequest().get();
-        postSearchCondition.pageNum = pageNum - 1;
+        SearchCondition searchCondition = postParamForm.bindFromRequest().get();
+        searchCondition.pageNum = pageNum - 1;
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
-        Page<Post> posts = Post.findOnePage(project.owner, project.name, postSearchCondition.pageNum,
-                        Direction.getValue(postSearchCondition.order), postSearchCondition.key, postSearchCondition.filter);
-        return ok(postList.render("menu.board", project, posts, postSearchCondition));
+        SearchParams searchParam = searchCondition.getSearchParam(project);
+        OrderParams orderParams = searchCondition.getOrderParams();
+
+        Page<Posting> posts = FinderTemplate.getPage(
+                orderParams, searchParam, Posting.finder, ITEMS_PER_PAGE, searchCondition.pageNum);
+
+        return ok(postList.render("menu.board", project, posts, searchCondition));
     }
 
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (UserApp.currentUser() == UserApp.anonymous) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
-        return ok(newPost.render("board.post.new", new Form<Post>(Post.class), project));
+        return newPostingForm(project,
+                newPost.render("board.post.new", new Form<Posting>(Posting.class), project));
     }
 
     public static Result newPost(String userName, String projectName) {
-        Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
+        Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (postForm.hasErrors()) {
             flash(Constants.WARNING, "board.post.empty");
 
             return redirect(routes.BoardApp.newPost(userName, projectName));
         } else {
-            Post post = postForm.get();
-            post.authorId = UserApp.currentUser().id;
-            post.authorLoginId = UserApp.currentUser().loginId;
-            post.authorName = UserApp.currentUser().name;
-            post.commentCount = 0;
+            Posting post = postForm.get();
+            post.date = JodaDateUtil.now();
+            post.setAuthor(UserApp.currentUser());
             post.project = project;
-            Post.write(post);
+
+            post.save();
 
             // Attach all of the files in the current user's temporary storage.
             Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.BOARD_POST, post.id);
@@ -94,8 +93,8 @@ public class BoardApp extends Controller {
     }
 
     public static Result post(String userName, String projectName, Long postId) {
-        Post post = Post.findById(postId);
         Project project = ProjectApp.getProject(userName, projectName);
+        Posting post = Posting.finder.byId(postId);
         if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
@@ -104,45 +103,39 @@ public class BoardApp extends Controller {
             flash(Constants.WARNING, "board.post.notExist");
             return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
         } else {
-            Form<Comment> commentForm = new Form<Comment>(Comment.class);
+            Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class);
             return ok(views.html.board.post.render(post, commentForm, project));
         }
     }
 
-    public static Result newComment(String userName, String projectName, Long postId) {
-        Form<Comment> commentForm = new Form<Comment>(Comment.class).bindFromRequest();
+    public static Result newComment(String userName, String projectName, Long postId) throws IOException {
+        final Posting post = Posting.finder.byId(postId);
+        Project project = post.project;
+        Call redirectTo = routes.BoardApp.post(project.owner, project.name, postId);
+        Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class)
+                .bindFromRequest();
 
-        Project project = ProjectApp.getProject(userName, projectName);
-        if (commentForm.hasErrors()) {
-            flash(Constants.WARNING, "board.comment.empty");
-            return redirect(routes.BoardApp.post(project.owner, project.name, postId));
-        } else {
-            Comment comment = commentForm.get();
-            comment.post = Post.findById(postId);
-            comment.authorId = UserApp.currentUser().id;
-            comment.authorLoginId = UserApp.currentUser().loginId;
-            comment.authorName = UserApp.currentUser().name;
+        final PostingComment comment = commentForm.get();
 
-            Comment.write(comment);
-            Post.countUpCommentCounter(postId);
-
-            // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.BOARD_COMMENT, comment.id);
-
-            return redirect(routes.BoardApp.post(project.owner, project.name, postId));
-        }
+        return newComment(comment, commentForm, redirectTo, new Callback() {
+            @Override
+            public void run() {
+                comment.posting = post;
+            }
+        });
     }
 
     public static Result deletePost(String userName, String projectName, Long postId) {
-        Project project = ProjectApp.getProject(userName, projectName);
-        Post.delete(postId);
-        Attachment.deleteAll(ResourceType.BOARD_POST, postId);
-        return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
+        Posting posting = Posting.finder.byId(postId);
+        Project project = posting.project;
+
+        return deletePosting(posting,
+                routes.BoardApp.posts(project.owner, project.name, 1));
     }
 
     public static Result editPostForm(String userName, String projectName, Long postId) {
-        Post existPost = Post.findById(postId);
-        Form<Post> editForm = new Form<Post>(Post.class).fill(existPost);
+        Posting existPost = Posting.finder.byId(postId);
+        Form<Posting> editForm = new Form<Posting>(Posting.class).fill(existPost);
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (AccessControl.isAllowed(UserApp.currentUser(), existPost.asResource(), Operation.UPDATE)) {
@@ -154,35 +147,25 @@ public class BoardApp extends Controller {
     }
 
     public static Result editPost(String userName, String projectName, Long postId) {
-        Form<Post> postForm = new Form<Post>(Post.class).bindFromRequest();
+        Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
+        Posting post = postForm.get();
+        Posting original = Posting.finder.byId(postId);
+        Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
+        Callback doNothing = new Callback() {
+            @Override
+            public void run() { }
+        };
 
-        if (postForm.hasErrors()) {
-            flash(Constants.WARNING, "board.post.empty");
-            return redirect(routes.BoardApp.editPost(userName, projectName, postId));
-        } else {
-
-            Post post = postForm.get();
-            post.authorId = UserApp.currentUser().id;
-            post.authorName = UserApp.currentUser().name;
-            post.id = postId;
-            post.project = project;
-
-            Post.edit(post);
-
-            // Attach the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.BOARD_POST, post.id);
-        }
-
-        return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
-
+        return editPosting(original, post, postForm, redirectTo, doNothing);
     }
 
-    public static Result deleteComment(String userName, String projectName, Long postId, Long commentId) {
-        Comment.delete(commentId);
-        Post.countDownCommentCounter(postId);
-        Attachment.deleteAll(ResourceType.BOARD_COMMENT, commentId);
-        return redirect(routes.BoardApp.post(userName, projectName, postId));
-    }
+    public static Result deleteComment(String userName, String projectName, Long postId,
+            Long commentId) {
+        Comment comment = PostingComment.find.byId(commentId);
+        Project project = comment.asResource().getProject();
 
+        return deleteComment(comment,
+                routes.BoardApp.post(project.owner, project.name, comment.getParent().id));
+    }
 }

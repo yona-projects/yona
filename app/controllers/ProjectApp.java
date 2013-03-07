@@ -167,7 +167,7 @@ public class ProjectApp extends Controller {
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(userName, projectName, project.vcs);
-            Project.delete(project.id);
+            project.delete();
             return redirect(routes.Application.index());
         } else {
             flash(Constants.WARNING, "project.member.isManager");
@@ -259,7 +259,7 @@ public class ProjectApp extends Controller {
         }
 
         Page<Project> projects = FinderTemplate.getPage(
-                orderParams, searchParams, Project.find, 10, pageNum - 1);
+                orderParams, searchParams, Project.find, Project.PROJECT_COUNT_PER_PAGE, pageNum - 1);
 
         return ok(projectList.render("title.projectList", projects, filter, state));
     }

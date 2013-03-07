@@ -40,6 +40,8 @@ public class Project extends Model {
 	public static Finder<Long, Project> find = new Finder<Long, Project>(
 			Long.class, Project.class);
 
+    public static final int PROJECT_COUNT_PER_PAGE = 15;
+
     public static Comparator sortByNameWithIgnoreCase = new SortByNameWithIgnoreCase();
     public static Comparator sortByNameWithIgnoreCaseDesc = new SortByNameWithIgnoreCaseDesc();
     public static Comparator sortByDate = new SortByDate();
@@ -65,13 +67,13 @@ public class Project extends Model {
 	public Date date;
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-	public List<Issue> issues;
+	public Set<Issue> issues;
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public List<ProjectUser> projectUser;
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-	public List<Post> posts;
+	public List<Posting> posts;
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public List<Milestone> milestones;
@@ -86,10 +88,6 @@ public class Project extends Model {
 		ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id,
 				RoleType.SITEMANAGER);
 		return newProject.id;
-	}
-
-	public static void delete(Long id) {
-		Project.find.byId(id).delete();
 	}
 
 	public static Page<Project> findByName(String name, int pageSize,

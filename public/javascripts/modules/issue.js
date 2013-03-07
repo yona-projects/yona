@@ -376,7 +376,7 @@ that = {
 
         if (milestoneId !== undefined) {
           searchForm.append(
-            '<input type="hidden" name="milestone" value="' + milestoneId + '">');
+            '<input type="hidden" name="milestoneId" value="' + milestoneId + '">');
         }
       });
     }

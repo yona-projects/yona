@@ -1,5 +1,27 @@
 nforge.namespace('markdown');
 
+var _PreventXSS = function(text) {
+    // Remove all attributes in every tags
+	var regex = /<[a-z\/!$]("[^"]*"|'[^']*'|[^'">])*>/gi;
+
+	text = text.replace(regex, function(wholeMatch) {
+        var elem = $(wholeMatch);
+        var tagName;
+        var match = wholeMatch.match(/<\s*(\/?)\s*([^\s>]*)/i);
+        if (match) {
+            if (match[2].toLowerCase() == 'script') {
+                // Remove script tag
+                return "";
+            } else {
+                // Remove attributes
+                return "<" + match[1] + match[2] + ">";
+            }
+        }
+	});
+
+    return text;
+};
+
 var renderMarkdown = function(text) {
   text = text
     .replace(/```(\w+)(?:\r\n|\r|\n)((\r|\n|.)*?)(\r|\n)```/gm, function(match, p1, p2) {
@@ -43,6 +65,7 @@ var editor = function (textarea) {
 };
 
 var viewer = function (target) {
+  console.log(target.text());
   target.html(renderMarkdown(target.text()));
 };
 

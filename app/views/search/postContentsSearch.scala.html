@@ -1,10 +1,10 @@
-@(project: Project, resultPosts: com.avaje.ebean.Page[Post])
+@(project: Project, resultPosts: com.avaje.ebean.Page[Posting])
 @import utils.TemplateHelper._
 
 @for(post <- resultPosts.getList()){
 <tr>
   <td>@post.id</td>
-  <td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.commentCount]</a></td>
+  <td><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title [@post.comments.size]</a></td>
   <td>@post.authorName</td>
   <td>@agoString(post.ago())</td>
 </tr>

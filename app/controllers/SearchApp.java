@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.avaje.ebean.*;
 import models.*;
 import play.mvc.*;
+
 import views.html.search.*;
 
 import static play.data.Form.form;
@@ -51,13 +52,13 @@ public class SearchApp extends Controller {
         }
 
         Page<Issue> resultIssues = null;
-        Page<Post> resultPosts = null;
+        Page<Posting> resultPosts = null;
 
         if(!condition.type.equals("post")) {
-            resultIssues = Issue.find(project, condition);
+            resultIssues = AbstractPosting.find(Issue.finder, project, condition);
         }
         if(!condition.type.equals("issue")) {
-            resultPosts = Post.find(project, condition);
+            resultPosts = AbstractPosting.find(Posting.finder, project, condition);
         }
 
         response().setHeader("Accept-Ranges", "pages");

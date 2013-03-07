@@ -1,4 +1,4 @@
-@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:support.SearchCondition, project:Project)
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:IssueApp.SearchCondition, project:Project)
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
@@ -7,31 +7,31 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
-@ordering(label:String, sortBy:String) = {
-  @if(sortBy == param.sortBy) {
-    @if(param.orderBy == "desc") {
-      <a selected href="@urlToList&sortBy=@sortBy&orderBy=asc">▼@label</a>
+@ordering(label:String, orderBy:String) = {
+  @if(orderBy == param.orderBy) {
+    @if(param.orderDir == "desc") {
+      <a selected href="@urlToList&orderBy=@orderBy&orderDir=asc">▼@label</a>
     } else {
-      <a selected href="@urlToList&sortBy=@sortBy&orderBy=desc">▲@label</a>
+      <a selected href="@urlToList&orderBy=@orderBy&orderDir=desc">▲@label</a>
     }
   } else {
-    <a href="@urlToList&sortBy=@sortBy">@label</a>
+    <a href="@urlToList&orderBy=@orderBy">@label</a>
   }
 }
 
-@header(label:String, sortBy:String) = {
+@header(label:String, orderBy:String) = {
     <th>
-        @if(sortBy == param.sortBy){
+        @if(orderBy == param.orderBy){
             @(param.state = "")
-            @if(param.orderBy == "desc"){
-                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBy=asc" data-sort-by="@sortBy">@label</a>
+            @if(param.orderDir == "desc"){
+                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&orderBy=@orderBy&orderDir=asc" data-sort-by="@orderBy">@label</a>
                 <i class="icon-chevron-down"></i>
             } else {
-                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBY=desc" data-sort-by="@sortBy">@label</a>
+                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&orderBy=@orderBy&orderBY=desc" data-sort-by="@orderBy">@label</a>
                 <i class="icon-chevron-up"></i>
             }
         } else {
-            <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy" data-sort-by="@sortBy">@label</a>
+            <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&orderBy=@orderBy" data-sort-by="@orderBy">@label</a>
         }
     </th>
 }
@@ -58,7 +58,7 @@
 
     <hr/>
     <form class="form-horizontal form-search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="GET">
-      <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
+      <input type="hidden" name="orderDir" value="@param.orderDir" class="h-value order">
       <input type="hidden" name="state" value="@param.state">
       <button type="button" id="advanced-search" class="btn btn-small btn-flat" data-toggle="button">@Messages("issue.advancedSearch")</button>
       <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="btn btn-small btn-flat">@Messages("issue.downloadAsExcel")</a>

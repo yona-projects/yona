@@ -1,4 +1,4 @@
-@(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[IssueComment],project:Project)
+@(title:String, issue:Issue, issueForm:Form[Issue], commentForm:Form[Comment],project:Project)
 @import helper._
 @import scala.collection.mutable.Map
 @import models.enumeration.ResourceType
@@ -54,8 +54,8 @@
       }
       </p>
       <p class="issue-etc-info">
-        @if(issue.milestoneId != null) {
-        | Milestone <span class="number">@Milestone.findById(issue.milestoneId).title</span>
+        @if(issue.milestone != null) {
+        | Milestone <span class="number">@issue.milestone.title</span>
         }
       </p>
     </div>

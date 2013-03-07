@@ -6,19 +6,19 @@ import models.resource.Resource;
 import javax.persistence.*;
 
 @Entity
-public class IssueComment extends Comment {
+public class PostingComment extends Comment {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(Long.class, IssueComment.class);
+    public static Finder<Long, PostingComment> find = new Finder<Long, PostingComment>(Long.class, PostingComment.class);
 
     @ManyToOne
-    public Issue issue;
+    public Posting posting;
 
-    public IssueComment() {
+    public PostingComment() {
         super();
     }
 
     public AbstractPosting getParent() {
-        return issue;
+        return posting;
     }
 
     public Resource asResource() {
@@ -30,12 +30,12 @@ public class IssueComment extends Comment {
 
             @Override
             public Project getProject() {
-                return issue.project;
+                return posting.project;
             }
 
             @Override
             public ResourceType getType() {
-                return ResourceType.ISSUE_COMMENT;
+                return ResourceType.NONISSUE_COMMENT;
             }
 
             @Override

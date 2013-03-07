@@ -14,7 +14,7 @@ import java.util.*;
 public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
+    public static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
             Long.class, Milestone.class);
 
     public static String DEFAULT_SORTER = "dueDate";
@@ -38,33 +38,38 @@ public class Milestone extends Model {
     @ManyToOne
     public Project project;
 
+    @OneToMany
+    public Set<Issue> issues;
+
+    public void delete() {
+        // Set all issues' milestone to null.
+        // I don't know why Ebean does not do this by itself.
+        for(Issue issue : issues) {
+            issue.milestone = null;
+            issue.update();
+        }
+
+        super.delete();
+    }
+
     public static void create(Milestone milestone) {
         milestone.save();
     }
 
     public int getNumClosedIssues() {
-        return Issue.finder.where().eq("milestoneId", this.id).eq("state", State.CLOSED).findRowCount();
+        return Issue.finder.where().eq("milestone", this).eq("state", State.CLOSED).findRowCount();
     }
 
     public int getNumOpenIssues() {
-        return Issue.finder.where().eq("milestoneId", this.id).eq("state", State.OPEN).findRowCount();
+        return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
     }
-
+    
     public int getNumTotalIssues() {
-        return Issue.findByMilestoneId(this.id).size();
+        return issues.size();
     }
 
     public int getCompletionRate() {
         return new Double(((double) getNumClosedIssues() / (double) getNumTotalIssues()) * 100).intValue();
-    }
-
-    public static void delete(Milestone milestone) {
-        List<Issue> issues = Issue.findByMilestoneId(milestone.id);
-        milestone.delete();
-        for (Issue issue : issues) {
-            issue.milestoneId = null;
-            issue.update();
-        }
     }
 
     public static Milestone findById(Long id) {

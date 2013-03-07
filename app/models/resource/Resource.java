@@ -8,4 +8,5 @@ public abstract class Resource {
     abstract public Project getProject();
     abstract public ResourceType getType();
     public Resource getContainer() { return null; };
+    public Long getAuthorId() { return null; };
 }

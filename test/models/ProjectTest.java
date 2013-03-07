@@ -64,12 +64,12 @@ public class ProjectTest extends ModelTest<Project> {
     public void delete() throws Exception {
         // Given
         // When
-        Project.delete(1l);
-        flush();
+        Project.find.byId(1l).delete();
+
         // Then
         assertThat(Project.find.byId(1l)).isNull();
         assertThat(ProjectUser.findByIds(1l, 1l)).isNull();
-        assertThat(Issue.findById(1l)).isNull();
+        assertThat(Issue.finder.byId(1l)).isNull();
         assertThat(Milestone.findById(1l)).isNull();
     }
     

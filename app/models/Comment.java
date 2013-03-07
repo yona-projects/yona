@@ -1,6 +1,5 @@
 package models;
 
-import models.enumeration.ResourceType;
 import models.resource.Resource;
 
 import org.joda.time.*;
@@ -12,10 +11,9 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.*;
 
-@Entity
-public class Comment extends Model {
+@MappedSuperclass
+abstract public class Comment extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Comment> find = new Finder<Long, Comment>(Long.class, Comment.class);
 
     @Id
     public Long id;
@@ -26,60 +24,36 @@ public class Comment extends Model {
     @Constraints.Required
     public Date date;
 
-    public String filePath;
     public Long authorId;
     public String authorLoginId;
     public String authorName;
-    @ManyToOne
-    public Post post;
 
     public Comment() {
-        date = JodaDateUtil.now();
+        date = new Date();
     }
 
-    public static Comment findById(Long id) {
-        return find.byId(id);
-    }
-
-    public static Long write(Comment comment) {
-        comment.save();
-
-        return comment.id;
-    }
-
-    public static List<Comment> findCommentsByPostId(Long postId) {
-        return find.where().eq("post.id", postId).findList();
-    }
-
-    public static boolean isAuthor(Long currentUserId, Long id) {
-        int findRowCount = find.where().eq("authorId", currentUserId).eq("id", id).findRowCount();
-        return (findRowCount != 0) ? true : false;
-    }
-
-    public Duration ago(){
+    public Duration ago() {
         return JodaDateUtil.ago(this.date);
     }
 
-    public static void delete(Long commentId) {
-        find.byId(commentId).delete();
+    abstract public Resource asResource();
+
+    abstract public AbstractPosting getParent();
+
+    @Transient
+    public void setAuthor(User user) {
+        authorId = user.id;
+        authorLoginId = user.loginId;
+        authorName = user.name;
     }
 
-    public Resource asResource() {
-        return new Resource() {
-            @Override
-            public Long getId() {
-                return id;
-            }
+    public void save() {
+        super.save();
+        getParent().save();
+    }
 
-            @Override
-            public Project getProject() {
-                return post.project;
-            }
-
-            @Override
-            public ResourceType getType() {
-                return ResourceType.BOARD_COMMENT;
-            }
-        };
+    public void delete() {
+        super.delete();
+        getParent().save();
     }
 }

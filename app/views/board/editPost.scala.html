@@ -1,4 +1,4 @@
-@(title:String, form:Form[Post], postId:Long,  project:Project)
+@(title:String, form:Form[Posting], postId:Long,  project:Project)
 
 @import utils.TemplateHelper._
 @import models.enumeration.ResourceType
@@ -20,11 +20,11 @@
         @helper.inputText(form("title"), 'class->"text title", 'placeholder -> Messages("post.new.title"), 'maxlength -> "250", 'tabindex -> 1)
       </label>
       <label for="content">
-        @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+        @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
         <div id="upload" resourceType=@ResourceType.BOARD_POST resourceId=@postId></div>
       </label>
       <!--
-      <div class="content-footer">
+      <div class="body-footer">
         <div class="attach-wrap">
           <div class="thumb-wrap">
             <img src="/images/default-avatar-34.png" class="img-rounded" width="32" height="32" alt="avatar">
