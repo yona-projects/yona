@@ -11,7 +11,7 @@
     <div class="bubble-wrap gray">
         @form(action=routes.ProjectApp.settingProject(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
             <input type="hidden" name="id" value="@projectForm("id").value.toLong">
-            <div class="box-wrap top clearfix">
+            <div class="box-wrap top clearfix frm-wrap">
                 <div class="setting-box left">
                     <div class="logo-wrap">
                         @if(projectForm("logoPath").value != null) {
@@ -25,7 +25,7 @@
                             <li><strong>@Messages("project.logo")</strong></li>
                             <li>@Messages("project.logo.type") <span class="point">bmp, jpg, gif, png</span></li>
                             <li>@Messages("project.logo.maxFileSize") <span class="point">1MB</span></li>
-                            <li>@Messages("project.logo.size") <span class="point">234px * 168px</span></li>
+                            <li>@Messages("project.logo.size") <span class="point">234px × 168px</span></li>
                             <li>
                                 <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>UPLOAD
                                     <input type="file" class="file" name="logoPath">
@@ -34,26 +34,33 @@
                         </ul>
                     </div>
                 </div>
-                <div class="setting-box right">
-                    <div class="n-alert hide" id="alert_msg">
-                        <div class="n-inner">
-                            <span class="msg">@Messages("project.wrongName")</span>
-                            <a href="#" class="ico btn-delete" data-dismiss="alert"></a>
-                        </div>
-                    </div>
-                    <label for="project-name">
-                        @inputText(projectForm("name"), 'class->"text", 'placeholder->Messages("project.name.placeholder"), 'maxlength -> "250")
-                    </label>
-                    <label for="project-desc">
-                        @textarea(projectForm("overview"), 'placeholder->Messages("project.description.placeholder"), 'class->"textarea")
-                    </label>
-                </div>
+                <dl class="setting-box right">
+                	<dt>
+	                    <div class="n-alert hide" id="alert_msg">
+	                        <div class="n-inner">
+	                            <span class="msg">@Messages("project.wrongName")</span>
+	                            <a href="#" class="ico btn-delete" data-dismiss="alert"></a>
+	                        </div>
+	                    </div>
+	                    <label for="project-name">@Messages("project.name.placeholder")</label>
+                    </dt>
+                    <dd>
+                        @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250")
+                    </dd>
+                    
+                    <dt>
+                    	<label for="project-desc">@Messages("project.description.placeholder")</label>
+                    </dt>
+                    <dd>
+                        @textarea(projectForm("overview"), 'class->"textarea")
+                    </dd>
+                </dl>
             </div>
             <div class="box-wrap middle">
                 <div class="cu-label">@Messages("project.shareOption")</div>
                 <div class="cu-desc">
-                    <input name="share_option" type="radio" @if(project.share_option == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn">@Messages("project.public")</label>
-                    <input name="share_option" type="radio" @if(project.share_option == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn">@Messages("project.private")</label>
+                    <input name="share_option" type="radio" @if(project.share_option == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                    <input name="share_option" type="radio" @if(project.share_option == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
                     <span class="note">@Messages("project.private.notice")</span>
                 </div>
             </div>
@@ -75,7 +82,7 @@
         <div class="cu-label">@Messages("project.delete")</div>
         <div class="cu-desc">
             <p><strong class="notice">@Messages("project.delete.description")</strong></p>
-            <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="agreement" class="bg-checkbox">@Messages("project.delete.accept")</label>
+            <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="agreement" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
                 <a id="deletion" data-toggle="modal" href="#alertDeletion" class="n-btn small black"><i class="ico ico-delete-small"></i>@Messages("project.delete.this")</a>
             </p>
         </div>

@@ -7,23 +7,29 @@
 <div class="page">
   @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
   
-  <div class="content-wrap">
+  <div class="content-wrap frm-wrap">
     
     @helper.form(action=routes.BoardApp.newPost(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
-      <div id="warning" class="n-alert hide">
-        <div class="n-inner">
-          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
-          <a href="#" class="ico btn-delete"></a>
-        </div>
-      </div>
-      <label for="title">
-        @helper.inputText(form("title"), 'class->"text title", 'placeholder -> Messages("post.new.title"), 'maxlength -> "250", 'tabindex -> 1)
-      </label>
-      <label for="content">
-        @helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
-      </label>
-      @if(UserApp.currentUser() != UserApp.anonymous) {
-      <div id="upload" resourceType=@ResourceType.BOARD_POST></div>
+    
+    <dl>
+    	<dt>
+	      <div id="warning" class="n-alert hide">
+	        <div class="n-inner">
+	          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
+	          <a href="#" class="ico btn-delete"></a>
+	        </div>
+	      </div>
+	      <label for="title">@Messages("post.new.title")</label>
+    	</dt>
+    	<dd>
+    		@helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
+    	</dd>
+    </dl>
+        
+	@helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+
+    @if(UserApp.currentUser() != UserApp.anonymous) {
+      <div id="upload" resourceType="@ResourceType.BOARD_POST"></div>
       }
       <!--
       <div class="content-footer">
@@ -61,16 +67,17 @@
       </div>-->
       <div class="actions">
         <button class="btn-transparent n-btn orange med">SAVE</button>
-        <a href="javascript:history.back();return false;" class="n-btn gray med cancel">CANCEL</a>
+        <a href="javascript:history.back(); return false;" class="n-btn gray med cancel">CANCEL</a>
       </div>
     }
   </div>
 </div>
-<script>nforge.require("board.vaildate");</script>
 
 @views.html.markdown()
+
 <script type="text/javascript">
-nforge.require('shortcut.submit');
-nforge.require('board.new', "@routes.AttachmentApp.newFile");
+	nforge.require("board.vaildate");
+	nforge.require('shortcut.submit');
+	nforge.require('board.new', "@routes.AttachmentApp.newFile");
 </script>
 }

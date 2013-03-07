@@ -6,7 +6,7 @@
 @import utils.AccessControl._
 @import scala.collection.immutable.Map
 
-@header(label:String, key:String) = {
+@** header(label:String, key:String) = {
   <th>
     <a key="@key" href="@routes.BoardApp.posts(project.owner, project.name)">@label</a>
     @if(key == param.key){
@@ -18,6 +18,7 @@
     }
   </th>
 }
+**@
 
 @main(title, project, utils.MenuType.BOARD) {
 <div class="page">
@@ -37,26 +38,27 @@
   </div>
 
   @if(page.getTotalRowCount == 0){
+  
+	<div class="error-wrap">
+			<i class="ico ico-err1"></i>
+			<p>@Messages("post.is.empty")</p>
+		</div>  
     <div>
-        <p class="emptyMessage">@Messages("post.is.empty")</p>
-    </div>
+
   } else {
+
   <div class="filter-wrap board">
       <div class="filters" id="order">
-          <a href="#" key="date" class="filter underConstruction">
-              @if(param.key == "date"){
-                  <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
-              }
-                  날짜순
+          <a href="#" key="date" class="filter underConstruction @if(param.key == "date"){ active }">
+			<i class="ico btn-gray-arrow @if(param.key == "date" && param.order == "desc"){down}"></i>날짜순
           </a>
-          <a href="#" key="commentCount" class="filter active underConstruction">
-              @if(param.key == "commentCount"){
-                  <i class="ico btn-gray-arrow @if(param.order == "desc"){down}"></i>
-              }
-                  댓글순
+          
+          <a href="#" key="commentCount" class="filter underConstruction @if(param.key == "commentCount"){ active }">
+            <i class="ico btn-gray-arrow @if(param.key == "commentCount" && param.order == "desc"){down}"></i>댓글순
           </a>
       </div>
   </div>
+  
   <ul class="board-list">
     @for(post <- page.getList()){
         <li class="board">
@@ -77,20 +79,24 @@
     }
   </ul>
   }
+  
   @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
   <div class="write-btn-wrap">
     <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn orange med">@Messages("post.write")</a>
   </div>
   }
+  
   <div id="pagination">
     <!-- pagination.js will fill here. -->
   </div>
 </div>
-  <script src="@getJSLink("pagination")" type="text/javascript"></script>
-  <script type="text/javascript">
+
+<script src="@getJSLink("pagination")" type="text/javascript"></script>
+<script type="text/javascript">
   nforge.require('board.list');
   $(document).ready(function() {
     Pagination.update($('#pagination'), @page.getTotalPageCount);
   });
-  </script>
+</script>
+
 }

@@ -238,7 +238,7 @@
         &:hover { color:@orange; } 
     }
     
-    .page { padding:40px 39px 30px 39px; }
+    .page { padding:40px 39px 60px 39px; }
 }
 
 .page-wrap {
@@ -292,9 +292,8 @@
 }
 
 .page {
-    padding: 0 20px;
-    padding-top:6px;
-    
+    padding:6px 20px 60px 20px;
+
     /*margin-bottom: 40px;*/
     border: 1px solid @gray-ea;
     border-top:none;
@@ -917,7 +916,7 @@
 //-- new project
 .form-wrap {
     &.new-project {
-        margin: 30px 19px;
+        margin: 30px 19px 0px 19px;
         
         .text {
             width: 866px;
@@ -1555,21 +1554,19 @@
                     width: 128px; /*147px;*/
                 }
                 .btns {
+                    text-transform: capitalize;
                     margin-top: 6px;
+                    .n-btn { 
+                        /*width:54px; font-size:12px; letter-spacing: -1px;*/
+                        width:68px; padding:3px; padding-top:5px; font-size:12px; 
+                    }
                 }
                 p {
                     word-wrap: break-word;
                     margin-bottom: 2px;
                 }
-                .uname {
-                    font-size: 20px;
-                }
-                .name {
-                    font-size: 11px;
-                }
-                .btns {
-                    text-transform: capitalize;
-                }
+                .uname { font-size: 20px; }
+                .name  { font-size: 11px; }
             }
         }
     }
@@ -1729,7 +1726,7 @@
                     width: 584px;
                 }
                 .textarea {
-                    height: 354px;
+                    height: 305px;
                     resize: vertical;
                 }
                 .actions {
@@ -2051,12 +2048,28 @@
 
 }
 
+div.markdown-preview {
+    font-size: 12px; 
+    margin:0px; margin-bottom:9px; 
+    vertical-align : middle;
+    border:1px solid #ccc;
+    .border-radius(2px);
+    .inline-block;
+}
+
 .write-comment-box {
     padding: 17px 20px 15px;
     .write-comment-wrap {
         font-size: 0;
         margin-bottom: 10px;
+        
+        div.markdown-preview {
+            /*width : 727px !important;
+            min-height: 88px !important;*/ 
+            .border-radius(2px 0 0 2px);
+        }
     }
+    
     .comment-btn {
         vertical-align:top;
         background-color: @white;
@@ -2065,16 +2078,16 @@
         font-weight: bold;
         border: 1px solid @gray-cc;
         border-left: 0 none;
-        .border-radius(0 4px 4px 0);
+        .border-radius(0 2px 2px 0);
         width: 110px;
         height: 90px;
     }
     .comment {
         width: 715px;
         height: 80px;
-        margin: 0;
+        margin: 0; margin-bottom:9px;
         resize:vertical;
-        .border-radius(4px 0 0 4px);
+        .border-radius(2px 0 0 2px);
         .box-shadow(none);
         &:focus {
             border: 1px solid @gray-cc;
@@ -2097,6 +2110,7 @@
         margin-left: 5px;
     }
 }
+.board-actrow { margin:20px 0; }
 
 .attach-wrap {
     > div {
@@ -2109,6 +2123,10 @@
     .attach-info-wrap {
         width: 715px;
         font-size: 11px;
+        /*opacity:0;
+        -webkit-transition-duration:0.3s;
+        -webkit-transition-property:opacity;*/
+        
         .sp-line {
             border-left: 1px solid @white;
             .box-shadow(inset 1px 0 0 rgba(0, 0, 0, 0.15));
@@ -2145,9 +2163,14 @@
         .attached-file {
             color: #999;
             font-size: 11px;
+            cursor: pointer;
+            -webkit-transition-property: color;
+            -webkit-transition-duration: 0.5s;
+            &:hover { color: @orange; }
         }
         .attached-delete {
             margin-left: 10px;
+            cursor:pointer;
         }
     }
 }
@@ -2181,6 +2204,7 @@
             color:#959595; font-weight:bold;
             margin-right:5px;
         }
+        .n-alert .n-inner { font-weight:normal !important; }
     }
 }
 .content-wrap {    
@@ -2336,7 +2360,7 @@
         font-weight:bold;
         
         strong { 
-            color:#fff; .border-radius(3px); 
+            color:#fff; .border-radius(2px); 
             font-size: 11px; padding: 4px;
             text-shadow: -1px -1px rgba(0,0,0,0.3);
             margin-right: 5px;
@@ -2675,6 +2699,7 @@
 
 .user-box {
     margin: 15px 0 25px;
+    margin-bottom:0px;
     overflow: hidden;
 }
 
@@ -3001,3 +3026,4 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
 hr.dark-gray { border-top:1px solid #d4d4d4; }
 */
 .alert { position:absolute; width:910px; top:76px; margin-left:auto; }
+form { margin:0 0 2px; }

@@ -6,14 +6,18 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main("상세보기", project, utils.MenuType.BOARD){
+
 <div class="page board-view">
   @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
   
+  @** Post Info **@
   <div class="board-header">
     <div class="board-id div">@post.id</div>
     <h1 class="title div">@post.title</h1>
     <div class="date div">@utils.TemplateHelper.agoString(post.ago())</div>
   </div>
+  
+  @** Content body **@
   <div class="board-body">
     <div class="author-info">
       <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="pull-left img-rounded">
@@ -23,21 +27,35 @@
           <a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorLoginId</strong></a> <!--<span class="name">(Loren Brichter)</span>-->
         </p>
         <p class="status">
-          <!--Hit <strong class="num">777</strong> -->Comment <strong class="num">@post.commentCount</strong><!-- Like <i class="ico ico-like-small"></i> <strong class="num">522</strong>-->
+          <!--Hit <strong class="num">777</strong> 
+          -->Comment <strong class="num">@post.commentCount</strong><!-- 
+          Like <i class="ico ico-like-small"></i> <strong class="num">522</strong>-->
         </p>
-          </div>
       </div>
-      <div class="content" markdown>@post.contents</div>
-      <div class="attachments" resourceType=@ResourceType.BOARD_POST resourceId=@post.id></div>
-      <!--
+    </div>
+    <div class="content" markdown="true">@post.contents</div>
+    <div class="attachments" resourceType="@ResourceType.BOARD_POST" resourceId="@post.id"></div>
+    <!--
       <ul class="attaches wm">
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
       </ul>-->
   </div>
-  <div class="board-comment-wrap">
+  <div class="board-footer board-actrow">
+  @isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+	<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="n-btn orange med">@Messages("button.edit")</a>
+  }
+  @isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
+   	<a href="#deleteConfirm" data-toggle="modal" class="n-btn light-gray med">@Messages("button.delete")</a>
+  }
+    <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray med">@Messages("button.list")</a>
+  </div>
+
+@** Comment **@
+<div class="board-comment-wrap">
     <div class="comment-header"><strong>Comment</strong> <strong class="num">@post.comments.size()</strong></div>
+    
     <ul class="comments">
       @for(comment <-post.comments){
       <li class="comment">
@@ -61,64 +79,100 @@
       </li>
       }
     </ul>
-      @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
-      <div class="write-comment-box">
+    
+@if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
+    <div class="write-comment-box">
         @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
-          <div class="write-comment-wrap">
-            <!-- when the user signed in..
-            <textarea class="text comment" name="comment></textarea>
-            -->
-            <style>
-            .write-comment-wrap div[div=preview] {
-              font-size: 12px;
-               width : 729px; 
-               min-height: 80px; 
-               margin:0px; 
-               display: inline-block;
-               vertical-align : middle;
-             }
-            .write-comment-wrap div{font-size: 10px;}
-            </style>
-            @helper.textarea(commentForm("contents"), 'class->"text comment", 'markdown->true)
-            <button class="comment-btn">COMMENT</button>
+		<div class="write-comment-wrap">
+			@helper.textarea(commentForm("contents"), 'class->"text comment", 'markdown->true)
+			<button class="comment-btn">COMMENT</button>
+		</div>
+        
+		<div class="attach-wrap">
+			<div class="thumb-wrap">
+			@if(UserApp.currentUser() != UserApp.anonymous) {
+				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
+			} else {
+				<img src="@routes.Assets.at("images/default-avatar-34.png")" class="img-rounded" width="32" height="32" alt="avatar">
+			}
+			</div>
+			
+			@** fileUploader **@
             @if(UserApp.currentUser() != UserApp.anonymous) {
-            <div id="upload" resourceType=@ResourceType.BOARD_COMMENT></div>
-            }
-          </div>
-        }
-      </div>
-    }
-  </div>
-  <div class="board-footer">
-      <!--<a href="/add-notification" class="add-btn"><i class="ico ico-plus-blue"></i>자동알림추가</a>-->
-      <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn orange small">@Messages("button.list")</a>
-      @isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-      <a data-toggle="modal" href="#deleteConfirm" class="n-btn black small">@Messages("button.delete")</a>
-      }
-      @isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-      <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="n-btn blue small">@Messages("button.edit")</a>
-      }
-  </div>
 
-  <!--삭제확인상자-->
-  <div class="modal hide fade" id="deleteConfirm">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal">×</button>
-      <h3>확인</h3>
-    </div>
-    <div class="modal-body">
-      <p>게시글이 삭제되며 영원히 복구할수 없습니다.</p>
-      <p>그래도 삭제하시겠습니까?</p>
-    </div>
-    <div class="modal-footer">
-      <a class="n-btn red small" href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">예</a>
-      <a href="#" class="n-btn blue small" data-dismiss="modal">아니오</a>
-    </div>
+			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_COMMENT">
+				<div>
+					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
+					<strong>total</strong> <span class="total-num">0MB</span>
+				</div>
+				<div class="progress-wrap">
+					<div class="progress n4">
+						<div class="bar orange" style="width: 0%;"></div>
+					</div>
+				</div>
+				<!-- <a href="#!/cancel"><i class="ico btn-cancel"></i></a> -->
+			</div>
+			
+			<div class="btn-wrap">
+				<div class="ns-btn fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>UPLOAD <input type="file" class="file" name="filePath">
+				</div>
+			</div>
+			}
+			@** end of fileUploader **@
+        
+		</div>
+		} @** end of comment form **@
+		<div class="attached-files-wrap">
+           <ul class="attached-files"></ul>
+		</div>
   </div>
+  <script type="text/template" id="tplAttachedFile"><!--
+	--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+		<strong>${fileName}(${fileSizeReadable})</strong><!--
+		--><a class="attached-delete"><i class="ico btn-delete"></i></a>
+	</li>
+  </script>
+} @** end of write-comment-box **@
+  
 </div>
+
+<div class="board-footer">
+
+@isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+	<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="n-btn orange med">@Messages("button.edit")</a>
+}
+
+@isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
+   	<a href="#deleteConfirm" data-toggle="modal" class="n-btn light-gray med">@Messages("button.delete")</a>
+}
+
+    <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray med">@Messages("button.list")</a>
+
+</div>
+
+@** Confirm to delete post **@
+@** TODO: 메시지 다국어 처리할 것 **@
+<div id="deleteConfirm" class="modal hide fade">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">×</button>
+		<h3>확인</h3>
+	</div>
+	<div class="modal-body">
+		<p>게시글이 삭제되며 영원히 복구할수 없습니다.</p>
+		<p>그래도 삭제하시겠습니까?</p>
+	</div>
+	<div class="modal-footer">
+		<a class="btn btn-danger med"
+			href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">예</a>
+		<a href="#" class="btn med" data-dismiss="modal">아니오</a>
+	</div>
+</div>
+
 @views.html.markdown()
+
 <script type="text/javascript">
-  nforge.require('shortcut.submit');
-  nforge.require('board.view', "@routes.AttachmentApp.newFile");
+	nforge.require('shortcut.submit');
+	nforge.require('board.view', "@routes.AttachmentApp.newFile");
 </script>
 }

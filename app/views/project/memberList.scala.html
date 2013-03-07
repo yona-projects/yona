@@ -16,8 +16,8 @@
 	<div class="bubble-wrap dark-gray wp">
        <div class="inner-bubble">
            <form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
-               <input type="text" class="text uname" id="loginId" name="loginId" placeholder="@Messages("project.members.addMember")" pattern="[a-zA-Z0-9_][a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")" />
-               <button class="ns-btn" type="submit"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
+               <input type="text" class="text uname" id="loginId" name="loginId" placeholder="@Messages("project.members.addMember")" pattern="[a-zA-Z0-9_][a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")" /><!-- 
+                --><button class="ns-btn" type="submit"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
            </form>
        </div>
        

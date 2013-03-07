@@ -8,23 +8,45 @@
             <p class="tag-line">Software development platform for Open Source project.</p>
         </div>
         
-        <div class="signup-form-wrap">
+        <div class="signup-form-wrap frm-wrap">
             <form action="@routes.UserApp.newUser()" method="POST" name="signup">
-				<label for="loginId">
-                    <input type="text" class="text password" id="loginId" placeholder="@Messages("user.signupId")" autocomplete="off" name="loginId">
-                </label>
-				<label for="uname">
-                    <input type="text" class="text password" id="uname" placeholder="@Messages("user.name")" autocomplete="off" name="name">
-                </label>
-                <label for="email">
-                    <input type="text" class="text password" id="email" placeholder="@Messages("user.email")" autocomplete="off" name="email">
-                </label>
-                <label for="password">
-                    <input type="password" class="text password" id="password" placeholder="@Messages("user.password")" autocomplete="off" name="password">
-                </label>
-                <label for="retypedPassword">
-                    <input type="password" class="text password" id="retypedPassword" placeholder="@Messages("validation.retypePassword")" autocomplete="off" name="retypedPassword">
-                </label>
+            	<dl>
+            		<dt>
+            			<label for="loginId">@Messages("user.signupId")</label>
+            		</dt>
+            		<dd>
+            			<input type="text" class="text password" id="loginId" placeholder="" autocomplete="off" name="loginId">
+            		</dd>
+
+					<dt>
+						<label for="uname">@Messages("user.name")</label>
+					</dt>
+					<dd>
+						<input type="text" class="text password" id="uname" placeholder="" autocomplete="off" name="name">
+					</dd>
+					
+					<dt>
+						<label for="email">@Messages("user.email")</label>
+					</dt>
+					<dd>
+						<input type="text" class="text password" id="email" placeholder="" autocomplete="off" name="email">
+					</dd>
+					
+					<dt>
+						<label for="password">@Messages("user.password")</label>
+					</dt>
+					<dd>
+						<input type="password" class="text password" id="password" placeholder="" autocomplete="off" name="password">
+					</dd>
+					
+					<dt>
+						<label for="retypedPassword">@Messages("validation.retypePassword")</label>
+					</dt>
+					<dd>
+						<input type="password" class="text password" id="retypedPassword" placeholder="" autocomplete="off" name="retypedPassword">
+					</dd>
+            	</dl>
+
                 <div class="act-row">
                     @Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
                 </div>
