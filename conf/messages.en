@@ -357,3 +357,4 @@ validation.duplicated = Already exists!
 #Unauthorized
 auth.unauthorized.title = You need access Control!
 auth.unauthorized.waringMessage = You don't have authorization or aren't logged in
+auth.unauthorized.comment = You need authorization to comment
