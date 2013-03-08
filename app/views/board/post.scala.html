@@ -103,7 +103,7 @@
 			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_COMMENT">
 				<div>
 					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
-					<strong>total</strong> <span class="total-num">0MB</span>
+					<strong>total</strong> <span class="total-num">0Mb</span>
 				</div>
 				<div class="progress-wrap">
 					<div class="progress n4">
@@ -145,21 +145,18 @@
 </div>
 
 <div class="board-footer">
-
-@isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+	@isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
 	<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="n-btn orange med">@Messages("button.edit")</a>
-}
+	}
 
-@isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
+	@isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
    	<a href="#deleteConfirm" data-toggle="modal" class="n-btn light-gray med">@Messages("button.delete")</a>
-}
+	}
 
     <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray med">@Messages("button.list")</a>
-
 </div>
 
 @** Confirm to delete post **@
-@** TODO: 메시지 다국어 처리할 것 **@
 <div id="deleteConfirm" class="modal hide fade">
 	<div class="modal-header">
 		<button type="button" class="close" data-dismiss="modal">×</button>

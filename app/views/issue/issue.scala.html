@@ -12,144 +12,205 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @main(Messages(title),project, utils.MenuType.ISSUE) {
-<div class="page">
 
-<article>
-
-  <hgroup class="row-fluid">
-    <div class="span1">
-      <img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="64" height="64"/>
-    </div>
-    <div class="info">
-      <p>
-        <span class="title">@issue.title </span>
-        <i class="ico ico-comment-bubble"></i> <span class="number">@issue.comments.size</span>
-        <span class="pull-right">
-          <span>#@issue.id</span>
-          <span class="badge @if(issue.state.state.toLowerCase == "open"){badge-important}">@Messages(issue.state.state)</span>
-        </span>
-      </p>
-      <p class="author">by <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)">
-      @Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a> @agoString(issue.ago)</p>
-    </div>
-  </hgroup>
-
-  <div class="row issue-info-group">
-    <div class="span4 issue-info">
-      <p class="assignee">@if(issue.assigneeName != null) {
-        <span class="assignee-name">@issue.assigneeName</span>
-      } else {
-        <span class="no-assignee">@Messages("issue.noAssignee")</span>
-      }
-      </p>
-      <p class="issue-etc-info">
-        @if(issue.milestoneId != null) {
-        | Milestone <span class="number">@Milestone.findById(issue.milestoneId).title</span>
-        }
-      </p>
-    </div>
-    <div class="span7">
-
-      <p class="pull-right">@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { <button class="issue-label" labelId="@label.id">@label.name</button> } </p>
-    </div>
+<div class="page board-view">
+  @views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+  
+  @** Post Info **@
+  <div class="board-header issue">
+    <div class="board-id div"><strong class="secondary-txt">#@issue.id</strong></div>
+    <h1 class="title div">@issue.title</h1>
+    <div class="date div">@agoString(issue.ago)</div>
+	<div class="div">
+		<span class="badge @if(issue.state.state.toLowerCase == "open"){badge-issue-open}">@Messages(issue.state.state)</span>
+	</div>
   </div>
-
-  <div class="body" markdown>@issue.body</div>
-  <div class="attachments" resourceType=@ResourceType.ISSUE_POST resourceId="@issue.id"></div>
-</article>
-
-<!-- 여기서 부터 덧글 -->
-<div class="board-comment-wrap write-comment-box">
-<p class="info">Comments <span class="number">@issue.comments.size</span></p>
-@if(issue.comments.size > 0) {
-<div class="comments">
-  @for(comment <- issue.comments){
-  <div class="comment row-fluid">
-    <div class="span1">
-    <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorName"/></div>
-    <div class="span11">
-      <p class="commenter">
-        <span class="author"><a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a></span>
-        <span class="date">@utils.TemplateHelper.agoString(comment.ago())</span>
-      </[>
-      @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
-      <div class="pull-right">
-        <a data-toggle="modal" href='#deleteCommentConfirm'><i class="icon-remove"> </i>
+  
+  @** Content body **@
+  <div class="board-body">
+    <div class="author-info">
+      <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="pull-left img-rounded">
+      	<img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="34" height="34" alt="@issue.authorName">
+      </a>
+      <div class="media-body">
+		
+      	@** author **@
+        <p>
+          @Messages("issue.author") 
+          <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" @if(issue.assigneeName != null){ class="gray-txt" }>
+          	<strong>@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</strong>
+          </a> <!--<span class="name">(Loren Brichter)</span>-->
+          &nbsp;&middot;&nbsp;
+          @Messages("issue.assignee") 
+          <a href="#" @if(issue.assigneeName == null){ class="gray-txt" }>
+          	<strong>@Option(issue.assigneeName).orElse(Option(Messages("issue.noAssignee"))).get</strong>
+          </a>
+        </p>
+        
+		@** status **@
+        <p class="status">
+			Comment <strong class="num">@issue.comments.size</strong>
+			@if(issue.milestoneId != null) {
+			Milestone <strong class="num">@Milestone.findById(issue.milestoneId).title</strong>
+			}
+        </p>
+        
+        @** labels **@
+		<p class="pull-right">
+			@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { 
+				<button class="issue-label" labelId="@label.id">@label.name</button> 
+			}
+		</p>
       </div>
-
-      <div class="modal hide" id="deleteCommentConfirm">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">×</button>
-          <h3>@Messages("issue.delete.window")</h3>
-        </div>
-        <div class="modal-body"><p>@Messages("issue.comment.delete.confirm")</p></div>
-        <div class="modal-footer">
-          <a class="btn btn-danger"
-            href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">@Messages("button.yes")</a>
-          <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-        </div>
-      </div>
-      }
-      <div markdown>@comment.contents</div>
-      <div class="attachments" resourceType=@ResourceType.ISSUE_COMMENT resourceId=@comment.id></div>
     </div>
+    <div class="content" markdown="true">@issue.body</div>
+    <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
+    <!--
+      <ul class="attaches wm">
+        <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
+        <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
+        <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
+      </ul>-->
   </div>
+  <div class="board-footer board-actrow">
+  @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+	<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="n-btn orange med">@Messages("button.edit")</a>
   }
-</div>
-}
+  @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+   	<a href="#deleteConfirm" data-toggle="modal" class="n-btn light-gray med">@Messages("button.delete")</a>
+  }
+    <a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="n-btn gray med">@Messages("button.list")</a>
+  </div>
 
-<!-- 댓글 입력 폼 -->
-@form(routes.IssueApp.newComment(project.owner, project.name, issue.id),
-  'id -> "comment-form",
-  'enctype -> "multipart/form-data"){
-   <div>
-     <textarea id="comment-editor" name="contents" class="text comment" rows="5" markdown></textarea>
-     <input class="comment-btn" type="submit" value=@Messages( "button.comment.new") />
-   </div>
-   @if(UserApp.currentUser() != UserApp.anonymous) {
-   <div id="upload" resourceType=@ResourceType.ISSUE_COMMENT></div>
-   }
+@** Comment **@
+<div class="board-comment-wrap">
+    <div class="comment-header"><strong>Comment</strong> <strong class="num">@issue.comments.size</strong></div>
+    
+    @if(issue.comments.size > 0) {
+    <ul class="comments">
+      @for(comment <- issue.comments){
+      <li class="comment">
+        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded">
+        <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorLoginId">
+        <div class="media-body">
+          @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+          <a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">&times;</a>
+          }
+            <p class="commenter">
+                <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
+            </p>
+            <div class="comment-body" markdown="true">@comment.contents</div>
+            <div class="attachments" resourceType="@ResourceType.BOARD_COMMENT" resourceId="@comment.id"></div>
+            <!--
+            <ul class="attaches">
+                <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>
+            </ul>-->
+        </div>
+      </li>
+      }
+    </ul>
+    }
+    
+@if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
+    <div class="write-comment-box">
+		@form(routes.IssueApp.newComment(project.owner, project.name, issue.id), 'id -> "comment-form", 'enctype -> "multipart/form-data"){
+		<div class="write-comment-wrap">
+			<textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
+			<button class="comment-btn">@Messages("button.comment.new")</button>
+		</div>
+        
+		<div class="attach-wrap">
+			<div class="thumb-wrap">
+			@if(UserApp.currentUser() != UserApp.anonymous) {
+				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
+			} else {
+				<img src="@routes.Assets.at("images/default-avatar-34.png")" class="img-rounded" width="32" height="32" alt="avatar">
+			}
+			</div>
+			
+			@** fileUploader **@
+            @if(UserApp.currentUser() != UserApp.anonymous) {
+
+			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.ISSUE_COMMENT">
+				<div>
+					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
+					<strong>total</strong> <span class="total-num">0Mb</span>
+				</div>
+				<div class="progress-wrap">
+					<div class="progress n4">
+						<div class="bar orange" style="width: 0%;"></div>
+					</div>
+				</div>
+				<!-- <a href="#!/cancel"><i class="ico btn-cancel"></i></a> -->
+			</div>
+			
+			<div class="btn-wrap">
+				<div class="ns-btn fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>UPLOAD <input type="file" class="file" name="filePath">
+				</div>
+			</div>
+			}
+			@** end of fileUploader **@
+        
+		</div>
+		} @** end of comment form **@
+		<div class="attached-files-wrap">
+           <ul class="attached-files"></ul>
+		</div>
+  </div>
+  <script type="text/template" id="tplAttachedFile"><!--
+	--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+		<strong>${fileName}(${fileSizeReadable})</strong><!--
+		--><a class="attached-delete"><i class="ico btn-delete"></i></a>
+	</li>
+  </script>
+@** end of write-comment-box **@
+} else {
+	<div class="write-comment-box">
+		<div class="write-comment-wrap">
+			<textarea class="text comment disabled" disabled="disabled">@Messages("auth.unauthorized.comment")</textarea>
+			<button class="comment-btn disabled">@Messages("button.comment.new")</button>
+		</div>
+	</div>
 }
 </div>
 
 <div class="board-footer">
-    <a class="n-btn gray small" href=""><i class="icon-ok"></i>@Messages("button.autoNotification")</a>
-    <a class="n-btn orange small" href="@routes.IssueApp.issues(project.owner, project.name,"open")">@Messages("button.list")</a>
-    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-        <a data-toggle="modal" href="#deleteIssueConfirm" class="n-btn red small">@Messages("button.delete")</a>
-    }
-    @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-    <a class="n-btn blue small" href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)">@Messages("button.edit")</a>
-    }
+  @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+	<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="n-btn orange med">@Messages("button.edit")</a>
+  }
+  @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+	<a href="#deleteConfirm" data-toggle="modal" class="n-btn light-gray med">@Messages("button.delete")</a>
+  }
+	<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="n-btn gray med">@Messages("button.list")</a>
 </div>
 
-<!--삭제확인상자-->
-<div class="modal hide" id="deleteIssueConfirm">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
-        <h3>@Messages("issue.delete.window")</h3>
-    </div>
-    <div class="modal-body">
-        <p>@Messages("post.delete.confirm")</p>
-    </div>
-    <div class="modal-footer">
-        <a class="n-btn red small"
-            href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.id)">@Messages("button.yes")</a>
-        <a href="#" class="n-btn blue small" data-dismiss="modal">@Messages("button.no")</a>
-    </div>
+@** Confirm to delete post **@
+<div id="deleteConfirm" class="modal hide fade">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">×</button>
+		<h3>@Messages("issue.delete.window")</h3>
+	</div>
+	<div class="modal-body">
+		<p>@Messages("post.delete.confirm")</p>
+	</div>
+	<div class="modal-footer">
+		<a class="btn btn-danger med" href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.id)">@Messages("button.yes")</a>
+		<a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
+	</div>
 </div>
 
 @views.html.markdown()
 <script type="text/javascript">
-  nforge.require('shortcut.submit');
-  nforge.require('issue.view', "@routes.AttachmentApp.newFile");
-  nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: false}, function() {
-    @for(label <- issue.labels) {
-      $('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
-      $('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
-      $('.labels button.btn[labelId="@label.id"]').addClass('active');
-    }
-  });
+	nforge.require('shortcut.submit');
+	nforge.require('issue.view', "@routes.AttachmentApp.newFile");
+	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: false}, function() {
+	@for(label <- issue.labels) {
+		$('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
+		$('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
+		$('.labels button.btn[labelId="@label.id"]').addClass('active');
+	}
+	});
 </script>
-</div>
 }

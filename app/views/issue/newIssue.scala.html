@@ -10,76 +10,115 @@
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
-    <style>
-    @@IMPORT url("/assets/stylesheets/issue.css");
-    </style>
+  @views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+  
+  <div class="content-wrap frm-wrap">
+    
+    @form(action = routes.IssueApp.newIssue(project.owner, project.name), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
+    
+    <dl>
+    	<dt>
+	      <div id="warning" class="n-alert hide">
+	        <div class="n-inner">
+	          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
+	          <a href="#" class="ico btn-delete"></a>
+	        </div>
+	      </div>
+	      <label for="title">@Messages("post.new.title")</label>
+    	</dt>
+    	<dd>
+    		<input type="text" id="title" name="title" value="" class="text title" maxlength="250" tabindex="1">
+    		@**helper.inputText(issueForm("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, '_showConstraints -> false)**@
+    	</dd>
+    </dl>
+    @** 'onkeypress -> "return event.keyCode !== 13" **@
 
-    <div class="page-header">
-        <h1>@Messages(title)</h1>
+	<textarea id="body" name="body" markdown="true" class="text content" tabindex="2"></textarea>
+	@** helper.textarea(issueForm("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2, '_showConstraints -> false) **@
+
+	<div class="content-footer">
+		@** fileUploader **@
+	    @if(UserApp.currentUser() != UserApp.anonymous) {
+	    
+		<div class="attach-wrap">
+			<div class="thumb-wrap">
+				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
+			</div>
+			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.ISSUE_POST">
+				<div>
+					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
+					<strong>total</strong> <span class="total-num">0MB</span>
+				</div>
+				<div class="progress-wrap">
+					<div class="progress n4">
+						<div class="bar orange" style="width: 0%;"></div>
+					</div>
+				</div>
+				<!-- <a href="#!/cancel"><i class="ico btn-cancel"></i></a> -->
+			</div>
+		
+			<div class="btn-wrap">
+				<div class="ns-btn fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>UPLOAD <input type="file" class="file" name="filePath">
+				</div>
+			</div>
+		</div>
+		<script type="text/template" id="tplAttachedFile"><!--
+		--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+		<strong>${fileName}(${fileSizeReadable})</strong><!--
+		--><a class="attached-delete"><i class="ico btn-delete"></i></a><!--
+		--></li>
+		</script>
+	
+		<div class="attached-files-wrap">
+			<ul class="attached-files"></ul>
+		</div>
+	}
+	@** end of fileUploader **@
     </div>
 
-    @form(action = routes.IssueApp.newIssue(project.owner, project.name),
-                    'id -> "issue-form",
-                    'enctype -> "multipart/form-data"
-                    ) {
-        <fieldset>
-        @inputText(
-            issueForm("title"),
-            '_showConstraints -> false,
-            '_label -> null,
-            'class -> "title",
-            'placeholder -> Messages("post.new.title"),
-            'onkeypress -> "return event.keyCode !== 13",
-            'maxlength -> "250",
-            'tabindex -> 1
-            )
-        @textarea(
-            issueForm("body"),
-            '_showConstraints -> false,
-            '_label -> null,
-            'rows -> 16,
-            'class -> "textbody",
-            'markdown -> true,
-            'tabindex -> 2
-            )
-        @if(UserApp.currentUser() != UserApp.anonymous) {
-        <div id="upload" resourceType=@ResourceType.ISSUE_POST></div>
-        }
-        </fieldset>
+	<!-- issue.label js module appends a label selector here. -->
+	<br>
+	<fieldset class="labels">
+		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
+			@select(
+				issueForm("assignee.user.id"),
+				options(ProjectUser.options(project.id)),
+				'_label-> Messages("issue.new.detailInfo.assignee"),
+				'_default -> Messages("issue.new.selectDefault.assignee"),
+				'_showConstraints -> false)
+		}
 
-        <!-- issue.label js module appends a label selector here. -->
-        <fieldset class="labels">
-          @if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
-                @select(
-                    issueForm("assignee.user.id"),
-                    options(ProjectUser.options(project.id)),
-                    '_label-> Messages("issue.new.detailInfo.assignee"),
-                    '_default -> Messages("issue.new.selectDefault.assignee"),
-                    '_showConstraints -> false)
-                }
-          @if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
-                @select(
-                    issueForm("milestoneId"),
-                    options(Milestone.options(project.id)),
-                    '_label-> Messages("issue.new.detailInfo.milestone"),
-                    '_default -> Messages("issue.new.selectDefault.milestone"),
-                    '_showConstraints -> false)
-                }
-        </fieldset>
+		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+			@select(
+				issueForm("milestoneId"),
+				options(Milestone.options(project.id)),
+				'_label-> Messages("issue.new.detailInfo.milestone"),
+				'_default -> Messages("issue.new.selectDefault.milestone"),
+				'_showConstraints -> false)
+		}
+	</fieldset>  
 
-    <div class="row pull-right">
-      <div class="actions">
-        <input type="submit" class="btn-transparent n-btn blue med" value="@Messages("button.save")">
-        <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="n-btn gray med">@Messages("button.cancel")</a>
-      </div>
-    </div>
- }
+  <div class="actions">
+      <button type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>
+      <a href="javascript:history.back(); return false;" class="n-btn gray med cancel">@Messages("button.cancel")</a>
+      <!-- 
+       <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="n-btn gray med">@Messages("button.cancel")</a>
+      -->
+  </div>
+
+  } @** end of form **@
+  </div>
+
 @board.postVaildate()
 @views.html.markdown()
-<script type="text/javascript">
-  nforge.require('shortcut.submit');
-  nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)');
-  nforge.require('issue.new', "@routes.AttachmentApp.newFile");
-</script>
+
 </div>
+
+<script type="text/javascript">
+	nforge.require('shortcut.submit');
+	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)');
+	nforge.require('issue.new', "@routes.AttachmentApp.newFile");
+</script>
+
 }
