@@ -1,61 +1,61 @@
-@(title: String)(thema:String)(content: Html)(implicit lang:Lang)
+@(title: String)(theme:String)(content: Html)(implicit lang:Lang)
 @import utils.TemplateHelper._
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="utf-8">
 <title>@title</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap.min")">
-    <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("nforge")">
-
-    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-    
-    <script src="@getJSLink("jquery-1.9.0")" type="text/javascript"></script>
-    <script src="@getJSLink("bootstrap")" type="text/javascript"></script>
-    <script src="@getJSLink("validation/jquery.validate")" type="text/javascript"></script>
-    <script src="@getJSLink("nforge")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/common")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/issue")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/board")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/project")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/milestone")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/code")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/markdown")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/shortcut")" type="text/javascript"></script>
-    <script src="@getJSLink("modules/validation")" type="text/javascript"></script>
-    <script src="@getJSLink("rgbcolor")" type="text/javascript"></script>
-    <script src="@getJSLink("jquery.form")" type="text/javascript"></script>
-    <script src="@getJSLink("humanize")" type="text/javascript"></script>
-    <script src="@getJSLink("validate")" type="text/javascript"></script>
-    <script src="@getJSLink("jquery.zclip.min")" type="text/javascript"></script>
-    <script src="@getJSLink("fileUploader")" type="text/javascript"></script>
-    <script src="@getJSLink("jquery.placeholder.min")" type="text/javascript"></script>
-    <script src="@getJSLink("jquery.tmpl")" type="text/javascript"></script>
-    <script src="@routes.Application.jsMessages()" type="text/javascript"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap.min")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("nforge")">
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery-1.9.0")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Common")"></script>
+<!-- HIVE : Software development platform -->
 </head>
 
-<body class="@thema">
+<body class="@theme">
 @content
-    <script type="text/javascript">
-        // jquery.placeholder plugin initiator
-        $(function(){
-            $('input, textarea').placeholder();
-        });
 
-        // show setting menu tooltips with bootstrap if it can (temporary before redesign)
-        $(function(){
-            $(".bg-side-menu").tooltip({placement: 'left', title: '설정'});
-        });
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.tmpl")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.form")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.validate")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.zclip.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.placeholder.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap")"></script>
+<script type="text/javascript" src="@getJSLink("lib/rgbcolor")"></script>
+<script type="text/javascript" src="@getJSLink("lib/humanize")"></script>
+<script type="text/javascript" src="@getJSLink("lib/validate")"></script>
 
-        // show on developing message
-        $(function(){
-            $(".underConstruction").tooltip({placement: 'left', title: 'Sorry! Under construction...'});
-        });
-    </script>
+<script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Markdown")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Shortcut")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Validation")"></script>
+<script type="text/javascript" src="@getJSLink("service/hive.Issue")"></script>
+<!-- <script type="text/javascript" src="@getJSLink("service/hive.board.List")"></script> -->
+<script type="text/javascript" src="@getJSLink("service/hive.Project")"></script>
+<script type="text/javascript" src="@getJSLink("service/hive.Milestone")"></script>
+<script type="text/javascript" src="@routes.Application.jsMessages()"></script>
+
+<script type="text/javascript">
+	$hive.setScriptPath("@getJSPath()");
+	
+	$(document).ready(function(){
+
+    	// jquery.placeholder plugin initiator
+        $('input, textarea').placeholder();
+
+    	// show setting menu tooltips 
+    	// with bootstrap if it can (temporary before redesign)
+        $(".bg-side-menu").tooltip({placement: 'left', title: '설정'});
     
+     	// show on developing message
+        $(".underConstruction").tooltip({placement: 'left', title: 'Sorry! Under construction...'});
+     	
+	});
+</script>
 </body>
 </html>

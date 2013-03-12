@@ -1,8 +1,92 @@
 /**
- * nforge.board.js
+ * @(#)hive.board.List.js 2013.03.11
+ *
+ * Copyright NHN Corporation.
+ * Released under the MIT license
+ * 
+ * http://hive.dev.naver.com/license
  */
-nforge.namespace("board");
 
+(function(ns){
+	
+	var oNS = $hive.createNamespace(ns);
+	oNS.container[oNS.name] = function(htOptions){
+		
+		var htElements = {};
+    	var htOrderMap = {"asc": "desc", "desc": "asc"};
+
+		/**
+		 * initialize
+		 * @param {Hash Table} htOptions
+		 */
+		function $init(htOptions){
+			_initElement(htOptions || {});
+			_attachEvent();
+			
+			console.log("board.List initialized");
+		}
+
+		/**
+		 * initialize element variables
+		 */
+		function _initElement(htOptions){
+			htElements.welForm = $(htOptions.sOptionForm || "#option_form");
+			htElements.welInputKey = htElements.welForm.find("input[name=key]");
+			htElements.welInputOrder = htElements.welForm.find("input[name=order]");
+			htElements.welInputPageNum = htElements.welForm.find("input[name=pageNum]");
+			
+			htElements.welFilter = $(htOptions.sQueryFilter || "#order a");
+			htElements.welPages = $(htOptions.sQueryPages || "#pagination a"); 
+		}
+
+		/**
+		 * attach event handlers
+		 */
+        function _attachEvent() {
+            htElements.welFilter.click(_onClickFilter);
+            htElements.welPages.click(_onClickPage);
+        }
+
+        /**
+         * onClick filter
+         */
+        function _onClickFilter(){
+            var sKey = $(this).attr("key");
+
+        	// Key
+            if (sKey !== htElements.welInputKey.val()) {
+            	htElements.welInputKey.val(sKey)
+            } else { // Order
+            	var sCurrentVal = htElements.welInputOrder.val();
+            	htElements.welInputOrder.val(htOrderMap[sCurrentVal]);
+            }
+            htElements.welForm.submit();
+            return false;
+        }
+
+        /**
+         * onClick PageNum
+         */
+        function _onClickPage(){
+        	htElements.welInputPageNum.val($(this).attr("pageNum"));
+        	htElements.welForm.submit();
+            return false;
+        }
+        
+        $init();
+	};
+	
+})("hive.board.List");
+
+/*
+$hive.load("Board", function(){
+	hive.board.List();
+});
+
+$hive.load("board.List");
+*/
+
+nforge.namespace("board");
 /**
  * PostList
  */

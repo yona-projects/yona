@@ -91,12 +91,14 @@
   </div>
 </div>
 
-<script src="@getJSLink("pagination")" type="text/javascript"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
 <script type="text/javascript">
-  nforge.require('board.list');
-  $(document).ready(function() {
-    Pagination.update($('#pagination'), @page.getTotalPageCount);
-  });
+	$(document).ready(function() {	
+		$hive.loadModule("board.List");
+		
+		nforge.require('board.list');
+		Pagination.update($('#pagination'), @page.getTotalPageCount);
+	});
 </script>
 
 }

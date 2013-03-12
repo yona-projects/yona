@@ -61,4 +61,8 @@ object TemplateHelper {
   def simpleForm(elements: helper.FieldElements) = {
     elements.input
   }
+  
+  def getJSPath(): String = {
+	routes.Assets.at("javascripts/").toString
+  }
 }
