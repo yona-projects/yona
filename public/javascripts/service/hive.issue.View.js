@@ -1,5 +1,5 @@
 /**
- * @(#)hive.board.View.js 2013.03.11
+ * @(#)hive.issue.View.js 2013.03.13
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -25,6 +25,7 @@
 
 			_initFileUploader();
 			_initFileDownloader();
+			_setLabelColor();
 		}
 
 		/**
@@ -40,9 +41,10 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welTarget = $("#upload");
-			htElement.welTextarea = $("#contents");
+			htElement.welTextarea = $("#comment-editor");
 			
-			htElement.welAttachments = $(".attachments");			
+			htElement.welAttachments = $(".attachments");
+			htElement.welLabels = $('.issue-label');
 		}
 
 		/**
@@ -66,39 +68,24 @@
 			});
 		}
         
+		/**
+		 * set Labels foreground color as contrast to background color 
+		 */
+		function _setLabelColor(){
+			var welLabel;
+			var sBgColor, sColor;
+			
+			htElement.welLabels.each(function(nIndex, elLabel){
+				welLabel = $(elLabel);
+				sBgColor = welLabel.css("background-color");
+				sColor = $hive.getContrastColor(sBgColor); 
+				welLabel.css("color", sColor);
+			});
+			
+			welLabel = null;
+		}
+		
         _init(htOptions);
 	};
 	
-})("hive.board.View");
-
-nforge.namespace("board");
-nforge.board.view = {
-	"init": function(){
-		hive.board.View();
-	}
-};
-
-/*
-nforge.namespace("board");
-nforge.board.view = function() {
-    var that = {
-        "init" : function(filesUrl) {
-            var attachments;
-
-            fileUploader.init({
-            	"elTarget"    : $('#upload'),   // upload area
-            	"elTextarea"  : $('#contents'), // textarea
-            	"sTplFileItem": $('#tplAttachedFile').text(),
-            	"sAction"     : filesUrl
-            });
-            
-            attachments = $('.attachments');
-            for (var i = 0, nLength = attachments.length; i < nLength; i++) {
-                fileDownloader($(attachments[i]), filesUrl);
-            }
-        }
-    }
-
-    return that;
-};
-*/
+})("hive.issue.View");

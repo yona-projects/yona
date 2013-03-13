@@ -176,13 +176,27 @@ $hive = hive.Common = (function(){
 		}
 	}
 	
+	/**
+	 * Compute a color contrasted with the given color (lightness).
+	 * See http://en.wikipedia.org/wiki/Luma_(video)
+	 * @param {String} sColor
+	 * @returns {String}
+	 * @example dimgray if yellow is given.
+	 */
+	function getContrastColor(sColor){
+		var oRGB = new RGBColor(sColor);
+		var y709 = (oRGB.r * 0.21) + (oRGB.g * 0.72) + (oRGB.b * 0.07);
+		return (y709 > 192) ? 'dimgray' : 'white';
+	}
+
 	/* public Interface */
 	return {
 		"setScriptPath": setScriptPath,
 		"createNamespace": createNamespace,
 		"loadModule": loadModule,
 		"loadScript": loadScript,
-		"stopEvent": stopEvent
+		"stopEvent": stopEvent,
+		"getContrastColor": getContrastColor
 	};
 })();
 

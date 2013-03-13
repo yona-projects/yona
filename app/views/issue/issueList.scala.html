@@ -75,10 +75,9 @@
 						<div class="control-group">
 							<label class="control-label">@Messages("assignee")</label>
 							<div class="controls" data-toggle="buttons-radio">
-								<button type="button" class="btn" assigneeId="0">@Messages("none")</button>
-								@for(assignee <- Assignee.finder.where.eq("project.id",
-								project.id).findSet) {
-								<button type="button" class="btn" assigneeId="@assignee.user.id">
+								<button type="button" class="btn" data-assigneeId="0">@Messages("none")</button>
+								@for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
+								<button type="button" class="btn" data-assigneeId="@assignee.user.id">
 									@User.find.byId(assignee.user.id).name <img class="user-picture" src="@urlToPicture(User.find.byId(assignee.user.id).email, 16)">
 								</button>
 								}
@@ -87,9 +86,9 @@
 						<div class="control-group">
 							<label class="control-label">@Messages("milestone")</label>
 							<div class="controls" data-toggle="buttons-radio">
-								<button type="button" class="btn" milestoneId="0">@Messages("none")</button>
+								<button type="button" class="btn" data-milestoneId="0">@Messages("none")</button>
 								@for(milestone <- Milestone.findByProjectId(project.id)) {
-								<button type="button" class="btn" milestoneId="@milestone.id">@milestone.title</button>
+								<button type="button" class="btn" data-milestoneId="@milestone.id">@milestone.title</button>
 								}
 							</div>
 						</div>
@@ -162,20 +161,13 @@
 
 <script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
 <script type="text/javascript">
-	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {'editable': true});
-	nforge.require('issue.list');
+	//nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {'editable': true});
 	  
 	$(document).ready(function() {
-		Pagination.update($('#pagination'), @currentPage.getTotalPageCount);
-	    $('button.issue-label[data-color]').each(function() {
-			$(this).css('background-color', $(this).data('color'));
-			$(this).css('color', contrasted_color($(this).data('color')));
-	    });
-	    
-	   	$(".btn-advanced").click(function(){
-	   		$(".inner").toggleClass("advanced");
-	   	});
-	    
+		$hive.loadModule("issue.List", {
+			"elPagination": $("#pagination"),
+			"nTotalPages" : @currentPage.getTotalPageCount
+		});
 	});  
 </script>
 </div>
