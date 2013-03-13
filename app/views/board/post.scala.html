@@ -175,7 +175,14 @@
 @views.html.markdown()
 
 <script type="text/javascript">
-	nforge.require('shortcut.submit');
-	nforge.require('board.view', "@routes.AttachmentApp.newFile");
+	//nforge.require('shortcut.submit');
+	//nforge.require('board.view', "@routes.AttachmentApp.newFile");
+	
+	$(document).ready(function(){
+		$hive.loadModule("board.View", {
+			"sAction": "@routes.AttachmentApp.newFile"
+		});		
+	});
+	
 </script>
 }

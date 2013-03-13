@@ -65,6 +65,14 @@ $hive = hive.Common = (function(){
 		// 모듈 스크립트가 이미 로드되었으면 바로 초기화 하고
 		// 그렇지 않으면 스크립트 파일 불러온 뒤 초기화 시도
 		if(registerModule(sName, htOptions) === false){
+			htVar.htTryLoad = htVar.htTryLoad || {};
+			htVar.htTryLoad[sName] = (typeof htVar.htTryLoad[sName] == "undefined") ? 1 : (htVar.htTryLoad[sName]++);
+			
+			if(htVar.htTryLoad[sName] > 3){
+				console.log("[HIVE] fail to load module " + sName);
+				return false;
+			}
+			
 			var sURL = htVar.sScriptPath + "service/hive." + sName + ".js";
 			var fOnLoad = function(){
 				loadModule(sName, htOptions, fCallback);

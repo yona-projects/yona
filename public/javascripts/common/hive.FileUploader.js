@@ -322,9 +322,9 @@ var fileDownloader = function(target, urlToGetFileList) {
 		}
 	};
 
-	getFileList(target, urlToGetFileList, addFiles);
+	//getFileList(target, urlToGetFileList, addFiles);
 
-	target.append(filelist);
+	//target.append(filelist);
 };
 
 /**

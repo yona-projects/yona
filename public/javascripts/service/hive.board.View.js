@@ -19,10 +19,10 @@
 		 * initialize
 		 * @param {Hash Table} htOptions
 		 */
-		function $init(htOptions){
+		function _init(htOptions){
 			_initVar(htOptions || {});
 			_initElement(htOptions || {});
-			
+
 			_initFileUploader();
 			_initFileDownloader();
 		}
@@ -66,13 +66,39 @@
 			});
 		}
         
-        $init();
+        _init(htOptions);
 	};
 	
 })("hive.board.View");
 
+nforge.namespace("board");
 nforge.board.view = {
 	"init": function(){
 		hive.board.View();
 	}
 };
+
+/*
+nforge.namespace("board");
+nforge.board.view = function() {
+    var that = {
+        "init" : function(filesUrl) {
+            var attachments;
+
+            fileUploader.init({
+            	"elTarget"    : $('#upload'),   // upload area
+            	"elTextarea"  : $('#contents'), // textarea
+            	"sTplFileItem": $('#tplAttachedFile').text(),
+            	"sAction"     : filesUrl
+            });
+            
+            attachments = $('.attachments');
+            for (var i = 0, nLength = attachments.length; i < nLength; i++) {
+                fileDownloader($(attachments[i]), filesUrl);
+            }
+        }
+    }
+
+    return that;
+};
+*/

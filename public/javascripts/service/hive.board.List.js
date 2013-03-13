@@ -12,14 +12,14 @@
 	var oNS = $hive.createNamespace(ns);
 	oNS.container[oNS.name] = function(htOptions){
 		
-		var htElements = {};
+		var htElement = {};
     	var htOrderMap = {"asc": "desc", "desc": "asc"};
 
 		/**
 		 * initialize
 		 * @param {Hash Table} htOptions
 		 */
-		function $init(htOptions){
+		function _init(htOptions){
 			_initElement(htOptions || {});
 			_attachEvent();
 			
@@ -30,21 +30,21 @@
 		 * initialize element variables
 		 */
 		function _initElement(htOptions){
-			htElements.welForm = $(htOptions.sOptionForm || "#option_form");
-			htElements.welInputKey = htElements.welForm.find("input[name=key]");
-			htElements.welInputOrder = htElements.welForm.find("input[name=order]");
-			htElements.welInputPageNum = htElements.welForm.find("input[name=pageNum]");
+			htElement.welForm = $(htOptions.sOptionForm || "#option_form");
+			htElement.welInputKey = htElement.welForm.find("input[name=key]");
+			htElement.welInputOrder = htElement.welForm.find("input[name=order]");
+			htElement.welInputPageNum = htElement.welForm.find("input[name=pageNum]");
 			
-			htElements.welFilter = $(htOptions.sQueryFilter || "#order a");
-			htElements.welPages = $(htOptions.sQueryPages || "#pagination a"); 
+			htElement.welFilter = $(htOptions.sQueryFilter || "#order a");
+			htElement.welPages = $(htOptions.sQueryPages || "#pagination a"); 
 		}
 
 		/**
 		 * attach event handlers
 		 */
         function _attachEvent() {
-            htElements.welFilter.click(_onClickFilter);
-            htElements.welPages.click(_onClickPage);
+            htElement.welFilter.click(_onClickFilter);
+            htElement.welPages.click(_onClickPage);
         }
 
         /**
@@ -54,13 +54,13 @@
             var sKey = $(this).attr("key");
 
         	// Key
-            if (sKey !== htElements.welInputKey.val()) {
-            	htElements.welInputKey.val(sKey)
+            if (sKey !== htElement.welInputKey.val()) {
+            	htElement.welInputKey.val(sKey)
             } else { // Order
-            	var sCurrentVal = htElements.welInputOrder.val();
-            	htElements.welInputOrder.val(htOrderMap[sCurrentVal]);
+            	var sCurrentVal = htElement.welInputOrder.val();
+            	htElement.welInputOrder.val(htOrderMap[sCurrentVal]);
             }
-            htElements.welForm.submit();
+            htElement.welForm.submit();
             return false;
         }
 
@@ -68,29 +68,18 @@
          * onClick PageNum
          */
         function _onClickPage(){
-        	htElements.welInputPageNum.val($(this).attr("pageNum"));
-        	htElements.welForm.submit();
+        	htElement.welInputPageNum.val($(this).attr("pageNum"));
+        	htElement.welForm.submit();
             return false;
         }
         
-        $init();
+        _init(htOptions);
 	};
 	
 })("hive.board.List");
 
 /*
-$hive.load("Board", function(){
-	hive.board.List();
-});
-
-$hive.load("board.List");
-*/
-
 nforge.namespace("board");
-/**
- * PostList
- */
-
 nforge.board.list = function() {
     var that = {
         "init" : function() {
@@ -132,68 +121,4 @@ nforge.board.list = function() {
     
     return that;
 };
-
-nforge.board.vaildate = function() {
-    var that = {
-        "init" : function() {
-            $("form").submit(function() {
-                if ($("input#title").val() === "" || $("textarea#contents").val() === "") {
-                    $("#warning button").click(function(){
-                        $('#warning').hide();
-                    });
-                    $('#warning').show();
-                    return false;
-                }
-                return true;
-            });
-        }
-    };
-    return that;
-};
-
-/**
- * PostView
- */
-nforge.board.view = function() {
-    var that = {
-        "init" : function(filesUrl) {
-            var attachments;
-
-            fileUploader.init({
-            	"elTarget"    : $('#upload'),   // upload area
-            	"elTextarea"  : $('#contents'), // textarea
-            	"sTplFileItem": $('#tplAttachedFile').text(),
-            	"sAction"     : filesUrl
-            });
-            
-            attachments = $('.attachments');
-            for (var i = 0, nLength = attachments.length; i < nLength; i++) {
-                fileDownloader($(attachments[i]), filesUrl);
-            }
-        }
-    }
-
-    return that;
-};
-
-/**
- * newPost
- */
-nforge.board.new = function() {
-	var that = {
-		"init": function(filesUrl) {
-            fileUploader.init({
-            	"elTarget"    : $('#upload'),   // upload area
-            	"elTextarea"  : $('#contents'), // textarea
-            	"sTplFileItem": $('#tplAttachedFile').text(),
-            	"sAction"     : filesUrl
-            });
-		}
-	};
-
-	return that;
-};
-
-
-// Alias
-nforge.board.edit = nforge.issue.new;
+*/

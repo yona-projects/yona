@@ -81,8 +81,12 @@
 @views.html.markdown()
 
 <script type="text/javascript">
-	nforge.require("board.vaildate");
-	nforge.require('shortcut.submit');
-	nforge.require('board.new', "@routes.AttachmentApp.newFile");
+$(document).ready(function(){
+	$hive.loadModule("board.Write", {
+		"sMode"			 : "new",
+		"elTextarea"	 : $("#contents"),
+		"sUploaderAction": "@routes.AttachmentApp.newFile"
+	});
+});
 </script>
 }
