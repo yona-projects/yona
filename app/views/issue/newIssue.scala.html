@@ -116,9 +116,17 @@
 </div>
 
 <script type="text/javascript">
+/*
 	nforge.require('shortcut.submit');
 	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)');
 	nforge.require('issue.new', "@routes.AttachmentApp.newFile");
+*/
+$(document).ready(function(){
+	$hive.loadModule("issue.Write", {
+		"sMode"			 : "new",
+		"elTextarea"	 : $("#body"),
+		"sUploaderAction": "@routes.AttachmentApp.newFile"
+	});
+});
 </script>
-
 }

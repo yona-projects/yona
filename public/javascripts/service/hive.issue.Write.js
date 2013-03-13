@@ -10,11 +10,56 @@
 (function(ns){
 	
 	var oNS = $hive.createNamespace(ns);
-	oNS.container[oNS.name] = function(){
+	oNS.container[oNS.name] = function(htOptions){
 		
+		var htVar = {};
+		var htElement = {};
+		
+		/**
+		 * initialize
+		 */
+		function _init(htOptions){
+			_initElement(htOptions || {});
+			_initVar(htOptions || {});
+			
+			_initFileUploader();
+		}
+		
+		/**
+		 * initialize variable
+		 */
+		function _initVar(htOptions){
+			htVar.sMode = htOptions.sMode || "new";
+			htVar.sUploaderAction = htOptions.sUploaderAction;
+			htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.text() : "");
+		}
+		
+		/**
+		 * initialize element variable
+		 */
+		function _initElement(htOptions){
+			htElement.welTarget = $(htOptions.elTarget || "#upload");
+			htElement.welTextarea = $(htOptions.elTextarea || "#body");
+
+			htElement.welTplFileItem = $('#tplAttachedFile');
+		}
+				
+		/**
+		 * initialize fileUploader
+		 */
+		function _initFileUploader(){
+			fileUploader.init({
+			  	"elTarget"    : htElement.welTarget,
+			  	"elTextarea"  : htElement.welTextarea,
+			  	"sTplFileItem": htVar.sTplFileItem,
+			  	"sAction"     : htVar.sUploaderAction
+			});
+		}
+		
+		_init(htOptions);
 	};
 	
-})("hive.Issue.Write");
+})("hive.issue.Write");
 
 /*
 nforge.namespace('issue');

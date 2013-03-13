@@ -19,42 +19,44 @@
     &.btn-transparent {
         line-height: 1;
     }
+    
     &.blue {
         background-color: #56B5D9; /*#53A1AF;*/
         &:hover {
-            background-color: #72C4D3;
+            background-color: darken(#56b5d9, 10%); /*#72C4D3;*/
         }
     }
     &.green {
         background-color: #75AB48;
         &:hover {
-            background-color: #91CF5E;
+            background-color: darken(#75AB48, 10%); /*#91CF5E;*/
         }
     }
     &.orange {
         background-color: @orange;
         &:hover {
-            background-color: #FF9F6B;
+            background-color: darken(@orange, 10%); /*#FF9F6B;*/
         }
     }
     &.gray {
-        background-color: @gray-cc;
+        background-color: #707070; /*@gray-cc;*/
         &:hover {
-            background-color : #E1E1E1;
+            background-color : darken(#707070, 10%); /*#E1E1E1;*/
         }
     }
     &.light-gray {
         background-color: #707070;
         &:hover {
-            background-color: lighten(#707070, 10%);
+            background-color: darken(#707070, 10%);
         }
     }
     &.black {
-        background-color: @black;
+        background-color: #222; /*@black;*/
         &:hover {
-           background-color : #666;
+           background-color : #000; /*666;*/
         }
-    }
+    }   
+    
 
     &.med {
         font-size: 11px;

@@ -203,6 +203,7 @@
 
 @views.html.markdown()
 <script type="text/javascript">
+	/*
 	nforge.require('shortcut.submit');
 	nforge.require('issue.view', "@routes.AttachmentApp.newFile");
 	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: false}, function() {
@@ -211,6 +212,12 @@
 		$('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
 		$('.labels button.btn[labelId="@label.id"]').addClass('active');
 	}
+	});
+	*/
+	$(document).ready(function(){
+		$hive.loadModule("issue.View", {
+			"sAction": "@routes.AttachmentApp.newFile"
+		});
 	});
 </script>
 }

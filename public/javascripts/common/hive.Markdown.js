@@ -57,24 +57,18 @@ nforge.namespace('markdown');
 		target.html(renderMarkdown(target.text()));
 	};
 
-	nforge.markdown.enable = function() {
-		var that = {
-			"init" : function(targets) {
-				var nLength = targets.length;
-				for ( var i = 0; i < nLength; i++) {
-					var target = targets[i];
-					var tagname = target.tagName.toLowerCase();
-					if (tagname == 'textarea' || tagname == 'input' || target.contentEditable == 'true') {
-						editor($(target));
-					} else {
-						viewer($(target));
-					}
-				}
+	nforge.markdown.enable = function(targets) {
+		var nLength = targets.length;
+		for ( var i = 0; i < nLength; i++) {
+			var target = targets[i];
+			var tagname = target.tagName.toLowerCase();
+			if (tagname == 'textarea' || tagname == 'input' || target.contentEditable == 'true') {
+				editor($(target));
+			} else {
+				viewer($(target));
 			}
-		};
-
-		return that;
-	};	
+		}			
+	};
 })();
 
 
