@@ -61,7 +61,7 @@
 				<input type="hidden" name="state"   value="@param.state">
 				<input type="text"   name="filter"  class="text" placeholder="현재 프로젝트에서 검색"><!-- 
 				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
-                <a href="#" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
+                <a href="#advanced-search-form" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
                 </form>
                 
 				<div id="advanced-search-form" class="srch-advanced form-horizontal">
@@ -161,12 +161,24 @@
 
 <script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
 <script type="text/javascript">
-	//nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {'editable': true});
-	  
-	$(document).ready(function() {
+/*
+	nforge.require('issue.label', 
+			'@routes.IssueLabelApp.labels(project.owner, project.name)', 
+			'@routes.IssueLabelApp.newLabel(project.owner, project.name)', 
+			{'editable': true}
+	);
+*/
+	$(document).ready(function(){
+		var htOptLabel = {
+			"bEditable"    : true,
+			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
+			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
+		};				
+
 		$hive.loadModule("issue.List", {
 			"elPagination": $("#pagination"),
-			"nTotalPages" : @currentPage.getTotalPageCount
+			"nTotalPages" : @currentPage.getTotalPageCount,
+			"htOptLabel"  : htOptLabel
 		});
 	});  
 </script>

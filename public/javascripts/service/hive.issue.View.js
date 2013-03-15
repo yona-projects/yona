@@ -26,6 +26,10 @@
 			_initFileUploader();
 			_initFileDownloader();
 			_setLabelColor();
+			
+			if(typeof htOptions.htActiveLabels == "object"){
+				_initLabels(htOptions.htActiveLabels);
+			}			
 		}
 
 		/**
@@ -83,6 +87,20 @@
 			});
 			
 			welLabel = null;
+		}
+		
+		/**
+		 * 지정한 라벨들을 활성화 상태로 표시
+		 * @param {Hash Table} htActiveLabels
+		 * @example
+		 * htActiveLabels["labelId"] = "labelColor";
+		 */
+		function _initLabel(htActiveLabels){
+			var sKey;
+			
+			for(sKey in htActiveLabels){
+				hive.Label.setActiveLabel(sKey, htActiveLabels[sKey]);
+			}
 		}
 		
         _init(htOptions);

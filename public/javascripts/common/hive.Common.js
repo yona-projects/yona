@@ -189,6 +189,45 @@ $hive = hive.Common = (function(){
 		return (y709 > 192) ? 'dimgray' : 'white';
 	}
 
+	/**
+	 * Send a request using $.ajaxForm
+	 * @param {Hash Table} htOptions
+	 * @param {String} 	   htOptions.sURL <form> action
+	 * @param {Hash Table} htOptions.htOptForm <form> attributes
+	 * @param {Hash Table} htOptions.htData data to send
+	 * @param {Function}   htOptions.fOnLoad callback function on load
+	 * @param {Function}   htOptions.fOnError callback function on error
+	 */
+	function sendForm(htOptions){
+		var sKey = "";
+		var aFields = [];
+		var aFormAttr = [];
+		
+		// create form with attributes (htOptForm)
+		var htOptForm = htOptions.htOptForm || {"method":"post"};
+		for(sKey in htOptForm){
+			aFormAttr.push(sKey + '="' + htOptForm[sKey] + '"');
+		}
+		var sFormAttr = aFormAttr.join(" ");
+		var welForm = $('<form action="' + htOptions.sURL + '" ' + sFormAttr + '>');		
+		
+		// form fields
+		var htData = htOptions.htData || {};
+		for(sKey in htData){
+			aFields.push($('<input type="hidden" name="' + sKey + '" value="' + htData[sKey] + '">'));
+		}
+		welForm.append(aFields);
+		
+		// send form
+		welForm.ajaxForm({
+			"success": htOptions.fOnLoad  || function(){},
+			"error"  : htOptions.fOnError || function(){}
+		});
+		welForm.submit();
+		
+		aFields = aFormAttr = sFormAttr = null;
+	}
+	
 	/* public Interface */
 	return {
 		"setScriptPath": setScriptPath,
@@ -196,7 +235,8 @@ $hive = hive.Common = (function(){
 		"loadModule": loadModule,
 		"loadScript": loadScript,
 		"stopEvent": stopEvent,
-		"getContrastColor": getContrastColor
+		"getContrastColor": getContrastColor,
+		"sendForm" : sendForm
 	};
 })();
 

@@ -202,6 +202,7 @@
 </div>
 
 @views.html.markdown()
+
 <script type="text/javascript">
 	/*
 	nforge.require('shortcut.submit');
@@ -214,9 +215,21 @@
 	}
 	});
 	*/
+
 	$(document).ready(function(){
+		// hive.Label
+		var htActiveLabels = {@for(label <- issue.labels) { "@label.id":"@label.color'", }"":""};		
+		var htOptLabel = {
+			"bEditable"    : false,
+			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
+			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
+		};
+		
+		// hive.issue.View
 		$hive.loadModule("issue.View", {
-			"sAction": "@routes.AttachmentApp.newFile"
+			"sAction"       : "@routes.AttachmentApp.newFile",
+			"htOptLabel"    : htOptLabel,
+			"htActiveLabels": htActiveLabels
 		});
 	});
 </script>

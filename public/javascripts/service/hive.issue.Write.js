@@ -23,6 +23,10 @@
 			_initVar(htOptions || {});
 			
 			_initFileUploader();
+			
+			if(typeof htOptions.htActiveLabels == "object"){
+				_initLabels(htOptions.htActiveLabels);
+			}
 		}
 		
 		/**
@@ -54,6 +58,20 @@
 			  	"sTplFileItem": htVar.sTplFileItem,
 			  	"sAction"     : htVar.sUploaderAction
 			});
+		}
+		
+		/**
+		 * 지정한 라벨들을 활성화 상태로 표시
+		 * @param {Hash Table} htActiveLabels
+		 * @example
+		 * htActiveLabels["labelId"] = "labelColor";
+		 */
+		function _initLabel(htActiveLabels){
+			var sKey;
+			
+			for(sKey in htActiveLabels){
+				hive.Label.setActiveLabel(sKey, htActiveLabels[sKey]);
+			}
 		}
 		
 		_init(htOptions);

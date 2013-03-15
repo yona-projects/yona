@@ -23,6 +23,8 @@
 			_initElement(htOptions || {});
 			_attachEvent();
 			
+			_initLabel(htOptions.htOptLabel);
+			
 			_setPagination();
 			_setLabelColor();
 		}
@@ -31,7 +33,7 @@
 		 * initialize variables except element
 		 */
 		function _initVar(htOptions){
-			htVar.nTotalPagse = htOptions.nTotalPages || 1;
+			htVar.nTotalPages = htOptions.nTotalPages || 1;
 		}
 		
 		/**
@@ -101,6 +103,14 @@
 			$(".inner").toggleClass("advanced");
 	   	}
 
+		/**
+		 * initialize hive.Label
+		 * @param {Hash Table} htOptions
+		 */
+		function _initLabel(htOptions){
+			hive.Label.init(htOptions);
+		}
+		
 		/**
 		 * update Pagination
 		 * @requires hive.Pagination
