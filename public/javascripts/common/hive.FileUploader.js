@@ -301,56 +301,47 @@ var fileUploader = (function() {
 	};
 })();
 
+
 /**
  * fileDownloader
  */
-var fileDownloader = function(target, urlToGetFileList) {
-	var createFileItem = function(file) {
-		var link = $('<a>').prop('href', file.url).append(
-				$('<i>').addClass('icon-download')).append(
-				$('<div>').text(file.name).html());
-
-		return $('<li>').append(link);
+var fileDownloader = function(welTarget, sAction) {
+	
+	var createFileItem = function(oFile) {
+		var sTpl = '<li><a href="${url}"><i class="icon-download"></i><div>${name}</div></a></li>';
+		return $.tmpl(sTpl, oFile);
 	};
 
-	var filelist = $('<ul>');
-	var addFiles = function(responseBody, statusText, xhr) {
-		var files = responseBody.attachments;
-		for ( var i = 0; i < files.length; i++) {
-			filelist.css('display', '');
-			filelist.append(createFileItem(files[i]));
-		}
-	};
-
-	//getFileList(target, urlToGetFileList, addFiles);
-
-	//target.append(filelist);
-};
-
-/**
- * getFileList
- */
-var getFileList = function(target, urlToGetFileList, fn) {
-	var form = $('<form>').attr('method', 'get').attr('action', urlToGetFileList);
-
-	var resourceType = target.attr('resourceType');
+	// request data
+	var htData = {};	
+	var resourceType = welTarget.attr('resourceType');
 	if (typeof resourceType !== "undefined") {
-		form.append('<input type="hidden" name="containerType" value="' + resourceType + '">');
+		htData.containerType = resourceType;
 	}
-
-	var resourceId = target.attr('resourceId');
+	var resourceId = welTarget.attr('resourceId');
 	if (typeof resourceId !== "undefined") {
-		form.append('<input type="hidden" name="containerId" value="' + resourceId + '">');
+		htData.containerId = resourceId;
 	}
-
-	form.ajaxForm({
-		"success" : fn
+	var welFileList = $('<ul>');
+	
+	// send request
+	$hive.sendForm({
+		"sURL"     : sAction,
+		"htData"   : htData,
+		"htOptForm": {"method":"get"},
+		"fOnLoad"  : function(oRes){
+			var aFiles = oRes.attachments;
+			
+			if(aFiles.length > 0){
+				welFileList.css('display', '');
+				aFiles.forEach(function(oFile){
+					welFileList.append(createFileItem(oFile));			
+				});
+			}
+			
+			//createFileItem = aFiles = null;
+		}
 	});
 	
-	try {
-		form.submit();
-	} finally {
-		form = resourceType = resourceId = null;
-	}
+	//welTarget.append(welFileList);
 };
-

@@ -42,19 +42,19 @@
     
     <div class="tab-wrap">
         <div class="pull-right btns">
-            <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">MANAGE</a>
-            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="n-btn small orange">NEW MILESTONE</a>
+            <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">@Messages("milestone.menu.manage")</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="n-btn small orange">@Messages("milestone.menu.new")</a>
         </div>
         
         <ul class="nav nav-tabs hive-tabs">
             <li class="@if(mCondition.state.equals("all")){active}">
-                <a href="@makeMilestoneListLink("all")">All Milestones</a>
+                <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
             </li>
             <li class="@if(mCondition.state.equals("open")){active}">
-                <a href="@makeMilestoneListLink("open")">Open Milestones</a>
+                <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
             </li>
             <li class="@if(mCondition.state.equals("closed")){active}">
-                <a href="@makeMilestoneListLink("closed")">Closed Milestones</a>
+                <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
             </li>
         </ul>
     </div>
@@ -71,6 +71,15 @@
        	</div>
     </div>
 
+	@if(milestones == null || milestones.isEmpty()){
+
+		<div class="error-wrap">
+			<i class="ico ico-err1"></i>
+			<p>@Messages("milestone.is.empty")</p>
+		</div>  
+
+	} else {
+	
     <ul class="milestones">
         @for(milestone <- milestones){
         <li class="milestone">
@@ -127,4 +136,6 @@
         </li>
         }
     </ul>
+    
+    }
 }

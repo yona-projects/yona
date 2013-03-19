@@ -5,72 +5,77 @@
 
 @memberRole(userRole: String) = {
     @for(role <- roles){
-       	<li @if(role.name.equals(userRole)){ class="active" }><a href="#!/@role.name" data-id="@role.id">@role.name</a></li>
+       	<li @if(role.name.equals(userRole)){ class="active" }><a href="#" data-id="@role.id">@role.name</a></li>
     }
 }
 
 @projectMngMain(message, project) {
-	@views.html.prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
+@views.html.prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
+
+<div class="bubble-wrap dark-gray wp">
+	<div class="inner-bubble">
+		<form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
+			<input type="text" class="text uname" id="loginId" name="loginId" 
+				   placeholder="@Messages("project.members.addMember")" 
+				   pattern="[a-zA-Z0-9_][a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")" /><!-- 
+         --><button class="ns-btn" type="submit"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
+		</form>
+	</div>
+
+	<ul class="members project">
+		@for(member <- members){
+
+		<li class="member">
+			<a href="@routes.UserApp.userInfo(member.user.loginId)" class="img-rounded pull-left"><!-- 
+			 --><img class="media-object" src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64"></a>
+			<div class="m-body">
+				<div class="td">
+					<p>
+						<a href="@routes.UserApp.userInfo(member.user.loginId)">
+							<strong class="uname">@member.user.loginId</strong>
+						</a>
+					</p>
+					<p class="name">(@member.user.name)</p>
+				</div>
+				<div class="td">
+					<div class="btn-group">
+						<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label">@member.role.name</button>
+						<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+						<ul id="roles-@member.user.loginId" class="dropdown-menu">@memberRole(member.role.name)</ul>
+					</div>
+					<p class="btns">
+						<a href="#" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="n-btn small light-gray"><!-- 
+						 --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a> 
+						<a href="#" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="n-btn small orange"><!-- 
+						 --><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
+					</p>
+				</div>
+			</div>
+		</li>
+		 
+		}
+	</ul>
 	
+	<div id="alertDeletion" class="modal hide">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">×</button>
+			<h3>@Messages("project.member.delete")</h3>
+		</div>
+		<div class="modal-body">
+			<p>@Messages("project.member.deleteConfirm")</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
+			<a href="#" class="btn btn-danger btnDelete">@Messages("button.yes")</a>
+		</div>
+	</div>
 	
-	<div class="bubble-wrap dark-gray wp">
-       <div class="inner-bubble">
-           <form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
-               <input type="text" class="text uname" id="loginId" name="loginId" placeholder="@Messages("project.members.addMember")" pattern="[a-zA-Z0-9_][a-zA-Z0-9_]+" title="@Messages("user.wrongloginId.alert")" /><!-- 
-                --><button class="ns-btn" type="submit"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
-           </form>
-       </div>
-       
-       <ul class="members project">
-       	@for(member <- members){
-       	
-       	
-           <li class="member">
-               <a href="@routes.UserApp.userInfo(member.user.loginId)" class="img-rounded pull-left"><img class="media-object" src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64"></a>
-               <div class="m-body">
-                   <div class="td">
-                       <p><a href="@routes.UserApp.userInfo(member.user.loginId)"><strong class="uname">@member.user.loginId</strong></a></p>
-                       <p class="name">(@member.user.name)</p>
-                   </div>
-                   <div class="td">
-                       <div class="btn-group">
-                           <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label">@member.role.name</button>
-                           <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
-                           <ul class="dropdown-menu">
-                               @memberRole(member.role.name)
-                           </ul>
-                       </div>
-                       <p class="btns">
-                           <a href="#alertDeletion@member.user.loginId" class="n-btn small light-gray" data-toggle="modal"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a>
-                           <a href="#apply@member.user.loginId" class="n-btn small orange"><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
-                       </p>
-                   </div>
-               </div>
-              
-              @** TODO: 비효율적인 modal 마크업 반복. 제거하는 방향으로 검토 필요 **@
-			  <div class="modal hide" id="alertDeletion@member.user.loginId">
-				 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">×</button>
-                    <h3>@Messages("project.member.delete")</h3>
-                 </div>
-                 <div class="modal-body">
-                    <p>@Messages("project.member.deleteConfirm")</p>
-                 </div>
-                 <div class="modal-footer">
-                    <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-                    <a href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="btn btn-danger">@Messages("button.yes")</a>
-                 </div>
-              </div>
-              @** **@
-              
-           </li>
-           
-        }
-       </ul>
-    </div>
-       
-    <script type="text/javascript">
-    	nforge.require("project.roleChange");
-    </script>
+</div>
+
+<script type="text/javascript">
+   	$(document).ready(function(){
+   		$hive.loadModule("project.Member");
+   	});
+</script>
     
 }

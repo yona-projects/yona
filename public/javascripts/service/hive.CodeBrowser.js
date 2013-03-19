@@ -1,158 +1,259 @@
-moment.lang('ko', {
-    months : "1월_2월_3월_4월_5월_6월_7월_8월_9월_10월_11월_12월".split("_"),
-    monthsShort : "1월_2월_3월_4월_5월_6월_7월_8월_9월_10월_11월_12월".split("_"),
-    weekdays : "일요일_월요일_화요일_수요일_목요일_금요일_토요일".split("_"),
-    weekdaysShort : "일_월_화_수_목_금_토".split("_"),
-    weekdaysMin : "일_월_화_수_목_금_토".split("_"),
-    longDateFormat : {
-        LT : "A h시 mm분",
-        L : "YYYY.MM.DD",
-        LL : "YYYY년 MMMM D일",
-        LLL : "YYYY년 MMMM D일 LT",
-        LLLL : "YYYY년 MMMM D일 dddd LT"
-    },
-    meridiem : function (hour, minute, isUpper) {
-        return hour < 12 ? '오전' : '오후';
-    },
-    calendar : {
-        sameDay : '오늘 LT',
-        nextDay : '내일 LT',
-        nextWeek : 'dddd LT',
-        lastDay : '어제 LT',
-        lastWeek : '지난주 dddd LT',
-        sameElse : 'L'
-    },
-    relativeTime : {
-        future : "%s 후",
-        past : "%s 전",
-        s : "몇초",
-        ss : "%d초",
-        m : "일분",
-        mm : "%d분",
-        h : "한시간",
-        hh : "%d시간",
-        d : "하루",
-        dd : "%d일",
-        M : "한달",
-        MM : "%d달",
-        y : "일년",
-        yy : "%d년"
-    },
-    ordinal : '%d일'
-});
+/**
+ * @(#)hive.CodeBrowser.js 2013.03.19
+ *
+ * Copyright NHN Corporation.
+ * Released under the MIT license
+ * 
+ * http://hive.dev.naver.com/license
+ */
 
-$(document).ready(function(){
-      $(window).bind('hashchange', function(e){
-        //대기 표시 한다.
-        //여기서 요청을 보내고
-        var path = getHash().replace(/^#/, "");
-        var branch = encodeURIComponent($("#selected-branch").text());
+hive.CodeBrowser = function(htOptions){
+	
+	var htVar = {};
+	var htElement = {};
+	
+	/**
+	 * initialize
+	 */
+	function _init(htOptions){
+		_initVar(htOptions);
+		_initElement(htOptions);
+		_attachEvent();
 
-        $.ajax("code/" + branch + "/!" + path, {
-          datatype : "json",
-          success : function(data, textStatus, jqXHR){
-            updateBreadcrumbs(path);
-            switch(data.type){
-              case "file" :
-                  handleFile(data);
-                break;
-              case "folder" :
-                  handleFolder(data);
-                break;
-            }
-          },
-          error : function(){
-            $("#codeError").show();
-          }
-        });
-        function handleFile(data){
-            //파일을 표시한다.
-            $("#commiter").text(data.author);
-            if( data.hasOwnProperty("msg") ) $("#commitMessage").text(data.msg);
-            if( data.hasOwnProperty("revisionNo") ) $("#revisionNo").text("Revision#: " + data.revisionNo);
-            $("#commitDate").text(moment(new Date(data.date)).fromNow());
-            $("code").text(data.data);
-            $("#rawCode").attr("href", "rawcode"+path);//TODO 현재 동작하지 않음.
-            
-            $("#folderView").hide();
-            $("#codeView").show();
-            $("code").highlight();
-        }
-        function handleFolder(data){
-            //폴더내용을 리스팅 한다.
-            $("#commiter").text(data.author);
-            if( data.hasOwnProperty("msg") ) $("#commitMessage").text(data.msg);
-            if( data.hasOwnProperty("revisionNo") ) $("#revisionNo").text("Revision #: " + data.revisionNo);
-            $("#commitDate").text(data.date);
+		if (!htElement.welSelectedBranch.text()) {
+			htElement.welSelectedBranch.text('HEAD');
+		}
+		$(window).trigger("hashchange");
+	}
+	
+	/**
+	 * initialize variables
+	 */
+	function _initVar(htOptions){
+		htVar.rxHash = /^#/;
+		htVar.sProjectName = htOptions.sProjectName;
+		htVar.sTplFileListItem = $("#tplFileListItem").text() || "";
+	}
+	
+	/**
+	 * initialize element
+	 */
+	function _initElement(htOptions){
+		// file list
+		htElement.welContainerList = $("#fileList");
+		htElement.welFileList = htElement.welContainerList.find("tbody");
+		
+		// file view
+		htElement.welContainerView = $("#fileView");
+		htElement.welFileView = htElement.welContainerView.find(".code-wrap");
+		
+		// actions
+		htElement.aBranches = $(".branch-item"); // branches
+		htElement.welBtnRawCode = $("#rawCode"); // get raw file
+		htElement.welSelectedBranch = $("#selected-branch");
+		
+		// file info
+		htElement.welFileInfo = $("#fileInfo");
+		htElement.welFileCommiter   = htElement.welFileInfo.find(".commiter");
+		htElement.welFileCommitMsg  = htElement.welFileInfo.find(".commitMsg");
+		htElement.welFileCommitDate = htElement.welFileInfo.find(".commitDate");
+		htElement.welFileRevision   = htElement.welFileInfo.find(".revision");
+	}
+	
+	/**
+	 * attach event handler
+	 */
+	function _attachEvent(){
+		$(window).bind("hashchange", _onHashChange);
+		htElement.aBranches.click(_onSelectBranch);
+	}
+	
+	/**
+	 * on select branch item
+	 */
+	function _onSelectBranch(){
+		htElement.welSelectedBranch.text($(this).text());
+		$(window).trigger("hashchange");		
+	}
+	
+	/**
+	 * on hash change
+	 */
+	function _onHashChange(){
+		var sPath = getHash().replace(htVar.rxHash, "");
+        var sBranch = window.encodeURIComponent(htElement.welSelectedBranch.text());
+        var sURL = "code/" + sBranch + "/!" + sPath;
+        
+        $.ajax(sURL, {
+			"datatype": "json",
+			"success" : _onLoadListCode,
+			"error"   : _onErrorListCode
+		});
+	}
+	
+	/**
+	 * on load file list or file content
+	 * callback function of _onHashChange
+	 */
+	function _onLoadListCode(oRes){
+		_updateFileInfo(oRes); 
 
-            $(".contents").children().remove();
+		switch(oRes.type){
+			case "folder":
+				_viewFolder(oRes);
+				break;
+			case "file":
+				_viewFile(oRes);
+				break;
+		}
+	}
+	
+	/**
+	 * update file info
+	 * 
+	 * @param {Hash Table} htData
+	 * @param {String} htData.author
+	 * @param {String} htData.date
+	 * @param {String} htData.msg
+	 * @param {String} htData.reivisionNo
+	 */
+	function _updateFileInfo(htData){
+		htElement.welFileCommiter.text(htData.author);
+		htElement.welFileCommitDate.text(htData.date);
+		htElement.welFileCommitMsg.text(htData.msg || "");
+		htElement.welFileRevision.text("Revision #: " + (htData.revisionNo || "Unknown"));
 
-            for(var name in data.data){
-              var info = data.data[name];
-              var tablerow = makeTableRow(name, info.msg, info.date, info.author);
-              $(".contents").append(tablerow);
-            }
+		updateBreadcrumbs();
+	}
+	
+	/**
+	 * render folder list
+	 */
+	function _viewFolder(htData){
+		var sKey, htTmp;
+		var aTplData = [];
+		
+		// 템플릿용 데이터로 가공해서 배열에 추가
+		for(sKey in htData.data){
+			htTmp = htData.data[sKey];
+			htTmp.name = sKey;
+			htTmp.dateAgo  = getDateAgo(htTmp.date); 
+			htTmp.message  = getEllipsis(htTmp.message, 70);
+			htTmp.filePath = "#" + (htTmp.path !== "/" ? htTmp.path : "") + "/" + htTmp.name;
+			
+			aTplData.push(htTmp);
+		}
+		
+		// 배열을 이용해 한꺼번에 템플릿 변환.
+		// 1. append 보다 innerHTML 사용이 빠르고
+		// 2. DOM 건드리는 작업은 가능한 적게 해야
+		var sHTML = $.tmpl(htVar.sTplFileListItem, aTplData).text();
+		
+		try {
+			htElement.welContainerList.text(sHTML);
+			htElement.welContainerList.show();
+			htElement.welContainerView.hide();
+		} finally {
+			aTplData = sHTML = htTmp = null;
+		}
+	}
+	
+	/**
+	 * render file view
+	 */
+	function _viewFile(htData){
+		var sPath = getHash().replace(htVar.rxHash, "");
+		htElement.welBtnRawCode.attr("href", "rawcode" + sPath);
 
-            $("#folderView").show();
-            $("#codeView").hide();
-        }
-        function makeTableRow(name, message, date, author){
-          if (message.length > 70){
-            message = message.substr(0, 70) + "...";
-          }
-          return $("<tr>")
-              .append(
-                  $("<td>").append(
-                      $("<a>").text(name).attr("href", "#" + (path !== "/" ? path : "") + "/" +name)
-                    ).addClass("filename")
-                  )
-              .append($("<td>").text(message).addClass("message"))
-              .append($("<td>").text(moment(new Date(date)).fromNow()).addClass("date"))
-              //.append($("<td>").text(author).addClass("author"))
-              .append($('<td class="author"><a href="/'+ author+'"><img src="/assets/images/default-avatar-34.png" alt="avatar" class="img-rounded"></a></td>'));
-        }
-        function updateBreadcrumbs(path){
-          var $breadcrumbs = $("#breadcrumbs");
-          $($breadcrumbs).html('<a href="#/">'+project_name+'</a>');
-                      
-          var names = path.split("/");
-          var str = "#"
-          for(var i = 1; i < names.length; i++){
-            var name = names[i];
-            str += "/" + name;
-            $breadcrumbs.append("/");
-            $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
-          }
-        }
-      });
+		htElement.welFileView.text(htData.data || "");
+		
+		htElement.welContainerList.hide();
+		htElement.welContainerView.show();
+		htElement.welFileView.highlight();
+	}
 
-      if (!$("#selected-branch").text()) $("#selected-branch").text('HEAD');
-      $(window).trigger('hashchange');
-  });
+	/**
+	 * update bread crumbs
+	 * 파일 경로 업데이트
+	 */
+	function updateBreadcrumbs() {
+		return;
+		
+		var path = getHash().replace(htVar.rxHash, "")
+		var $breadcrumbs = $("#breadcrumbs");
+		$($breadcrumbs).html('<a href="#/">' + project_name + '</a>');
 
-  function getHash(){
-      //혹시 있을지도 모를 호완성을 위해.
-      return location.hash;
-  }
-  function setHash(hash){
-      return location.hash = hash;
-  }
-  function standizePath(path){
-    return "/" + path.split("/").filter(isEmpty).join("/");
-    function isEmpty(data){
-      if(data == ""){
-        return false;
-      } else {
-        return true;
-      }
-    }
-  }
+		var names = path.split("/");
+		var str = "#"
+		for ( var i = 1; i < names.length; i++) {
+			var name = names[i];
+			str += "/" + name;
+			$breadcrumbs.append("/");
+			$("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
+		}
+	}
+	
+	/**
+	 * on error on file list or file content
+	 * callback function of _onHashChange
+	 */
+	function _onErrorListCode(){
+//		$("#codeError").show();
+	}
+	
+	/**
+	 * Get relative date string from now depends on feature of moment.js
+	 * 
+	 * @requires moment.js
+	 * @param {String} sDate
+	 * @return {String}
+	 */
+	function getDateAgo(sDate){
+		return moment(new Date(sDate)).fromNow();
+	}
+	
+	/**
+	 * get String with Ellipsis
+	 * 
+	 * @param {String} sStr
+	 * @param {Number} nLength
+	 * @return {String} 
+	 */
+	function getEllipsis(sStr, nLength){
+		if(sStr.length > nLength){
+			sStr = sStr.substr(0, nLength) + "&hellip;"; // &hellip; = ...
+		}
+		return sStr;
+	}
+	
+	/**
+	 * getHash
+	 * 혹시나 document.location.hash 이외의 접근법이 나올까봐?
+	 */
+	function getHash(){
+		return document.location.hash;
+	}
 
-  $(".branch-item").click(function(ev){
-    $("#selected-branch").text($(this).text());
-    $(window).trigger('hashchange');
-  });
+	/**
+	 * setHash
+	 * 혹시나 document.location.hash 이외의 접근법이 나올까봐?
+	 */
+	function setHash(hash){
+		return document.location.hash = hash;
+	}
 
+	/*
+	function standizePath(path) {
+		var sPath = "/" + path.split("/").filter(function(data){
+			return !(data == "");
+		}).join("/");
+		
+		return sPath;
+	}
+	*/
+	
+	_init(htOptions || {});
+};
 
 
 // adaptorForDynatree adaptor function is used for existed function
@@ -199,7 +300,6 @@ function adaptorForDynatree(target){
     })
 }
 
-
 function findTreeNode(path){
     var root = $("#folderNav").dynatree("getRoot");
     var nodes = path.split("/");  // "a/b/c" => a, b, c
@@ -231,7 +331,7 @@ function getTreePath(node){
 var rootPath = "";
 var treeSelectorId = "#folderNav";
 $(function(){
-    var path = getHash().replace(/^#/, "");
+    var path = document.location.hash.replace(/^#/, "");
     var branch = encodeURIComponent($("#selected-branch").text());
     rootPath = "code/" + branch + "/!/";
     $.ajax({

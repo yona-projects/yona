@@ -1,88 +1,128 @@
 @(project:Project, branches:List[String])
 
 @main("코드", project, utils.MenuType.CODE){
-<div class="page" style="padding-bottom:20px;"><!--  code-browse -->
-  @views.html.prjmenu(project, utils.MenuType.CODE, "main-menu-only")
-  
-  <ul class="nav nav-tabs code-tab">
-    <li class="active">
-      <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-    </li>
-    <li>
-      <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-    </li>
-  </ul>
-  
-  <div class="bubble-wrap gray">
-    <div class="inner-bubble repo-info">
-      <span class="label label-info">@project.vcs</span>
-      <strong class="clone-label">@Messages("code.repoUrl")</strong>
-      <input id="repo-url" type="text" class="text repo-url" readonly value="@CodeApp.getURL(project.owner, project.name)"><a id="copy-url" href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
-      <div class="btn-group">
-        <button id="selected-branch" data-toggle="dropdown" class="btn dropdown-toggle d-label"></button>
-        <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
-        <ul class="dropdown-menu">
-          @for(name <- branches){
-          <li><a class="branch-item" href="#">@name</a></li>
-          }
-        </ul>
-      </div>
-    </div>
-    <hr class="double-sp"/>
-    <div class="code-browse-wrap">
-      <div class="code-browse-header"><span id="breadcrumbs">Breadcrumbs</span></div>
-      <div class="directory-wrap cell">
-        <div class="directory-header">FOLDER NAME</div>
-        <div class="directories" id="folderNav"></div>
-      </div>
-      <div class="file-wrap cell" id="folderView">
-        <table class="code-table sources">
-          <thead class="thead">
-            <tr>
-              <td class="filename">FILENAME</td>
-              <td class="messages">COMMIT MESSAGES</td>
-              <td class="date">COMMIT DATE</td>
-              <td class="author">AUTHOR</td>
-            </tr>
-          </thead>
-          <tbody class="contents">
-          </tbody>
-        </table>
-      </div>
-      <div id="codeView" class="hide file-wrap cell">
-        <div class="file-header nm">
-          <div class="file-info"><span id="commiter"></span> | <span id="commitDate"></span> | <span id="revisionNo"></span><span id="commitMessage"></span></div>
-          <a id="rawCode" target="_blank" class="btn-raw"><i class="ico ico-raw"></i>raw</a>
-        </div>
-        <div>
-          <pre><code style="overflow:hidden"></code></pre>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="page">
+
+	@views.html.prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+
+	<ul class="nav nav-tabs hive-tabs">
+		<li class="active">
+			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		</li>
+		<li>
+			<a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+		</li>
+	</ul>
+
+	<div class="bubble-wrap dark-gray repo-wrap">
+		<div class="inner-bubble repo-info">
+			<span class="clone-label"><strong class="@project.vcs">Subversion</strong>@Messages("code.repoUrl")</span><!-- 
+			 --><input type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
+             --><a href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+			<div class="btn-group">
+				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch"></button>
+				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+				<ul class="dropdown-menu">
+					<li><a href="#!/HEAD">HEAD</a></li>
+					@for(name <- branches){
+					<li><a href="#!/@name">@name</a></li>
+					}
+				</ul>
+			</div>
+		</div>
+		<hr class="double-sp" />
+		<div class="code-browse-wrap">
+			<div class="code-browse-header">리비전 619e11d0dcae4fa88b56f94d1462faa566e82e16</div>
+			<div class="directory-wrap cell">
+				<div class="directory-header">
+					<strong>FOLDER NAME</strong>
+				</div>
+				<ul class="directories">
+					<li class="directory selected"><a href="#!/folder" data-path="/"><i class="ico btn-folder open"></i>/</a></li>
+					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="html"><i class="ico btn-folder closed"></i>html</a></li>
+					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="images"><i class="ico btn-folder closed"></i>images</a></li>
+					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="javascript"><i class="ico btn-folder closed"></i>javaspript</a></li>
+					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="psd"><i class="ico btn-folder closed"></i>psd</a></li>
+					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="stylesheets"><i class="ico btn-folder closed"></i>stylesheets</a></li>
+				</ul>
+			</div>
+			<div class="sp-wrap cell"></div>
+			
+			@** 파일 목록 **@
+			<div id="fileList" class="file-wrap cell">
+				<table class="code-table sources">
+					<thead class="thead">
+						<tr>
+							<td class="filename"><strong>FILENAME</strong></td>
+							<td class="messages"><strong>COMMIT MESSAGES</strong></td>
+							<td class="date"><strong>COMMIT DATE</strong></td>
+							<td class="author"><strong>AUTHOR</strong></td>
+						</tr>
+					</thead>
+					<tbody class="tbody">
+						<tr>
+							<td class="filename"><a href="/html/code-file.html?filenema=gitignore">.gitignore</a></td>
+							<td class="messages"><a href="/html/code-commit.html?id=xxxx">fix bug</a></td>
+							<td class="date">5 days ago</td>
+							<td class="author">
+								<a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32"></a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			@** // **@
+			
+			@** 파일 보기 **@
+			<div id="fileView" class="file-wrap cell" style="display:none;">
+				<div class="file-header nm">
+					<div id="fileInfo" class="file-info">
+						<span class="commiter">n4wiki</span> | 
+						<span class="commitDate">7 days ago</span> | 
+						<span class="revision"></span> |
+						<span calss="commitMsg">fix bug when install</span>
+					</div>
+					<button id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</button>
+				</div>
+				<div class="code-wrap"></div>
+			</div>
+			@** // **@
+		</div>
+	</div>
 </div>
+
+<script type="text/template" id="tplFileListItem">
+<tr>
+	<td class="filename"><a href="${filePath}">${name}</a></td>
+	<td class="messages"><a href="${filePath}">${message}</a></td>
+	<td class="date">${dateAgo}</td>
+	<td class="author">
+		<a href="/${author}" class="img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32"></a>
+	</td>
+</tr>
+</script>
+
+<link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/googlecode.css" />
+<link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
 
 <script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery-ui.custom.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.cookie.js"></script>
-
-@** hljs **@
+<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.dynatree.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.jquery.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/hljs/languages/allinone.js"></script>
-<style type="text/css">
-@@import url("/assets/stylesheets/hljsstyles/googlecode.css");
-</style>
-
-@** dynatree **@
-<link rel='stylesheet' type='text/css' href='/assets/stylesheets/dynatree/skin/ui.dynatree.css'>
-<script type="text/javascript" src='/assets/javascripts/lib/jquery/jquery.dynatree.js'></script>
-
-@** CodeBrowser **@
 <script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.min.js"></script>
-<script type="text/javascript" src="/assets/javascripts/service/hive.CodeBrowser.js"></script>
+<script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
+<!-- <script type="text/javascript" src="/assets/javascripts/service/hive.CodeBrowser.js"></script> -->
 <script type="text/javascript">
 	var project_name = "@project.name";
-	nforge.require("code.copy"); // copy url: hive.Shortcut.js
+	//nforge.require("code.copy"); // copy url: hive.Shortcut")
+	
+	$(document).ready(function(){
+		$hive.loadModule("CodeBrowser", {
+			"sProjectName": "@project.name"
+		});
+	});
 </script>
 }

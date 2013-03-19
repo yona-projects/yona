@@ -35,19 +35,17 @@
 <script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Validation")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
-<!--
-<script type="text/javascript" src="@getJSLink("service/hive.Issue")"></script>
-<script type="text/javascript" src="@getJSLink("service/hive.board.List")"></script>
--->
-<script type="text/javascript" src="@getJSLink("service/hive.Project")"></script>
-<script type="text/javascript" src="@getJSLink("service/hive.Milestone")"></script>
+
 <script type="text/javascript" src="@routes.Application.jsMessages()"></script>
 
 <script type="text/javascript">
 	$hive.setScriptPath("@getJSPath()");
 	
 	$(document).ready(function(){
-
+		$(".n-alert").click(function(){ 
+			$(this).hide(); 
+		})
+		
     	// jquery.placeholder plugin initiator
         $('input, textarea').placeholder();
 

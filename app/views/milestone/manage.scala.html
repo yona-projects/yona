@@ -25,44 +25,54 @@
       Map("sort"-> _sort, "direction"-> _direction)
     )
 }
+
 @project.projectMngMain(message, projectInst) {
-    <div>
-    @if(milestones == null || milestones.isEmpty()){
-        <p>@Messages("milestone.is.empty")</p>
-    }else{
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <td>
-                        <a href="@makeSortLink("title")">@Messages("label.title") @sortMark("title")</a>
-                    </td>
-                    <td>@Messages("label.contents")</td>
-                    <td>
-                        <a href="@makeSortLink("dueDate")">@Messages("label.dueDate") @sortMark("dueDate")</a>
-                    </td>
-                    <td>
-                        <a href="@makeSortLink("completionRate")">@Messages("label.state") @sortMark("completionRate")</a>
-                    </td>
-                    <td>&nbsp;</td>
-                </tr>
-            </thead>
-            <tbody>
-            @for(milestone <- milestones){
-                <tr>
-                    <td>
-                        <a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)">@milestone.title</a>
-                    </td>
-                    <td>@milestone.contents</td>
-                    <td>@milestone.getDueDateString</td>
-                    <td>@stateMessage(milestone.state)</td>
-                    <td><a href="@routes.MilestoneApp.deleteMilestone(projectInst.owner, projectInst.name, milestone.id)">@Messages("button.delete")</a></td>
-                </tr>
-        }
-            </tbody>
-        </table>
+	@views.html.prjmenu(projectInst, utils.MenuType.PROJECT_SETTING, "")
+	
+	@if(milestones == null || milestones.isEmpty()){
+
+		<div class="error-wrap">
+			<i class="ico ico-err1"></i>
+			<p>@Messages("milestone.is.empty")</p>
+		</div>  
+
+    } else {
+    
+    <div class="tab-wrap">
+        <div class="pull-right btns">
+            <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn small gray">@Messages("milestone.menu.manage")</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="n-btn small orange">@Messages("milestone.menu.new")</a>
+        </div>
+        
+        <ul class="nav nav-tabs hive-tabs">
+        	<li class="active"><a>@Messages("milestone.state.all")</a>
+        </ul>
     </div>
-    }
-    <div style="text-align: right">
-        <a class="btn btn-primary" href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" >@Messages("milestone.menu.new")</a>
-    </div>
+    
+	<table class="table table-hover table-striped">
+		<thead style="font-weight:bold;">
+			<tr>
+				<td><a href="@makeSortLink("title")">@Messages("label.title") @sortMark("title")</a></td>
+				<td>@Messages("label.contents")</td>
+				<td><a href="@makeSortLink("dueDate")">@Messages("label.dueDate") @sortMark("dueDate")</a></td>
+				<td><a href="@makeSortLink("completionRate")">@Messages("label.state") @sortMark("completionRate")</a></td>
+				<td>&nbsp;</td>
+			</tr>
+		</thead>
+		<tbody>
+			@for(milestone <- milestones){
+			<tr>
+				<td>
+					<a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)">@milestone.title</a>
+				</td>
+				<td>@milestone.contents</td>
+				<td>@milestone.getDueDateString</td>
+				<td>@stateMessage(milestone.state)</td>
+				<td><a href="@routes.MilestoneApp.deleteMilestone(projectInst.owner, projectInst.name, milestone.id)">@Messages("button.delete")</a></td>
+			</tr>
+			}
+		</tbody>
+	</table>
+	
+	}
 }

@@ -1,3 +1,11 @@
+/**
+ * @(#)hive.project.New.js 2013.03.18
+ *
+ * Copyright NHN Corporation.
+ * Released under the MIT license
+ * 
+ * http://hive.dev.naver.com/license
+ */
 nforge.namespace("project");
 
 nforge.project.new = function() {

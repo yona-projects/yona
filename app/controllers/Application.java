@@ -6,7 +6,7 @@ import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
-import views.html.code.codeNavi;
+//import views.html.code.codeNavi;
 import views.html.index;
 
 import java.io.File;
@@ -56,7 +56,8 @@ public class Application extends Controller {
     }
 
     public static Result navi() {
-        return ok(codeNavi.render());
+//        return ok(codeNavi.render());
+    	return ok(index.render(null, null));
     }
 
 }

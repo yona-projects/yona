@@ -252,6 +252,13 @@ var nforge = {
 	},
 	
 	"require": function(sModuleName, htOptions){
+		if(sModuleName instanceof Array) {
+			sModuleName.forEach(function(sName){
+				$hive.loadModule(sName, htOptions);
+			});
+			return;
+		}
+		
 		$hive.loadModule(sModuleName, htOptions);
 	}
 };

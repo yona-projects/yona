@@ -66,39 +66,15 @@
         </form>
     </div>
 
-    <script type="text/javascript">nforge.require('milestone.manage');</script>
-    <style type="text/css">
-        @@IMPORT url(@getCSSLink("pikaday"));
-    </style>
-    <script src="@getJSLink("lib/moment.min")" type="text/javascript"></script>
-    <script src="@getJSLink("lib/pikaday")" type="text/javascript"></script>
-    
-    <script type="text/javascript">
-	$(document).ready(function(){
-		
-		// 날짜 선택 영역 설정 
-		// @@requires Pikaday (https://github.com/dbushell/Pikaday) 
-		(function(sInputId, sContainer){
-			var elInput = $(sInputId);
-			var elContainer = $(sContainer);
-			var sDateFormat = "YYYY-MM-DD";
-			
-			var oPicker = new Pikaday({
-				"format": sDateFormat,
-				"onSelect": function(oDate){
-					elInput.val(this.toString());
-				}
-			});
-			
-			elContainer.append(oPicker.el);
-			
-			elInput.attr("value", oPicker.getMoment().format(sDateFormat));
-			elInput.blur(function(){
-				oPicker.setDate(this.value);
-			});
-			
-		})("#dueDate", "#datepicker");
-		
+<link rel="stylesheet" type="text/css" href="@getCSSLink("pikaday")" />
+<script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/pikaday")"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$hive.loadModule("milestone.Write", {
+			"elDueDate"   : $("#dueDate"),
+			"elDatePicker": $("#datepicker")
+		});
 	});
 </script>
 }

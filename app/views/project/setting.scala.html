@@ -82,7 +82,7 @@
         <div class="cu-label">@Messages("project.delete")</div>
         <div class="cu-desc">
             <p><strong class="notice">@Messages("project.delete.description")</strong></p>
-            <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="agreement" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
+            <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="accept" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
                 <a id="deletion" data-toggle="modal" href="#alertDeletion" class="n-btn small black"><i class="ico ico-delete-small"></i>@Messages("project.delete.this")</a>
             </p>
         </div>
@@ -103,7 +103,11 @@
         <a href="@routes.ProjectApp.deleteProject(project.owner, project.name)" class="btn btn-danger">@Messages("button.yes")</a>
     </div>
 </div>
+
 <script type="text/javascript">
-	nforge.require(["project.logoCheck", "project.popovers", "project.nameCheck", "project.acceptCheck"], "deletion");
-</script>    
+	$(document).ready(function(){
+		$hive.loadModule("project.Setting");
+	});
+</script>
+
 }

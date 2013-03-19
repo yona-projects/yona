@@ -4,70 +4,83 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @project.projectMngMain(title, projectInst) {
-    @pageTitle(projectInst, "Milestone")
-    <div class="form-wrap milestone">
-        @helper.form(action=routes.MilestoneApp.editMilestone(projectInst.owner, projectInst.name, milestoneId), '_class->"nm"){
-            <div class="inner left">
-                <div class="n-alert hide" id="title_error">
-                    <div class="n-inner">
-                        <span class="msg">타이틀을 입력해주세요.</span>
-                        <a href="#!/close" class="ico btn-delete"></a>
-                    </div>
-                </div>
-                <label for="title">
-                    @helper.input(form("title")){(id, name, value, args) =>
-                    <input type="text" name="@name" id="@id" class="text" placeholder="새 마일스톤의 제목을 입력해주세요." value="@value">
-                    }
-                </label>
-                <div class="n-alert hide" id="contents_error">
-                    <div class="n-inner">
-                        <span class="msg">내용을 입력해주세요.</span>
-                        <a href="#!/close" class="ico btn-delete"></a>
-                    </div>
-                </div>
-                <label for="contents">
-                    @helper.input(form("contents")){(id, name, value, args) =>
-                    <textarea class="textarea" id="@id" name="@name" placeholder="내용을 입력해주세요.">@value</textarea>
-                    }
-                </label>
-                <div class="actions">
-                    <button type="submit" class="n-btn blue med btn-transparent save">SAVE</button>
-                    <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">CANCEL</a>
-                </div>
-            </div>
-            <div class="inner right">
-                <div class="cu-label">상태</div>
-                <div class="cu-desc">
-                    <input name="state" type="radio" @if(form("state").value.equals(State.OPEN.name)) { checked } class="radio-btn" value=@State.OPEN><label for="state" class="bg-radiobtn">Open</label>
-                    <input name="state" type="radio" @if(form("state").value.equals(State.CLOSED.name)) { checked } class="radio-btn" value=@State.CLOSED><label for="state" class="bg-radiobtn">Closed</label>
-                </div>
-                <hr/>
-                <p>완료일을 선택하세요.</p>
-                <div class="n-alert hide" id="dueDate_error">
-                    <div class="n-inner">
-                        <span class="msg">완료일을 입력해주세요.</span>
-                        <a href="#!/close" class="ico btn-delete"></a>
-                    </div>
-                </div>
-                <label for="dueDate">
-                    @helper.input(form("dueDate")){(id, name, value, args) =>
-                    <input type="text" name="@name" id="@id" class="validate due-date" value="@value">
-                    }
-                </label>
-            </div>
-        }
-    </div>
 
-    <script type="text/javascript">nforge.require('milestone.manage');</script>
-    <style>
-        @@IMPORT url(@getCSSLink("pikaday"));
-    </style>
-    <script src="@getJSLink("lib/moment.min")" type="text/javascript"></script>
-    <script src="@getJSLink("lib/pikaday")" type="text/javascript"></script>
-    <script>
-        var picker = new Pikaday({ 
-            field: document.getElementById('dueDate'), 
-            format: 'YYYY-MM-DD',
-        });
-    </script>
+@views.html.prjmenu(projectInst, utils.MenuType.PROJECT_SETTING, "")
+
+<div class="form-wrap milestone frm-wrap">
+	<form class="nm" action="@routes.MilestoneApp.editMilestone(projectInst.owner, projectInst.name, milestoneId)" method="post">
+	<div class="inner left">
+		<dl>
+			<dt>
+				<div class="n-alert hide" id="title_error">
+					<div class="n-inner">
+						<span class="msg">제목을 입력해주세요.</span>
+						<a href="#!/close" class="ico btn-delete"></a>
+					</div>
+				</div>
+				<label for="title">마일스톤 제목</label>
+			</dt>
+			<dd>
+				@helper.input(form("title")){(id, name, value, args) =>
+					<input type="text" name="@name" id="@id" class="text" value="@value">
+				}
+			</dd>
+	
+			<dt>
+				<div class="n-alert hide" id="contents_error">
+					<div class="n-inner">
+						<span class="msg">내용</span>
+						<a href="#!/close" class="ico btn-delete"></a>
+					</div>
+				</div>
+				<label for="contents">내용을 입력해주세요</label>
+			</dt>
+			<dd>
+				@helper.input(form("contents")){(id, name, value, args) =>
+				<textarea class="textarea" id="@id" name="@name">@value</textarea>
+				}
+			</dd>
+		</dl>
+
+		<div class="actions">
+			<button type="submit" class="n-btn orange med btn-transparent save">SAVE</button>
+			<a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">CANCEL</a>
+		</div>
+	</div>
+
+	<div class="inner right bubble-wrap dark-gray">
+		<p>마일스톤 상태</p>
+		<div>
+			<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">Open</label>&nbsp;
+			<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">Closed</label>
+		</div>
+		<hr/>
+		<p>완료일을 선택하세요</p>
+		<div class="n-alert hidden">
+			<div class="n-inner">
+				<span class="msg">완료일을 입력해주세요.</span>
+				<a href="#!/close" class="ico btn-delete"></a>
+			</div>
+		</div>
+		<label for="dueDate">
+			@helper.input(form("dueDate")){(id, name, value, args) =>
+			<input type="text" name="@name" id="@id" class="validate due-date" value="@value">
+			}
+		</label>
+		<div id="datepicker" class="date-picker"></div>
+	</div>
+	</form>
+</div>
+
+<link rel="stylesheet" type="text/css" href="@getCSSLink("pikaday")" />
+<script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/pikaday")"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$hive.loadModule("milestone.Write", {
+			"elDueDate"   : $("#dueDate"),
+			"elDatePicker": $("#datepicker")
+		});
+	});
+</script>
 }
