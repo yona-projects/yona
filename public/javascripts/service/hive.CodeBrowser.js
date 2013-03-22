@@ -28,6 +28,9 @@ hive.CodeBrowser = function(htOptions){
 		
 		// initialize folder tree
 		_initFinder();
+		
+		// initialize copy URL
+		_initCopyURL();
 	}
 	
 	/**
@@ -43,6 +46,10 @@ hive.CodeBrowser = function(htOptions){
 	 * initialize element
 	 */
 	function _initElement(htOptions){
+		// copy repository URL
+		htElement.welInputRepoURL = $("#repositoryURL");
+		htElement.welBtnCopyURL = $("#copyURL");
+		
 		// folder list (dynaTree)
 		htElement.welFolderList = $("#folderList");
 		
@@ -431,8 +438,7 @@ hive.CodeBrowser = function(htOptions){
 	/**
 	 * Traverse the path of selected tree item
 	 * 
-	 * @param {Object}
-	 *            oNode
+	 * @param {Object} oNode
 	 */
 	function _getTreePath(oNode){
 	    var sPath = "";
@@ -448,6 +454,7 @@ hive.CodeBrowser = function(htOptions){
 
 	/**
 	 * find TreeNode by path string
+	 * 
 	 * @param {String} sPath
 	 */
 	function _findTreeNode(sPath){
@@ -470,6 +477,20 @@ hive.CodeBrowser = function(htOptions){
 	    		}
 	    	}
 	    });
+	}
+
+	/**
+	 * Copy repository URL to clipBoard
+	 * 
+	 * @require ZeroClipboard
+	 */
+	function _initCopyURL(){
+		htElement.welBtnCopyURL.zclip({
+			"path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+			"copy": function(){
+				return htElement.welInputRepoURL.val();
+			}
+		});
 	}
 	
 	_init(htOptions || {});

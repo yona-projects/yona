@@ -23,7 +23,7 @@
 			_initElement(htOptions || {});
 			_attachEvent();
 			
-			console.log("board.List initialized");
+			_initPagination(htOptions);
 		}
 
 		/**
@@ -37,6 +37,7 @@
 			
 			htElement.welFilter = $(htOptions.sQueryFilter || "#order a");
 			htElement.welPages = $(htOptions.sQueryPages || "#pagination a"); 
+			htElement.welPagination = $(htOptions.elPagination || '#pagination');
 		}
 
 		/**
@@ -71,6 +72,11 @@
         	htElement.welInputPageNum.val($(this).attr("pageNum"));
         	htElement.welForm.submit();
             return false;
+        }
+        
+        
+        function _initPagination(htOptions){
+        	hive.Pagination.update(htElement.welPagination, htOptions.nTotalPages);
         }
         
         _init(htOptions);

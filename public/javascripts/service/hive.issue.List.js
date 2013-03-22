@@ -25,7 +25,7 @@
 			
 			_initLabel(htOptions.htOptLabel);
 			
-			_setPagination();
+			_initPagination();
 			_setLabelColor();
 		}
 		
@@ -115,8 +115,8 @@
 		 * update Pagination
 		 * @requires hive.Pagination
 		 */
-		function _setPagination(){
-			Pagination.update(htElement.welPagination, htVar.nTotalPages);
+		function _initPagination(){
+			hive.Pagination.update(htElement.welPagination, htVar.nTotalPages);
 		}
 		
 		/**
@@ -140,41 +140,3 @@
 	};
 	
 })("hive.issue.List");
-
-/*
-nforge.namespace('issue');
-nforge.issue.list = function() {
-	var that = {
-	    init: function() {
-	      var searchForm = $('form.form-search');
-
-	      $('.properties div.controls button').click(function(e) {
-	        var target = $(e.target || e.srcElement || e.originalTarget);
-	        if (target.hasClass('active')) {
-	          target.removeClass('active');
-	          return false;
-	        }
-	      });
-
-	      searchForm.submit(function() {
-	        var assigneeId = $('fieldset.properties button.active[assigneeId]')
-	          .attr('assigneeId');
-	        var milestoneId = $('fieldset.properties button.active[milestoneId]')
-	          .attr('milestoneId');
-
-	        if (assigneeId !== undefined) {
-	          searchForm.append(
-	            '<input type="hidden" name="assigneeId" value="' + assigneeId + '">');
-	        }
-
-	        if (milestoneId !== undefined) {
-	          searchForm.append(
-	            '<input type="hidden" name="milestone" value="' + milestoneId + '">');
-	        }
-	      });
-	    }
-	};
-
-	return that;
-}
-/**/

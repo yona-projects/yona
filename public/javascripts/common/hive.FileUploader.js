@@ -1,7 +1,12 @@
 /**
- * fileUploader.js
+ * @(#)hive.FileUploader 2013.03.21
+ *
+ * Copyright NHN Corporation.
+ * Released under the MIT license
+ * 
+ * http://hive.dev.naver.com/license
  */
-var fileUploader = (function() {
+hive.FileUploader = (function() {
 	
 	var htVar = {};
 	var htElements = {};
@@ -225,38 +230,22 @@ var fileUploader = (function() {
 	 * <textarea>에서 해당 파일의 링크 텍스트도 제거함 (_clearLinkInTextarea)
 	 */
 	function _deleteAttachedFile(welItem){	
-		/**/
 		var nFileSize = welItem.attr("data-size") * 1;
-		var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
-		welForm.attr('action', welItem.attr("data-href"));
-		welForm.append('<input type="hidden" name="_method" value="delete">');
-		welForm.appendTo(document.body);
-		welForm.ajaxForm({
-			"success" : function() {
+		
+		$hive.sendForm({
+			"sURL": welItem.attr("data-href"),
+			"htOptForm": {
+				"method" :"post",
+				"enctype":"multipart/form-data"
+			},
+			"htData" : {"_method":"delete"},
+			"fOnLoad": function(){
 				_updateTotalFilesize(nFileSize * -1);
 				_clearLinkInTextarea(welItem);
 				_setProgressBar(0);
-				welItem.remove();
+				welItem.remove();				
 			}
 		});
-		
-		try {
-			welForm.submit();
-		} finally {
-			welForm.remove();
-			welTextarea = welForm = null;
-		}
-		/**/
-		
-		// TODO: 아래와 같은 간단한 AJAX 호출 사용 검토
-		/*
-		var sActionURL = welItem.attr("data-href");
-		$.post(sActionURL, {"_method": "delete"}, function(){
-			welItem.remove();
-			_clearLinkInTextarea(sLink);
-			_setProgressBar(0);			
-		});
-		*/
 	}
 	
 	/**

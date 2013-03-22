@@ -52,7 +52,7 @@
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
-			fileUploader.init({
+			hive.FileUploader.init({
 			  	"elTarget"    : htElement.welTarget,
 			  	"elTextarea"  : htElement.welTextarea,
 			  	"sTplFileItem": htVar.sTplFileItem,
@@ -78,26 +78,3 @@
 	};
 	
 })("hive.issue.Write");
-
-/*
-nforge.namespace('issue');
-nforge.issue.new = function() {
-  var that;
-
-  that = {
-    init: function(filesUrl) {
-      //fileUploader($('#upload'), $('#body'), filesUrl);
-      fileUploader.init({
-      	"elTarget"    : $('#upload'),   // upload area
-      	"elTextarea"  : $('#body'), // textarea
-      	"sTplFileItem": $('#tplAttachedFile').text(),
-      	"sAction"     : filesUrl
-      });
-    }
-  }
-
-  return that;
-};
-
-nforge.issue.edit = nforge.issue.new;
-*/

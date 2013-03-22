@@ -8,14 +8,20 @@
             <form action="@routes.ProjectApp.newProject()" method="post" name="newproject" class="frm-wrap">
             	<dl>
             		<dt>
-            			<label for="name">새 프로젝트 이름을 입력해주세요</label>
+            			<div class="n-alert" data-errType="name">
+		                    <div class="n-inner orange">
+		                        <span class="msg">@Messages("project.wrongName")</span>
+		                        <a href="#!/close" class="ico btn-delete"></a>
+		                    </div>
+		                </div>
+            			<label for="project-name">새 프로젝트 이름을 입력해주세요</label>
             		</dt>
             		<dd>
             			<input id="project-name" type="text" name="name" class="text" placeholder="영문으로 공백없이 작성해 주세요" maxlength="250">
             		</dd>
             		
             		<dt>
-						<label for="overview">프로젝트 설명을 입력해주세요</label>
+						<label for="description">프로젝트 설명을 입력해주세요</label>
 					</dt>
 					<dd>
 						<textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
@@ -35,8 +41,8 @@
                         <div class="option-label">코드관리시스템</div>
                         <div class="option-desc">
                             <div class="btn-group">
-                                <button data-toggle="dropdown" class="btn" id="vcs_msg">Git</button>
-                                <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
+                                <button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="vcs_msg">Git</button>
+                                <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
                                 <ul class="dropdown-menu" id="vcs_dropdown">
                                     @RepositoryService.vcsTypes.map{ v =>
                                         <li><a href="#!/git" value="@v._1">@Messages(v._2)</a></li>
@@ -55,33 +61,36 @@
                             <h3>이용약관</h3>
                           </div>
                           <div class="modal-body">
-                            <pre>@agrements()</pre>
+                            <pre>@agreements()</pre>
                           </div>
                           <div class="modal-footer">
                             <a href="#" class="btn" data-dismiss="modal">Close</a>
                           </div>
                         </div>
                         <div class="option-desc">
+	                        <div class="n-alert" data-errType="accept">
+			                    <div class="n-inner orange">
+			                        <span class="msg">@Messages("project.new.agreement.alert")</span>
+			                        <a href="#!/close" class="ico btn-delete"></a>
+			                    </div>
+			                </div>
                             <input type="checkbox" class="stipulation checkbox checkbox-btn" autocomplete="off" id="stipulation" name="accept"><label for="stipulation" class="bg-checkbox label-agreement">본인은 약관에 대한 안내를 읽었으며 동의 합니다.</label>
                         </div>
                     </li>
                 </ul>
                 <div class="actions">
                     <button class="btn-transparent n-btn orange med">@Messages("project.create")</button>
-                    <a href="/" class="n-btn gray med cancel">CANCEL</a>
+                    <a href="/" class="n-btn gray med cancel">@Messages("button.cancel")</a>
                 </div>
             </form>
         </div>
     </div>
-    <script>
-    $("#vcs_dropdown li a").click(function(e){
-      var $target = $(this);
 
-      var data = $target.attr("value");
-      var msg = $target.text();
-      $("#vcs").attr("value",data);
-      $("#vcs_msg").text(msg);
+<script type="text/javascript">
+    $(document).ready(function(){
+    	$hive.loadModule("project.New", {
+    		"sFormName": "newproject"
+    	});
     });
-    nforge.require('validation.newProject', 'newproject');
-    </script>
+</script>
 }

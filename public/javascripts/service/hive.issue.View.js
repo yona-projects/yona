@@ -55,7 +55,7 @@
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
-			fileUploader.init({
+			hive.FileUploader.init({
 				"elTarget": htElement.welTarget,
 				"elTextarea": htElement.welTextarea,
 				"sTplFileItem": htVar.sTplFileItem,

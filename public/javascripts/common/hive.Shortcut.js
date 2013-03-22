@@ -1,79 +1,199 @@
-nforge.namespace('shortcut');
-
-// ctrl + enter to submit a form
-nforge.shortcut.submit = function () {
-  var that;
-
-  that = {
-    init : function () {
-      var eventHandler = function (event) {
-        if (event.ctrlKey && event.which == 13) {
-          $($(event.target).parents('form').get(0)).submit();
-        }
-      }
-
-      $('textarea').keydown(eventHandler);
-      $('input').keydown(eventHandler);
-    }
-  };
-
-  return that;
-};
-
-
-nforge.namespace('code');
-
-nforge.code.copy = function() {
-    return {
-        init: function() {
-            $('#copy-url').zclip({
-                path: '/assets/javascripts/ZeroClipboard.swf',
-                copy: function() {
-                    return $("#repo-url").attr('value');
-                }
-            });
-        }
-    }
-}
-
-/*
-(function(ns){
+/**
+ * @(#)hive.Shortcut 2013.03.21
+ *
+ * Copyright NHN Corporation.
+ * Released under the MIT license
+ * 
+ * http://hive.dev.naver.com/license
+ */
+hive.ShortcutKey = (function(htOptions){
 	
-	var oNS = $hive.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
+	var htVar = {};
+	var htHandlers = {};
 
-		_init(htOptions);
-	};
+	/**
+	 * initialize
+	 */
+	function _init(htOptions){
+		_initVar();
+		_attachEvent();
+	}
 	
-})("hive.Shortcut");
-*/
+	/**
+	 * initialize variables
+	 */
+	function _initVar(){
+		htVar.rxTrim = /\s+/g;
+		htVar.aCombinationKeys = ["CTRL", "ALT", "SHIFT"];
+		htVar.htKeycodeMap = {
+			'13':'ENTER', '38':'UP', '40':'DOWN', '37':'LEFT', '39':'RIGHT', '13':'ENTER', '27':'ESC',
+			'32':'SPACE', '8':'BACKSPACE', '9':'TAB', '46':'DELETE', '33':'PAGEUP', '34':'PAGEDOWN', '36':'HOME', '35':'END',
+			'65':'A', '66':'B', '67':'C', '68':'D', '69':'E', '70':'F', '71':'G', '72':'H', '73':'I', '74':'J', '75':'K', '76':'L', 
+			'77':'M', '78':'N', '79':'O', '80':'P', '81':'Q', '82':'R', '83':'S', '84':'T', '85':'U', '86':'V', '87':'W', '88':'X', 
+			'89':'Y', '90':'Z',	'48':'0', '49':'1', '50':'2', '51':'3', '52':'4', '53':'5', '54':'6', '55':'7', '56':'8', '57':'9',
+			'219':'[', '221':']', '186':';', '222':'\'', '188':',', '190':'.', '191':'/', '189':'-', '187':'=', '220':'\\', '192':'`',
+			'112':'F1', '113':'F2', '114':'F3', '115':'F4', '116':'F5', '117':'F6', '118':'F7', '119':'F8', '120':'F9', '121':'F10', '122':'F11', '123':'F12'
+		};
+	}
+	
+	/**
+	 * add event listener
+	 */
+	function _attachEvent(){
+		$(window).bind("keydown", _onKeyDown);
+		$(window).bind("beforeunload", destroy); // free memory
+	}
+	
+	function _detachEvent(){
+		$(window).unbind("keydown", _onKeyDown);
+		$(window).unbind("beforeunload", destroy);
+	}
+	
+	/**
+	 * global keyDown event handler
+	 */
+	function _onKeyDown(weEvt){
+		var sKeyInput = _getKeyString(weEvt);
+		var aHandlers = htHandlers[sKeyInput] || [];
+		
+		_runEventHandler(aHandlers, weEvt);
+	}
+	
+	function _runEventHandler(aHandlers, weEvt){
+		var htInfo = {
+			"weEvt"    : weEvt,
+			"welTarget": $(weEvt.target),
+			"sTagName" : weEvt.target.tagName
+		};
+		
+		try {
+			aHandlers.forEach(function(fHandler){
+				fHandler(htInfo);
+			});
+		}catch(e){} finally {
+			htInfo = null;
+		}
+	}
+	
+	/**
+	 * attach Shortcut Key Handler
+	 * @param {String} vKey keyCombiation String e.g. CTRL+ENTER
+	 * @param {String} fHandler handler function
+	 * or
+	 * @param {Hash Table} vKey {"keyCombination:function(){}, "key":function(){}} 
+	 */
+	function attachHandler(vKey, fHandler){
+		if(typeof vKey == "string"){
+			return _addHandler(vKey, fHandler);
+		}
+		
+		var fHandler;
+		for(var sKey in vKey){
+			fHandler = vKey[sKey];
+			_addHandler(sKey, fHandler);
+		}
+	}
+	
+	function _addHandler(sKey, fHandler){
+		sKey = _normalizeKeyString(sKey);
+		
+		if(!(htHandlers[sKey] instanceof Array)){
+			htHandlers[sKey] = [];
+		}
+		
+		htHandlers[sKey].push(fHandler);
+	}
 
-/*
-function shortcutKeys() {
-	this.keyNames={'32':'space', '8':'backspace', '9':'tab', '46':'delete', 
-			'65':'A','66':'B','67':'C','68':'D','69':'E','70':'F','71':'G','72':'H','73':'I','74':'J','75':'K','76':'L','77':'M',
-			'78':'N','79':'O','80':'P','81':'Q','82':'R','83':'S','84':'T','85':'U','86':'V','87':'W','88':'X','89':'Y','90':'Z',
-			'48':'0','49':'1','50':'2','51':'3','52':'4','53':'5','54':'6','55':'7','56':'8','57':'9',
-			'96':'0p','97':'1p','98':'2p','99':'3p','100':'4p','101':'5p','102':'6p','103':'7p','104':'8p','105':'9p',
-			'191':'/'
-	};
-	this.actions={};
-	this.set=function(key, action) {
-		this.actions[key] = action;
-	};
-	this.handler=function(event) {
-		if (event.altKey || event.ctrlKey)
-			return;
-		keyCode = event.keyCode || event.charCode;
-		target = event.target || event.srcElement;
-		switch (target.tagName) {
-		case "INPUT":
-		case "SELECT":
-		case "TEXTAREA":
+	/**
+	 * detach Shortcut Key Handler
+	 * @param {String} sKey
+	 * @param {String} fHandler
+	 */
+	function detachHandler(sKeyInput, fHandler){
+		var sKey = _normalizeKeyString(sKeyInput);
+		var aHandlers = htHandlers[sKey];
+		
+		if(aHandlers instanceof Array){
+			aHandlers.splice(aHandlers.indexOf(fHandler), 1);
+			htHandlers[sKey] = aHandlers;
+		}		
+	}
+
+	/**
+	 * generate key string from keyDown event
+	 * @param {Wrapped Event} weEvt
+	 */
+	function _getKeyString(weEvt){
+		var sMainKey = htVar.htKeycodeMap[weEvt.keyCode];
+		if(typeof sMainKey == "undefined"){ // ignore event if not on keyMap
 			return;
 		}
-		if (this.actions[this.keyNames[keyCode]] !== undefined)
-			eval(this.actions[this.keyNames[keyCode]]);
+		
+		// generate key combination
+		var aKeys = [];
+		var sKeyString = "";
+		
+		if(weEvt.altKey){
+			aKeys.push("ALT");
+		}
+
+		if(weEvt.ctrlKey){
+			aKeys.push("CTRL");
+		}
+		
+		if(weEvt.shiftKey){
+			aKeys.push("SHIFT");
+		}
+		
+		aKeys.push(sMainKey);
+		sKeyString = aKeys.join("+").toUpperCase();
+		
+		return sKeyString;
+	}
+	
+	/**
+	 * normalize Key String
+	 * @param {String} sKey
+	 */
+	function _normalizeKeyString(sKey){
+		sKey = sKey.toUpperCase() || "";
+		sKey = sKey.replace(htVar.rxTrim, '');
+		sKey = sKey.split("+").sort(function(v){
+			return -1 * (htVar.aCombinationKeys.indexOf(v));
+		}).join("+");
+		
+		return sKey;
+	}
+	
+	/**
+	 * Get Key Handlers. for debug.
+	 * @return {Hash Table}
+	 */
+	function getHandlers(){
+		return htHandlers;
+	}
+	
+	/**
+	 * destroy this
+	 */
+	function destroy(){
+		_detachEvent();
+		htHandlers = htVar = null;
+	}
+	
+	_init(htOptions);
+
+	// public interface
+	return {
+		"attach": attachHandler,
+		"detach": detachHandler,
+		"getHandlers": getHandlers
 	};
-};
-*/
+})();
+
+// Set CTRL+ENTER as submit form on INPUT/TEXTAREA 
+hive.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
+	if(htInfo.sTagName == "INPUT" || htInfo.sTagName == "TEXTAREA"){
+		$(htInfo.welTarget.parents("form").get(0)).submit();
+	}
+});

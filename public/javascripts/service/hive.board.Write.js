@@ -78,7 +78,7 @@
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
-			fileUploader.init({
+			hive.FileUploader.init({
 			  	"elTarget"    : htElement.welTarget,
 			  	"elTextarea"  : htElement.welTextarea,
 			  	"sTplFileItem": htVar.sTplFileItem,
@@ -90,59 +90,3 @@
 	};
 	
 })("hive.board.Write");
-
-
-/*
-nforge.namespace("board");
-nforge.board.new = function() {
-	var that = {
-		"init": function(filesUrl) {
-            fileUploader.init({
-            	"elTarget"    : $('#upload'),   // upload area
-            	"elTextarea"  : $('#contents'), // textarea
-            	"sTplFileItem": $('#tplAttachedFile').text(),
-            	"sAction"     : filesUrl
-            });
-		}
-	};
-
-	return that;
-};
-
-// nforge.issue.new
-nforge.board.edit = function() {
-  var that;
-
-  that = {
-    init: function(filesUrl) {
-      // fileUploader($('#upload'), $('#body'), filesUrl);
-  fileUploader.init({
-  	"elTarget"    : $('#upload'),   // upload area
-  	"elTextarea"  : $('#body'), // textarea
-  	"sTplFileItem": $('#tplAttachedFile').text(),
-  	"sAction"     : filesUrl
-      });
-    }
-  }
-
-  return that;
-};
-
-nforge.board.vaildate = function() {
-var that = {
-    "init" : function() {
-        $("form").submit(function() {
-            if ($("input#title").val() === "" || $("textarea#contents").val() === "") {
-                $("#warning button").click(function(){
-                    $('#warning').hide();
-                });
-                $('#warning').show();
-                return false;
-            }
-            return true;
-        });
-    }
-};
-return that;
-};
-*/

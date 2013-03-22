@@ -49,7 +49,7 @@
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
-			fileUploader.init({
+			hive.FileUploader.init({
 				"elTarget": htElement.welTarget,
 				"elTextarea": htElement.welTextarea,
 				"sTplFileItem": htVar.sTplFileItem,
@@ -61,8 +61,8 @@
 		 * initialize fileDownloader
 		 */
 		function _initFileDownloader(){
-			htElement.welAttachments.each(function(el){
-				fileDownloader(el, htVar.sAction);
+			htElement.welAttachments.each(function(n, el){
+				fileDownloader($(el), htVar.sAction);
 			});
 		}
         
@@ -70,35 +70,3 @@
 	};
 	
 })("hive.board.View");
-
-nforge.namespace("board");
-nforge.board.view = {
-	"init": function(){
-		hive.board.View();
-	}
-};
-
-/*
-nforge.namespace("board");
-nforge.board.view = function() {
-    var that = {
-        "init" : function(filesUrl) {
-            var attachments;
-
-            fileUploader.init({
-            	"elTarget"    : $('#upload'),   // upload area
-            	"elTextarea"  : $('#contents'), // textarea
-            	"sTplFileItem": $('#tplAttachedFile').text(),
-            	"sAction"     : filesUrl
-            });
-            
-            attachments = $('.attachments');
-            for (var i = 0, nLength = attachments.length; i < nLength; i++) {
-                fileDownloader($(attachments[i]), filesUrl);
-            }
-        }
-    }
-
-    return that;
-};
-*/

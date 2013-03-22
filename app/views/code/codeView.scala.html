@@ -17,8 +17,8 @@
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
 			<span class="clone-label"><strong class="@project.vcs">Subversion</strong>@Messages("code.repoUrl")</span><!-- 
-			 --><input type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
-             --><a href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
+             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
 			<div class="btn-group">
 				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch"></button>
 				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
@@ -63,6 +63,7 @@
 						</tr>
 					</thead>
 					<tbody class="tbody">
+					<!-- 
 						<tr>
 							<td class="filename"><a href="/html/code-file.html?filenema=gitignore">.gitignore</a></td>
 							<td class="messages"><a href="/html/code-commit.html?id=xxxx">fix bug</a></td>
@@ -71,6 +72,7 @@
 								<a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32"></a>
 							</td>
 						</tr>
+					 -->
 					</tbody>
 				</table>
 			</div>

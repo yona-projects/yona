@@ -1,172 +1,175 @@
+/**
+ * @(#)hive.Pagination 2013.03.21
+ *
+ * Copyright NHN Corporation.
+ * Released under the MIT license
+ * 
+ * http://hive.dev.naver.com/license
+ */
 // Render pagination in the given target HTML element.
-//
 // Usage: Pagiation.updatePagination(target, totalPages);
-//
 // For more details, see docs/technical/pagination.md
+/**
+ * TODO: 무한 스크롤 구현을 할 게 아니라면
+ * 굳이 페이징 링크를 굳이 동적으로 만들어야 할까? 개선 검토 필요
+ */
+hive.Pagination = (function(window, document) {
+	
+	var htRegEx = {};
+	
+	/**
+	 * getQuery
+	 * @param {String} url
+	 */
+	function getQuery(url){
+		var parser = document.createElement('a');
+			parser.href = url;
+			
+		return parser.search;
+	}
 
-(function(window, document) {
-  var getQuery = function(url) {
-     var parser = document.createElement('a');
-     parser.href = url;
-     return parser.search;
-  };
+	/**
+	 * valueFromQuery
+	 * @param {String} key
+	 * @param {String} query
+	 */
+	function valueFromQuery(key, query) {
+		htRegEx[key] = htRegEx[key] || new RegExp('(^|&|\\?)' + key + '=([^&]+)'); 
+		var result = htRegEx[key].exec(query);
 
-  var valueFromQuery = function(key, query) {
-    var regex = new RegExp('(^|&|\\?)' + key + '=([^&]+)');
-    var result = regex.exec(query);
+		return (result) ? result[2]: null;
+	}
 
-    if (result) {
-        return result[2];
-    } else {
-        return null;
-    }
-  };
+	/**
+	 * urlWithQuery
+	 * @param {String} url
+	 * @param {String} query
+	 */
+	function urlWithQuery(url, query) {
+		var parser = document.createElement('a');
+			parser.href = url;
+			parser.search = '?' + query;
+			
+		return parser.href;
+	}
 
-  var urlWithQuery = function(url, query) {
-     var parser = document.createElement('a');
-     parser.href = url;
-     parser.search = '?' + query;
-     return parser.href;
-  };
+	/**
+	 * urlWithPageNum
+	 * @param {String} url
+	 * @param {Number} pageNum
+	 * @param {String} paramNameForPage
+	 */
+	function urlWithPageNum(url, pageNum, paramNameForPage) {
+		var query = getQuery(url);
+		var regex = new RegExp('(^|&|\\?)' + paramNameForPage + '=[^&]+');
+		var result = regex.exec(query);
+		query = query.replace(regex, result[1] + paramNameForPage + '=' + pageNum);
+		
+		return urlWithQuery(url, query);
+	}
 
-  var urlWithPageNum = function(url, pageNum, paramNameForPage) {
-    var query = getQuery(url);
-    var regex = new RegExp('(^|&|\\?)' + paramNameForPage + '=[^&]+');
-    var result = regex.exec(query);
-    query = query.replace(regex, result[1] + paramNameForPage + '=' + pageNum);
+	/**
+	 * validateOptions
+	 */
+	function validateOptions(options) {
+		if (!Number.isFinite(options.current)) {
+			throw new Error("options.current is not valid: " + options.current);
+		}
+	}
 
-    return urlWithQuery(url, query);
-  };
+	/**
+	 * window.updatePagination
+	 */
+	window.updatePagination = function(target, totalPages, options) {
+		if (totalPages <= 0){
+			return;
+		}
 
-  var validateOptions = function(options) {
-    if (!Number.isFinite(options.current)) {
-      throw new Error("options.current is not valid: " + options.current);
-    }
-  };
+		var target = $(target);
+		var linkToPrev, linkToNext, urlToPrevPage, urlToNextPage;
+		var options = options || {};
+		
+		options.url = options.url || document.URL;
+		options.firstPage = options.firstPage || 1;
+		options.hasPrev = (typeof options.hasPrev == "undefined") ? options.current > options.firstPage : options.hasPrev;
+		options.hasNext = (typeof options.hasNext == "undefined") ? options.current < totalPages : options.hasNext;
 
-  window.updatePagination = function(target, totalPages, options) {
-    var target = $(target);
-    var linkToPrev, linkToNext, urlToPrevPage, urlToNextPage;
-    var ul, prev, inputBox, delimiter, total, next, query;
-    var keydownOnInput;
-    var paramNameForPage;
-    var pageNumFromUrl;
+		var paramNameForPage = options.paramNameForPage || 'pageNum';
+		var pageNumFromUrl;
 
-    if (totalPages <= 0) return;
+		if (!Number.isFinite(options.current)) {
+			query = getQuery(options.url);
+			pageNumFromUrl  = parseInt(valueFromQuery(paramNameForPage, query));
+			options.current = pageNumFromUrl || options.firstPage;
+		}
 
-    if (options == undefined) options = {};
-    if (options.url == undefined) options.url = document.URL;
-    if (options.firstPage == undefined) options.firstPage = 1;
+		validateOptions(options);
 
-    paramNameForPage = options.paramNameForPage || 'pageNum';
+		target.html('');
+		target.addClass('page-navigation-wrap');
 
-    if (!Number.isFinite(options.current)) {
-        query = getQuery(options.url);
-        pageNumFromUrl = parseInt(valueFromQuery(paramNameForPage, query));
-        options.current = pageNumFromUrl || options.firstPage;
-    }
+		// previous page exists
+		var welPagePrev;
+		if (options.hasPrev) {
+			linkToPrev = $('<a>').append($('<i class="ico btn-pg-prev">')).append($('<span>').text('PREV'));
 
-    if (options.hasPrev == undefined) {
-        options.hasPrev = options.current > options.firstPage;
-    }
+			if (typeof (options.submit) == 'function') {
+				linkToPrev.attr('href', 'javascript: void(0);').click(function(e) {
+						options.submit(options.current - 1);
+				});
+			} else {
+				urlToPrevPage = urlWithPageNum(options.url, options.current - 1, paramNameForPage);
+				linkToPrev.attr('href', urlToPrevPage);
+			}
 
-    if (options.hasNext == undefined) {
-        options.hasNext = options.current < totalPages;
-    }
+			welPagePrev = $('<li class="page-num ikon">').append(linkToPrev);
+		} else {
+			welPagePrev = $('<li class="page-num ikon">').append($('<i class="ico btn-pg-prev off">')).append($('<span class="off">').text('PREV'));
+		}
 
-    validateOptions(options);
+		// on submit event handler
+		if (typeof (options.submit) == 'function') {
+			var keydownOnInput = function(e) {
+				options.submit($(target).val());
+			};
+		} else {
+			var keydownOnInput = function(e) {
+				var target = e.target || e.srcElement;
+				if (e.which == 13) {
+					document.location.href = urlWithPageNum(options.url, $(target).val(), paramNameForPage);
+				}
+			}
+		}
 
-    target.html('');
+		// page input box
+		var elInput = $('<input name="pageNum" type="number" min="1" max="' + totalPages + '" class="input-mini" value="' + options.current + '">').keydown(keydownOnInput);
+		var welPageInputContainer = $('<li class="page-num">').append(elInput);
+		var welDelimiter = $('<li class="page-num">').text('/');
+		var welTotalPages = $('<li class="page-num">').text(totalPages);
 
-    target.addClass('page-navigation-wrap');
+		// next page exists
+		var welPageNext;
+		if (options.hasNext) {
+			linkToNext = $('<a>').append($('<span>').text('NEXT')).append($('<i class="ico btn-pg-next">'));
 
-    if (options.hasPrev) {
-      linkToPrev = $('<a>')
-          .append($('<i>').addClass('ico').addClass('btn-pg-prev'))
-          .append($('<span>').text('PREV'));
+			if (typeof (options.submit) == 'function') {
+				linkToNext.attr('href', 'javascript: void(0);').click(function(e) { options.submit(options.current + 1);});
+			} else {
+				urlToNextPage = urlWithPageNum(options.url, options.current + 1, paramNameForPage);
+				linkToNext.attr('href', urlToNextPage);
+			}
 
-      if (typeof(options.submit) == 'function') {
-        linkToPrev
-            .attr('href', 'javascript: void(0);')
-            .click(function(e) { options.submit(options.current - 1); });
-      } else {
-        urlToPrevPage = urlWithPageNum(options.url, options.current - 1, paramNameForPage);
-        linkToPrev.attr('href', urlToPrevPage);
-      }
+			welPageNext = $('<li class="page-num ikon">').append(linkToNext);
+		} else {
+			welPageNext = $('<li class="page-num ikon">').append($('<i class="ico btn-pg-next off">')).append($('<span class="off">').text('NEXT'));
+		}
 
-      prev = $('<li>')
-          .addClass('page-num')
-          .addClass('ikon')
-          .append(linkToPrev);
-    } else {
-      prev = $('<li>')
-          .addClass('page-num')
-          .addClass('ikon')
-          .append($('<i>').addClass('ico').addClass('btn-pg-prev').addClass('off'))
-          .append($('<span>').text('PREV').addClass('off'));
-    }
+		// fill #pagination
+		var welPageList = $('<ul class="page-nums">').append([welPagePrev, welPageInputContainer, welDelimiter, welTotalPages, welPageNext]);
+		target.append(welPageList);
+	};
 
-    if (typeof(options.submit) == 'function') {
-      keydownOnInput = function(e) { options.submit($(target).val()); };
-    } else {
-      keydownOnInput = function(e) {
-        var target = e.target || e.srcElement;
-        if (e.which == 13) {
-          location.href = urlWithPageNum(options.url, $(target).val(), paramNameForPage);
-        }
-      }
-    }
-
-    inputBox = $('<li>').addClass('page-num')
-        .append($('<input>')
-                .attr('name', 'pageNum')
-                .attr('type', 'number')
-                .attr('min', '1')
-                .attr('max', totalPages)
-                .addClass('input-mini')
-                .val(options.current)
-                .keydown(keydownOnInput));
-    delimiter = $('<li>').addClass('page-num').text('/');
-    total = $('<li>').addClass('page-num').text(totalPages);
-
-    if (options.hasNext) {
-      linkToNext = $('<a>')
-          .append($('<span>').text('NEXT'))
-          .append($('<i>').addClass('ico').addClass('btn-pg-next'));
-
-      if (typeof(options.submit) == 'function') {
-        linkToNext
-            .attr('href', 'javascript: void(0);')
-            .click(function(e) { options.submit(options.current + 1); });
-      } else {
-        urlToNextPage = urlWithPageNum(options.url, options.current + 1, paramNameForPage);
-        linkToNext.attr('href', urlToNextPage);
-      }
-
-      next = $('<li>')
-          .addClass('page-num')
-          .addClass('ikon')
-          .append(linkToNext);
-    } else {
-      next = $('<li>')
-          .addClass('page-num')
-          .addClass('ikon')
-          .append($('<i>').addClass('ico').addClass('btn-pg-next').addClass('off'))
-          .append($('<span>').text('NEXT').addClass('off'));
-    }
-
-    ul = $('<ul>')
-        .addClass('page-nums')
-        .append(prev)
-        .append(inputBox)
-        .append(delimiter)
-        .append(total)
-        .append(next);
-
-    target.append(ul);
-  };
-
-  window.Pagination = {
-    update: updatePagination
-  }
+	return {
+		"update" : updatePagination
+	};
 })(window, document);
