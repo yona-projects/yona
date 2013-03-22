@@ -57,6 +57,16 @@
          * ...
          * ...
          */
+
+        /**
+         * destroy this module
+         */
+        function destroy(){
+        	// detachEvent() if available
+        	
+        	// free memory
+        	htVar = htElements = null;
+        }
         
         _init();
 	};
