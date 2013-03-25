@@ -269,6 +269,10 @@ public class IssueApp extends AbstractPostingApp {
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
 
+        if (commentForm.hasErrors()) {
+            return badRequest(commentForm.errors().toString());
+        }
+
         final IssueComment comment = commentForm.get();
 
         return newComment(comment, commentForm, redirectTo, new Callback() {
