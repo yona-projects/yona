@@ -19,28 +19,32 @@ public class Global extends GlobalSettings {
 
     private static void insertDefaults() {
         if (Ebean.find(User.class).findRowCount() == 0) {
+            String initFileName = "initial-data.yml";
+
             @SuppressWarnings("unchecked")
             Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
-                    .load("initial-data.yml");
+                    .load(initFileName);
 
-            Ebean.save(all.get("users"));
-            Ebean.save(all.get("projects"));
-            Ebean.save(all.get("milestones"));
-            Ebean.save(all.get("issues"));
-            Ebean.save(all.get("issueComments"));
-            Ebean.save(all.get("posts"));
-            Ebean.save(all.get("comments"));
+            String[] entityNames = {
+                "users", "projects", "milestones",
+                "issues", "issueComments",
+                "postings", "postingComments",
+                "roles", "projectUsers",
+                "taskBoards", "lines", "cards", "labels", "checkLists",
+                "siteAdmins"
+            };
 
-            Ebean.save(all.get("roles"));
-            Ebean.save(all.get("projectUsers"));
+            // Check whether every entities exist.
+            for (String entityName : entityNames) {
+                if (all.get(entityName) == null) {
+                    throw new RuntimeException("Failed to find the '" + entityName
+                            + "' entity in '" + initFileName + "'");
+                }
+            }
 
-            Ebean.save(all.get("taskBoards"));
-            Ebean.save(all.get("lines"));
-            Ebean.save(all.get("cards"));
-            Ebean.save(all.get("labels"));
-            Ebean.save(all.get("checkLists"));
-
-            Ebean.save(all.get("siteAdmins"));
+            for (String entityName : entityNames) {
+                Ebean.save(all.get(entityName));
+            }
         }
     }
     

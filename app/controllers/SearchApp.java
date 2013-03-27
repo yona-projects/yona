@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.avaje.ebean.*;
 import models.*;
 import play.mvc.*;
+
 import views.html.search.*;
 
 import static play.data.Form.form;
@@ -35,31 +36,32 @@ public class SearchApp extends Controller {
 		/* @TODO 쿼리에 대해서 특수문자나 공백 체크 해야함. */
         ContentSearchCondition condition = form(ContentSearchCondition.class).bindFromRequest().get();
 
+        // Get pageNum from Range request header.
         String range = request().getHeader("Range");
         if (range != null) {
-            String regex = "pages=(.*)";
+            String regex = "pages\\s*=\\s*(.*)";
             Pattern pattern = Pattern.compile(regex);
             Matcher match = pattern.matcher(range);
             if (match.matches()) {
-                int pageNum = Integer.parseInt(match.group(1));
+                int pageNum = Integer.parseInt(match.group(1).trim());
                 if (condition.page != 0 && condition.page != pageNum) {
-                    play.Logger.warn("Conflict error: condition.page values from query string and from Range header are different.");
+                    play.Logger.warn("Conflict error: condition.page values from query string and from Range header differ from each other.");
                 }
                 condition.page = pageNum;
             }
         }
 
         Page<Issue> resultIssues = null;
-        Page<Post> resultPosts = null;
+        Page<Posting> resultPosts = null;
 
         if(!condition.type.equals("post")) {
-            resultIssues = Issue.find(project, condition);
+            resultIssues = AbstractPosting.find(Issue.finder, project, condition);
         }
         if(!condition.type.equals("issue")) {
-            resultPosts = Post.find(project, condition);
+            resultPosts = AbstractPosting.find(Posting.finder, project, condition);
         }
 
-        response().setHeader("Accept-Range", "pages");
+        response().setHeader("Accept-Ranges", "pages");
 
         if (condition.type.equals("post")) {
             response().setHeader(

@@ -1,17 +1,14 @@
 package controllers;
 
 import models.Project;
-import org.apache.commons.lang.StringUtils;
+import models.enumeration.Operation;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.tmatesoft.svn.core.SVNException;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
-import utils.Config;
-import play.Logger;
+import utils.AccessControl;
 import views.html.code.codeView;
 import views.html.code.nohead;
 
@@ -24,6 +21,10 @@ public class CodeApp extends Controller {
 	public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return status(501, project.vcs + " is not supported!");

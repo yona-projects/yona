@@ -4,46 +4,107 @@
 
 package controllers;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-
-import models.enumeration.ResourceType;
-
-import jxl.write.WriteException;
-
-import models.Assignee;
-import models.Attachment;
-import models.Issue;
-import models.IssueComment;
-import models.IssueLabel;
-import models.Project;
-import models.enumeration.Direction;
-import models.enumeration.Operation;
-import models.enumeration.State;
+import models.*;
+import models.enumeration.*;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
-import models.support.SearchCondition;
+import models.support.SearchParams;
 
-import org.apache.tika.Tika;
-
-import play.data.Form;
-import play.mvc.Controller;
-import play.mvc.Result;
-import utils.AccessControl;
-import utils.Constants;
-import utils.HttpUtil;
-import utils.JodaDateUtil;
+import play.mvc.Http;
 import views.html.issue.editIssue;
 import views.html.issue.issue;
 import views.html.issue.issueList;
 import views.html.issue.newIssue;
 import views.html.issue.notExistingPage;
 
+import utils.AccessControl;
+import utils.Callback;
+import utils.JodaDateUtil;
+import utils.HttpUtil;
+
+import play.data.Form;
+import play.mvc.Call;
+import play.mvc.Result;
+
+import jxl.write.WriteException;
+import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 
-public class IssueApp extends Controller {
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+public class IssueApp extends AbstractPostingApp {
+    public static class SearchCondition extends AbstractPostingApp.SearchCondition {
+        public String state;
+        public Boolean commentedCheck;
+        public Long milestoneId;
+        public Set<Long> labelIds;
+        public String authorLoginId;
+        public Long assigneeId;
+
+        public SearchCondition() {
+            super();
+            milestoneId = null;
+            state = State.OPEN.name();
+            commentedCheck = false;
+        }
+        public OrderParams getOrderParams() {
+            return new OrderParams().add(orderBy, Direction.getValue(orderDir));
+        }
+
+        public SearchParams getSearchParam(Project project) {
+            SearchParams searchParams = new SearchParams();
+
+            searchParams.add("project.id", project.id, Matching.EQUALS);
+
+            if (authorLoginId != null && !authorLoginId.isEmpty()) {
+                User user = User.findByLoginId(authorLoginId);
+                if (user != null) {
+                    searchParams.add("authorId", user.id, Matching.EQUALS);
+                } else {
+                    List<Long> ids = new ArrayList<Long>();
+                    for (User u : User.find.where().contains("loginId", authorLoginId).findList()) {
+                        ids.add(u.id);
+                    }
+                    searchParams.add("authorId", ids, Matching.IN);
+                }
+            }
+
+            if (assigneeId != null) {
+                searchParams.add("assignee.user.id", assigneeId, Matching.EQUALS);
+                searchParams.add("assignee.project.id", project.id, Matching.EQUALS);
+            }
+
+            if (filter != null && !filter.isEmpty()) {
+                searchParams.add("title", filter, Matching.CONTAINS);
+            }
+
+            if (milestoneId != null) {
+                searchParams.add("milestone.id", milestoneId, Matching.EQUALS);
+            }
+
+            if (labelIds != null) {
+                for (Long labelId : labelIds) {
+                    searchParams.add("labels.id", labelId, Matching.EQUALS);
+                }
+            }
+
+            if (commentedCheck) {
+                searchParams.add("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS, Matching.GE);
+            }
+
+            State st = State.getValue(state);
+            if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
+                searchParams.add("state", st, Matching.EQUALS);
+            }
+
+            return searchParams;
+        }
+    }
 
     /**
      * 페이지 처리된 이슈들의 리스트를 보여준다.
@@ -65,8 +126,6 @@ public class IssueApp extends Controller {
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        OrderParams orderParams = new OrderParams().add(issueParam.sortBy,
-                Direction.getValue(issueParam.orderBy));
         issueParam.state = state;
         issueParam.pageNum = pageNum - 1;
 
@@ -78,19 +137,20 @@ public class IssueApp extends Controller {
         }
 
         if (format.equals("xls")) {
-            return issuesAsExcel(issueParam, orderParams, project, state);
+            return issuesAsExcel(issueParam, issueParam.getOrderParams(), project, state);
         } else {
-            Page<Issue> issues = FinderTemplate.getPage(orderParams, issueParam.asSearchParam(project),
-                Issue.finder, Issue.ISSUE_COUNT_PER_PAGE, issueParam.pageNum);
+            Page<Issue> issues = FinderTemplate.getPage(
+                issueParam.getOrderParams(), issueParam.getSearchParam(project),
+                Issue.finder, ITEMS_PER_PAGE, issueParam.pageNum);
             return ok(issueList.render("title.issueList", issues, issueParam, project));
         }
     }
 
     public static Result issuesAsExcel(SearchCondition issueParam, OrderParams orderParams, Project project,
             String state) throws WriteException, IOException, UnsupportedEncodingException {
-        List<Issue> issues = FinderTemplate.findBy(orderParams, issueParam.asSearchParam(project), Issue.finder);
+        List<Issue> issues = FinderTemplate.findBy(orderParams, issueParam.getSearchParam(project), Issue.finder);
         File excelFile = Issue.excelSave(issues, project.name + "_" + state + "_filter_"
-                + issueParam.filter + "_milestone_" + issueParam.milestone);
+                + issueParam.filter + "_milestone_" + issueParam.milestoneId);
 
         String filename = HttpUtil.encodeContentDisposition(excelFile.getName());
 
@@ -103,15 +163,20 @@ public class IssueApp extends Controller {
 
     public static Result issue(String userName, String projectName, Long issueId) {
         Project project = ProjectApp.getProject(userName, projectName);
-        Issue issueInfo = Issue.findById(issueId);
+        Issue issueInfo = Issue.finder.byId(issueId);
+
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.ISSUE_POST)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         if (issueInfo == null) {
             return ok(notExistingPage.render("title.post.notExistingPage", project));
         } else {
             for (IssueLabel label: issueInfo.labels) {
               label.refresh();
             }
-            Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class);
-            Issue targetIssue = Issue.findById(issueId);
+            Form<Comment> commentForm = new Form<Comment>(Comment.class);
+            Issue targetIssue = Issue.finder.byId(issueId);
             Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
             return ok(issue.render("title.issueDetail", issueInfo, editForm, commentForm, project));
         }
@@ -119,11 +184,8 @@ public class IssueApp extends Controller {
 
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if (UserApp.currentUser() == UserApp.anonymous) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
-        return ok(newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
+        return newPostingForm(
+                project, newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
     public static Result newIssue(String ownerName, String projectName) throws IOException {
@@ -134,35 +196,24 @@ public class IssueApp extends Controller {
         } else {
             Issue newIssue = issueForm.get();
             newIssue.date = JodaDateUtil.now();
-            newIssue.authorId = UserApp.currentUser().id;
-            newIssue.authorLoginId = UserApp.currentUser().loginId;
-            newIssue.authorName = UserApp.currentUser().name;
+            newIssue.setAuthor(UserApp.currentUser());
             newIssue.project = project;
-            newIssue.state = State.OPEN;
-            if (newIssue.assignee.user.id != null) {
-                newIssue.assignee = Assignee.add(newIssue.assignee.user.id, project.id);
-            } else {
-                newIssue.assignee = null;
-            }
-            String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded()
-                    .get("labelIds");
-            if (labelIds != null) {
-                for (String labelId : labelIds) {
-                    newIssue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
-                }
-            }
 
-            Long issueId = Issue.create(newIssue);
+            newIssue.state = State.OPEN;
+            addLabels(newIssue.labels, request());
+
+            newIssue.save();
 
             // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.ISSUE_POST, issueId);
+            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.ISSUE_POST, newIssue.id);
         }
+
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 State.OPEN.state(), "html", 1));
     }
 
     public static Result editIssueForm(String userName, String projectName, Long id) {
-        Issue targetIssue = Issue.findById(id);
+        Issue targetIssue = Issue.finder.byId(id);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), targetIssue.asResource(), Operation.UPDATE)) {
@@ -172,86 +223,72 @@ public class IssueApp extends Controller {
         return ok(editIssue.render("title.editIssue", editForm, targetIssue, project));
     }
 
-    public static Result editIssue(String userName, String projectName, Long id) throws IOException {
-        Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
-
-        if (issueForm.hasErrors()) {
-            return badRequest(issueForm.errors().toString());
-        }
-
-        Issue issue = issueForm.get();
-        Issue originalIssue = Issue.findById(id);
-
-        issue.id = id;
-        issue.date = originalIssue.date;
-        issue.authorId = originalIssue.authorId;
-        issue.authorLoginId = originalIssue.authorLoginId;
-        issue.authorName = originalIssue.authorName;
-        issue.project = originalIssue.project;
-        if (issue.assignee.user.id != null) {
-            issue.assignee = Assignee.add(issue.assignee.user.id, originalIssue.project.id);
-        } else {
-            issue.assignee = null;
-        }
-        String[] labelIds = request().body().asMultipartFormData().asFormUrlEncoded()
+    public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
+        String[] labelIds = request.body().asMultipartFormData().asFormUrlEncoded()
                 .get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                issue.labels.add(IssueLabel.findById(Long.parseLong(labelId)));
+                labels.add(IssueLabel.findById(Long.parseLong(labelId)));
             }
         }
+    };
 
-        Issue.edit(issue);
+    public static Result editIssue(String userName, String projectName, Long id) throws IOException {
+        Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
+        final Issue issue = issueForm.get();
+        final Issue originalIssue = Issue.finder.byId(id);
+        final Project project = originalIssue.project;
+        Call redirectTo =
+                routes.IssueApp.issues(project.owner, project.name, State.OPEN.name(), "html", 1);
 
-        // Attach the files in the current user's temporary storage.
-        Attachment.attachFiles(UserApp.currentUser().id, originalIssue.project.id, ResourceType.ISSUE_POST, id);
+        // updateIssueBeforeSave.run would be called just before this issue is saved.
+        // It updates some properties only for issues, such as assignee or labels, but not for non-issues.
+        Callback updateIssueBeforeSave = new Callback() {
+            @Override
+            public void run() {
+                issue.project = project;
+                addLabels(issue.labels, request());
+            }
+        };
 
-        return redirect(routes.IssueApp.issues(originalIssue.project.owner, originalIssue.project.name, State.OPEN.name(), "html", 1));
+        return editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Issue issue = Issue.finder.byId(issueId);
+        Project project = issue.project;
 
-        Issue.delete(issueId);
-        Attachment.deleteAll(ResourceType.ISSUE_POST, issueId);
-        return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.OPEN.state(), "html", 1));
+        return deletePosting(issue, routes.IssueApp.issues(project.owner, project.name,
+                    State.OPEN.state(), "html", 1));
     }
 
     public static Result newComment(String userName, String projectName, Long issueId) throws IOException {
+        final Issue issue = Issue.finder.byId(issueId);
+        Project project = issue.project;
+        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, issueId);
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
-        if (session(UserApp.SESSION_USERID) == null){
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
-        }
+
         if (commentForm.hasErrors()) {
-            flash(Constants.WARNING, "board.comment.empty");
-            return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
-        } else {
-            IssueComment comment = commentForm.get();
-            comment.issue = Issue.findById(issueId);
-            comment.authorId = UserApp.currentUser().id;
-            comment.authorLoginId = UserApp.currentUser().loginId;
-            comment.authorName = UserApp.currentUser().name;
-            Long commentId = IssueComment.create(comment);
-            Issue.updateNumOfComments(issueId);
-
-            // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, project.id, ResourceType.ISSUE_COMMENT, commentId);
-
-            return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
+            return badRequest(commentForm.errors().toString());
         }
+
+        final IssueComment comment = commentForm.get();
+
+        return newComment(comment, commentForm, redirectTo, new Callback() {
+            @Override
+            public void run() {
+                comment.issue = issue;
+            }
+        });
     }
 
     public static Result deleteComment(String userName, String projectName, Long issueId,
             Long commentId) {
-        Project project = ProjectApp.getProject(userName, projectName);
-        IssueComment.delete(commentId);
-        Issue.updateNumOfComments(issueId);
-        Attachment.deleteAll(ResourceType.ISSUE_COMMENT, commentId);
-        return redirect(routes.IssueApp.issue(project.owner, project.name, issueId));
-    }
+        Comment comment = IssueComment.find.byId(commentId);
+        Project project = comment.asResource().getProject();
 
+        return deleteComment(comment,
+                routes.IssueApp.issue(project.owner, project.name, comment.getParent().id));
+    }
 }

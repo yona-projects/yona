@@ -115,7 +115,7 @@ public class MilestoneApp extends Controller {
         if(!project.id.equals(Milestone.findById(id).project.id)) {
             return internalServerError();
         }
-        Milestone.delete(Milestone.findById(id));
+        Milestone.findById(id).delete();
         return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
 
     }

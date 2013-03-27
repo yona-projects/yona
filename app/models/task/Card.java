@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ArrayNode;
@@ -74,6 +75,7 @@ public class Card extends Model {
      * checklist.save(); }
      */
 
+    @Transient
     public JsonNode toJSON() {
 
         ObjectNode json = Json.newObject();

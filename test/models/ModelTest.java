@@ -33,6 +33,7 @@ public class ModelTest<T> {
     public void startApp() {
         app = Helpers.fakeApplication(Helpers.inMemoryDatabase()); 
         Helpers.start(app);
+
 //        callAction(
 //                routes.ref.Application.init()
 //        );

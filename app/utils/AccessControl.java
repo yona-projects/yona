@@ -1,18 +1,10 @@
 package utils;
 
-import models.Comment;
-import models.Issue;
-import models.IssueComment;
-import models.Post;
-import models.Project;
-import models.ProjectUser;
-import models.User;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
 import models.resource.Resource;
-import play.db.ebean.Model;
-import play.db.ebean.Model.Finder;
 
 /**
  * @author "Hwi Ahn"
@@ -141,39 +133,14 @@ public class AccessControl {
             return false;
         }
 
-        Finder<Long, ?> finder;
-
         switch (resource.getType()) {
         case ISSUE_POST:
-            finder = new Finder<Long, Issue>(Long.class, Issue.class);
-            break;
         case ISSUE_COMMENT:
-            finder = new Finder<Long, IssueComment>(Long.class, IssueComment.class);
-            break;
+        case NONISSUE_COMMENT:
         case BOARD_POST:
-            finder = new Finder<Long, Post>(Long.class, Post.class);
-            break;
-        case BOARD_COMMENT:
-            finder = new Finder<Long, Comment>(Long.class, Comment.class);
-            break;
+            return resource.getAuthorId() == user.id;
         default:
             return false;
         }
-
-        return isAuthor(user.id, resource.getId(), finder);
     }
-
-	/**
-	 *
-	 * @param userId
-	 * @param resourceId
-	 * @param finder
-	 * @return
-	 */
-	public static <T, K> boolean isAuthor(Long userId, Long resourceId,
-			Model.Finder<K, T> finder) {
-		int findRowCount = finder.where().eq("authorId", userId)
-				.eq("id", resourceId).findRowCount();
-		return (findRowCount != 0) ? true : false;
-	}
 }

@@ -21,7 +21,7 @@ public class ApplicationTest {
 		        assertThat(status(result)).isEqualTo(OK);
 		        assertThat(contentType(result)).isEqualTo("text/html");
 		        assertThat(charset(result)).isEqualTo("utf-8");
-		        assertThat(contentAsString(result)).contains("<!-- HIVE -->");
+		        assertThat(contentAsString(result)).contains("Powered by");
     		}
     	});
     }

@@ -166,7 +166,7 @@ options.submit에 자바스크립트 함수를 설정했다면 비동기로 동�
     page-number       = 1*DIGIT
     DIGIT             = <any US-ASCII digit "0".."9">
 
-예:
+예를 들어 첫번째 페이지만 요청하는 응답에서의 Range 헤더는 다음과 같다.
 
     Range: pages=1
 
@@ -180,11 +180,13 @@ options.submit에 자바스크립트 함수를 설정했다면 비동기로 동�
     complete-length   = 1*DIGIT
     SP                = <US-ASCII SP, space (32)>
 
-예:
+예를 들어 총 두 페이지 중 첫번째 페이지만을 반환하는 응답에서의 Content-Range 헤더는 다음과 같다.
 
     Content-Range: pages 1/2
 
 서버는 상황에 따라 클라이언트가 요청한 것과 다른 페이지를 돌려줄 수도 있다. 이러한 상황에 대한 예외처리의 책임은 클라이언트에게 있다.
+
+주의: 클라이언트의 요청이 Range 요청이 아니더라도(다시말해 요청에 Range 헤더가 포함되어 있지 않더라도), 서버는 스스로의 판단으로 Content-Range 헤더와 그 헤더에 정의된 페이지만을 응답에 담아 반환할 수 있다. 그러나 이 경우 응답의 상태 코드는 206이어서는 안된다. 206으로 응답할 때는 반드시 요청에 Range 헤더가 포함되어 있어야 하기(MUST) 때문이다.
 
 References
 ==========
