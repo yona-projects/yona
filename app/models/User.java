@@ -57,7 +57,7 @@ public class User extends Model {
     public boolean rememberMe;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
-    public Date date;
+    public Date createdDate;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
@@ -74,7 +74,7 @@ public class User extends Model {
      */
     public String getDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd yyyy");
-        return sdf.format(this.date);
+        return sdf.format(this.createdDate);
     }
 
     public List<Project> myProjects(){
@@ -82,7 +82,7 @@ public class User extends Model {
     }
 
     public static Long create(User user) {
-    	user.date = JodaDateUtil.now();
+    	user.createdDate = JodaDateUtil.now();
         user.save();
         return user.id;
     }

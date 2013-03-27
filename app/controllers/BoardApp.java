@@ -79,7 +79,7 @@ public class BoardApp extends AbstractPostingApp {
             return redirect(routes.BoardApp.newPost(userName, projectName));
         } else {
             Posting post = postForm.get();
-            post.date = JodaDateUtil.now();
+            post.createdDate = JodaDateUtil.now();
             post.setAuthor(UserApp.currentUser());
             post.project = project;
 

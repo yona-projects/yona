@@ -195,7 +195,7 @@ public class IssueApp extends AbstractPostingApp {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
         } else {
             Issue newIssue = issueForm.get();
-            newIssue.date = JodaDateUtil.now();
+            newIssue.createdDate = JodaDateUtil.now();
             newIssue.setAuthor(UserApp.currentUser());
             newIssue.project = project;
 

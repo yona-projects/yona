@@ -22,18 +22,18 @@ abstract public class Comment extends Model {
     public String contents;
 
     @Constraints.Required
-    public Date date;
+    public Date createdDate;
 
     public Long authorId;
     public String authorLoginId;
     public String authorName;
 
     public Comment() {
-        date = new Date();
+        createdDate = new Date();
     }
 
     public Duration ago() {
-        return JodaDateUtil.ago(this.date);
+        return JodaDateUtil.ago(this.createdDate);
     }
 
     abstract public Resource asResource();

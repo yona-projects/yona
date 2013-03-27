@@ -91,7 +91,7 @@ public class AbstractPostingApp extends Controller {
         }
 
         posting.id = original.id;
-        posting.date = original.date;
+        posting.createdDate = original.createdDate;
         posting.authorId = original.authorId;
         posting.authorLoginId = original.authorLoginId;
         posting.authorName = original.authorName;

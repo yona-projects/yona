@@ -64,7 +64,7 @@ public class Project extends Model {
 	public boolean share_option;
 	public boolean isAuthorEditable;
 
-	public Date date;
+	public Date createdDate;
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public Set<Issue> issues;
@@ -83,7 +83,7 @@ public class Project extends Model {
 
 	public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;
-        newProject.date = new Date();
+        newProject.createdDate = new Date();
         newProject.save();
 		ProjectUser.assignRole(User.SITE_MANAGER_ID, newProject.id,
 				RoleType.SITEMANAGER);
@@ -191,9 +191,9 @@ public class Project extends Model {
             return sortByNameWithIgnoreCaseDesc;
         } else if ( orderString.contains("name") ) {
             return sortByNameWithIgnoreCase;
-        } else if ( orderString.contains("date desc") ){
+        } else if ( orderString.contains("createdDate desc") ){
             return sortByDateDesc;
-        } else if ( orderString.contains("date") ){
+        } else if ( orderString.contains("createdDate") ){
             return sortByDate;
         } else {  // TODO: another sorting case doesn't exist in this moment
             throw new UnsupportedOperationException("unsupported sorting type");
@@ -236,7 +236,7 @@ public class Project extends Model {
 		} catch (ServletException e) {
 			e.printStackTrace();
 		}
-		return this.date;
+		return this.createdDate;
 	}
 
 	public Duration ago() {
@@ -269,7 +269,7 @@ public class Project extends Model {
         public int compare(Object o1, Object o2) {
             Project s1 = (Project) o1;
             Project s2 = (Project) o2;
-            return s1.date.compareTo(s2.date);
+            return s1.createdDate.compareTo(s2.createdDate);
         }
     }
     public static class SortByDateDesc implements Comparator<Object> {

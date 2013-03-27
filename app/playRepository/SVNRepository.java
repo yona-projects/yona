@@ -85,7 +85,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
                 data.put("author", entry.getAuthor());
-                data.put("date", entry.getDate().getTime());
+                data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
             }
@@ -107,7 +107,7 @@ public class SVNRepository implements PlayRepository {
             result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
             result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
 
-            result.put("date", prop.getStringValue(SVNProperty.COMMITTED_DATE));
+            result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
 
             result.put("data", baos.toString());
             return result;
@@ -142,7 +142,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
                 data.put("author", entry.getAuthor());
-                data.put("date", entry.getDate().getTime());
+                data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
             }
@@ -164,7 +164,7 @@ public class SVNRepository implements PlayRepository {
             result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
             result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
 
-            result.put("date", prop.getStringValue(SVNProperty.COMMITTED_DATE));
+            result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
 
             result.put("data", baos.toString());
             return result;

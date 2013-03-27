@@ -250,7 +250,7 @@ public class ProjectApp extends Controller {
         OrderParams orderParams = new OrderParams();
         SearchParams searchParams = new SearchParams();
 
-        orderParams.add("date", Direction.DESC);
+        orderParams.add("createdDate", Direction.DESC);
         searchParams.add("name", filter, Matching.CONTAINS);
         if (state.toLowerCase().equals("public")) {
             searchParams.add("share_option", true, Matching.EQUALS);

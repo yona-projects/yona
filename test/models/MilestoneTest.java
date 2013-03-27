@@ -186,7 +186,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         int openNumber = m5.getNumOpenIssues();
         Issue issue = new Issue();
         issue.title = "불필요한 로그 출력 코드 제거test";
-        issue.date = JodaDateUtil.today();
+        issue.createdDate = JodaDateUtil.today();
         issue.state = State.OPEN;
         issue.authorId = User.find.byId(1l).id;
         issue.milestone = Milestone.find.byId(5l);

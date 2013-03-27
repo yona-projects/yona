@@ -22,7 +22,7 @@ public class Issue extends AbstractPosting {
      * @param title           이슈 제목
      * @param body            이슈 내용
      * @param state           이슈 상태(열림, 닫힘)
-     * @param date            이슈 등록 날짜
+     * @param createdDate            이슈 등록 날짜
      * @param authorId        이슈 작성자 ID
      * @param project         이슈가 등록된 프로젝트
      * @param assigneeId      이슈에 배정된 담당자 Id
@@ -34,7 +34,7 @@ public class Issue extends AbstractPosting {
 
     public static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
 
-    public static final String DEFAULT_SORTER = "date";
+    public static final String DEFAULT_SORTER = "createdDate";
     public static final String TO_BE_ASSIGNED = "TBA";
 
     public State state;
@@ -125,7 +125,7 @@ public class Issue extends AbstractPosting {
             sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
             sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
             sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.date.toString(), cf2));
+            sheet.addCell(new Label(colcnt++, i, issue.createdDate.toString(), cf2));
         }
         workbook.write();
 

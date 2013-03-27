@@ -136,7 +136,7 @@ public class GitRepository implements PlayRepository {
         result.put("type", type);
         result.put("msg", commit.getShortMessage());
         result.put("author", commit.getAuthorIdent().getName());
-        result.put("date", commitTime);
+        result.put("createdDate", commitTime);
 
         result.put("commitMessage", commit.getShortMessage());
         result.put("commiter", commit.getAuthorIdent().getName());
@@ -165,7 +165,7 @@ public class GitRepository implements PlayRepository {
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
             data.put("msg", commit.getShortMessage());
             data.put("author", commit.getAuthorIdent().getName());
-            data.put("date", commit.getCommitTime() * 1000l);
+            data.put("createdDate", commit.getCommitTime() * 1000l);
             listData.put(treeWalk.getNameString(), data);
         }
         result.put("data", listData);

@@ -44,7 +44,7 @@ abstract public class AbstractPosting extends Model {
 
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
-    public Date date;
+    public Date createdDate;
 
     public Long authorId;
     public String authorLoginId;
@@ -60,7 +60,7 @@ abstract public class AbstractPosting extends Model {
     abstract public int computeNumOfComments();
 
     public AbstractPosting() {
-        this.date = JodaDateUtil.now();
+        this.createdDate = JodaDateUtil.now();
     }
 
     public void save() {
@@ -85,7 +85,7 @@ abstract public class AbstractPosting extends Model {
      * @return
      */
     public Duration ago() {
-        return JodaDateUtil.ago(this.date);
+        return JodaDateUtil.ago(this.createdDate);
     }
 
     abstract public Resource asResource();

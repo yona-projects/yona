@@ -57,7 +57,7 @@ public class PostingTest extends ModelTest<Posting> {
         Posting post = new Posting();
         post.setBody("new Contents");
         post.title = "new_title";
-        post.date = JodaDateUtil.now();
+        post.createdDate = JodaDateUtil.now();
         post.project = Project.find.byId(1l);
         post.setAuthor(getTestUser());
 
@@ -70,7 +70,7 @@ public class PostingTest extends ModelTest<Posting> {
         assertThat(post.id).isGreaterThan(0);
         assertThat(actual.title).isEqualTo(post.title);
         assertThat(actual.getBody()).isEqualTo(post.getBody());
-        assertThat(actual.date).isEqualTo(post.date);
+        assertThat(actual.createdDate).isEqualTo(post.createdDate);
         assertThat(actual.authorId).isEqualTo(getTestUser().id);
         assertThat(actual.id).isEqualTo(post.id);
     }
