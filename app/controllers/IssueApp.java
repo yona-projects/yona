@@ -6,9 +6,6 @@ package controllers;
 
 import models.*;
 import models.enumeration.*;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
 
 import play.mvc.Http;
 import views.html.issue.editIssue;
@@ -29,6 +26,7 @@ import play.mvc.Result;
 import jxl.write.WriteException;
 import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
+import com.avaje.ebean.ExpressionList;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +34,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static com.avaje.ebean.Expr.contains;
+import static com.avaje.ebean.Expr.icontains;
 
 public class IssueApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
@@ -52,57 +53,56 @@ public class IssueApp extends AbstractPostingApp {
             state = State.OPEN.name();
             commentedCheck = false;
         }
-        public OrderParams getOrderParams() {
-            return new OrderParams().add(orderBy, Direction.getValue(orderDir));
-        }
 
-        public SearchParams getSearchParam(Project project) {
-            SearchParams searchParams = new SearchParams();
+        private ExpressionList<Issue> asExpressionList(Project project) {
+            ExpressionList<Issue> el = Issue.finder.where().eq("project.id", project.id);
 
-            searchParams.add("project.id", project.id, Matching.EQUALS);
+            if (filter != null) {
+                el.or(icontains("title", filter), icontains("body", filter));
+            }
 
             if (authorLoginId != null && !authorLoginId.isEmpty()) {
                 User user = User.findByLoginId(authorLoginId);
                 if (user != null) {
-                    searchParams.add("authorId", user.id, Matching.EQUALS);
+                    el.eq("authorId", user.id);
                 } else {
                     List<Long> ids = new ArrayList<Long>();
-                    for (User u : User.find.where().contains("loginId", authorLoginId).findList()) {
+                    for (User u : User.find.where().icontains("loginId", authorLoginId).findList()) {
                         ids.add(u.id);
                     }
-                    searchParams.add("authorId", ids, Matching.IN);
+                    el.in("authorId", ids);
                 }
             }
 
             if (assigneeId != null) {
-                searchParams.add("assignee.user.id", assigneeId, Matching.EQUALS);
-                searchParams.add("assignee.project.id", project.id, Matching.EQUALS);
-            }
-
-            if (filter != null && !filter.isEmpty()) {
-                searchParams.add("title", filter, Matching.CONTAINS);
+                el.eq("assignee.user.id", assigneeId);
+                el.eq("assignee.project.id", project.id);
             }
 
             if (milestoneId != null) {
-                searchParams.add("milestone.id", milestoneId, Matching.EQUALS);
+                el.eq("milestone.id", milestoneId);
             }
 
             if (labelIds != null) {
                 for (Long labelId : labelIds) {
-                    searchParams.add("labels.id", labelId, Matching.EQUALS);
+                    el.eq("labels.id", labelId);
                 }
             }
 
             if (commentedCheck) {
-                searchParams.add("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS, Matching.GE);
+                el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
             }
 
             State st = State.getValue(state);
             if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
-                searchParams.add("state", st, Matching.EQUALS);
+                el.eq("state", st);
             }
 
-            return searchParams;
+            if (orderBy != null) {
+                el.orderBy(orderBy + " " + orderDir);
+            }
+
+            return el;
         }
     }
 
@@ -136,21 +136,21 @@ public class IssueApp extends AbstractPostingApp {
             }
         }
 
+        ExpressionList<Issue> el = issueParam.asExpressionList(project);
+
         if (format.equals("xls")) {
-            return issuesAsExcel(issueParam, issueParam.getOrderParams(), project, state);
+            return issuesAsExcel(el, project);
         } else {
-            Page<Issue> issues = FinderTemplate.getPage(
-                issueParam.getOrderParams(), issueParam.getSearchParam(project),
-                Issue.finder, ITEMS_PER_PAGE, issueParam.pageNum);
+            Page<Issue> issues = el
+                .findPagingList(ITEMS_PER_PAGE).getPage(issueParam.pageNum);
+
             return ok(issueList.render("title.issueList", issues, issueParam, project));
         }
     }
 
-    public static Result issuesAsExcel(SearchCondition issueParam, OrderParams orderParams, Project project,
-            String state) throws WriteException, IOException, UnsupportedEncodingException {
-        List<Issue> issues = FinderTemplate.findBy(orderParams, issueParam.getSearchParam(project), Issue.finder);
-        File excelFile = Issue.excelSave(issues, project.name + "_" + state + "_filter_"
-                + issueParam.filter + "_milestone_" + issueParam.milestoneId);
+    public static Result issuesAsExcel(ExpressionList<Issue> el, Project project)
+            throws WriteException, IOException, UnsupportedEncodingException {
+        File excelFile = Issue.excelSave(el.findList(), project.name + "_issues");
 
         String filename = HttpUtil.encodeContentDisposition(excelFile.getName());
 

@@ -4,15 +4,13 @@
 
 package controllers;
 
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
 import views.html.board.editPost;
@@ -30,18 +28,22 @@ import play.mvc.Result;
 
 import java.io.IOException;
 
+import static com.avaje.ebean.Expr.icontains;
+
 public class BoardApp extends AbstractPostingApp {
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
-        OrderParams getOrderParams() {
-            return new OrderParams().add(
-                        orderBy, Direction.getValue(orderDir));
-        }
+        private ExpressionList<Posting> asExpressionList(Project project) {
+            ExpressionList<Posting> el = Posting.finder.where().eq("project.id", project.id);
 
-        SearchParams getSearchParam(Project project) {
-            return new SearchParams()
-                    .add("project.owner", project.owner, Matching.EQUALS)
-                    .add("project.name", project.name, Matching.EQUALS)
-                    .add("body", filter, Matching.CONTAINS);
+            if (filter != null) {
+                el.or(icontains("title", filter), icontains("body", filter));
+            }
+
+            if (orderBy != null) {
+                el.orderBy(orderBy + " " + orderDir);
+            }
+
+            return el;
         }
     }
 
@@ -55,11 +57,8 @@ public class BoardApp extends AbstractPostingApp {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
-        SearchParams searchParam = searchCondition.getSearchParam(project);
-        OrderParams orderParams = searchCondition.getOrderParams();
-
-        Page<Posting> posts = FinderTemplate.getPage(
-                orderParams, searchParam, Posting.finder, ITEMS_PER_PAGE, searchCondition.pageNum);
+        ExpressionList<Posting> el = searchCondition.asExpressionList(project);
+        Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
 
         return ok(postList.render("menu.board", project, posts, searchCondition));
     }
