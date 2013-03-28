@@ -27,7 +27,7 @@
     	</dd>
     </dl>
         
-	@helper.textarea(form("contents"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+	@helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
 	@** fileUploader **@
     @if(UserApp.currentUser() != UserApp.anonymous) {
@@ -85,7 +85,7 @@
 $(document).ready(function(){
 	$hive.loadModule("board.Write", {
 		"sMode"			 : "edit",
-		"elTextarea"	 : $("#contents"),
+		"elTextarea"	 : $("#body"),
 		"sUploaderAction": "@routes.AttachmentApp.newFile"
 	});
 });
