@@ -122,7 +122,8 @@ public class ProjectApp extends Controller {
         MultipartFormData body = request().body().asMultipartFormData();
         FilePart filePart = body.getFile("logoPath");
 
-        if (filePart != null) {
+        if (filePart != null && filePart.getFilename() != null
+                && filePart.getFilename().length() > 0) {
         	if(!isImageFile(filePart.getFilename())) {
         		flash(Constants.WARNING, "project.logo.alert");
         		filledUpdatedProjectForm.reject("logoPath");
