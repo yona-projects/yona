@@ -1,10 +1,8 @@
 package models;
 
-import models.enumeration.Direction;
 import models.enumeration.State;
 import org.junit.Test;
 import utils.JodaDateUtil;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.*;
 
