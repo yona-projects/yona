@@ -68,7 +68,11 @@
                   <td class="commit-id"><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
                   <td class="messages">@commit.getMessage()</td>
                   <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-                  <td class="author"><img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)"></td>
+                  <td class="author">@defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
+                    @if(user != null) { <a href="@routes.UserApp.userInfo(user.loginId)"> }
+                    <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)">
+                    @if(user != null) { </a> }
+                  }</td>
                 </tr>
               }
               </tbody>
