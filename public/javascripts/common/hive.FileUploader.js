@@ -322,10 +322,11 @@ var fileDownloader = function(welTarget, sAction) {
 			var aFiles = oRes.attachments;
 			
 			if(aFiles.length > 0){
-				welFileList.css('display', '');
+				welFileList.css('display', 'block');
 				aFiles.forEach(function(oFile){
 					welFileList.append(createFileItem(oFile));			
 				});
+				welTarget.append(welFileList);
 			}
 			
 			//createFileItem = aFiles = null;

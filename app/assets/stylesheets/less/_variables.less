@@ -4,52 +4,16 @@
 // GLOBAL VALUES
 // --------------------------------------------------
 
-// Typography
-@base-font-size:   13px;
-//@base-font-family: '돋음', Tahoma, Arial, sans-serif;
-//@base-font-family: 'Droid Sans', 'Myriad Pro', Tahoma, dotum, '돋움', Arial, sans-serif; 
-@base-font-family: 'Droid Sans', Tahoma;/*, '돋움', Dotum, Arial, sans-serif;*/
-@base-line-height: 18px;
-@base-text-color:  #333;
-@base-width: 960px;
-
+// Path
 @base-image-path:   "/assets/images";
 @base-webfont-path: "/assets/images/webfont";
 
-// Color
-@link-color: #F36C22; /*#40849F;*/
-@link-hover-color: #F36C22; /*40849F;*/
-@white:  #FFF;
-@black:  #000;
-@orange: #F36C22;
-@blue:   #5DBBE0; /*#56B5D9;*/ /*4DB1C8;*/
-@blue2:  #51AACC;
-
-@primary:@orange;
-@secondary:@blue2;
-
-@gray-d4: #D4D4D4;
-@gray-ec: #ECECEC;
-@gray-f7: #F7F7F7;
-@gray-ea: #EAEAEA;
-@gray-87: #878787;
-@gray-99: #999;
-@gray-66: #666;
-@gray-cc: #CCC;
-@gray-52: #5D5D5D;
-@gray-f2: #F2F2F2;
-@gray-d9: #D9D9D9;
-
-@search-bar-bg-color: #fff;/*2C4E55;*/ /*#525252;*/
-@gnb-color: #3B5C63; /*#110D08;*/
-@gnb-active-color: #2C4E55;
-
-@gnb-link-color: #111;
-@gnb-link-hover-color: #F36C22; /*#5DD4FF;*/
-@activity-separate-border-color: #E7E7E7;
-
-// FONT-FACE (webfont)
-/**/
+// Typography
+@base-font-family: 'Droid Sans', Tahoma;/*, '돋움', Dotum, Arial, sans-serif;*/
+@base-font-size  : 13px;
+@base-line-height: 18px;
+@base-text-color : @gray-33;
+@base-width      : 960px;
 @font-face {
     font-family:'Droid Sans';
     src: url('@{base-webfont-path}/DroidSans.eot');
@@ -60,4 +24,54 @@
     font-weight: 400;
     font-style: normal;
 }
-/**/
+
+// Color
+@white  : #FFF;
+@black  : #000;
+@orange : #F36C22;
+@blue   : #5DBBE0;
+@blue2  : #51AACC;
+@gray-d4: #D4D4D4;
+@gray-ec: #ECECEC;
+@gray-f7: #F7F7F7;
+@gray-ea: #EAEAEA;
+@gray-87: #878787;
+@gray-11: #111;
+@gray-33: #333;
+@gray-99: #999;
+@gray-66: #666;
+@gray-cc: #CCC;
+@gray-52: #5D5D5D;
+@gray-f2: #F2F2F2;
+@gray-d9: #D9D9D9;
+
+
+// Default Theme
+@base-background : none;
+@base-background-color:@white;
+
+@primary         : @orange;
+@secondary       : @blue2;
+@link-color      : @primary;
+@link-hover-color: @primary;
+
+@search-bar-bg-color: #fff;
+@search-bar-border-color:#aaabac;
+@search-input-color:#898989;
+
+@gnb-logo-bg-color:@orange;
+@gnb-bg-color     :#f3f4f6;
+@gnb-active-color :#2C4E55;
+@gnb-border-bottom:1px solid #c7c9ca;
+
+@gnb-link-color          : @gray-11;
+@gnb-link-hover-color    : @orange;
+@gnb-link-highlight-color: @orange;
+
+@gnb-action-color: @white;
+@gnb-action-signout-color: #868D96;
+@gnb-action-separate-border-color: @gray-cc;
+
+@submenu-selected-color: #337581;
+
+@activity-separate-border-color: #E7E7E7;

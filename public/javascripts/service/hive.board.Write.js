@@ -40,7 +40,7 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welTarget = $(htOptions.elTarget || "#upload");
-			htElement.welTextarea = $(htOptions.elTextarea || "#contents");
+			htElement.welTextarea = $(htOptions.elTextarea || "#body");
 
 			htElement.welTplFileItem = $('#tplAttachedFile');
 			
