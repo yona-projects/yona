@@ -154,7 +154,6 @@ public class IssueApp extends AbstractPostingApp {
 
         String filename = HttpUtil.encodeContentDisposition(excelFile.getName());
 
-        response().setHeader("Content-Length", Long.toString(excelFile.length()));
         response().setHeader("Content-Type", new Tika().detect(excelFile));
         response().setHeader("Content-Disposition", "attachment; " + filename);
 

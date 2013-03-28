@@ -107,7 +107,6 @@ public class AttachmentApp extends Controller {
 
         String filename = HttpUtil.encodeContentDisposition(attachment.name);
 
-        response().setHeader("Content-Length", Long.toString(file.length()));
         response().setHeader("Content-Type", attachment.mimeType);
         response().setHeader("Content-Disposition", "attachment; " + filename);
 
