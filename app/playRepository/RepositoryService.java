@@ -97,6 +97,10 @@ public class RepositoryService {
 
     public static PlayRepository getRepository(Project project) throws IOException,
             ServletException, UnsupportedOperationException {
+        if (project == null) {
+            return null;
+        }
+
         if (project.vcs.equals(VCS_GIT)) {
             return new GitRepository(project.owner, project.name);
         } else if (project.vcs.equals(VCS_SUBVERSION)) {
@@ -139,11 +143,11 @@ public class RepositoryService {
         return servlet;
     }
 
-    public static Repository createGitRepository(String userName, String projectName) throws IOException {
-        return GitRepository.createGitRepository(userName, projectName);
+    public static Repository createGitRepository(Project project) throws IOException {
+        return GitRepository.createGitRepository(project);
     }
 
-    public static byte[] gitAdvertise(String userName, String projectName, String service, Response response) throws IOException {
+    public static byte[] gitAdvertise(Project project, String service, Response response) throws IOException {
         response.setContentType("application/x-" + service + "-advertisement");
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -152,7 +156,7 @@ public class RepositoryService {
         packetLineOut.end();
         PacketLineOutRefAdvertiser packetLineOutRefAdvertiser = new PacketLineOutRefAdvertiser(packetLineOut);
 
-        Repository repository = createGitRepository(userName, projectName);
+        Repository repository = createGitRepository(project);
 
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
@@ -168,7 +172,7 @@ public class RepositoryService {
         return byteArrayOutputStream.toByteArray();
     }
 
-    public static byte[] gitRpc(String userName, String projectName, String service, Request request, Response response) throws IOException {
+    public static byte[] gitRpc(Project project, String service, Request request, Response response) throws IOException {
         response.setContentType("application/x-" + service + "-result");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
@@ -186,7 +190,7 @@ public class RepositoryService {
             in = new FileInputStream(raw.asFile());
         }
 
-        Repository repository = createGitRepository(userName, projectName);
+        Repository repository = createGitRepository(project);
 
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);

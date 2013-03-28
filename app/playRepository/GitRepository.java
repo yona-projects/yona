@@ -56,6 +56,10 @@ public class GitRepository implements PlayRepository {
                 new File(getRepoPrefix() + userName + "/" + projectName + ".git")).build();
     }
 
+    public static Repository createGitRepository(Project project) throws IOException {
+        return createGitRepository(project.owner, project.name);
+    }
+
     /* (non-Javadoc)
      * @see Repository.repository#create()
      */

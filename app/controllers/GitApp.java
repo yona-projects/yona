@@ -26,9 +26,7 @@ public class GitApp extends Controller {
                 && (service.equals("git-upload-pack") || service.equals("git-receive-pack"));
     }
 
-    public static boolean isAllowed(String userName, String projectName, String service) throws UnsupportedOperationException, IOException, ServletException {
-        Project project = ProjectApp.getProject(userName, projectName);
-
+    public static boolean isAllowed(Project project, String service) throws UnsupportedOperationException, IOException, ServletException {
         Operation operation = Operation.UPDATE;
         if (service.equals("git-upload-pack")) {
             operation = Operation.READ;
@@ -50,20 +48,26 @@ public class GitApp extends Controller {
             return forbidden(String.format("Unsupported service: '%s'", service));
         }
 
-        if (!isAllowed(userName, projectName, service)) {
+        Project project = ProjectApp.getProject(userName, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
+
+        if (!isAllowed(project, service)) {
             if (UserApp.currentUser().id == UserApp.anonymous.id) {
                 return BasicAuthAction.unauthorized(response());
             } else {
-                return forbidden();
+                return forbidden("'" + UserApp.currentUser().name + "' has no permission");
             }
         }
 
         if (isAdvertise) {
             return ok(RepositoryService
-                    .gitAdvertise(userName, projectName, service, response()));
+                    .gitAdvertise(project, service, response()));
         } else {
             return ok(RepositoryService
-                    .gitRpc(userName, projectName, service, request(), response()));
+                    .gitRpc(project, service, request(), response()));
         }
     }
 

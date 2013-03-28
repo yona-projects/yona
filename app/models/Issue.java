@@ -63,6 +63,7 @@ public class Issue extends AbstractPosting {
         return (this.assignee != null ? assignee.user.name : null);
     }
 
+    @Transient
     public void save() {
         if (assignee != null && assignee.user.id != null) {
             assignee = Assignee.add(assignee.user.id, project.id);
