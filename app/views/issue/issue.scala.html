@@ -50,8 +50,8 @@
 		@** status **@
         <p class="status">
 			Comment <strong class="num">@issue.comments.size</strong>
-			@if(issue.milestoneId != null) {
-			Milestone <strong class="num">@Milestone.findById(issue.milestoneId).title</strong>
+			@if(issue.milestone != null) {
+			Milestone <strong class="num">@issue.milestone.title</strong>
 			}
         </p>
         
@@ -101,7 +101,7 @@
                 <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
             </p>
             <div class="comment-body" markdown="true">@comment.contents</div>
-            <div class="attachments" resourceType="@ResourceType.BOARD_COMMENT" resourceId="@comment.id"></div>
+            <div class="attachments" resourceType="@ResourceType.ISSUE_COMMENT" resourceId="@comment.id"></div>
             <!--
             <ul class="attaches">
                 <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>

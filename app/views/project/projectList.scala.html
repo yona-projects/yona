@@ -1,46 +1,37 @@
-@(message: String, currentPage: List[Project], filter:String, state:String)
+@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, state:String)
 
 @home(message, utils.MenuType.PROJECTS) {
 <div class="page">
   
 	   <div class="header-wrap">
          <div class="stats-wrap">
+         	 @for(state <- Array("all", "public", "private")) {
              <div class="stat">
-             	<a href="@routes.ProjectApp.projects(state="all")">
-                 <span class="desc"><strong>@Messages("project.all")</strong> @Messages("projects")</span>
-                 <span class="num all">@Project.countByState("all")</span>
+             	<a href="@routes.ProjectApp.projects(state=state)">
+                 <span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
+                 <span class="num @state">@Project.countByState(state)</span>
                  </a>
              </div>
-             <div class="stat">
-             	<a href="@routes.ProjectApp.projects(state="public")">
-                 <span class="desc"><strong>@Messages("project.public")</strong> @Messages("projects")</span>
-                 <span class="num open">@Project.countByState("public")</span>
-                 </a>
-             </div>
-             <div class="stat">
-             	<a href="@routes.ProjectApp.projects(state="private")">
-                 <span class="desc"><strong>@Messages("project.private")</strong> @Messages("projects")</span>
-                 <span class="num closed">@Project.countByState("private")</span>
-                 </a>
-             </div>
+             }
          </div>
          <div class="search-wrap projects">
              <div class="inner">
                  <form action="@routes.ProjectApp.projects()" method="get">
                  	<input name="state" type="hidden" value="@state">
                      <input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><button type="submit" class="btn search-btn">SEARCH</button>                        
-                     <a href="#" class="btn-advanced"><i class="ico"></i>Advanced Search</a>
+                     <!-- <a href="#" class="btn-advanced"><i class="ico"></i>Advanced Search</a> -->
                  </form>
                      
                  <div class="srch-advanced">
                  	상세검색 조건
+                 	<!-- TODO: fill this form -->
                  </div>
              </div>
          </div>
      </div>
       
       <ul class="all-projects">
-      @for(project <- currentPage) {
+      @for(project <- currentPage.getList) {
           <li class="project">
               <div class="info-wrap">
                   <div class="header">
@@ -67,11 +58,13 @@
 
 
 <script type="text/javascript">
+/*
 $(document).ready(function(){
 	$(".btn-advanced").click(function(){
 		$(".inner").toggleClass("advanced");
 	});
 });
+*/
 </script>
 
 }

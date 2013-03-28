@@ -1,4 +1,4 @@
-@(post:Post, commentForm:Form[Comment],  project:Project)
+@(post:Posting, commentForm:Form[PostingComment],  project:Project)
 
 @import utils.TemplateHelper._
 @import utils.AccessControl._
@@ -28,12 +28,12 @@
         </p>
         <p class="status">
           <!--Hit <strong class="num">777</strong> 
-          -->Comment <strong class="num">@post.commentCount</strong><!-- 
+          -->Comment <strong class="num">@post.numOfComments</strong><!-- 
           Like <i class="ico ico-like-small"></i> <strong class="num">522</strong>-->
         </p>
       </div>
     </div>
-    <div class="content" markdown="true">@post.contents</div>
+    <div class="content" markdown="true">@post.body</div>
     <div class="attachments" resourceType="@ResourceType.BOARD_POST" resourceId="@post.id"></div>
     <!--
       <ul class="attaches wm">
@@ -69,8 +69,8 @@
                 <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                 <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
             </p>
-            <div class="comment-body" markdown>@comment.contents</div>
-            <div class="attachments" resourceType=@ResourceType.BOARD_COMMENT resourceId=@comment.id></div>
+            <div class="comment-body" markdown="true">@comment.contents</div>
+            <div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
             <!--
             <ul class="attaches">
                 <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>
@@ -100,7 +100,7 @@
 			@** fileUploader **@
             @if(UserApp.currentUser() != UserApp.anonymous) {
 
-			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_COMMENT">
+			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.NONISSUE_COMMENT">
 				<div>
 					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
 					<strong>total</strong> <span class="total-num">0Mb</span>

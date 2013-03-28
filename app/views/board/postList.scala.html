@@ -1,4 +1,4 @@
-@(title:String, project:Project, page:com.avaje.ebean.Page[Post], param:BoardApp.SearchCondition)
+@(title:String, project:Project, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition)
 
 @play.Logger.debug("board view")
 
@@ -9,8 +9,8 @@
 @** header(label:String, key:String) = {
   <th>
     <a key="@key" href="@routes.BoardApp.posts(project.owner, project.name)">@label</a>
-    @if(key == param.key){
-      @if(param.order == "desc"){
+    @if(key == param.orderBy){
+      @if(param.orderDir == "desc"){
         <i class="icon-chevron-down"></i>
       } else {
         <i class="icon-chevron-up"></i>
@@ -28,9 +28,9 @@
     <div class="search-wrap board">
       <div class="inner">
         <form method="get" id="option_form">
-          <input type="hidden" name="key" value="@param.key">
-          <input type="hidden" name="order" value="@param.order">
-          <input type="hidden" name="pageNum" value="@param.pageNum">
+          <input type="hidden" name="orderBy"  value="@param.orderBy">
+          <input type="hidden" name="orderDir" value="@param.orderDir">
+          <input type="hidden" name="pageNum"  value="@param.pageNum">
           <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn search-btn underConstruction">SEARCH</button>
         </form>
       </div>
@@ -49,12 +49,12 @@
 
   <div class="filter-wrap board">
       <div class="filters" id="order">
-          <a href="#" key="date" class="filter underConstruction @if(param.key == "date"){ active }">
-			<i class="ico btn-gray-arrow @if(param.key == "date" && param.order == "desc"){down}"></i>날짜순
+          <a href="#" key="date" class="filter underConstruction @if(param.orderBy == "date"){ active }">
+			<i class="ico btn-gray-arrow @if(param.orderBy == "date" && param.orderDir == "desc"){down}"></i>날짜순
           </a>
           
-          <a href="#" key="commentCount" class="filter underConstruction @if(param.key == "commentCount"){ active }">
-            <i class="ico btn-gray-arrow @if(param.key == "commentCount" && param.order == "desc"){down}"></i>댓글순
+          <a href="#" key="commentCount" class="filter underConstruction @if(param.orderBy == "commentCount"){ active }">
+            <i class="ico btn-gray-arrow @if(param.orderBy == "commentCount" && param.orderDir == "desc"){down}"></i>댓글순
           </a>
       </div>
   </div>
@@ -70,7 +70,7 @@
           </div>
           <div class="right-panel">
             <div class="comment-wrap">
-                <i class="ico ico-comment-bubble"></i><span class="num">@post.commentCount</span>
+                <i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
             </div>
             <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
             <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="34" height="34"></a>
