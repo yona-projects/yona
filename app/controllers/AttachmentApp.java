@@ -17,6 +17,7 @@ import models.enumeration.ResourceType;
 import org.codehaus.jackson.JsonNode;
 
 import play.Logger;
+import play.api.http.MediaRange;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
@@ -58,15 +59,8 @@ public class AttachmentApp extends Controller {
         // To avoid this, if application/json is not acceptable by client, the
         // Content-Type field of response is set to "text/html". But, ACTUALLY
         // IT WILL BE SEND IN JSON!
-        String contentType = "text/html";
-        List<String> accepts = request().accept();
-        for (String  accept : accepts) {
-            accept = accept.toLowerCase();
-            if (accept.equals("application/json") || accept.equals("application/*") || accept.equals("*/*")) {
-                contentType = "application/json";
-                break;
-            }
-        }
+        List<MediaRange> accepts = request().acceptedTypes();
+        String contentType = request().accepts("application/json") ? "application/json" : "text/html";
         response().setHeader("Content-Type", contentType);
 
         // The response SHOULD include an entity containing a list of resource

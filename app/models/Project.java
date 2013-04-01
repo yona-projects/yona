@@ -42,10 +42,10 @@ public class Project extends Model {
 
     public static final int PROJECT_COUNT_PER_PAGE = 15;
 
-    public static Comparator sortByNameWithIgnoreCase = new SortByNameWithIgnoreCase();
-    public static Comparator sortByNameWithIgnoreCaseDesc = new SortByNameWithIgnoreCaseDesc();
-    public static Comparator sortByDate = new SortByDate();
-    public static Comparator sortByDateDesc = new SortByDateDesc();
+    public static Comparator<Project> sortByNameWithIgnoreCase = new SortByNameWithIgnoreCase();
+    public static Comparator<Project> sortByNameWithIgnoreCaseDesc = new SortByNameWithIgnoreCaseDesc();
+    public static Comparator<Project> sortByDate = new SortByDate();
+    public static Comparator<Project> sortByDateDesc = new SortByDateDesc();
 
 	@Id
 	public Long id;
@@ -186,7 +186,7 @@ public class Project extends Model {
      * @param orderString
      * @return ordered
      */
-    private static Comparator determineComparator(String orderString) {  //TODO: Some ugly coding...
+    private static Comparator<? super Project> determineComparator(String orderString) {  //TODO: Some ugly coding...
         if( orderString.contains("name desc")){
             return sortByNameWithIgnoreCaseDesc;
         } else if ( orderString.contains("name") ) {
@@ -252,31 +252,30 @@ public class Project extends Model {
 		}
 	}
 
-    public static class SortByNameWithIgnoreCase implements Comparator<Object> {
-        public int compare(Object o1, Object o2) {
-            Project s1 = (Project) o1;
-            Project s2 = (Project) o2;
-            return s1.name.toLowerCase().compareTo(s2.name.toLowerCase());
+    public static class SortByNameWithIgnoreCase implements Comparator<Project> {
+        public int compare(Project o1, Project o2) {
+            return o1.name.toLowerCase().compareTo(o2.name.toLowerCase());
         }
     }
-    public static class SortByNameWithIgnoreCaseDesc implements Comparator<Object> {
-        public int compare(Object o1, Object o2) {
+
+    public static class SortByNameWithIgnoreCaseDesc implements Comparator<Project> {
+        public int compare(Project o1, Project o2) {
             return -sortByNameWithIgnoreCase.compare(o1, o2);
         }
     }
 
-    public static class SortByDate implements Comparator<Object> {
-        public int compare(Object o1, Object o2) {
-            Project s1 = (Project) o1;
-            Project s2 = (Project) o2;
-            return s1.createdDate.compareTo(s2.createdDate);
+    public static class SortByDate implements Comparator<Project> {
+        public int compare(Project o1, Project o2) {
+            return o1.createdDate.compareTo(o2.createdDate);
         }
     }
-    public static class SortByDateDesc implements Comparator<Object> {
-        public int compare(Object o1, Object o2) {
+
+    public static class SortByDateDesc implements Comparator<Project> {
+        public int compare(Project o1, Project o2) {
             return -sortByDate.compare(o1, o2);
         }
     }
+
 	public Resource asResource() {
 	    return new Resource() {
 

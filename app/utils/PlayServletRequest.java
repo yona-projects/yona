@@ -208,6 +208,9 @@ public class PlayServletRequest implements HttpServletRequest {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @deprecated
+     */
     @Override
     public String getRealPath(String path) {
         return Play.application().getFile(path).getAbsolutePath();
@@ -488,6 +491,9 @@ public class PlayServletRequest implements HttpServletRequest {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @deprecated
+     */
     @Override
     public boolean isRequestedSessionIdFromUrl() {
         throw new UnsupportedOperationException();

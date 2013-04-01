@@ -170,6 +170,9 @@ public class PlayServletResponse implements HttpServletResponse {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @deprecated
+     */
     @Override
     public String encodeRedirectUrl(String url) {
         return encodeRedirectURL(url);
@@ -180,6 +183,9 @@ public class PlayServletResponse implements HttpServletResponse {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * @deprecated
+     */
     @Override
     public String encodeUrl(String arg0) {
         throw new UnsupportedOperationException();
@@ -257,6 +263,9 @@ public class PlayServletResponse implements HttpServletResponse {
         this.status = status;
     }
 
+    /**
+     * @deprecated
+     */
     @Override
     public void setStatus(int status, String msg) {
         throw new UnsupportedOperationException();

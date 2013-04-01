@@ -151,8 +151,7 @@ public class Mailer {
      * @param key
      */
     private List<String> e(String key) {
-        return context.containsKey(key) ? context.get(key)
-                : Collections.EMPTY_LIST;
+        return context.containsKey(key) ? context.get(key) : Collections.<String>emptyList();
     }
 
     /**

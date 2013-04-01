@@ -37,7 +37,7 @@ object TemplateHelper {
   def plural(key: String, count: Number): String = {
     var _key = key
     if (count != 1) _key = key + "s"
-    Messages.get(_key, count toString)
+    Messages.get(_key, count.toString)
   }
 
   def getJSLink(name: String): String = {
