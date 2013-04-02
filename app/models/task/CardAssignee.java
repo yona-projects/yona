@@ -11,6 +11,8 @@ import play.db.ebean.Model;
 
 @Entity
 public class CardAssignee extends Model {
+    private static final long serialVersionUID = -4353337723141836877L;
+
     private static Finder<Long, CardAssignee> find = new Finder<Long, CardAssignee>(Long.class,
         CardAssignee.class);
 

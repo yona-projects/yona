@@ -199,6 +199,7 @@ public class PlayServletContext implements ServletContext {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public Servlet getServlet(String arg0) throws ServletException {
         throw new UnsupportedOperationException();
@@ -212,6 +213,7 @@ public class PlayServletContext implements ServletContext {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public Enumeration<String> getServletNames() {
         throw new UnsupportedOperationException();
@@ -230,6 +232,7 @@ public class PlayServletContext implements ServletContext {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public Enumeration<Servlet> getServlets() {
         throw new UnsupportedOperationException();
@@ -248,6 +251,7 @@ public class PlayServletContext implements ServletContext {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public void log(Exception arg0, String arg1) {
         throw new UnsupportedOperationException();

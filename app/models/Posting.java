@@ -13,6 +13,8 @@ import java.util.*;
 
 @Entity
 public class Posting extends AbstractPosting {
+    private static final long serialVersionUID = 5287703642071155249L;
+
     public static Finder<Long, Posting> finder = new Finder<Long, Posting>(Long.class, Posting.class);
 
     @OneToMany(cascade = CascadeType.ALL)

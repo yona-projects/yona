@@ -211,6 +211,7 @@ public class PlayServletRequest implements HttpServletRequest {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public String getRealPath(String path) {
         return Play.application().getFile(path).getAbsolutePath();
@@ -494,6 +495,7 @@ public class PlayServletRequest implements HttpServletRequest {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public boolean isRequestedSessionIdFromUrl() {
         throw new UnsupportedOperationException();

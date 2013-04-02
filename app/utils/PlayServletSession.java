@@ -51,6 +51,7 @@ public class PlayServletSession implements HttpSession {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public javax.servlet.http.HttpSessionContext getSessionContext() {
         throw new UnsupportedOperationException();
@@ -59,6 +60,7 @@ public class PlayServletSession implements HttpSession {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public Object getValue(String arg0) {
         throw new UnsupportedOperationException();
@@ -67,6 +69,7 @@ public class PlayServletSession implements HttpSession {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public String[] getValueNames() {
         throw new UnsupportedOperationException();
@@ -85,6 +88,7 @@ public class PlayServletSession implements HttpSession {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public void putValue(String arg0, Object arg1) {
         throw new UnsupportedOperationException();
@@ -98,6 +102,7 @@ public class PlayServletSession implements HttpSession {
     /**
      * @deprecated
      */
+    @Deprecated
     @Override
     public void removeValue(String arg0) {
         throw new UnsupportedOperationException();

@@ -75,11 +75,11 @@ public class SVNRepository implements PlayRepository {
 
             SVNProperties prop = new SVNProperties();
 
-            Collection entries = repository.getDir(path, -1, prop, (Collection)null);
+            Collection<SVNDirEntry> entries = repository.getDir(path, -1, prop, SVNDirEntry.DIRENT_ALL, (Collection)null);
 
-            Iterator iterator = entries.iterator( );
+            Iterator<SVNDirEntry> iterator = entries.iterator( );
             while ( iterator.hasNext( ) ) {
-                SVNDirEntry entry = ( SVNDirEntry ) iterator.next( );
+                SVNDirEntry entry = iterator.next( );
 
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
@@ -132,11 +132,11 @@ public class SVNRepository implements PlayRepository {
 
             SVNProperties prop = new SVNProperties();
 
-            Collection entries = repository.getDir(path, -1, prop, (Collection)null);
+            Collection<SVNDirEntry> entries = repository.getDir(path, -1, prop, SVNDirEntry.DIRENT_ALL, (Collection)null);
 
-            Iterator iterator = entries.iterator( );
+            Iterator<SVNDirEntry> iterator = entries.iterator( );
             while ( iterator.hasNext( ) ) {
-                SVNDirEntry entry = ( SVNDirEntry ) iterator.next( );
+                SVNDirEntry entry = iterator.next( );
 
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");

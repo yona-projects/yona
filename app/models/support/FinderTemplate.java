@@ -27,6 +27,7 @@ public class FinderTemplate {
                         break;
                     case NOT_EQUALS:
                         el.ne(field, value);
+                        break;
                     case GE:
                         el.ge(field, value);
                         break;
