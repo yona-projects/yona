@@ -45,12 +45,13 @@ public class AttachmentTest extends ModelTest<Attachment> {
         // Given
         File foo = createFileWithContents("foo.txt", "Hello".getBytes());
         File bar = createFileWithContents("bar.html", "<p>Bye</p>".getBytes());
+        Issue issue = Issue.finder.byId(1L);
 
         // When
         new Attachment().storeInUserTemporaryArea(0L, foo, "foo.txt");
         new Attachment().storeInUserTemporaryArea(0L, bar, "bar.html");
-        Attachment.attachFiles(0L, 0L, ResourceType.ISSUE_POST, 1L);
-        List<Attachment> attachedFiles = Attachment.findByContainer(ResourceType.ISSUE_POST, 1L);
+        Attachment.attachFiles(0L, issue.asResource());
+        List<Attachment> attachedFiles = Attachment.findByContainer(issue.asResource());
 
         // Then
         assertThat(attachedFiles.size()).isEqualTo(2);

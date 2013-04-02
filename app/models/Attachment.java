@@ -91,6 +91,10 @@ public class Attachment extends Model {
                 .eq("containerId", containerId).findList();
     }
 
+    public static List<Attachment> findByContainer(Resource resource) {
+        return findByContainer(resource.getType(), resource.getId());
+    }
+
     // Attach the files from the user's temporary area to the given container.
     public static int attachFiles(
             Long userId, Long projectId, ResourceType containerType, Long containerId) {
@@ -103,6 +107,11 @@ public class Attachment extends Model {
             attachment.save();
         }
         return attachments.size();
+    }
+
+    public static int attachFiles(Long userId, Resource container) {
+        return attachFiles(userId, container.getProject().id,
+                container.getType(), container.getId());
     }
 
     // Store the files in the filesystem.

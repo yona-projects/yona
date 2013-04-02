@@ -116,7 +116,7 @@
 	    <li class="issue">
 	        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.id</a></div>
 	        <div class="attach-wrap">
-	        	@if(Attachment.findByContainer(ResourceType.ISSUE_POST, issue.id).size > 0){
+			@if(Attachment.findByContainer(issue.asResource).size > 0){
 	        	<i class="ico ico-clip"></i>
 	        	}
 	        </div>
