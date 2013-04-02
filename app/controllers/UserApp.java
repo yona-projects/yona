@@ -41,7 +41,8 @@ public class UserApp extends Controller {
 	public static final int MAX_AGE = 30*24*60*60;
 	public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
 
-	public static User anonymous = new User(-1l);
+    //ToDO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
+	public static User anonymous = new NullUser();
 
 
 	public static Result loginForm() {
@@ -59,9 +60,9 @@ public class UserApp extends Controller {
 	public static Result login() {
 		Form<User> userForm = form(User.class).bindFromRequest();
 		if(userForm.hasErrors()) {
-			return badRequest(login.render("title.login", userForm));
-		}
-		User sourceUser = form(User.class).bindFromRequest().get();
+            return badRequest(login.render("title.login", userForm));
+        }
+        User sourceUser = form(User.class).bindFromRequest().get();
 
 		Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
 		SecurityManager securityManager = factory.getInstance();

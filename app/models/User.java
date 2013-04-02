@@ -97,7 +97,12 @@ public class User extends Model {
     }
 
     public static User findByLoginId(String loginId) {
-        return find.where().eq("loginId", loginId).findUnique();
+        User user = find.where().eq("loginId", loginId).findUnique();
+        if(  user == null ) {
+            return UserApp.anonymous;
+        } else {
+            return user;
+        }
     }
 
     /**
