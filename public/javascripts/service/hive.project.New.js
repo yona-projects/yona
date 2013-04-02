@@ -70,22 +70,16 @@
 			var htRuleAccept = {"name":"accept", "rules":"required"}; // accept agreement
 			var aRules = [htRuleName, htRuleAccept];
 			
-			htVar.oValidator = new FormValidator(htVar.sFormName, aRules, _onErrorValidate);
+			htVar.oValidator = new FormValidator(htVar.sFormName, aRules, _onFormValidate);
 		}
 
 		/**
 		 * handler for validation errors.
 		 * callback should return an appropriate message for the given error
 		 */
-		function _onErrorValidate(aErrors){
-			var htError = aErrors[0];
-			var welTarget = $('div.n-alert[data-errType="' + htError.name + '"]');
-			welTarget.show();
-			
-			try {
-				return htError.message;
-			} finally {
-				welTarget = htError = null;
+		function _onFormValidate(aErrors){
+			if(aErrors.length > 0){
+				$('div.n-alert[data-errType="' + aErrors[0].name + '"]').show();
 			}
 		}
 		

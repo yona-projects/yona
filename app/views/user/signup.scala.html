@@ -1,4 +1,5 @@
 @(message: String, newUserForm: Form[User])
+@import utils.TemplateHelper._
 
 @home(message, utils.MenuType.NONE) {
 	@** Messages("title.signup") **@
@@ -57,114 +58,20 @@
         </div>
     </div>
     
+    <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
     <script type="text/javascript">
-        var passwordField = $('#password');
-        var emailField = $('#email');
-        var loginIdField = $('#loginId');
-        var passwordPlaceholder = passwordField.attr("placeholder");
-        var errorMessage = {
-            required: {
-                title: "@Messages("validation.required")"
-            },
-            duplicated: {
-                title: "@Messages("validation.duplicated")"
-            },
-            passwordMismatch: {
-                title: "@Messages("validation.passwordMismatch")"
-            },
-            tooShortPassword: {
-                title: "@Messages("validation.tooShortPassword")"
-            },
-            invalidEmail: {
-                title: "@Messages("validation.invalidEmail")"
-            }
-        };
+    	$(document).ready(function(){
+    		var htErrorMessage = {
+   				"required"  : {"title": "@Messages("validation.required")"},
+   				"duplicated": {"title": "@Messages("validation.duplicated")"},
+   				"passwordMismatch": {"title": "@Messages("validation.passwordMismatch")"},
+   				"tooShortPassword": {"title": "@Messages("validation.tooShortPassword")"},
+   				"invalidEmail": {"title": "@Messages("validation.invalidEmail")"}
+   			};
 
-        // Bootstrap tooltip function has some limitation.
-        // In this case, tooltip doesn't provide easy way to change title and contents.
-        // So, unfortunately I had to change data value in directly.
-        var showErrorMessage = function(field, errorMessage){
-                field.tooltip({trigger:'manual', placement: 'left'});
-                var tooltip = field.data('tooltip');
-                tooltip.options.title = errorMessage.title;
-                tooltip.options.content = errorMessage.content;
-                tooltip.options.placement = 'left';
-                tooltip.options.trigger = 'manual';
-                field.tooltip('show');
-        }
-        var isExist = function(checkId, url){
-            var checkPosition = checkId.next(".isValid");
-            if( url[url.length-1] != "/" ) url = url.concat("/");
-            $.ajax({
-                url: url + checkId.val()
-                }
-            ).done(function(data){
-                if(data.isExist === true){
-                    showErrorMessage(checkId, errorMessage.duplicated);
-                    checkId.tooltip("show");
-                } else {
-                    checkId.tooltip("hide");
-                    try{
-                        checkId.tooltip("destory");
-                    } catch(err){} // to avoid boostrap bug
-                }
-            });
-        };
-        $("#loginId")
-            .focusout(function(){
-                $(this).val( $(this).val().trim().toLowerCase().replace(/\s+/g, '')); //양쪽 공백을 없애고 소문자로 변경 후 중간 공백 없앰
-                if ($(this).val() !== "") isExist($(this), "/user/isExist/");
-            });
-        $("#email").focusout(function(){
-            if ($(this).val() !== "") isExist($(this), "/user/isEmailExist/");
-        });
-
-        var validator = new FormValidator('signup', [{
-            name: 'loginId',
-            rules: 'required|alpha_numeric'
-        },
-        {
-            name: 'email',
-            rules: 'required|valid_email'
-        },
-        {
-          name: 'password',
-          rules: 'required|min_length[4]'
-        },
-        {
-            name: 'retypedPassword',
-            rules: 'required|matches[password]'
-        }], function(errors, event){
-          if( errors.length > 0 ){
-            console.log(errors);
-            switch(errors[0].id){
-                case "retypedPassword" :
-                    showErrorMessage(passwordField, errorMessage.passwordMismatch);
-                    break;
-                case "password" :
-                    showErrorMessage(passwordField, errorMessage.tooShortPassword);
-                    break;
-                case "email" :
-                    showErrorMessage(emailField, errorMessage.invalidEmail);
-                    break;
-                case "loginId" :
-                    showErrorMessage(loginIdField, errorMessage.required);
-                    break;
-                default:
-                    break;
-            }
-          } else {
-            try{
-                passwordField.tooltip('destroy');
-                emailField.tooltip('destroy');
-                loginIdField.tooltip('destroy');
-            } catch(err){
-                console.log(err);
-            } // to avoid boostrap bug
-          }
-        });
-        $('#retypedPassword').focusout(function(){
-            validator._validateForm();
-        });
+    		$hive.loadModule("user.SignUp", {
+    			"htErrorMessage": htErrorMessage
+    		});
+    	});
     </script>
 }
