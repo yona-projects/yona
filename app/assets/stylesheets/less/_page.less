@@ -18,12 +18,17 @@
                 width: 123px;
                 height: 55px;
                 line-height:55px;
-                /*
-                background-size:123px 55px;
-                background-image: url("@{base-image-path}/logo.png");
-                */
-               text-align:center; font-size:2em;
-               color:#fff; background-color: @gnb-logo-bg-color;
+                text-align:center; font-size:2em; overflow:hidden;
+                color:#fff; background-color: @gnb-logo-bg-color;
+               
+                span {
+                    width: 123px;
+                    height: 55px;
+                    display: block;
+                    text-indent: -250px;
+                    background-size:123px 55px;
+                    background-image: url("@{base-image-path}/logo-white.png");
+                }
             }
             
             .gnb-menus {
@@ -201,7 +206,18 @@
             .logo { 
                 background:transparent !important;
                 color:@primary !important;
-                width:64px; margin-left:30px;
+                /*width:64px; margin-left:30px;*/
+                /*width:123px;*/
+                width:107px;
+                
+                span {
+                    width: 123px;
+                    height: 55px;
+                    display: block;
+                    text-indent: -250px;
+                    background-size:123px 55px;
+                    background-image: url("@{base-image-path}/logo-orange.png");
+                }                
             }
 
             .page-title { 
