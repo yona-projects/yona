@@ -4,6 +4,8 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
 @import utils.TemplateHelper._
 @import scala.collection.immutable.Map
+@import models.enumeration._
+
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 

@@ -18,14 +18,10 @@ import static play.test.Helpers.fakeRequest;
 
 public class ModelTest<T> {
     protected static FakeApplication app;
-//    protected static EbeanUtil ebeanUiUtil;
     protected Class<T> type;
 
     @SuppressWarnings("unchecked")
     public ModelTest() {
-//        this.type = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
-//                .getActualTypeArguments()[0];
-//        ebeanUiUtil = new EbeanUtil<T>(type);
     }
 
 //    @BeforeClass
@@ -33,29 +29,13 @@ public class ModelTest<T> {
     public void startApp() {
         app = Helpers.fakeApplication(Helpers.inMemoryDatabase()); 
         Helpers.start(app);
-
-//        callAction(
-//                routes.ref.Application.init()
-//        );
     }
 
-//    @AfterClass
     @After
     public void stopApp() {
         Helpers.stop(app);
     }
 
-//    @Before
-//    public void beginTransaction() {
-//        Ebean.beginTransaction();
-//    }
-//
-//    @After
-//    public void rollbackTransaction() {
-//        if (Ebean.currentTransaction() != null) {
-//            Ebean.rollbackTransaction();
-//        }
-//    }
 
     /**
      * Returns the first user. (id : 2 / name : hobi)

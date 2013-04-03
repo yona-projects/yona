@@ -1,7 +1,7 @@
 @(title:String, form: Form[Milestone], projectInst: Project)
 
-
 @import utils.TemplateHelper._
+@import models.enumeration._
 @project.projectMngMain(title, projectInst) {
     @views.html.prjmenu(projectInst, utils.MenuType.PROJECT_SETTING, "")
 

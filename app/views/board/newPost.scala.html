@@ -1,6 +1,7 @@
 @(title:String, form:Form[Posting], project:Project)
 
 @import utils.TemplateHelper._
+@import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @main(title, project, utils.MenuType.BOARD) {

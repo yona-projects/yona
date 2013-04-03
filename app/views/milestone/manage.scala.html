@@ -1,6 +1,7 @@
 @(message: String, milestones: List[models.Milestone], projectInst: Project, mCondition: MilestoneApp.MilestoneCondition)
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
+@import models.enumeration._
 
 @stateMessage(state: State) = @{ Messages("milestone.state." + state.name.toLowerCase) }
 

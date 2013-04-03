@@ -17,7 +17,6 @@ public class UserAppTest {
         );
     }
 
-    // FIXME after finding travis out of memory error
     public void findById_doesntExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
@@ -38,7 +37,6 @@ public class UserAppTest {
         });
     }
 
-    // FIXME after finding travis out of memory error
     public void findById_alreadyExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
@@ -59,7 +57,6 @@ public class UserAppTest {
         });
     }
 
-    // FIXME after finding travis out of memory error
     public void isEmailExist() {
         running(fakeApplication(), new Runnable() {
             public void run() {
