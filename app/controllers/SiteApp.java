@@ -44,7 +44,7 @@ public class SiteApp extends Controller {
 
     public static Result writeMail(String errorMessage, boolean sended) {
         Configuration config = play.Play.application().configuration();
-        List<String> notConfiguredItems = new ArrayList<>();
+        List<String> notConfiguredItems = new ArrayList<String>();
         String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
         for(String key : requiredItems) {
             if (config.getString(key) == null) {
