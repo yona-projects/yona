@@ -16,7 +16,7 @@
 
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
-			<span class="clone-label"><strong class="@project.vcs">Subversion</strong>@Messages("code.repoUrl")</span><!-- 
+			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
 			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
 			<div class="btn-group">
@@ -87,9 +87,9 @@
 						<span class="revision"></span> |
 						<span calss="commitMsg">fix bug when install</span>
 					</div>
-					<button id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</button>
+					<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
 				</div>
-				<div class="code-wrap"></div>
+				<pre class="code-wrap"></pre>
 			</div>
 			@** // **@
 		</div>

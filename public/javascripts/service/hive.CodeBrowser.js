@@ -39,7 +39,7 @@ hive.CodeBrowser = function(htOptions){
 	function _initVar(htOptions){
 		htVar.rxHash = /^#/;
 		htVar.sProjectName = htOptions.sProjectName;
-		htVar.sTplFileListItem = $("#tplFileListItem").text() || "";
+		htVar.sTplFileListItem = $("#tplFileListItem").html() || "";
 	}
 	
 	/**
@@ -134,11 +134,11 @@ hive.CodeBrowser = function(htOptions){
 	 * @param {String} htData.reivisionNo
 	 */
 	function _updateFileInfo(htData){
-		htElement.welFileCommiter.text(htData.author);
-		htElement.welFileCommitDate.text(htData.date);
-		htElement.welFileCommitMsg.text(htData.msg || "");
+		htElement.welFileCommiter.text(htData.commiter);
+		htElement.welFileCommitDate.text(getDateAgo(htData.commitDate));
+		htElement.welFileCommitMsg.text(getEllipsis(htData.commitMessage || "", 70));
 		htElement.welFileRevision.text("Revision #: " + (htData.revisionNo || "Unknown"));
-
+		
 		updateBreadcrumbs();
 	}
 	
@@ -161,16 +161,15 @@ hive.CodeBrowser = function(htOptions){
 		}
 		
 		// 배열을 이용해 한꺼번에 템플릿 변환.
-		// 1. append 보다 innerHTML 사용이 빠르고
-		// 2. DOM 건드리는 작업은 가능한 적게 해야
-		var sHTML = $.tmpl(htVar.sTplFileListItem, aTplData).text();
+		var waList = $.tmpl(htVar.sTplFileListItem, aTplData);
 		
 		try {
-			htElement.welContainerList.text(sHTML);
+			htElement.welFileList.children().remove(); // clear list
+			htElement.welFileList.append(waList);
 			htElement.welContainerList.show();
 			htElement.welContainerView.hide();
 		} finally {
-			aTplData = sHTML = htTmp = null;
+			aTplData = waList = htTmp = null;
 		}
 	}
 	
@@ -196,10 +195,12 @@ hive.CodeBrowser = function(htOptions){
 		var aResult = ['<a href="#/">' + project_name + '</a>'];
 		var sPath = getHash().replace(htVar.rxHash, "");
 		var sLink = "#";
-		
+
 		sPath.split("/").forEach(function(sDir){
-			sLink += ("/" + sDir);
-			aResult.push('<a href="#/' + sLink + '">' + sDir + '</a>');
+			if(sDir.length > 0){
+				sLink += ("/" + sDir);
+				aResult.push('<a href="#/' + sLink + '">' + sDir + '</a>');
+			}
 		});
 				
 		htElement.welPath.html(aResult.join("/"));
@@ -232,7 +233,7 @@ hive.CodeBrowser = function(htOptions){
 	 * @return {String} 
 	 */
 	function getEllipsis(sStr, nLength){
-		if(sStr.length > nLength){
+		if(sStr && (sStr.length > nLength)){
 			sStr = sStr.substr(0, nLength) + "&hellip;"; // &hellip; = ...
 		}
 		return sStr;
@@ -302,8 +303,8 @@ hive.CodeBrowser = function(htOptions){
 	        "title"     : "/",
 	        "isLazy"    : true,
 	        "autoFocus" : false,
-	        "onLazyRead": onLazyReadDynaTree,
-	        "onActivate": onActivateDynaTree,
+	        "onLazyRead": _onLazyReadDynaTree,
+	        "onActivate": _onActivateDynaTree,
 	        "children"  : oData,
 	        "debugLevel": 0,
 	        "fx": {
@@ -330,6 +331,9 @@ hive.CodeBrowser = function(htOptions){
      * @param {Object} oNode 
      */
 	function _onLazyReadDynaTree(oNode){
+		var sBranch = getBranch();
+	    var sRootPath = "code/" + sBranch + "/!/";
+	    
 		$.ajax({
             "url": sRootPath + _getTreePath(oNode),
             "success": function(oRes) {
@@ -466,15 +470,17 @@ hive.CodeBrowser = function(htOptions){
 	    
 	    aPath.forEach(function(sName){
 	    	aNode = oNodeCurrent.getChildren();
-	    	
-	    	for(var i=0, n=aNode.length; i < n; i++){
-	    		oNode = aNode[i];
-	    		
-	    		if(oNode.data.title === sName){
-	    			oNodeCurrent = oNode;
-	    			oNodeCurrent.expand();
-	    			break;
-	    		}
+
+	    	if(aNode){
+		    	for(var i=0, n=aNode.length; i < n; i++){
+		    		oNode = aNode[i];
+		    		
+		    		if(oNode.data.title === sName){
+		    			oNodeCurrent = oNode;
+		    			oNodeCurrent.expand();
+		    			break;
+		    		}
+		    	}
 	    	}
 	    });
 	}
