@@ -30,7 +30,7 @@ GET     /memberinfo/edit                                controllers.UserApp.memb
 
 # Site
 GET     /sites/setting                                  controllers.SiteApp.setting()
-GET     /sites/mail                                     controllers.SiteApp.writeMail()
+GET     /sites/mail                                     controllers.SiteApp.writeMail(errorMessage:String ?= "", sended:Boolean ?= false)
 POST    /sites/mail                                     controllers.SiteApp.sendMail()
 GET     /sites/userList                                 controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
 POST    /sites/userList                                 controllers.SiteApp.searchUser()

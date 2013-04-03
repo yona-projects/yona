@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.*;
 
 import models.Project;
 import models.User;
+import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import utils.Mailer;
 
 import views.html.site.setting;
 import views.html.site.mail;
@@ -21,35 +21,30 @@ import views.html.site.projectList;
 
 import com.avaje.ebean.Page;
 import static play.data.Form.form;
+import info.schleichardt.play2.mailplugin.Mailer;
 
 public class SiteApp extends Controller {
-
-    public static Result sendMail() {
-        Mailer email = new Mailer(play.Play.application());
+    public static Result sendMail() throws EmailException{
+        SimpleEmail email = new SimpleEmail();
 
         Map<String, String[]> formData = request().body().asFormUrlEncoded();
-        email.addFrom(utils.HttpUtil.getFirstValueFromQuery(formData, "from"));
+        email.setFrom(utils.HttpUtil.getFirstValueFromQuery(formData, "from"));
         email.setSubject(utils.HttpUtil.getFirstValueFromQuery(formData, "subject"));
-        email.addRecipient(utils.HttpUtil.getFirstValueFromQuery(formData, "to"));
+        email.addTo(utils.HttpUtil.getFirstValueFromQuery(formData, "to"));
+        email.setMsg(utils.HttpUtil.getFirstValueFromQuery(formData, "body"));
+        email.setCharset("utf-8");
 
         String errorMessage = null;
         boolean sended = false;
-        try {
-            email.send(utils.HttpUtil.getFirstValueFromQuery(formData, "body"));
-            sended = true;
-        } catch (EmailException e) {
-            errorMessage = e.toString();
-            if (e.getCause() != null) {
-               errorMessage += "<br/>Caused by: " + e.getCause();
-            }
-        }
-
+        String result = Mailer.send(email);
+        System.out.println(">>>" + result);
+        sended = true;
         return writeMail(errorMessage, sended);
     }
 
     public static Result writeMail(String errorMessage, boolean sended) {
         Configuration config = play.Play.application().configuration();
-        List<String> notConfiguredItems = new ArrayList<String>();
+        List<String> notConfiguredItems = new ArrayList<>();
         String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
         for(String key : requiredItems) {
             if (config.getString(key) == null) {
@@ -57,13 +52,9 @@ public class SiteApp extends Controller {
             }
         }
 
-        String sender = config.getString("smtp.user");
+        String sender = config.getString("smtp.user") + "@" + config.getString("smtp.domain");
 
         return ok(mail.render("title.sendMail", notConfiguredItems, sender, errorMessage, sended));
-    }
-
-    public static Result writeMail() {
-        return writeMail(null, false);
     }
 
     public static Result setting() {
