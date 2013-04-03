@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 public class NullUser extends User {
+    private static final long serialVersionUID = -1L;
     public Long id = -1l;
     public String name = "Guest";
 

@@ -36,6 +36,7 @@ object ApplicationBuild extends Build {
       "commons-codec" % "commons-codec" % "1.2",
       // apache-mails
       "org.apache.commons" % "commons-email" % "1.2",
+      "info.schleichardt" %% "play-2-mailplugin" % "0.8",
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.tika" % "tika-core" % "1.2",
       "commons-io" % "commons-io" % "2.4",
@@ -54,15 +55,10 @@ object ApplicationBuild extends Build {
       javaOptions in test ++= Seq("-Xmx512m", "-XX:MaxPermSize=512m"),
       javacOptions ++= Seq("-Xlint:all", "-Xlint:-path"),
       scalacOptions ++= Seq("-feature")
-//      Play2WarKeys.servletVersion := "3.0"
-      // Or Play2WarKeys.servletVersion := "2.5"
     )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     projectSettings: _*
-    // fork in Test := true
-    // 
-    // Add your own project settings here      
   )
 
 }
