@@ -1,12 +1,7 @@
 package controllers;
 
-import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-import models.Project;
-import models.ProjectUser;
-import models.Role;
-import models.User;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.RoleType;
 import models.enumeration.Direction;
@@ -25,8 +20,8 @@ import utils.Constants;
 import views.html.project.*;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 import static play.data.Form.form;
 
@@ -104,7 +99,7 @@ public class ProjectApp extends Controller {
         }
     }
 
-    public static Result settingProject(String userName, String projectName) {
+    public static Result settingProject(String userName, String projectName) throws IOException, NoSuchAlgorithmException {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
         Project project = filledUpdatedProjectForm.get();
@@ -124,24 +119,15 @@ public class ProjectApp extends Controller {
 
         if (filePart != null && filePart.getFilename() != null
                 && filePart.getFilename().length() > 0) {
-        	if(!isImageFile(filePart.getFilename())) {
-        		flash(Constants.WARNING, "project.logo.alert");
-        		filledUpdatedProjectForm.reject("logoPath");
-        	}
-        	else if (filePart.getFile().length() > 1048576) {
+            if(!isImageFile(filePart.getFilename())) {
+                flash(Constants.WARNING, "project.logo.alert");
+                filledUpdatedProjectForm.reject("logoPath");
+            } else if (filePart.getFile().length() > 1048576) {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
                 filledUpdatedProjectForm.reject("logoPath");
             } else {
-                String string = filePart.getFilename();
-                string = string.substring(string.lastIndexOf("."));
-
-                File file = new File(Constants.DEFAULT_LOGO_PATH + projectName
-                        + string);
-                if (file.exists())
-                    file.delete();
-                filePart.getFile().renameTo(file);
-
-                project.logoPath = projectName + string;
+                Attachment.deleteAll(project.asResource());
+                new Attachment().store(filePart.getFile(), filePart.getFilename(), project.asResource());
             }
         }
 

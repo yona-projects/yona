@@ -115,7 +115,7 @@ public class Attachment extends Model {
     }
 
     // Store the files in the filesystem.
-    private static String moveFileIntoTemporaryArea(File file)
+    private static String moveFileIntoUploadDirectory(File file)
             throws NoSuchAlgorithmException, IOException {
         // Compute sha1 checksum.
         MessageDigest algorithm = MessageDigest.getInstance("SHA1");
@@ -153,15 +153,17 @@ public class Attachment extends Model {
         return hash;
     }
 
-    // Store the files in the user's temporary area.
+    // Store the file as the name in the container.
     // Return true only if the attachment record is created because there was
     // no same record.
-    public boolean storeInUserTemporaryArea(Long userId, File file, String name)
-            throws NoSuchAlgorithmException, IOException {
-        // Store the file in the filesystem and compute SHA1 hash.
-        this.projectId = 0L;
-        this.containerType = ResourceType.USER;
-        this.containerId = userId;
+    public boolean store(File file, String name, Resource container) throws IOException, NoSuchAlgorithmException {
+        // Store the file as its SHA1 hash in filesystem, and record its
+        // metadata - projectId, containerType, containerId, size and hash - in Database.
+
+        Project project = container.getProject();
+        this.projectId = project == null ? 0L : project.id;
+        this.containerType = container.getType();
+        this.containerId = container.getId();
 
         if (name == null) {
             this.name = file.getName();
@@ -175,7 +177,7 @@ public class Attachment extends Model {
 
         // the size must be set before it is moved.
         this.size = file.length();
-        this.hash = Attachment.moveFileIntoTemporaryArea(file);
+        this.hash = Attachment.moveFileIntoUploadDirectory(file);
 
         // Add the attachment into the Database only if there is no same record.
         Attachment sameAttach = Attachment.findBy(this);
@@ -186,6 +188,12 @@ public class Attachment extends Model {
             this.id = sameAttach.id;
             return false;
         }
+   }
+
+    // Store the files in the user's temporary area.
+    public boolean storeInUserTemporaryArea(File file, String name, Long userId)
+            throws NoSuchAlgorithmException, IOException {
+        return store(file, name, User.find.byId(userId).asResource());
     }
 
     public File getFile() {
@@ -215,6 +223,9 @@ public class Attachment extends Model {
         }
     }
 
+    public static void deleteAll(Resource resource) {
+        deleteAll(resource.getType(), resource.getId());
+    }
     public Resource getContainerAsResource() {
         return new Resource() {
             @Override

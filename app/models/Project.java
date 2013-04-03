@@ -58,8 +58,7 @@ public class Project extends Model {
 	public String overview;
 	public String vcs;
 	public String siteurl;
-	public String logoPath;
-	public String owner;
+    public String owner;
 
 	public boolean share_option;
 	public boolean isAuthorEditable;

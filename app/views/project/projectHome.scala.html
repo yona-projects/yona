@@ -7,11 +7,9 @@
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
             <div class="logo-wrap">
-                @if(project.logoPath != null) {
-                <img src="/assets/uploadFiles/@project.logoPath" />
-                } else {
-                <img src="@routes.Assets.at("images/bg-default-project.jpg")" />
-                }
+              <img src="@defining(Attachment.findByContainer(project.asResource)) @{ files =>
+              if (files.size > 0) "/files/" + files.head.id
+              else routes.Assets.at("images/bg-default-project.jpg")}"/>
             </div>
         </div>
         <div class="inner project-info">

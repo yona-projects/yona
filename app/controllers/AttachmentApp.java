@@ -42,7 +42,7 @@ public class AttachmentApp extends Controller {
 
         // Store the file in the user's temporary area.
         Attachment attach = new Attachment();
-        boolean isCreated = attach.storeInUserTemporaryArea(UserApp.currentUser().id, file, filePart.getFilename());
+        boolean isCreated = attach.storeInUserTemporaryArea(file, filePart.getFilename(), UserApp.currentUser().id);
 
         // The request has been fulfilled and resulted in a new resource being
         // created. The newly created resource can be referenced by the URI(s)

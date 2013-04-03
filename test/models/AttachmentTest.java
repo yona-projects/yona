@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import models.enumeration.ResourceType;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,10 +23,11 @@ public class AttachmentTest extends ModelTest<Attachment> {
     public void testSaveInUserTemporaryArea() throws IOException, NoSuchAlgorithmException {
         // Given
         File file = createFileWithContents("foo.txt", "Hello".getBytes());
+        Long userId = 1L;
 
         // When
         Attachment attach = new Attachment();
-        attach.storeInUserTemporaryArea(0L, file, "bar.txt");
+        attach.storeInUserTemporaryArea(file, "bar.txt", userId);
 
         FileInputStream is = new FileInputStream(attach.getFile());
         byte[] b = new byte[1024];
@@ -46,11 +45,12 @@ public class AttachmentTest extends ModelTest<Attachment> {
         File foo = createFileWithContents("foo.txt", "Hello".getBytes());
         File bar = createFileWithContents("bar.html", "<p>Bye</p>".getBytes());
         Issue issue = Issue.finder.byId(1L);
+        Long userId = 1L;
 
         // When
-        new Attachment().storeInUserTemporaryArea(0L, foo, "foo.txt");
-        new Attachment().storeInUserTemporaryArea(0L, bar, "bar.html");
-        Attachment.attachFiles(0L, issue.asResource());
+        new Attachment().storeInUserTemporaryArea(foo, "foo.txt", userId);
+        new Attachment().storeInUserTemporaryArea(bar, "bar.html", userId);
+        Attachment.attachFiles(userId, issue.asResource());
         List<Attachment> attachedFiles = Attachment.findByContainer(issue.asResource());
 
         // Then
