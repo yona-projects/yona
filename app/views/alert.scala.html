@@ -1,20 +1,35 @@
-	    @if(flash.containsKey("warning")) {
-				<div class="alert alert-error">
-			  	  <a class="close" data-dismiss="alert">×</a>
-				    <strong>@Messages("message.warning")</strong> @Messages(flash.get("warning"))
-				</div>
-	    }
+@if(flash.containsKey("warning")) {
+	<div class="alert alert-error">
+		<a class="close" data-dismiss="alert">×</a>
+		<strong>@Messages("message.warning")</strong> @Messages(flash.get("warning"))
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			alert("@Messages(flash.get("warning"))");
+		});
+	</script>
+}
 		
-		  @if(flash.containsKey("success")) {
-			  <div class="alert alert-success">
-		  	    <a class="close" data-dismiss="alert">&times;</a>
-            <strong>@Messages("message.success")</strong> @Messages(flash.get("success"))
-			  </div>
-      }
+@if(flash.containsKey("success")) {
+	<div class="alert alert-success">
+		<a class="close" data-dismiss="alert">&times;</a>
+		<strong>@Messages("message.success")</strong> @Messages(flash.get("success"))
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			alert("@Messages(flash.get("success"))");
+		});
+	</script>
+}
         
-      @if(flash.containsKey("info")) {
-	      <div class="alert alert-info">
-	        <a class="close" data-dismiss="alert">×</a>
-	        <strong>@Messages("message.info")</strong> @Messages(flash.get("info"))
-	      </div>
-	    }
+@if(flash.containsKey("info")) {
+	<div class="alert alert-info">
+		<a class="close" data-dismiss="alert">×</a>
+		<strong>@Messages("message.info")</strong> @Messages(flash.get("info"))
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			alert("@Messages(flash.get("info"))");
+		});
+	</script>
+}
