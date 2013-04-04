@@ -2,9 +2,10 @@
 
 @main("Permission Denied", project, utils.MenuType.NONE) {
 <div class="page">
-
-    @pageTitle(project,"Project Home")
-    <h1>@Messages("auth.unauthorized.title")</H1>
-    <p>@Messages("auth.unauthorized.waringMessage")</p>
+	<div class="error-wrap">
+			<i class="ico ico-err2"></i>
+			<p>@Messages("auth.unauthorized.waringMessage")</p>
+		</div>  
+    <div>
 </div>
 }
