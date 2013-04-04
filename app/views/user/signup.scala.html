@@ -61,17 +61,7 @@
     <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
     <script type="text/javascript">
     	$(document).ready(function(){
-    		var htErrorMessage = {
-   				"required"  : {"title": "@Messages("validation.required")"},
-   				"duplicated": {"title": "@Messages("validation.duplicated")"},
-   				"passwordMismatch": {"title": "@Messages("validation.passwordMismatch")"},
-   				"tooShortPassword": {"title": "@Messages("validation.tooShortPassword")"},
-   				"invalidEmail": {"title": "@Messages("validation.invalidEmail")"}
-   			};
-
-    		$hive.loadModule("user.SignUp", {
-    			"htErrorMessage": htErrorMessage
-    		});
+		$hive.loadModule("user.SignUp");
     	});
     </script>
 }

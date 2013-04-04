@@ -355,6 +355,7 @@ validation.retypePassword = 비밀번호를 한 번 더 입력해 주세요.
 validation.invalidEmail = 올바른 이메일을 입력해 주세요.
 validation.required = 필수 항목 입니다.
 validation.duplicated = 이미 존재합니다!
+validation.allowedCharsForLoginId = 아이디는 알파벳 숫자 - _ . 를 포함할 수 있으나 _ . 로 시작하거나 끝날 수 없습니다.
 
 #Unauthorized
 auth.unauthorized.title = 접근 권한 오류
