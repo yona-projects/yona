@@ -415,4 +415,4 @@ hive.Label = (function(htOptions){
 		"init": _init,
 		"setActiveLabel": _setActiveLabel
 	};
-});
+})();

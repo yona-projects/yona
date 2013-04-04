@@ -2,10 +2,41 @@
 
 @main("Permission Denied", project, utils.MenuType.NONE) {
 <div class="page">
+	<div class="project-menu">
+		<div class="project-menu-wrap main">
+			<ul class="unstyled">
+				<li><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
+				<li class="sp-line">|</li>
+				<li><a href="@routes.BoardApp.posts(project.owner, project.name)">@Messages("menu.board")</a></li>
+				<li class="sp-line">|</li>
+				<li><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a></li>
+				<li class="sp-line">|</li>
+				<li><a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("menu.issue")</a></li>
+				<li class="sp-line">|</li>
+				<li><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
+			</ul>
+		</div>
+	</div>
+	
 	<div class="error-wrap">
 			<i class="ico ico-err2"></i>
 			<p>@Messages("auth.unauthorized.waringMessage")</p>
 		</div>  
     <div>
 </div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	try {
+		var welLink;
+		
+		$(".project-menu-wrap a").each(function(n, el){
+			welLink = $(el);
+			if(welLink.attr("href") == document.location.pathname){
+				welLink.parent().addClass("highlight");
+			}
+		});
+	}catch(e){}
+});
+</script>
 }
