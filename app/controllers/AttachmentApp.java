@@ -93,7 +93,7 @@ public class AttachmentApp extends Controller {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), attachment.getContainerAsResource(), Operation.READ)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), attachment.asResource(), Operation.READ)) {
             return forbidden();
         }
 
@@ -123,7 +123,7 @@ public class AttachmentApp extends Controller {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), attach.getContainerAsResource(), Operation.DELETE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), attach.asResource(), Operation.DELETE)) {
             return forbidden();
         }
 
@@ -180,7 +180,7 @@ public class AttachmentApp extends Controller {
             for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf(containerType),
                     Long.parseLong(containerId))) {
                 if (!AccessControl.isAllowed(UserApp.currentUser(),
-                        attach.getContainerAsResource(), Operation.READ)) {
+                        attach.asResource(), Operation.READ)) {
                     return forbidden();
                 }
                 attachments.add(fileAsMap(attach));

@@ -226,7 +226,8 @@ public class Attachment extends Model {
     public static void deleteAll(Resource resource) {
         deleteAll(resource.getType(), resource.getId());
     }
-    public Resource getContainerAsResource() {
+
+    public Resource asResource() {
         return new Resource() {
             @Override
             public Long getId() {
