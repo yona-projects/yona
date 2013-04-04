@@ -23,7 +23,6 @@
 				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch"></button>
 				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 				<ul class="dropdown-menu">
-					<li><a href="#!/HEAD">HEAD</a></li>
 					@for(name <- branches){
 					<li><a href="#!/@name">@name</a></li>
 					}
@@ -32,21 +31,11 @@
 		</div>
 		<hr class="double-sp" />
 		<div class="code-browse-wrap">
-			<div id="breadcrumbs" class="code-browse-header">리비전 619e11d0dcae4fa88b56f94d1462faa566e82e16</div>
+			<div id="breadcrumbs" class="code-browse-header">리비전</div>
 			<div class="directory-wrap cell">
 				<div class="directory-header">
 					<strong>FOLDER NAME</strong>
 				</div>
-				<!-- 
-				<ul class="directories">
-					<li class="directory selected"><a href="#!/folder" data-path="/"><i class="ico btn-folder open"></i>/</a></li>
-					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="html"><i class="ico btn-folder closed"></i>html</a></li>
-					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="images"><i class="ico btn-folder closed"></i>images</a></li>
-					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="javascript"><i class="ico btn-folder closed"></i>javaspript</a></li>
-					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="psd"><i class="ico btn-folder closed"></i>psd</a></li>
-					<li class="directory" style="padding-left: 25px;"><a href="#!/folder" data-path="stylesheets"><i class="ico btn-folder closed"></i>stylesheets</a></li>
-				</ul>
-				 -->
 				<div id="folderList" class="directories"></div>
 			</div>
 			<div class="sp-wrap cell"></div>
@@ -63,16 +52,6 @@
 						</tr>
 					</thead>
 					<tbody class="tbody">
-					<!-- 
-						<tr>
-							<td class="filename"><a href="/html/code-file.html?filenema=gitignore">.gitignore</a></td>
-							<td class="messages"><a href="/html/code-commit.html?id=xxxx">fix bug</a></td>
-							<td class="date">5 days ago</td>
-							<td class="author">
-								<a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png" width="32" height="32"></a>
-							</td>
-						</tr>
-					 -->
 					</tbody>
 				</table>
 			</div>
@@ -82,10 +61,10 @@
 			<div id="fileView" class="file-wrap cell" style="display:none;">
 				<div class="file-header nm">
 					<div id="fileInfo" class="file-info">
-						<span class="commiter">n4wiki</span> | 
-						<span class="commitDate">7 days ago</span> | 
+						<span class="commiter"></span> | 
+						<span class="commitDate"></span> | 
 						<span class="revision"></span> |
-						<span calss="commitMsg">fix bug when install</span>
+						<span calss="commitMsg"></span>
 					</div>
 					<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
 				</div>
@@ -96,9 +75,13 @@
 	</div>
 </div>
 
+@** fileList item template **@
 <script type="text/template" id="tplFileListItem">
 <tr>
-	<td class="filename"><a href="${filePath}">${name}</a></td>
+	<td class="filename {{if type == "folder"}}dynatree-ico-cf{{/if}}">
+		{{if type == "folder"}}<span class="dynatree-icon" style="margin-right:2px; vertical-align:middle;"></span>{{/if}}
+		<a href="${filePath}" class="dynatree-title">${name}</a>
+	</td>
 	<td class="messages"><a href="${filePath}">${message}</a></td>
 	<td class="date">${dateAgo}</td>
 	<td class="author">
@@ -106,6 +89,7 @@
 	</td>
 </tr>
 </script>
+@** // **@
 
 <link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/googlecode.css" />
 <link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
@@ -120,11 +104,8 @@
 <script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
 <!-- <script type="text/javascript" src="/assets/javascripts/service/hive.CodeBrowser.js"></script> -->
 <script type="text/javascript">
-	var project_name = "@project.name";
-	//nforge.require("code.copy"); // copy url: hive.Shortcut")
-	
 	$(document).ready(function(){
-		$hive.loadModule("CodeBrowser", {
+		$hive.loadModule("code.Browser", {
 			"sProjectName": "@project.name"
 		});
 	});

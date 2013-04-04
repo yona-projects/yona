@@ -2450,6 +2450,9 @@ div.markdown-preview {
         line-height: 34px;
         font-size: 11px;
         padding: 0 20px;
+        
+        a { margin:0 5px; }
+        a:first-of-type { margin-left:0; }
     }
     .commit-wrap {
         background-color: @white;
@@ -2494,6 +2497,8 @@ div.markdown-preview {
         padding: 0;
         overflow: auto;
         list-style: none;
+        min-height: 320px;
+        
         &.view {
             margin-top: 0;
         }

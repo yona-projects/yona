@@ -9,91 +9,104 @@
 @import controllers.CodeApp
 
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
-<div class="page code-browse">
-  @pageTitle(project, "Code Browser")
+<div class="page">
+	@views.html.prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-  @defining(
-    if(selectedBranch) {
-        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
-    } else {
-        routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
-    }
-) { url =>
-    <ul class="nav nav-tabs code-tab">
-      <li>
-        <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-      </li>
-      <li class="active">
-        <a href="@url">@Messages("code.commits")</a>
-      </li>
-    </ul>
+	@defining(
+		if(selectedBranch) {
+			routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
+		} else {
+			routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
+		}
+	){url =>
+    <ul class="nav nav-tabs hive-tabs">
+		<li>
+			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		</li>
+		<li class="active">
+			<a href="@url">@Messages("code.commits")</a>
+		</li>
+	</ul>
 
     @if(history.size() > 0) {
-      <div class="bubble-wrap gray">
-        <div class="inner-bubble repo-info">
-            <span class="label label-info">@project.vcs</span>
-            <strong class="clone-label">@Messages("code.repoUrl")</strong>
-          <input id="repo-url" type="text" class="text repo-url" readonly value="@CodeApp.getURL(project.owner, project.name)"><a id="copy-url" href="#!/copy-url" class="copy-btn">COPY TO CLIPBOARD</a>
-          <div class="btn-group">
-            <button data-toggle="dropdown" class="btn dropdown-toggle d-label">@selectedBranch</span></button>
-            <button data-toggle="dropdown" class="btn dropdown-toggle"><span class="caret"></span></button>
-            @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-              @if(branches.length > 0) {
-                <ul class="dropdown-menu">
-                @branches.map { branch =>
-                  @defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
-                    <li><a href="@url">@branch</a></li>
-                  }
-                }
-                </ul>
-              }
-            }
-          </div>
-        </div>
-        <hr class="double-sp"/>
-        <div class="code-browse-wrap">
-          <div class="commit-wrap" id="history">
-            <table class="code-table commits">
-              <thead class="thead">
-                <tr>
-                  <td class="commit-id"><strong>#</strong></td>
-                  <td class="messages"><strong>COMMIT MESSAGES</strong></td>
-                  <td class="date"><strong>COMMIT DATE</strong></td>
-                  <td class="author"><strong>AUTHOR</strong></td>
-                </tr>
-              </thead>
-              <tbody class="tbody">
-              @for(commit <- history.iterator()) {
-                <tr>
-                  <td class="commit-id"><a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a></td>
-                  <td class="messages">@commit.getMessage()</td>
-                  <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-                  <td class="author">@defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
-                    @if(user != null) { <a href="@routes.UserApp.userInfo(user.loginId)"> }
-                    <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)">
-                    @if(user != null) { </a> }
-                  }</td>
-                </tr>
-              }
-              </tbody>
-            </table>
-          </div>
-        </div>
-        @if(page > 0) {
+	<div class="bubble-wrap dark-gray repo-wrap">
+		<div class="inner-bubble repo-info">
+			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
+             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+			<div class="btn-group">
+				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch">@if(selectedBranch){ @selectedBranch } else { HEAD }</button>				
+				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+				@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+					@if(branches.length > 0) {
+					<ul class="dropdown-menu">
+						@branches.map { branch =>
+							@defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
+							<li><a href="@url">@branch</a></li>
+							}
+						}
+					</ul>
+					}
+				}
+			</div>
+		</div>
+		<hr class="double-sp" />
+
+		<div class="code-browse-wrap">
+			<div class="commit-wrap" id="history">
+				<table class="code-table commits">
+					<thead class="thead">
+						<tr>
+							<td class="commit-id"><strong>#</strong></td>
+							<td class="messages"><strong>COMMIT MESSAGES</strong></td>
+							<td class="date"><strong>COMMIT DATE</strong></td>
+							<td class="author"><strong>AUTHOR</strong></td>
+						</tr>
+					</thead>
+					<tbody class="tbody">
+						@for(commit <- history.iterator()) {
+						<tr>
+							<td class="commit-id">
+								<a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">@commit.getShortId()</a>
+							</td>
+							<td class="messages">@commit.getMessage()</td>
+							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+							<td class="author">@defining(User.find.where.eq("email",
+								commit.getAuthorEmail).findUnique) { user => @if(user != null) {
+								<a href="@routes.UserApp.userInfo(user.loginId)"> } <img
+									class="user-picture"
+									src="@urlToPicture(commit.getAuthorEmail(), 34)">
+									@if(user != null) {
+							</a> } }
+							</td>
+						</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		
+		@if(page > 0) {
         <ul class="pager">
-          <li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
+			<li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
         </ul>
         }
+        
         @if(history.get(history.size() - 1).getParentCount() > 0) {
         <ul class="pager">
-          <li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
+			<li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
         </ul>
         }
       </div>
-    }
-  }
+    } @** end of if(history.size) **@
+    
+  } @** end of defining url **@ 
 </div>
-}
+
+<!-- <script type="text/javascript" src="/assets/javascripts/service/hive.code.History.js"></script> -->
 <script type="text/javascript">
-nforge.require('code.copy');
+	$(document).ready(function(){
+		$hive.loadModule("code.History");
+	});
 </script>
+}
