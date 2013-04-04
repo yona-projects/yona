@@ -30,7 +30,6 @@ public class Global extends GlobalSettings {
                 "issues", "issueComments",
                 "postings", "postingComments",
                 "roles", "projectUsers",
-                "taskBoards", "lines", "cards", "labels", "checkLists",
                 "siteAdmins"
             };
 

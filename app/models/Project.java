@@ -14,7 +14,6 @@ import com.avaje.ebean.Ebean;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
-import models.task.TaskBoard;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -76,9 +75,6 @@ public class Project extends Model {
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public List<Milestone> milestones;
-
-	@OneToOne(mappedBy = "project", cascade = CascadeType.ALL)
-	public TaskBoard taskBoard;
 
 	public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;

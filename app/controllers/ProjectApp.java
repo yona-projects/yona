@@ -6,7 +6,6 @@ import models.enumeration.Operation;
 import models.enumeration.RoleType;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
-import models.task.CardAssignee;
 import models.support.*;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -203,9 +202,6 @@ public class ProjectApp extends Controller {
             if (project.owner.equals((User.find.byId(userId).name).toLowerCase())) {
                 flash(Constants.WARNING, "project.member.ownerCannotLeave");
                 return redirect(routes.ProjectApp.members(userName, projectName));
-            }
-            for (CardAssignee cardAssignee : CardAssignee.findByAssignee(userId)) {
-                cardAssignee.delete();
             }
             ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(userName, projectName));

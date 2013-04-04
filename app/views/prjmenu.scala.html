@@ -33,8 +33,6 @@
 			<li class="sp-line">|</li>
 			<li class="@isActiveMenu(MenuType.ISSUE)"><a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("menu.issue")</a></li>
 			<li class="sp-line">|</li>
-		<!--	<li class="@isActiveMenu(MenuType.TASK)"><a href="@routes.TaskApp.index(project.owner, project.name)">@Messages("menu.task")</a></li> 
-			<li class="sp-line">|</li>-->
 			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
 		</ul>
 	</div>

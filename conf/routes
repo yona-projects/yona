@@ -130,17 +130,6 @@ GET     /:user/:project/commit/:id                      controllers.CodeHistoryA
 # Search
 GET     /:user/:project/search                          controllers.SearchApp.contentsSearch(user, project, page: Int ?= 0)
 
-#task
-GET     /:user/:project/task                            controllers.TaskApp.index(user, project)
-GET     /:user/:project/task/labels                     controllers.TaskApp.getLabels(user, project)
-GET     /:user/:project/task/member                     controllers.TaskApp.getMember(user, project)
-GET     /:user/:project/task/connect                    controllers.TaskApp.connect(user, project)
-GET     /:user/:project/task/card/:cardId               controllers.TaskApp.card(user, project, cardId:Long)
-GET     /:user/:project/task/card                       controllers.TaskApp.cardView(user, project)
-POST    /:user/:project/task/newCard                    controllers.TaskApp.newCard(user, project)
-POST    /:user/:project/task/card                       controllers.TaskApp.saveCard(user, project)
-POST    /:user/:project/task/comment                    controllers.TaskApp.addComment(user, project)
-
 # Help
 GET     /help                                           controllers.HelpApp.help()
 
