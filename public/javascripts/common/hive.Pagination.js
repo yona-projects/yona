@@ -101,17 +101,18 @@ hive.Pagination = (function(window, document) {
 		
 		options.url = options.url || document.URL;
 		options.firstPage = options.firstPage || 1;
-		options.hasPrev = (typeof options.hasPrev == "undefined") ? options.current > options.firstPage : options.hasPrev;
-		options.hasNext = (typeof options.hasNext == "undefined") ? options.current < totalPages : options.hasNext;
 
-		var paramNameForPage = options.paramNameForPage || 'pageNum';
 		var pageNumFromUrl;
+		var paramNameForPage = options.paramNameForPage || 'pageNum';
 
 		if (!Number.isFinite(options.current)) {
 			query = getQuery(options.url);
 			pageNumFromUrl  = parseInt(valueFromQuery(paramNameForPage, query));
 			options.current = pageNumFromUrl || options.firstPage;
 		}
+
+		options.hasPrev = (typeof options.hasPrev == "undefined") ? options.current > options.firstPage : options.hasPrev;
+		options.hasNext = (typeof options.hasNext == "undefined") ? options.current < totalPages : options.hasNext;
 
 		validateOptions(options);
 
