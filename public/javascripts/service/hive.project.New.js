@@ -55,7 +55,7 @@
 		
 		function _onSelectVCSItem(){
 			var sValue = $(this).text();
-			htElement.welInputVCS.val(sValue.toUpperCase());
+			htElement.welInputVCS.val(sValue);
 			htElement.welBtnVCSSelected.text(sValue);
 		}
 		
