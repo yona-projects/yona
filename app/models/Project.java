@@ -39,7 +39,7 @@ public class Project extends Model {
 	public static Finder<Long, Project> find = new Finder<Long, Project>(
 			Long.class, Project.class);
 
-    public static final int PROJECT_COUNT_PER_PAGE = 15;
+    public static final int PROJECT_COUNT_PER_PAGE = 10;
 
     public static Comparator<Project> sortByNameWithIgnoreCase = new SortByNameWithIgnoreCase();
     public static Comparator<Project> sortByNameWithIgnoreCaseDesc = new SortByNameWithIgnoreCaseDesc();
