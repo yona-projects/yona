@@ -55,6 +55,10 @@ hive.Pagination = (function(window, document) {
 
 	/**
 	 * urlWithPageNum
+     *
+     * Create a url whose query has a paramNameForPage parameter whose value is
+     * pageNum.
+     *
 	 * @param {String} url
 	 * @param {Number} pageNum
 	 * @param {String} paramNameForPage
@@ -63,8 +67,14 @@ hive.Pagination = (function(window, document) {
 		var query = getQuery(url);
 		var regex = new RegExp('(^|&|\\?)' + paramNameForPage + '=[^&]+');
 		var result = regex.exec(query);
-		query = query.replace(regex, result[1] + paramNameForPage + '=' + pageNum);
-		
+        if (result) {
+            // if paramNameForPage parameter already exists, update it.
+            query = query.replace(regex, result[1] + paramNameForPage + '=' + pageNum);
+        } else {
+            // if not add new one.
+            query = query + '&' + paramNameForPage + '=' + pageNum;
+        }
+
 		return urlWithQuery(url, query);
 	}
 
