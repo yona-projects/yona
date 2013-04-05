@@ -39,20 +39,21 @@
 		 */
 		function _initVar(){
 			htVar.rxTrim = /\s+/g;
-
+			htVar.rxLoginId = /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/;
+			
 			// error definition
 		    htVar.htErrors = {
 		    	"retypedPassword": {
-				"elTarget": htElement.welInputPassword
+		    		"elTarget": htElement.welInputPassword
 		    	},
 		    	"password": {
-				"elTarget": htElement.welInputPassword
+		    		"elTarget": htElement.welInputPassword
 		    	},
 		    	"email":{
-				"elTarget": htElement.welInputEmail
+		    		"elTarget": htElement.welInputEmail
 		    	},
 		    	"loginId":{
-				"elTarget": htElement.welInputLoginId
+		    		"elTarget": htElement.welInputLoginId
 		    	}
 		    };
 		}
@@ -138,13 +139,23 @@
 	  		];
 
 			htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
-            htVar.oValidator.registerCallback('check_loginId', function(value) {
-                return /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/.test(value);
-            }).setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"))
-            .setMessage('required', Messages("validation.required"))
-            .setMessage('min_length', Messages("validation.tooShortPassword"))
-            .setMessage('matches', Messages("validation.passwordMismatch"))
-            .setMessage('valid_email', Messages("validation.invalidEmail"));
+            htVar.oValidator.registerCallback('check_loginId', _onValidateLoginId)
+            
+            // set error message
+            htVar.oValidator.setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"));
+            htVar.oValidator.setMessage('required', Messages("validation.required"));
+            htVar.oValidator.setMessage('min_length', Messages("validation.tooShortPassword"));
+            htVar.oValidator.setMessage('matches', Messages("validation.passwordMismatch"));
+            htVar.oValidator.setMessage('valid_email', Messages("validation.invalidEmail"));
+		}
+		
+		/**
+		 * login id validation
+		 * @param {String} sLoginId
+		 * @return {Boolean}
+		 */
+		function _onValidateLoginId(sLoginId){
+			return htVar.rxLoginId.test(sLoginId);
 		}
 		
 		/**

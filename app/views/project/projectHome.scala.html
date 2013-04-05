@@ -2,7 +2,7 @@
 
 @main(message, project, utils.MenuType.PROJECT_HOME) {
 <div class="page">
-	@views.html.prjmenu(project, utils.MenuType.PROJECT_HOME, "")
+	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
     
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
@@ -60,12 +60,12 @@
         } else {
         <div class="readme-wrap">
            <header><i class="ico ico-readme-book"></i><strong>README.md</strong></header>
-           <div class="readme-body" markdown>
+           <div class="readme-body" markdown="true">
                @project.readme
            </div>
         </div>
         }
-  @views.html.markdown()
+	@markdown()
     </div>
 </div>
 }
