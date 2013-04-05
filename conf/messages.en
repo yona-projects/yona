@@ -355,6 +355,7 @@ validation.retypePassword = Password confirmation
 validation.invalidEmail = Confirm valid email address!
 validation.required = Required!
 validation.duplicated = Already exists!
+validation.allowedCharsForLoginId = Login id may only contain alphanumeric characters, dash, underscore or dot and cannot begin or end with underscore or dot.
 
 #Unauthorized
 auth.unauthorized.title = You need access Control!

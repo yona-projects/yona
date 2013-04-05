@@ -9,8 +9,41 @@ import org.junit.Test;
 import org.junit.Ignore;
 
 import com.avaje.ebean.Page;
+import play.data.validation.Validation;
 
 public class UserTest extends ModelTest<User> {
+
+    @Test
+    public void save() throws Exception {
+        User user = new User();
+
+        user.loginId="foo";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo' should be accepted.").isEqualTo(0);
+
+        user.loginId=".foo";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'.foo' should NOT be accepted.").isGreaterThan(0);
+
+        user.loginId="foo.bar";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo.bar' should be accepted.").isEqualTo(0);
+
+        user.loginId="foo.";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo.' should NOT be accepted.").isGreaterThan(0);
+
+        user.loginId="_foo";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'_foo' should NOT be accepted.").isGreaterThan(0);
+
+        user.loginId="foo_bar";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo_bar' should be accepted.").isEqualTo(0);
+
+        user.loginId="foo_";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo_' should NOT be accepted.").isGreaterThan(0);
+
+        user.loginId="-foo";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'-foo' should be accepted.").isEqualTo(0);
+
+        user.loginId="foo-";
+        assertThat(Validation.getValidator().validate(user).size()).describedAs("'foo-' should be accepted.").isEqualTo(0);
+    }
 
 	@Test
 	public void findById() throws Exception {

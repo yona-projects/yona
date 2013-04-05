@@ -10,7 +10,7 @@
 (function(ns){
 	
 	var oNS = $hive.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
+	oNS.container[oNS.name] = function(){
 		
 		var htVar = {};
 		var htElement = {};
@@ -18,9 +18,9 @@
 		/**
 		 * initialize
 		 */
-		function _init(htOptions){
-			_initElement(htOptions);
-			_initVar(htOptions);
+		function _init(){
+			_initElement();
+			_initVar();
 			
 			_initFormValidator();
 		}
@@ -28,7 +28,7 @@
 		/**
 		 * initialize elements
 		 */
-		function _initElement(htOptions){
+		function _initElement(){
 			htElement.welInputPassword = $('#password');
 			htElement.welInputEmail    = $('#email');
 			htElement.welInputLoginId  = $('#loginId');			
@@ -37,27 +37,22 @@
 		/**
 		 * initialize variables
 		 */
-		function _initVar(htOptions){
+		function _initVar(){
 			htVar.rxTrim = /\s+/g;
-			htVar.htErrorMessage = htOptions.htErrorMessage || {}; 
 
 			// error definition
 		    htVar.htErrors = {
 		    	"retypedPassword": {
-		    		"elTarget": htElement.welInputPassword,
-		    		"sMessage": htVar.htErrorMessage.passwordMismatch
+				"elTarget": htElement.welInputPassword
 		    	},
 		    	"password": {
-		    		"elTarget": htElement.welInputPassword,
-		    		"sMessage": htVar.htErrorMessage.tooShortPassword	    		
+				"elTarget": htElement.welInputPassword
 		    	},
 		    	"email":{
-		    		"elTarget": htElement.welInputEmail,
-		    		"sMessage": htVar.htErrorMessage.invalidEmail	    		
+				"elTarget": htElement.welInputEmail
 		    	},
 		    	"loginId":{
-		    		"elTarget": htElement.welInputLoginId,
-		    		"sMessage": htVar.htErrorMessage.required	    		
+				"elTarget": htElement.welInputLoginId
 		    	}
 		    };
 		}
@@ -95,7 +90,7 @@
 		    	{"url": sURL + welCheckId.val()}
 		    ).done(function(data){
 		        if(data.doesExists === true){
-		            showErrorMessage(welCheckId, htVar.htErrorMessage.duplicated);
+		            showErrorMessage(welCheckId, Messages("validation.duplicated"));
 		            welCheckId.tooltip("show");
 		        } else {
 		            welCheckId.tooltip("hide");
@@ -136,13 +131,20 @@
 		 */
 		function _initFormValidator(){
 			var aRules = [
-	  			{"name": 'loginId',			"rules": 'required|alpha_numeric'},
+				{"name": 'loginId',			"rules": 'required|callback_check_loginId'},
 	  			{"name": 'email',			"rules": 'required|valid_email'},
 	  			{"name": 'password',		"rules": 'required|min_length[4]'},
 	  			{"name": 'retypedPassword', "rules": 'required|matches[password]'}
 	  		];
 
 			htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
+            htVar.oValidator.registerCallback('check_loginId', function(value) {
+                return /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/.test(value);
+            }).setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"))
+            .setMessage('required', Messages("validation.required"))
+            .setMessage('min_length', Messages("validation.tooShortPassword"))
+            .setMessage('matches', Messages("validation.passwordMismatch"))
+            .setMessage('valid_email', Messages("validation.invalidEmail"));
 		}
 		
 		/**
@@ -150,10 +152,12 @@
 		 */
 		function _onFormValidate(aErrors, event){
 			if (aErrors.length > 0) {
-				var htError = htVar.htErrors[aErrors[0].id];
-				if (htError) {
-					showErrorMessage(htError.elTarget, htError.sMessage);
-				}
+                for(var i = 0; i < aErrors.length; i++) {
+                    var htError = htVar.htErrors[aErrors[i].id];
+                    if (htError) {
+                        showErrorMessage(htError.elTarget, {title: aErrors[i].message});
+                    }
+                }
 			} else {
 				// to avoid bootstrap bug
 				try {
@@ -167,6 +171,6 @@
 		}
 
 		
-		_init(htOptions);
+		_init();
 	};
 })("hive.user.SignUp");
