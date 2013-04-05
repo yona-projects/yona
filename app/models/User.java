@@ -44,7 +44,7 @@ public class User extends Model {
     public Long id;
     public String name;
 
-    @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]*)*$", message = "user.wrongloginId.alert") @Required
+    @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", message = "user.wrongloginId.alert") @Required
     public String loginId;
     public String password;
     public String passwordSalt;

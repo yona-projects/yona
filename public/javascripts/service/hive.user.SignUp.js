@@ -139,7 +139,7 @@
 
 			htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
             htVar.oValidator.registerCallback('check_loginId', function(value) {
-                return /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]*)*$/.test(value);
+                return /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/.test(value);
             }).setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"))
             .setMessage('required', Messages("validation.required"))
             .setMessage('min_length', Messages("validation.tooShortPassword"))
