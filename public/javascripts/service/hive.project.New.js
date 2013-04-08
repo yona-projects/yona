@@ -54,9 +54,11 @@
 		}
 		
 		function _onSelectVCSItem(){
-			var sValue = $(this).text();
+			var sText = $(this).text();
+			var sValue = $(this).attr("data-value");
+			
 			htElement.welInputVCS.val(sValue);
-			htElement.welBtnVCSSelected.text(sValue);
+			htElement.welBtnVCSSelected.text(sText);
 		}
 		
 		/**
@@ -68,7 +70,7 @@
 			// rules: rules to apply to the input element.
 			var htRuleName   = {"name":"name",   "rules":"required|alpha_dash"}; // project name
 			var htRuleAccept = {"name":"accept", "rules":"required"}; // accept agreement
-			var aRules = [htRuleName, htRuleAccept];
+			var aRules = [htRuleName];//, htRuleAccept];
 			
 			htVar.oValidator = new FormValidator(htVar.sFormName, aRules, _onFormValidate);
 		}
