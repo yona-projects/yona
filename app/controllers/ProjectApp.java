@@ -65,13 +65,12 @@ public class ProjectApp extends Controller {
 
     @Transactional
     public static Result newProject() throws Exception {
-        Form<Project> filledNewProjectForm = form(Project.class)
-                .bindFromRequest();
-        if(request().body().asFormUrlEncoded().get("accept") == null){
+        Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
+        /*if(request().body().asFormUrlEncoded().get("accept") == null){
             flash(Constants.WARNING, "project.new.agreement.alert");
             return badRequest(newProject.render("title.newProject",
                     filledNewProjectForm));
-        }
+        }*/
 
         if (Project.isProject(UserApp.currentUser().loginId,
                 filledNewProjectForm.field("name").value())) {
