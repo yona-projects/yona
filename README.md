@@ -1,6 +1,6 @@
 HIVE
 =======
-[![Build Status](https://travis-ci.org/nforge/nforge4.png?branch=master)](https://travis-ci.org/nforge/nforge4)
+[![Build Status](https://travis-ci.org/nforge/hive.png?branch=master)](https://travis-ci.org/nforge/hive)
 
 협업 개발 플랫폼 (현재 개발중이며 아직 공식 버전 넘버링이 안 된 상태입니다.)
 
@@ -31,11 +31,11 @@ HIVE는 GNU GPL v2로 배포되는 오픈소스입니다. (MIT 라이센스로 �
 
     cd play-2.1.0
 
-### nforge 소스 내려 받기
+### hive 소스 내려 받기
 
     git clone https://github.com/nforge/hive.git
 
-### clone 받은 nforge4 디렉터리로 이동
+### clone 받은 hive 디렉터리로 이동
 
     cd hive
 
