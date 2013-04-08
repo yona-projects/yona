@@ -111,7 +111,8 @@
 						-->
 					</div>
 					<div class="progress-label">
-						<div class="pull-left" style="width: @milestone.getCompletionRate%;">
+						@** 0% 일 수도 있어서 최소한의 텍스트 영역 확보 **@
+						<div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
 							<a href="@makeIssuesLink(milestone.id,"closed")">완료 <strong>@milestone.getCompletionRate%</strong></a>
 						</div>
 						<!-- 
