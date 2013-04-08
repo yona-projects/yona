@@ -242,4 +242,19 @@ public class MilestoneTest extends ModelTest<Milestone> {
         assertThat(m5.getNumTotalIssues()).describedAs("number of total issues should be 1").isEqualTo(1);
         assertThat(m5.getCompletionRate()).isEqualTo(100);
     }
+
+    @Test
+    public void isUniqueProjectIdAndTitle() {
+        //Given
+        //When
+        boolean isUnique = Milestone.isUniqueProjectIdAndTitle(1l, "v.0.1");
+        //Then
+        assertThat(isUnique == false);
+
+        //Given
+        //When
+        isUnique = Milestone.isUniqueProjectIdAndTitle(1l, "unique milestone");
+        //Then
+        assertThat(isUnique == true);
+    }
 }

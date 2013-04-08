@@ -97,6 +97,7 @@ milestone.menu.manage = Manage
 milestone.menu.new = New
 sort.by.dueDate = Due Date
 sort.by.completionRate = Completeness
+milestone.title.duplicated = Title is duplicated.
 
 #Issue
 issue.stateType.all = All
@@ -279,7 +280,7 @@ user.login.failed = Your login ID or password is not valid.
 user.logout.success = Logout successfully
 user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
 user.signupId = ID (lower case)
-user.signupBtn = Sign Up 
+user.signupBtn = Sign Up
 
 #Time
 time.just = just now

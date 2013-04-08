@@ -23,6 +23,7 @@ public class Milestone extends Model {
     public Long id;
 
     @Constraints.Required
+    @Column(unique = true)
     public String title;
 
     @Constraints.Required
@@ -63,7 +64,7 @@ public class Milestone extends Model {
     public int getNumOpenIssues() {
         return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
     }
-    
+
     public int getNumTotalIssues() {
         return issues.size();
     }
@@ -166,5 +167,10 @@ public class Milestone extends Model {
             options.put(milestone.id.toString(), milestone.title);
         }
         return options;
+    }
+
+    public static boolean isUniqueProjectIdAndTitle(Long projectId, String title) {
+        int count = find.where().eq("project.id", projectId).eq("title", title).findRowCount();
+        return (count == 0);
     }
 }
