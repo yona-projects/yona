@@ -5,7 +5,7 @@
 
 @memberRole(userRole: String) = {
     @for(role <- roles){
-       	<li @if(role.name.equals(userRole)){ class="active" }><a href="#" data-id="@role.id">@role.name</a></li>
+       	<li @if(role.name.equals(userRole)){ class="active" }><a href="javascript:void(0)" data-id="@role.id">@role.name</a></li>
     }
 }
 

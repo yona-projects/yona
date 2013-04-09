@@ -31,6 +31,9 @@
 			// 멤버 삭제 확인 대화창
 			htElement.welAlertDelete = $("#alertDeletion");
 			htElement.welBtnConfirmDelete = htElement.welAlertDelete.find(".btnDelete");
+			
+			// 멤버별 권한 선택
+			htElement.waAccess = $(".dropdown-menu li");
 		}
 		
 		/**
@@ -38,6 +41,18 @@
 		 */
 		function _attachEvent(){
 			htElement.waBtns.click(_onClickBtns);
+			htElement.waAccess.click(_onClickAccess);
+		}
+
+		/**
+		 * 각 멤버별 권한 선택시 처리 핸들러
+		 */
+		function _onClickAccess(){
+			var welTarget = $(this);
+			var welContainer = welTarget.closest(".btn-group");
+			welContainer.find("button.d-label").text(welTarget.text());
+			welContainer.find("li").removeClass("active");
+			welTarget.addClass("active");			
 		}
 		
 		/**
