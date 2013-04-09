@@ -61,6 +61,11 @@ public class Issue extends AbstractPosting {
         return finder;
     }
 
+    @Override
+    protected Long increaseNumber() {
+        return project.increaseLastIssueNumber();
+    }
+
     /**
      * issueList, issue view에서 assignee의 이름을 출력해준다. 아래의 getAssigneeName과 합쳐질 수
      * 있을듯.

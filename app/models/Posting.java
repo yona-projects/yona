@@ -25,6 +25,11 @@ public class Posting extends AbstractPosting {
         return finder;
     }
 
+    @Override
+    protected Long increaseNumber() {
+        return project.increaseLastPostingNumber();
+    }
+
     public int computeNumOfComments() {
         return comments.size();
     }

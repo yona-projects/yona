@@ -67,14 +67,11 @@ abstract public class AbstractPosting extends Model {
 
     protected abstract Finder<Long, ? extends AbstractPosting> getFinder();
 
+    protected abstract Long increaseNumber();
+
     @Transactional
     public void save() {
-        AbstractPosting lastOne = getFinder().where().eq("project.id", project.id).orderBy("number desc").setMaxRows(1).findUnique();
-        if (lastOne != null && lastOne.number != null) {
-            number = lastOne.number + 1L;
-        } else {
-            number = 1L;
-        }
+        number = increaseNumber();
         numOfComments = computeNumOfComments();
         super.save();
     }

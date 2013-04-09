@@ -9,6 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.servlet.ServletException;
+import javax.validation.constraints.NotNull;
 
 import com.avaje.ebean.Ebean;
 import models.enumeration.ResourceType;
@@ -21,6 +22,7 @@ import org.joda.time.Duration;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import playRepository.Commit;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
@@ -76,7 +78,10 @@ public class Project extends Model {
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public List<Milestone> milestones;
 
-	public static Long create(Project newProject) {
+    private long lastIssueNumber;
+    private long lastPostingNumber;
+
+    public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;
         newProject.createdDate = new Date();
         newProject.save();
@@ -246,6 +251,20 @@ public class Project extends Model {
 			return null;
 		}
 	}
+
+    @Transactional
+    public Long increaseLastIssueNumber() {
+        lastIssueNumber++;
+        update();
+        return lastIssueNumber;
+    }
+
+    @Transactional
+    public Long increaseLastPostingNumber() {
+        lastPostingNumber++;
+        update();
+        return lastPostingNumber;
+    }
 
     public static class SortByNameWithIgnoreCase implements Comparator<Project> {
         public int compare(Project o1, Project o2) {
