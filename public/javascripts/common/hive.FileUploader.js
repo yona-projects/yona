@@ -295,9 +295,9 @@ hive.FileUploader = (function() {
  * fileDownloader
  */
 var fileDownloader = function(welTarget, sAction) {
-	
+	var sTpl = '<li class="attach"><a href="${url}"><i class="ico ico-clip"></i>${name} (${fileSize})</a></li>';
 	var createFileItem = function(oFile) {
-		var sTpl = '<li><a href="${url}"><i class="icon-download"></i><div>${name}</div></a></li>';
+		oFile.fileSize = humanize.filesize(oFile.size);
 		return $.tmpl(sTpl, oFile);
 	};
 
@@ -311,7 +311,7 @@ var fileDownloader = function(welTarget, sAction) {
 	if (typeof resourceId !== "undefined") {
 		htData.containerId = resourceId;
 	}
-	var welFileList = $('<ul>');
+	var welFileList = $('<ul class="attaches wm">');
 	
 	// send request
 	$hive.sendForm({
@@ -324,7 +324,7 @@ var fileDownloader = function(welTarget, sAction) {
 			if(aFiles.length > 0){
 				welFileList.css('display', 'block');
 				aFiles.forEach(function(oFile){
-					welFileList.append(createFileItem(oFile));			
+					welFileList.append(createFileItem(oFile));
 				});
 				welTarget.append(welFileList);
 			}
