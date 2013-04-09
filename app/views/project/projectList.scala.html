@@ -52,12 +52,17 @@
               </div>
           </li>
 	  }
-</ul>
-
+      </ul>
+      <div id="pagination">
+          <!-- pagination.js will fill here. -->
+      </div>
 </div>
 
 
 <script type="text/javascript">
+  $(document).ready(function(){
+    hive.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
+  });
 /* 
 $(document).ready(function(){
 	$(".btn-advanced").click(function(){

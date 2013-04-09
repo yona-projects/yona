@@ -39,7 +39,7 @@ menu.issue = 이슈
 menu.wiki = 위키
 menu.admin = 프로젝트 관리
 menu.siteAdmin = 사이트 관리
-menu.task = 작업 
+menu.task = 작업
 
 message.warning = 경고
 message.success = 성공
@@ -99,6 +99,7 @@ milestone.menu.new = 새 마일스톤
 milestone.none = 없음
 sort.by.dueDate = 완료일 순
 sort.by.completionRate = 완료율 순
+milestone.title.duplicated = 마일스톤 제목이 다른것과 중복 됩니다. 다른 제목을 사용하세요.
 
 #Issue
 issue.state = 상태

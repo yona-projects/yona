@@ -4,6 +4,7 @@ import models.*;
 import models.enumeration.*;
 import play.data.*;
 import play.mvc.*;
+import utils.Constants;
 import views.html.milestone.*;
 
 import java.util.*;
@@ -56,6 +57,7 @@ public class MilestoneApp extends Controller {
         if(project == null ) {
             return notFound();
         }
+        validate(project, milestoneForm);
         if (milestoneForm.hasErrors()) {
             return ok(create.render("title.newMilestone", milestoneForm, project));
         } else {
@@ -63,6 +65,14 @@ public class MilestoneApp extends Controller {
             newMilestone.project = project;
             Milestone.create(newMilestone);
             return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
+        }
+    }
+
+    private static void validate(Project project, Form<Milestone> milestoneForm) {
+        // 중복된 title로 만들 수 없다.
+        if (!Milestone.isUniqueProjectIdAndTitle(project.id, milestoneForm.field("title").value())) {
+            milestoneForm.reject("title", "milestone.title.duplicated");
+            flash(Constants.WARNING, "milestone.title.duplicated");
         }
     }
 
@@ -95,8 +105,11 @@ public class MilestoneApp extends Controller {
         if(project == null ) {
             return notFound();
         }
-
         Form<Milestone> milestoneForm = new Form<Milestone>(Milestone.class).bindFromRequest();
+        Milestone original = Milestone.findById(milestoneId);
+        if(!original.title.equals(milestoneForm.field("title").value())) {
+            validate(project, milestoneForm);
+        }
         if (milestoneForm.hasErrors()) {
             return ok(edit.render("title.editMilestone", milestoneForm, milestoneId, project));
         } else {
