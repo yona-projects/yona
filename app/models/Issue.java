@@ -16,6 +16,7 @@ import java.io.*;
 import java.util.*;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
 public class Issue extends AbstractPosting {
     /**
      * @param id              이슈 ID
@@ -53,6 +54,11 @@ public class Issue extends AbstractPosting {
 
     public int computeNumOfComments() {
         return comments.size();
+    }
+
+    @Override
+    public Finder<Long, ? extends AbstractPosting> getFinder() {
+        return finder;
     }
 
     /**
