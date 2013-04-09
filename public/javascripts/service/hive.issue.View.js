@@ -28,7 +28,7 @@
 			_setLabelColor();
 			
 			if(typeof htOptions.htActiveLabels == "object"){
-				_initLabels(htOptions.htActiveLabels);
+				_initLabel(htOptions.htActiveLabels);
 			}			
 		}
 
@@ -67,8 +67,8 @@
 		 * initialize fileDownloader
 		 */
 		function _initFileDownloader(){
-			htElement.welAttachments.each(function(el){
-				fileDownloader(el, htVar.sAction);
+			htElement.welAttachments.each(function(n, el){
+				fileDownloader($(el), htVar.sAction);
 			});
 		}
         
