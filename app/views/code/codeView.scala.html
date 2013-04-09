@@ -24,7 +24,7 @@
 				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 				<ul class="dropdown-menu">
 					@for(name <- branches){
-					<li><a href="#!/@name">@name</a></li>
+					<li><a href="#" class="branch-item">@name</a></li>
 					}
 				</ul>
 			</div>
@@ -51,8 +51,7 @@
 							<td class="author"><strong>AUTHOR</strong></td>
 						</tr>
 					</thead>
-					<tbody class="tbody">
-					</tbody>
+					<tbody class="tbody contents"></tbody>
 				</table>
 			</div>
 			@** // **@
@@ -61,10 +60,10 @@
 			<div id="fileView" class="file-wrap cell" style="display:none;">
 				<div class="file-header nm">
 					<div id="fileInfo" class="file-info">
-						<span class="commiter"></span> | 
-						<span class="commitDate"></span> | 
-						<span class="revision"></span> |
-						<span calss="commitMsg"></span>
+						<span id="commiter" class="commiter"></span> | 
+						<span id="commitDate" class="commitDate"></span> | 
+						<span id="revisionNo" class="revision"></span> |
+						<span id="commitMessage" calss="commitMsg"></span>
 					</div>
 					<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
 				</div>
@@ -103,9 +102,10 @@
 <script type="text/javascript" src="/assets/javascripts/lib/moment.min.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
 <!-- <script type="text/javascript" src="/assets/javascripts/service/hive.CodeBrowser.js"></script> -->
+<script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
-		$hive.loadModule("code.Browser", {
+		$hive.loadModule("code.Browser1", {
 			"sProjectName": "@project.name"
 		});
 	});
