@@ -34,7 +34,10 @@
                     if(currentUser.isSiteManager) {
                         role = "SITEMANAGER"
                     } else if(!currentUser.isAnonymous) {
-                        role = Role.findRoleByIds(currentUser.id, project.id).name;
+                        val roleOfProject = Role.findRoleByIds(currentUser.id, project.id)
+                        if(roleOfProject != null) {
+                            role = roleOfProject.name;
+                        }
                     }
                 }
                 role
