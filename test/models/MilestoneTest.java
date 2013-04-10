@@ -188,6 +188,7 @@ public class MilestoneTest extends ModelTest<Milestone> {
         issue.state = State.OPEN;
         issue.authorId = User.find.byId(1l).id;
         issue.milestone = Milestone.find.byId(5l);
+        issue.project = issue.milestone.project;
 
         // WHEN
         issue.save();

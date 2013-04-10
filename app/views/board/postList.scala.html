@@ -61,8 +61,12 @@
   <ul class="board-list">
     @for(post <- page.getList()){
         <li class="board">
-          <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.id</a></div>
-          <div class="attach-wrap"></div>
+          <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.number</a></div>
+          <div class="attach-wrap">
+            @if(Attachment.findByContainer(post.asResource).size > 0){
+            <i class="ico ico-clip"></i>
+            }
+          </div>
           <div class="contents">
             <p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
             <p class="infos nm">by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
