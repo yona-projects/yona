@@ -78,8 +78,8 @@ public class Project extends Model {
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public List<Milestone> milestones;
 
-    private Long lastIssueNumber;
-    private Long lastPostingNumber;
+    private long lastIssueNumber;
+    private long lastPostingNumber;
 
     public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;

@@ -7,6 +7,9 @@ ALTER TABLE posting ADD COLUMN number BIGINT;
 ALTER TABLE issue ADD CONSTRAINT uq_posting_1 UNIQUE (project_id,number);
 ALTER TABLE posting ADD CONSTRAINT uq_issue_1 UNIQUE (project_id,number);
 
+UPDATE project SET last_issue_number = 0;
+UPDATE project SET last_posting_number = 0;
+
 # --- !Downs
 
 ALTER TABLE project DROP COLUMN last_issue_number;
