@@ -41,22 +41,13 @@ public class Assignee extends Model {
         project = Project.find.byId(projectId);
     }
 
-    static public Assignee get(Long userId, Long projectId) {
-        Assignee assignee = finder.where().eq("user.id", userId).eq("project.id", projectId)
-                .findUnique();
-        if (assignee == null) {
-            assignee = new Assignee(userId, projectId);
-        }
-        return assignee;
-    }
-
     public static Assignee add(Long userId, Long projectId) {
         Assignee assignee = finder.where()
                 .eq("user.id", userId).eq("project.id", projectId).findUnique();
-        if (assignee != null) {
-            return assignee;
-        } else {
-            return new Assignee(userId, projectId);
+        if (assignee == null) {
+            assignee = new Assignee(userId, projectId);
+            assignee.save();
         }
+        return assignee;
     }
 }
