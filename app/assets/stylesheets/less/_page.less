@@ -54,6 +54,8 @@
                 }
                 &.right {
                     float: right;
+                    position:absolute; right:0; top:0;
+                    
                     > li {
                         float: left;
                         padding: 0 8px;
@@ -447,11 +449,11 @@
     .center-block;
     .side-menus {
         position: absolute;
-        right: -27px; /*-27px;*/
-        top: 23px;
-        width: 18px !important;
-        height: 40px !important;
+        right: -27px;top: 23px;
+        width : 18px !important;
+        height: 16px !important; /* 40px: for 2 button */
         padding:16px 3px 16px 3px;
+        
         .side-menu {
             &:first-child {
                 margin-bottom: 10px;
@@ -736,14 +738,25 @@
                    
                     .project-header {
                         font-size: 0;
+                        
                         .name-wrap {
-                            font-size: 12px;
                             .inline-block;
+                            font-size: 12px;
                             line-height: 20px;
                             width: 150px;
+                            
                             i { margin-left:3px; }
-                            a { margin-top:4px; .inline-block; }
+                            
+                            a { 
+                                margin-top:4px; .inline-block;
+                                
+                                strong { 
+                                    text-overflow:ellipsis; overflow:hidden; 
+                                    display:inline-block; width:135px; 
+                                }
+                            }
                         }
+                        
                         .ico-wrap {
                            /**/
                             vertical-align:top;
@@ -1352,8 +1365,16 @@
     margin-top: 20px;
     font-size: 20px;
     font-weight: normal;
+
+    a {
+        display:inline-block; max-width:300px; /* 프로젝트명 */
+        overflow:hidden; text-overflow:ellipsis;
+        cursor:pointer;
+    }
+
     .gray {
         .opacity(50);
+        a { max-width:130px !important; } /* 아이디 */
         a:hover { color:inherit !important; } 
     }
 }

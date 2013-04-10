@@ -176,6 +176,7 @@
 }
 </div>
 
+@**
 <div class="board-footer">
   @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
 	<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="n-btn orange med">@Messages("button.edit")</a>
@@ -185,6 +186,7 @@
   }
 	<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="n-btn gray med">@Messages("button.list")</a>
 </div>
+**@
 
 @** Confirm to delete post **@
 <div id="deleteConfirm" class="modal hide fade">
