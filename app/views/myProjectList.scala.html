@@ -20,12 +20,14 @@
             <div class="project-detail hidden">
                 <ul class="contributors unstyled">
                     @project.projectUser.map{ member =>
+                        @if( member.user != null){
                         @defining(User.find.byId(member.user.id)) { user =>
                             <li class="contributor">
                                 <a class="n-tooltip" href="@routes.UserApp.userInfo(user.loginId)" data-original-title="@user.loginId" data-placement="bottom" rel="tooltip">
                                     <img src="" alt="contributor" width="32" height="32">
                                 </a>
                             </li>
+                        }
                         }
                     }
                 </ul>

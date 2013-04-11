@@ -24,6 +24,7 @@
 
 	<ul class="members project">
 		@for(member <- members){
+            @if( member.user != null){
 
 		<li class="member">
 			<a href="@routes.UserApp.userInfo(member.user.loginId)" class="img-rounded pull-left"><!-- 
@@ -54,6 +55,7 @@
 		</li>
 		 
 		}
+        }
 	</ul>
 	
 	<div id="alertDeletion" class="modal hide">

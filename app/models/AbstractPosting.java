@@ -53,6 +53,8 @@ abstract public class AbstractPosting extends Model {
     @ManyToOne
     public Project project;
 
+    public Long number;
+
     // This field is only for ordering. This field should be persistent because
     // Ebean does NOT sort entities by transient field.
     public int numOfComments;
@@ -63,7 +65,13 @@ abstract public class AbstractPosting extends Model {
         this.createdDate = JodaDateUtil.now();
     }
 
+    protected abstract Finder<Long, ? extends AbstractPosting> getFinder();
+
+    protected abstract Long increaseNumber();
+
+    @Transactional
     public void save() {
+        number = increaseNumber();
         numOfComments = computeNumOfComments();
         super.save();
     }

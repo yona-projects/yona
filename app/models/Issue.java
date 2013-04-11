@@ -16,6 +16,7 @@ import java.io.*;
 import java.util.*;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
 public class Issue extends AbstractPosting {
     /**
      * @param id              이슈 ID
@@ -55,6 +56,16 @@ public class Issue extends AbstractPosting {
         return comments.size();
     }
 
+    @Override
+    public Finder<Long, ? extends AbstractPosting> getFinder() {
+        return finder;
+    }
+
+    @Override
+    protected Long increaseNumber() {
+        return project.increaseLastIssueNumber();
+    }
+
     /**
      * issueList, issue view에서 assignee의 이름을 출력해준다. 아래의 getAssigneeName과 합쳐질 수
      * 있을듯.
@@ -63,14 +74,23 @@ public class Issue extends AbstractPosting {
         return (this.assignee != null ? assignee.user.name : null);
     }
 
-    @Transient
-    public void save() {
+    private void fetchAssignee() {
         if (assignee != null && assignee.user.id != null) {
             assignee = Assignee.add(assignee.user.id, project.id);
         } else {
             assignee = null;
         }
+    }
 
+    @Transient
+    public void update() {
+        fetchAssignee();
+        super.update();
+    }
+
+    @Transient
+    public void save() {
+        fetchAssignee();
         super.save();
     }
 
