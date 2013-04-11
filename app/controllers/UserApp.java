@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.ExpressionList;
 import models.*;
 import models.enumeration.ResourceType;
 
@@ -30,20 +31,43 @@ import views.html.user.*;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static play.data.Form.form;
+import static play.libs.Json.toJson;
 
 public class UserApp extends Controller {
-
 	public static final String SESSION_USERID = "userId";
 	public static final String SESSION_LOGINID = "loginId";
 	public static final String SESSION_USERNAME = "userName";
 	public static final String TOKEN = "nforge.token";
 	public static final int MAX_AGE = 30*24*60*60;
 	public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
+    public static final int MAX_FETCH_USERS = 1000;
 
     //ToDO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
 	public static User anonymous = new NullUser();
 
+    public static Result users(String query) {
+        if (!request().accepts("application/json")) {
+            return status(406);
+        }
+
+        ExpressionList<User> el = User.find.select("loginId").where().contains("loginId", query);
+        int total = el.findRowCount();
+        if (total > MAX_FETCH_USERS) {
+            el.setMaxRows(MAX_FETCH_USERS);
+            response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
+        }
+
+        List<String> loginIds = new ArrayList<String>();
+        for (User user: el.findList()) {
+            loginIds.add(user.loginId);
+        }
+
+        return ok(toJson(loginIds));
+    }
 
 	public static Result loginForm() {
 		return ok(login.render("title.login", form(User.class)));
