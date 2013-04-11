@@ -10,7 +10,7 @@
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
-  @views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+  @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
   
   <div class="content-wrap frm-wrap">
     
@@ -44,6 +44,7 @@
 			<div class="thumb-wrap">
 				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
 			</div>
+			
 			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.ISSUE_POST">
 				<div>
 					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
@@ -64,10 +65,10 @@
 			</div>
 		</div>
 		<script type="text/template" id="tplAttachedFile"><!--
-		--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
-		<strong>${fileName}(${fileSizeReadable})</strong><!--
-		--><a class="attached-delete"><i class="ico btn-delete"></i></a><!--
-		--></li>
+			--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+			<strong>${fileName}(${fileSizeReadable})</strong><!--
+			--><a class="attached-delete"><i class="ico btn-delete"></i></a><!--
+			--></li>
 		</script>
 	
 		<div class="attached-files-wrap">
@@ -77,9 +78,10 @@
 	@** end of fileUploader **@
     </div>
 
-	<!-- issue.label js module appends a label selector here. -->
 	<br>
+	<!-- issue.label js module appends a label selector here. -->
 	<fieldset class="labels">
+		@** 
 		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
 			@select(
 				issueForm("assignee.user.id"),
@@ -88,7 +90,9 @@
 				'_default -> Messages("issue.new.selectDefault.assignee"),
 				'_showConstraints -> false)
 		}
+		**@
 
+		@**
 		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
 			@select(
 				issueForm("milestoneId"),
@@ -97,9 +101,49 @@
 				'_default -> Messages("issue.new.selectDefault.milestone"),
 				'_showConstraints -> false)
 		}
-	</fieldset>  
+		**@
+	</fieldset>
 
-  <div class="actions">
+	<!-- issue options -->
+	<ul class="options unstyled issue-options">
+		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
+		<li class="option">
+             <div class="option-label">@Messages("issue.new.detailInfo.assignee")</div>
+             <div class="option-desc">
+				<div class="btn-group">
+					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.assignee")</button>
+					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						@ProjectUser.options(project.id).map{ v =>
+						<li><a href="javascript:void(0)" data-value="@v._1">@v._2</a></li>
+						}
+					</ul>
+					<input type="hidden" name="assignee.user.id" value=""/>
+				</div>
+             </div>
+		</li>
+		}
+		
+		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+		<li class="option">
+             <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
+             <div class="option-desc">
+				<div class="btn-group">
+					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.milestone")</button>
+					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						@Milestone.options(project.id).map{ v =>
+						<li><a href="javascript:void(0)" data-value="@v._1">@v._2</a></li>
+						}
+					</ul>
+					<input type="hidden" name="milestoneId" value=""/>
+				</div>
+             </div>
+		</li>
+		}
+	</ul>  
+	
+	<div class="actions">
       <button type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>
       <a href="javascript:history.back(); return false;" class="n-btn gray med cancel">@Messages("button.cancel")</a>
       <!-- 
@@ -111,30 +155,24 @@
   </div>
 
 @board.postVaildate()
-@views.html.markdown()
+@markdown()
 
 </div>
 
 <script type="text/javascript">
-/*
-	nforge.require('shortcut.submit');
-	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)');
-	nforge.require('issue.new', "@routes.AttachmentApp.newFile");
-*/
-$(document).ready(function(){
-	var htOptLabel = {
-		"bEditable"    : true,
-		"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
-		"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-	};				
-
-	$hive.loadModule("issue.Write", {
-		"sMode"			 : "new",
-		"elTextarea"	 : $("#body"),
-		"sUploaderAction": "@routes.AttachmentApp.newFile",
-		"htOptLabel"     : htOptLabel
+	$(document).ready(function(){
+		var htOptLabel = {
+			"bEditable"    : true,
+			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
+			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
+		};				
+	
+		$hive.loadModule("issue.Write", {
+			"sMode"			 : "new",
+			"elTextarea"	 : $("#body"),
+			"sUploaderAction": "@routes.AttachmentApp.newFile",
+			"htOptLabel"     : htOptLabel
+		});
 	});
-});
-
 </script>
 }

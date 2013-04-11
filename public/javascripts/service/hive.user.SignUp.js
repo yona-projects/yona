@@ -23,107 +23,94 @@
 			_initVar();
 			
 			_initFormValidator();
+			_attachEvent();
 		}
 		
 		/**
 		 * initialize elements
 		 */
 		function _initElement(){
-			htElement.welInputPassword = $('#password');
-			htElement.welInputEmail    = $('#email');
-			htElement.welInputLoginId  = $('#loginId');			
+			htElement.welInputPassword  = $('#password');
+			htElement.welInputPassword2 = $('#retypedPassword');
+			htElement.welInputEmail     = $('#email');
+			htElement.welInputLoginId   = $('#loginId');
+			
+			htElement.welForm = $("form[name=signup]");
 		}
 		
 		/**
 		 * initialize variables
 		 */
 		function _initVar(){
-			htVar.rxTrim = /\s+/g;
 			htVar.rxLoginId = /^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$/;
-			
-			// error definition
-		    htVar.htErrors = {
-		    	"retypedPassword": {
-		    		"elTarget": htElement.welInputPassword
-		    	},
-		    	"password": {
-		    		"elTarget": htElement.welInputPassword
-		    	},
-		    	"email":{
-		    		"elTarget": htElement.welInputEmail
-		    	},
-		    	"loginId":{
-		    		"elTarget": htElement.welInputLoginId
-		    	}
-		    };
 		}
 		
-		/**
-		 * Bootstrap toolTip function has some limitation.
-		 * In this case, toolTip doesn't provide easy way to change title and contents.
-		 * So, unfortunately I had to change data value in directly.
-		 * @param {Wrapped Element} welInput
-		 * @param {Hash Table} htMessage
-		 */
-		function showErrorMessage(welInput, htMessage){
-	        welInput.tooltip({trigger:'manual', placement: 'left'});
-	        
-	        var oToolTip = welInput.data('tooltip');
-	        oToolTip.options.title     = htMessage.title;
-	        oToolTip.options.content   = htMessage.content;
-	        oToolTip.options.placement = 'left';
-	        oToolTip.options.trigger   = 'manual';
-
-	        welInput.tooltip('show');
-		}
-		
-		/**
-		 * @param {Wrapped Element} welCheckId
-		 * @param {String} sURL
-		 */
-		function doesExists(welCheckId, sURL){
-		    var checkPosition = welCheckId.next(".isValid");
-		    if(sURL.substr(-1) != "/"){
-		    	sURL += "/";
-		    }
-		    
-		    $.ajax(
-		    	{"url": sURL + welCheckId.val()}
-		    ).done(function(data){
-		        if(data.doesExists === true){
-		            showErrorMessage(welCheckId, Messages("validation.duplicated"));
-		            welCheckId.tooltip("show");
-		        } else {
-		            welCheckId.tooltip("hide");
-		            try{
-		                welCheckId.tooltip("destory");
-		            } catch(err){} // to avoid boostrap bug
-		        }
-		    });
-		}
-
 		/**
 		 * attach event
 		 */
 		function _attachEvent(){
-			$("#loginId").focusout(function(){
-				// 양쪽 공백을 없애고 소문자로 변경 후 중간 공백 없앰
-				$(this).val($(this).val().trim().toLowerCase().replace(htVar.rxTrim, ''));
-				
-				if ($(this).val() !== "") {
-					doesExists($(this), "/user/doesExists/");
-				}
-			});
+			htElement.welInputLoginId.focusout(_onBlurInputLoginId);
+			htElement.welInputEmail.focusout(_onBlurInputEmail);
+			htElement.welInputPassword2.focusout(_onBlurInputPassword2);
+		}
+		
+		/**
+		 * 아이디 입력란 벗어날 때 이벤트 핸들러
+		 * 중복여부 즉시 확인
+		 */
+		function _onBlurInputLoginId(){
+			var welInput = $(this);
+			var sLoginId = $hive.getTrim(welInput.val()).toLowerCase();
+			welInput.val(sLoginId);
 			
-			$("#email").focusout(function(){
-			    if ($(this).val() !== "") {
-			    	doesExists($(this), "/user/isEmailExist/");
-			    }
-			});
+			if(_onValidateLoginId(sLoginId) === false){
+				showErrorMessage(welInput, Messages("validation.allowedCharsForLoginId"));
+				return false;
+			}
 			
-			$('#retypedPassword').focusout(function(){
-			    htVar.oValidator._validateForm();
-			});
+			if(sLoginId != ""){
+				doesExists($(this), "/user/isExist/");
+			}
+		}
+		
+		/**
+		 * 이메일 입력란 벗어날 때 이벤트 핸들러
+		 * 중복여부 즉시 확인
+		 */
+		function _onBlurInputEmail(){
+			var welInput = $(this);
+			
+		    if(welInput.val() !== ""){
+		    	doesExists(welInput, "/user/isEmailExist/");
+		    }
+		}
+		
+		/**
+		 * 비밀번호 확인 입력란 벗어날 때 이벤트 핸들러
+		 * 마지막 입력란이므로 전체 폼 유효성 검사
+		 */
+		function _onBlurInputPassword2(){
+			htVar.oValidator._validateForm();
+		}
+		
+		/**
+		 * @param {Wrapped Element} welInput
+		 * @param {String} sURL
+		 */
+		function doesExists(welInput, sURL){
+		    if(sURL.substr(-1) != "/"){
+		    	sURL += "/";
+		    }
+		    
+		    $.ajax({
+		    	"url": sURL + welInput.val()
+		    }).done(function(htData){
+		        if(htData.isExist === true){
+		            showErrorMessage(welInput, Messages("validation.duplicated"));
+		        } else {
+		        	hideErrorMessage(welInput);
+		        }
+		    });
 		}
 
 		/**
@@ -143,10 +130,10 @@
             
             // set error message
             htVar.oValidator.setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"));
-            htVar.oValidator.setMessage('required', Messages("validation.required"));
-            htVar.oValidator.setMessage('min_length', Messages("validation.tooShortPassword"));
-            htVar.oValidator.setMessage('matches', Messages("validation.passwordMismatch"));
-            htVar.oValidator.setMessage('valid_email', Messages("validation.invalidEmail"));
+            htVar.oValidator.setMessage('required',		 Messages("validation.required"));
+            htVar.oValidator.setMessage('min_length',	 Messages("validation.tooShortPassword"));
+            htVar.oValidator.setMessage('matches',		 Messages("validation.passwordMismatch"));
+            htVar.oValidator.setMessage('valid_email',	 Messages("validation.invalidEmail"));
 		}
 		
 		/**
@@ -160,27 +147,60 @@
 		
 		/**
 		 * on validate form
+		 * @param {Array} aErrors
 		 */
-		function _onFormValidate(aErrors, event){
-			if (aErrors.length > 0) {
-                for(var i = 0; i < aErrors.length; i++) {
-                    var htError = htVar.htErrors[aErrors[i].id];
-                    if (htError) {
-                        showErrorMessage(htError.elTarget, {title: aErrors[i].message});
-                    }
-                }
-			} else {
-				// to avoid bootstrap bug
-				try {
-					htElement.welInputPassword.tooltip('destroy');
-					htElement.welInputEmail.tooltip('destroy');
-					htElement.welInputLoginId.tooltip('destroy');
-				} catch (err) {
-//					console.log(err);
-				} 
+		function _onFormValidate(aErrors){
+			// to avoid bootstrap bug
+			if (aErrors.length <= 0) {
+				return _clearTootips();
 			}
+			
+			var welTarget;
+			aErrors.forEach(function(htError){
+				welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
+				if(welTarget){
+					showErrorMessage(welTarget, htError.message);
+				}
+			});
 		}
 
+		/**
+		 * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
+		 */
+		function _clearTooltips(){
+			try {
+				htElement.welForm.find("input").each(function(i, v){ 
+					$(v).tooltip("destroy"); 
+				});
+			} catch(e){}
+		}
+		
+		/**
+		 * Bootstrap toolTip function has some limitation.
+		 * In this case, toolTip doesn't provide easy way to change title and contents.
+		 * So, unfortunately I had to change data value in directly.
+		 * @param {Wrapped Element} welInput
+		 * @param {String} sMessage
+		 */
+		function showErrorMessage(welInput, sMessage){
+	        welInput.tooltip({"trigger": "manual", "placement": "left"});
+
+	        var oToolTip = welInput.data('tooltip');
+	        oToolTip.options.placement = 'left';
+	        oToolTip.options.trigger   = 'manual';
+	        oToolTip.options.title     = sMessage;
+	        oToolTip.options.content   = sMessage;
+
+	        welInput.tooltip('show');
+		}
+			
+		function hideErrorMessage(welInput){
+            welInput.tooltip("hide");
+            
+            try{
+                welInput.tooltip("destroy");
+            } catch(e){} // to avoid bootstrap bug			
+		}
 		
 		_init();
 	};

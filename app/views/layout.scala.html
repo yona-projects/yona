@@ -32,6 +32,7 @@
 <script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Markdown")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.FileDownloader")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Shortcut")"></script>
 
@@ -43,7 +44,7 @@
 	$(document).ready(function(){
 		$(".n-alert").click(function(){ 
 			$(this).hide(); 
-		})
+		});
 		
     	// jquery.placeholder plugin initiator
         $('input, textarea').placeholder();
