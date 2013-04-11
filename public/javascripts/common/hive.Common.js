@@ -10,7 +10,10 @@ window.hive = (typeof hive == "undefined") ? {} : hive;
 
 $hive = hive.Common = (function(){
 	
-	var htVar = {"sScriptPath":""};
+	var htVar = {
+		"sScriptPath":"",
+		"rxTrim": /\s+/g
+	};
 	var htModuleInstance = {};
 	
 	/**
@@ -228,6 +231,15 @@ $hive = hive.Common = (function(){
 		aFields = aFormAttr = sFormAttr = null;
 	}
 	
+	/**
+	 * Strip all whitespace in string
+	 * @param {String} sValue
+	 * @return {String}
+	 */
+	function getTrim(sValue){
+		return sValue.trim().replace(htVar.rxTrim, '');
+	}
+	
 	/* public Interface */
 	return {
 		"setScriptPath": setScriptPath,
@@ -236,7 +248,8 @@ $hive = hive.Common = (function(){
 		"loadScript": loadScript,
 		"stopEvent": stopEvent,
 		"getContrastColor": getContrastColor,
-		"sendForm" : sendForm
+		"sendForm" : sendForm,
+		"getTrim"  : getTrim 
 	};
 })();
 
