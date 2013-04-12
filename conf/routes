@@ -15,6 +15,7 @@ GET     /messages.js                                    controllers.Application.
 GET     /init                                           controllers.Application.init()
 
 # User
+GET     /users                                          controllers.UserApp.users(query: String ?= "")
 GET     /users/loginform                                controllers.UserApp.loginForm()
 POST    /users/login                                    controllers.UserApp.login()
 GET     /users/logout                                   controllers.UserApp.logout()

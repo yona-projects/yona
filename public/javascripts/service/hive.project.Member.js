@@ -12,6 +12,7 @@
 	var oNS = $hive.createNamespace(ns);
 	oNS.container[oNS.name] = function(htOptions){
 
+        var htVar = {};
 		var htElement = {};
 		
 		/**
@@ -34,6 +35,8 @@
 			
 			// 멤버별 권한 선택
 			htElement.waAccess = $(".dropdown-menu li");
+
+            $('#loginId').typeahead().data('typeahead').source = _userTypeaheadSource
 		}
 		
 		/**
@@ -113,6 +116,57 @@
 				}
 			});
 		}
+
+        /**
+        * Return whether the given content range is an entire range for items.
+        * e.g) "items 10/10"
+        *
+        * @param {String} contentRange the vaule of Content-Range header from response
+        * @return {Boolean}
+        */
+        function _isEntireRange(contentRange) {
+            var result, items, total;
+
+            if (contentRange) {
+                result = /items\s+([0-9]+)\/([0-9]+)/.exec(contentRange);
+                if (result) {
+                    items = parseInt(result[1]);
+                    total = parseInt(result[2]);
+                    if (items < total) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /**
+        * Data source for loginId typeahead while adding new member.
+        *
+        * For more information, See "source" option at
+        * http://twitter.github.io/bootstrap/javascript.html#typeahead
+        *
+        * @param {String} query
+        * @param {Function} process
+        */
+        function _userTypeaheadSource(query, process) {
+            if (query.match(htVar.lastQuery) && htVar.isLastRangeEntire) {
+                process(htVar.cachedUsers);
+            } else {
+                $('<form action="/users" method="GET">')
+                    .append($('<input type="hidden" name="query">').val(query))
+                    .ajaxForm({
+                        "dataType": "json",
+                        "success": function(data, status, xhr) {
+                            htVar.isLastRangeEntire = _isEntireRange(xhr.getResponseHeader('Content-Range'));
+                            htVar.lastQuery = query;
+                            htVar.cachedUsers = data;
+                            process(data);
+                        }
+                    }).submit();
+            }
+        }
 		
 		_init(htOptions);
 	};
