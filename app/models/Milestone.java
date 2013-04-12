@@ -11,6 +11,7 @@ import java.text.*;
 import java.util.*;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "title"}))
 public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
@@ -23,7 +24,6 @@ public class Milestone extends Model {
     public Long id;
 
     @Constraints.Required
-    @Column(unique = true)
     public String title;
 
     @Constraints.Required
