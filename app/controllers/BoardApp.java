@@ -53,7 +53,7 @@ public class BoardApp extends AbstractPostingApp {
         searchCondition.pageNum = pageNum - 1;
         Project project = ProjectApp.getProject(userName, projectName);
 
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
