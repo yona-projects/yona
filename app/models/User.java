@@ -21,6 +21,8 @@ import models.resource.Resource;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
+import org.apache.shiro.crypto.hash.Sha256Hash;
+import org.apache.shiro.util.ByteSource;
 import play.data.format.Formats;
 import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
@@ -172,6 +174,14 @@ public class User extends Model {
     public boolean isAnonymous() {
         return this == UserApp.anonymous;
     }
+
+    public static void resetPassword(String loginId, String newPassword) {
+        User user = findByLoginId(loginId);
+        user.password = new Sha256Hash(newPassword,
+                ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
+        user.save();
+    }
+
 
     public Resource asResource() {
         return new Resource() {

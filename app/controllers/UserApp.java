@@ -206,6 +206,12 @@ public class UserApp extends Controller {
 		return user;
 	}
 
+    public static void resetPassword(User user, String newPassword) {
+		user.password = new Sha256Hash(newPassword,
+				ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
+        user.save();
+	}
+
 	public static void addUserInfoToSession(User user) {
 		session(SESSION_USERID, String.valueOf(user.id));
 		session(SESSION_LOGINID, user.loginId);
