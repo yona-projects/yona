@@ -11,7 +11,7 @@
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 
 <div class="page">
-  @views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+  @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
   
   <div class="content-wrap frm-wrap">
   
@@ -78,6 +78,63 @@
 
 	<!-- issue.label js module appends a label selector here. -->
 	<br>
+	<fieldset class="labels"></fieldset>
+	
+
+	<!-- issue options -->
+	<ul class="options unstyled issue-options">
+		@if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
+		<li class="option">
+             <div class="option-label">@Messages("issue.state")</div>
+             <div class="option-desc">
+				<div id="assignee" class="btn-group" data-name="state">
+					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.state")</button>
+					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						<li data-value="@State.OPEN.name" @if(issue.state == State.OPEN){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.state.open")</a></li>
+						<li data-value="@State.CLOSED.name" @if(issue.state == State.CLOSED){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.state.closed")</a></li>
+					</ul>
+				</div>
+             </div>
+		</li>
+		}
+
+		@if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
+		<li class="option">
+             <div class="option-label">@Messages("issue.new.detailInfo.assignee")</div>
+             <div class="option-desc">
+				<div id="assignee" class="btn-group" data-name="assignee.user.id">
+					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.assignee")</button>
+					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						@ProjectUser.options(project.id).map{ v =>
+						<li data-value="@v._1" @if(issue.assignee.user.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
+						}
+					</ul>
+				</div>
+             </div>
+		</li>
+		}
+		
+		@if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
+		<li class="option">
+             <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
+             <div class="option-desc">
+				<div id="milestoneId" class="btn-group" data-name="milestoneId">
+					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.milestone")</button>
+					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+					<ul class="dropdown-menu">
+						@Milestone.options(project.id).map{ v =>
+						<li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
+						}
+					</ul>
+				</div>
+             </div>
+		</li>
+		}
+	</ul>
+	
+	@**
 	<fieldset class="labels">
       @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
             @select(
@@ -102,7 +159,8 @@
                 '_default -> Messages("issue.new.selectDefault.milestone"),
                 '_showConstraints -> false)
             }
-    </fieldset>	
+    </fieldset>
+    **@	
 
   <div class="actions">
       <button type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>
@@ -116,7 +174,7 @@
   </div>
 
 @board.postVaildate()
-@views.html.markdown()
+@markdown()
 
 <script type="text/javascript">
     /*

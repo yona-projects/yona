@@ -25,7 +25,7 @@
 			_initFileUploader();
 			
 			if(typeof htOptions.htActiveLabels == "object"){
-				_initLabels(htOptions.htActiveLabels);
+				_initLabel(htOptions.htActiveLabels);
 			}
 		}
 		

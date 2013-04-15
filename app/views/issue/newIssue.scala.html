@@ -110,7 +110,7 @@
 		<li class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.assignee")</div>
              <div class="option-desc">
-				<div class="btn-group">
+				<div id="assignee" class="btn-group" data-name="assignee.user.id">
 					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.assignee")</button>
 					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 					<ul class="dropdown-menu">
@@ -118,7 +118,6 @@
 						<li><a href="javascript:void(0)" data-value="@v._1">@v._2</a></li>
 						}
 					</ul>
-					<input type="hidden" name="assignee.user.id" value=""/>
 				</div>
              </div>
 		</li>
@@ -128,7 +127,7 @@
 		<li class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
              <div class="option-desc">
-				<div class="btn-group">
+				<div id="milestoneId" class="btn-group" data-name="milestoneId">
 					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.milestone")</button>
 					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 					<ul class="dropdown-menu">
@@ -136,7 +135,6 @@
 						<li><a href="javascript:void(0)" data-value="@v._1">@v._2</a></li>
 						}
 					</ul>
-					<input type="hidden" name="milestoneId" value=""/>
 				</div>
              </div>
 		</li>
