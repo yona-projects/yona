@@ -32,7 +32,8 @@ hive.FileDownloader = (function() {
 	/**
 	 * initialize variable
 	 */
-	function _initVar(){
+	function _initVar(htOptions){
+		htVar.sAction = htOptions.sAction;
 		htVar.sTplItem = '<li class="attach"><a href="${url}"><i class="ico ico-clip"></i>${name} (${fileSize})</a></li>';
 		
 		htVar.sResourceId = htElement.welTarget.attr('resourceId');
@@ -44,7 +45,7 @@ hive.FileDownloader = (function() {
 	 */
 	function _requestList(){
 		var htData = _getRequestData();
-		
+
 		$hive.sendForm({
 			"sURL"     : htVar.sAction,
 			"htData"   : htData,
@@ -87,7 +88,7 @@ hive.FileDownloader = (function() {
 			aItems.push(_getFileItemHTML(oFile));
 		});
 		htElement.welFileList.append(aItems);
-		htElement.welTarget.append(welFileList);
+		htElement.welTarget.append(htElement.welFileList);
 	}
 	
 	/**
@@ -96,7 +97,7 @@ hive.FileDownloader = (function() {
 	function _getFileItemHTML(oFile) {
 		var htData = oFile;
 			htData.fileSize = humanize.filesize(htData.size);
-		var welItem = $.tmpl(sTpl, htData);
+		var welItem = $.tmpl(htVar.sTplItem, htData);
 		
 		return welItem;
 	}
@@ -104,7 +105,7 @@ hive.FileDownloader = (function() {
 	return {
 		"init": _init
 	};
-});
+})();
 
 // legacy compatibility
 var fileDownloader = function(welTarget, sAction){
