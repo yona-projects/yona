@@ -40,21 +40,20 @@
                     <li class="option">
                         <div class="option-label">코드관리시스템</div>
                         <div class="option-desc">
-                            <div class="btn-group">
-                                <button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="vcs_msg"></button>
+                            <div class="btn-group" data-name="vcs">
+                                <button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite"></button>
                                 <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
-                                <ul class="dropdown-menu" id="vcs_dropdown">
+                                <ul class="dropdown-menu">
                                     @RepositoryService.vcsTypes.map{ v =>
-                                        <li><a href="#!/@v._1" data-value="@v._1">@Messages(v._2)</a></li>
+                                        <li data-value="@v._1" @if(v._1 == "GIT"){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages(v._2)</a></li>
                                     }
-                                    <!-- 여기가 일반 input이 아니라서 submit시에 자료를 넣어줘야 할듯...-->
                                 </ul>
-                                <input type="hidden" name="vcs" id="vcs" value=""/>@** vcs_dropdown 첫 번째 값으로 채워지게 할 것 **@
                             </div>
                         </div>
                     </li>
                     
                     @**
+                    <!-- 
                     <li class="option">
                         <div class="option-label">이용약관 <a href="#agreement" data-toggle="modal"><i class="ico ico-que-mark"></i></a></div>
                         <div id="agreement" class="modal hide fade">
@@ -79,6 +78,7 @@
                             <input type="checkbox" class="stipulation checkbox checkbox-btn" autocomplete="off" id="stipulation" name="accept"><label for="stipulation" class="bg-checkbox label-agreement">본인은 약관에 대한 안내를 읽었으며 동의 합니다.</label>
                         </div>
                     </li>
+                     -->
                     **@
                 </ul>
                 <div class="actions">
