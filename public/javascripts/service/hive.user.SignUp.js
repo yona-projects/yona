@@ -51,7 +51,8 @@
 		function _attachEvent(){
 			htElement.welInputLoginId.focusout(_onBlurInputLoginId);
 			htElement.welInputEmail.focusout(_onBlurInputEmail);
-			htElement.welInputPassword2.focusout(_onBlurInputPassword2);
+			htElement.welInputPassword.focusout(_onBlurInputPassword);
+            htElement.welInputPassword2.focusout(_onBlurInputPassword);
 		}
 		
 		/**
@@ -84,12 +85,12 @@
 		    	doesExists(welInput, "/user/isEmailExist/");
 		    }
 		}
-		
+
 		/**
 		 * 비밀번호 확인 입력란 벗어날 때 이벤트 핸들러
 		 * 마지막 입력란이므로 전체 폼 유효성 검사
 		 */
-		function _onBlurInputPassword2(){
+		function _onBlurInputPassword(){
 			htVar.oValidator._validateForm();
 		}
 		
@@ -150,11 +151,12 @@
 		 * @param {Array} aErrors
 		 */
 		function _onFormValidate(aErrors){
+            _clearTooltips();
 			// to avoid bootstrap bug
 			if (aErrors.length <= 0) {
-				return _clearTootips();
+				return _clearTooltips();
 			}
-			
+
 			var welTarget;
 			aErrors.forEach(function(htError){
 				welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
@@ -169,8 +171,8 @@
 		 */
 		function _clearTooltips(){
 			try {
-				htElement.welForm.find("input").each(function(i, v){ 
-					$(v).tooltip("destroy"); 
+				htElement.welForm.find("input").each(function(i, v){
+					$(v).tooltip("destroy");
 				});
 			} catch(e){}
 		}
