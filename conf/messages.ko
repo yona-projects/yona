@@ -8,7 +8,7 @@ title.milestoneList = 마일스톤 리스트
 title.editMilestone = 마일스톤 수정
 title.milestoneManage = 마일스톤 관리
 title.projectHome = Overview
-title.newProject = 새 프로젝트 생성
+title.newProject = 새 프로젝트 시작
 title.projectSetting = 프로젝트 설정
 title.memberList = 멤버 리스트
 title.post.notExistingPage = 존재하지 않는 게시물
@@ -24,6 +24,7 @@ title.mailSetting = 메일 설정
 title.sendMail = 메일 발송
 title.projectList = 프로젝트 목록
 title.help = 도움말
+title.search = 검색
 
 hive.name = HIVE
 hive.title = 협업개발 플랫폼
@@ -58,6 +59,7 @@ label.category = 분류
 label.name = 이름
 label.add = 추가
 
+order.all = 전체
 order.date = 날짜순
 order.state = 상태순
 order.comments = 댓글순
@@ -362,3 +364,7 @@ validation.allowedCharsForLoginId = 아이디는 알파벳 숫자 - _ . 를 포�
 auth.unauthorized.title = 접근 권한 오류
 auth.unauthorized.waringMessage = 권한이 없거나 로그인을 하지 않았습니다.
 auth.unauthorized.comment = 로그인 후 댓글 입력이 가능합니다.
+
+#userinfo
+userinfo.myProjects = 내 프로젝트
+userinfo.starredProjects = 관심 프로젝트

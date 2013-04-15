@@ -24,6 +24,7 @@ title.mailSetting = Mail Configuration
 title.sendMail = Send Mail
 title.projectList = Project List
 title.help = HELP
+title.search = SEARCH
 
 hive.name = HIVE
 hive.title = Collaborative Software Development Platform
@@ -57,6 +58,7 @@ label.category = Category
 label.name = Name
 label.add = Add
 
+order.all = All
 order.date = Date
 order.state = State
 order.comments = Comments
@@ -362,3 +364,7 @@ validation.allowedCharsForLoginId = Login id may only contain alphanumeric chara
 auth.unauthorized.title = You need access Control!
 auth.unauthorized.waringMessage = You don't have authorization or aren't logged in
 auth.unauthorized.comment = You need authorization to comment
+
+#userinfo
+userinfo.myProjects = My Projects
+userinfo.starredProjects = Starred

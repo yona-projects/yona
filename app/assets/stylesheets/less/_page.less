@@ -2426,8 +2426,9 @@ div.markdown-preview {
             font-size: 11px; padding: 4px;
             text-shadow: -1px -1px rgba(0,0,0,0.3);
             margin-right: 5px;
+            .bgblue;
             
-            &.SUBVERSION { .bgblue; }
+            &.Subversion { .bgblue; }
             &.GIT { .bgblue; /*.bgorange;*/ padding: 4px 27px; }     
         }
     }
@@ -2714,6 +2715,12 @@ div.markdown-preview {
             font-weight: bold;
             color: #707070;
         }
+        .avatar {
+            width:127px; height:127px;
+            overflow:hidden; margin-bottom:15px;
+            .inline-block;
+            .img-rounded;
+        }
     }
     .user-location {
         color: #707070;
@@ -2730,11 +2737,15 @@ div.markdown-preview {
         .labels {
             .inline-block;
             color: #707070;
-            width: 80px;
+            width: 70px;
         }
         .num {
             color: @orange;
+            font-size:2em; 
+            font-weight:bold;
+            float:right;
         }
+        p { line-height:2em; }
     }
     .user-other-info {
         p {
