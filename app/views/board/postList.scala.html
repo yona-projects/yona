@@ -1,4 +1,4 @@
-@(title:String, project:Project, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition)
+@(title:String, project:Project, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition, notices:List[models.Posting])
 
 @play.Logger.debug("board view")
 
@@ -23,7 +23,7 @@
 @main(title, project, utils.MenuType.BOARD) {
 <div class="page">
   @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
-  
+
   <div class="header-wrap">
     <div class="search-wrap board">
       <div class="inner">
@@ -37,12 +37,42 @@
     </div>
   </div>
 
+  @if(notices != null && notices.size > 0) {
+      <hr>
+      <div class="well">
+          <h4>@Messages("post.notice")</h4>
+          <ul class="board-list">
+              @for(post <- notices) {
+                  <li class="board">
+                  <div class="num"> <a href="@routes.BoardApp.post(project.owner, project.name, post.id)"> @post.number </a> </div>
+                  <div class="attach-wrap">
+                      @if(Attachment.findByContainer(post.asResource).size > 0) {
+                          <i class="ico ico-clip"></i>
+                      }
+                  </div>
+                  <div class="contents">
+                  <p class="title"> <a href="@routes.BoardApp.post(project.owner, project.name, post.id)"> @post.title </a> </p>
+                  <p class="infos nm"> by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author"> @post.authorLoginId </a> <span class="date"> @utils.TemplateHelper.agoString(post.ago()) </span> </p>
+                  </div>
+                  <div class="right-panel">
+                  <div class="comment-wrap">
+                  <i class="ico ico-comment-bubble"></i> <span class="num"> @post.numOfComments </span>
+                  </div>
+                  <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
+                  <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="34" height="34"> </a>
+                  </div>
+                  </li>
+              }
+          </ul>
+      </div>
+  }
+
   @if(page.getTotalRowCount == 0){
-  
+
 	<div class="error-wrap">
 			<i class="ico ico-err1"></i>
 			<p>@Messages("post.is.empty")</p>
-		</div>  
+		</div>
     <div>
 
   } else {
@@ -52,13 +82,13 @@
           <a href="#" key="date" class="filter underConstruction @if(param.orderBy == "date"){ active }">
 			<i class="ico btn-gray-arrow @if(param.orderBy == "date" && param.orderDir == "desc"){down}"></i>날짜순
           </a>
-          
+
           <a href="#" key="commentCount" class="filter underConstruction @if(param.orderBy == "commentCount"){ active }">
             <i class="ico btn-gray-arrow @if(param.orderBy == "commentCount" && param.orderDir == "desc"){down}"></i>댓글순
           </a>
       </div>
   </div>
-  
+
   <ul class="board-list">
     @for(post <- page.getList()){
         <li class="board">
@@ -84,24 +114,24 @@
     }
   </ul>
   }
-  
+
   @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
   <div class="write-btn-wrap">
     <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn orange med">@Messages("post.write")</a>
   </div>
   }
-  
+
   <div id="pagination">
     <!-- pagination.js will fill here. -->
   </div>
 </div>
 
 <script type="text/javascript">
-	$(document).ready(function() {	
+	$(document).ready(function() {
 		$hive.loadModule("board.List", {
 			"elPagination": $('#pagination'),
 			"nTotalPages" : @page.getTotalPageCount
-		});		
+		});
 	});
 </script>
 }

@@ -182,6 +182,7 @@ post.new.title = Title
 post.new.contents = Contents
 post.new.filePath = File Path
 post.author = Author
+post.notice = Notice
 post.age = Age
 post.menu.search = Search
 post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?

@@ -1,4 +1,4 @@
-@(title:String, form:Form[Posting], project:Project)
+@(title:String, form:Form[Posting], project:Project, isAllowedToNotice:Boolean)
 
 @import utils.TemplateHelper._
 @import models.enumeration._
@@ -7,11 +7,11 @@
 @main(title, project, utils.MenuType.BOARD) {
 <div class="page">
   @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
-  
+
   <div class="content-wrap frm-wrap">
-    
+
     @helper.form(action=routes.BoardApp.newPost(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
-    
+
     <dl>
     	<dt>
 	      <div id="warning" class="n-alert hide">
@@ -26,10 +26,19 @@
     		@helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
     	</dd>
     </dl>
-        
+
 	@helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
-	@** fileUploader **@
+    @if(isAllowedToNotice) {
+    <div>
+        <label for="notice">@Messages("post.notice")</label>
+        @helper.input(form("notice")) { (id, name, value, args) =>
+            <input type="checkbox" name="@name" id="@id" @toHtmlArgs(args) />
+        }
+    </div>
+    }
+
+      @** fileUploader **@
     @if(UserApp.currentUser() != UserApp.anonymous) {
 
 	<div class="content-footer">
@@ -49,7 +58,7 @@
 				</div>
 				<!-- <a href="#!/cancel"><i class="ico btn-cancel"></i></a> -->
 			</div>
-		
+
 			<div class="btn-wrap">
 				<div class="ns-btn fake-file-wrap">
 					<i class="ico ico-plus-blue"></i>UPLOAD <input type="file" class="file" name="filePath">
@@ -68,7 +77,7 @@
 	</div>
 	}
 	@** end of fileUploader **@
-			      
+
   </div>
 
   <div class="actions">
