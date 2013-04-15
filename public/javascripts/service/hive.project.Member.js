@@ -111,6 +111,33 @@
 			});
 		}
 
+        /**
+        * Data source for loginId typeahead while adding new member.
+        *
+        * For more information, See "source" option at
+        * http://twitter.github.io/bootstrap/javascript.html#typeahead
+        *
+        * @param {String} query
+        * @param {Function} process
+        */
+        function _userTypeaheadSource(query, process) {
+            if (query.match(htVar.lastQuery) && htVar.isLastRangeEntire) {
+                process(htVar.cachedUsers);
+            } else {
+                $('<form action="/users" method="GET">')
+                    .append($('<input type="hidden" name="query">').val(query))
+                    .ajaxForm({
+                        "dataType": "json",
+                        "success": function(data, status, xhr) {
+                            htVar.isLastRangeEntire = $hive.isEntireRange(xhr.getResponseHeader('Content-Range'));
+                            htVar.lastQuery = query;
+                            htVar.cachedUsers = data;
+                            process(data);
+                        }
+                    }).submit();
+            }
+        }
+
 		_init(htOptions);
 	};
 	

@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import models.*;
 import models.enumeration.Operation;
@@ -16,13 +17,17 @@ import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
+import utils.HttpUtil;
 import views.html.project.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static play.data.Form.form;
+import static play.libs.Json.toJson;
 
 /**
  * @author "Hwi Ahn"
@@ -244,5 +249,73 @@ public class ProjectApp extends Controller {
                 orderParams, searchParams, Project.find, Project.PROJECT_COUNT_PER_PAGE, pageNum - 1);
 
         return ok(projectList.render("title.projectList", projects, filter, state));
+    }
+
+    public static Result tags(String ownerName, String projectName) {
+        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return forbidden();
+        }
+
+        if (!request().accepts("application/json")) {
+            return status(406);
+        }
+
+        Map<Long, String> tags = new HashMap<Long, String>();
+        for (Tag tag: project.tags) {
+            tags.put(tag.id, tag.name);
+        }
+
+        return ok(toJson(tags));
+    }
+
+    public static Result tag(String ownerName, String projectName) {
+        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            return forbidden();
+        }
+
+        // Get tag name from the request. Return empty map if the name is not given.
+        Map<String, String[]> data = request().body().asFormUrlEncoded();
+        String name = HttpUtil.getFirstValueFromQuery(data, "name");
+        if (name == null || name.length() == 0) {
+            return ok(toJson(new HashMap<Long, String>()));
+        }
+
+        Tag tag = project.tag(name);
+
+        if (tag == null) {
+            // Return empty map if the tag has been already attached.
+            return ok(toJson(new HashMap<Long, String>()));
+        } else {
+            // Return the tag.
+            Map<Long, String> tags = new HashMap<Long, String>();
+            tags.put(tag.id, tag.name);
+            return ok(toJson(tags));
+        }
+    }
+
+    public static Result untag(String ownerName, String projectName, Long id) {
+        Project project = Project.findByNameAndOwner(ownerName, projectName);
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            return forbidden();
+        }
+
+        // _method must be 'delete'
+        Map<String, String[]> data = request().body().asFormUrlEncoded();
+        if (!HttpUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
+                .equals("delete")) {
+            return badRequest("_method must be 'delete'.");
+        }
+
+        Tag tag = Tag.find.byId(id);
+
+        if (tag == null) {
+            return notFound();
+        }
+
+        project.untag(tag);
+
+        return status(204);
     }
 }

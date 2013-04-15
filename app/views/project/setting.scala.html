@@ -54,6 +54,17 @@
                 </dl>
             </div>
             <div class="box-wrap middle">
+                <div class="cu-label">@Messages("project.tags")</div>
+                <div class="cu-desc">
+                    <div id="tags">
+                        <!-- tags will be added here by hive.project.Settings.js -->
+                    </div>
+                    <input name="newTag" type="text" class="text" style="margin-bottom: 0px"
+                        data-provider="typeahead" autocomplete="off"/>
+                    <a href="javascript:void(0)" class="n-btn small orange" id="addTag">@Messages("button.add")</a>
+                </div>
+            </div>
+            <div class="box-wrap middle">
                 <div class="cu-label">@Messages("project.shareOption")</div>
                 <div class="cu-desc">
                     <input name="share_option" type="radio" @if(project.share_option == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
@@ -103,8 +114,12 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-		$hive.loadModule("project.Setting");
+        $hive.loadModule("project.Setting", {
+			"sURLProjectTags": "@routes.ProjectApp.tags(project.owner, project.name)",
+            "sURLTags"       : "@routes.TagApp.tags()"
+        });
 	});
+
 </script>
 
 }
