@@ -5,6 +5,7 @@ import org.junit.*;
 import java.util.*;
 
 import play.mvc.*;
+import play.test.Helpers;
 
 import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
@@ -17,8 +18,9 @@ public class UserAppTest {
         );
     }
 
+    @Test
     public void findById_doesntExist() {
-        running(fakeApplication(), new Runnable() {
+        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<String,String>();
@@ -37,8 +39,9 @@ public class UserAppTest {
         });
     }
 
+    @Test
     public void findById_alreadyExist() {
-        running(fakeApplication(), new Runnable() {
+        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<String,String>();
@@ -57,8 +60,9 @@ public class UserAppTest {
         });
     }
 
+    @Test
     public void isEmailExist() {
-        running(fakeApplication(), new Runnable() {
+        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
                 //When
