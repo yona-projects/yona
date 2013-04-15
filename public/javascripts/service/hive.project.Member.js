@@ -28,7 +28,7 @@
 		 * initialize variables
 		 */
 		function _initVar(){
-			htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
+			htVar.oTypeahead = new hive.ui.FindUser("#loginId");
 		}
 		
 		/**
@@ -40,10 +40,6 @@
 			// 멤버 삭제 확인 대화창
 			htElement.welAlertDelete = $("#alertDeletion");
 			htElement.welBtnConfirmDelete = htElement.welAlertDelete.find(".btnDelete");
-			
-			// 멤버별 권한 선택
-			htElement.waAccess = $(".dropdown-menu li");
-            $('#loginId').typeahead().data('typeahead').source = _userTypeaheadSource;
 		}
 		
 		/**
@@ -51,20 +47,8 @@
 		 */
 		function _attachEvent(){
 			htElement.waBtns.click(_onClickBtns);
-			htElement.waAccess.click(_onClickAccess);
 		}
 
-		/**
-		 * 각 멤버별 권한 선택시 처리 핸들러
-		 */
-		function _onClickAccess(){
-			var welTarget = $(this);
-			var welContainer = welTarget.closest(".btn-group");
-			welContainer.find("button.d-label").text(welTarget.text());
-			welContainer.find("li").removeClass("active");
-			welTarget.addClass("active");			
-		}
-		
 		/**
 		 * 각 멤버별 버튼 클릭시 이벤트 핸들러
 		 * data-action 속성을 바탕으로 분기
@@ -105,79 +89,28 @@
 		
 		/**
 		 * 멤버 정보 변경 버튼 클릭시
-		 * @param {Wrapped Element} weltArget
+		 * @param {Wrapped Element} welTarget
 		 */
 		function _onClickApply(welTarget){
 			var sURL = welTarget.attr("data-href");
 			var sLoginId = welTarget.attr("data-loginId");
-			var sUserId  = $("#roles-" + sLoginId).find(".active > a[data-id]").attr("data-id");
+			var sRoleId = $('input[name="roleof-' + sLoginId + '"]').val();
 			
-			if(typeof sUserId == "undefined"){
-				console.log("cannot find user id");
+			if(typeof sRoleId == "undefined"){
+				console.log("cannot find Role Id");
 				return false;
 			}
 			
 			// send request
 			$hive.sendForm({
 				"sURL"   : sURL,
-				"htData" : {"id": sUserId},
+				"htData" : {"id": sRoleId},
 				"fOnLoad": function(){
 					document.location.reload();
 				}
 			});
 		}
 
-        /**
-        * Data source for loginId typeahead while adding new member.
-        *
-        * For more information, See "source" option at
-        * http://twitter.github.io/bootstrap/javascript.html#typeahead
-        *
-        * @param {String} sQuery
-        * @param {Function} fProcess
-        */
-        function _userTypeaheadSource(sQuery, fProcess) {
-            if (sQuery.match(htVar.sLastQuery) && htVar.bIsLastRangeEntire) {
-            	fProcess(htVar.htCachedUsers);
-            } else {
-            	$hive.sendForm({
-            		"sURL"		: "/users",
-            		"htOptForm"	: {"method":"get"},
-            		"htData"	: {"query": sQuery},
-            		"fOnLoad"	: function(oData, oStatus, oXHR){
-            			htVar.bIsLastRangeEntire = _isEntireRange(oXHR.getResponseHeader('Content-Range'));
-            			htVar.sLastQuery = sQuery;
-            			htVar.htCachedUsers = oData;
-            			fProcess(oData);
-            		}
-            	});
-            }
-        }
-		
-        /**
-         * Return whether the given content range is an entire range for items.
-         * e.g) "items 10/10"
-         *
-         * @param {String} contentRange the vaule of Content-Range header from response
-         * @return {Boolean}
-         */
-         function _isEntireRange(contentRange) {
-             var result, items, total;
-
-             if (contentRange) {
-                 result = htVar.rxContentRange.exec(contentRange);
-                 if (result) {
-                     items = parseInt(result[1], 10);
-                     total = parseInt(result[2], 10);
-                     if (items < total) {
-                         return false;
-                     }
-                 }
-             }
-
-             return true;
-         }
-         
 		_init(htOptions);
 	};
 	
