@@ -98,8 +98,6 @@ public class UserApp extends Controller {
     				sourceUser.password);
         	token.setRememberMe(sourceUser.rememberMe);
 
-        	//Object principal = token.getPrincipal();
-
         	try {
                 currentUser.login(token);
             } catch (UnknownAccountException uae) {
@@ -132,7 +130,7 @@ public class UserApp extends Controller {
 
 	public static User authenticateWithHashedPassword(String loginId, String password) {
 		User user = User.findByLoginId(loginId);
-		if (user != null) {
+		if (!user.isAnonymous()) {
 			if (user.password.equals(password)) {
 				return user;
 			}
@@ -142,7 +140,7 @@ public class UserApp extends Controller {
 
 	public static User authenticateWithPlainPassword(String loginId, String password) {
 		User user = User.findByLoginId(loginId);
-		if (user != null) {
+		if (!user.isAnonymous()) {
 			if (user.password.equals(hashedPassword(password,
 					user.passwordSalt))) {
 				return user;
@@ -198,6 +196,7 @@ public class UserApp extends Controller {
 		}
 	}
 
+    //Fixme user.password가 plain text 였다가 다시 덮여쓰여지는 식으로 동작한다. 혹시라도 패스워드 reset을 위해 이 메소드를 잘못 사용했다가는 자칫 로그인을 할 수 없게 되는 상황이 발생할 수 있다.
 	public static User hashedPassword(User user) {
 		RandomNumberGenerator rng = new SecureRandomNumberGenerator();
 		user.passwordSalt = rng.nextBytes().getBytes().toString();
@@ -243,7 +242,7 @@ public class UserApp extends Controller {
 		}
 
 		// 중복된 loginId로 가입할 수 없다.
-		if (User.isLoginId(newUserForm.field("loginId").value())) {
+		if (User.isLoginIdExist(newUserForm.field("loginId").value())) {
 			newUserForm.reject("loginId", "user.loginId.duplicate");
 		}
 	}
@@ -292,12 +291,11 @@ public class UserApp extends Controller {
 
 
     public static Result isUserExist(String loginId) {
-        User user = User.findByLoginId(loginId);
         ObjectNode result = Json.newObject();
-        if( user == null){
-            result.put("isExist", false);
-        } else {
+        if(User.isLoginIdExist(loginId)){
             result.put("isExist", true);
+        } else {
+            result.put("isExist", false);
         }
         return ok(result);
     }

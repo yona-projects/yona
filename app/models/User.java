@@ -111,7 +111,7 @@ public class User extends Model {
      * @param loginId
      * @return
      */
-    public static boolean isLoginId(String loginId) {
+    public static boolean isLoginIdExist(String loginId) {
         int findRowCount = find.where().eq("loginId", loginId).findRowCount();
         return (findRowCount != 0);
     }
