@@ -19,8 +19,16 @@
 		 * initialize
 		 */
 		function _init(){
+			_initVar();
 			_initElement();
 			_attachEvent();
+		}
+		
+		/**
+		 * initialize variables
+		 */
+		function _initVar(){
+			htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
 		}
 		
 		/**
@@ -35,8 +43,7 @@
 			
 			// 멤버별 권한 선택
 			htElement.waAccess = $(".dropdown-menu li");
-
-            $('#loginId').typeahead().data('typeahead').source = _userTypeaheadSource
+            $('#loginId').typeahead().data('typeahead').source = _userTypeaheadSource;
 		}
 		
 		/**
@@ -61,6 +68,7 @@
 		/**
 		 * 각 멤버별 버튼 클릭시 이벤트 핸들러
 		 * data-action 속성을 바탕으로 분기
+		 * @param {Wrapped Event} weEvt
 		 */
 		function _onClickBtns(weEvt){
 			var welTarget = $(weEvt.target);
@@ -68,7 +76,7 @@
 				welTarget = $(welTarget.parent("[data-action]"));
 			}
 			
-			var sAction = welTarget.attr("data-action").toLowerCase();;
+			var sAction = welTarget.attr("data-action").toLowerCase();
 
 			switch(sAction){
 				case "delete":
@@ -83,6 +91,7 @@
 		
 		/**
 		 * 멤버 삭제 버튼 클릭시
+		 * @param {Wrapped Element} weltArget
 		 */
 		function _onClickDelete(welTarget){
 			var sURL = welTarget.attr("data-href");
@@ -96,6 +105,7 @@
 		
 		/**
 		 * 멤버 정보 변경 버튼 클릭시
+		 * @param {Wrapped Element} weltArget
 		 */
 		function _onClickApply(welTarget){
 			var sURL = welTarget.attr("data-href");
@@ -118,56 +128,56 @@
 		}
 
         /**
-        * Return whether the given content range is an entire range for items.
-        * e.g) "items 10/10"
-        *
-        * @param {String} contentRange the vaule of Content-Range header from response
-        * @return {Boolean}
-        */
-        function _isEntireRange(contentRange) {
-            var result, items, total;
-
-            if (contentRange) {
-                result = /items\s+([0-9]+)\/([0-9]+)/.exec(contentRange);
-                if (result) {
-                    items = parseInt(result[1]);
-                    total = parseInt(result[2]);
-                    if (items < total) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        /**
         * Data source for loginId typeahead while adding new member.
         *
         * For more information, See "source" option at
         * http://twitter.github.io/bootstrap/javascript.html#typeahead
         *
-        * @param {String} query
-        * @param {Function} process
+        * @param {String} sQuery
+        * @param {Function} fProcess
         */
-        function _userTypeaheadSource(query, process) {
-            if (query.match(htVar.lastQuery) && htVar.isLastRangeEntire) {
-                process(htVar.cachedUsers);
+        function _userTypeaheadSource(sQuery, fProcess) {
+            if (sQuery.match(htVar.sLastQuery) && htVar.bIsLastRangeEntire) {
+            	fProcess(htVar.htCachedUsers);
             } else {
-                $('<form action="/users" method="GET">')
-                    .append($('<input type="hidden" name="query">').val(query))
-                    .ajaxForm({
-                        "dataType": "json",
-                        "success": function(data, status, xhr) {
-                            htVar.isLastRangeEntire = _isEntireRange(xhr.getResponseHeader('Content-Range'));
-                            htVar.lastQuery = query;
-                            htVar.cachedUsers = data;
-                            process(data);
-                        }
-                    }).submit();
+            	$hive.sendForm({
+            		"sURL"		: "/users",
+            		"htOptForm"	: {"method":"get"},
+            		"htData"	: {"query": sQuery},
+            		"fOnLoad"	: function(oData, oStatus, oXHR){
+            			htVar.bIsLastRangeEntire = _isEntireRange(oXHR.getResponseHeader('Content-Range'));
+            			htVar.sLastQuery = sQuery;
+            			htVar.htCachedUsers = oData;
+            			fProcess(oData);
+            		}
+            	});
             }
         }
 		
+        /**
+         * Return whether the given content range is an entire range for items.
+         * e.g) "items 10/10"
+         *
+         * @param {String} contentRange the vaule of Content-Range header from response
+         * @return {Boolean}
+         */
+         function _isEntireRange(contentRange) {
+             var result, items, total;
+
+             if (contentRange) {
+                 result = htVar.rxContentRange.exec(contentRange);
+                 if (result) {
+                     items = parseInt(result[1], 10);
+                     total = parseInt(result[2], 10);
+                     if (items < total) {
+                         return false;
+                     }
+                 }
+             }
+
+             return true;
+         }
+         
 		_init(htOptions);
 	};
 	
