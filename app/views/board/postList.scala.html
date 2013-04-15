@@ -30,7 +30,8 @@
         <form method="get" id="option_form">
           <input type="hidden" name="orderBy"  value="@param.orderBy">
           <input type="hidden" name="orderDir" value="@param.orderDir">
-          <input name="filter" class="text" type="text" placeholder="현재 게시글에서 검색" value="@param.filter"><button type="submit" class="btn search-btn underConstruction">SEARCH</button>
+          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!-- 
+           --><button type="submit" class="btn search-btn underConstruction">@Messages("post.menu.search")</button>
         </form>
       </div>
     </div>
@@ -64,11 +65,11 @@
           <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.number</a></div>
           <div class="attach-wrap">
             @if(Attachment.findByContainer(post.asResource).size > 0){
-            <i class="ico ico-clip"></i>
+            	<i class="ico ico-clip"></i>
             }
           </div>
           <div class="contents">
-            <p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
+			<p class="title"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a></p>
             <p class="infos nm">by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a> <span class="date">@utils.TemplateHelper.agoString(post.ago())</span></p>
           </div>
           <div class="right-panel">
@@ -76,7 +77,8 @@
                 <i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
             </div>
             <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
-            <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="34" height="34"></a>
+				<img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="32" height="32">
+			</a>
           </div>
         </li>
     }
