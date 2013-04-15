@@ -33,9 +33,9 @@
 <script type="text/javascript" src="@getJSLink("common/hive.Markdown")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.FileDownloader")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.Dropdown")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Shortcut")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Dropdown")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.FindUser")"></script>
 
 <script type="text/javascript" src="@routes.Application.jsMessages()"></script>
@@ -60,7 +60,7 @@
      	
      	// hive.Dropdown
         $(".btn-group[data-name]").each(function(i, el){
-        	(new hive.Dropdown({"elContainer":el}));
+        	(new hive.ui.Dropdown({"elContainer":el}));
         });
 	});
 </script>
