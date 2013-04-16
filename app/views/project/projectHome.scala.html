@@ -27,7 +27,10 @@
                     <strong>라이센스 :</strong> GPL v2
                 </li>
                 <li class="info">
-                    <strong>운영체제 :</strong> 리눅스
+                    <strong>@Messages("project.tags") :</strong>
+                    @for(tag <- project.tags) {
+                    <span class='label label-info'>@tag.name</span>
+                    }
                 </li>
                 <li class="info">
                     <strong>프로그래밍 언어 :</strong> PHP, Python, Java

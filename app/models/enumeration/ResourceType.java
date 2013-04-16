@@ -21,7 +21,8 @@ public enum ResourceType {
     PROJECT("project"),
     ATTACHMENT("attachment"),
     ISSUE_COMMENT("issue_comment"),
-    NONISSUE_COMMENT("nonissue_comment");
+    NONISSUE_COMMENT("nonissue_comment"),
+    TAG("tag");
 
     private String resource;
 

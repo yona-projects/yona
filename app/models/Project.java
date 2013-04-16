@@ -3,11 +3,7 @@ package models;
 import java.io.IOException;
 import java.util.*;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import javax.servlet.ServletException;
 import javax.validation.constraints.NotNull;
 
@@ -80,6 +76,9 @@ public class Project extends Model {
 
     private long lastIssueNumber;
     private long lastPostingNumber;
+
+    @ManyToMany
+    public Set<Tag> tags;
 
     public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;
@@ -315,4 +314,33 @@ public class Project extends Model {
         return User.findByLoginId(userId);
     }
 
+    public Tag tag(String tagName) {
+        // Find a tag by the given name.
+        Tag tag = Tag.find.where().eq("name", tagName).findUnique();
+
+        if (tag == null) {
+            // Create new tag if there is no tag which has the given name.
+            tag = new Tag();
+            tag.name = tagName;
+            tag.save();
+        } else if (tag.projects.contains(this)) {
+            // Return empty map if the tag has been already attached.
+            return null;
+        }
+
+        // Attach new tag.
+        tag.projects.add(this);
+        tag.update();
+
+        return tag;
+    }
+
+    public void untag(Tag tag) {
+        tag.projects.remove(this);
+        if (tag.projects.size() == 0) {
+            tag.delete();
+        } else {
+            tag.update();
+        }
+    }
 }

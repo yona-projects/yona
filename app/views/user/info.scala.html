@@ -100,6 +100,11 @@
 						</h3>
 						<div class="stream-desc-wrap">
 							<div class="stream-desc">
+                                <p class="tags">
+                                @for(tag <- project.tags) {
+                                    <span class='label label-info'>@tag.name</span>
+                                }
+                                </p>
 								<p class="nm">@project.overview</p>
 								<p class="date">Last updated @agoString(project.ago)</p>
 							</div>
