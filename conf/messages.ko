@@ -84,6 +84,7 @@ button.signup = 가입하기
 button.newProject = 새 프로젝트 만들기
 button.detail = 자세히
 button.apply = 적용
+button.back = 돌아가기
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일

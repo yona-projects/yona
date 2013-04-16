@@ -43,7 +43,6 @@
 </div>
 
 <div class="project-menu @menuCSS">
-
 	<div class="project-menu-wrap main">
 		<ul class="unstyled">
 			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
@@ -73,3 +72,19 @@
 	</div>
 	}
 </div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	try {
+		var welLink;
+		
+		$(".project-menu-wrap a").each(function(n, el){
+			welLink = $(el);
+			if(welLink.attr("href") == document.location.pathname){
+				$(".project-menu-wrap li.highlight").removeClass("highlight");
+				welLink.parent().addClass("highlight");
+			}
+		});
+	}catch(e){}
+});
+</script>

@@ -83,6 +83,7 @@ button.signup = Create an account
 button.newProject = Create your project
 button.detail = Detail
 button.apply = Apply
+button.back = Back
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached

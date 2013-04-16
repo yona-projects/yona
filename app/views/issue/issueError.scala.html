@@ -1,12 +1,17 @@
 @(message:String, returnURL:Call, project:Project)
 
-@main("Warnning!", project, utils.MenuType.ISSUE){
+@main(Messages("message.warning"), project, utils.MenuType.ISSUE){
 <div class="page">
 
-	<div class="alert alert-error">
-	@Messages(message)
-	</div>
-    <a class="btn" href="@returnURL">돌아가기</a>
+	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
+
+	<div class="error-wrap">
+			<i class="ico ico-err1"></i>
+			<p>@Messages(message)</p>
+			
+			<a href="@returnURL" class="btn">@Messages("button.back")</a>
+		</div>  
+    <div>
 </div>
 
 }

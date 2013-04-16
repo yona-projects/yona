@@ -4,7 +4,6 @@
 @import models.enumeration._
 
 @stateMessage(state: State) = @{ Messages("milestone.state." + state.name.toLowerCase) }
-
 @sortMark(_sort: String) = @{
     /* TODO It will be chnaged. */
     if(mCondition.sort.equals(_sort)) {
@@ -28,15 +27,15 @@
 }
 
 @project.projectMngMain(message, projectInst) {
-	@views.html.prjmenu(projectInst, utils.MenuType.PROJECT_SETTING, "")
+	@prjmenu(projectInst, utils.MenuType.PROJECT_HOME, "")
 	
 	@if(milestones == null || milestones.isEmpty()){
-
-		<div class="error-wrap">
-			<i class="ico ico-err1"></i>
-			<p>@Messages("milestone.is.empty")</p>
-		</div>  
-
+	
+	<div class="error-wrap">
+		<i class="ico ico-err1"></i>
+		<p>@Messages("milestone.is.empty")</p>
+	</div>
+	
     } else {
     
     <div class="tab-wrap">

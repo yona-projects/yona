@@ -3,7 +3,7 @@
 @import utils.TemplateHelper._
 @import models.enumeration._
 @project.projectMngMain(title, projectInst) {
-    @views.html.prjmenu(projectInst, utils.MenuType.PROJECT_SETTING, "")
+    @prjmenu(projectInst, utils.MenuType.PROJECT_HOME, "")
 
     <div class="form-wrap milestone frm-wrap">
         <form class="nm" action="@routes.MilestoneApp.newMilestone(projectInst.owner, projectInst.name)" method="post">
