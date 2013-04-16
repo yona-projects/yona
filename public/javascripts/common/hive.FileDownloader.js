@@ -6,7 +6,7 @@
  * 
  * http://hive.dev.naver.com/license
  */
-hive.FileDownloader = (function() {
+hive.FileDownloader = function(htOptions) {
 
 	var htVar = {};
 	var htElement = {};
@@ -102,59 +102,13 @@ hive.FileDownloader = (function() {
 		return welItem;
 	}
 	
-	return {
-		"init": _init
-	};
-})();
+	_init(htOptions || {});
+};
 
 // legacy compatibility
 var fileDownloader = function(welTarget, sAction){
-	hive.FileDownloader.init({
+	new hive.FileDownloader({
 		"elTarget": $(welTarget),
 		"sAction" : sAction
 	});
 };
-
-/*
-var fileDownloader = function(welTarget, sAction) {
-	var sTpl = '<li class="attach"><a href="${url}"><i class="ico ico-clip"></i>${name} (${fileSize})</a></li>';
-	var createFileItem = function(oFile) {
-		oFile.fileSize = humanize.filesize(oFile.size);
-		return $.tmpl(sTpl, oFile);
-	};
-
-	// request data
-	var htData = {};	
-	var resourceType = welTarget.attr('resourceType');
-	if (typeof resourceType !== "undefined") {
-		htData.containerType = resourceType;
-	}
-	var resourceId = welTarget.attr('resourceId');
-	if (typeof resourceId !== "undefined") {
-		htData.containerId = resourceId;
-	}
-	var welFileList = $('<ul class="attaches wm">');
-	
-	// send request
-	$hive.sendForm({
-		"sURL"     : sAction,
-		"htData"   : htData,
-		"htOptForm": {"method":"get"},
-		"fOnLoad"  : function(oRes){
-			var aFiles = oRes.attachments;
-			
-			if(aFiles.length > 0){
-				welFileList.css('display', 'block');
-				aFiles.forEach(function(oFile){
-					welFileList.append(createFileItem(oFile));
-				});
-				welTarget.append(welFileList);
-			}
-			
-			//createFileItem = aFiles = null;
-		}
-	});
-	
-	//welTarget.append(welFileList);
-};
-*/
