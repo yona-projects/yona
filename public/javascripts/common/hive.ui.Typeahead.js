@@ -1,5 +1,5 @@
 /**
- * @(#)hive.ui.FindUser.js 2013.04.15
+ * @(#)hive.ui.Typeahead.js 2013.04.15
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -10,7 +10,7 @@
 (function(ns){
 	
 	var oNS = $hive.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
+	oNS.container[oNS.name] = function(sQuery, htOptions){
 
 		var htVar = {};
 		var htElement = {};
@@ -28,6 +28,7 @@
 		 * @param {Hash Table} htOptions
 		 */
 		function _initVar(htOptions){
+			htVar.sActionURL = htOptions.sActionURL || "/users";
 			htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
 		}
 		
@@ -56,7 +57,7 @@
             	fProcess(htVar.htCachedUsers);
             } else {
             	$hive.sendForm({
-            		"sURL"		: "/users",
+            		"sURL"		: htVar.sActionURL,
             		"htOptForm"	: {"method":"get"},
             		"htData"	: {"query": sQuery},
             		"fOnLoad"	: function(oData, oStatus, oXHR){
@@ -85,7 +86,7 @@
              return (aMatch) ? !(parseInt(aMatch[1], 10) < parseInt(aMatch[2], 10)) : true;
          }
 
-		_init(htOptions);
+		_init(sQuery, htOptions || {});
 	};
 	
-})("hive.ui.FindUser");
+})("hive.ui.Typeahead");

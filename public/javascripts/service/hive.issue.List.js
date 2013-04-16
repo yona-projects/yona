@@ -34,7 +34,9 @@
 		 */
 		function _initVar(htOptions){
 			htVar.nTotalPages = htOptions.nTotalPages || 1;
-			htVar.oTypeahead = new hive.ui.FindUser("input[name=authorLoginId]");
+			htVar.oTypeahead = new hive.ui.Typeahead("input[name=authorLoginId]", {
+				"sActionURL": "/users"
+			});
 		}
 		
 		/**

@@ -65,6 +65,10 @@
             htElement.welInputAddTag = $('input[name="newTag"]');
             htElement.welTags = $('#tags');
             htElement.welBtnAddTag = $('#addTag');
+            
+            htVar.oTagInput = new hive.ui.Typeahead(htElement.welInputAddTag, {
+            	"sActionURL": htVar.sURLTags
+            });
 		}
 
         /**
@@ -74,9 +78,8 @@
 			htElement.welInputLogo.change(_onChangeLogoPath);
 			htElement.welBtnDeletePrj.click(_onClickBtnDeletePrj);
 			htElement.welBtnSave.click(_onClickBtnSave);
-            htElement.welInputAddTag
-                .keypress(_onKeyPressNewTag)
-                .typeahead().data('typeahead').source = _tagTypeaheadSource;
+            htElement.welInputAddTag.keypress(_onKeyPressNewTag);
+//                .typeahead().data('typeahead').source = _tagTypeaheadSource;
             htElement.welBtnAddTag.click(_submitTag);
 		}
 		
@@ -123,48 +126,14 @@
 		}
 
         /**
-        * Data source for tag typeahead while adding new tag.
-        *
-        * For more information, See "source" option at
-        * http://twitter.github.io/bootstrap/javascript.html#typeahead
-        *
-        * @param {String} query
-        * @param {Function} process
-        */
-        function _tagTypeaheadSource(query, process) {
-            if (query.match(htVar.lastQuery) && htVar.isLastRangeEntire) {
-                process(htVar.cachedTags);
-            } else {
-                $('<form method="GET">')
-                    .attr('action', htVar.sURLTags)
-                    .append($('<input type="hidden" name="query">').val(query))
-                    .ajaxForm({
-                        "dataType": "json",
-                        "success": function(tags, status, xhr) {
-                            var tagNames = [];
-                            for(var id in tags) {
-                                tagNames.push(tags[id]);
-                            }
-                            htVar.isLastRangeEntire = $hive.isEntireRange(
-                                xhr.getResponseHeader('Content-Range'));
-                            htVar.lastQuery = query;
-                            htVar.cachedTags = tagNames;
-                            process(tagNames);
-                        }
-                    }).submit();
-            }
-        };
-
-        /**
         * Submit new tag to add that.
         */
         function _submitTag () {
-            $('<form method="POST">')
-                .attr('action', htVar.sURLProjectTags)
-                .append($('<input type="hidden" name="name">')
-                        .val(htElement.welInputAddTag.val()))
-                .ajaxForm({ "success": _appendTags })
-                .submit();
+        	$hive.sendForm({
+        		"sURL"   : htVar.sURLProjectTags,
+        		"htData" : {"name": htElement.welInputAddTag.val()},
+        		"fOnLoad": _appendTags
+        	});
         }
 
         /**
@@ -185,12 +154,11 @@
         * Get list of tags from the server and show them in #tags div.
         */
         function _updateTags() {
-            $('<form method="GET">')
-                .attr('action', htVar.sURLProjectTags)
-                .ajaxForm({
-                    "dataType": "json",
-                    "success": _appendTags
-                }).submit();
+        	$hive.sendForm({
+        		"sURL"     : htVar.sURLProjectTags,
+        		"htOptForm": {"method":"get"},
+        		"fOnLoad"  : _appendTags
+        	});
         }
 
         /**
@@ -200,23 +168,22 @@
         * @param {String} sName
         */
         function _createTag(sId, sName) {
-            var fDelTag = function(ev) {
-                $('<form method="POST">')
-                    .attr('action', htVar.sURLProjectTags + '/' + sId)
-                    .append($('<input type="hidden" name="_method" value="DELETE">'))
-                    .ajaxForm({
-                        "success": function(data, status, xhr) {
-                            welTag.remove();
-                        }
-                    }).submit();
+            var fOnClickDelete = function() {
+            	$hive.sendForm({
+            		"sURL"   : htVar.sURLProjectTags + '/' + sId,
+            		"htData" : {"_method":"DELETE"},
+            		"fOnLoad": function(){
+            			welTag.remove();
+            		}
+            	});            	
             };
 
-            var welTag = $("<span class='label label-info'>")
-                .text(sName + " ")
-                .append($("<a href='javascript:void(0)'>").text("x").click(fDelTag));
+            var welTag = $('<span class="label label-info">' + sName + " </span>")
+            	.append($('<a href="javascript:void(0)">x</a>')
+            	.click(fOnClickDelete));
 
             return welTag;
-        };
+        }
 
         /**
         * Append the given tags on #tags div to show them.
@@ -227,151 +194,9 @@
             for(var sId in htTags) {
                 htElement.welTags.append(_createTag(sId, htTags[sId]));
             }
-        };
+        }
 
 		_init(htOptions);
 	};
 	
 })("hive.project.Setting");
-
-/*
-nforge.namespace("project");
-
-nforge.project.new = function() {
-  var that = {
-    init: function(formName) {
-      var errorMessages = {
-        'name': Messages('project.name.alert'),
-        'accept': Messages('project.new.agreement.alert')
-      };
-      new FormValidator(formName, [{
-        name: 'name',
-        rules: 'required|alpha_dash'
-      }, {
-        name: 'accept',
-        rules: 'required'
-      }], function(errors, event) {
-        var label;
-        var div = $('div.alert').empty();
-
-        if (errors.length == 0) {
-            return;
-        }
-
-        if (div.length == 0) {
-          div = $('<div>');
-          div.addClass('alert alert-error');
-          div.append($('<a>').addClass('close').attr('data-dismiss', 'alert').text('x'));
-          $('div.page').before(div);
-        }
-
-        for(var i = 0; i < errors.length; i ++) {
-          label =
-            $('<label>').attr('for', errors[i].name)
-            .append($('<strong>').text(Messages('message.warning')))
-            .append($('<span>').text(' ' + errorMessages[errors[i].name]));
-          div.append(label);
-        }
-
-        event.returnValue = false;
-      });
-    }
-  }
-
-  return that;
-}
-
-nforge.project.nameCheck = function() {
-	var that = {
-		init : function() {
-			$("#save").click(function() {
-				var reg_name = /^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$/;
-				if(!reg_name.test($("input#project-name").val())) {
-		            $("#alert_msg").show();
-		            return false;
-			    } else {
-			        $("#alert_msg").hide();
-					return true;
-			    }
-			});
-		}
-	};
-	return that;
-};
-
-nforge.project.urlCheck = function() {
-	var that = {
-		init : function() {
-			$("#save").click(function() {
-				var reg_url = /^http?:\/\//;
-
-				if($("input#siteurl").val()!="" && !reg_url.test($("input#siteurl").val())) {
-          $("#urlAlert").show();
-          return false;
-        }else {
-        	$("#urlAlert").hide();
-        	return true;
-        }
-
-			});
-		}
-	};
-	return that;
-};
-
-nforge.project.acceptCheck = function() {
-	var that = {
-		init : function(id) {
-			$("#"+id).click(function() {
-				if($("#accept").is(":not(:checked)")) {
-          $("#acceptAlert").show();
-          return false;
-        }else {
-        	$("#acceptAlert").hide();
-					return true;	
-        }
-			});
-		}
-	};
-	return that;	
-};
-
-nforge.project.logoCheck = function() {
-	var that = {
-		init : function() {
-			$("#logoPath").change(function(){
-				var reg_type = /\.(gif|bmp|jpg|jpeg|png)$/i;
-        if (!reg_type.test($(this).val())) {
-            $("#logoTypeAlert").show(); 
-            $(this).val('');
-        } else { 
-            return $("form#saveSetting").submit(); 
-        }
-      });
-		}
-	};
-	return that;
-};
-
-nforge.project.popovers = function() {
-	var that = {
-		init : function() {
-			$("#project_name").popover();
-            $("#share_option_explanation").popover();
-            $("#terms").popover();
-		}
-	};
-	return that;
-}
-
-nforge.project.roleChange = function() {
-	var that = {
-		init : function() {
-			$("select#role").change(function(){
-        $(this).parent("form").submit();
-      });
-		}
-	};
-	return that;
-};
-*/

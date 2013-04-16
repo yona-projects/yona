@@ -36,7 +36,7 @@
 <script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Shortcut")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Dropdown")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ui.FindUser")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Typeahead")"></script>
 
 <script type="text/javascript" src="@routes.Application.jsMessages()"></script>
 
@@ -44,6 +44,10 @@
 	$hive.setScriptPath("@getJSPath()");
 	
 	$(document).ready(function(){
+		// tooltip
+		$(".n-tooltip").tooltip();	
+		
+		// n-alert
 		$(".n-alert").click(function(){ 
 			$(this).hide(); 
 		});
