@@ -161,4 +161,17 @@ public class ProjectUser extends Model {
 	public static List<ProjectUser> findAll(){
 		return find.all();
 	}
+
+    public static boolean isAllowedToNotice(User user, Project project) {
+        if(user.isAnonymous()) {
+            return false;
+        }
+        if(user.isSiteManager()) {
+            return true;
+        }
+        if(ProjectUser.isMember(user.id, project.id) || ProjectUser.isManager(user.id, project.id)) {
+            return true;
+        }
+        return false;
+    }
 }
