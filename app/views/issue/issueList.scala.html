@@ -136,8 +136,8 @@
 	            <div class="comment-wrap">
 	                <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
 	            </div>
-	            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author-avatar img-rounded pull-right"><!-- 
-	             --><img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="34" height="34" alt="@issue.authorName"></a>
+	            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap img-rounded pull-right"><!-- 
+	             --><img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName"></a>
 	        </div>
 	    </li>
 	    }

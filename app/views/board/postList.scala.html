@@ -76,8 +76,8 @@
             <div class="comment-wrap">
                 <i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
             </div>
-            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author-avatar img-rounded pull-right">
-				<img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="34" height="34">
+            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap img-rounded pull-right">
+				<img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="32" height="32">
 			</a>
           </div>
         </li>

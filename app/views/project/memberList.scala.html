@@ -28,7 +28,7 @@
             @if( member.user != null){
 
 		<li class="member">
-			<a href="@routes.UserApp.userInfo(member.user.loginId)" class="img-rounded pull-left"><!-- 
+			<a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap mid img-rounded pull-left"><!-- 
 			 --><img class="media-object" src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64"></a>
 			<div class="m-body">
 				<div class="td">
