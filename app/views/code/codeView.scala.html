@@ -1,6 +1,6 @@
 @(project:Project, branches:List[String])
 
-@main("코드", project, utils.MenuType.CODE){
+@main(Messages("menu.code"), project, utils.MenuType.CODE){
 <div class="page">
 
 	@views.html.prjmenu(project, utils.MenuType.CODE, "main-menu-only")
