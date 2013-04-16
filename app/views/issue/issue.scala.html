@@ -11,10 +11,14 @@
 
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
-@main(Messages(title),project, utils.MenuType.ISSUE) {
+@getTitle(issue:Issue, project:Project) = {
+	#@issue.number @issue.title (@project.name)
+	@** Messages(title) **@
+}
 
+@main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
-  @views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+  @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
   
   @** Post Info **@
   <div class="board-header issue">
@@ -29,8 +33,8 @@
   @** Content body **@
   <div class="board-body">
     <div class="author-info">
-      <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="pull-left img-rounded">
-      	<img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="34" height="34" alt="@issue.authorName">
+      <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap pull-left img-rounded">
+      	<img class="user-picture" src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName">
       </a>
       <div class="media-body">
 		
@@ -90,8 +94,9 @@
     <ul class="comments">
       @for(comment <- issue.comments){
       <li class="comment">
-        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded">
-        <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorLoginId">
+        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded avatar-wrap">
+        	<img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+        </a>
         <div class="media-body">
           @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
           <a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">&times;</a>
@@ -121,7 +126,7 @@
 		</div>
         
 		<div class="attach-wrap">
-			<div class="thumb-wrap">
+			<div class="pull-left img-rounded avatar-wrap">
 			@if(UserApp.currentUser() != UserApp.anonymous) {
 				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
 			} else {
@@ -206,18 +211,6 @@
 @views.html.markdown()
 
 <script type="text/javascript">
-	/*
-	nforge.require('shortcut.submit');
-	nforge.require('issue.view', "@routes.AttachmentApp.newFile");
-	nforge.require('issue.label', '@routes.IssueLabelApp.labels(project.owner, project.name)', '@routes.IssueLabelApp.newLabel(project.owner, project.name)', {editable: false}, function() {
-	@for(label <- issue.labels) {
-		$('button.issue-label[labelId="@label.id"]').css('background-color', '@label.color');
-		$('button.issue-label[labelId="@label.id"]').css('color', contrasted_color('@label.color'));
-		$('.labels button.btn[labelId="@label.id"]').addClass('active');
-	}
-	});
-	*/
-
 	$(document).ready(function(){
 		// hive.Label
 		var htActiveLabels = {@for(label <- issue.labels) { "@label.id":"@label.color'", }"":""};		

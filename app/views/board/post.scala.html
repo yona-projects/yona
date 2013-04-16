@@ -5,14 +5,18 @@
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main("상세보기", project, utils.MenuType.BOARD){
+@getTitle(postTitle:String, projectName:String) = {
+	@postTitle (@projectName) 
+}
+
+@main(getTitle(post.title, project.name).toString(), project, utils.MenuType.BOARD){
 
 <div class="page board-view">
-  @views.html.prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
+  @prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
   
   @** Post Info **@
   <div class="board-header">
-    <div class="board-id div">@post.number</div>
+	<div class="board-id div">@post.number</div>
     <h1 class="title div">@post.title</h1>
     <div class="date div">@utils.TemplateHelper.agoString(post.ago())</div>
   </div>
@@ -20,8 +24,9 @@
   @** Content body **@
   <div class="board-body">
     <div class="author-info">
-      <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="pull-left img-rounded">
-      <img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="34" height="34" alt="@post.authorName"></a>
+      <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-left img-rounded">
+      	<img class="user-picture" src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="32" height="32" alt="@post.authorName">
+      </a>
       <div class="media-body">
         <p>
           <a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorLoginId</strong></a> <!--<span class="name">(Loren Brichter)</span>-->
@@ -57,39 +62,36 @@
     <div class="comment-header"><strong>Comment</strong> <strong class="num">@post.comments.size()</strong></div>
     
     <ul class="comments">
-      @for(comment <-post.comments){
-      <li class="comment">
-        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded">
-        <img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="34" height="34" alt="@comment.authorLoginId">
-        <div class="media-body">
-          @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-          <a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
-          }
-            <p class="commenter">
-                <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-                <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
-            </p>
-            <div class="comment-body" markdown="true">@comment.contents</div>
-            <div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
-            <!--
-            <ul class="attaches">
-                <li class="attach"><i class="ico ico-clip"></i><a href="/file-down">첨부파일(iabcde-test.exe) <i class="ico ico-blue-dot"></i> Donwload</a></li>
-            </ul>-->
-        </div>
-      </li>
-      }
+    @for(comment <-post.comments){
+		<li class="comment">
+			<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="pull-left img-rounded avatar-wrap">
+				<img class="user-picture" src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+			</a>
+			<div class="media-body">
+				@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+				<a class="pull-right close" href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)">&times;</a>
+				}
+				<p class="commenter">
+					<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+					<span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
+				</p>
+	            <div class="comment-body" markdown="true">@comment.contents</div>
+	            <div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
+	        </div>
+      	</li>
+    }
     </ul>
     
 @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
     <div class="write-comment-box">
         @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
 		<div class="write-comment-wrap">
-			@helper.textarea(commentForm("contents"), 'class->"text comment", 'markdown->true)
+			<textarea name="contents" id="contents" class="text comment" markdown="true"></textarea>
 			<button class="comment-btn">@Messages("button.comment.new")</button>
 		</div>
         
 		<div class="attach-wrap">
-			<div class="thumb-wrap">
+			<div class="pull-left img-rounded avatar-wrap">
 			@if(UserApp.currentUser() != UserApp.anonymous) {
 				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
 			} else {
@@ -174,17 +176,13 @@
 	</div>
 </div>
 
-@views.html.markdown()
+@markdown()
 
 <script type="text/javascript">
-	//nforge.require('shortcut.submit');
-	//nforge.require('board.view', "@routes.AttachmentApp.newFile");
-	
 	$(document).ready(function(){
 		$hive.loadModule("board.View", {
 			"sAction": "@routes.AttachmentApp.newFile"
 		});		
-	});
-	
+	});	
 </script>
 }
