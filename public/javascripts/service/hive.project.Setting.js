@@ -23,6 +23,7 @@
 			_initVar(htOpt);
 			_initElement(htOpt);
 			_attachEvent();
+            _updateTags();
 			
 			htVar.waPopOvers.popover();
 		}
@@ -34,8 +35,10 @@
 		function _initVar(htOptions){
 			htVar.rxLogoExt = /\.(gif|bmp|jpg|jpeg|png)$/i;
 			htVar.rxPrjName = /^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$/;
+            htVar.sURLProjectTags = htOptions.sURLProjectTags;
+            htVar.sURLTags = htOptions.sURLTags;
 		}
-		
+
 		/**
 		 * initialize element variables
 		 */
@@ -57,15 +60,24 @@
 			
 			// popovers
 			htVar.waPopOvers = $([$("#project_name"), $("#share_option_explanation"), $("#terms")]);
+
+            // tags
+            htElement.welInputAddTag = $('input[name="newTag"]');
+            htElement.welTags = $('#tags');
+            htElement.welBtnAddTag = $('#addTag');
 		}
-		
-		/**
+
+        /**
 		 * attach event handlers
 		 */
 		function _attachEvent(){
 			htElement.welInputLogo.change(_onChangeLogoPath);
 			htElement.welBtnDeletePrj.click(_onClickBtnDeletePrj);
 			htElement.welBtnSave.click(_onClickBtnSave);
+            htElement.welInputAddTag
+                .keypress(_onKeyPressNewTag)
+                .typeahead().data('typeahead').source = _tagTypeaheadSource;
+            htElement.welBtnAddTag.click(_submitTag);
 		}
 		
 		/**
@@ -109,6 +121,113 @@
 			htElement.welAlertName.hide();
 			return true;
 		}
+
+        /**
+        * Data source for tag typeahead while adding new tag.
+        *
+        * For more information, See "source" option at
+        * http://twitter.github.io/bootstrap/javascript.html#typeahead
+        *
+        * @param {String} query
+        * @param {Function} process
+        */
+        function _tagTypeaheadSource(query, process) {
+            if (query.match(htVar.lastQuery) && htVar.isLastRangeEntire) {
+                process(htVar.cachedTags);
+            } else {
+                $('<form method="GET">')
+                    .attr('action', htVar.sURLTags)
+                    .append($('<input type="hidden" name="query">').val(query))
+                    .ajaxForm({
+                        "dataType": "json",
+                        "success": function(tags, status, xhr) {
+                            var tagNames = [];
+                            for(var id in tags) {
+                                tagNames.push(tags[id]);
+                            }
+                            htVar.isLastRangeEntire = $hive.isEntireRange(
+                                xhr.getResponseHeader('Content-Range'));
+                            htVar.lastQuery = query;
+                            htVar.cachedTags = tagNames;
+                            process(tagNames);
+                        }
+                    }).submit();
+            }
+        };
+
+        /**
+        * Submit new tag to add that.
+        */
+        function _submitTag () {
+            $('<form method="POST">')
+                .attr('action', htVar.sURLProjectTags)
+                .append($('<input type="hidden" name="name">')
+                        .val(htElement.welInputAddTag.val()))
+                .ajaxForm({ "success": _appendTags })
+                .submit();
+        }
+
+        /**
+        * If user presses enter at newtag element, get list of tags from the
+        * server and show them in #tags div.
+        *
+        * @param {Object} oEvent
+        */
+        function _onKeyPressNewTag(oEvent) {
+            if (oEvent.keyCode == 13) {
+                _submitTag();
+                htElement.welInputAddTag.val("");
+                return false;
+            }
+        }
+
+        /**
+        * Get list of tags from the server and show them in #tags div.
+        */
+        function _updateTags() {
+            $('<form method="GET">')
+                .attr('action', htVar.sURLProjectTags)
+                .ajaxForm({
+                    "dataType": "json",
+                    "success": _appendTags
+                }).submit();
+        }
+
+        /**
+        * Make a tag element by given id and name.
+
+        * @param {String} sId
+        * @param {String} sName
+        */
+        function _createTag(sId, sName) {
+            var fDelTag = function(ev) {
+                $('<form method="POST">')
+                    .attr('action', htVar.sURLProjectTags + '/' + sId)
+                    .append($('<input type="hidden" name="_method" value="DELETE">'))
+                    .ajaxForm({
+                        "success": function(data, status, xhr) {
+                            welTag.remove();
+                        }
+                    }).submit();
+            };
+
+            var welTag = $("<span class='label label-info'>")
+                .text(sName + " ")
+                .append($("<a href='javascript:void(0)'>").text("x").click(fDelTag));
+
+            return welTag;
+        };
+
+        /**
+        * Append the given tags on #tags div to show them.
+        *
+        * @param {Object} htTags
+        */
+        function _appendTags(htTags) {
+            for(var sId in htTags) {
+                htElement.welTags.append(_createTag(sId, htTags[sId]));
+            }
+        };
 
 		_init(htOptions);
 	};

@@ -249,6 +249,7 @@ project.new.vcsType.subversion = Subversion
 project.readme = You can see README.md here if you add it into the code repository.
 project.searchPlaceholder = search at current project
 project.wrongName = Project name is wrong
+project.tags = Tags
 
 #Site
 site.sidebar = Site Management

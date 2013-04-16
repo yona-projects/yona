@@ -239,6 +239,30 @@ $hive = hive.Common = (function(){
 	function getTrim(sValue){
 		return sValue.trim().replace(htVar.rxTrim, '');
 	}
+
+    /**
+    * Return whether the given content range is an entire range for items.
+    * e.g) "items 10/10"
+    *
+    * @param {String} contentRange the vaule of Content-Range header from response
+    * @return {Boolean}
+    */
+    function isEntireRange(contentRange) {
+        var result, items, total;
+
+        if (contentRange) {
+            result = /items\s+([0-9]+)\/([0-9]+)/.exec(contentRange);
+            if (result) {
+                items = parseInt(result[1]);
+                total = parseInt(result[2]);
+                if (items < total) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 	
 	/* public Interface */
 	return {
@@ -249,7 +273,8 @@ $hive = hive.Common = (function(){
 		"stopEvent": stopEvent,
 		"getContrastColor": getContrastColor,
 		"sendForm" : sendForm,
-		"getTrim"  : getTrim 
+		"getTrim"  : getTrim,
+        "isEntireRange": isEntireRange
 	};
 })();
 
