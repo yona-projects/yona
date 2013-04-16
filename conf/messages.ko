@@ -25,6 +25,7 @@ title.sendMail = 메일 발송
 title.projectList = 프로젝트 목록
 title.help = 도움말
 title.search = 검색
+title.resetPassword = 패스워드 재설정
 
 hive.name = HIVE
 hive.title = 협업개발 플랫폼
@@ -270,6 +271,7 @@ site.project.deleteConfirm = 정말로 해당 프로젝트를 사이트에서 �
 
 #User
 user.loginId = 아이디
+user.yourLoginId = yourLoginId
 user.wrongloginId.alert = 올바른 아이디를 입력하세요.
 user.loginId.duplicate = 이미 존재하는 아이디입니다.
 user.login.alert = 로그인이 필요합니다.
@@ -279,12 +281,14 @@ user.confirmPassword.alert = 입력한 두 비밀번호가 서로 일치하지 �
 user.wrongPassword.alert = 잘못된 비밀번호입니다!
 user.name = 이름
 user.email = 이메일
+user.yourEmail = yourEmail@address.com
 user.wrongEmail.alert = 이메일이 잘못되었습니다.
 user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
 user.logout.success = 로그아웃했습니다
 user.isAlreadySignupUser = 이미 가입하셨나요?
 user.signupId = 아이디
 user.signupBtn = 참여하기
+user.loginWithNewPassword = 새로 설정한 비밀번호로 로그인 하세요
 
 #Time
 time.just = 방금 전
@@ -371,3 +375,8 @@ auth.unauthorized.comment = 로그인 후 댓글 입력이 가능합니다.
 #userinfo
 userinfo.myProjects = 내 프로젝트
 userinfo.starredProjects = 관심 프로젝트
+
+#Admin
+admin.resetPasswordEmail.title = [HIVE] 패스워드 재 설정
+admin.resetPasswordEmail.mailcontents = 아래 URL을 브라우저 주소창에 붙여 넣으세요
+admin.resetPasswordEmail.invalidRequest = 잘못된 패스워드 재 설정 요청입니다.
