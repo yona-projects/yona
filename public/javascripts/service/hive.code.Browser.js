@@ -41,6 +41,7 @@
 		 */
 		function _initVar(htOptions){
 			htVar.rxHash = /^#/;
+			htVar.rxTmp = /\!\//;
 			htVar.sProjectName = htOptions.sProjectName;
 			htVar.sTplFileListItem = $("#tplFileListItem").html() || "";
 		}
@@ -92,16 +93,18 @@
 		 */
 		function _onSelectBranch(){
 			htElement.welSelectedBranch.text($(this).text());
-			$(window).trigger("hashchange");		
+			$(window).trigger("hashchange");
 		}
 		
 		/**
 		 * on hash change
 		 */
 		function _onHashChange(){
-			var sPath = getHash().replace(htVar.rxHash, "");
+			var sPath = getHash(true);//.replace(htVar.rxTmp, "!#/");
 	        var sBranch = window.encodeURIComponent(htElement.welSelectedBranch.text());
 	        var sURL = "code/" + sBranch + "/!" + sPath;
+	        sURL = sURL.replace(/\!\!/, '!#');
+	        console.log("hashchange", sURL);
 	        
 	        $.ajax(sURL, {
 				"datatype": "json",
@@ -115,6 +118,7 @@
 		 * callback function of _onHashChange
 		 */
 		function _onLoadListCode(oRes){
+			console.log("onload");
 			_updateFileInfo(oRes); 
 	
 			switch(oRes.type){
@@ -153,13 +157,14 @@
 			var aTplData = [];
 			
 			// 템플릿용 데이터로 가공해서 배열에 추가
-			var sPath = getHash().replace(htVar.rxHash, "");
+			var sPath = (getHash(true) || "");
 			var aData = _sortFolderList(htData.data);
+			
 			aData.forEach(function(htTmp){
 				htTmp.name = htTmp.title;
 				htTmp.dateAgo  = getDateAgo(htTmp.date); 
 				htTmp.message  = getEllipsis(htTmp.message, 70);
-				htTmp.filePath = "#" + sPath + "/" + htTmp.name;
+				htTmp.filePath = "#" + (sPath !== "/" ? sPath : "") + "/" + htTmp.name;
 				aTplData.push(htTmp);				
 			});
 
@@ -503,4 +508,4 @@
 		_init(htOptions || {});
 	};
 
-})("hive.code.Browser");
+})("hive.CodeBrowser");

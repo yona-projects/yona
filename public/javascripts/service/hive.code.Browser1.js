@@ -16,7 +16,7 @@
 	
 		$(document).ready(function(){
 			$(window).bind('hashchange', function(e){
-				_updateDynaTree();
+//				_updateDynaTree();
 				
 		        //대기 표시 한다.
 		        //여기서 요청을 보내고
@@ -169,6 +169,7 @@
 		    	  $("#selected-branch").text('HEAD');
 		      }
 		      $(window).trigger('hashchange');
+		      _updateDynaTree();		      
 		});
 		
 		function getHash() {
@@ -193,6 +194,7 @@
 		*/
 		
 		$(".branch-item").click(function(ev) {
+			_updateDynaTree();			
 			$("#selected-branch").text($(this).text());
 			$(window).trigger('hashchange');
 		});
