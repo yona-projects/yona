@@ -1045,6 +1045,9 @@
                     color: #5DBBE0;
                     /*color: #51AACC;*/
                 }
+                &.public {
+                    color: #5DBBE0;
+                }
             }
         }
         .stat-issue {
@@ -1234,6 +1237,8 @@
 .all-projects {
     margin: 0 0 20px;
     list-style: none;
+    
+    // -- project list -- //
     .project {
         padding: 20px;
         overflow: hidden;
@@ -1253,6 +1258,7 @@
             }
             .desc {
                 margin-bottom: 5px;
+                line-height: 180%;
             }
             .name-tag {
                 margin: 0;
@@ -1266,6 +1272,7 @@
         .stats-wrap {
             margin-top: 20px;
             text-align: right;
+            
             .like {
                 .inline-block;
                 vertical-align: middle;
@@ -1280,8 +1287,22 @@
                     margin-right: 3px;
                 }
             }
-            .user-thumb-wrap {
+            /*.user-thumb-wrap {
                 margin-left: 38px;
+            }*/
+            .author-avatar {
+                display: inline-block;
+                vertical-align: middle;
+                margin-left: 38px;
+            }           
+        }
+    }
+    
+    // -- userinfo -- //
+    &.user-streams {
+        .project {
+            .info-wrap {
+                width: 450px;
             }
         }
     }
@@ -2787,6 +2808,7 @@ div.markdown-preview {
 .user-stream-box {
     margin-left: 220px;
     overflow: hidden;
+    /*
     .user-streams {
         margin: 0;
         padding: 0 10px;
@@ -2834,6 +2856,7 @@ div.markdown-preview {
             }
         }
     }
+    */
 }
 .user-stream-wrap {
     .inner {

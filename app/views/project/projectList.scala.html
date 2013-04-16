@@ -47,8 +47,10 @@
                   <div class="like">
                       <i class="ico ico-like"></i><span class="num">1</span>
                   </div>
-                  <i class="ico ico-activity low"></i>
-                  <a href="@routes.UserApp.userInfo(project.owner)" class="user-thumb-wrap"><img src="@project.getOwnerByName(project.owner).avatarUrl" width="34" height="34"></a>
+                  <i class="ico ico-activity low"></i><!-- 
+               --><a href="@routes.UserApp.userInfo(project.owner)" class="author-avatar img-rounded">
+						<img src="@project.getOwnerByName(project.owner).avatarUrl" width="34" height="34">
+				  </a>
               </div>
           </li>
 	  }
