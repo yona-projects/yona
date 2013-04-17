@@ -17,12 +17,14 @@ import play.mvc.Http.RequestHeader;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
-    	insertDefaults();
+        if (app.isTest()) {
+            insertTestData();
+        }
     }
 
-    private static void insertDefaults() {
+    private static void insertTestData() {
         if (Ebean.find(User.class).findRowCount() == 0) {
-            String initFileName = "initial-data.yml";
+            String initFileName = "initial-data.test.yml";
 
             @SuppressWarnings("unchecked")
             Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
@@ -69,7 +71,7 @@ public class Global extends GlobalSettings {
 
         }
     }
-    
+
     @Override
     public Handler onRouteRequest(RequestHeader request) {
         // Route here these webdav methods to be used for serving Subversion
