@@ -55,7 +55,6 @@ projects:
         vcs:            GIT
         siteurl:       http://localhost:9000/nForge4java
         owner:          hobi
-        isAuthorEditable: true
         createdDate:           2012-02-01 08:00:00
     - !!models.Project
         name:           Jindo
@@ -64,7 +63,6 @@ projects:
         vcs:            Subversion
         siteurl:       http://localhost:9000/Jindo
         owner:          k16wire
-        isAuthorEditable: false
         createdDate:           2012-01-01 08:00:00        
     - !!models.Project
         name:           CUBRID
@@ -73,7 +71,6 @@ projects:
         vcs:            GIT
         siteurl:       http://localhost:9000/CUBRID
         owner:          doortts
-        isAuthorEditable: true
         createdDate:           2012-08-01 08:00:00        
     - !!models.Project
         name:           HelloSocialApp
@@ -82,7 +79,6 @@ projects:
         vcs:            GIT
         siteurl:       http://localhost:9000/HelloSocialApp
         owner:          hobi
-        isAuthorEditable: true
         createdDate:           2012-12-01 08:00:00        
 
 # Board

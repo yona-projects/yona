@@ -128,11 +128,6 @@ public class AccessControl {
     }
 
     private static boolean isEditableAsAuthor(User user, Project project, Resource resource) {
-        // author can update or delete her/his own article.
-        if (!project.isAuthorEditable) {
-            return false;
-        }
-
         switch (resource.getType()) {
         case ISSUE_POST:
         case ISSUE_COMMENT:
