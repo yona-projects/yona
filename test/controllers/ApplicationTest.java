@@ -7,6 +7,8 @@ import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.Status.OK;
 import static play.test.Helpers.*;
 import play.db.DB;
+import play.test.Helpers;
+
 import static play.test.Helpers.fakeApplication;
 import static play.test.Helpers.running;
 
@@ -14,7 +16,7 @@ public class ApplicationTest {
 	
     @Test
     public void callIndex() {
-    	running(fakeApplication(), new Runnable() {
+    	running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
     		@Override
 	        public void run() {
 		        Result result = callAction(controllers.routes.ref.Application.index());
