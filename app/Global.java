@@ -53,8 +53,8 @@ public class Global extends GlobalSettings {
 
     private static void insertTestData() {
         String[] entityNames = {
-            "projects", "milestones", "issues", "issueComments", "postings",
-            "postingComments", "projectUsers"
+            "users", "projects", "milestones", "issues", "issueComments",
+            "postings", "postingComments", "projectUsers"
         };
 
         insertDataFromYaml("test-data.yml", entityNames);

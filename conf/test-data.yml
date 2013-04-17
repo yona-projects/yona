@@ -1,14 +1,6 @@
 # Users
 users:
     - !!models.User
-        name:           Site admin
-        loginId:        admin
-        password:       5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=
-        passwordSalt:   '[B@1032a4'
-        email:          admin@nhn.com
-        avatarUrl:      /assets/images/default-avatar-128.png
-        createdDate:           2012-11-01 08:00:00
-    - !!models.User
         name:           Hobi
         loginId:        hobi
         password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
@@ -40,11 +32,6 @@ users:
         email:          ejlee@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-05-01 08:00:00
-
-siteAdmins:
-     - !!models.SiteAdmin
-        admin:        !!models.User
-                            id: 1
 
 # Projects
 projects:
@@ -340,15 +327,6 @@ milestones:
         state:      CLOSED
         project:         !!models.Project
                              id: 3
-
-# Role
-roles:
-    - !!models.Role
-        name:           manager
-        active:         true
-    - !!models.Role
-        name:           member
-        active:         true
 
 # ProjectUser
 projectUsers:
