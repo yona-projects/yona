@@ -114,7 +114,7 @@
 	<ol class="issue-list">
 		@for(issue <- currentPage.getList){
 	    <li class="issue">
-	        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.number</a></div>
+	        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.getNumber</a></div>
 	        <div class="attach-wrap">
 			@if(Attachment.findByContainer(issue.asResource).size > 0){
 	        	<i class="ico ico-clip"></i>

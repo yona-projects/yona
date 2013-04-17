@@ -58,6 +58,7 @@ public class GitApp extends Controller {
             if (UserApp.currentUser().id == UserApp.anonymous.id) {
                 return BasicAuthAction.unauthorized(response());
             } else {
+                response().setContentType("text/plain");
                 return forbidden("'" + UserApp.currentUser().name + "' has no permission");
             }
         }

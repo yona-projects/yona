@@ -44,7 +44,7 @@
           <ul class="board-list">
               @for(post <- notices) {
                   <li class="board">
-                  <div class="num"> <a href="@routes.BoardApp.post(project.owner, project.name, post.id)"> @post.number </a> </div>
+                  <div class="num"> <a href="@routes.BoardApp.post(project.owner, project.name, post.id)"> @post.getNumber </a> </div>
                   <div class="attach-wrap">
                       @if(Attachment.findByContainer(post.asResource).size > 0) {
                           <i class="ico ico-clip"></i>
@@ -92,7 +92,7 @@
   <ul class="board-list">
     @for(post <- page.getList()){
         <li class="board">
-          <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.number</a></div>
+          <div class="num"><a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.getNumber</a></div>
           <div class="attach-wrap">
             @if(Attachment.findByContainer(post.asResource).size > 0){
             	<i class="ico ico-clip"></i>

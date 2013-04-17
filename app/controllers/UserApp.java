@@ -101,7 +101,7 @@ public class UserApp extends Controller {
         	try {
                 currentUser.login(token);
             } catch (UnknownAccountException uae) {
-            	Logger.info("There is no user with username of " + token.getPrincipal());
+                Logger.info("There is no user with username of '" + token.getPrincipal() + "'");
             } catch (IncorrectCredentialsException ice) {
             	Logger.info("Password for account " + token.getPrincipal() + " was incorrect!");
             } catch (LockedAccountException lae) {
