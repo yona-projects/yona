@@ -17,58 +17,65 @@ import play.mvc.Http.RequestHeader;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
+        insertInitialData();
         if (app.isTest()) {
             insertTestData();
         }
     }
 
-    private static void insertTestData() {
+    private static void insertDataFromYaml(String yamlFileName, String[] entityNames) {
+        @SuppressWarnings("unchecked")
+        Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
+                .load(yamlFileName);
+
+        // Check whether every entities exist.
+        for (String entityName : entityNames) {
+            if (all.get(entityName) == null) {
+                throw new RuntimeException("Failed to find the '" + entityName
+                        + "' entity in '" + yamlFileName + "'");
+            }
+        }
+
+        for (String entityName : entityNames) {
+            Ebean.save(all.get(entityName));
+        }
+    }
+
+    private static void insertInitialData() {
         if (Ebean.find(User.class).findRowCount() == 0) {
-            String initFileName = "initial-data.test.yml";
-
-            @SuppressWarnings("unchecked")
-            Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
-                    .load(initFileName);
-
             String[] entityNames = {
-                "users", "projects", "milestones",
-                "issues", "issueComments",
-                "postings", "postingComments",
-                "roles", "projectUsers",
-                "siteAdmins"
+                "users", "roles", "siteAdmins"
             };
 
-            // Check whether every entities exist.
-            for (String entityName : entityNames) {
-                if (all.get(entityName) == null) {
-                    throw new RuntimeException("Failed to find the '" + entityName
-                            + "' entity in '" + initFileName + "'");
-                }
+            insertDataFromYaml("initial-data.yml", entityNames);
+        }
+    }
+
+    private static void insertTestData() {
+        String[] entityNames = {
+            "projects", "milestones", "issues", "issueComments", "postings",
+            "postingComments", "projectUsers"
+        };
+
+        insertDataFromYaml("test-data.yml", entityNames);
+
+        // Do numbering for issues and postings.
+        for (Project project : Project.find.findList()) {
+            List<Issue> issues = Issue.finder.where()
+                    .eq("project.id", project.id).orderBy("id desc")
+                    .findList();
+
+            for (Issue issue: issues) {
+                issue.save();
             }
 
-            for (String entityName : entityNames) {
-                Ebean.save(all.get(entityName));
+            List<Posting> postings = Posting.finder.where()
+                    .eq("project.id", project.id).orderBy("id desc")
+                    .findList();
+
+            for (Posting posting: postings) {
+                posting.save();
             }
-
-            // Do numbering for issues and postings.
-            for (Project project : Project.find.findList()) {
-                List<Issue> issues = Issue.finder.where()
-                        .eq("project.id", project.id).orderBy("id desc")
-                        .findList();
-
-                for (Issue issue: issues) {
-                    issue.save();
-                }
-
-                List<Posting> postings = Posting.finder.where()
-                        .eq("project.id", project.id).orderBy("id desc")
-                        .findList();
-
-                for (Posting posting: postings) {
-                    posting.save();
-                }
-            }
-
         }
     }
 
