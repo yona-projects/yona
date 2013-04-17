@@ -38,7 +38,7 @@
 }
 
 @project.projectMngMain(title, projectInst) {
-    @prjmenu(projectInst, utils.MenuType.PROJECT_HOME, "")
+    @prjmenu(projectInst, utils.MenuType.MILESTONE, "")
     
     <div class="tab-wrap">
         <div class="pull-right btns">
@@ -61,8 +61,8 @@
     
 	<div class="filter-wrap milestone">
 		<div class="filters">
-               <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>완료일순</a>
-               <a href="@makeSortLink("completionRate")" class="filter active"><i class="ico ico-sort @sortMark("completionRate")"></i>완료율순</a>
+               <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>@Messages("order.dueDate")</a>
+               <a href="@makeSortLink("completionRate")" class="filter active"><i class="ico ico-sort @sortMark("completionRate")"></i>@Messages("order.completionRate")</a>
            </div>
        	<div class="legend">
        		<i class="orange"></i>완료

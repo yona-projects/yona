@@ -103,9 +103,10 @@ sort.by.completionRate = Completeness
 milestone.title.duplicated = Title is duplicated.
 
 #Issue
-issue.stateType.all = All
-issue.stateType.open = Open
-issue.stateType.closed = Closed
+issue.state.unit = issues
+issue.state.all = All
+issue.state.open = Open
+issue.state.closed = Closed
 issue.state.assigned = Assigned
 issue.state.enrolled = Enrolled
 issue.state.solved = Solved
@@ -251,6 +252,7 @@ project.readme = You can see README.md here if you add it into the code reposito
 project.searchPlaceholder = search at current project
 project.wrongName = Project name is wrong
 project.tags = Tags
+project.license = License
 
 #Site
 site.sidebar = Site Management
@@ -285,6 +287,12 @@ user.logout.success = Logout successfully
 user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
 user.signupId = ID (lower case)
 user.signupBtn = Sign Up
+
+#Role
+role.manager = Manager
+role.member = Member
+role.guest = Guest
+role.siteManager = Site Manager
 
 #Time
 time.just = just now

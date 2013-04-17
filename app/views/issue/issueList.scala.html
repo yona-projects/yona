@@ -40,16 +40,16 @@
 }
 **@
 
-@main(Messages(title), project, utils.MenuType.ISSUE){
+@main(Messages(title) + " (" + project.name + ")", project, utils.MenuType.ISSUE){
 <div class="page">
-	@views.html.prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 	
 	<div class="header-wrap">
 		<div class="stats-wrap">
 			@for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
 			<div class="stat stat-issue @if(param.state == state.state) { active }">
 				<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)">
-				<span class="desc"><strong>@state.name</strong> issues</span><!-- 
+				<span class="desc"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span><!-- 
 				 --><span class="num @state.state">@Issue.countIssues(project.id, state)</span>
 				</a>
 			</div>
@@ -132,7 +132,7 @@
 	             --><span class="date">@agoString(issue.ago)</span></p>
 	        </div>
 	        <div class="right-panel">
-	        	<div class="state @issue.state.toString.toLowerCase">@Messages(issue.state.state)</div>
+	        	<div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
 	            <div class="comment-wrap">
 	                <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
 	            </div>

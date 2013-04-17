@@ -14,7 +14,7 @@
         </div>
         <div class="inner project-info">
             <header>
-                <h3>프로젝트 정보</h3>
+                <h3>@Messages("project.info")</h3>
                 <!--<div class="project-status">
                     <i class="ico ico-like"></i>
                     <span class="num">100</span>
@@ -24,42 +24,48 @@
             </header>
             <ul class="infos">
                 <li class="info">
-                    <strong>라이센스 :</strong> GPL v2
+                    <strong>@Messages("project.license") :</strong> GPL v2
                 </li>
                 <li class="info">
                     <strong>@Messages("project.tags") :</strong>
                     @for(tag <- project.tags) {
-                    <span class='label label-info'>@tag.name</span>
+                    <span class="label">@tag.name</span>
                     }
                 </li>
                 <li class="info">
-                    <strong>프로그래밍 언어 :</strong> PHP, Python, Java
+                    <strong>@Messages("project.codeLanguage") :</strong> Java, JavaScript
                 </li>
                 <li class="info">
-                    <strong>코드관리 :</strong> @project.vcs
+                    <strong>@Messages("project.vcs") :</strong> @project.vcs
                 </li>
             </ul>
         </div>
         <div class="inner member-info">
             <header>
-                <h3>개발자 정보</h3>
+                <h3>@Messages("project.members")</h3>
             </header>
             <div class="member-wrap">
                 <ul class="project-members">
                     @for(member <- User.findUsersByProject(project.id)){
                     <li class="member">
-                    <a href="@routes.UserApp.userInfo(member.loginId)">
-                        <img src="@member.avatarUrl" alt="@member.loginId" class="user-thumb"></a>
-                        <a href="@routes.UserApp.userInfo(member.loginId)"><strong>@member.loginId</strong></a>
+                    	<a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap img-rounded pull-left small">
+                        	<img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
+                        </a>
+                        <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
+                        	<strong>@member.loginId (@member.name)</strong>
+                        </a>
                     </li>
                     }
                 </ul>
             </div>
         </div>
     </div>
+    
     <div class="bubble-wrap dark-gray readme">
         @if(project.readme == null) {
-            @Messages("project.readme")
+        	<p class="default">
+            	@Messages("project.readme")
+            </p>
         } else {
         <div class="readme-wrap">
            <header><i class="ico ico-readme-book"></i><strong>README.md</strong></header>
@@ -68,7 +74,7 @@
            </div>
         </div>
         }
-	@markdown()
+		@markdown()
     </div>
 </div>
 }
