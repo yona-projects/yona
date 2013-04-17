@@ -1,6 +1,9 @@
 import java.util.List;
 import java.util.Map;
 
+import models.Issue;
+import models.Posting;
+import models.Project;
 import models.User;
 
 import com.avaje.ebean.Ebean;
@@ -44,6 +47,26 @@ public class Global extends GlobalSettings {
             for (String entityName : entityNames) {
                 Ebean.save(all.get(entityName));
             }
+
+            // Do numbering for issues and postings.
+            for (Project project : Project.find.findList()) {
+                List<Issue> issues = Issue.finder.where()
+                        .eq("project.id", project.id).orderBy("id desc")
+                        .findList();
+
+                for (Issue issue: issues) {
+                    issue.save();
+                }
+
+                List<Posting> postings = Posting.finder.where()
+                        .eq("project.id", project.id).orderBy("id desc")
+                        .findList();
+
+                for (Posting posting: postings) {
+                    posting.save();
+                }
+            }
+
         }
     }
     
