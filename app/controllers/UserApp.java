@@ -302,10 +302,8 @@ public class UserApp extends Controller {
             result.put("isExist", false);
         } else {
             result.put("isExist", true);
-        } else {
-            result.put("isExist", false);
-        }
-        return ok(result);
+		}
+		return ok(result);
     }
 
     @BodyParser.Of(BodyParser.Json.class)
