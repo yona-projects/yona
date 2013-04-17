@@ -298,7 +298,9 @@ public class UserApp extends Controller {
 
     public static Result isUserExist(String loginId) {
         ObjectNode result = Json.newObject();
-        if(User.isLoginIdExist(loginId)){
+        if(user.isAnonymous()){
+            result.put("isExist", false);
+        } else {
             result.put("isExist", true);
         } else {
             result.put("isExist", false);

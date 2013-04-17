@@ -63,7 +63,7 @@ public class IssueApp extends AbstractPostingApp {
 
             if (authorLoginId != null && !authorLoginId.isEmpty()) {
                 User user = User.findByLoginId(authorLoginId);
-                if (user != null) {
+                if (!user.isAnonymous()) {
                     el.eq("authorId", user.id);
                 } else {
                     List<Long> ids = new ArrayList<Long>();
