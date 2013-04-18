@@ -279,13 +279,13 @@ public class UserApp extends Controller {
         User user = UserApp.currentUser();
         user.email = userForm.data().get("email");
         user.name = userForm.data().get("name");
-        
+
         Attachment.deleteAll(ResourceType.USER_AVATAR, currentUser().id);
         int attachFiles = Attachment.attachFiles(currentUser().id, null, ResourceType.USER_AVATAR, currentUser().id);
         if(attachFiles>0) {
         	user.avatarUrl = "/files/" + user.avatarId();
         }
-    	
+
         user.update();
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
@@ -298,6 +298,7 @@ public class UserApp extends Controller {
 
     public static Result isUserExist(String loginId) {
         ObjectNode result = Json.newObject();
+        User user = User.findByLoginId(loginId);
         if(user.isAnonymous()){
             result.put("isExist", false);
         } else {
