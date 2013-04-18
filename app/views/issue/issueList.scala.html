@@ -133,10 +133,9 @@
 	        <div class="contents">
 	            <p class="title">
 	            	<a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
-	            	@** TODO: label 을 <button> 태그를 사용하는게 맞는지 검토 필요 **@
-					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                		<button class="issue-label" labelId="@label.id" data-color="@label.color">@label.name</button>
-              		}
+					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {<!-- 
+                 --><button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button><!-- 
+                 -->}
 	            </p>
 	            <p class="infos nm">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a><!-- 
 	             --><span class="date">@agoString(issue.ago)</span></p>
