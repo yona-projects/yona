@@ -67,7 +67,13 @@ public class BoardApp extends AbstractPostingApp {
 
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
+
         return newPostingForm(project,
                 newPost.render("board.post.new", new Form<Posting>(Posting.class), project, isAllowedToNotice));
     }
@@ -97,7 +103,8 @@ public class BoardApp extends AbstractPostingApp {
     public static Result post(String userName, String projectName, Long postId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Posting post = Posting.finder.byId(postId);
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), post.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
