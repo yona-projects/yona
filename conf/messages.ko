@@ -63,6 +63,8 @@ order.all = 전체
 order.date = 날짜순
 order.state = 상태순
 order.comments = 댓글순
+order.completionRate = 완료율순
+order.dueDate = 완료일순
 
 button.save = 저장
 button.confirm = 확인
@@ -105,10 +107,15 @@ sort.by.completionRate = 완료율 순
 milestone.title.duplicated = 마일스톤 제목이 다른것과 중복 됩니다. 다른 제목을 사용하세요.
 
 #Issue
+issue.state.unit = 이슈
 issue.state = 상태
 issue.state.all = 전체
 issue.state.open = 미해결
 issue.state.closed = 해결
+issue.state.assigned = 할당됨
+issue.state.enrolled = 등록
+issue.state.solved = 해결됨
+issue.state.finished = 완료됨
 issue.is.empty = 등록된 이슈가 없습니다.
 issue.menu.searchDefault = 이슈 검색
 issue.menu.milestoneSelectDefault = 마일스톤 선택
@@ -215,7 +222,7 @@ project.new.agreement.alert = 이용 악관에 동의해야 합니다
 project.agreement = 이용 약관
 project.name.rule = 이름 규칙
 project.info = 프로젝트 정보
-project.members = 프로젝트 인원
+project.members = 개발자
 project.members.addMember = 새로운 멤버의 아이디를 입력하세요
 project.member.isManager = 프로젝트 관리자 권한이 필요합니다
 project.member.alreadyMember = 이미 프로젝트에 가입되어 있는 멤버입니다.
@@ -250,6 +257,8 @@ project.readme = 프로젝트에 대한 설명을 README.md 파일로 작성해�
 project.searchPlaceholder = 현재 프로젝트에서 검색
 project.wrongName = 프로젝트 이름이 올바르지 않습니다.
 project.tags = 태그
+project.license = 라이센스
+project.codeLanguage = 프로그래밍 언어
 
 #Site
 site.sidebar = 사이트 관리
@@ -284,6 +293,12 @@ user.logout.success = 로그아웃했습니다
 user.isAlreadySignupUser = 이미 가입하셨나요?
 user.signupId = 아이디
 user.signupBtn = 참여하기
+
+#Role
+role.manager = 관리자
+role.member = 참여자
+role.guest = 지나가던 사람
+role.siteManager = 사이트 관리자
 
 #Time
 time.just = 방금 전

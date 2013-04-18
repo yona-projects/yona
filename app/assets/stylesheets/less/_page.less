@@ -1032,7 +1032,7 @@
                 margin-right: 0;
             }
             .desc {
-                font-size: 11px;
+                font-size: 12px;
             }
             .num {
                 float: right;
@@ -1290,11 +1290,7 @@
             /*.user-thumb-wrap {
                 margin-left: 38px;
             }*/
-            .author-avatar {
-                display: inline-block;
-                vertical-align: middle;
-                margin-left: 38px;
-            }           
+            .avatar-wrap { margin-left:38px; }           
         }
     }
     
@@ -1552,6 +1548,13 @@
         width:1px; color:#d7d8d9; 
         padding:0; margin:0;
     }
+}
+.user-role {
+    .inline-block;
+    border-radius:3px 3px 0px 0px; 
+    padding:5px 10px; font-size:11px;
+    
+    i { vertical-align:bottom; }
 }
 .main-menu-only {
     border-bottom:1px solid #d4d5d7;
@@ -1855,7 +1858,7 @@
         }
         .member-wrap {
             height: 130px;
-            overflow-y: scroll;
+            overflow-y: auto;
         }
         .project-members {
             list-style: none;
@@ -1872,10 +1875,18 @@
                     padding-bottom: 0;
                     border-bottom: 0 none;
                 }
-                .user-thumb {
-                    .inline-block;
-                    width: 20px;
-                }
+
+               .name { 
+                   line-height:24px; 
+                   margin-left:5px;
+                   
+                   strong { 
+                       max-width:140px; 
+                       overflow:hidden;
+                       text-overflow:ellipsis; 
+                       .inline-block; 
+                   }
+               }
             }
         }
         header {
@@ -1908,6 +1919,10 @@
 
 .readme {
     padding: 5px;
+    .default {
+        padding:20px;
+        text-align:center;
+    }
     .readme-wrap {
         .border-radius(10px);
         background-color: @white;
