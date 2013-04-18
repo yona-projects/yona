@@ -13,6 +13,7 @@ import views.html.issue.issue;
 import views.html.issue.issueList;
 import views.html.issue.newIssue;
 import views.html.issue.notExistingPage;
+import views.html.project.unauthorized;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -34,6 +35,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 import static com.avaje.ebean.Expr.contains;
 import static com.avaje.ebean.Expr.icontains;
@@ -125,26 +127,26 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
-        SearchCondition issueParam = issueParamForm.bindFromRequest().get();
-        issueParam.state = state;
-        issueParam.pageNum = pageNum - 1;
+        SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
+        searchCondition.pageNum = pageNum - 1;
+        searchCondition.state = state;
 
         String[] labelIds = request().queryString().get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                issueParam.labelIds.add(Long.valueOf(labelId));
+                searchCondition.labelIds.add(Long.valueOf(labelId));
             }
         }
 
-        ExpressionList<Issue> el = issueParam.asExpressionList(project);
+        ExpressionList<Issue> el = searchCondition.asExpressionList(project);
 
         if (format.equals("xls")) {
             return issuesAsExcel(el, project);
         } else {
             Page<Issue> issues = el
-                .findPagingList(ITEMS_PER_PAGE).getPage(issueParam.pageNum);
+                .findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
 
-            return ok(issueList.render("title.issueList", issues, issueParam, project));
+            return ok(issueList.render("title.issueList", issues, searchCondition, project));
         }
     }
 
@@ -169,16 +171,17 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (issueInfo == null) {
-            return ok(notExistingPage.render("title.post.notExistingPage", project));
-        } else {
-            for (IssueLabel label: issueInfo.labels) {
-              label.refresh();
-            }
-            Form<Comment> commentForm = new Form<Comment>(Comment.class);
-            Issue targetIssue = Issue.finder.byId(issueId);
-            Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
-            return ok(issue.render("title.issueDetail", issueInfo, editForm, commentForm, project));
+            return notFound(notExistingPage.render("title.post.notExistingPage", project));
         }
+
+        for (IssueLabel label: issueInfo.labels) {
+            label.refresh();
+        }
+
+        Form<Comment> commentForm = new Form<Comment>(Comment.class);
+        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(Issue.finder.byId(issueId));
+
+        return ok(issue.render("title.issueDetail", issueInfo, editForm, commentForm, project));
     }
 
     public static Result newIssueForm(String userName, String projectName) {
@@ -195,36 +198,26 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
+
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
-        } else {
-            Issue newIssue = issueForm.get();
-            newIssue.createdDate = JodaDateUtil.now();
-            newIssue.setAuthor(UserApp.currentUser());
-            newIssue.project = project;
-
-            newIssue.state = State.OPEN;
-            addLabels(newIssue.labels, request());
-
-            newIssue.save();
-
-            // Attach all of the files in the current user's temporary storage.
-            Attachment.attachFiles(UserApp.currentUser().id, newIssue.asResource());
         }
+
+        Issue newIssue = issueForm.get();
+        newIssue.createdDate = JodaDateUtil.now();
+        newIssue.setAuthor(UserApp.currentUser());
+        newIssue.project = project;
+
+        newIssue.state = State.OPEN;
+        addLabels(newIssue.labels, request());
+
+        newIssue.save();
+
+        // Attach all of the files in the current user's temporary storage.
+        Attachment.attachFiles(UserApp.currentUser().id, newIssue.asResource());
 
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 State.OPEN.state(), "html", 1));
-    }
-
-    public static Result editIssueForm(String userName, String projectName, Long id) {
-        Issue targetIssue = Issue.finder.byId(id);
-        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(targetIssue);
-        Project project = ProjectApp.getProject(userName, projectName);
-        if (!AccessControl.isAllowed(UserApp.currentUser(), targetIssue.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
-        return ok(editIssue.render("title.editIssue", editForm, targetIssue, project));
     }
 
     public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
@@ -236,6 +229,19 @@ public class IssueApp extends AbstractPostingApp {
             }
         }
     };
+
+    public static Result editIssueForm(String userName, String projectName, Long id) {
+        Issue issue = Issue.finder.byId(id);
+        Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
+        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(issue);
+
+        return ok(editIssue.render("title.editIssue", editForm, issue, project));
+    }
 
     public static Result editIssue(String userName, String projectName, Long id) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
@@ -261,9 +267,10 @@ public class IssueApp extends AbstractPostingApp {
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
         Issue issue = Issue.finder.byId(issueId);
         Project project = issue.project;
+        Call redirectTo =
+            routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
 
-        return deletePosting(issue, routes.IssueApp.issues(project.owner, project.name,
-                    State.OPEN.state(), "html", 1));
+        return delete(issue, issue.asResource(), redirectTo);
     }
 
     public static Result newComment(String userName, String projectName, Long issueId) throws IOException {
@@ -291,8 +298,9 @@ public class IssueApp extends AbstractPostingApp {
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);
         Project project = comment.asResource().getProject();
+        Call redirectTo =
+            routes.IssueApp.issue(project.owner, project.name, comment.getParent().id);
 
-        return deleteComment(comment,
-                routes.IssueApp.issue(project.owner, project.name, comment.getParent().id));
+        return delete(comment, comment.asResource(), redirectTo);
     }
 }
