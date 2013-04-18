@@ -59,7 +59,7 @@ hive.Label = (function(htOptions){
 		// add label template
 		htVar.sTplLabel = htVar.sTplLabel || '<div class="control-group"><label class="control-label" data-category="${category}">${category}</label></div>';
 		htVar.sTplControls = htVar.sTplControls || '<div class="controls" data-toggle="buttons-checkbox" data-category="${category}"></div>';
-		htVar.sTplBtnLabelId = htVar.sTplBtnLabelId || '<button type="button" class="btn ${labelCSS}" data-labelId="${labelId}">${labelName}</button>';
+		htVar.sTplBtnLabelId = htVar.sTplBtnLabelId || '<button type="button" class="issue-label ${labelCSS}" data-labelId="${labelId}">${labelName}</button>';
 		htVar.sTplBtnColor = htVar.sTplBtnColor || '<button type="button" class="issue-label n-btn small" style="background-color:${color}">&nbsp;';
 	}
 	
@@ -391,7 +391,8 @@ hive.Label = (function(htOptions){
 			});	
 		};
 		
-		var welLinkDelete = $('<a class="icon-trash del-link active-' + $hive.getContrastColor(sColor) + '">');
+		//$('<a class="icon-trash del-link active-' + $hive.getContrastColor(sColor) + '">');
+		var welLinkDelete = $('<a class="del-link">&times;</a>');
 		welLinkDelete.click(fOnClick);
 
 		return welLinkDelete;
