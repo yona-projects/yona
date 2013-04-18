@@ -71,6 +71,10 @@ public class AbstractPostingApp extends Controller {
             return badRequest(postingForm.errors().toString());
         }
 
+        if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
+            return forbidden(views.html.project.unauthorized.render(original.project));
+        }
+
         posting.id = original.id;
         posting.createdDate = original.createdDate;
         posting.authorId = original.authorId;
@@ -86,9 +90,9 @@ public class AbstractPostingApp extends Controller {
         return redirect(redirectTo);
     }
 
-    public static Result newPostingForm(Project project, Content content) {
-        if (UserApp.currentUser() == UserApp.anonymous) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+    public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
+        if (!AccessControl.isCreatable(UserApp.currentUser(), project, resourceType)) {
+            return forbidden(views.html.project.unauthorized.render(project));
         }
 
         return ok(content);

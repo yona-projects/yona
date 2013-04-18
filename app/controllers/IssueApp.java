@@ -123,7 +123,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
@@ -167,7 +167,7 @@ public class IssueApp extends AbstractPostingApp {
         Issue issueInfo = Issue.finder.byId(issueId);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         if (issueInfo == null) {
@@ -187,17 +187,17 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
 
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.ISSUE_POST)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
-        return newPostingForm(
-                project, newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
+        return newPostingForm(project, ResourceType.ISSUE_POST,
+                newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
     public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
+
+        if (!AccessControl.isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
+            return forbidden(unauthorized.render(project));
+        }
 
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
@@ -235,7 +235,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(issue);
