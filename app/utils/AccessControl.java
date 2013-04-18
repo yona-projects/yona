@@ -115,6 +115,7 @@ public class AccessControl {
         //     * the user is the author of the resource,
         //     * the resource is not a code repository,
         //     * and the project to which the resource belongs is public.
+        // See docs/technical/access-control.md for more information.
         switch(operation) {
         case READ:
             return project.share_option || ProjectUser.isMember(user.id, project.id);
