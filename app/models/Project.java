@@ -12,6 +12,8 @@ import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
@@ -242,12 +244,25 @@ public class Project extends Model {
 	}
 
 	public String readme() {
-		try {
-			return new String(RepositoryService.getRepository(this).getRawFile(
-					"README.md"));
-		} catch (Exception e) {
-			return null;
-		}
+        String baseFileName = "readme.md";
+        String realFileName = null;
+        try {
+            ObjectNode objectNode = RepositoryService.getRepository(this).findFileInfo("/");
+            List<JsonNode> nodes = objectNode.findValues("data");
+            for(JsonNode node : nodes) {
+                Iterator<String> fieldNames = node.getFieldNames();
+                while(fieldNames.hasNext()) {
+                    String fieldName = fieldNames.next();
+                    if(fieldName.toLowerCase().equals(baseFileName)) {
+                        realFileName = fieldName;
+                    }
+                }
+            }
+            realFileName = (realFileName != null) ? realFileName : "README.md";
+            return new String(RepositoryService.getRepository(this).getRawFile(realFileName));
+        } catch (Exception e) {
+            return null;
+        }
 	}
 
     @Transactional
