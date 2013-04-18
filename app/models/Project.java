@@ -18,6 +18,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 
+import org.tmatesoft.svn.core.SVNException;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -244,26 +245,29 @@ public class Project extends Model {
 	}
 
 	public String readme() {
-        String baseFileName = "readme.md";
-        String realFileName = null;
         try {
-            ObjectNode objectNode = RepositoryService.getRepository(this).findFileInfo("/");
-            List<JsonNode> nodes = objectNode.findValues("data");
-            for(JsonNode node : nodes) {
-                Iterator<String> fieldNames = node.getFieldNames();
-                while(fieldNames.hasNext()) {
-                    String fieldName = fieldNames.next();
-                    if(fieldName.toLowerCase().equals(baseFileName)) {
-                        realFileName = fieldName;
-                    }
-                }
-            }
-            realFileName = (realFileName != null) ? realFileName : "README.md";
+            String realFileName = getReadmeFileName();
             return new String(RepositoryService.getRepository(this).getRawFile(realFileName));
         } catch (Exception e) {
             return null;
         }
 	}
+
+    private String getReadmeFileName() throws IOException, GitAPIException, SVNException, ServletException {
+        String baseFileName = "README.md";
+        ObjectNode objectNode = RepositoryService.getRepository(this).findFileInfo("/");
+        List<JsonNode> nodes = objectNode.findValues("data");
+        for(JsonNode node : nodes) {
+            Iterator<String> fieldNames = node.getFieldNames();
+            while(fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                if(fieldName.toLowerCase().equals(baseFileName.toLowerCase())) {
+                    return fieldName;
+                }
+            }
+        }
+        return baseFileName;
+    }
 
     @Transactional
     public Long increaseLastIssueNumber() {
