@@ -2,7 +2,7 @@
 
 @import utils._
 
-@layout(Messages(title))("prj") {
+@layout(Messages(title) + " (" + project.name + ")")("prj") {
   <header class="gnb-outer">
     @topmenu(project)
 	@sidemenu(project)

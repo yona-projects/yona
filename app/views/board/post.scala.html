@@ -5,11 +5,7 @@
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@getTitle(postTitle:String, projectName:String) = {
-	@postTitle (@projectName) 
-}
-
-@main(getTitle(post.title, project.name).toString(), project, utils.MenuType.BOARD){
+@main(post.title, project, utils.MenuType.BOARD){
 
 <div class="page board-view">
   @prjmenu(project, utils.MenuType.BOARD, "main-menu-only")

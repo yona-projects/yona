@@ -3,19 +3,8 @@ html, body {
 }
 
 body {
-    /*
-    background-repeat: no-repeat;
-    background-color: #8cc8ce;
-    background-position: center bottom, center top;
-    background-image: url("@{base-image-path}/bg_day_objects.png"), url("@{base-image-path}/bg_day.png");
-    &.night {
-        background-color: #22262c;
-        background-image: url("/images/bg_night.png");
-    }
-    */
    background      : @base-background;
-   background-color: @base-background-color;
-   
+   background-color: @base-background-color;  
    font-family: @base-font-family;
 }
 input, button, select, textarea { font-family: @base-font-family !important; }
@@ -24,29 +13,14 @@ a {
     color: inherit;
     text-decoration: none;
     outline: none;
-    &:hover {
-        outline: none !important;
-        color: @link-hover-color;
-        text-decoration: underline;
-    }
-    &:focus {
-        outline: none !important;
-    }
+    &:hover { outline: none !important; color: @link-hover-color; text-decoration: underline; }
+    &:focus { outline: none !important; }
 }
 
-.btn-transparent {
-    border: 0;
-    background: transparent;
-    padding: 0;
-}
+.btn-transparent { border: 0; padding: 0; background: transparent; }
 
-.d-link {
-    color: @blue;
-}
-
-.nm {
-    margin: 0 !important;
-}
+.d-link { color: @blue; }
+.nm { margin: 0 !important; }
 
 .n-alert {
     display:none;
@@ -177,7 +151,7 @@ a {
 .vmiddle {
     vertical-align:middle !important
 }
-
+/*
 .mandatory-text-wrap {
     overflow:hidden; position:relative;
 }
@@ -188,4 +162,5 @@ a {
     background:#f00;
     -webkit-transform:rotate(45deg);
 }
+*/
 .bold { font-weight:bold; }

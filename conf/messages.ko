@@ -38,7 +38,7 @@ menu.board = 게시판
 menu.code = 코드
 menu.issue = 이슈
 menu.wiki = 위키
-menu.admin = 프로젝트 관리
+menu.admin = 프로젝트 설정
 menu.siteAdmin = 사이트 관리
 menu.task = 작업
 
@@ -58,6 +58,7 @@ label.customColor = 색
 label.category = 분류
 label.name = 이름
 label.add = 추가
+label.manage = 라벨관리
 
 order.all = 전체
 order.date = 날짜순
@@ -230,7 +231,7 @@ project.member.deleteConfirm = 정말로 해당 유저를 프로젝트에서 탈
 project.member.delete = 프로젝트 유저 삭제
 project.member.notExist = 존재하지 않는 유저입니다.
 project.member.ownerCannotLeave = 프로젝트 소유자는 탈퇴할 수 없습니다.
-project.sidebar = 프로젝트 관리
+project.sidebar = 프로젝트 설정
 project.setting = 설정
 project.member = 멤버
 project.milestone = 마일스톤
@@ -264,7 +265,7 @@ project.codeLanguage = 프로그래밍 언어
 site.sidebar = 사이트 관리
 site.sidebar.setting = 설정
 site.sidebar.userList = 유저 관리
-site.sidebar.projectList = 프로젝트 관리
+site.sidebar.projectList = 프로젝트 설정
 site.sidebar.softwareMap = 소프트웨어 맵
 site.sidebar.mailSend = 메일 발송
 site.project.filter = 찾으려는 프로젝트 이름을 입력하세요
@@ -367,6 +368,7 @@ author = 작성자
 assignee = 담당자
 milestone = 마일스톤
 none = 없음
+comment = 댓글
 
 #validation
 validation.tooShortPassword = 비밀번호를 4자 이상으로 만들어 주세요!

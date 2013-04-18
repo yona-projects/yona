@@ -1038,20 +1038,26 @@
                 float: right;
                 font-size: 28px;
                 line-height: 1;
-                &.all {
-                    color: @orange;
-                }
-                &.open {
-                    color: #5DBBE0;
-                    /*color: #51AACC;*/
-                }
-                &.public {
-                    color: #5DBBE0;
-                }
+                
+                &.all  { color: @orange; }
+                &.open { color: #5DBBE0; /*color: #51AACC;*/ }
+                &.public { color: #5DBBE0; }
             }
         }
         .stat-issue {
             width:240px;
+            border-bottom:1px solid #c5c5c5;
+            
+            &.active {
+                box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
+                border-bottom:none;
+                
+                .desc {
+                    &.all  { color: @orange; }
+                    &.open { color: #5DBBE0; /*color: #51AACC;*/ }
+                    &.public { color: #5DBBE0; }                    
+                }
+            }
         }
     }
     .search-wrap {
@@ -1197,7 +1203,7 @@
                        }
                    }
                    
-                   .labels { background:#D7D7D7; }
+                   /*.labels { background:#D7D7D7; }*/
                    
                    .custom-label-category:before {
                         content:'|'; margin-right:5px;
@@ -1208,8 +1214,8 @@
                     i { .ico-arrow-up-blue; }
                 }
                 
-                // bootstrap
-                .form-horizontal {                    
+                // override bootstrap
+                .form-horizontal {
                     .control-group {
                         margin: 0; padding: 6px 10px;
                         border-bottom: 1px solid #e3e3e3;
@@ -2039,6 +2045,7 @@
     &.issue {
         .title { width:650px; }
         .badge {
+            font-size:11px;
             text-shadow:none;
             .border-radius(2px);
         }
@@ -2205,7 +2212,11 @@ div.markdown-preview {
         display: table-cell;
         vertical-align: top;
     }
-    .avatar-wrap { margin-right:12px; }
+    .avatar-wrap { 
+        margin-right:12px;
+        display:inline-block !important;
+        float:left;
+    }
     /*.thumb-wrap {
         width: 45px;
     }*/
