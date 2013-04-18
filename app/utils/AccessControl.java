@@ -33,7 +33,7 @@ public class AccessControl {
             }
 
             // If the project is public, login users can create issues and posts.
-            if (project.share_option && !user.isAnonymous()) {
+            if (!user.isAnonymous()) {
                 switch(resourceType){
                 case ISSUE_POST:
                 case BOARD_POST:
@@ -48,10 +48,6 @@ public class AccessControl {
     }
 
     private static boolean isGlobalResourceAllowed(User user, Resource resource, Operation operation) {
-        if (user.isSiteManager()) {
-            return true;
-        }
-
         // Temporary attachments are allowed only for the user who uploads them.
         if (resource.getType().equals(ResourceType.ATTACHMENT)) {
             if (resource.getContainer().getType() == ResourceType.USER) {
@@ -82,17 +78,7 @@ public class AccessControl {
         }
     }
 
-    public static boolean isAllowed(User user, Resource resource, Operation operation) {
-        if (user.isSiteManager()) {
-            return true;
-        }
-
-        Project project = resource.getProject();
-
-        if (project == null) {
-            return isGlobalResourceAllowed(user, resource, operation);
-        }
-
+    private static boolean isProjectResourceAllowed(User user, Project project, Resource resource, Operation operation) {
         if (ProjectUser.isManager(user.id, project.id)) {
             return true;
         }
@@ -139,6 +125,21 @@ public class AccessControl {
         default:
             // undefined
             return false;
+        }
+
+    }
+
+    public static boolean isAllowed(User user, Resource resource, Operation operation) {
+        if (user.isSiteManager()) {
+            return true;
+        }
+
+        Project project = resource.getProject();
+
+        if (project == null) {
+            return isGlobalResourceAllowed(user, resource, operation);
+        } else {
+            return isProjectResourceAllowed(user, project, resource, operation);
         }
     }
 
