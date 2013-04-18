@@ -174,4 +174,41 @@ public class ProjectUser extends Model {
         }
         return false;
     }
+
+    public static String roleOf(String loginId, Project project) {
+        String roleName = "guest";
+        if(loginId == null) {
+            return roleName;
+        }
+
+        User user = User.findByLoginId(loginId);
+        if(user == null) {
+            return roleName;
+        }
+
+        if(user.isSiteManager()) {
+            return "siteManager";
+        } else if(!user.isAnonymous()) {
+            Role role = Role.findRoleByIds(user.id, project.id);
+            if(role != null) {
+                return role.name.toLowerCase();
+            }
+        }
+        return roleName;
+    }
+
+    public static boolean isAllowedToSettings(String loginId, Project project) {
+        if(loginId == null) {
+            return false;
+        }
+
+        User user = User.findByLoginId(loginId);
+        if(user == null || user.isAnonymous()) {
+            return false;
+        }
+        if(user.isSiteManager() || ProjectUser.isManager(user.id, project.id)) {
+            return true;
+        }
+        return false;
+    }
 }
