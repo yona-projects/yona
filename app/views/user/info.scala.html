@@ -58,12 +58,14 @@
 						<span class="since">@user.getDateString</span>
 					</p>
 				</div>
-				
+			
+				@if(user != null && session != null && user.loginId == session.get("loginId")){
 				<hr />
 				<div class="btn-wrap-new-project">
 					<a href="@routes.ProjectApp.newProjectForm()"><i
 						class="ico ico-pencil"></i> @Messages("title.newProject")</a>
 				</div>
+				}
 			</div>
 
 			<div class="user-stream-box">
@@ -77,7 +79,7 @@
 					<div class="header-wrap" style="margin-top: 0;">
 						<div class="search-wrap user-setting">
 							<div class="inner">
-								<form action="/activity-search" method="get">
+								<form action="" method="get">
 									<input name="query" class="text" type="text" placeholder=""><!-- 
 									 --><button type="submit" class="btn search-btn">@Messages("title.search")</button>
 								</form>
