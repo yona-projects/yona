@@ -126,8 +126,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
-            flash(Constants.WARNING, "board.notAuthor");
-            return redirect(routes.BoardApp.post(project.owner, project.name, postId));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<Posting> editForm = new Form<Posting>(Posting.class).fill(posting);

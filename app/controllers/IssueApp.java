@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map;
 
@@ -220,16 +221,6 @@ public class IssueApp extends AbstractPostingApp {
                 State.OPEN.state(), "html", 1));
     }
 
-    public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
-        String[] labelIds = request.body().asMultipartFormData().asFormUrlEncoded()
-                .get("labelIds");
-        if (labelIds != null) {
-            for (String labelId : labelIds) {
-                labels.add(IssueLabel.findById(Long.parseLong(labelId)));
-            }
-        }
-    };
-
     public static Result editIssueForm(String userName, String projectName, Long id) {
         Issue issue = Issue.finder.byId(id);
         Project project = ProjectApp.getProject(userName, projectName);
@@ -302,5 +293,21 @@ public class IssueApp extends AbstractPostingApp {
             routes.IssueApp.issue(project.owner, project.name, comment.getParent().id);
 
         return delete(comment, comment.asResource(), redirectTo);
+    }
+
+    public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
+        Http.MultipartFormData multipart = request.body().asMultipartFormData();
+        Map<String, String[]> form;
+        if (multipart != null) {
+            form = multipart.asFormUrlEncoded();
+        } else {
+            form = request.body().asFormUrlEncoded();
+        }
+        String[] labelIds = form.get("labelIds");
+        if (labelIds != null) {
+            for (String labelId : labelIds) {
+                labels.add(IssueLabel.findById(Long.parseLong(labelId)));
+            }
+        }
     }
 }
