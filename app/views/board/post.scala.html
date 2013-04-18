@@ -44,10 +44,10 @@
       </ul>-->
   </div>
   <div class="board-footer board-actrow">
-  @isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+  @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
 	<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="n-btn orange med">@Messages("button.edit")</a>
   }
-  @isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
+  @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
    	<a href="#deleteConfirm" data-toggle="modal" class="n-btn light-gray med">@Messages("button.delete")</a>
   }
     <a href="@routes.BoardApp.posts(project.owner, project.name)" class="n-btn gray med">@Messages("button.list")</a>
