@@ -41,7 +41,7 @@
 	    @if(UserApp.currentUser() != UserApp.anonymous) {
 	    
 		<div class="attach-wrap">
-			<div class="thumb-wrap">
+			<div class="avatar-wrap">
 				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
 			</div>
 			

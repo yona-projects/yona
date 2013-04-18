@@ -26,7 +26,7 @@
     <h1 class="title div">@issue.title</h1>
     <div class="date div">@agoString(issue.ago)</div>
 	<div class="div">
-		<span class="badge @if(issue.state.state.toLowerCase == "open"){badge-issue-open}">@Messages(issue.state.state)</span>
+		<span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages(issue.state.state)</span>
 	</div>
   </div>
   
@@ -53,9 +53,9 @@
         
 		@** status **@
         <p class="status">
-			Comment <strong class="num">@issue.comments.size</strong>
+			@Messages("comment") <strong class="num">@issue.comments.size</strong>
 			@if(issue.milestone != null) {
-			Milestone <strong class="num">@issue.milestone.title</strong>
+			@Messages("milestone") <strong class="num">@issue.milestone.title</strong>
 			}
         </p>
         
@@ -88,7 +88,7 @@
 
 @** Comment **@
 <div class="board-comment-wrap">
-    <div class="comment-header"><strong>Comment</strong> <strong class="num">@issue.comments.size</strong></div>
+    <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
     
     @if(issue.comments.size > 0) {
     <ul class="comments">

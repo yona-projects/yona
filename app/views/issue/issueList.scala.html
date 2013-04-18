@@ -40,7 +40,7 @@
 }
 **@
 
-@main(Messages(title) + " (" + project.name + ")", project, utils.MenuType.ISSUE){
+@main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 	
@@ -49,7 +49,7 @@
 			@for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
 			<div class="stat stat-issue @if(param.state == state.state) { active }">
 				<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)">
-				<span class="desc"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span><!-- 
+				<span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span><!-- 
 				 --><span class="num @state.state">@Issue.countIssues(project.id, state)</span>
 				</a>
 			</div>
@@ -58,11 +58,11 @@
 		<div class="search-wrap projects">
 			<div class="inner">
 				<form action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
-				<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
-				<input type="hidden" name="state"   value="@param.state">
-				<input type="text"   name="filter"  class="text" placeholder="현재 프로젝트에서 검색"><!-- 
-				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
-                <a href="#advanced-search-form" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
+					<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
+					<input type="hidden" name="state"   value="@param.state">
+					<input type="text"   name="filter"  class="text" placeholder="현재 프로젝트에서 검색"><!-- 
+					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
+	                <a href="#advanced-search-form" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
                 </form>
                 
 				<div id="advanced-search-form" class="srch-advanced form-horizontal">
@@ -79,7 +79,8 @@
 								<button type="button" class="btn" data-assigneeId="0">@Messages("none")</button>
 								@for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
 								<button type="button" class="btn" data-assigneeId="@assignee.user.id">
-									@User.find.byId(assignee.user.id).name <img class="user-picture" src="@urlToPicture(User.find.byId(assignee.user.id).email, 16)">
+									@**<span class="avatar-wrap small pull-left"><img class="user-picture" src="@urlToPicture(User.find.byId(assignee.user.id).email, 16)"></span>**@
+									@User.find.byId(assignee.user.id).name 
 								</button>
 								}
 							</div>
@@ -97,7 +98,6 @@
 					<!-- issue.label module make 'labels' fieldset as label filter and editor -->
 					<fieldset class="labels"></fieldset>
 				</div>
-				
 			</div>
 		</div>
 	</div>
@@ -165,7 +165,7 @@
 			"bEditable"    : true,
 			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-		};				
+		};
 
 		$hive.loadModule("issue.List", {
 			"elPagination": $("#pagination"),

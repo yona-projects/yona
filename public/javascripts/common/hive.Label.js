@@ -27,7 +27,7 @@ hive.Label = (function(htOptions){
 		}
 		
 		_attachEvent();
-		_updateLabels(htOptions.fCallback);		
+		_updateLabels(htOptions.fOnLoad);		
 	}
 	
 	/**
@@ -68,7 +68,7 @@ hive.Label = (function(htOptions){
 	 */
 	function _initElement(){
 		htElement.welContainer  = $("fieldset.labels");
-		htElement.welSearchForm = $('form#issue-form,form.form-search');
+		htElement.welForm = $('form#issue-form,form.form-search');
 		
 		// add label
 		htElement.welLabels = $('.labels'); 
@@ -79,7 +79,7 @@ hive.Label = (function(htOptions){
 	 * initialize event handler
 	 */
 	function _attachEvent(){
-		htElement.welSearchForm.submit(_onSubmitSearchForm);		
+		htElement.welForm.submit(_onSubmitForm);		
 	}
 	
 	/**
@@ -107,20 +107,20 @@ hive.Label = (function(htOptions){
 	}	
 	
 	/**
-	 * 검색 버튼 클릭시 라벨 선택도 반영되도록 검색폼에 필드 추가
+	 * 폼 전송시 라벨 선택도 반영되도록 필드 추가
 	 */
-	function _onSubmitSearchForm(){
-		var aButtons = [];
+	function _onSubmitForm(){
+		var aValues = [];
 		var welButtons = $('fieldset.labels div[data-category] button.active[data-labelId]');
 		
-		welButtons.each(function(nIndex, welBtn){
-			aButtons.push('<input type="hidden" name="labelIds" value="'+ welBtn.attr('data-labelId') + '">');
+		welButtons.each(function(nIndex, elBtn){
+			aValues.push('<input type="hidden" name="labelIds" value="'+ $(elBtn).attr('data-labelId') + '">');
 		});
 		
-		htElement.welSearchForm.append(aButtons);
+		htElement.welForm.append(aValues);
 		welButtons = aButtons = null;
-		
-		return true;		
+
+		return true;
 	}
 	
 	/**
@@ -350,12 +350,14 @@ hive.Label = (function(htOptions){
 			htElement.welCustomLabelCategory.typeahead().data("typeahead").source.push(oLabel.category)
 		}
 
-		var welCategory = $('fieldset.labels div[category="' + oLabel.category + '"]');
+		// 이미 같은 카테고리가 있으면 거기에 넣고
+		var welCategory = $('fieldset.labels div[data-category="' + oLabel.category + '"]');
 		if (welCategory.length > 0) {
 			welCategory.append(welBtnLabelId);
 			return welBtnLabelId;
 		}
 		
+		// 없으면 새 카테고리 줄을 추가한다
 		var welLabel = $.tmpl(htVar.sTplLabel, {"category": oLabel.category});
 		var welControls = $.tmpl(htVar.sTplControls, {"category": oLabel.category});
 		welControls.append(welBtnLabelId); // Edit Button
@@ -365,7 +367,7 @@ hive.Label = (function(htOptions){
 		if(htElement.welLabelEditor.length > 0) { 
 			htElement.welLabelEditor.before(welLabel);
 		} else {
-			htElement.welLabels.append(welLabel);
+			htElement.welLabels.prepend(welLabel);
 		}
 
 		return welBtnLabelId;
@@ -400,13 +402,13 @@ hive.Label = (function(htOptions){
 	 */
 	function _setActiveLabel(sId, sColor){
 		// 색상 지정하고
-		$('button.issue-label[labelId="' + sId + '"]').css({
+		$('button[data-labelId="' + sId + '"]').css({
 			'color': $hive.getContrastColor(sColor),
 			'background-color': sColor
 		});
 
 		// 버튼 엘리먼트에 active 클래스 지정
-	    $('.labels button.btn[labelId="' + sId + '"]').addClass('active');		
+	    $('.labels button.btn[data-labelId="' + sId + '"]').addClass('active');		
 	}
 	
 	//_init(htOptions);

@@ -24,8 +24,8 @@
 			
 			_initFileUploader();
 			
-			if(typeof htOptions.htActiveLabels == "object"){
-				_initLabel(htOptions.htActiveLabels);
+			if(typeof htOptions.htOptLabel == "object"){
+				_initLabel(htOptions.htOptLabel);
 			}
 		}
 		
@@ -66,12 +66,15 @@
 		 * @example
 		 * htActiveLabels["labelId"] = "labelColor";
 		 */
-		function _initLabel(htActiveLabels){
-			var sKey;
+		function _initLabel(htOptions){
+			htOptions.fOnLoad = function(){
+				var sKey;
+				for(sKey in htOptions.htActive){
+					hive.Label.setActiveLabel(sKey, htOptions.htActive[sKey]);
+				}
+			};
 			
-			for(sKey in htActiveLabels){
-				hive.Label.setActiveLabel(sKey, htActiveLabels[sKey]);
-			}
+			hive.Label.init(htOptions);
 		}
 		
 		_init(htOptions);
