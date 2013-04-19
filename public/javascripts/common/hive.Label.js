@@ -52,7 +52,7 @@ hive.Label = (function(htOptions){
 				<input id="custom-label-color" type="text" class="input-small" placeholder="${labelCustomColor}">\
 				<input id="custom-label-category" type="text" class="input-small" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
 				<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}">\
-				<button id="custom-label-submit" type="button" class="btn btn-inverse">${labelAdd}</button>\
+				<button id="custom-label-submit" type="button" class="btn btn-inverse" style="vertical-align:top;">${labelAdd}</button>\
 			</div>\
 		</div>';
 		

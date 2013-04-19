@@ -57,56 +57,56 @@
 		</div>
 		<div class="search-wrap projects">
 			<div class="inner">
-				<form action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
+				<form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
 					<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
 					<input type="hidden" name="state"   value="@param.state">
 					<input type="text"   name="filter"  class="text" placeholder="현재 프로젝트에서 검색"><!-- 
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
-	                <a href="#advanced-search-form" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
-                </form>
-                
-				<div id="advanced-search-form" class="srch-advanced form-horizontal">
-					<fieldset class="properties">
-						<div class="control-group">
-							<label class="control-label">@Messages("author")</label>
-							<div class="controls">
-								<input type="text" name="authorLoginId" class="input-medium">
-							</div>
-						</div>
-						<div class="control-group">
-							<label class="control-label">@Messages("assignee")</label>
-							<div class="controls">
-								<div class="btn-group" data-name="assigneeId">
-									<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("none")</button>
-									<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
-									<ul class="dropdown-menu">
-										<li data-value="0" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("none")</a></li>
-										@for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
-										<li data-value="@assignee.user.id"><a href="javascript:void(0)">@User.find.byId(assignee.user.id).name (@User.find.byId(assignee.user.id).loginId)</a></li>
-										}
-									</ul>
+	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
+
+					<div id="advanced-search-form" class="srch-advanced form-horizontal">
+						<fieldset class="properties">
+							<div class="control-group">
+								<label class="control-label">@Messages("author")</label>
+								<div class="controls">
+									<input type="text" name="authorLoginId" class="input-medium">
 								</div>
 							</div>
-						</div>
-						<div class="control-group">
-							<label class="control-label">@Messages("milestone")</label>
-							<div class="controls">
-								<div class="btn-group" data-name="milestone">
-									<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("none")</button>
-									<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
-									<ul class="dropdown-menu">
-										<li data-value="0" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("none")</a></li>
-										@for(milestone <- Milestone.findByProjectId(project.id)) {
-										<li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
-										}
-									</ul>
+							<div class="control-group">
+								<label class="control-label">@Messages("assignee")</label>
+								<div class="controls">
+									<div class="btn-group" data-name="assigneeId">
+										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("none")</button>
+										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+										<ul class="dropdown-menu">
+											<li data-value="0" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("none")</a></li>
+											@for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
+											<li data-value="@assignee.user.id"><a href="javascript:void(0)">@User.find.byId(assignee.user.id).name (@User.find.byId(assignee.user.id).loginId)</a></li>
+											}
+										</ul>
+									</div>
 								</div>
 							</div>
-						</div>
-					</fieldset>
-					<!-- issue.label module make 'labels' fieldset as label filter and editor -->
-					<fieldset class="labels"></fieldset>
-				</div>
+							<div class="control-group">
+								<label class="control-label">@Messages("milestone")</label>
+								<div class="controls">
+									<div class="btn-group" data-name="milestone">
+										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("none")</button>
+										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+										<ul class="dropdown-menu">
+											<li data-value="0" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("none")</a></li>
+											@for(milestone <- Milestone.findByProjectId(project.id)) {
+											<li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
+											}
+										</ul>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+						<!-- issue.label module make 'labels' fieldset as label filter and editor -->
+						<fieldset class="labels"></fieldset>
+					</div>
+				</form>
 				<!--  -->
 			</div>
 		</div>

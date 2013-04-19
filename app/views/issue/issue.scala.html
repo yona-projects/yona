@@ -26,7 +26,7 @@
     <h1 class="title div">@issue.title</h1>
     <div class="date div">@agoString(issue.ago)</div>
 	<div class="div">
-		<span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages(issue.state.state)</span>
+		<span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
 	</div>
   </div>
   
@@ -45,10 +45,17 @@
           	<strong>@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</strong>
           </a> <!--<span class="name">(Loren Brichter)</span>-->
           &nbsp;&middot;&nbsp;
-          @Messages("issue.assignee") 
-          <a href="#" @if(issue.assigneeName == null){ class="gray-txt" }>
-          	<strong>@Option(issue.assigneeName).orElse(Option(Messages("issue.noAssignee"))).get</strong>
+          @Messages("issue.assignee")
+          @if(issue.assigneeName == null){ 
+          <a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)} else {#}" class="gray-txt">
+			<strong>@Messages("issue.noAssignee")</strong>
           </a>
+          } else {
+          
+          	<a href="@routes.IssueApp.issues(project.owner, project.name, "open")&assigneeId=@issue.assignee.user.id">
+          		<strong>@issue.assigneeName</strong>
+          	</a>
+          }
         </p>
         
 		@** status **@
