@@ -115,7 +115,7 @@
 					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 					<ul class="dropdown-menu">
 						@ProjectUser.options(project.id).map{ v =>
-						<li><a href="javascript:void(0)" data-value="@v._1">@v._2</a></li>
+						<li data-value="@v._1"><a href="javascript:void(0)">@v._2</a></li>
 						}
 					</ul>
 				</div>
@@ -132,7 +132,7 @@
 					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 					<ul class="dropdown-menu">
 						@Milestone.options(project.id).map{ v =>
-						<li><a href="javascript:void(0)" data-value="@v._1">@v._2</a></li>
+						<li data-value="@v._1"><a href="javascript:void(0)">@v._2</a></li>
 						}
 					</ul>
 				</div>
