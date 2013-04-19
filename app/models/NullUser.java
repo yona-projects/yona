@@ -19,10 +19,7 @@ import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class NullUser extends User {
     private static final long serialVersionUID = -1L;
@@ -37,7 +34,7 @@ public class NullUser extends User {
     public String avatarUrl = UserApp.DEFAULT_AVATAR_URL;
 
     public List<Project> myProjects(){
-        return null;
+        return new ArrayList<Project>();
     }
 
     public boolean isAnonymous() {

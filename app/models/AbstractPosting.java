@@ -53,7 +53,7 @@ abstract public class AbstractPosting extends Model {
     @ManyToOne
     public Project project;
 
-    public Long number;
+    protected Long number;
 
     // This field is only for ordering. This field should be persistent because
     // Ebean does NOT sort entities by transient field.
@@ -69,9 +69,15 @@ abstract public class AbstractPosting extends Model {
 
     protected abstract Long increaseNumber();
 
+    public Long getNumber() {
+        return number;
+    }
+
     @Transactional
     public void save() {
-        number = increaseNumber();
+        if (number == null) {
+            number = increaseNumber();
+        }
         numOfComments = computeNumOfComments();
         super.save();
     }

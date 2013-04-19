@@ -27,6 +27,7 @@ import play.mvc.Call;
 import play.mvc.Result;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.avaje.ebean.Expr.icontains;
 
@@ -59,14 +60,22 @@ public class BoardApp extends AbstractPostingApp {
 
         ExpressionList<Posting> el = searchCondition.asExpressionList(project);
         Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+        List<Posting> notices = Posting.findNotices(project);
 
-        return ok(postList.render("menu.board", project, posts, searchCondition));
+        return ok(postList.render("menu.board", project, posts, searchCondition, notices));
     }
 
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
+        boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
+
         return newPostingForm(project,
-                newPost.render("board.post.new", new Form<Posting>(Posting.class), project));
+                newPost.render("board.post.new", new Form<Posting>(Posting.class), project, isAllowedToNotice));
     }
 
     public static Result newPost(String userName, String projectName) {
@@ -94,7 +103,8 @@ public class BoardApp extends AbstractPostingApp {
     public static Result post(String userName, String projectName, Long postId) {
         Project project = ProjectApp.getProject(userName, projectName);
         Posting post = Posting.finder.byId(postId);
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), post.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -138,7 +148,8 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (AccessControl.isAllowed(UserApp.currentUser(), existPost.asResource(), Operation.UPDATE)) {
-            return ok(editPost.render("board.post.modify", editForm, postId, project));
+            boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
+            return ok(editPost.render("board.post.modify", editForm, postId, project, isAllowedToNotice));
         } else {
             flash(Constants.WARNING, "board.notAuthor");
             return redirect(routes.BoardApp.post(project.owner, project.name, postId));

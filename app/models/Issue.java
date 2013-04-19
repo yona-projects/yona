@@ -9,6 +9,7 @@ import jxl.format.Alignment;
 import jxl.write.*;
 import models.enumeration.*;
 import models.resource.Resource;
+import play.db.ebean.Model;
 import utils.*;
 
 import javax.persistence.*;

@@ -1,33 +1,62 @@
 package utils;
 
 import models.*;
-import models.Posting;
 
 import org.junit.Test;
 
-import controllers.UserApp;
 import static org.fest.assertions.Assertions.assertThat;
 
 import models.enumeration.Operation;
-import play.db.ebean.Model.Finder;
 
 public class AccessControlTest extends ModelTest<Role>{
     @Test
-    public void isAllowed() {
+    public void isAllowed_siteAdmin() {
         // Given
         User admin = User.findByLoginId("admin");
-        User hobi = User.findByLoginId("hobi");
         Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
-        Project jindo = Project.findByNameAndOwner("k16wire", "Jindo");
 
         // When
-        boolean result1 = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.UPDATE);
-        boolean result2 = AccessControl.isAllowed(hobi, jindo.asResource(), Operation.UPDATE);
-        boolean result3 = AccessControl.isAllowed(UserApp.anonymous, jindo.asResource(), Operation.READ);
+        boolean canUpdate = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.UPDATE);
+        boolean canRead = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.READ);
+        boolean canDelete = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.DELETE);
 
         // Then
-        assertThat(result1).isEqualTo(true);
-        assertThat(result2).isEqualTo(false);
-        assertThat(result3).isEqualTo(false);
+        assertThat(canRead).isEqualTo(true);
+        assertThat(canUpdate).isEqualTo(true);
+        assertThat(canDelete).isEqualTo(true);
+    }
+
+    @Test
+    public void isAllowed_projectCreator() {
+        // Given
+        User hobi = User.findByLoginId("hobi");
+        Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
+
+        // When
+        boolean canUpdate = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.UPDATE);
+        boolean canRead = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.READ);
+        boolean canDelete = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.DELETE);
+
+        // Then
+        assertThat(canRead).isEqualTo(true);
+        assertThat(canUpdate).isEqualTo(true);
+        assertThat(canDelete).isEqualTo(true);
+    }
+
+    @Test
+    public void isAllowed_notAMember() {
+        // Given
+        User notMember = User.findByLoginId("nori");
+        Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
+
+        // When
+        boolean canUpdate = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.UPDATE);
+        boolean canRead = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.READ);
+        boolean canDelete = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.DELETE);
+
+        // Then
+        assertThat(canRead).isEqualTo(true);
+        assertThat(canUpdate).isEqualTo(false);
+        assertThat(canDelete).isEqualTo(false);
     }
 }

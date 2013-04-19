@@ -63,7 +63,7 @@ public class IssueApp extends AbstractPostingApp {
 
             if (authorLoginId != null && !authorLoginId.isEmpty()) {
                 User user = User.findByLoginId(authorLoginId);
-                if (user != null) {
+                if (!user.isAnonymous()) {
                     el.eq("authorId", user.id);
                 } else {
                     List<Long> ids = new ArrayList<Long>();
@@ -164,7 +164,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.finder.byId(issueId);
 
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.ISSUE_POST)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
@@ -183,6 +183,11 @@ public class IssueApp extends AbstractPostingApp {
 
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.ISSUE_POST)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
         return newPostingForm(
                 project, newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }

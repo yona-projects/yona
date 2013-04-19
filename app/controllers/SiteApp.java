@@ -10,6 +10,7 @@ import models.Project;
 import models.User;
 import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
+import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
@@ -37,7 +38,7 @@ public class SiteApp extends Controller {
         String errorMessage = null;
         boolean sended = false;
         String result = Mailer.send(email);
-        System.out.println(">>>" + result);
+        Logger.info(">>>" + result);
         sended = true;
         return writeMail(errorMessage, sended);
     }

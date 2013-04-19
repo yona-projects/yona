@@ -1,9 +1,6 @@
 package controllers;
 
-import models.AbstractPosting;
-import models.Comment;
-import models.Project;
-import models.Attachment;
+import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
 

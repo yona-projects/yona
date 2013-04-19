@@ -25,6 +25,7 @@ title.sendMail = Send Mail
 title.projectList = Project List
 title.help = HELP
 title.search = SEARCH
+title.resetPassword = Reset Password
 
 hive.name = HIVE
 hive.title = Collaborative Software Development Platform
@@ -184,6 +185,7 @@ post.new.title = Title
 post.new.contents = Contents
 post.new.filePath = File Path
 post.author = Author
+post.notice = Notice
 post.age = Age
 post.menu.search = Search
 post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
@@ -273,6 +275,7 @@ site.project.deleteConfirm = Do you want to delete this project?
 
 #User
 user.loginId = Login ID
+user.yourLoginId = Your login id
 user.wrongloginId.alert = Valid ID required
 user.loginId.duplicate = Already existing ID
 user.login.alert = Please, login.
@@ -282,12 +285,14 @@ user.confirmPassword.alert = Password doesn't match the confirmation
 user.wrongPassword.alert = Wrong password!
 user.name = Name
 user.email = E-mail
+user.yourEmail = Your email address
 user.wrongEmail.alert = Wrong email address.
 user.login.failed = Your login ID or password is not valid.
 user.logout.success = Logout successfully
 user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
 user.signupId = ID (lower case)
 user.signupBtn = Sign Up
+user.loginWithNewPassword = Please, login with new password!
 
 #Role
 role.manager = Manager
@@ -355,7 +360,7 @@ mail.subject = Subject
 mail.body = Body
 mail.send = Send
 mail.fail = Failed to send a mail.
-mail.sended = Mail is sended.
+mail.sended = Mail is sent.
 
 author = Author
 assignee = Assignee
@@ -380,3 +385,8 @@ auth.unauthorized.comment = You need authorization to comment
 #userinfo
 userinfo.myProjects = My Projects
 userinfo.starredProjects = Starred
+
+#Admin
+admin.resetPasswordEmail.title = [HIVE] Password reset mail request
+admin.resetPasswordEmail.mailcontents = copy the below url and paste it to browser url bar
+admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request

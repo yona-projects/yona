@@ -1,0 +1,360 @@
+# Users
+users:
+    - !!models.User
+        name:           Hobi
+        loginId:        hobi
+        password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
+        passwordSalt:   '[B@1032a4'        
+        email:          hobi@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
+        createdDate:           2012-12-01 08:00:00
+    - !!models.User
+        name:           scott
+        loginId:        k16wire
+        password:       v1O5ggs2TqM0prM1pLUD/zC+g7cavbWMXayVA9pvGHY=
+        passwordSalt:   '[B@1032a4'        
+        email:          k16wire@naver.com
+        avatarUrl:      /assets/images/default-avatar-128.png
+        createdDate:           2012-01-01 08:00:00
+    - !!models.User
+        name:           suwon
+        loginId:        doortts
+        password:       rB5DBMe0hxMWs5FlQOJi5GmK+wj2Txx09MdgFqH83+k=
+        passwordSalt:   '[B@1032a4'        
+        email:          doortts@gmail.com
+        avatarUrl:      /assets/images/default-avatar-128.png
+        createdDate:           2012-07-01 08:00:00
+    - !!models.User
+        name:           eungjun
+        loginId:        nori
+        password:       yOF0X0iKA1MVkaAJESNcdGE1n/3SWM8vDOKRYCXV2E0=
+        passwordSalt:   '[B@1032a4'        
+        email:          ejlee@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
+        createdDate:           2012-05-01 08:00:00
+
+# Projects
+projects:
+    - !!models.Project
+        name:           nForge4java
+        overview:       nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
+        share_option:   true
+        vcs:            GIT
+        siteurl:       http://localhost:9000/nForge4java
+        owner:          hobi
+        createdDate:           2012-02-01 08:00:00
+    - !!models.Project
+        name:           Jindo
+        overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
+        share_option:   false
+        vcs:            Subversion
+        siteurl:       http://localhost:9000/Jindo
+        owner:          k16wire
+        createdDate:           2012-01-01 08:00:00        
+    - !!models.Project
+        name:           CUBRID
+        overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
+        share_option:   false
+        vcs:            GIT
+        siteurl:       http://localhost:9000/CUBRID
+        owner:          doortts
+        createdDate:           2012-08-01 08:00:00        
+    - !!models.Project
+        name:           HelloSocialApp
+        overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
+        share_option:   false
+        vcs:            GIT
+        siteurl:       http://localhost:9000/HelloSocialApp
+        owner:          hobi
+        createdDate:           2012-12-01 08:00:00        
+
+# Board
+postings:
+    - !!models.Posting
+        title:          게시판이 새로 생성되었습니다.
+        body:       새로운 게시판에서 많은 활동 부탁드립니다.
+        authorId:       2
+        authorLoginId:  hobi
+        authorName:     hobi
+        project:        !!models.Project
+                            id: 1
+        
+        
+postingComments:
+    - !!models.PostingComment
+        contents:       게시판이 너무 기대됩니다. 많은 글이 필요합니다. 
+        authorId:       2
+        authorLoginId:  hobi
+        authorName:     hobi        
+        posting:       !!models.Posting
+                            id: 1
+# Issues
+issues:
+    - !!models.Issue
+        authorId:       2
+        authorLoginId:  hobi       
+        title:          불필요한 로그 출력 코드 제거
+        body:           내용 불필요한~
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 1
+        createdDate:           2012-11-01 08:00:00
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        authorId:       3
+        authorLoginId:  k16wire
+        title:          다운로드는 익명 댓글에도 사용자명에 링크가 걸림
+        body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 2
+        createdDate:           2012-11-02 08:00:00
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        authorId:       4
+        authorLoginId:  doortts
+        title:          gittracker.php의 메모리 제한 에러
+        body:           내용 gittracker.php의 메모리 제한 에러
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 2
+        createdDate:           2012-11-03 08:00:00
+        project:        !!models.Project
+                            id: 1
+        numOfComments:  1
+    - !!models.Issue
+        authorId:       4
+        authorLoginId:  doortts
+        title:          git/hg 코드 브라우저에 i18n이 적용되지 않음
+        body:           내용 git/hg 코드 브라우저에 i18n이 적용되지 않음
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 2
+        createdDate:           2012-11-04 08:00:00
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        authorId:       4
+        authorLoginId:  doortts
+        title:          CUBRID 설치 문제
+        body:           IOS는 설치 못하나요?
+        state:          OPEN
+        createdDate:           2012-11-05 08:00:00
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        authorId:       4
+        authorLoginId:  doortts
+        title:          메모리 누수 현상
+        body:           메모리가 너무 누수가 되는듯.
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 6
+        createdDate:           2012-11-06 08:00:00
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        authorId:       4
+        authorLoginId:  doortts
+        title:          Client application for Mac.
+        body:           Please make it.
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 5
+        createdDate:           2012-11-07 08:00:00
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        authorId:       4
+        authorLoginId:  doortts
+        title:          CPU 무한 점유울 문제.
+        body:           CPU를 무한사용 중이에요.
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 5
+        createdDate: 2012-11-08 08:00:00
+        project:        !!models.Project
+                            id: 3
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Less chained imports causes compile error
+        body:           When using Play, when I chain less files such as a.less imports b.less which in turn imports c.less
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 1
+        createdDate: 2012-11-09 08:00:00
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Weird TypeDoesNotMatch exception in RC-3 and final
+        body:           The following code works as expected in RC1-Snapshot, but breaks with an TypeDoesNotMatch exception in RC-3 and 2.0 final.
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 1
+        createdDate:           2012-11-10 08:00:00
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Anorm and PostgreSQL - return value not accessible
+        body:           PostgreSQL allows you to insert a row and obtain the id of the new row in one query
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 1
+        createdDate:           2012-11-11 08:00:00
+        project:        !!models.Project
+                            id: 1
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Update sbt-idea to 1.1.0
+        body:           Create sbt project definition module, if exists, for each subproject (pull 128)
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 3
+        createdDate:           2012-11-12 08:00:00
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
+        body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
+        state:          CLOSED
+        milestone:      !!models.Milestone
+                            id: 3
+        createdDate:           2012-11-13 08:00:00
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Support Tuple 22, not just Tuple 18 in api/data/Forms.scala
+        body:           While creating some complex forms, Eclipse started hanging for some unknown reason.
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 4
+        createdDate:           2012-11-14 08:00:00
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          Cookie Expires date
+        body:           With Play 2.0.2, when creating a cookie with response().setCookie, HTTP output is like
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 4
+        createdDate:           2012-11-15 08:00:00
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        authorId:       1
+        authorLoginId:  admin
+        title:          require is not work in windows (Closure Compiler)
+        body:           Test on Play2.1-Snapshot
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 4
+        createdDate:           2012-11-15 08:00:00
+        project:        !!models.Project
+                            id: 2
+    - !!models.Issue
+        authorId:       2
+        authorLoginId:  hobi
+        title:          Remember me is not working
+        body:           Test on Play2.1-Snapshot
+        state:          OPEN
+        milestone:      !!models.Milestone
+                            id: 4
+        createdDate:           2012-11-16 08:00:00
+        project:        !!models.Project
+                            id: 3
+issueComments:
+    - !!models.IssueComment
+        contents:       코드를 수정했습니다
+        authorId:       2
+        authorLoginId:  hobi
+        issue:          !!models.Issue
+                            id: 3
+# Milestone
+milestones:
+    - !!models.Milestone
+        title:           v.0.1
+        dueDate:         2012-07-12 10:59:59
+        contents:        nFORGE 첫번째 버전.
+        state:      OPEN
+        project:         !!models.Project
+                             id: 1
+    - !!models.Milestone
+        title:           v.0.2
+        dueDate:         2012-07-19 10:59:59
+        contents:        nFORGE 두번째 버전 (Stable).
+        state:      OPEN
+        project:         !!models.Project
+                             id: 1
+    - !!models.Milestone
+        title:           v.1.0.0
+        dueDate:         2011-08-10 10:59:59
+        contents:        Jindo 안정화 버전
+        state:      CLOSED
+        project:         !!models.Project
+                             id: 2
+    - !!models.Milestone
+        title:           v.2.0.0
+        dueDate:         2012-04-11 10:59:59
+        contents:        Jindo2
+        state:      OPEN
+        project:         !!models.Project
+                             id: 2
+    - !!models.Milestone
+        title:           v.0.1
+        dueDate:         2012-12-31 10:59:59
+        contents:        CUBRID v.0.1
+        state:      OPEN
+        project:         !!models.Project
+                             id: 3
+    - !!models.Milestone
+        title:           v.0.2
+        dueDate:         2013-11-09 10:59:59
+        contents:        CUBRID v.0.2
+        state:      CLOSED
+        project:         !!models.Project
+                             id: 3
+
+# ProjectUser
+projectUsers:
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 1
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 2
+        project:        !!models.Project
+                            id: 2
+        role:           !!models.Role
+                            id: 2
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 3
+        project:        !!models.Project
+                            id: 1
+        role:           !!models.Role
+                            id: 2
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 3
+        project:        !!models.Project
+                            id: 2
+        role:           !!models.Role
+                            id: 1

@@ -58,9 +58,8 @@ public class Project extends Model {
     public String owner;
 
 	public boolean share_option;
-	public boolean isAuthorEditable;
 
-	public Date createdDate;
+    public Date createdDate;
 
 	@OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
 	public Set<Issue> issues;

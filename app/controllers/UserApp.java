@@ -98,12 +98,10 @@ public class UserApp extends Controller {
     				sourceUser.password);
         	token.setRememberMe(sourceUser.rememberMe);
 
-        	//Object principal = token.getPrincipal();
-
         	try {
                 currentUser.login(token);
             } catch (UnknownAccountException uae) {
-            	Logger.info("There is no user with username of " + token.getPrincipal());
+                Logger.info("There is no user with username of '" + token.getPrincipal() + "'");
             } catch (IncorrectCredentialsException ice) {
             	Logger.info("Password for account " + token.getPrincipal() + " was incorrect!");
             } catch (LockedAccountException lae) {
@@ -132,7 +130,7 @@ public class UserApp extends Controller {
 
 	public static User authenticateWithHashedPassword(String loginId, String password) {
 		User user = User.findByLoginId(loginId);
-		if (user != null) {
+		if (!user.isAnonymous()) {
 			if (user.password.equals(password)) {
 				return user;
 			}
@@ -142,7 +140,7 @@ public class UserApp extends Controller {
 
 	public static User authenticateWithPlainPassword(String loginId, String password) {
 		User user = User.findByLoginId(loginId);
-		if (user != null) {
+		if (!user.isAnonymous()) {
 			if (user.password.equals(hashedPassword(password,
 					user.passwordSalt))) {
 				return user;
@@ -198,6 +196,7 @@ public class UserApp extends Controller {
 		}
 	}
 
+    //Fixme user.password가 plain text 였다가 다시 덮여쓰여지는 식으로 동작한다. 혹시라도 패스워드 reset을 위해 이 메소드를 잘못 사용했다가는 자칫 로그인을 할 수 없게 되는 상황이 발생할 수 있다.
 	public static User hashedPassword(User user) {
 		RandomNumberGenerator rng = new SecureRandomNumberGenerator();
 		user.passwordSalt = rng.nextBytes().getBytes().toString();
@@ -205,6 +204,12 @@ public class UserApp extends Controller {
 				ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
 
 		return user;
+	}
+
+    public static void resetPassword(User user, String newPassword) {
+		user.password = new Sha256Hash(newPassword,
+				ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
+        user.save();
 	}
 
 	public static void addUserInfoToSession(User user) {
@@ -243,7 +248,7 @@ public class UserApp extends Controller {
 		}
 
 		// 중복된 loginId로 가입할 수 없다.
-		if (User.isLoginId(newUserForm.field("loginId").value())) {
+		if (User.isLoginIdExist(newUserForm.field("loginId").value())) {
 			newUserForm.reject("loginId", "user.loginId.duplicate");
 		}
 	}
@@ -274,13 +279,13 @@ public class UserApp extends Controller {
         User user = UserApp.currentUser();
         user.email = userForm.data().get("email");
         user.name = userForm.data().get("name");
-        
+
         Attachment.deleteAll(ResourceType.USER_AVATAR, currentUser().id);
         int attachFiles = Attachment.attachFiles(currentUser().id, null, ResourceType.USER_AVATAR, currentUser().id);
         if(attachFiles>0) {
         	user.avatarUrl = "/files/" + user.avatarId();
         }
-    	
+
         user.update();
         return redirect(routes.UserApp.userInfo(user.loginId));
     }
@@ -292,14 +297,14 @@ public class UserApp extends Controller {
 
 
     public static Result isUserExist(String loginId) {
-        User user = User.findByLoginId(loginId);
         ObjectNode result = Json.newObject();
-        if( user == null){
+        User user = User.findByLoginId(loginId);
+        if(user.isAnonymous()){
             result.put("isExist", false);
         } else {
             result.put("isExist", true);
-        }
-        return ok(result);
+		}
+		return ok(result);
     }
 
     @BodyParser.Of(BodyParser.Json.class)

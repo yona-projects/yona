@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-import org.junit.Ignore;
 
 import com.avaje.ebean.Page;
 import play.data.validation.Validation;
@@ -124,9 +123,9 @@ public class UserTest extends ModelTest<User> {
 	    String existingId = "hobi";
 	    String nonExistingId = "hobiii";
 	    // When
-	    boolean result1 = User.isLoginId(existingId);
-	    boolean result2 = User.isLoginId(nonExistingId);
-	    boolean result3 = User.isLoginId(null);
+	    boolean result1 = User.isLoginIdExist(existingId);
+	    boolean result2 = User.isLoginIdExist(nonExistingId);
+	    boolean result3 = User.isLoginIdExist(null);
 	    // Then
 	    assertThat(result1).isEqualTo(true);
 	    assertThat(result2).isEqualTo(false);

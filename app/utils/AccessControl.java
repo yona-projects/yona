@@ -108,19 +108,34 @@ public class AccessControl {
             }
         }
 
+        // Access Control for members, nonmembers and anonymous.
+        // - Anyone can read public project's resource.
+        // - Members can update anything and delete anything except code repository.
+        // - Nonmember can update or delete a resource if only
+        //     * the user is the author of the resource,
+        //     * the resource is not a code repository,
+        //     * and the project to which the resource belongs is public.
+        // See docs/technical/access-control.md for more information.
         switch(operation) {
         case READ:
-            // If the project is public anyone can read its resources else only members can do that.
             return project.share_option || ProjectUser.isMember(user.id, project.id);
         case UPDATE:
-            // Any members can update repository
-            if (resource.getType() == ResourceType.CODE) {
-                return ProjectUser.isMember(user.id, project.id);
+            if (ProjectUser.isMember(user.id, project.id)) {
+                return true;
+            }
+
+            if (resource.getType() != ResourceType.CODE) {
+                return project.share_option && isEditableAsAuthor(user, project, resource);
             } else {
-                return isEditableAsAuthor(user, project, resource);
+                return false;
             }
         case DELETE:
-            return isEditableAsAuthor(user, project, resource);
+            if (resource.getType() != ResourceType.CODE) {
+                return ProjectUser.isMember(user.id, project.id) ||
+                        (project.share_option && isEditableAsAuthor(user, project, resource));
+            } else {
+                return false;
+            }
         default:
             // undefined
             return false;
@@ -128,11 +143,6 @@ public class AccessControl {
     }
 
     private static boolean isEditableAsAuthor(User user, Project project, Resource resource) {
-        // author can update or delete her/his own article.
-        if (!project.isAuthorEditable) {
-            return false;
-        }
-
         switch (resource.getType()) {
         case ISSUE_POST:
         case ISSUE_COMMENT:
