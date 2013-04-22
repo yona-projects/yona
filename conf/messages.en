@@ -86,6 +86,7 @@ button.newProject = Create your project
 button.detail = Detail
 button.apply = Apply
 button.back = Back
+button.upload = Upload
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -177,6 +178,8 @@ issue.committer.edit = Edit Issue
 issue.advancedSearch = Advanced Search
 issue.downloadAsExcel = Download as Excel
 issue.search = SEARCH
+issue.error.emptyTitle = Title of this issue is required
+issue.error.emptyBody = Description about this issue is required 
 
 #Post
 post.new = New

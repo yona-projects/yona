@@ -21,6 +21,7 @@
 		function _init(htOptions){
 			_initElement(htOptions || {});
 			_initVar(htOptions || {});
+			_attachEvent();
 			
 			_initFileUploader();
 			
@@ -44,10 +45,18 @@
 		function _initElement(htOptions){
 			htElement.welTarget = $(htOptions.elTarget || "#upload");
 			htElement.welTextarea = $(htOptions.elTextarea || "#body");
+			htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
 
-			htElement.welTplFileItem = $('#tplAttachedFile');
+			htElement.welTplFileItem = $('#tplAttachedFile');			
 		}
-				
+			
+		/**
+		 * attach event handler
+		 */
+		function _attachEvent(){
+			$("form").submit(_onSubmitForm);
+		}
+		
 		/**
 		 * initialize fileUploader
 		 */
@@ -75,6 +84,32 @@
 			};
 			
 			hive.Label.init(htOptions);
+		}
+		
+		/**
+		 * 폼 전송시 유효성 검사 함수
+		 */
+		function _onSubmitForm(){
+			var sTitle = $hive.getTrim(htElement.welInputTitle.val());
+			var sBody = $hive.getTrim(htElement.welTextarea.val());
+			
+			// 제목이 비어있으면
+			if(sTitle.length < 1){
+				$hive.showAlert(Messages("issue.error.emptyTitle"), function(){
+					htElement.welInputTitle.focus();
+				});
+				return false;
+			}
+			
+			// 본문이 비어있으면
+			if(sBody.length < 1){
+				$hive.showAlert(Messages("issue.error.emptyBody"), function(){
+					htElement.welTextarea.focus();
+				});
+				return false;
+			}
+			
+			return true;
 		}
 		
 		_init(htOptions);

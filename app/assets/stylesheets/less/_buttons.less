@@ -60,9 +60,10 @@
 
     &.med {
         font-size: 11px;
-        padding: 3px 20px;
+        padding: 6px 20px;
+        
         &.btn-transparent {
-            height: 24px;
+            height:30px; /*height: 24px;*/
             padding: 4px 20px;
         }
         .border-radius(2px); /*5px*/
@@ -75,15 +76,17 @@
 }
 
 .ns-btn {
-    vertical-align: top;
-    border: 1px solid #CECECE;
     .inline-block;
-    .border-radius(1px);
-    font-size: 11px;
+    .border-radius(2px);
+    
+    vertical-align: top;
+    border: 1px solid #cecece;
+    font-size: 11px; font-weight:bold;
     color: #929292;
-    line-height: 22px;
-    padding: 2px 10px;
+    /*line-height: 22px;*/
+    padding: 5px 10px;
     background-color: @white;
+    
     &:hover {
         color: #333;
         cursor: pointer;

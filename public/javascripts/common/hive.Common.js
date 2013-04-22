@@ -240,17 +240,30 @@ $hive = hive.Common = (function(){
 		return sValue.trim().replace(htVar.rxTrim, '');
 	}
 
-
+	/**
+	 * Show alert dialog
+	 * @param {String} sMessage Message string
+	 * @param {Function} fCallback Call this function after hidden dialog (optional)
+	 */
+	function showAlert(sMessage, fCallback){
+		if(!htVar.oAlertDialog) {
+			htVar.oAlertDialog = new hive.ui.Dialog("#hiveDialog");
+		}
+		
+		htVar.oAlertDialog.show(sMessage, fCallback);
+	}
+	
 	/* public Interface */
 	return {
-		"setScriptPath": setScriptPath,
-		"createNamespace": createNamespace,
-		"loadModule": loadModule,
-		"loadScript": loadScript,
-		"stopEvent": stopEvent,
+		"setScriptPath"   : setScriptPath,
+		"createNamespace" : createNamespace,
+		"loadModule"      : loadModule,
+		"loadScript"      : loadScript,
+		"stopEvent"       : stopEvent,
 		"getContrastColor": getContrastColor,
-		"sendForm" : sendForm,
-		"getTrim"  : getTrim
+		"sendForm"        : sendForm,
+		"getTrim"         : getTrim,
+		"showAlert"       : showAlert
 	};
 })();
 

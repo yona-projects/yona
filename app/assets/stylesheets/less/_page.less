@@ -2218,7 +2218,7 @@ div.markdown-preview {
         width: 45px;
     }*/
     .attach-info-wrap {
-        width: 715px;
+        width: 707px; /*715px;*/
         font-size: 11px;
         /*opacity:0;
         -webkit-transition-duration:0.3s;
@@ -2242,7 +2242,7 @@ div.markdown-preview {
         }
     }
     .btn-wrap {
-        width: 80px;
+        width: 88px; /*80px*/
         text-align: right;
     }
 }
@@ -3132,9 +3132,43 @@ div.markdown-preview {
         }
     }
 }
-.code-tab,
-.plugin-tab {
+.code-tab, .plugin-tab {
     margin: 15px 0 20px;
+}
+
+
+.actions {
+    .n-btn {
+        margin-right:5px;
+    }
+    &:last-child {
+        margin-right:0;
+    }
+}
+
+/** alertUI.scala.html **/
+.hiveDialog {
+    .border-radius(none);
+    border:10px solid #bebebe;
+    padding:16px 20px; width:500px;
+    
+    .btn-dismiss {
+        padding:0; margin:0; width:100%; text-align: right;
+        display:block; clear:both;
+        
+        button {
+            font-size:24px; font-weight:bold; color:#898989;
+            border:none; background:transparent;
+        }
+    }
+    
+    .message {
+        .msg {
+            text-align:center;
+            font-weight:bold; font-size:18px; 
+            margin-bottom:20px;
+        }
+    }
 }
 
 /** Bootstrap **/

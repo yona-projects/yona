@@ -89,6 +89,7 @@ button.newProject = 새 프로젝트 만들기
 button.detail = 자세히
 button.apply = 적용
 button.back = 돌아가기
+button.upload = 파일 올리기
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
@@ -182,6 +183,8 @@ issue.committer.edit = 이슈수정
 issue.advancedSearch = 고급검색
 issue.downloadAsExcel = 엑셀파일로 다운받기
 issue.search = 검색
+issue.error.emptyTitle = 이슈 제목을 입력해주세요
+issue.error.emptyBody = 이슈 내용을 입력해주세요  
 
 #Post
 post.new = 새글

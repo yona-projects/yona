@@ -20,12 +20,14 @@
     
     <dl>
     	<dt>
+    	  <!-- 
 	      <div id="warning" class="n-alert hide">
 	        <div class="n-inner">
 	          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
 	          <a href="#" class="ico btn-delete"></a>
 	        </div>
 	      </div>
+	      -->
 	      <label for="title"><!-- <strong class="secondary-txt">#@issue.id</strong>-->@Messages("post.new.title")</label>
     	</dt>
     	<dd>
@@ -58,7 +60,7 @@
 		
 			<div class="btn-wrap">
 				<div class="ns-btn fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>UPLOAD <input type="file" class="file" name="filePath">
+					<i class="ico ico-plus-blue"></i>@Messages("button.upload") <input type="file" class="file" name="filePath">
 				</div>
 			</div>
 		</div>
@@ -175,7 +177,6 @@
   } @** end of form **@
   </div>
 
-@board.postVaildate()
 @markdown()
 
 <script type="text/javascript">
