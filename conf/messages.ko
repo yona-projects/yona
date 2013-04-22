@@ -304,8 +304,9 @@ user.notExists.name = 존재하지 않는 유저입니다.
 #Role
 role.manager = 관리자
 role.member = 참여자
+role.anonymous = 익명 사용자
 role.guest = 지나가던 사람
-role.siteManager = 사이트 관리자
+role.sitemanager = 사이트 관리자
 
 #Time
 time.just = 방금 전
