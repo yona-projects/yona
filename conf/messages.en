@@ -231,6 +231,7 @@ project.member.deleteConfirm = Are you sure that this user leaves this project?
 project.member.delete = Delete a project member
 project.member.notExist = Not existing user
 project.member.ownerCannotLeave = Owner cannot leave.
+project.member.ownerMustBeAManager = Owner must be a manager.
 project.sidebar = Project Management
 project.setting = Setting
 project.member = Member
@@ -296,12 +297,14 @@ user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
 user.signupId = ID (lower case)
 user.signupBtn = Sign Up
 user.loginWithNewPassword = Please, login with new password!
+user.notExists.name = User Doesn't Exists
 
 #Role
 role.manager = Manager
 role.member = Member
+role.anonymous = Anonymous
 role.guest = Guest
-role.siteManager = Site Manager
+role.sitemanager = Site Manager
 
 #Time
 time.just = just now

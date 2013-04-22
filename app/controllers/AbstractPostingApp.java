@@ -1,8 +1,13 @@
 package controllers;
 
+import play.db.ebean.Model;
+
+import models.resource.Resource;
+
 import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
+import models.enumeration.ResourceType;
 
 import play.data.Form;
 import play.mvc.Call;
@@ -33,11 +38,8 @@ public class AbstractPostingApp extends Controller {
         }
     }
 
-    public static Result newComment(Comment comment, Form<? extends Comment> commentForm, Call redirectTo, Callback updateCommentContainer) throws IOException {
-        if (session(UserApp.SESSION_USERID) == null) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(redirectTo);
-        }
+    public static Result newComment(Comment comment, Form<? extends Comment> commentForm, Call redirectTo, Callback containerUpdater) throws IOException {
+        Project project = comment.asResource().getProject();
 
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "board.comment.empty");
@@ -45,8 +47,7 @@ public class AbstractPostingApp extends Controller {
         }
 
         comment.setAuthor(UserApp.currentUser());
-        updateCommentContainer.run(); // this updates comment.issue or comment.posting;
-        Project project = comment.asResource().getProject();
+        containerUpdater.run(); // this updates comment.issue or comment.posting;
         comment.save();
 
         // Attach all of the files in the current user's temporary storage.
@@ -55,26 +56,12 @@ public class AbstractPostingApp extends Controller {
         return redirect(redirectTo);
     }
 
-    public static Result deletePosting(AbstractPosting posting, Call redirectTo) {
-        if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.DELETE)) {
+    protected static Result delete(Model target, Resource resource, Call redirectTo) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), resource, Operation.DELETE)) {
             return forbidden();
         }
 
-        posting.delete();
-
-        Attachment.deleteAll(posting.asResource().getType(), posting.id);
-
-        return redirect(redirectTo);
-    }
-
-    public static Result deleteComment(Comment comment, Call redirectTo) {
-        if (!AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)) {
-            return forbidden();
-        }
-
-        comment.delete();
-
-        Attachment.deleteAll(comment.asResource().getType(), comment.id);
+        target.delete();
 
         return redirect(redirectTo);
     }
@@ -82,6 +69,10 @@ public class AbstractPostingApp extends Controller {
     protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Callback updatePosting) {
         if (postingForm.hasErrors()) {
             return badRequest(postingForm.errors().toString());
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
+            return forbidden(views.html.project.unauthorized.render(original.project));
         }
 
         posting.id = original.id;
@@ -99,9 +90,9 @@ public class AbstractPostingApp extends Controller {
         return redirect(redirectTo);
     }
 
-    public static Result newPostingForm(Project project, Content content) {
-        if (UserApp.currentUser() == UserApp.anonymous) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+    public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
+        if (!AccessControl.isCreatable(UserApp.currentUser(), project, resourceType)) {
+            return forbidden(views.html.project.unauthorized.render(project));
         }
 
         return ok(content);

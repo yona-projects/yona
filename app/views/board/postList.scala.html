@@ -1,7 +1,5 @@
 @(title:String, project:Project, page:com.avaje.ebean.Page[Posting], param:BoardApp.SearchCondition, notices:List[models.Posting])
 
-@play.Logger.debug("board view")
-
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import scala.collection.immutable.Map
@@ -115,11 +113,9 @@
   </ul>
   }
 
-  @if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
   <div class="write-btn-wrap">
     <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn orange med">@Messages("post.write")</a>
   </div>
-  }
 
   <div id="pagination">
     <!-- pagination.js will fill here. -->

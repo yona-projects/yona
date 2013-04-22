@@ -6,6 +6,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
@@ -27,7 +28,7 @@ public class CodeApp extends Controller {
         }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
-            return status(501, project.vcs + " is not supported!");
+            return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
         List<String> branches = RepositoryService.getRepository(project).getBranches();
@@ -43,7 +44,7 @@ public class CodeApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
-            return status(501, project.vcs + " is not supported!");
+            return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
         List<String> branches = RepositoryService.getRepository(project).getBranches();
@@ -56,7 +57,7 @@ public class CodeApp extends Controller {
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {
-            return status(403);
+            return notFound();
         }
     }
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
@@ -65,7 +66,7 @@ public class CodeApp extends Controller {
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {
-            return status(403);
+            return notFound();
         }
     }
 

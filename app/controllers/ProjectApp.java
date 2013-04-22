@@ -1,6 +1,5 @@
 package controllers;
 
-import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import models.*;
 import models.enumeration.Operation;
@@ -8,22 +7,30 @@ import models.enumeration.RoleType;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.support.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
+import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
+import playRepository.Commit;
+import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
 import utils.HttpUtil;
 import views.html.project.*;
+import play.i18n.Messages;
 
-import java.io.File;
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static play.data.Form.form;
@@ -39,14 +46,25 @@ public class ProjectApp extends Controller {
         return Project.findByNameAndOwner(userName, projectName);
     }
 
-    public static Result project(String userName, String projectName) {
+    public static Result project(String userName, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
+        PlayRepository repository = RepositoryService.getRepository(project);
+
+        List<Commit> commits = null;
+        try {
+            commits = repository.getHistory(1, 5, null);
+        } catch (NoHeadException e) { }
+        List<Issue> issues = Issue.findRecentlyCreated(project, 5);
+        List<Posting> postings = Posting.findRecentlyUpdated(project, 5);
+
+        List<History> histories = History.makeHistory(userName, project, commits, issues, postings);
+
         return ok(projectHome.render("title.projectHome",
-                getProject(userName, projectName)));
+                getProject(userName, projectName), histories));
     }
 
     public static Result newProjectForm() {
@@ -197,33 +215,27 @@ public class ProjectApp extends Controller {
         Project project = getProject(userName, projectName);
         if (UserApp.currentUser().id == userId
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            if (project.owner.equals((User.find.byId(userId).name).toLowerCase())) {
-                flash(Constants.WARNING, "project.member.ownerCannotLeave");
-                return redirect(routes.ProjectApp.members(userName, projectName));
+            if (project.isOwner(User.find.byId(userId))) {
+                return forbidden(Messages.get("project.member.ownerCannotLeave"));
             }
             ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
-            flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(userName, projectName));
+            return forbidden(views.html.project.unauthorized.render(project));
         }
     }
 
     public static Result editMember(String userName, String projectName, Long userId) {
         Project project = getProject(userName, projectName);
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            if (project.isOwner(User.find.byId(userId))) {
+                return forbidden(Messages.get("project.member.ownerMustBeAManager"));
+            }
             ProjectUser.assignRole(userId, project.id, form(Role.class)
                     .bindFromRequest().get().id);
-            if(ProjectUser.checkOneMangerPerOneProject(project.id)){
-                return redirect(routes.ProjectApp.members(userName, projectName));
-            } else {
-                ProjectUser.assignRole(userId, project.id, RoleType.MANAGER);
-                flash(Constants.WARNING, "project.member.isManager");
-                return redirect(routes.ProjectApp.members(userName, projectName));
-            }
+            return status(Http.Status.NO_CONTENT);
         } else {
-            flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(userName, projectName));
+            return forbidden(Messages.get("project.member.isManager"));
         }
     }
 
@@ -252,7 +264,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!request().accepts("application/json")) {
-            return status(406);
+            return status(Http.Status.NOT_ACCEPTABLE);
         }
 
         Map<Long, String> tags = new HashMap<Long, String>();
@@ -310,6 +322,6 @@ public class ProjectApp extends Controller {
 
         project.untag(tag);
 
-        return status(204);
+        return status(Http.Status.NO_CONTENT);
     }
 }

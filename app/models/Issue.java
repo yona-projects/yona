@@ -217,5 +217,12 @@ public class Issue extends AbstractPosting {
     public Resource assigneeAsResource() {
         return fieldAsResource(ResourceType.ISSUE_ASSIGNEE);
     }
+
+    public static List<Issue> findRecentlyCreated(Project project, int size) {
+        return finder.where().eq("project.id", project.id)
+                .order().desc("createdDate")
+                .findPagingList(size).getPage(0)
+                .getList();
+    }
 }
 

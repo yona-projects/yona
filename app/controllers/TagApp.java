@@ -5,6 +5,7 @@ import models.Project;
 import models.Tag;
 import models.enumeration.Operation;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.AccessControl;
 
@@ -27,7 +28,7 @@ public class TagApp extends Controller {
 
     public static Result tags(String query) {
         if (!request().accepts("application/json")) {
-            return status(406);
+            return status(Http.Status.NOT_ACCEPTABLE);
         }
 
         ExpressionList<Tag> el = Tag.find.where().contains("name", query);
