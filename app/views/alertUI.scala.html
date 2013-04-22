@@ -1,0 +1,14 @@
+@import utils.TemplateHelper._
+
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Dialog")"></script>
+
+<div id="hiveDialog" class="modal hide fade hiveDialog" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+	
+	<div class="message">
+		<p class="center-text msg"></p>
+		<p class="center-txt">
+			<button type="submit" class="btn-transparent n-btn orange med" data-dismiss="modal">@Messages("button.confirm")</button>
+		</p>
+	</div>
+</div>
