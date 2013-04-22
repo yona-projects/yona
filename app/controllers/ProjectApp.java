@@ -1,6 +1,5 @@
 package controllers;
 
-import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import models.*;
 import models.enumeration.Operation;
@@ -8,22 +7,27 @@ import models.enumeration.RoleType;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.support.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
+import playRepository.Commit;
+import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
 import utils.HttpUtil;
 import views.html.project.*;
 
-import java.io.File;
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static play.data.Form.form;
@@ -39,14 +43,21 @@ public class ProjectApp extends Controller {
         return Project.findByNameAndOwner(userName, projectName);
     }
 
-    public static Result project(String userName, String projectName) {
+    public static Result project(String userName, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
 
+        PlayRepository repository = RepositoryService.getRepository(project);
+        List<Commit> commits = repository.getHistory(1, 5, null);
+        List<Issue> issues = Issue.findRecentlyCreated(project, 5);
+        List<Posting> postings = Posting.findRecentlyUpdated(project, 5);
+
+        List<History> histories = History.makeHistory(userName, project, commits, issues, postings);
+
         return ok(projectHome.render("title.projectHome",
-                getProject(userName, projectName)));
+                getProject(userName, projectName), histories));
     }
 
     public static Result newProjectForm() {

@@ -1,9 +1,29 @@
-@(message: String, project: Project) 
+
+@(message: String, project: Project, histories: List[models.History] )
+
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+@import models.enumeration._
 
 @main(message, project, utils.MenuType.PROJECT_HOME) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
-    
+
+    <div class="input-prepend">
+        <span class="add-on">@project.vcs</span>
+        <input type="text" value="@CodeApp.getURL(project.owner, project.name)" readonly="true"
+            style="cursor: auto; background-color:#ffffff">
+        <div class="btn-group pull-right">
+            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
+                @Issue.countIssues(project.id, State.OPEN) @Messages("issue.state.open")
+            </a>
+            <button class="btn" disabled="true">@Messages("menu.issue")</button>
+            <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
+                @Issue.countIssues(project.id, State.CLOSED) @Messages("issue.state.closed")
+            </a>
+        </div>
+    </div>
+
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo">
             <div class="logo-wrap">
@@ -60,11 +80,26 @@
             </div>
         </div>
     </div>
-    
+
+    @if(histories.size > 0) {
+        <table class="table table-hover">
+            <tbody>
+                @for(history <- histories.iterator()) {
+                    <tr>
+                        <td>@agoString(ago(history.getWhen()))</td>
+                        <td><a href="@history.getUserPageUrl()">@history.getWho()</a></td>
+                        <td>@history.getWhat()</td>
+                        <td><a href="@history.getUrl()">@history.getHow()</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
     <div class="bubble-wrap dark-gray readme">
         @if(project.readme == null) {
-        	<p class="default">
-            	@Messages("project.readme")
+            <p class="default">
+                @Messages("project.readme")
             </p>
         } else {
         <div class="readme-wrap">
@@ -74,7 +109,7 @@
            </div>
         </div>
         }
-		@markdown()
+	    @markdown()
     </div>
 </div>
 }

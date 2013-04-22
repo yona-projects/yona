@@ -53,4 +53,12 @@ public class Posting extends AbstractPosting {
                 .order().desc("createdDate")
                 .findList();
     }
+
+    public static List<Posting> findRecentlyUpdated(Project project, int size) {
+        return Posting.finder.where()
+                .eq("project.id", project.id)
+                .order().desc("createdDate")
+                .findPagingList(size).getPage(0)
+                .getList();
+    }
 }
