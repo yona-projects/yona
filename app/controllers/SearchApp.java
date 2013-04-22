@@ -68,13 +68,13 @@ public class SearchApp extends Controller {
                     "Content-Range",
                     "pages " + Integer.toString(resultPosts.getPageIndex() + 1) + "/"
                             + Integer.toString(resultPosts.getTotalPageCount()));
-            return status(206, postContentsSearch.render(project, resultPosts));
+            return status(Http.Status.PARTIAL_CONTENT, postContentsSearch.render(project, resultPosts));
         } else if (condition.type.equals("issue")) {
             response().setHeader(
                     "Content-Range",
                     "pages " + Integer.toString(resultIssues.getPageIndex() + 1) + "/"
                             + Integer.toString(resultIssues.getTotalPageCount()));
-            return status(206, issueContentsSearch.render(project, resultIssues));
+            return status(Http.Status.PARTIAL_CONTENT, issueContentsSearch.render(project, resultIssues));
         }
 
         return ok(contentsSearch.render("title.contentSearchResult", project, condition.filter, resultIssues, resultPosts));

@@ -28,7 +28,7 @@ public class CodeApp extends Controller {
         }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
-            return status(501, project.vcs + " is not supported!");
+            return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
         List<String> branches = RepositoryService.getRepository(project).getBranches();
@@ -44,7 +44,7 @@ public class CodeApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
-            return status(501, project.vcs + " is not supported!");
+            return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
         List<String> branches = RepositoryService.getRepository(project).getBranches();

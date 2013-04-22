@@ -264,7 +264,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!request().accepts("application/json")) {
-            return status(406);
+            return status(Http.Status.NOT_ACCEPTABLE);
         }
 
         Map<Long, String> tags = new HashMap<Long, String>();
@@ -322,6 +322,6 @@ public class ProjectApp extends Controller {
 
         project.untag(tag);
 
-        return status(204);
+        return status(Http.Status.NO_CONTENT);
     }
 }

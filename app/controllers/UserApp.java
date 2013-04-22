@@ -51,7 +51,7 @@ public class UserApp extends Controller {
 
     public static Result users(String query) {
         if (!request().accepts("application/json")) {
-            return status(406);
+            return status(Http.Status.NOT_ACCEPTABLE);
         }
 
         ExpressionList<User> el = User.find.select("loginId").where().contains("loginId", query);
