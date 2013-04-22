@@ -299,6 +299,7 @@ user.isAlreadySignupUser = 이미 가입하셨나요?
 user.signupId = 아이디
 user.signupBtn = 참여하기
 user.loginWithNewPassword = 새로 설정한 비밀번호로 로그인 하세요
+user.notExists.name = 존재하지 않는 유저입니다.
 
 #Role
 role.manager = 관리자

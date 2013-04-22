@@ -293,6 +293,7 @@ user.isAlreadySignupUser = HAVE AN ACCOUNT ALREADY?
 user.signupId = ID (lower case)
 user.signupBtn = Sign Up
 user.loginWithNewPassword = Please, login with new password!
+user.notExists.name = User Doesn't Exists
 
 #Role
 role.manager = Manager

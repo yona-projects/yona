@@ -15,6 +15,7 @@ import play.data.validation.Constraints.Email;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Required;
 import play.db.ebean.Model;
+import play.i18n.Messages;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
@@ -24,13 +25,14 @@ import java.util.*;
 public class NullUser extends User {
     private static final long serialVersionUID = -1L;
     public Long id = -1l;
-    public String name = "Guest";
+    public String name = Messages.get("user.notExists.name");
 
-    public String loginId = "guest";
+    public String loginId = "";
     public String password;
     public String passwordSalt;
-    public String email = "nforge@nhn.com";
+    public String email = "";
 
+    public Date createdDate = new Date();
     public String avatarUrl = UserApp.DEFAULT_AVATAR_URL;
 
     public List<Project> myProjects(){
