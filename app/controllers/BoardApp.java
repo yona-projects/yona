@@ -55,7 +55,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
@@ -72,19 +72,19 @@ public class BoardApp extends AbstractPostingApp {
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
 
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.BOARD_POST)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
-        return newPostingForm(project,
+        return newPostingForm(project, ResourceType.BOARD_POST,
                 newPost.render("board.post.new", new Form<Posting>(Posting.class), project, isAllowedToNotice));
     }
 
     public static Result newPost(String userName, String projectName) {
         Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
+            return forbidden(unauthorized.render(project));
+        }
 
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
@@ -109,7 +109,7 @@ public class BoardApp extends AbstractPostingApp {
         Posting post = Posting.finder.byId(postId);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), post.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         if (post == null) {
@@ -126,8 +126,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
-            flash(Constants.WARNING, "board.notAuthor");
-            return redirect(routes.BoardApp.post(project.owner, project.name, postId));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<Posting> editForm = new Form<Posting>(Posting.class).fill(posting);

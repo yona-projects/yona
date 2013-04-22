@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map;
 
@@ -123,7 +124,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
@@ -167,7 +168,7 @@ public class IssueApp extends AbstractPostingApp {
         Issue issueInfo = Issue.finder.byId(issueId);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         if (issueInfo == null) {
@@ -187,17 +188,17 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
 
-        if (!AccessControl.isCreatable(User.findByLoginId(session().get("loginId")), project, ResourceType.ISSUE_POST)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
-        }
-
-        return newPostingForm(
-                project, newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
+        return newPostingForm(project, ResourceType.ISSUE_POST,
+                newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
     public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
+
+        if (!AccessControl.isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
+            return forbidden(unauthorized.render(project));
+        }
 
         if (issueForm.hasErrors()) {
             return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
@@ -220,22 +221,12 @@ public class IssueApp extends AbstractPostingApp {
                 State.OPEN.state(), "html", 1));
     }
 
-    public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
-        String[] labelIds = request.body().asMultipartFormData().asFormUrlEncoded()
-                .get("labelIds");
-        if (labelIds != null) {
-            for (String labelId : labelIds) {
-                labels.add(IssueLabel.findById(Long.parseLong(labelId)));
-            }
-        }
-    };
-
     public static Result editIssueForm(String userName, String projectName, Long id) {
         Issue issue = Issue.finder.byId(id);
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(unauthorized.render(project));
         }
 
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(issue);
@@ -302,5 +293,21 @@ public class IssueApp extends AbstractPostingApp {
             routes.IssueApp.issue(project.owner, project.name, comment.getParent().id);
 
         return delete(comment, comment.asResource(), redirectTo);
+    }
+
+    public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
+        Http.MultipartFormData multipart = request.body().asMultipartFormData();
+        Map<String, String[]> form;
+        if (multipart != null) {
+            form = multipart.asFormUrlEncoded();
+        } else {
+            form = request.body().asFormUrlEncoded();
+        }
+        String[] labelIds = form.get("labelIds");
+        if (labelIds != null) {
+            for (String labelId : labelIds) {
+                labels.add(IssueLabel.findById(Long.parseLong(labelId)));
+            }
+        }
     }
 }
