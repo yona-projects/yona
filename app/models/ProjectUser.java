@@ -206,7 +206,7 @@ public class ProjectUser extends Model {
         }
 
         User user = User.findByLoginId(loginId);
-        if(user == null || user.isAnonymous()) {
+        if(user.isAnonymous()) {
             return false;
         }
         if(user.isSiteManager() || ProjectUser.isManager(user.id, project.id)) {
