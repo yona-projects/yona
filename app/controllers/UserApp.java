@@ -87,33 +87,6 @@ public class UserApp extends Controller {
             return badRequest(login.render("title.login", userForm));
         }
         User sourceUser = form(User.class).bindFromRequest().get();
-
-		Factory<SecurityManager> factory = new IniSecurityManagerFactory("classpath:shiro.ini");
-		SecurityManager securityManager = factory.getInstance();
-		SecurityUtils.setSecurityManager(securityManager);
-
-        Subject currentUser = SecurityUtils.getSubject();
-        if(!currentUser.isAuthenticated()) {
-        	UsernamePasswordToken token = new UsernamePasswordToken(sourceUser.loginId,
-    				sourceUser.password);
-        	token.setRememberMe(sourceUser.rememberMe);
-
-        	try {
-                currentUser.login(token);
-            } catch (UnknownAccountException uae) {
-                Logger.info("There is no user with username of '" + token.getPrincipal() + "'");
-            } catch (IncorrectCredentialsException ice) {
-            	Logger.info("Password for account " + token.getPrincipal() + " was incorrect!");
-            } catch (LockedAccountException lae) {
-            	Logger.info("The account for username " + token.getPrincipal() + " is locked.  " +
-                        "Please contact your administrator to unlock it.");
-            }
-            // ... catch more exceptions here (maybe custom ones specific to your application?
-            catch (AuthenticationException ae) {
-                Logger.error(String.valueOf(ae.getStackTrace()));
-            }
-        }
-
 		User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
 		if(authenticate!=null) {
