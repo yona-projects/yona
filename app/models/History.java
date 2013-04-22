@@ -75,16 +75,18 @@ public class History {
 
     public static List<History> makeHistory(String userName, Project project, List<Commit> commits, List<Issue> issues, List<Posting> postings) {
         List<History> histories = new ArrayList<History>();
-        for(Commit commit : commits) {
-            History commitHistory = new History();
-            String authorName = commit.getAuthorName();
-            setUserPageUrl(commitHistory, authorName);
-            commitHistory.setWhen(commit.getCommitterDate());
-            commitHistory.setWhere(project.name);
-            commitHistory.setWhat("commit");
-            commitHistory.setHow(commit.getShortId() + "-" + commit.getShortMessage());
-            commitHistory.setUrl("/" + userName + "/" + project.name + "/commit/" + commit.getId());
-            histories.add(commitHistory);
+        if(commits != null) {
+            for(Commit commit : commits) {
+                History commitHistory = new History();
+                String authorName = commit.getAuthorName();
+                setUserPageUrl(commitHistory, authorName);
+                commitHistory.setWhen(commit.getCommitterDate());
+                commitHistory.setWhere(project.name);
+                commitHistory.setWhat("commit");
+                commitHistory.setHow(commit.getShortId() + "-" + commit.getShortMessage());
+                commitHistory.setUrl("/" + userName + "/" + project.name + "/commit/" + commit.getId());
+                histories.add(commitHistory);
+            }
         }
 
         for(Issue issue : issues) {
