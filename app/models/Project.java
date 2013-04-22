@@ -361,4 +361,8 @@ public class Project extends Model {
             tag.update();
         }
     }
+
+    public boolean isOwner(User user) {
+        return owner.toLowerCase().equals(user.loginId.toLowerCase());
+    }
 }

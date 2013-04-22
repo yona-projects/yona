@@ -12,6 +12,7 @@ import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
 import play.mvc.Result;
@@ -22,6 +23,7 @@ import utils.AccessControl;
 import utils.Constants;
 import utils.HttpUtil;
 import views.html.project.*;
+import play.i18n.Messages;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -208,33 +210,27 @@ public class ProjectApp extends Controller {
         Project project = getProject(userName, projectName);
         if (UserApp.currentUser().id == userId
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            if (project.owner.equals((User.find.byId(userId).name).toLowerCase())) {
-                flash(Constants.WARNING, "project.member.ownerCannotLeave");
-                return redirect(routes.ProjectApp.members(userName, projectName));
+            if (project.isOwner(User.find.byId(userId))) {
+                return forbidden(Messages.get("project.member.ownerCannotLeave"));
             }
             ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(userName, projectName));
         } else {
-            flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(userName, projectName));
+            return forbidden(views.html.project.unauthorized.render(project));
         }
     }
 
     public static Result editMember(String userName, String projectName, Long userId) {
         Project project = getProject(userName, projectName);
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            if (project.isOwner(User.find.byId(userId))) {
+                return forbidden(Messages.get("project.member.ownerMustBeAManager"));
+            }
             ProjectUser.assignRole(userId, project.id, form(Role.class)
                     .bindFromRequest().get().id);
-            if(ProjectUser.checkOneMangerPerOneProject(project.id)){
-                return redirect(routes.ProjectApp.members(userName, projectName));
-            } else {
-                ProjectUser.assignRole(userId, project.id, RoleType.MANAGER);
-                flash(Constants.WARNING, "project.member.isManager");
-                return redirect(routes.ProjectApp.members(userName, projectName));
-            }
+            return status(Http.Status.NO_CONTENT);
         } else {
-            flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.members(userName, projectName));
+            return forbidden(Messages.get("project.member.isManager"));
         }
     }
 

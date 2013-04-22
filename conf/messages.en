@@ -228,6 +228,7 @@ project.member.deleteConfirm = Are you sure that this user leaves this project?
 project.member.delete = Delete a project member
 project.member.notExist = Not existing user
 project.member.ownerCannotLeave = Owner cannot leave.
+project.member.ownerMustBeAManager = Owner must be a manager.
 project.sidebar = Project Management
 project.setting = Setting
 project.member = Member
