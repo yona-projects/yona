@@ -297,8 +297,9 @@ user.loginWithNewPassword = Please, login with new password!
 #Role
 role.manager = Manager
 role.member = Member
+role.anonymous = Anonymous
 role.guest = Guest
-role.siteManager = Site Manager
+role.sitemanager = Site Manager
 
 #Time
 time.just = just now

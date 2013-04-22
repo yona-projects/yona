@@ -303,8 +303,9 @@ user.loginWithNewPassword = 새로 설정한 비밀번호로 로그인 하세요
 #Role
 role.manager = 관리자
 role.member = 참여자
+role.anonymous = 익명 사용자
 role.guest = 지나가던 사람
-role.siteManager = 사이트 관리자
+role.sitemanager = 사이트 관리자
 
 #Time
 time.just = 방금 전

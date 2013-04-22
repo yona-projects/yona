@@ -94,17 +94,22 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // WHEN
         roleName = ProjectUser.roleOf("admin", project);
         // THEN
-        assertThat(roleName).isEqualTo("siteManager");
+        assertThat(roleName).isEqualTo("sitemanager");
 
         // WHEN
         roleName = ProjectUser.roleOf(null, project);
         // THEN
-        assertThat(roleName).isEqualTo("guest");
+        assertThat(roleName).isEqualTo("anonymous");
 
         // WHEN
         roleName = ProjectUser.roleOf("keesun", project);
         // THEN
-        assertThat(roleName).isEqualTo("guest");
+        assertThat(roleName).isEqualTo("anonymous");
+
+        // WHEN
+        roleName = ProjectUser.roleOf("k16wire", project);
+        // THEN
+        assertThat(roleName).isEqualTo("member");
     }
 
     @Test
