@@ -43,14 +43,18 @@
 					<div class="btn-group" data-name="roleof-@member.user.loginId">
 						<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label">@member.role.name</button>
 						<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+                        @if(!project.isOwner(member.user)) {
 						<ul class="dropdown-menu">@memberRole(member.role.name)</ul>
+                        }
 					</div>
+                    @if(!project.isOwner(member.user)) {
 					<p class="btns">
 						<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="n-btn small light-gray"><!-- 
 						 --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a> 
 						<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="n-btn small orange"><!-- 
 						 --><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
 					</p>
+                    }
 				</div>
 			</div>
 		</li>
