@@ -8,6 +8,7 @@ import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.support.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.db.ebean.Transactional;
@@ -52,7 +53,11 @@ public class ProjectApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        List<Commit> commits = repository.getHistory(1, 5, null);
+
+        List<Commit> commits = null;
+        try {
+            commits = repository.getHistory(1, 5, null);
+        } catch (NoHeadException e) { }
         List<Issue> issues = Issue.findRecentlyCreated(project, 5);
         List<Posting> postings = Posting.findRecentlyUpdated(project, 5);
 
