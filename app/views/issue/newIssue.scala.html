@@ -79,31 +79,7 @@
     </div>
 
 	<br>
-	<!-- issue.label js module appends a label selector here. -->
-	<fieldset class="labels">
-		@** 
-		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
-			@select(
-				issueForm("assignee.user.id"),
-				options(ProjectUser.options(project.id)),
-				'_label-> Messages("issue.new.detailInfo.assignee"),
-				'_default -> Messages("issue.new.selectDefault.assignee"),
-				'_showConstraints -> false)
-		}
-		**@
-
-		@**
-		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
-			@select(
-				issueForm("milestoneId"),
-				options(Milestone.options(project.id)),
-				'_label-> Messages("issue.new.detailInfo.milestone"),
-				'_default -> Messages("issue.new.selectDefault.milestone"),
-				'_showConstraints -> false)
-		}
-		**@
-	</fieldset>
-
+	
 	<!-- issue options -->
 	<ul class="options unstyled issue-options">
 		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
@@ -141,9 +117,34 @@
 		}
 	</ul>  
 	
+	@**
+	<fieldset class="labels">
+		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
+			@select(
+				issueForm("assignee.user.id"),
+				options(ProjectUser.options(project.id)),
+				'_label-> Messages("issue.new.detailInfo.assignee"),
+				'_default -> Messages("issue.new.selectDefault.assignee"),
+				'_showConstraints -> false)
+		}
+
+		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+			@select(
+				issueForm("milestoneId"),
+				options(Milestone.options(project.id)),
+				'_label-> Messages("issue.new.detailInfo.milestone"),
+				'_default -> Messages("issue.new.selectDefault.milestone"),
+				'_showConstraints -> false)
+		}
+	</fieldset>
+	**@
+
+	<!-- issue.label js module appends a label selector here. -->
+	<fieldset class="labels"></fieldset>
+	
 	<div class="actions">
       <button type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button><!-- 
-   --><a href="javascript:history.back(); return false;" class="n-btn gray med cancel">@Messages("button.cancel")</a>
+   --><a href="javascript:history.back();" class="n-btn gray med cancel">@Messages("button.cancel")</a>
    <!-- 
       <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="n-btn gray med">@Messages("button.cancel")</a>
    -->

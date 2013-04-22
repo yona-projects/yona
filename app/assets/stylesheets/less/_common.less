@@ -134,7 +134,12 @@ a {
     margin-right:5px;
     &:last-of-type { margin:0; }
     
-    .del-link { margin-left:8px; }
+    .del-link { margin-left:8px; padding:8px 4px; }
+    
+    &.active {
+        &.active-white   { color:#fff; }
+        &.active-dimgray { color:#696969; }
+    }
 }
 
 /** alert **/

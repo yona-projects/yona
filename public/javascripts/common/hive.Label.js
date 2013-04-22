@@ -7,6 +7,11 @@
  * http://hive.dev.naver.com/license
  */
 
+/**
+ * hive.Label
+ * 라벨 목록을 가져다 표현해주는 역할 
+ * (개별 삭제 링크 처리 포함)
+ */
 hive.Label = (function(htOptions){
 
 	var htVar = {};
@@ -27,7 +32,7 @@ hive.Label = (function(htOptions){
 		}
 		
 		_attachEvent();
-		_updateLabels(htOptions.fOnLoad);		
+		_getLabels(htOptions.fOnLoad);		
 	}
 	
 	/**
@@ -41,26 +46,12 @@ hive.Label = (function(htOptions){
 		for(key in htOptions){
 			htVar[key] = htOptions[key];
 		}
-
-		// ['gray', 'red', 'orange', 'yellow', 'green', 'CornflowerBlue', 'blue', 'purple', 'white']
-		htVar.aColors = htVar.aColors || ['#999999','#da5454','#ff9933','#ffcc33','#99ca3c','#22b4b9','#4d68b1','#9966cc','#ffffff'];
 		
-		// label editor template
-		htVar.sTplEditor = htVar.sTplEditor || '<div class="control-group label-editor">\
-			<label id="custom-label-label" class="control-label">${labelNew}</label>\
-			<div id="custom-label" class="controls">\
-				<input id="custom-label-color" type="text" class="input-small" placeholder="${labelCustomColor}">\
-				<input id="custom-label-category" type="text" class="input-small" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
-				<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}">\
-				<button id="custom-label-submit" type="button" class="btn btn-inverse" style="vertical-align:top;">${labelAdd}</button>\
-			</div>\
-		</div>';
+		htVar.sURLLabel = htVar.sURLLabels.substr(0, htVar.sURLLabels.length-1);
 		
-		// add label template
-		htVar.sTplLabel = htVar.sTplLabel || '<div class="control-group"><label class="control-label" data-category="${category}">${category}</label></div>';
-		htVar.sTplControls = htVar.sTplControls || '<div class="controls" data-toggle="buttons-checkbox" data-category="${category}"></div>';
-		htVar.sTplBtnLabelId = htVar.sTplBtnLabelId || '<button type="button" class="issue-label ${labelCSS}" data-labelId="${labelId}">${labelName}</button>';
-		htVar.sTplBtnColor = htVar.sTplBtnColor || '<button type="button" class="issue-label n-btn small" style="background-color:${color}">&nbsp;';
+		htVar.sTplLabel = htOptions.sTplLabel || '<div class="control-group"><label class="control-label" data-category="${category}">${category}</label></div>';
+		htVar.sTplControls = htOptions.sTplControls || '<div class="controls label-group" data-category="${category}"></div>';		
+		htVar.sTplBtnLabelId = htOptions.sTplBtnLabelId || '<button type="button" class="issue-label ${labelCSS}" data-labelId="${labelId}">${labelName}</button>';		
 	}
 	
 	/**
@@ -68,7 +59,7 @@ hive.Label = (function(htOptions){
 	 */
 	function _initElement(){
 		htElement.welContainer  = $("fieldset.labels");
-		htElement.welForm = $('form#issue-form,form.form-search');
+		htElement.welForm = $('form#issue-form,form.form-search,form#search');
 		
 		// add label
 		htElement.welLabels = $('.labels'); 
@@ -83,31 +74,7 @@ hive.Label = (function(htOptions){
 	}
 	
 	/**
-	 * initialize Label Editor
-	 */
-	function _initLabelEditor(){
-		htElement.welContainer.append(_getLabelEditor());
-		
-		// custom label editor
-		htElement.welBtnLabel = $('#custom-label button.issue-label');
-		htElement.welBtnCustomLabelSubmit  = $('#custom-label-submit');
-		
-		htElement.welCustomLabelInput = $('#custom-label input'); // color, name, category
-		htElement.welCustomLabelColor = $('#custom-label-color'); 
-		htElement.welCustomLabelCategory = $('#custom-label-category');
-		htElement.welCustomLabelName =  $('#custom-label-name');
-		
-		// attach event
-		htElement.welBtnLabel.click(_onClickBtnLabel);
-		htElement.welBtnCustomLabelSubmit.click(_onClickBtnSubmitCustom);
-		
-		htElement.welCustomLabelInput.keypress(_onKeypressInputCustom);
-		htElement.welCustomLabelInput.keyup(_onKeyupInputCustom);
-		htElement.welCustomLabelColor.keyup(_onKeyupInputColorCustom);		
-	}	
-	
-	/**
-	 * 폼 전송시 라벨 선택도 반영되도록 필드 추가
+	 * 폼 전송시 라벨 선택도 반영되도록 자동으로 필드 추가
 	 */
 	function _onSubmitForm(){
 		var aValues = [];
@@ -122,7 +89,286 @@ hive.Label = (function(htOptions){
 
 		return true;
 	}
+
+	/**
+	 * initialize Label Editor
+	 */
+	function _initLabelEditor(){
+		hive.LabelEditor.appendTo(htElement.welContainer, {
+			"sURLPost" : htVar.sURLPost,
+			"fOnCreate": _onCreateNewLabel
+		});
+	}
 	
+	/**
+	 * 라벨 에디터가 새 라벨 생성후 호출하는 함수
+	 * @param {Object} oLabel
+	 */
+	function _onCreateNewLabel(oLabel){
+		_addLabelIntoCategory(oLabel);
+	}
+	
+	/**
+	 * getLabels
+	 * 라벨 목록을 서버로부터 수신하여 목록 생성 
+	 * 분류에 따라 라벨 목록을 만드는 것은 _addLabelIntoCategory 에서 수행
+	 * @param {Function} fCallback 완료 후 수행할 콜백 함수
+	 */
+	function _getLabels(fCallback){
+		var fOnLoad = function(oRes) {
+			if(!(oRes instanceof Object)){
+				console.log('Failed to update - Server error');
+				return;
+			}
+
+			// add label into category after sort
+			var aLabels = oRes.sort(function(a, b) {
+				return (a.category == b.category) ? (a.name > b.name) : (a.category > b.category);
+			});
+			$(aLabels).each(function(nIndex, oLabel){
+				_addLabelIntoCategory(oLabel);
+			});
+
+			// run callback function
+			if (typeof fCallback == "function") {
+				fCallback();
+			}
+			
+			aLabels = null;
+		};
+
+		// send request
+		$hive.sendForm({
+			"sURL"     : htVar.sURLLabels,
+			"fOnLoad"  : fOnLoad,
+			"htOptForm": {"method":"get"},
+		});
+	}
+
+	/**
+	 * add label into category
+	 * 새 라벨을 지정한 분류에 추가. 
+	 * 서버 통신용 함수는 아니고 화면에 표시하기 위한 목적. 
+	 * @param {Number} oLabel.id 라벨 id
+	 * @param {String} oLabel.category 라벨 분류
+	 * @param {String} oLabel.name 라벨 이름
+	 * @param {String} oLabel.color 라벨 색상
+	 * @returns {Wrapped Element} 추가된 라벨 버튼 엘리먼트
+	 */
+	function _addLabelIntoCategory(oLabel) {
+		document.styleSheets[0].addRule('.labels .issue-label.active[data-labelId="' + oLabel.id + '"]', 'background-color: ' + oLabel.color);
+		
+		// label Id		
+		var welBtnLabelId = $.tmpl(htVar.sTplBtnLabelId, {
+			"labelId": oLabel.id,
+			"labelName": oLabel.name,
+			"labelCSS" : 'active-' + $hive.getContrastColor(oLabel.color)
+		});
+		
+		// 편집모드: 삭제 링크 추가
+		if(htVar.bEditable){ 
+			welBtnLabelId.append(_getDeleteLink(oLabel.id, oLabel.color));
+		}
+		welBtnLabelId.click(_onClickLabel);
+		
+		// 이미 같은 카테고리가 있으면 거기에 넣고
+		var welCategory = $('fieldset.labels div[data-category="' + oLabel.category + '"]');
+		if (welCategory.length > 0) {
+			welCategory.append(welBtnLabelId);
+			return welBtnLabelId;
+		}
+		
+		// 없으면 새 카테고리 줄을 추가한다
+		var welLabel = $.tmpl(htVar.sTplLabel, {"category": oLabel.category});
+		var welControls = $.tmpl(htVar.sTplControls, {"category": oLabel.category});
+		welControls.append(welBtnLabelId); // Edit Button
+		welLabel.append(welControls); // Controls
+
+		// add label into category
+		if(htElement.welLabelEditor.length > 0) { 
+			htElement.welLabelEditor.before(welLabel);
+		} else {
+			htElement.welLabels.prepend(welLabel);
+		}
+
+		return welBtnLabelId;
+	}
+
+	function _onClickLabel(e){
+        var welTarget = $(e.target || e.srcElement || e.originalTarget);
+        welTarget.toggleClass("active");
+        return false;
+	}
+	
+	/**
+	 * remove label
+	 * 라벨 삭제
+	 */
+	function _removeLabel(id) {
+		var label = $('[data-labelId=' + id + ']');
+		
+		if (label.siblings().size() > 0) {
+			label.remove();
+			return;
+		}
+		
+		var category = $(label.parents('div').get(0)).attr('data-category');
+		$('[data-category="' + category + '"]').parent().remove();
+		
+		// 라벨 에디터의 분류 자동완성에서도 제거
+		if(htVar.bEditable){
+			hive.LabelEditor.removeCategory(category);
+		}
+	}
+
+	/**
+	 * add delete link
+	 * 라벨 삭제 링크 추가 함수
+	 * @param {String} sId
+	 * @param {String} sColor
+	 * @return {Wrapped Element}
+	 */
+	function _getDeleteLink(sId, sColor){
+		var fOnClick = function(){
+			$hive.sendForm({
+				"sURL"   : htVar.sURLLabel + '/' + sId + '/delete',
+				"htData" : {"_method": "delete"},
+				"fOnLoad": function(){
+					_removeLabel(sId);					
+				}
+			});	
+		};
+		
+		//$('<a class="icon-trash del-link active-' + $hive.getContrastColor(sColor) + '">');
+		var welLinkDelete = $('<a class="del-link">&times;</a>');
+		welLinkDelete.click(fOnClick);
+
+		return welLinkDelete;
+	}
+	
+	/**
+	 * 지정한 라벨을 선택한 상태로 만들어주는 함수
+	 * @param {String} sId
+	 * @param {String} sColor
+	 */
+	function _setActiveLabel(sId, sColor){
+		// 색상 지정하고
+		$('button[data-labelId="' + sId + '"]').css({
+			'color': $hive.getContrastColor(sColor),
+			'background-color': sColor
+		});
+
+		// 버튼 엘리먼트에 active 클래스 지정
+	    $('.labels button.btn[data-labelId="' + sId + '"]').addClass('active');		
+	}
+	
+	//_init(htOptions);
+	
+	return {
+		"init": _init,
+		"setActiveLabel": _setActiveLabel
+	};
+})();
+
+/**
+ * hive.LabelEditor
+ * 새 라벨 추가를 위한 에디터 인터페이스
+ */
+hive.LabelEditor = (function(welContainer, htOptions){
+	
+	var htVar = {};
+	var htElement = {};
+	
+	/**
+	 * initialize
+	 * @param {Wrapped Element} welContainer Container Element to append label editor
+	 * @param {Hash Table} htOptions
+	 */
+	function _init(welContainer, htOptions){
+		_initVar(htOptions);
+		_initElement(welContainer);
+		_attachEvent();
+	}
+	
+	/**
+	 * initialize variables
+	 */
+	function _initVar(htOptions){
+		htVar.sURLPost = htOptions.sURLPost;
+		htVar.fOnCreate = htOptions.fOnCreate || function(){};
+
+		htVar.aColors = htOptions.aColors || ['#999999','#da5454','#ff9933','#ffcc33','#99ca3c','#22b4b9','#4d68b1','#9966cc','#ffffff'];
+		htVar.sTplEditor = htOptions.sTplEditor || '<div class="control-group label-editor">\
+		<label id="custom-label-label" class="control-label">${labelNew}</label>\
+		<div id="custom-label" class="controls">\
+			<input id="custom-label-color" type="text" class="input-small" placeholder="${labelCustomColor}">\
+			<input id="custom-label-category" type="text" class="input-small" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
+			<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}">\
+			<button id="custom-label-submit" type="button" class="btn btn-inverse" style="vertical-align:top;">${labelAdd}</button>\
+		</div>\
+		</div>';
+		htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label n-btn small" style="background-color:${color}">&nbsp;';		
+	}
+	
+	/**
+	 * initialize elements
+	 */
+	function _initElement(welContainer){
+		htElement.welContainer = $(welContainer);
+		htElement.welEditor = _getLabelEditor();
+		htElement.welContainer.append(htElement.welEditor);
+		
+		htElement.waBtnCustomColor = $("#custom-label button.issue-label");
+		htElement.welBtnCustomLabelSubmit  = $('#custom-label-submit');
+		
+		htElement.welCustomLabelName =  $('#custom-label-name');
+		htElement.welCustomLabelInput = $('#custom-label input'); // color, name, category
+		htElement.welCustomLabelColor = $('#custom-label-color'); 
+		htElement.welCustomLabelCategory = $('#custom-label-category');
+		htElement.welCustomLabelCategory.typeahead();
+	}
+	
+	/**
+	 * attach events
+	 */
+	function _attachEvent(){
+		htElement.waBtnCustomColor.click(_onClickBtnCustomColor);
+		htElement.welBtnCustomLabelSubmit.click(_onClickBtnSubmitCustom);
+		
+		htElement.welCustomLabelInput.keypress(_onKeypressInputCustom);
+		htElement.welCustomLabelInput.keyup(_onKeyupInputCustom);
+		htElement.welCustomLabelColor.keyup(_onKeyupInputColorCustom);		
+	}	
+	
+	/**
+	 * Get label Editor
+	 * 새 라벨 편집기 영역 엘리먼트를 생성해서 반환하는 함수
+	 * @returns {Wrapped Element} 
+	 */
+	function _getLabelEditor(){
+		// label editor HTML
+		var welEditor = $.tmpl(htVar.sTplEditor, {
+			"labelAdd"		: Messages("label.add"),
+			"labelNew"		: Messages("label.new"),
+			"labelName"		: Messages("label.name"),
+			"labelCategory"	: Messages('label.category'),
+			"labelCustomColor": Messages("label.customColor")
+		});
+		
+		// generate color buttons
+		var welControls = welEditor.find(".controls");
+		if(welControls && htVar.aColors.length > 0){
+			var aColorBtns = [];
+			htVar.aColors.forEach(function(sColor){
+				aColorBtns.push($.tmpl(htVar.sTplBtnColor, {"color": sColor}));
+			});
+			welControls.prepend(aColorBtns);
+			welControls = aColorBtns = null;
+		}
+
+		return welEditor;
+	}
+		
 	/**
 	 * 새 라벨 추가 버튼 클릭시 이벤트 핸들러
 	 */
@@ -141,14 +387,47 @@ hive.Label = (function(htOptions){
 	}
 	
 	/**
+	 * add custom label
+	 * 새 라벨 추가
+	 */
+	function _addCustomLabel(){
+		var htData = {
+			"name"    : htElement.welCustomLabelName.val(),
+			"color"   : htElement.welCustomLabelColor.val(),
+			"category": htElement.welCustomLabelCategory.val()
+		};
+		
+		// 하나라도 입력안된 것이 있으면 서버 요청 하지 않음
+		if(htData.name.length === 0 || htData.color.length === 0 || htData.category.length === 0){
+			return false;
+		}
+		
+		// send request
+		$hive.sendForm({
+			"sURL"     : htVar.sURLPost, 
+			"htData"   : htData,
+			"htOptForm": {"enctype": "multipart/form-data"},
+			"fOnLoad"  : function(oRes){
+				// label.id, label.category, label.name, label.color
+				if (!(oRes instanceof Object)) {
+					console.log('Failed to add custom label - Server error.');
+					return;
+				}
+				htElement.welCustomLabelCategory.data("typeahead").source.push(oRes.category);
+				htVar.fOnCreate(oRes);
+			}
+		});
+	}
+	
+	/**
 	 * 새 라벨 색상 버튼 클릭시 이벤트 핸들러
 	 * @param {Event} eEvt
 	 */
-	function _onClickBtnLabel(eEvt){
+	function _onClickBtnCustomColor(eEvt){
 		var welTarget = $(eEvt.target || eEvt.srcElement || eEvt.originalTarget);
 
 		// Set clicked button active.
-		htElement.welBtnLabel.removeClass("active");
+		htElement.waBtnCustomColor.removeClass("active");
 		welTarget.addClass("active");
 
 		// Get the selected color.
@@ -178,7 +457,7 @@ hive.Label = (function(htOptions){
 		
 		oColor = null;
 	}
-
+	
 	/**
 	 * updateSelectedLabel Color
 	 * 지정한 색으로 새 라벨 이름 영역의 배경색을 설정하고
@@ -213,209 +492,13 @@ hive.Label = (function(htOptions){
 		aSelectors = elStyle = null;
 	}
 	
-	/**
-	 * Get label Editor
-	 * 새 라벨 편집기 영역 엘리먼트를 생성해서 반환하는 함수
-	 * @returns {Wrapped Element} 
-	 */
-	function _getLabelEditor(){
-		// label editor HTML
-		var welEditor = $.tmpl(htVar.sTplEditor, {
-			"labelAdd"		: Messages("label.add"),
-			"labelNew"		: Messages("label.new"),
-			"labelName"		: Messages("label.name"),
-			"labelCategory"	: Messages('label.category'),
-			"labelCustomColor": Messages("label.customColor")
-		});
+	function _removeCategoryTypeahead(sCategory){
+		var source = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
+		source.pop(source.indexOf(sCategory));
+	}
 		
-		// generate color buttons
-		var welControls = welEditor.find(".controls");
-		if(welControls && htVar.aColors.length > 0){
-			var aColorBtns = [];
-			htVar.aColors.forEach(function(sColor){
-				aColorBtns.push($.tmpl(htVar.sTplBtnColor, {"color": sColor}));
-			});
-			welControls.prepend(aColorBtns);
-			welControls = aColorBtns = null;
-		}
-
-		return welEditor;
-	}
-	
-	/**
-	 * updateLabels
-	 * 라벨 목록을 서버로부터 수신하여 목록 생성 
-	 * 분류에 따라 라벨 목록을 만드는 것은 _addLabelIntoCategory 에서 수행
-	 * @param {Function} fCallback 완료 후 수행할 콜백 함수
-	 */
-	function _updateLabels(fCallback){
-		var fOnLoad = function(oRes) {
-			if(!(oRes instanceof Object)){
-				console.log('Failed to update - Server error');
-				return;
-			}
-
-			// add label into category after sort
-			var aLabels = oRes.sort(function(a, b) {
-				return (a.category == b.category) ? (a.name > b.name) : (a.category > b.category);
-			});
-			$(aLabels).each(function(nIndex, oLabel){
-				_addLabelIntoCategory(oLabel);
-			});
-
-			// run callback function
-			if (typeof fCallback == "function") {
-				fCallback();
-			}
-			
-			aLabels = null;
-		};
-
-		// send request
-		$hive.sendForm({
-			"sURL"     : htVar.sURLLabels,
-			"fOnLoad"  : fOnLoad,
-			"htOptForm": {"method":"get"},
-		});
-	}
-
-	/**
-	 * remove label
-	 * 라벨 삭제
-	 */
-	function _removeLabel(id) {
-		var label = $('[labelId=' + id + ']');
-		
-		if (label.siblings().size() > 0) {
-			label.remove();
-		} else {
-			var category = $(label.parents('div').get(0)).attr('category');
-			$('[category="' + category + '"]').parent().remove();
-			var source = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
-			source.pop(source.indexOf(category));
-		}
-	}
-
-	/**
-	 * add custom label
-	 * 새 라벨 추가
-	 */
-	function _addCustomLabel(){
-		var htData = {
-			"name"    : htElement.welCustomLabelName.val(),
-			"color"   : htElement.welCustomLabelColor.val(),
-			"category": htElement.welCustomLabelCategory.val()
-		};
-		
-		// send request
-		$hive.sendForm({
-			"sURL"     : htVar.sURLPost, 
-			"htData"   : htData,
-			"htOptForm": {"enctype": "multipart/form-data"},
-			"fOnLoad"  : _onLoadAddCustomLabel
-		});
-	}
-	
-	function _onLoadAddCustomLabel(oRes){
-		// label.id, label.category, label.name, label.color
-		if (!(oRes instanceof Object)) {
-			console.log('Failed to add custom label - Server error.');
-			return;
-		}
-		_addLabelIntoCategory(oRes); 
-	}
-
-	/**
-	 * add label into category
-	 * 새 라벨을 지정한 분류에 추가. 
-	 * 서버 통신용 함수는 아니고 화면에 표시하기 위한 목적. 
-	 * @param {Number} oLabel.id 라벨 id
-	 * @param {String} oLabel.category 라벨 분류
-	 * @param {String} oLabel.name 라벨 이름
-	 * @param {String} oLabel.color 라벨 색상
-	 * @returns {Wrapped Element} 추가된 라벨 버튼 엘리먼트
-	 */
-	function _addLabelIntoCategory(oLabel) {
-		document.styleSheets[0].addRule('.labels button.btn.active[data-labelId="' + oLabel.id + '"]', 'background-color: ' + oLabel.color);
-		
-		// label Id		
-		var welBtnLabelId = $.tmpl(htVar.sTplBtnLabelId, {
-			"labelId": oLabel.id,
-			"labelName": oLabel.name,
-			"labelCSS" : 'active-' + $hive.getContrastColor(oLabel.color)
-		});
-		
-		if(htVar.bEditable){ // Delete link
-			welBtnLabelId.append(_getDeleteLink(oLabel.id, oLabel.color));
-			htElement.welCustomLabelCategory.typeahead().data("typeahead").source.push(oLabel.category)
-		}
-
-		// 이미 같은 카테고리가 있으면 거기에 넣고
-		var welCategory = $('fieldset.labels div[data-category="' + oLabel.category + '"]');
-		if (welCategory.length > 0) {
-			welCategory.append(welBtnLabelId);
-			return welBtnLabelId;
-		}
-		
-		// 없으면 새 카테고리 줄을 추가한다
-		var welLabel = $.tmpl(htVar.sTplLabel, {"category": oLabel.category});
-		var welControls = $.tmpl(htVar.sTplControls, {"category": oLabel.category});
-		welControls.append(welBtnLabelId); // Edit Button
-		welLabel.append(welControls); // Controls
-
-		// add label into category
-		if(htElement.welLabelEditor.length > 0) { 
-			htElement.welLabelEditor.before(welLabel);
-		} else {
-			htElement.welLabels.prepend(welLabel);
-		}
-
-		return welBtnLabelId;
-	}
-
-	/**
-	 * add delete link
-	 * 라벨 삭제 링크 추가 함수
-	 * @param {String} sId
-	 * @param {String} sColor
-	 * @return {Wrapped Element}
-	 */
-	function _getDeleteLink(sId, sColor){
-		var fOnClick = function(){
-			$hive.sendForm({
-				"sURL"   : htVar.sURLLabels + '/' + sId,
-				"htData" : {"_method": "delete"},
-				"fOnLoad": function(){
-					_removeLabel(sId);					
-				}
-			});	
-		};
-		
-		//$('<a class="icon-trash del-link active-' + $hive.getContrastColor(sColor) + '">');
-		var welLinkDelete = $('<a class="del-link">&times;</a>');
-		welLinkDelete.click(fOnClick);
-
-		return welLinkDelete;
-	}
-	
-	/**
-	 * 지정한 라벨을 선택한 상태로 만들어주는 함수
-	 */
-	function _setActiveLabel(sId, sColor){
-		// 색상 지정하고
-		$('button[data-labelId="' + sId + '"]').css({
-			'color': $hive.getContrastColor(sColor),
-			'background-color': sColor
-		});
-
-		// 버튼 엘리먼트에 active 클래스 지정
-	    $('.labels button.btn[data-labelId="' + sId + '"]').addClass('active');		
-	}
-	
-	//_init(htOptions);
-	
 	return {
-		"init": _init,
-		"setActiveLabel": _setActiveLabel
-	};
+		"appendTo": _init,
+		"removeCategory": _removeCategoryTypeahead
+	}
 })();

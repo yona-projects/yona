@@ -43,74 +43,32 @@
 		 * initialize element
 		 */
 		function _initElement(htOptions){
-			htElement.welForm = $("form.form-search");
-			htElement.welFieldset = $("fieldset.properties");
-			htElement.welAssigneeId  = htElement.welFieldset.find("button.active[data-assigneeId]");
-			htElement.welMilestoneId = htElement.welFieldset.find("button.active[data-milestoneId]");
-			htElement.welBtnOptions = htElement.welFieldset.find("div.controls button");
-			htElement.welBtnAdvance = $(".btn-advanced");
-			
+			htElement.welContainer  = $(".inner");
+			htElement.welBtnAdvance = $(".btn-advanced");		
 			htElement.welPagination = $(htOptions.elPagination || "#pagination");
-			
-			htElement.welLabels = $("button.issue-label[data-color]");
+
+			htElement.waLabels    = $("button.issue-label[data-color]"); // 목록 > 라벨
 		}
 		
 		/**
 		 * attach event handlers
 		 */
 		function _attachEvent(){
-			htElement.welForm.submit(_onSubmitForm);
-			htElement.welBtnOptions.click(_onClickBtnOptions);
 			htElement.welBtnAdvance.click(_onClickBtnAdvance);
 		}
 		
 		/**
-		 * on submit search form
+		 * 상세검색 영역 토글
 		 */
-		function _onSubmitForm(){
-			// AssigneeId
-			var sAssigneeId = htElement.welAssigneeId.attr("data-assigneeId")
-			if(typeof sAssigneeId != "undefined"){
-				htElement.welForm.append(_getHiddenInput("assigneeId", sAssigneeId));
-			}
-			
-			// Milestone Id
-			var sMilestoneId = htElement.welMilestoneId.attr("data-milestoneId");
-			if(typeof sMilestoneId != "undefined"){
-				htElement.welForm.append(_getHiddenInput("milesone", sMilestoneId));
-			}
-		}
-		
-		/**
-		 * get HTMLInputElement <input type="hidden">
-		 * @param {String} sName
-		 * @param {String} sValue
-		 * @returns {HTMLInputElement}
-		 */
-		function _getHiddenInput(sName, sValue){
-			return $('<input type="hidden" name="' + sName + '" value="' + sValue + '">')
-		}
-		
-		/**
-		 * on click button
-		 */
-		function _onClickBtnOptions(e){
-	        var welTarget = $(e.target || e.srcElement || e.originalTarget);
-	        if (welTarget.hasClass("active")) {
-	        	welTarget.removeClass("active");
-	        	return false;
-	        }
-		}
-
 		function _onClickBtnAdvance(){
-			$(".inner").toggleClass("advanced");
+			htElement.welContainer.toggleClass("advanced");
 	   	}
 
 		/**
 		 * initialize hive.Label
 		 * @param {Hash Table} htOptions
 		 */
-		function _initLabel(htOptions){
+		function _initLabel(htOptions){		
 			hive.Label.init(htOptions);
 		}
 		
@@ -128,7 +86,7 @@
 		function _setLabelColor(){
 			var welLabel, sColor;
 			
-			htElement.welLabels.each(function(){
+			htElement.waLabels.each(function(){
 				welLabel = $(this);
 				sColor = welLabel.data("color");
 				welLabel.css("background-color", sColor);
@@ -138,7 +96,6 @@
 			welLabel = sColor = null;
 		}
 
-		
 		_init(htOptions);
 	};
 	
