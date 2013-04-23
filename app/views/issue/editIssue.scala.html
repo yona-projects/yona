@@ -183,11 +183,13 @@
 	$(document).ready(function(){
 		// hive.Label
 		var htOptLabel = {
-			"bEditable"    : true,
 			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
 			"htActive"     : {@for(label <- issue.labels) { "@label.id":"@label.color", }"":""}
 		};
+		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+			htOptLabel.bEditable = true;
+		}
 		
 		// hive.issue.Write
 		$hive.loadModule("issue.Write", {
