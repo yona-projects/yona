@@ -1040,6 +1040,20 @@
                 &.public { color: #5DBBE0; }
             }
         }
+
+        .stat-projectlist {
+            border-bottom:1px solid #c5c5c5;
+            
+            &.active {
+                box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
+                border-bottom:none;
+                
+                &.all     { color: @orange; }
+                &.public  { color: #5DBBE0; }
+                /*&.private { color: #5DBBE0; }*/
+            }
+        }
+        
         .stat-issue {
             width:240px;
             border-bottom:1px solid #c5c5c5;

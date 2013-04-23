@@ -1,4 +1,4 @@
-@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, state:String)
+@(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, listState:String)
 
 @home(message, utils.MenuType.PROJECTS) {
 <div class="page">
@@ -6,26 +6,26 @@
 	   <div class="header-wrap">
          <div class="stats-wrap">
          	 @for(state <- Array("all", "public", "private")) {
-             <div class="stat">
-             	<a href="@routes.ProjectApp.projects(state=state)">
-                 <span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
-                 <span class="num @state">@Project.countByState(state)</span>
-                 </a>
+             <div class="stat stat-projectlist @state @if(listState.equals(state)){ active }">
+             	<a href="@routes.ProjectApp.projects(state=state)" class="@state">
+					<span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
+					<span class="num @state">@Project.countByState(state)</span>
+				</a>
              </div>
              }
          </div>
          <div class="search-wrap projects">
-             <div class="inner">
-                 <form action="@routes.ProjectApp.projects()" method="get">
-                 	<input name="state" type="hidden" value="@state">
-                     <input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><button type="submit" class="btn search-btn">SEARCH</button>                        
-                     <!-- <a href="#" class="btn-advanced"><i class="ico"></i>Advanced Search</a> -->
-                 </form>
+             <div id="search" class="inner">
+				<form action="@routes.ProjectApp.projects()" method="get">
+					<input name="state" type="hidden" value="@listState">
+					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!-- 
+				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button><!-- 
+				 	<a href="#" class="btn-advanced"><i class="ico"></i>Advanced Search</a> -->
                      
-                 <div class="srch-advanced">
-                 	상세검색 조건
-                 	<!-- TODO: fill this form -->
-                 </div>
+					<div class="srch-advanced">
+	                 	<!-- TODO: fill this form -->
+					</div>
+				</form>
              </div>
          </div>
      </div>
@@ -38,7 +38,7 @@
                       <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
             		  @if(!project.share_option){ <i class="ico ico-lock"></i> }
                       @for(tag <- project.tags) {
-                      <span class='label label-info'>@tag.name</span>
+                      <span class="label label-info">@tag.name</span>
                       }
                   </div>
                   <div class="desc">
