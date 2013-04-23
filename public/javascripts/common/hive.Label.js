@@ -156,7 +156,8 @@ hive.Label = (function(htOptions){
 	 * @returns {Wrapped Element} 추가된 라벨 버튼 엘리먼트
 	 */
 	function _addLabelIntoCategory(oLabel) {
-		document.styleSheets[0].addRule('.labels .issue-label.active[data-labelId="' + oLabel.id + '"]', 'background-color: ' + oLabel.color);
+		// set Label Color
+		_setLabelColor(oLabel);
 		
 		// label Id		
 		var welBtnLabelId = $.tmpl(htVar.sTplBtnLabelId, {
@@ -194,6 +195,21 @@ hive.Label = (function(htOptions){
 		return welBtnLabelId;
 	}
 
+	/**
+	 * 라벨 엘리먼트가 활성화 되었을때 (= active 클래스가 주어졌을때)
+	 * 적용할 배경색/글자색 CSS Rule 추가하는 함수
+	 * @param {Object} oLabel 
+	 */
+	function _setLabelColor(oLabel){
+		var sCSSTarget = '.labels .issue-label.active[data-labelId="' + oLabel.id + '"]';
+		document.styleSheets[0].addRule(sCSSTarget, 'background-color: ' + oLabel.color);
+		document.styleSheets[0].addRule(sCSSTarget, 'color: ' + $hive.getContrastColor(oLabel.color));
+	}
+
+	/**
+	 * 라벨 엘리먼트를 클릭했을때 이벤트 핸들러
+	 * active 클래스를 토글한다
+	 */
 	function _onClickLabel(e){
         var welTarget = $(e.target || e.srcElement || e.originalTarget);
         welTarget.toggleClass("active");
@@ -249,17 +265,14 @@ hive.Label = (function(htOptions){
 	/**
 	 * 지정한 라벨을 선택한 상태로 만들어주는 함수
 	 * @param {String} sId
-	 * @param {String} sColor
+	 * @param {String} sColor deprecated
 	 */
 	function _setActiveLabel(sId, sColor){
-		// 색상 지정하고
-		$('button[data-labelId="' + sId + '"]').css({
-			'color': $hive.getContrastColor(sColor),
-			'background-color': sColor
-		});
+		// 색상 지정: addLabelIntoCategory 단계에서 
+		// 이미 .active 상태의 색상이 지정되어 있음
 
-		// 버튼 엘리먼트에 active 클래스 지정
-	    $('.labels button.btn[data-labelId="' + sId + '"]').addClass('active');		
+		// 해당되는 라벨 엘리먼트에 active 클래스 지정
+	    $('.labels button.issue-label[data-labelId="' + sId + '"]').addClass('active');		
 	}
 	
 	//_init(htOptions);
