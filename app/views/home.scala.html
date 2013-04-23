@@ -1,9 +1,10 @@
 @(title: String, menuType:utils.MenuType)(content: Html)
 
-@layout(Messages(title))("orange") {
-    @views.html.navbar(menuType)
+@layout(Messages(title))(""){
+    @navbar(menuType)
+    
     <div class="container page-wrap">
-        @views.html.alert()
+        @alert()
         @content
     </div>
     <footer class="page-footer-outer">
