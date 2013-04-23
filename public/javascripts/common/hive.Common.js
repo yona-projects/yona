@@ -200,6 +200,7 @@ $hive = hive.Common = (function(){
 	 * @param {Hash Table} htOptions.htData data to send
 	 * @param {Function}   htOptions.fOnLoad callback function on load
 	 * @param {Function}   htOptions.fOnError callback function on error
+	 * @param {String}	   htOptions.sDataType
 	 */
 	function sendForm(htOptions){
 		var sKey = "";
@@ -223,8 +224,9 @@ $hive = hive.Common = (function(){
 		
 		// send form
 		welForm.ajaxForm({
-			"success": htOptions.fOnLoad  || function(){},
-			"error"  : htOptions.fOnError || function(){}
+			"success" : htOptions.fOnLoad  || function(){},
+			"error"   : htOptions.fOnError || function(){},
+			"datatype": htOptions.sDataType || null
 		});
 		welForm.submit();
 		
