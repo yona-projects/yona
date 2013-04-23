@@ -69,19 +69,21 @@
         @** labels **@
 		<p class="pull-right">
 			@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { 
-				<button class="issue-label" labelId="@label.id">@label.name</button> 
+				<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button> 
 			}
 		</p>
       </div>
     </div>
     <div class="content" markdown="true">@issue.body</div>
-    <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
-    <!--
+    <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id">
+    @**<!-- 
       <ul class="attaches wm">
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
         <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
-      </ul>-->
+      </ul>-->**@
+	</div>
+
   </div>
   <div class="board-footer board-actrow">
   @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -220,7 +222,6 @@
 <script type="text/javascript">
 	$(document).ready(function(){
 		// hive.Label
-		var htActiveLabels = {@for(label <- issue.labels) { "@label.id":"@label.color'", }"":""};		
 		var htOptLabel = {
 			"bEditable"    : false,
 			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
@@ -230,9 +231,8 @@
 		// hive.issue.View
 		$hive.loadModule("issue.View", {
 			"sAction"       : "@routes.AttachmentApp.newFile",
-			"htOptLabel"    : htOptLabel,
-			"htActiveLabels": htActiveLabels
-		});
+			"htOptLabel"    : htOptLabel
+		});		
 	});
 </script>
 }
