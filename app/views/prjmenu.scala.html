@@ -39,13 +39,15 @@
 			<li class="@isActiveMenu(MenuType.ISSUE)"><a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("menu.issue")</a></li>
 			<li class="sp-line">|</li>
 			<li class="@isActiveMenu(MenuType.MILESTONE)"><a href="@routes.MilestoneApp.milestones(project.owner, project.name)">@Messages("project.milestone")</a></li>
+		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
 			<li class="sp-line">|</li>
 			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
+		}
 		</ul>
 	</div>
 
 @** 프로젝트 설정 서브메뉴 **@
-	@if(menuType.equals(MenuType.PROJECT_SETTING)){
+@if(menuType.equals(MenuType.PROJECT_SETTING)){
 	<div class="project-menu-wrap sub">
 		<ul class="unstyled on-admin">
 			@makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"))
@@ -55,7 +57,7 @@
 			@** makeSubMenu(routes.MilestoneApp.milestones(project.owner, project.name), Messages("project.sidebar.help")) **@
 		</ul>
 	</div>
-	}
+}
 </div>
 
 <script type="text/javascript">
@@ -65,7 +67,9 @@ $(document).ready(function(){
 
 		$(".project-menu-wrap a").each(function(n, el){
 			welLink = $(el);
-			if(welLink.attr("href") == document.location.pathname){
+			
+			if(welLink.attr("href").split("?")[0] == document.location.pathname){
+				$(".project-menu-wrap li").removeClass("highlight");
 				welLink.parent().addClass("highlight");
 			}
 		});
