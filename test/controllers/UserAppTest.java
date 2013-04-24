@@ -84,7 +84,7 @@ public class UserAppTest {
 
     @Test
     public void login_notComfirmedUser() {
-        Map<String, String> fakeConf = Helpers.inMemoryDatabase();
+        Map<String, String> fakeConf = inmemoryWithCustomConfig("signup.require.confirm", "true");
 
         running(fakeApplication(fakeConf), new Runnable() {
             public void run() {
@@ -93,6 +93,7 @@ public class UserAppTest {
                 user.loginId = "fakeUser";
                 user.email = "fakeuser@fake.com";
                 user.name = "racoon";
+                user.password = "somefakepassword";
                 user.createdDate = JodaDateUtil.now();
                 user.isLocked = true;
                 user.save();
@@ -113,11 +114,20 @@ public class UserAppTest {
         });
     }
 
+    private Map<String, String> inmemoryWithCustomConfig(String additionalKey, String value) {
+        Map<String, String> dbHelper = Helpers.inMemoryDatabase();
+        Map<String, String> fakeConf = new HashMap<String, String>();
+        for(String key: dbHelper.keySet()) {
+            fakeConf.put(key, dbHelper.get(key));
+        }
+        fakeConf.put(additionalKey, value);
+        return fakeConf;
+    }
+
     @Test
     public void newUser_confirmSignUpMode() {
-        Map<String, String> fakeConf = Helpers.inMemoryDatabase();
-
-        running(fakeApplication(fakeConf), new Runnable() {
+        Map<String, String> map = inmemoryWithCustomConfig("signup.require.confirm", "true");
+        running(fakeApplication(map), new Runnable() {
             public void run() {
                 //Given
                 final String loginId = "somefakeuserid";

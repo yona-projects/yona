@@ -105,7 +105,6 @@ public class SiteApp extends Controller {
             targetUser.save();
             return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
         }
-        flash(Constants.WARNING, "auth.unauthorized.title");
         return redirect(routes.Application.index());
     }
 }
