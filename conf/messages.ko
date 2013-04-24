@@ -91,6 +91,8 @@ button.detail = 자세히
 button.apply = 적용
 button.back = 돌아가기
 button.upload = 파일 올리기
+button.user.makeAccountUnlock.true = 잠김해제
+button.user.makeAccountUnlock.false = 계정잠그기
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
@@ -283,6 +285,8 @@ site.user.delete = 유저 삭제
 site.user.deleteConfirm = 정말로 해당 유저를 사이트에서 탈퇴시키겠습니까?
 site.project.delete = 프로젝트 삭제
 site.project.deleteConfirm = 정말로 해당 프로젝트를 사이트에서 삭제하겠습니까?
+site.userlist.unlocked = 활성화된 유저 목록
+site.userlist.locked = 계정이 잠긴 유저 목록
 
 #User
 user.loginId = 아이디
@@ -305,6 +309,9 @@ user.signupId = 아이디
 user.signupBtn = 참여하기
 user.loginWithNewPassword = 새로 설정한 비밀번호로 로그인 하세요
 user.notExists.name = 존재하지 않는 유저입니다.
+user.locked = 잠긴 사용자 계정입니다.
+user.isLocked = 잠김여부
+user.signup.requested = 하이브 가입이 요청되었습니다. 사이트 관리자가 검토/승인 후 사용가능합니다. 감사합니다.
 
 #Role
 role.manager = 관리자

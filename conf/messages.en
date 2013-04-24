@@ -88,6 +88,8 @@ button.detail = Detail
 button.apply = Apply
 button.back = Back
 button.upload = Upload
+button.user.makeAccountUnlock.true = Unlock
+button.user.makeAccountUnlock.false = Lock
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -277,6 +279,8 @@ site.user.delete = Delete an user
 site.user.deleteConfirm = Are you sure that his user leaves this site?
 site.project.delete = Delete an project
 site.project.deleteConfirm = Do you want to delete this project?
+site.userlist.unlocked = Active User List
+site.userlist.locked = Account Locked User List
 
 #User
 user.loginId = Login ID
@@ -299,6 +303,9 @@ user.signupId = ID (lower case)
 user.signupBtn = Sign Up
 user.loginWithNewPassword = Please, login with new password!
 user.notExists.name = User Doesn't Exists
+user.locked = User account is locked
+user.isLocked = is locked?
+user.signup.requested = Sign-up for hive is requested. Site admin will review your request. Thanks
 
 #Role
 role.manager = Manager
