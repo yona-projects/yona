@@ -60,7 +60,7 @@
 				<form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
 					<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
 					<input type="hidden" name="state"   value="@param.state">
-					<input type="text"   name="filter"  class="text" placeholder="현재 프로젝트에서 검색"><!-- 
+					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")"><!-- 
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
 	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
 
