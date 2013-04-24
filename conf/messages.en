@@ -59,6 +59,7 @@ label.category = Category
 label.name = Name
 label.add = Add
 label.manage = Manage Label
+label.confirm.delete = Are you Sure?
 
 order.all = All
 order.date = Date
@@ -373,6 +374,8 @@ assignee = Assignee
 milestone = Milestone
 none = None
 comment = Comment
+noAssignee = No Assignee
+noMilestone = No Milestone 
 
 #validation
 validation.tooShortPassword = The password field must be at least 4 characters in length.

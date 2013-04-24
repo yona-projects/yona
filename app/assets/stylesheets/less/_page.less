@@ -1046,7 +1046,7 @@
             
             &.active {
                 box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
-                border-bottom:none;
+                border-bottom:none; font-weight:bold;
                 
                 &.all     { color: @orange; }
                 &.public  { color: #5DBBE0; }
@@ -1060,7 +1060,7 @@
             
             &.active {
                 box-shadow:inset 0px 2px 2px rgba(0,0,0,0.25);
-                border-bottom:none;
+                border-bottom:none; font-weight:bold;
                 
                 .desc {
                     &.all  { color: @orange; }
@@ -2216,7 +2216,18 @@ div.markdown-preview {
         margin-left: 5px;
     }
 }
-.board-actrow { margin:20px 0; }
+.board-actrow { 
+    margin:20px 0;
+    
+    .labels-wrap {
+        width: 650px;
+        line-height: 30px;
+        padding-right: 30px;
+        text-align: left;
+        .inline-block;
+        /*.pull-left;*/
+    }
+}
 
 .attach-wrap {
     > div {

@@ -80,7 +80,7 @@
 		 * @param {Wrapped Element} welTarget
 		 */
 		function _setFormValue(welTarget){
-			var sFieldValue = welTarget.attr("data-value") || welTarget.text();
+			var sFieldValue = welTarget.attr("data-value");
 			var sFieldName	= htElement.welContainer.attr("data-name");
 			var welInput	= htElement.welContainer.find("input[name='" + sFieldName +"']");
 			

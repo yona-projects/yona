@@ -59,19 +59,17 @@
         </p>
         
 		@** status **@
-        <p class="status">
+        <p>
 			@Messages("comment") <strong class="num">@issue.comments.size</strong>
+			
+			@Messages("milestone")
 			@if(issue.milestone != null) {
-			@Messages("milestone") <strong class="num">@issue.milestone.title</strong>
+				<strong class="num">@issue.milestone.title</strong>
+			} else {
+				<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)} else {#}" class="gray-txt"><strong>@Messages("none")</strong></a>
 			}
         </p>
         
-        @** labels **@
-		<p class="pull-right">
-			@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { 
-				<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button> 
-			}
-		</p>
       </div>
     </div>
     <div class="content" markdown="true">@issue.body</div>
@@ -86,6 +84,14 @@
 
   </div>
   <div class="board-footer board-actrow">
+  
+	@** labels **@
+	<p class="labels-wrap">
+		@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { 
+			<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button> 
+		}
+	</p>
+  
   @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
 	<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="n-btn orange med">@Messages("button.edit")</a>
   }

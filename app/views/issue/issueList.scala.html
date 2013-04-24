@@ -76,10 +76,11 @@
 								<label class="control-label">@Messages("assignee")</label>
 								<div class="controls">
 									<div class="btn-group" data-name="assigneeId">
-										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("none")</button>
+										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("order.all")</button>
 										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 										<ul class="dropdown-menu">
-											<li data-value="0" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("none")</a></li>
+											<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("order.all")</a></li>
+											<li data-value="0"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
 											@for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
 											<li data-value="@assignee.user.id"><a href="javascript:void(0)">@User.find.byId(assignee.user.id).name (@User.find.byId(assignee.user.id).loginId)</a></li>
 											}
@@ -91,10 +92,11 @@
 								<label class="control-label">@Messages("milestone")</label>
 								<div class="controls">
 									<div class="btn-group" data-name="milestone">
-										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("none")</button>
+										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("milestone.state.all")</button>
 										<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 										<ul class="dropdown-menu">
-											<li data-value="0" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("none")</a></li>
+											<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("milestone.state.all")</a></li>
+											<li data-value="0"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
 											@for(milestone <- Milestone.findByProjectId(project.id)) {
 											<li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
 											}
@@ -128,7 +130,7 @@
 	        <div class="attach-wrap">
 			@if(Attachment.findByContainer(issue.asResource).size > 0){
 	        	<i class="ico ico-clip"></i>
-	        	}
+	        }
 	        </div>
 	        <div class="contents">
 	            <p class="title">

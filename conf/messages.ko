@@ -60,6 +60,7 @@ label.category = 분류
 label.name = 이름
 label.add = 추가
 label.manage = 라벨관리
+label.confirm.delete = 라벨을 삭제하면 이슈에 지정한 라벨도 함께 제거됩니다. 정말 삭제하시겠습니까?
 
 order.all = 전체
 order.date = 날짜순
@@ -336,7 +337,6 @@ label.writer = 글쓴이
 post.is.empty = 등록된 게시물이 없습니다.
 title.contentSearchResult = 컨텐츠 검색 결과
 
-
 #Vaildation
 error.required = 필수 입력란입니다.
 error.wrong.format = 잘못된 형식의 값 입니다.
@@ -380,6 +380,8 @@ assignee = 담당자
 milestone = 마일스톤
 none = 없음
 comment = 댓글
+noAssignee = 담당자 없음
+noMilestone = 마일스톤 없음 
 
 #validation
 validation.tooShortPassword = 비밀번호를 4자 이상으로 만들어 주세요!

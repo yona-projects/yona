@@ -246,6 +246,10 @@ hive.Label = (function(htOptions){
 	 */
 	function _getDeleteLink(sId, sColor){
 		var fOnClick = function(){
+			if(confirm(Messages("label.confirm.delete")) === false){
+				return false;
+			}
+			
 			$hive.sendForm({
 				"sURL"   : htVar.sURLLabel + '/' + sId + '/delete',
 				"htData" : {"_method": "delete"},
