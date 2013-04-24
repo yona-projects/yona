@@ -47,7 +47,7 @@
 			var bChecked = htElement.welChkAccept.is(":checked");
 			
 			if(bChecked === false){
-				$hive.showAlert("project.delete.alert");
+				$hive.showAlert(Messages("project.delete.alert"));
 				return false;
 			}
 			return true;

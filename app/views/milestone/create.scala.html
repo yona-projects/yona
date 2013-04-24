@@ -10,26 +10,14 @@
             <div class="inner left">
             	<dl>
             		<dt>
-		                <div class="n-alert hide" id="title_error">
-		                    <div class="n-inner">
-		                        <span class="msg">타이틀을 입력해주세요.</span>
-		                        <a href="#!/close" class="ico btn-delete"></a>
-		                    </div>
-		                </div>
-            			<label for="title">새 마일스톤의 제목을 입력해주세요</label>
+            			<label for="title">@Messages("milestone.form.title")</label>
             		</dt>
             		<dd>
 						<input type="text" name="title" id="title" class="text" placeholder="">
 					</dd>
 					
 					<dt>
-		                <div class="n-alert hide" id="contents_error">
-		                    <div class="n-inner">
-		                        <span class="msg">내용을 입력해주세요.</span>
-		                        <a href="#!/close" class="ico btn-delete"></a>
-		                    </div>
-		                </div>
-		                <label for="contents">내용을 입력해주세요</label>
+		                <label for="contents">@Messages("milestone.form.content")</label>
 		            </dt>
 		            <dd>
 						<textarea class="textarea" id="contents" name="contents"></textarea>
@@ -37,26 +25,20 @@
             	</dl>
 
                 <div class="actions">
-                    <button type="submit" class="n-btn orange med btn-transparent save">SAVE</button>
-                    <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">CANCEL</a>
+                    <button type="submit" class="n-btn orange med btn-transparent save">@Messages("button.save")</button>
+                    <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">@Messages("button.cancel")</a>
                 </div>
             </div>
             
             <div class="inner right bubble-wrap dark-gray">
-                <p>마일스톤 상태</p>
+                <p>@Messages("milestone.form.state")</p>
                 <div>
-               		<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" checked="checked"><label for="milestone-open" class="bold">Open</label>
+               		<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" checked="checked"><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>
                		&nbsp;
-               		<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn"><label for="milestone-close" class="bold">Closed</label>
+               		<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn"><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
                 </div>
                 <hr/>
-                <p>완료일을 선택하세요.</p>
-                <div class="n-alert hidden">
-                    <div class="n-inner">
-                        <span class="msg">완료일을 입력해주세요.</span>
-                        <a href="#!/close" class="ico btn-delete"></a>
-                    </div>
-                </div>
+                <p>@Messages("milestone.form.dueDate")</p>
                 <label for="dueDate">
                     <input type="text" name="dueDate" id="dueDate" class="validate due-date">
                 </label>

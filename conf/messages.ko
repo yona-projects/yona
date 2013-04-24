@@ -101,7 +101,7 @@ input.optional = 선택 입력 사항
 
 #Milestone
 milestone.state.all = 전체
-milestone.state.open = 미완료
+milestone.state.open = 진행중
 milestone.state.closed = 완료
 milestone.is.empty = 등록된 마일스톤이 없습니다
 milestone.menu.manage = 마일스톤 관리
@@ -110,6 +110,13 @@ milestone.none = 없음
 sort.by.dueDate = 완료일 순
 sort.by.completionRate = 완료율 순
 milestone.title.duplicated = 마일스톤 제목이 다른것과 중복 됩니다. 다른 제목을 사용하세요.
+milestone.form.title = 마일스톤 제목
+milestone.form.content = 내용을 입력해주세요
+milestone.form.state = 마일스톤 상태
+milestone.form.dueDate = 완료일을 선택하세요
+milestone.error.title = 마일스톤 제목을 입력해주세요
+milestone.error.content = 마일스톤 내용을 입력해주세요
+milestone.error.duedateFormat = 완료일 형식이 잘못되었습니다. YYYY-MM-DD 형식으로 입력해주세요. 
 
 #Issue
 issue.state.unit = 이슈

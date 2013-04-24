@@ -24,10 +24,12 @@
                         <li>@Messages("project.logo.maxFileSize") <span class="point">1MB</span></li>
                         <li>@Messages("project.logo.size") <span class="point">234px × 168px</span></li>
                         <li>
-                            <div class="ns-btn fake-file-wrap">
-                            	<i class="ico ico-plus-blue"></i>@Messages("button.upload")
-                                <input type="file" class="file" name="logoPath" accept="image/*">
-                            </div>
+                            <div class="fake-file-wrap">
+								<input type="file" class="file" name="logoPath" size="1" accept="image/*">
+								<div class="ns-btn">
+									<i class="ico ico-plus-blue"></i>@Messages("button.upload")
+								</div>
+							</div>
                         </li>
                     </ul>
                 </div>

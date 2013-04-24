@@ -1493,11 +1493,19 @@
     margin-top: 10px;
     position: relative;
     overflow: hidden;
+    
+    height:40px; display:block; clear:both;
+    
     .file {
-        position: absolute;
-        left: -5px;
-        top: -2px;
-        .opacity(0.5);
+        position: absolute; z-index:2;
+        cursor:pointer;
+        left: -15px;
+        .opacity(0);
+    }
+    
+    .ns-btn {
+        position:absolute; z-index:1;
+        display:block !important;
     }
 }
 
@@ -1791,7 +1799,7 @@
 
 //-- new milestone
 .form-wrap {
-    overflow: hidden;
+    /*overflow: hidden;*/
     &.milestone {
         .inner {
             &.left {
@@ -2245,7 +2253,7 @@ div.markdown-preview {
         width: 45px;
     }*/
     .attach-info-wrap {
-        width: 657px; /*715px;*/
+        width: 850px; /*657px;*/ /*715px;*/
         font-size: 11px;
         /*opacity:0;
         -webkit-transition-duration:0.3s;
@@ -2364,6 +2372,17 @@ div.markdown-preview {
     }
     
     .option-label { color:#959595; font-weight:bold; margin-bottom:5px; }
+    
+    .issue-form-labels {
+        &.form-horizontal { 
+            .control-label {
+                width:100px; padding-top:0; line-height:30px;
+            }
+            .controls {
+                margin-left:120px; line-height:30px;
+            }
+        }
+    }
 }
 .content-footer {
     padding: 20px;
@@ -2486,6 +2505,7 @@ div.markdown-preview {
 
 .repo-wrap {
     padding:10px;
+    overflow:visible !important;
 }
 .repo-info {
     padding:19px 20px;

@@ -47,7 +47,7 @@
           &nbsp;&middot;&nbsp;
           @Messages("issue.assignee")
           @if(issue.assigneeName == null){ 
-          <a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)} else {#}" class="gray-txt">
+          <a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)#options} else {#}" class="gray-txt">
 			<strong>@Messages("issue.noAssignee")</strong>
           </a>
           } else {
@@ -66,7 +66,7 @@
 			@if(issue.milestone != null) {
 				<strong class="num">@issue.milestone.title</strong>
 			} else {
-				<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)} else {#}" class="gray-txt"><strong>@Messages("none")</strong></a>
+				<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)#options} else {#}" class="gray-txt"><strong>@Messages("none")</strong></a>
 			}
         </p>
         
@@ -166,8 +166,11 @@
 			</div>
 			
 			<div class="btn-wrap">
-				<div class="ns-btn fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>@Messages("button.upload") <input type="file" class="file" name="filePath">
+				<div class="fake-file-wrap">
+					<input type="file" class="file" name="filePath" size="1">
+					<div class="ns-btn">
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")
+					</div>
 				</div>
 			</div>
 			}
