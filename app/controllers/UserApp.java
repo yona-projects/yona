@@ -5,21 +5,12 @@ import models.*;
 import models.enumeration.ResourceType;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authc.IncorrectCredentialsException;
-import org.apache.shiro.authc.LockedAccountException;
-import org.apache.shiro.authc.UnknownAccountException;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha256Hash;
-import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ByteSource;
-import org.apache.shiro.util.Factory;
 
+import play.Configuration;
 import play.Logger;
 import play.data.Form;
 import play.mvc.*;
@@ -81,15 +72,31 @@ public class UserApp extends Controller {
 		return redirect(routes.Application.index());
 	}
 
+    private static boolean isUseSignUpConfirm(){
+        Configuration config = play.Play.application().configuration();
+        String useSignUpConfirm = config.getString("signup.require.confirm");
+        if (useSignUpConfirm != null && useSignUpConfirm.equals("true")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 	public static Result login() {
 		Form<User> userForm = form(User.class).bindFromRequest();
 		if(userForm.hasErrors()) {
             return badRequest(login.render("title.login", userForm));
         }
         User sourceUser = form(User.class).bindFromRequest().get();
-		User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
-		if(authenticate!=null) {
+        if (isUseSignUpConfirm()) {
+            if( User.findByLoginId(sourceUser.loginId).isLocked == true ){
+                flash(Constants.WARNING, "user.locked");
+                return redirect(routes.UserApp.loginForm());
+            }
+        }
+        User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
+
+		if(authenticate != null) {
 			addUserInfoToSession(authenticate);
 			if (sourceUser.rememberMe) {
 				setupRememberMe(authenticate);
@@ -162,12 +169,24 @@ public class UserApp extends Controller {
 		else {
 			User user = newUserForm.get();
 			user.avatarUrl = DEFAULT_AVATAR_URL;
-			User.create(hashedPassword(user));
-
-			addUserInfoToSession(user);
+            lockAccountIfSignUpConfirmModeIsUsed(user);
+            User.create(hashedPassword(user));
+            if(user.isLocked){
+                flash(Constants.INFO, "user.signup.requested");
+            } else {
+                addUserInfoToSession(user);
+            }
 			return redirect(routes.Application.index());
 		}
 	}
+
+    private static void lockAccountIfSignUpConfirmModeIsUsed(User user) {
+        Configuration config = play.Play.application().configuration();
+        String useSignUpConfirm = config.getString("signup.require.confirm");
+        if (useSignUpConfirm != null && useSignUpConfirm.equals("true")) {
+            user.isLocked = true;
+        }
+    }
 
     //Fixme user.password가 plain text 였다가 다시 덮여쓰여지는 식으로 동작한다. 혹시라도 패스워드 reset을 위해 이 메소드를 잘못 사용했다가는 자칫 로그인을 할 수 없게 되는 상황이 발생할 수 있다.
 	public static User hashedPassword(User user) {

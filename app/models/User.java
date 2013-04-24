@@ -6,12 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 import models.enumeration.Direction;
 import models.enumeration.Matching;
@@ -53,10 +48,9 @@ public class User extends Model {
 
     @Email(message = "user.wrongEmail.alert")
     public String email;
-
     public String avatarUrl;
-
     public boolean rememberMe;
+    public boolean isLocked = false;
 
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date createdDate;

@@ -93,4 +93,19 @@ public class SiteApp extends Controller {
     public static Result softwareMap() {
         return TODO;
     }
+
+    public static Result toggleAccountLock(String loginId){
+        if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
+            User targetUser = User.findByLoginId(loginId);
+            if (targetUser.isAnonymous()){
+                flash(Constants.WARNING, "user.notExists.name");
+                return redirect(routes.SiteApp.userList(0, null));
+            }
+            targetUser.isLocked = !targetUser.isLocked;
+            targetUser.save();
+            return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
+        }
+        flash(Constants.WARNING, "auth.unauthorized.title");
+        return redirect(routes.Application.index());
+    }
 }
