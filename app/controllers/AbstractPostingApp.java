@@ -39,8 +39,6 @@ public class AbstractPostingApp extends Controller {
     }
 
     public static Result newComment(Comment comment, Form<? extends Comment> commentForm, Call redirectTo, Callback containerUpdater) throws IOException {
-        Project project = comment.asResource().getProject();
-
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "board.comment.empty");
             return redirect(redirectTo);
