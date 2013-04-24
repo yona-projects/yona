@@ -106,6 +106,12 @@
 					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.assignee")</button>
 					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 					<ul class="dropdown-menu">
+						@if(issue.assignee == null) {
+						@ProjectUser.options(project.id).map{ v =>
+						<li data-value="@v._1"><a href="javascript:void(0)">@v._2</a></li>
+						}
+						}
+						
                         @if(issue.assignee != null) {
 						@ProjectUser.options(project.id).map{ v =>
 						<li data-value="@v._1" @if(issue.assignee.user.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
