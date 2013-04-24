@@ -31,11 +31,11 @@
     @if(history.size() > 0) {
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
-			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
-			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
+			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!--
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
 			<div class="btn-group">
-				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch">@if(selectedBranch){ @selectedBranch } else { HEAD }</button>				
+				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch">@if(selectedBranch){ @selectedBranch } else { HEAD }</button>
 				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 				@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
 					@if(branches.length > 0) {
@@ -71,13 +71,14 @@
 							</td>
 							<td class="messages">@commit.getMessage()</td>
 							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-							<td class="author">@defining(User.find.where.eq("email",
+							<td class="author @commit.getAuthorEmail">@defining(User.find.where.eq("email",
 								commit.getAuthorEmail).findUnique) { user => @if(user != null) {
-								<a href="@routes.UserApp.userInfo(user.loginId)"> } <img
-									class="user-picture"
-									src="@urlToPicture(commit.getAuthorEmail(), 34)">
-									@if(user != null) {
-							</a> } }
+								<a href="@routes.UserApp.userInfo(user.loginId)">
+                                    <img src="@user.avatarUrl" alt="@user.name" width="34" height="34"/>
+                                </a>
+                                } else {
+                                <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)">
+                                }}
 							</td>
 						</tr>
 						}
@@ -85,13 +86,13 @@
 				</table>
 			</div>
 		</div>
-		
+
 		@if(page > 0) {
         <ul class="pager">
 			<li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
         </ul>
         }
-        
+
         @if(history.get(history.size() - 1).getParentCount() > 0) {
         <ul class="pager">
 			<li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
@@ -99,8 +100,8 @@
         }
       </div>
     } @** end of if(history.size) **@
-    
-  } @** end of defining url **@ 
+
+  } @** end of defining url **@
 </div>
 
 <!-- <script type="text/javascript" src="/assets/javascripts/service/hive.code.History.js"></script> -->
