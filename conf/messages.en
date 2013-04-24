@@ -60,6 +60,7 @@ label.name = Name
 label.add = Add
 label.manage = Manage Label
 label.confirm.delete = Are you Sure?
+label.select = Select Label
 
 order.all = All
 order.date = Date

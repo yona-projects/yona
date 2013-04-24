@@ -7,110 +7,85 @@
 @projectMngMain(message, project) {
     @prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
 
+	@form(action=routes.ProjectApp.settingProject(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
     <div class="bubble-wrap gray">
-        @form(action=routes.ProjectApp.settingProject(project.owner, project.name), 'id->"saveSetting" , 'enctype->"multipart/form-data", 'class->"nm"){
-            <input type="hidden" name="id" value="@projectForm("id").value.toLong">
-            <div class="box-wrap top clearfix frm-wrap">
-                <div class="setting-box left">
-                    <div class="logo-wrap">
-                      <img src="@defining(Attachment.findByContainer(project.asResource)) @{ files =>
-                        if (files.size > 0) "/files/" + files.head.id
-                        else routes.Assets.at("images/bg-default-project.jpg") }" alt="project-logo">
-                    </div>
-                    <div class="logo-desc">
-                        <ul class="unstyled descs">
-                            <li><strong>@Messages("project.logo")</strong></li>
-                            <li>@Messages("project.logo.type") <span class="point">bmp, jpg, gif, png</span></li>
-                            <li>@Messages("project.logo.maxFileSize") <span class="point">1MB</span></li>
-                            <li>@Messages("project.logo.size") <span class="point">234px × 168px</span></li>
-                            <li>
-                                <div class="ns-btn fake-file-wrap"><i class="ico ico-plus-blue"></i>@Messages("button.upload")
-                                    <input type="file" class="file" name="logoPath">
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
+        <input type="hidden" name="id" value="@projectForm("id").value.toLong">
+        <div class="box-wrap top clearfix frm-wrap">
+            <div class="setting-box left">
+                <div class="logo-wrap">
+                  <img src="@defining(Attachment.findByContainer(project.asResource)) @{ files =>
+                    if (files.size > 0) "/files/" + files.head.id
+                    else routes.Assets.at("images/bg-default-project.jpg") }">
                 </div>
-                <dl class="setting-box right">
-                	<dt>
-	                    <div class="n-alert hide" id="alert_msg">
-	                        <div class="n-inner">
-	                            <span class="msg">@Messages("project.wrongName")</span>
-	                            <a href="#" class="ico btn-delete" data-dismiss="alert"></a>
-	                        </div>
-	                    </div>
-	                    <label for="project-name">@Messages("project.name.placeholder")</label>
-                    </dt>
-                    <dd>
-                        @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250")
-                    </dd>
-                    
-                    <dt>
-                    	<label for="project-desc">@Messages("project.description.placeholder")</label>
-                    </dt>
-                    <dd>
-                        @textarea(projectForm("overview"), 'class->"textarea")
-                    </dd>
-                </dl>
-            </div>
-            <div class="box-wrap middle">
-                <div class="cu-label">@Messages("project.tags")</div>
-                <div class="cu-desc">
-                    <div id="tags">
-                        <!-- tags will be added here by hive.project.Settings.js -->
-                    </div>
-                    <input name="newTag" type="text" class="text" style="margin-bottom: 0px"
-                        data-provider="typeahead" autocomplete="off"/>
-                    <a href="javascript:void(0)" class="n-btn small orange" id="addTag">@Messages("button.add")</a>
+                <div class="logo-desc">
+                    <ul class="unstyled descs">
+                        <li><strong>@Messages("project.logo")</strong></li>
+                        <li>@Messages("project.logo.type") <span class="point">bmp, jpg, gif, png</span></li>
+                        <li>@Messages("project.logo.maxFileSize") <span class="point">1MB</span></li>
+                        <li>@Messages("project.logo.size") <span class="point">234px × 168px</span></li>
+                        <li>
+                            <div class="ns-btn fake-file-wrap">
+                            	<i class="ico ico-plus-blue"></i>@Messages("button.upload")
+                                <input type="file" class="file" name="logoPath" accept="image/*">
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="box-wrap middle">
-                <div class="cu-label">@Messages("project.shareOption")</div>
-                <div class="cu-desc">
-                    <input name="share_option" type="radio" @if(project.share_option == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
-                    <input name="share_option" type="radio" @if(project.share_option == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
-                    <span class="note">@Messages("project.private.notice")</span>
+            <dl class="setting-box right">
+            	<dt>
+            	 <!-- 
+                 <div class="n-alert hide" id="alert_msg">
+                     <div class="n-inner">
+                         <span class="msg">@Messages("project.wrongName")</span>
+                         <a href="#" class="ico btn-delete" data-dismiss="alert"></a>
+                     </div>
+                 </div>
+                 -->
+                 <label for="project-name">@Messages("project.name.placeholder")</label>
+                </dt>
+                <dd>
+                    @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250")
+                </dd>
+                
+                <dt>
+                	<label for="project-desc">@Messages("project.description.placeholder")</label>
+                </dt>
+                <dd>
+                    @textarea(projectForm("overview"), 'class->"textarea")
+                </dd>
+            </dl>
+        </div>
+        <div class="box-wrap middle">
+            <div class="cu-label" style="line-height:30px;">@Messages("project.tags")</div>
+            <div class="cu-desc">
+                <div id="tags">
+                    <!-- tags will be added here by hive.project.Settings.js -->
                 </div>
-            </div>
-            <div class="box-wrap bottom">
-                <button class="btn-transparent n-btn orange med" type="submit" id="save">@Messages("button.save")</button>
-            </div>
-            <!-- 현재 레이아웃에 존재하지 않는 기능 -->
-            <input type="hidden" name="isAuthorEditable" value="true"/>
-            <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(project.owner, project.name)"/>
-        }
-    </div>
-    <div class="bubble-wrap gray wp">
-        <div class="n-alert project-del">
-            <div class="n-inner hide" id="acceptAlert">
-                <span class="msg">@Messages("project.delete.alert")</span>
-                <a class="ico btn-delete" data-dismiss="alert"></a>
+                <input name="newTag" type="text" class="text" style="margin-bottom:0px" data-provider="typeahead" autocomplete="off"/>
+                <button id="addTag" type="button" class="btn-transparent n-btn med gray">@Messages("button.add")</button>
             </div>
         </div>
-        <div class="cu-label">@Messages("project.delete")</div>
-        <div class="cu-desc">
-            <p><strong class="notice">@Messages("project.delete.description")</strong></p>
-            <p><input type="checkbox" class="checkbox" autocomplete="off" id="accept"><label for="accept" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
-                <a id="deletion" data-toggle="modal" href="#alertDeletion" class="n-btn small black"><i class="ico ico-delete-small"></i>@Messages("project.delete.this")</a>
-            </p>
+        
+        <div class="box-wrap middle">
+            <div class="cu-label">@Messages("project.shareOption")</div>
+            <div class="cu-desc">
+                <input name="share_option" type="radio" @if(project.share_option == true){checked="checked"} id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">@Messages("project.public")</label>
+                <input name="share_option" type="radio" @if(project.share_option == false){checked="checked"} id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">@Messages("project.private")</label>
+                <span class="note">@Messages("project.private.notice")</span>
+            </div>
         </div>
+        
+        @**
+        <!-- 현재 레이아웃에 존재하지 않는 기능 -->
+        <input type="hidden" name="isAuthorEditable" value="true"/>
+        <input type="hidden" name="siteurl" value="@routes.ProjectApp.project(project.owner, project.name)"/>
+        **@
     </div>
-
-
-<div class="modal hide" id="alertDeletion">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
-        <h3>@Messages("project.delete.requestion")</h3>
+    <div class="box-wrap bottom">
+        <button id="save" type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>
     </div>
-    <div class="modal-body">
-        <p> @Messages("project.delete.description")</p>
-        <p> @Messages("project.delete.reaccept") </p>
-    </div>
-    <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-        <a href="@routes.ProjectApp.deleteProject(project.owner, project.name)" class="btn btn-danger">@Messages("button.yes")</a>
-    </div>
-</div>
+	}
 
 <script type="text/javascript">
 	$(document).ready(function(){
@@ -119,7 +94,6 @@
             "sURLTags"       : "@routes.TagApp.tags()"
         });
 	});
-
 </script>
 
 }

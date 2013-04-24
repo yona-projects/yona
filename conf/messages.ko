@@ -61,6 +61,7 @@ label.name = 이름
 label.add = 추가
 label.manage = 라벨관리
 label.confirm.delete = 라벨을 삭제하면 이슈에 지정한 라벨도 함께 제거됩니다. 정말 삭제하시겠습니까?
+label.select = 라벨 선택
 
 order.all = 전체
 order.date = 날짜순

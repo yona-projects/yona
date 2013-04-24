@@ -59,8 +59,11 @@
 			</div>
 		
 			<div class="btn-wrap">
-				<div class="ns-btn fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>@Messages("button.upload") <input type="file" class="file" name="filePath">
+				<div class="fake-file-wrap">
+					<input type="file" class="file" name="filePath">
+					<div class="ns-btn">
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")
+					</div>
 				</div>
 			</div>
 		</div>
@@ -164,6 +167,7 @@
     **@	
 
 	<!-- issue.label js module appends a label selector here. -->
+	<p class="option-label">@Messages("label.select")</p>
 	<fieldset class="labels"></fieldset>
 
 	<div class="actions">
