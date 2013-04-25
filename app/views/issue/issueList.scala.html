@@ -114,9 +114,35 @@
 
 	<div class="filter-wrap board">
 		<div class="filters">
-			<a href="@urlToList&sortBy=state&orderBy=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
-			<a href="@urlToList&sortBy=date&orderBy=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
-			<a href="@urlToList&sortBy=numOfComments&orderBy=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.comments")</a>
+            @if(param.orderBy.equals("state")) {
+                @if(param.orderDir.equals("asc")) {
+                    <a href="@urlToList&orderBy=state&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
+                } else {
+                    <a href="@urlToList&orderBy=state&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.state")</a>
+                }
+            } else {
+                <a href="@urlToList&orderBy=state&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
+            }
+
+            @if(param.orderBy.equals("createdDate")) {
+                @if(param.orderDir.equals("asc")) {
+                    <a href="@urlToList&orderBy=createdDate&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
+                } else {
+                    <a href="@urlToList&orderBy=createdDate&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.date")</a>
+                }
+            } else {
+                <a href="@urlToList&orderBy=createdDate&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
+            }
+
+            @if(param.orderBy.equals("numOfComments")) {
+                @if(param.orderDir.equals("asc")) {
+                    <a href="@urlToList&orderBy=numOfComments&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.comments")</a>
+                } else {
+                    <a href="@urlToList&orderBy=numOfComments&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.comments")</a>
+                }
+            } else {
+                <a href="@urlToList&orderBy=numOfComments&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.comments")</a>
+            }
 		</div>
 	</div>
 
@@ -133,12 +159,14 @@
 	        <div class="contents">
 	            <p class="title">
 	            	<a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
-					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {<!--
-                 --><button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button><!--
-                 -->}
+					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
+                    }
 	            </p>
-	            <p class="infos nm">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a><!--
-	             --><span class="date">@agoString(issue.ago)</span></p>
+	            <p class="infos nm">by
+                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
+                    <span class="date">@agoString(issue.ago)</span>
+                </p>
 	        </div>
 	        <div class="right-panel">
 	        	<div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
@@ -161,7 +189,9 @@
 }
 
 	<div class="write-btn-wrap">
-		<a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="n-btn med white btn-save-xls"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
+		<a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="n-btn med white btn-save-xls">
+            <i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")
+        </a>
 		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="n-btn med orange">@Messages("issue.menu.new")</a>
 	</div>
 
