@@ -40,7 +40,7 @@
 		            $("#codeError").show();
 		          }
 		        });
-		        
+
 		        function handleFile(data){
 		            //파일을 표시한다.
 		            $("#commiter").text(data.author);
@@ -51,14 +51,28 @@
 		            	$("#revisionNo").text("Revision#: " + data.revisionNo);
 		            }
 		            $("#commitDate").text(moment(new Date(data.createdDate)).fromNow());
-		            $("pre").text(data.data);
+                    if( isImageFile(path)) {
+                        $("pre").html("<img src='./image" + path + "'>");
+                    } else {
+                        $("pre").text(data.data);
+                        $("pre").highlight();
+                    }
 		            $("#rawCode").attr("href", "rawcode"+path);
-		            
 		            $("#fileList").hide();
 		            $("#fileView").show();
-		            $("pre").highlight();
+
+                    function isImageFile(pathName){
+                        var lastDotPostion = pathName.lastIndexOf(".");
+                        var fileExtName = pathName.substring(lastDotPostion+1);
+                        var imageFileExtNames = ['jpg', 'png', 'gif','tif', 'bmp', 'ico', 'jpeg'];
+                        if( $.inArray(fileExtName, imageFileExtNames) !== -1 ){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
 		        }
-		        
+
 		        function handleFolder(data){
 		        	data.data = sortData(data.data);
 		        	

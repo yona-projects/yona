@@ -2,6 +2,7 @@ package controllers;
 
 import models.Project;
 import models.enumeration.Operation;
+import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
@@ -73,6 +74,14 @@ public class CodeApp extends Controller {
     public static Result showRawFile(String userName, String projectName, String path) throws Exception{
         return ok(RepositoryService.getFileAsRaw(userName, projectName, path));
     }
+
+    public static Result showImageFile(String userName, String projectName, String path) throws Exception{
+        final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, path);
+        String mimeType = tika.detect(fileAsRaw);
+        return ok(fileAsRaw).as(mimeType);
+    }
+
+    private static Tika tika = new Tika();
 
     public static String getURL(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);

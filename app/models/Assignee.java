@@ -14,9 +14,6 @@ import play.db.ebean.Model;
 @Entity
 public class Assignee extends Model {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     @Id

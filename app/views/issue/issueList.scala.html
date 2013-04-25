@@ -1,7 +1,7 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param:IssueApp.SearchCondition, project:Project)
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 @import utils.TemplateHelper._
 @import scala.collection.immutable.Map
 @import models.enumeration._
@@ -43,13 +43,13 @@
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
-	
+
 	<div class="header-wrap">
 		<div class="stats-wrap">
 			@for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
 			<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)" class="stat stat-issue @if(param.state == state.state) { active }">
-				<span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span><!-- 
-				 --><span class="num @state.state">@Issue.countIssues(project.id, state)</span>
+				<span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span>
+                <span class="num @state.state">@Issue.countIssues(project.id, state)</span>
 			</a>
 			}
 		</div>
@@ -58,7 +58,7 @@
 				<form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
 					<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
 					<input type="hidden" name="state"   value="@param.state">
-					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")"><!-- 
+					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")"><!--
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
 	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
 
@@ -114,9 +114,35 @@
 
 	<div class="filter-wrap board">
 		<div class="filters">
-			<a href="@urlToList&sortBy=state&orderBy=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
-			<a href="@urlToList&sortBy=date&orderBy=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
-			<a href="@urlToList&sortBy=numOfComments&orderBy=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.comments")</a>
+            @if(param.orderBy.equals("state")) {
+                @if(param.orderDir.equals("asc")) {
+                    <a href="@urlToList&orderBy=state&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
+                } else {
+                    <a href="@urlToList&orderBy=state&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.state")</a>
+                }
+            } else {
+                <a href="@urlToList&orderBy=state&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
+            }
+
+            @if(param.orderBy.equals("createdDate")) {
+                @if(param.orderDir.equals("asc")) {
+                    <a href="@urlToList&orderBy=createdDate&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
+                } else {
+                    <a href="@urlToList&orderBy=createdDate&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.date")</a>
+                }
+            } else {
+                <a href="@urlToList&orderBy=createdDate&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
+            }
+
+            @if(param.orderBy.equals("numOfComments")) {
+                @if(param.orderDir.equals("asc")) {
+                    <a href="@urlToList&orderBy=numOfComments&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.comments")</a>
+                } else {
+                    <a href="@urlToList&orderBy=numOfComments&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.comments")</a>
+                }
+            } else {
+                <a href="@urlToList&orderBy=numOfComments&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.comments")</a>
+            }
 		</div>
 	</div>
 
@@ -133,20 +159,24 @@
 	        <div class="contents">
 	            <p class="title">
 	            	<a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
-					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {<!-- 
-                 --><button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button><!-- 
-                 -->}
+					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
+                    }
 	            </p>
-	            <p class="infos nm">by <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a><!-- 
-	             --><span class="date">@agoString(issue.ago)</span></p>
+	            <p class="infos nm">by
+                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
+                    <span class="date">@agoString(issue.ago)</span>
+                </p>
 	        </div>
 	        <div class="right-panel">
 	        	<div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
 	            <div class="comment-wrap">
 	                <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
 	            </div>
-	            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap img-rounded pull-right"><!-- 
-	             --><img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName"></a>
+                @if(issue.assignee != null) {
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded pull-right">
+                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assignee.user.name"></a>
+                }
 	        </div>
 	    </li>
 	    }
@@ -159,7 +189,9 @@
 }
 
 	<div class="write-btn-wrap">
-		<a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="n-btn med white btn-save-xls"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
+		<a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="n-btn med white btn-save-xls">
+            <i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")
+        </a>
 		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="n-btn med orange">@Messages("issue.menu.new")</a>
 	</div>
 
@@ -171,19 +203,19 @@
 <script type="text/javascript">
 	$(document).ready(function(){
 		var htOptLabel = {
-			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
+			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
 		};
 		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
 		htOptLabel.bEditable = true;
 		}
-		
+
 		$hive.loadModule("issue.List", {
 			"elPagination": $("#pagination"),
 			"nTotalPages" : @currentPage.getTotalPageCount,
 			"htOptLabel"  : htOptLabel
 		});
-	});  
+	});
 </script>
 </div>
 }

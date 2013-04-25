@@ -133,6 +133,7 @@ GET     /:user/:project/code/:branch/!/*path            controllers.CodeApp.ajax
 #for normal
 GET     /:user/:project/code                            controllers.CodeApp.codeBrowser(user, project)
 GET     /:user/:project/rawcode/*path                   controllers.CodeApp.showRawFile(user, project, path:String)
+GET     /:user/:project/image/*path                    controllers.CodeApp.showImageFile(user, project, path:String)
 GET     /:user/:project/code/:branch                    controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String)
 
 # Commits

@@ -1,6 +1,3 @@
-/**
- * @author Ahn Hyeok Jun
- */
 
 package controllers;
 
