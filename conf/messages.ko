@@ -303,6 +303,7 @@ user.wrongloginId.alert = 올바른 아이디를 입력하세요.
 user.loginId.duplicate = 이미 존재하는 아이디입니다.
 user.login.alert = 로그인이 필요합니다.
 user.password = 비밀번호
+user.newPassword = 신규 비밀번호
 user.confirmPassword = 비밀번호 확인
 user.confirmPassword.alert = 입력한 두 비밀번호가 서로 일치하지 않습니다
 user.wrongPassword.alert = 잘못된 비밀번호입니다!

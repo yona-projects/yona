@@ -297,6 +297,7 @@ user.wrongloginId.alert = Valid ID required
 user.loginId.duplicate = Already existing ID
 user.login.alert = Please, login.
 user.password = Password
+user.newPassword = New Password
 user.confirmPassword = Confirm Password
 user.confirmPassword.alert = Password doesn't match the confirmation
 user.wrongPassword.alert = Wrong password!
