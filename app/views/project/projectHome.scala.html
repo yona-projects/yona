@@ -9,17 +9,18 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
 
-    <div class="input-prepend">
-        <span class="add-on">@project.vcs</span>
-        <input type="text" value="@CodeApp.getURL(project.owner, project.name)" readonly="true"
-            style="cursor: auto; background-color:#ffffff">
-        <div class="btn-group pull-right">
-            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
-                @Issue.countIssues(project.id, State.OPEN) @Messages("issue.state.open")
-            </a>
+    <div class="input-prepend project-hometop-wrap">
+    	<div class="vcs-wrap pull-left">
+    		<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!-- 
+    	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)">
+        </div>
+        <div class="issue-wrap btn-group pull-right">
             <button class="btn" disabled="true">@Messages("menu.issue")</button>
+            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
+                @Messages("issue.state.open") <strong class="num open">@Issue.countIssues(project.id, State.OPEN)</strong> 
+            </a>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
-                @Issue.countIssues(project.id, State.CLOSED) @Messages("issue.state.closed")
+                @Messages("issue.state.closed") <strong class="num">@Issue.countIssues(project.id, State.CLOSED)</strong> 
             </a>
         </div>
     </div>
@@ -112,4 +113,10 @@
 	    @markdown()
     </div>
 </div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	$hive.loadModule("project.Home");
+});
+</script>
 }
