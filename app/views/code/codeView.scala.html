@@ -67,6 +67,7 @@
 					</div>
 					<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
 				</div>
+                <div id='showImage'></div>
 				<pre class="code-wrap"></pre>
 			</div>
 			@** // **@
@@ -105,7 +106,7 @@
 <script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
-		$hive.loadModule("code.Browser1", {
+		$hive.loadModule("code.Browser", {
 			"sProjectName": "@project.name"
 		});
 	});
