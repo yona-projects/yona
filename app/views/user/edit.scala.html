@@ -34,7 +34,7 @@
                     @helper.inputText(userForm("email"),'_showConstraints -> false,'_label -> null, 'class -> "span2")</p>
                 </div>
                 
-                <input class="btn" type="submit" value="저장"/>
+                <input class="btn" type="submit" value="@Messages("button.save")"/>
     }
                 <hr/>
                 <div class="user-other-info info-box">
@@ -79,11 +79,34 @@
                     </li>
                 }
                 </ul>
+                <div>
+                <form name="passwordReset" action="@routes.UserApp.resetUserPassword()" method="post">
+                <input type="hidden" name="loginId" value="@user.loginId" />
+                <hr />
+                <dl>
+                <dt>@Messages("user.password")</dt>
+                <dd><input type="password" name="oldPassword" value="" autocomplete="off" /></dd>
+                <dt>@Messages("user.newPassword")</dt>
+                <dd><input type="password" id="password" name="password" value="" autocomplete="off" /></dd>
+                <dt>@Messages("validation.retypePassword")</dt>
+                <dd><input type="password" id="retypedPassword" name="retypedPassword" value="" autocomplete="off" /></dd>
+                </dl>
+                <input class="btn" type="submit" value="@Messages("button.save")" />
+                </form>
+                <hr />
+                </div>
             </div>
         </section>
     </div>
 </div>
 
+	<script type="text/javascript" src="@getJSLink("lib/validate")"></script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+		$hive.loadModule("user.ResetPassword");
+	});
+	</script>
+    
     <script src="@getJSLink("lib/jquery/jquery.form")" type="text/javascript"></script>
     <script type="text/javascript">
     (function(){

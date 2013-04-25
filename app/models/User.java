@@ -43,6 +43,9 @@ public class User extends Model {
 
     @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", message = "user.wrongloginId.alert") @Required
     public String loginId;
+    
+    @Transient
+    public String oldPassword;
     public String password;
     public String passwordSalt;
 
@@ -175,7 +178,6 @@ public class User extends Model {
                 ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
         user.save();
     }
-
 
     public Resource asResource() {
         return new Resource() {
