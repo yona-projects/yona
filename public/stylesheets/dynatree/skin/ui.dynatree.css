@@ -3,7 +3,7 @@
  */
 ul.dynatree-container
 {
-	font-family: tahoma, arial, helvetica;
+	/*font-family: tahoma, arial, helvetica;*/
 	font-size: 10pt; /* font size should not be too big */
 	white-space: nowrap;
 	padding: 3px;
@@ -11,7 +11,7 @@ ul.dynatree-container
 	background-color: white;
 	border: 0px dotted gray;
 	overflow: auto;
-	height: 100%; /* issue 263 */
+	height: 98%; /*100%;*/ /* issue 263 */
 }
 
 ul.dynatree-container ul

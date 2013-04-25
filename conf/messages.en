@@ -61,6 +61,8 @@ label.add = Add
 label.manage = Manage Label
 label.confirm.delete = Are you Sure?
 label.select = Select Label
+label.error.duplicated = Failed to create new label. It might be same label exists already.
+label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid. 
 
 order.all = All
 order.date = Date

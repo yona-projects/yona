@@ -49,6 +49,7 @@
 		 * @param {String} sMessage
 		 */
 		function showDialog(sMessage, fCallback){
+			sMessage = sMessage.split("\n").join("<br>"); // nl2br
 			htElement.welMessage.html(sMessage);
 			htElement.welContainer.modal("show");
 			htVar.fCallback = fCallback;

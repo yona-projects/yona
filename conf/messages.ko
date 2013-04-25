@@ -62,6 +62,8 @@ label.add = 추가
 label.manage = 라벨관리
 label.confirm.delete = 라벨을 삭제하면 이슈에 지정한 라벨도 함께 제거됩니다. 정말 삭제하시겠습니까?
 label.select = 라벨 선택
+label.error.duplicated = 라벨 생성에 실패했습니다.\n이미 동일한 라벨이 존재할지도 모릅니다.
+label.error.creationFailed = 라벨 생성에 실패했습니다.\n서버에 문제가 있거나 올바른 요청이 아닐 수 있습니다. 
 
 order.all = 전체
 order.date = 날짜순

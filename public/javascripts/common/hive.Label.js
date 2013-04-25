@@ -321,7 +321,7 @@ hive.LabelEditor = (function(welContainer, htOptions){
 		<div id="custom-label" class="controls">\
 			<input id="custom-label-color" type="text" class="input-small" placeholder="${labelCustomColor}">\
 			<input id="custom-label-category" type="text" class="input-small" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
-			<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}">\
+			<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}" autocomplete="off">\
 			<button id="custom-label-submit" type="button" class="btn-transparent n-btn med black" style="vertical-align:top;">${labelAdd}</button>\
 		</div>\
 		</div>';
@@ -428,9 +428,16 @@ hive.LabelEditor = (function(welContainer, htOptions){
 			"fOnLoad"  : function(oRes){
 				// label.id, label.category, label.name, label.color
 				if (!(oRes instanceof Object)) {
-					console.log('Failed to add custom label - Server error.');
+					var sMessage = Messages("label.error.creationFailed");
+					
+					if($(".labels .issue-label:contains('" + htData.name + "')").length > 0){
+						sMessage = Messages("label.error.duplicated");
+					}
+					
+					$hive.showAlert(sMessage);
 					return;
 				}
+				
 				htElement.welCustomLabelCategory.data("typeahead").source.push(oRes.category);
 				htVar.fOnCreate(oRes);
 			}
