@@ -58,6 +58,9 @@ public class BoardApp extends AbstractPostingApp {
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
         SearchCondition searchCondition = postParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
+        if(searchCondition.orderBy.equals("id")) {
+            searchCondition.orderBy = "createdDate";
+        }
 
         ExpressionList<Posting> el = searchCondition.asExpressionList(project);
         Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
