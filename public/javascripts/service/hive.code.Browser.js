@@ -1,5 +1,5 @@
 /**
- * @(#)hive.code.Browser.js 2013.03.19
+ * @(#)hive.code.Browser1.js 2013.04.09
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -11,501 +11,350 @@
 
 	var oNS = $hive.createNamespace(ns);
 	oNS.container[oNS.name] = function(htOptions){
-		
-		var htVar = {};
-		var htElement = {};
-		
-		/**
-		 * initialize
-		 */
-		function _init(htOptions){
-			_initVar(htOptions);
-			_initElement(htOptions);
-			_attachEvent();
-	
-			// set path
-			if (!htElement.welSelectedBranch.text()) {
-				htElement.welSelectedBranch.text('HEAD');
-			}
-			$(window).trigger("hashchange");
-			
-			// initialize folder tree
-			_initFinder();
-			
-			// initialize copy URL
-			_initCopyURL();
-		}
-		
-		/**
-		 * initialize variables
-		 */
-		function _initVar(htOptions){
-			htVar.rxHash = /^#/;
-			htVar.rxTmp = /\!\//;
-			htVar.sProjectName = htOptions.sProjectName;
-			htVar.sTplFileListItem = $("#tplFileListItem").html() || "";
-		}
-		
-		/**
-		 * initialize element
-		 */
-		function _initElement(htOptions){
-			// copy repository URL
-			htElement.welInputRepoURL = $("#repositoryURL");
-			htElement.welBtnCopyURL = $("#copyURL");
-			
-			// folder list (dynaTree)
-			htElement.welFolderList = $("#folderList");
-			
-			// file list
-			htElement.welContainerList = $("#fileList");
-			htElement.welFileList = htElement.welContainerList.find("tbody");
-			
-			// file view
-			htElement.welContainerView = $("#fileView");
-			htElement.welFileView = htElement.welContainerView.find(".code-wrap");
-			
-			// actions
-			htElement.aBranches = $(".branch-item"); // branches
-			htElement.welBtnRawCode = $("#rawCode"); // get raw file
-			htElement.welSelectedBranch = $("#selected-branch");
-			
-			// file info
-			htElement.welFileInfo = $("#fileInfo");
-			htElement.welFileCommiter   = htElement.welFileInfo.find(".commiter");
-			htElement.welFileCommitMsg  = htElement.welFileInfo.find(".commitMsg");
-			htElement.welFileCommitDate = htElement.welFileInfo.find(".commitDate");
-			htElement.welFileRevision   = htElement.welFileInfo.find(".revision");
-			
-			htElement.welPath = $("#breadcrumbs");
-		}
-		
-		/**
-		 * attach event handler
-		 */
-		function _attachEvent(){
-			$(window).bind("hashchange", _onHashChange);
-			htElement.aBranches.click(_onSelectBranch);
-		}
-		
-		/**
-		 * on select branch item
-		 */
-		function _onSelectBranch(){
-			htElement.welSelectedBranch.text($(this).text());
-			$(window).trigger("hashchange");
-		}
-		
-		/**
-		 * on hash change
-		 */
-		function _onHashChange(){
-			var sPath = getHash(true);//.replace(htVar.rxTmp, "!#/");
-	        var sBranch = window.encodeURIComponent(htElement.welSelectedBranch.text());
-	        var sURL = "code/" + sBranch + "/!" + sPath;
-	        sURL = sURL.replace(/\!\!/, '!#');
-	        console.log("hashchange", sURL);
-	        
-	        $.ajax(sURL, {
-				"datatype": "json",
-				"success" : _onLoadListCode,
-				"error"   : _onErrorListCode
-			});
-		}
-		
-		/**
-		 * on load file list or file content
-		 * callback function of _onHashChange
-		 */
-		function _onLoadListCode(oRes){
-			console.log("onload");
-			_updateFileInfo(oRes); 
-	
-			switch(oRes.type){
-				case "folder":
-					_viewFolder(oRes);
-					break;
-				case "file":
-					_viewFile(oRes);
-					break;
-			}
-		}
-		
-		/**
-		 * update file info
-		 * 
-		 * @param {Hash Table} htData
-		 * @param {String} htData.author
-		 * @param {String} htData.date
-		 * @param {String} htData.msg
-		 * @param {String} htData.reivisionNo
-		 */
-		function _updateFileInfo(htData){
-			htElement.welFileCommiter.text(htData.commiter);
-			htElement.welFileCommitDate.text(getDateAgo(htData.commitDate));
-			htElement.welFileCommitMsg.text(getEllipsis(htData.commitMessage || "", 70));
-			htElement.welFileRevision.text("Revision #: " + (htData.revisionNo || "Unknown"));
-			
-			updateBreadcrumbs();
-		}
-		
-		/**
-		 * render folder list
-		 */
-		function _viewFolder(htData){
-			var sKey, htTmp;
-			var aTplData = [];
-			
-			// 템플릿용 데이터로 가공해서 배열에 추가
-			var sPath = (getHash(true) || "");
-			var aData = _sortFolderList(htData.data);
-			
-			aData.forEach(function(htTmp){
-				htTmp.name = htTmp.title;
-				htTmp.dateAgo  = getDateAgo(htTmp.date); 
-				htTmp.message  = getEllipsis(htTmp.message, 70);
-				htTmp.filePath = "#" + (sPath !== "/" ? sPath : "") + "/" + htTmp.name;
-				aTplData.push(htTmp);				
-			});
 
-			// 배열을 이용해 한꺼번에 템플릿 변환.
-			var waList = $.tmpl(htVar.sTplFileListItem, aTplData);
-			
-			try {
-				htElement.welFileList.children().remove(); // clear list
-				htElement.welFileList.append(waList);
-				htElement.welContainerList.show();
-				htElement.welContainerView.hide();
-			} finally {
-				aTplData = waList = htTmp = null;
-			}
-		}
+		var project_name = htOptions.sProjectName;
+	
+		$(document).ready(function(){
+			$(window).bind('hashchange', function(e){
+//				_updateDynaTree();
+				
+		        //대기 표시 한다.
+		        //여기서 요청을 보내고
+		        var path = getHash().replace(/^#/, "");
+		        var branch = encodeURIComponent($("#selected-branch").text());
 		
-		/**
-		 * render file view
-		 */
-		function _viewFile(htData){
-			var sPath = getHash().replace(htVar.rxHash, "");
-			htElement.welBtnRawCode.attr("href", "rawcode" + sPath);
-	
-			htElement.welFileView.text(htData.data || "");
-			
-			htElement.welContainerList.hide();
-			htElement.welContainerView.show();
-			htElement.welFileView.highlight();
-		}
-	
-		/**
-		 * update bread crumbs
-		 * 파일 경로 업데이트
-		 */
-		function updateBreadcrumbs() {
-			var aResult = ['<a href="#/">' + htVar.sProjectName + '</a>'];
-			var sPath = getHash().replace(htVar.rxHash, "");
-			var sLink = "#";
-	
-			sPath.split("/").forEach(function(sDir){
-				if(sDir.length > 0){
-					sLink += ("/" + sDir);
-					aResult.push('<a href="#/' + sLink + '">' + sDir + '</a>');
+		        $.ajax("code/" + branch + "/!" + path, {
+		          datatype : "json",
+		          success : function(data, textStatus, jqXHR){
+		            updateBreadcrumbs(path);
+		            switch(data.type){
+		              case "file" :
+		                  handleFile(data);
+		                break;
+		              case "folder" :
+		                  handleFolder(data);
+		                break;
+		            }
+		          },
+		          error : function(){
+		            $("#codeError").show();
+		          }
+		        });
+		        
+		        function handleFile(data){
+		            //파일을 표시한다.
+		            $("#commiter").text(data.author);
+		            if(data.hasOwnProperty("msg")){
+		            	$("#commitMessage").text(data.msg);
+		            }
+		            if(data.hasOwnProperty("revisionNo")){
+		            	$("#revisionNo").text("Revision#: " + data.revisionNo);
+		            }
+		            $("#commitDate").text(moment(new Date(data.createdDate)).fromNow());
+		            $("pre").text(data.data);
+		            $("#rawCode").attr("href", "rawcode"+path);
+		            
+		            $("#fileList").hide();
+		            $("#fileView").show();
+		            $("pre").highlight();
+		        }
+		        
+		        function handleFolder(data){
+		        	data.data = sortData(data.data);
+		        	
+		            //폴더내용을 리스팅 한다.
+		            $("#commiter").text(data.author);
+		            if(data.hasOwnProperty("msg")){
+		            	$("#commitMessage").text(data.msg);
+		            }
+		            if(data.hasOwnProperty("revisionNo")){
+		            	$("#revisionNo").text("Revision #: " + data.revisionNo);
+		            }
+		            $("#commitDate").text(data.date);
+		            $(".contents").children().remove();
+		
+		            var aTmp = [];
+		            var info, tablerow;
+		            
+		            for(var name in data.data){
+		            	info = data.data[name];
+		              	tablerow = makeTableRow(name, info.msg, info.createdDate, info.author);
+		              	aTmp.push(tablerow);
+		            }
+		            $(".contents").append(aTmp);
+		            aTmp = null;
+
+		            $("#fileList").show();
+		            $("#fileView").hide();
+		        }
+		        
+				function sortData(target){
+				    result = [];
+				    
+				    /** case-insensitive sort **/
+				    var aTmp = [];
+				    for(var key in target){
+				    	aTmp.push(key);
+				    }
+				    aTmp.sort(function(a,b){
+				    	if(a.toLowerCase() < b.toLowerCase()) { return -1; }
+				    	if(a.toLowerCase() > b.toLowerCase()) { return 1; }
+				    	return 0;
+				    });
+				    
+				    var ht = {};
+				    aTmp.forEach(function(sKey){
+				    	ht[sKey] = target[sKey];
+				    });
+				    /** **/
+				    
+				    _.each(ht, function(value, key, list){
+				    	ht[key].name = key;
+				        result.push(ht[key]);
+				    });
+				    
+				    result = _.sortBy(result, function(elm){
+				        return -(elm.type === "folder");
+				    });
+				    
+				    var htResult = {};
+				    result.forEach(function(o){
+				    	htResult[o.name] = o;
+				    });
+				    
+				    try {
+				    	return htResult;
+				    } finally {
+				    	aTmp = ht = null;
+				    }
 				}
-			});
-					
-			htElement.welPath.html(aResult.join("/"));
+
+				function makeTableRow(name, message, date, author){
+					if (message.length > 70){
+						message = message.substr(0, 70) + "...";
+					}
+
+					var sFilePath = "#" + (path !== "/" ? path : "") + "/" +name;
+					var welRow = $("<tr>")
+			              .append($('<td><a class="filename" href="' + sFilePath + '">' + name + '</a></td>'))
+			              .append($('<td class="message">' + message + '</td>'))
+			              .append($('<td class="date">' + (moment(new Date(date)).fromNow()) + '</td>'))
+			              .append($('<td class="author"><a href="/'+ author+'"><img src="/assets/images/default-avatar-34.png" alt="avatar" class="img-rounded"></a></td>'));
+
+					try {
+						return welRow;
+					} finally {
+						welRow = sFilePath = null;
+					}
+		        }
+
+		        function updateBreadcrumbs(path){
+		        	var $breadcrumbs = $("#breadcrumbs");
+		        	$($breadcrumbs).html('<a href="#/">'+project_name+'</a>');
+
+		        	var names = path.split("/");
+		        	var str = "#";
+		        	var name;
+
+		        	for(var i = 1; i < names.length; i++){
+			            name = names[i];
+			            str += "/" + name;
+			            $breadcrumbs.append("/");
+			            $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
+		        	}
+		        }
+		      }); // end-of-document_ready
+
+		      if(!$("#selected-branch").text()){
+		    	  $("#selected-branch").text('HEAD');
+		      }
+		      $(window).trigger('hashchange');
+		      _updateDynaTree();
+		});
+
+		function getHash() {
+			return document.location.hash;
 		}
-		
-		/**
-		 * on error on file list or file content
-		 * callback function of _onHashChange
-		 */
-		function _onErrorListCode(){
-	//		$("#codeError").show();
-		}
-		
-		/**
-		 * Get relative date string from now depends on feature of moment.js
-		 * 
-		 * @requires moment.js
-		 * @param {String} sDate
-		 * @return {String}
-		 */
-		function getDateAgo(sDate){
-			return moment(new Date(sDate)).fromNow();
-		}
-		
-		/**
-		 * get String with Ellipsis
-		 * 
-		 * @param {String} sStr
-		 * @param {Number} nLength
-		 * @return {String} 
-		 */
-		function getEllipsis(sStr, nLength){
-			if(sStr && (sStr.length > nLength)){
-				sStr = sStr.substr(0, nLength) + "&hellip;"; // &hellip; = ...
-			}
-			return sStr;
-		}
-		
-		/**
-		 * getHash
-		 * 혹시나 document.location.hash 이외의 접근법이 나올까봐?
-		 */
-		function getHash(bTrim){
-			var sHash = document.location.hash;
-			return bTrim ? sHash.replace(htVar.rxHash, "") : sHash;
-		}
-	
-		/**
-		 * setHash
-		 * 혹시나 document.location.hash 이외의 접근법이 나올까봐?
-		 */
-		function setHash(hash){
+
+		function setHash(hash) {
 			return document.location.hash = hash;
 		}
-	
-		/**
-		 * getBranch
-		 */
-		function getBranch(){
-			return window.encodeURIComponent(htElement.welSelectedBranch.text());
+
+		$(".branch-item").click(function(ev) {
+			_updateDynaTree();
+			$("#selected-branch").text($(this).text());
+			$(window).trigger('hashchange');
+		});
+
+		// adaptorForDynatree adaptor function is used for existed function
+		// Also, it pass the below tests
+		//
+		// it("file & folder combine", function() {
+		//     //Given
+		//     var target = {
+		//         "attachment": {
+		//             "type": "folder",
+		//             "msg": "add folders",
+		//             "author": "doortts",
+		//             "date": "Mon Jan 28 14:21:07 KST 2013"
+		//         },
+		//         "favicon.ico": {
+		//             "type": "file",
+		//             "msg": "add folders",
+		//             "author": "doortts",
+		//             "date": "Mon Jan 28 14:21:07 KST 2013"
+		//         }
+		//     };
+		//     var expected = [
+		//         {title: "attachment", isFolder: true, isLazy: true},
+		//         {title: "favicon.ico"}
+		//     ];
+		//     //When
+		//     var result = adaptorForDynatree(target);
+		//     //Then
+		//     assert.deepEqual(result, expected);
+		// });
+
+		var result = [];
+
+		function adaptorForDynatree(target){
+		    result = [];
+
+		    /** case-insensitive sort **/
+		    var aTmp = [];
+		    for(var key in target){
+		    	aTmp.push(key);
+		    }
+		    aTmp.sort(function(a,b){
+		    	if(a.toLowerCase() < b.toLowerCase()) { return -1; }
+		    	if(a.toLowerCase() > b.toLowerCase()) { return 1; }
+		    	return 0;
+		    });
+		    var ht = {};
+		    aTmp.forEach(function(sKey){
+		    	ht[sKey] = target[sKey];
+		    });
+		    /** **/
+
+		    _.each(ht, function(value, key, list){
+		        if(value.type === "folder") {
+		            result.push({ title: key, isFolder: true, isLazy: true});
+		        } else {
+		            result.push({ title: key});
+		        }
+		    });
+
+		    return _.sortBy(result, function(elm){
+		        return -elm.hasOwnProperty("isFolder");
+		    });
 		}
-		
-		/*
-		function standizePath(path) {
-			var sPath = "/" + path.split("/").filter(function(data){
-				return !(data == "");
-			}).join("/");
-			
-			return sPath;
+
+		function findTreeNode(path){
+		    var root = $("#folderList").dynatree("getRoot");
+		    var nodes = path.split("/");  // "a/b/c" => a, b, c
+		    var currentNode = root;
+		    var searchTarget;
+
+		    for(var idx in nodes){
+		        searchTarget = currentNode.getChildren();
+		        for( var jdx in  searchTarget){
+		            if ( searchTarget[jdx].data.title === nodes[idx] ) {
+		                currentNode = searchTarget[jdx];
+		                currentNode.expand();
+		                break;
+		            }
+		        }
+		    }
 		}
-		*/
-	
-		/**
-		 * initialize Finder
-		 * 폴더 목록 영역 초기화 함수
-		 */
-		function _initFinder(){
-		    var sPath = getHash(true);
-		    var sBranch = getBranch();
-		    var sRootPath = "code/" + sBranch + "/!/";
-			    
+
+		// Traverse the path of selected tree item
+		function getTreePath(node){
+		    var path = "";
+		    if( node.getParent() && node.getParent().data.title !== null ){
+		        path = getTreePath(node.getParent()) + "/" + node.data.title;
+		    } else {
+		        path = node.data.title;
+		    }
+		    return path;
+		}
+
+		// initial path loading
+		var rootPath = "";
+		var treeSelectorId = "#folderList";
+
+		$(function(){
+		    var path = getHash().replace(/^#/, "");
+		    var branch = encodeURIComponent($("#selected-branch").text());
+		    rootPath = "code/" + branch + "/!/";
 		    $.ajax({
-		        "url": sRootPath,
-		        "success": function(oRes){
-		        	_initDynaTree(_sortFolderList(oRes.data));
-		            _findTreeNode(sPath.substr(1));
+		        url: rootPath,
+		        success: function(result, textStatus){
+		            treeInit(adaptorForDynatree(result.data));
+		            findTreeNode(path.substr(1));  // path.substr(1) "/a/b/c" => "a/b/c"
+		        }
+		    });
+		});
+
+		function _updateDynaTree(){
+		    var path = getHash(true);
+		    var branch = encodeURIComponent($("#selected-branch").text());
+		    rootPath = "code/" + branch + "/!/";
+
+		    $.ajax({
+		        "url": rootPath,
+		        "success": function(result){
+		        	var oRoot = $(treeSelectorId).dynatree("getRoot");
+		        	if(!(oRoot instanceof jQuery)){
+			        	oRoot.removeChildren(true);
+			        	oRoot.addChild(adaptorForDynatree(result.data));
+		        	}
 		        }
 		    });
 		}
-		
-		/**
-		 * initialize DynaTree
-		 * see: http://wwwendt.de/tech/dynatree/doc/dynatree-doc.html
-		 * @requires jquery.dynatree
-		 */
-		function _initDynaTree(oData){
-			var sBranch = getBranch();
-		    var sRootPath = "code/" + sBranch + "/!/";	    
-			var htData = {
-		        "title"     : "/",
-		        "isLazy"    : true,
-		        "autoFocus" : false,
-		        "onLazyRead": _onLazyReadDynaTree,
-		        "onActivate": _onActivateDynaTree,
-		        "children"  : oData,
-		        "debugLevel": 0,
-		        "fx": {
-		        	"height": "toggle", 
-		        	"duration": 200
-		        }	        
-		    };
-			
-			htElement.welFolderList.dynatree(htData);
-		}
-		
-		/**
-		 * A DynaTreeNode object is passed to the activation handler
-		 * Note: we also get this event, if persistence is on, and the page is reloaded.
-		 * @param {Object} oNode 
-		 */
-		function _onActivateDynaTree(oNode){
-			window.location = "#/" + _getTreePath(oNode);
-		}
-	
-	    /**
-	     * Called after nodes have been created and the waiting icon was removed.
-	     * 'this' is the options for this AJAX request
-	     * @param {Object} oNode 
-	     */
-		function _onLazyReadDynaTree(oNode){
-			var sBranch = getBranch();
-		    var sRootPath = "code/" + sBranch + "/!/";
-		    
-			$.ajax({
-	            "url": sRootPath + _getTreePath(oNode),
-	            "success": function(oRes) {
-	                // Server returned an error condition: set node status accordingly
-	                if(!oRes){
-	                	oNode.setLazyNodeStatus(DTNodeStatus_Error, {
-	                        "info"   : oRes,
-	                    	"tooltip": "Loading failed"
-	                    });
-	                    return;
-	                }
-	
-	                oNode.setLazyNodeStatus(DTNodeStatus_Ok);
-	                oNode.addChild(_sortFolderList(oRes.data));
-	            },
-	            "error": function(oRes) {
-	                // Called on error, after error icon was created.
-	                console.log(oRes);
-	            },
-	            "cache": false // Append random '_' argument to URL to prevent caching.
-	        });		
-		}
-		
-		/**
-		 * Sort Folder list 
-		 * @param  {Array} aData
-		 * @return {Array}
-		 */
-		function _sortFolderList(oData){
-			var aTmp = [];
-			var htData;
-			
-			for(sKey in oData){
-				htData = oData[sKey];
-				htData.title = sKey;
 
-				if(htData.type === "folder"){
-					htData.isLazy   = true;
-					htData.isFolder = true;
-				}
-				
-				aTmp.push(htData);
-			}
-			
-			// sort folder first
-			/**/
-			var aResult = _sortBy(aTmp, function(htData){
-				return -1 * htData.hasOwnProperty("isFolder");
-			});/*/
-			var aResult = aTmp;
-			*/
-			// free memory after return
-			try {
-				return aResult;
-			} finally {
-				aTmp = htTmp = null;
-			}
-		}
-		
-	
-		/**
-		 * Sort the object's values by a criterion produced by an iterator.
-		 * underscore.js 의 코드를 참조하여 재작성
-		 * @param {Array} aData
-		 * @param {Function} fIterator
-		 * @param {Object} oContext (optional)
-		 */
-		function _sortBy(aData, fIterator, oContext) {
-			var aTmp;
-			
-			// Hash Table 배열로 변환 (nCriteria 추가) 
-			aTmp = aData.map(function(vValue, nIndex, aList) {
-				return {
-					"vValue"	: vValue,
-					"nIndex"	: nIndex,
-					"nCriteria"	: fIterator.call(oContext, vValue, nIndex, aList)
-				};
-			});
-			
-			// 정렬하고나서
-			aTmp = aTmp.sort(function(oLeft, oRight) {
-				var nCrLeft = oLeft.nCriteria;
-				var nCrRight = oRight.nCriteria;
-				
-				if (nCrLeft !== nCrRight) {
-					if (nCrLeft > nCrRight || nCrLeft === void 0) {
-						return 1;
-					}
-					if (nCrLeft < nCrRight || nCrRight === void 0) {
-						return -1;
-					}
-				}
-				return (oLeft.index < oRight.index) ? -1 : 1;
-			});
-	
-			// 처음 들어왔던 형식의 데이터만 남김
-			aTmp = aTmp.map(function(htData) {
-				return htData.vValue;
-			});
-			
-			return aTmp;
-		}
-		
-		/**
-		 * Traverse the path of selected tree item
-		 * 
-		 * @param {Object} oNode
-		 */
-		function _getTreePath(oNode){
-		    var sPath = "";
-		    
-		    if( oNode.getParent() && oNode.getParent().data.title !== null ){
-		        sPath = _getTreePath(oNode.getParent()) + "/" + oNode.data.title;
-		    } else {
-		        sPath = oNode.data.title;
-		    }
-		    
-		    return sPath;
-		}
-	
-		/**
-		 * find TreeNode by path string
-		 * 
-		 * @param {String} sPath
-		 */
-		function _findTreeNode(sPath){
-		    var oRoot = htElement.welFolderList.dynatree("getRoot");
-		    var oNodeCurrent = oRoot;	  // currentNode
-		    var aPath = sPath.split("/"); // nodes
-		    var aNode;					  // searchTarget
-		    var oNode;
-		    
-		    aPath.forEach(function(sName){
-		    	aNode = oNodeCurrent.getChildren();
-	
-		    	if(aNode){
-			    	for(var i=0, n=aNode.length; i < n; i++){
-			    		oNode = aNode[i];
-			    		
-			    		if(oNode.data.title === sName){
-			    			oNodeCurrent = oNode;
-			    			oNodeCurrent.expand();
-			    			break;
-			    		}
-			    	}
-		    	}
+		// DynaTree Init function
+		// see: http://wwwendt.de/tech/dynatree/doc/dynatree-doc.html
+
+		function treeInit(initData){
+			$(treeSelectorId).dynatree({
+		        "debugLevel": 0,
+		        "title"		: "/",
+		        "isLazy"	: true,
+		        "autoFocus"	: false,
+		        "children"	: initData,
+		        "fx"		: {"height": "toggle", "duration": 200},
+		        "onLazyRead": _onLazyRead,
+		        "onActivate": function(node) {
+		            // A DynaTreeNode object is passed to the activation handler
+		            // Note: we also get this event, if persistence is on, and the page is reloaded.
+		            window.location = "#/" + getTreePath(node);
+		        }
 		    });
 		}
-	
-		/**
-		 * Copy repository URL to clipBoard
-		 * 
-		 * @require ZeroClipboard
-		 */
-		function _initCopyURL(){
-			htElement.welBtnCopyURL.zclip({
-				"path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-				"copy": function(){
-					return htElement.welInputRepoURL.val();
-				}
-			});
-		}
-		
-		_init(htOptions || {});
-	};
 
-})("hive.CodeBrowser");
+		function _onLazyRead(node){
+            $.ajax({
+                "url": rootPath + getTreePath(node),
+                "success": function(result, textStatus) {
+                    // Called after nodes have been created and the waiting icon was removed.
+                    // 'this' is the options for this Ajax request
+                    if(result){
+                        node.setLazyNodeStatus(DTNodeStatus_Ok);
+                        node.addChild(adaptorForDynatree(result.data));
+                    }else{
+                        // Server returned an error condition: set node status accordingly
+                        node.setLazyNodeStatus(DTNodeStatus_Error, {
+                            tooltip: "Loading failed",
+                            info: result
+                        });
+                    }
+                },
+                "error": function(node, XMLHttpRequest, textStatus, errorThrown) {
+                    // Called on error, after error icon was created.
+                    console.log(node);
+                },
+                "cache": false // Append random '_' argument to url to prevent caching.
+            });
+		}
+	};
+})("hive.code.Browser");
