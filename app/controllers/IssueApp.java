@@ -212,6 +212,8 @@ public class IssueApp extends AbstractPostingApp {
         newIssue.state = State.OPEN;
         addLabels(newIssue.labels, request());
 
+        setMilestone(issueForm, newIssue);
+
         newIssue.save();
 
         // Attach all of the files in the current user's temporary storage.
@@ -237,6 +239,7 @@ public class IssueApp extends AbstractPostingApp {
     public static Result editIssue(String userName, String projectName, Long id) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         final Issue issue = issueForm.get();
+        setMilestone(issueForm, issue);
         final Issue originalIssue = Issue.finder.byId(id);
         final Project project = originalIssue.project;
         Call redirectTo =
@@ -253,6 +256,13 @@ public class IssueApp extends AbstractPostingApp {
         };
 
         return editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
+    }
+
+    private static void setMilestone(Form<Issue> issueForm, Issue issue) {
+        String milestoneId = issueForm.data().get("milestoneId");
+        if(milestoneId != null && !milestoneId.isEmpty()) {
+            issue.milestone = Milestone.findById(Long.parseLong(milestoneId));
+        }
     }
 
     public static Result deleteIssue(String userName, String projectName, Long issueId) {
