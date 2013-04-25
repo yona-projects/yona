@@ -52,9 +52,7 @@
 		<ul class="unstyled on-admin">
 			@makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"))
 			@makeSubMenu(routes.ProjectApp.members(project.owner, project.name), 	  Messages("project.member"))
-			@** makeSubMenu(routes.MilestoneApp.milestones(project.owner, project.name), Messages("project.milestone")) **@
-			@** makeSubMenu(routes.MilestoneApp.milestones(project.owner, project.name), Messages("project.sidebar.plugin")) **@
-			@** makeSubMenu(routes.MilestoneApp.milestones(project.owner, project.name), Messages("project.sidebar.help")) **@
+			@makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"))
 		</ul>
 	</div>
 }

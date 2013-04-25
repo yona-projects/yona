@@ -131,12 +131,13 @@ a {
     border:none; padding:2px 4px; /*3px 10px;*/
     font-size:11px; font-weight:bold;
     box-shadow: inset 0px -1px 1px rgba(0,0,0,0.3);
-    margin-right:5px;
+    margin-right:5px; -webkit-transition-duration:0.25s;
     &:last-of-type { margin:0; }
     
     .del-link { margin-left:8px; padding:8px 4px; }
     
     &.active {
+        .border-radius(2px);
         &.active-white   { color:#fff; }
         &.active-dimgray { color:#696969; }
     }

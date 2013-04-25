@@ -59,8 +59,11 @@
 			</div>
 		
 			<div class="btn-wrap">
-				<div class="ns-btn fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>@Messages("button.upload") <input type="file" class="file" name="filePath">
+				<div class="fake-file-wrap">
+					<input type="file" class="file" name="filePath" size="1">
+					<div class="ns-btn">
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")
+					</div>
 				</div>
 			</div>
 		</div>
@@ -81,7 +84,7 @@
 	<br>
 	
 	<!-- issue options -->
-	<ul class="options unstyled issue-options">
+	<ul id="options" class="options unstyled issue-options">
 		@if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
 		<li class="option">
              <div class="option-label">@Messages("issue.state")</div>
@@ -162,7 +165,8 @@
     **@	
 
 	<!-- issue.label js module appends a label selector here. -->
-	<fieldset class="labels"></fieldset>
+	<p class="option-label">@Messages("label.select")</p>
+	<fieldset class="labels issue-form-labels form-horizontal bubble-wrap gray"></fieldset>
 
 	<div class="actions">
 		<button type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>

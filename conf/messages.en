@@ -60,6 +60,7 @@ label.name = Name
 label.add = Add
 label.manage = Manage Label
 label.confirm.delete = Are you Sure?
+label.select = Select Label
 
 order.all = All
 order.date = Date
@@ -107,6 +108,13 @@ milestone.menu.new = New
 sort.by.dueDate = Due Date
 sort.by.completionRate = Completeness
 milestone.title.duplicated = Title is duplicated.
+milestone.form.title = Title
+milestone.form.content = Descriptions
+milestone.form.state = State
+milestone.form.dueDate = Choose due date
+milestone.error.title = Title is required
+milestone.error.content = Description is required
+milestone.error.duedateFormat = Invalid format of due date (YYYY-MM-DD) 
 
 #Issue
 issue.state.unit = issues

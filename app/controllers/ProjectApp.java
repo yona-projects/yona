@@ -164,6 +164,16 @@ public class ProjectApp extends Controller {
         return isImageFile;
     }
 
+    public static Result deleteForm(String userName, String projectName) {
+        Project project = getProject(userName, projectName);
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            return unauthorized(views.html.project.unauthorized.render(project));
+        }
+
+        Form<Project> projectForm = form(Project.class).fill(project);
+        return ok(projectDelete.render("title.projectSetting", projectForm, project));
+    }
+    
     public static Result deleteProject(String userName, String projectName) throws Exception {
         Project project = getProject(userName, projectName);
 

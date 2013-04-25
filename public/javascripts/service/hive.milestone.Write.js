@@ -41,12 +41,7 @@
 			htElement.welDatePicker   = $(htOptions.elDatePicker);
 			htElement.welInputDueDate = $(htOptions.elDueDate);			
 			htElement.welInputTitle   = $('#title');
-			htElement.welInputContent = $('#contents');
-			
-			htElement.welErrorTitle   = $("#title_error");
-			htElement.welErrorContent = $("#contents_error");
-			htElement.welErrorDueDate = $("#dueDate_error");
-			htElement.aErrors = [htElement.welErrorTitle, htElement.welErrorContent, htElement.welErrorDueDate];
+			htElement.welInputContent = $('#contents');			
 		}
 
 		/**
@@ -69,21 +64,20 @@
 			var sDueDate = $.trim(htElement.welInputDueDate.val());
 			
 			if(sTitle.length === 0){
-				htElement.welErrorTitle.show();
+				$hive.showAlert(Messages("milestone.error.title"));
 				return false;
 			}
 			
 			if(sContent.length === 0){
-				htElement.welErrorContent.show();
+				$hive.showAlert(Messages("milestone.error.content"));
 				return false;
 			}
 			
 			if(htVar.rxDateFormat.test(sDueDate) === false){
-				htElement.welErrorDueDate.show();
+				$hive.showAlert(Messages("milestone.error.duedateFormat"));
 				return false;
 			}
 			
-			htElement.aErrors.hide();
 			return true;
 		}
 		
