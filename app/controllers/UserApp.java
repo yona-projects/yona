@@ -225,7 +225,7 @@ public class UserApp extends Controller {
 		response().discardCookie(TOKEN);
 		
 		flash(Constants.WARNING, "user.loginWithNewPassword");
-        return ok(login.render("title.login", form(User.class)));
+        return redirect(routes.UserApp.loginForm());
 
 	}
 	
