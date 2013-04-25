@@ -47,12 +47,10 @@
 	<div class="header-wrap">
 		<div class="stats-wrap">
 			@for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
-			<div class="stat stat-issue @if(param.state == state.state) { active }">
-				<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)">
+			<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)" class="stat stat-issue @if(param.state == state.state) { active }">
 				<span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span><!-- 
 				 --><span class="num @state.state">@Issue.countIssues(project.id, state)</span>
-				</a>
-			</div>
+			</a>
 			}
 		</div>
 		<div class="search-wrap projects">

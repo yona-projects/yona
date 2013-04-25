@@ -3,19 +3,17 @@
 @home(message, utils.MenuType.PROJECTS) {
 <div class="page">
   
-	   <div class="header-wrap">
-         <div class="stats-wrap">
-         	 @for(state <- Array("all", "public", "private")) {
-             <div class="stat stat-projectlist @state @if(listState.equals(state)){ active }">
-             	<a href="@routes.ProjectApp.projects(state=state)" class="@state">
-					<span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
-					<span class="num @state">@Project.countByState(state)</span>
-				</a>
-             </div>
-             }
-         </div>
-         <div class="search-wrap projects">
-             <div id="search" class="inner">
+	<div class="header-wrap">
+		<div class="stats-wrap">
+			@for(state <- Array("all", "public", "private")) {
+            <a href="@routes.ProjectApp.projects(state=state)" class="stat stat-projectlist @state @if(listState.equals(state)){ active }">
+				<span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
+				<span class="num @state">@Project.countByState(state)</span>
+			</a>
+			}
+		</div>
+		<div class="search-wrap projects">
+			<div id="search" class="inner">
 				<form action="@routes.ProjectApp.projects()" method="get">
 					<input name="state" type="hidden" value="@listState">
 					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!-- 
@@ -28,9 +26,9 @@
 				</form>
              </div>
          </div>
-     </div>
+	</div>
       
-      <ul class="all-projects">
+	<ul class="all-projects">
       @for(project <- currentPage.getList) {
           <li class="project">
               <div class="info-wrap">
@@ -57,24 +55,22 @@
               </div>
           </li>
 	  }
-      </ul>
-      <div id="pagination">
-          <!-- pagination.js will fill here. -->
-      </div>
+	</ul>
+	
+	<!-- pagination.js will fill here. -->
+	<div id="pagination"></div>
 </div>
 
-
 <script type="text/javascript">
-  $(document).ready(function(){
-    hive.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
-  });
-/* 
 $(document).ready(function(){
+    hive.Pagination.update($("#pagination"), @currentPage.getTotalPageCount);
+
+    /*
 	$(".btn-advanced").click(function(){
 		$(".inner").toggleClass("advanced");
 	});
+	*/
 });
-*/
 </script>
 
 }
