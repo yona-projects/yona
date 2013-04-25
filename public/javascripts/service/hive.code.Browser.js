@@ -184,11 +184,15 @@
 		function _initResizeList(){
 			var nFolderListX = $("#folderList").offset().left;
 			var welBtnResize = $(".btnResize");
-			welBtnResize.bind("mousedown", function(){
+			welBtnResize.mousedown(function(){
 				$(window).bind("mousemove", _resizeList);
 				return false;
 			});
-			welBtnResize.bind("mouseup", function(){
+			welBtnResize.mouseup(function(){
+				$(window).unbind("mousemove", _resizeList);
+				return false;
+			});
+			$(window).click(function(){ // for IE
 				$(window).unbind("mousemove", _resizeList);
 				return false;
 			});
@@ -197,7 +201,7 @@
 				var nWidth = weEvt.clientX - nFolderListX;
 				$(".directory-wrap").width(nWidth);
 				$(".file-wrap").width(850 - nWidth);
-			}			
+			}
 		}
 		
 		_initResizeList();
