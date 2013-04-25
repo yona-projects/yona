@@ -3,15 +3,15 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://hive.dev.naver.com/license
  */
 
 (function(ns){
-	
+
 	var oNS = $hive.createNamespace(ns);
 	oNS.container[oNS.name] = function(htOptions){
-		
+
 		var htElement = {};
     	var htOrderMap = {"asc": "desc", "desc": "asc"};
 
@@ -22,7 +22,7 @@
 		function _init(htOptions){
 			_initElement(htOptions || {});
 			_attachEvent();
-			
+
 			_initPagination(htOptions);
 		}
 
@@ -31,12 +31,12 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welForm = $(htOptions.sOptionForm || "#option_form");
-			htElement.welInputKey = htElement.welForm.find("input[name=key]");
-			htElement.welInputOrder = htElement.welForm.find("input[name=order]");
+			htElement.welInputOrderBy = htElement.welForm.find("input[name=orderBy]");
+			htElement.welInputOrderDir = htElement.welForm.find("input[name=orderDir]");
 			htElement.welInputPageNum = htElement.welForm.find("input[name=pageNum]");
-			
+
 			htElement.welFilter = $(htOptions.sQueryFilter || "#order a");
-			htElement.welPages = $(htOptions.sQueryPages || "#pagination a"); 
+			htElement.welPages = $(htOptions.sQueryPages || "#pagination a");
 			htElement.welPagination = $(htOptions.elPagination || '#pagination');
 		}
 
@@ -52,15 +52,12 @@
          * onClick filter
          */
         function _onClickFilter(){
-            var sKey = $(this).attr("key");
+            var orderBy = $(this).attr("data-orderBy");
+            var orderDir = $(this).attr("data-orderDir");
 
-        	// Key
-            if (sKey !== htElement.welInputKey.val()) {
-            	htElement.welInputKey.val(sKey)
-            } else { // Order
-            	var sCurrentVal = htElement.welInputOrder.val();
-            	htElement.welInputOrder.val(htOrderMap[sCurrentVal]);
-            }
+            htElement.welInputOrderBy.val(orderBy);
+            htElement.welInputOrderDir.val(orderDir);
+
             htElement.welForm.submit();
             return false;
         }
@@ -73,15 +70,15 @@
         	htElement.welForm.submit();
             return false;
         }
-        
-        
+
+
         function _initPagination(htOptions){
         	hive.Pagination.update(htElement.welPagination, htOptions.nTotalPages);
         }
-        
+
         _init(htOptions);
 	};
-	
+
 })("hive.board.List");
 
 /*
@@ -95,7 +92,7 @@ nforge.board.list = function() {
         "setUpEventListener" : function() {
             var $headers = $("#order a");
             $headers.click(that.onHeader);
-            
+
             var $pagination = $("#pagination a");
             $pagination.click(that.onPager);
         },
@@ -124,7 +121,7 @@ nforge.board.list = function() {
             return false;
         }
     };
-    
+
     return that;
 };
 */
