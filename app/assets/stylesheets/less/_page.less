@@ -2589,6 +2589,7 @@ div.markdown-preview {
     .border-radius(10px);
     .box-shadow(0 1px 0 rgba(0,0,0, .15));
     overflow: hidden;
+    
     .code-browse-header {
         color: @white;
         background-color: #6c6c6c;
@@ -2602,31 +2603,32 @@ div.markdown-preview {
     .commit-wrap {
         background-color: @white;
     }
+    
     .cell {
         display: table-cell;
         background-color: @white;
         vertical-align: top;
+        -webkit-transition-duration:0.3s;
+        
         &.directory-wrap {
             width: 196px;
-            min-width: 196px;
-            max-width: 196px;
+            /*min-width: 196px;
+            max-width: 196px;*/
             overflow: auto;
+            position: relative;
+            padding:5px;
         }
         &.sp-wrap {
             border-left: 4px solid #E6E6E6;
         }
         &.file-wrap {
-            /*
-            width: 700px;
-            min-width: 700px;
-            max-width: 700px;
-            */
-            width:660px;
+            width:660px; /* 700px */
             min-width:660px;
             max-width:660px;
             overflow-x: auto;
         }
     }
+    
     .directory-header {
         line-height: 34px;
         background-color: #9C9C9C;
@@ -2635,10 +2637,12 @@ div.markdown-preview {
         padding-left: 20px;
         position: absolute;
         width: 180px;
+        display:none;
     }
+    
     .directories {
         margin: 0;
-        margin-top: 34px;
+        /*margin-top: 34px;*/
         padding: 0;
         overflow: auto;
         list-style: none;
@@ -2660,6 +2664,7 @@ div.markdown-preview {
             }
         }
     }
+    
     .code-table {
         width: 100%;
         &.sources {
@@ -2714,6 +2719,7 @@ div.markdown-preview {
             width: 80px;
         }
     }
+    
     .file-header {
         margin-top: 10px;
         line-height: 34px;
@@ -2722,6 +2728,7 @@ div.markdown-preview {
         font-size: 11px;
         padding-left: 15px;
         overflow: hidden;
+        
         .file-info {
             float: left;
             .text-overflow;
@@ -2742,6 +2749,7 @@ div.markdown-preview {
                 }
             }
         }
+        
         .btn-raw {
             float: right;
             padding: 0 30px;
@@ -2762,10 +2770,25 @@ div.markdown-preview {
             }
         }
     }
+    
     .code-wrap {
         overflow-x: auto;
         background-color: @white;
         border:none;
+    }
+    
+    .btnExpandDirectory {
+        position:absolute;
+        top:0; right:0; z-index:999;
+        padding:2px 4px; cursor:pointer;
+    }
+    
+    &.expandDirectory {
+        .directory-wrap {
+            width:860px;
+        }
+        .sp-wrap { display:none !important; }
+        .file-wrap { display:none !important; }
     }
 }
 
