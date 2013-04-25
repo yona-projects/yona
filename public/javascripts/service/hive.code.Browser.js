@@ -184,6 +184,9 @@
 		function _initResizeList(){
 			var nFolderListX = $("#folderList").offset().left;
 			var welBtnResize = $(".btnResize");
+			var welWrapDirectory = $(".directory-wrap");
+			var waWrapFile = $(".file-wrap"); // fileList, fileView
+			
 			welBtnResize.mousedown(function(){
 				$(window).bind("mousemove", _resizeList);
 				return false;
@@ -194,7 +197,17 @@
 			});
 			$(window).click(function(){ // for IE
 				$(window).unbind("mousemove", _resizeList);
-				return false;
+			});
+			
+			// 더블클릭하면 디렉토리 목록 숨김
+			welBtnResize.dblclick(function(){
+				if(welWrapDirectory.css("display") == "none"){
+					welWrapDirectory.show();
+					waWrapFile.width(850 - welWrapDirectory.width());
+				} else {
+					welWrapDirectory.hide();
+					waWrapFile.width(850);
+				}
 			});
 			
 			function _resizeList(weEvt){
