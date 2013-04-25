@@ -39,6 +39,7 @@ GET     /sites/user/delete                              controllers.SiteApp.dele
 GET     /sites/projectList                              controllers.SiteApp.projectList(filter:String ?= "")
 GET     /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
 GET     /sites/softwareMap                              controllers.SiteApp.softwareMap()
+GET     /sites/toggleAccountLock/:loginId               controllers.SiteApp.toggleAccountLock(loginId: String)
 GET     /lostPassword                                   controllers.PasswordResetApp.lostPassword
 POST    /lostPassword                                   controllers.PasswordResetApp.requestResetPasswordEmail()
 GET     /resetPassword                                  controllers.PasswordResetApp.resetPasswordForm(s:String)

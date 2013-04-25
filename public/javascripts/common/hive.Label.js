@@ -106,6 +106,7 @@ hive.Label = (function(htOptions){
 	 */
 	function _onCreateNewLabel(oLabel){
 		_addLabelIntoCategory(oLabel);
+		_setActiveLabel(oLabel.id, oLabel.color);
 	}
 	
 	/**

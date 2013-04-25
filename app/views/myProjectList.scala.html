@@ -1,4 +1,4 @@
-@(projects:List[Project])
+@(projects:List[Project], orderString:String)
 @import utils.TemplateHelper._
 @if(projects != null){
     @for(project <- projects){
@@ -17,6 +17,7 @@
                 <div class="ico-wrap">
                     <i class="ico ico-gray-arrow-right"></i>
                 </div>
+
             <div class="project-detail hidden">
                 <ul class="contributors unstyled">
                     @project.projectUser.map{ member =>

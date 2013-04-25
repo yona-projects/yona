@@ -44,6 +44,7 @@ public class SiteApp extends Controller {
     }
 
     public static Result writeMail(String errorMessage, boolean sended) {
+
         Configuration config = play.Play.application().configuration();
         List<String> notConfiguredItems = new ArrayList<String>();
         String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
@@ -72,11 +73,15 @@ public class SiteApp extends Controller {
     }
     
     public static Result deleteUser(Long userId) {
-        if(Project.isOnlyManager(userId).size() == 0)
-            User.find.byId(userId).delete();
-        else
-            flash(Constants.WARNING, "site.userList.deleteAlert");
-            
+        if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
+            if(Project.isOnlyManager(userId).size() == 0)
+                User.find.byId(userId).delete();
+            else
+                flash(Constants.WARNING, "site.userList.deleteAlert");
+        } else {
+            flash(Constants.WARNING, "auth.unauthorized.waringMessage");
+        }
+
         return redirect(routes.SiteApp.userList(0, null));
     }
         
@@ -86,11 +91,30 @@ public class SiteApp extends Controller {
     }
     
     public static Result deleteProject(Long projectId){
-        Project.find.byId(projectId).delete();
+        if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
+            Project.find.byId(projectId).delete();
+        } else {
+            flash(Constants.WARNING, "auth.unauthorized.waringMessage");
+        }
         return redirect(routes.SiteApp.projectList(""));
     }
     
     public static Result softwareMap() {
         return TODO;
+    }
+
+    public static Result toggleAccountLock(String loginId){
+        if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
+            User targetUser = User.findByLoginId(loginId);
+            if (targetUser.isAnonymous()){
+                flash(Constants.WARNING, "user.notExists.name");
+                return redirect(routes.SiteApp.userList(0, null));
+            }
+            targetUser.isLocked = !targetUser.isLocked;
+            targetUser.save();
+            return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
+        }
+        flash(Constants.WARNING, "auth.unauthorized.waringMessage");
+        return redirect(routes.Application.index());
     }
 }
