@@ -179,6 +179,29 @@
 		function setHash(hash) {
 			return document.location.hash = hash;
 		}
+		
+		/** resize list **/
+		function _initResizeList(){
+			var nFolderListX = $("#folderList").offset().left;
+			var welBtnResize = $(".btnResize");
+			welBtnResize.bind("mousedown", function(){
+				$(window).bind("mousemove", _resizeList);
+				return false;
+			});
+			welBtnResize.bind("mouseup", function(){
+				$(window).unbind("mousemove", _resizeList);
+				return false;
+			});
+			
+			function _resizeList(weEvt){
+				var nWidth = weEvt.clientX - nFolderListX;
+				$(".directory-wrap").width(nWidth);
+				$(".file-wrap").width(850 - nWidth);
+			}			
+		}
+		
+		_initResizeList();
+		/** end of resize list **/
 
 		$(".branch-item").click(function(ev) {
 			_updateDynaTree();
