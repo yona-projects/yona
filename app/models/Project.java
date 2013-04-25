@@ -29,11 +29,6 @@ import utils.JodaDateUtil;
 
 import com.avaje.ebean.Page;
 
-/**
- *
- * @author "nForge Team"
- */
-
 @Entity
 public class Project extends Model {
 	private static final long serialVersionUID = 1L;

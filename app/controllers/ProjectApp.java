@@ -36,9 +36,6 @@ import java.util.Map;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
-/**
- * @author "Hwi Ahn"
- */
 public class ProjectApp extends Controller {
 	public static final String[] LOGO_TYPE = {"jpg", "png", "gif", "bmp"};
 

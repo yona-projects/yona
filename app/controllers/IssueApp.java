@@ -1,7 +1,3 @@
-/**
- * @author Taehyun Park
- */
-
 package controllers;
 
 import models.*;

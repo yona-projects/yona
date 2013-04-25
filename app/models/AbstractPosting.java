@@ -16,14 +16,6 @@ import java.util.Date;
 
 import static com.avaje.ebean.Expr.contains;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nori
- * Date: 13. 3. 4
- * Time: 오후 6:17
- * To change this template use File | Settings | File Templates.
- */
-
 @MappedSuperclass
 abstract public class AbstractPosting extends Model {
     public static final int FIRST_PAGE_NUMBER = 0;
