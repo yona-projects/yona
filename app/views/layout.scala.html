@@ -62,8 +62,12 @@
         $(".underConstruction").tooltip({placement: 'left', title: 'Sorry! Under construction...'});
      	
      	// hive.Dropdown
+	var sActivation;
         $(".btn-group[data-name]").each(function(i, el){
-        	(new hive.ui.Dropdown({"elContainer":el}));
+		sActivation = $(el).attr("data-activate");
+		if(typeof sActivation == "undefined" || sActivation != "manual"){
+			(new hive.ui.Dropdown({"elContainer":el}));
+		}
         });
 	});
 </script>

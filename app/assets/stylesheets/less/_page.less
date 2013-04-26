@@ -2579,6 +2579,14 @@ div.markdown-preview {
             width: 115px; /*155px;*/
         }
     }
+
+    .branches {
+        .label {
+            margin:0; padding:0 5px; margin-right:3px;
+
+            &.branch { background-color:@orange; }
+        }
+    }
 }
 
 .double-sp {
@@ -2776,7 +2784,8 @@ div.markdown-preview {
         color: @gray-d4;
         overflow-x: auto;
         background-color: rgb(36, 36, 36);
-        border:none;
+        border:none; margin:0 !important;
+        .border-radius(0px);
     }
     
     .btnResize {
