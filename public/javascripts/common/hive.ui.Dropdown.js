@@ -22,7 +22,7 @@
 	var oNS = $hive.createNamespace(ns);
 	oNS.container[oNS.name] = function(htOptions){
 
-		var htVar = {};
+		var htVar = {"sValue":""};
 		var htElement = {};
 		
 		/**
@@ -70,7 +70,7 @@
 		 * @param {Wrapped Element} welTarget
 		 */
 		function _setItemSelected(welTarget){
-			htElement.welSelectedLabel.text(welTarget.text());
+			htElement.welSelectedLabel.html(welTarget.html());
 			htElement.waItems.removeClass("active");
 			welTarget.addClass("active");		
 		}
@@ -83,6 +83,7 @@
 			var sFieldValue = welTarget.attr("data-value");
 			var sFieldName	= htElement.welContainer.attr("data-name");
 			var welInput	= htElement.welContainer.find("input[name='" + sFieldName +"']");
+			htVar.sValue = sFieldValue;  
 			
 			if(typeof sFieldName == "undefined"){
 				return;
@@ -99,30 +100,71 @@
 		/**
 		 * 항목 값이 변경되면 실행될 함수 
 		 */
-		function _onChange(){
+		function _onChange(){				
 			if(typeof htVar.fOnChange == "function"){
-				setTimeout(htVar.fOnChange, 0);
+				setTimeout(function(){
+					htVar.fOnChange(_getValue());
+				}, 0);
 			}
 		}
 	
 		/**
+		 * 항목 값이 변경되면 실행할 함수 지정
+		 * @param {Function} fOnChange
+		 */
+		function _setOnChange(fOnChange){
+			htVar.fOnChange = fOnChange;
+			return true;
+		}
+		
+		/**
+		 * 현재 선택된 값을 반환
+		 * @return {String}
+		 */
+		function _getValue(){
+			return htVar.sValue;
+		}
+		
+		/**
 		 * 기본값 지정이 있으면 선택된 상태로 만들기
 		 */
 		function _selectDefault(){
-			var waFind = htElement.welContainer.find("li[data-selected=true]");
+			return _selectItem("li[data-selected=true]");
+		}
+		
+		/**
+		 * 지정한 값을 data-value 로 가진 항목을 선택 상태로 만듬
+		 * @param {String} sValue
+		 */
+		function _selectByValue(sValue){
+			return _selectItem("li[data-value='" + sValue + "']");
+		}
+		
+		/**
+		 * 지정한 항목을 선택 상태로 만듬
+		 * @param {String} sQuery 항목 선택 셀렉터 구문
+		 */
+		function _selectItem(sQuery){
+			var waFind = htElement.welContainer.find(sQuery);
 			if(waFind.length <= 0){
-				return;
+				return false; // no item matches
 			}
 			
 			var welTarget = $(waFind[0]);
 			_setItemSelected(welTarget);
 			_setFormValue(welTarget);
+			
+			return true;
 		}
 		
 		_init(htOptions);
+		
+		return {
+			"getValue": _getValue,
+			"onChange": _setOnChange,
+			"selectByValue": _selectByValue
+		};
 	};
 
 })("hive.ui.Dropdown");
 
- 
-	

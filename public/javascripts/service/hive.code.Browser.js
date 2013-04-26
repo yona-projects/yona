@@ -13,7 +13,10 @@
 	oNS.container[oNS.name] = function(htOptions){
 
 		var project_name = htOptions.sProjectName;
-	
+		var oBranch = new hive.ui.Dropdown({
+			"elContainer": $("#branches")
+		});
+		
 		$(document).ready(function(){
 			$(window).bind('hashchange', function(e){
 //				_updateDynaTree();
@@ -21,7 +24,7 @@
 		        //대기 표시 한다.
 		        //여기서 요청을 보내고
 		        var path = getHash().replace(/^#/, "");
-		        var branch = encodeURIComponent($("#selected-branch").text());
+		        var branch = getBranch();
 		
 		        $.ajax("code/" + branch + "/!" + path, {
 		          datatype : "json",
@@ -179,9 +182,10 @@
 		        }
 		      }); // end-of-document_ready
 
-		      if(!$("#selected-branch").text()){
-		    	  $("#selected-branch").text('HEAD');
-		      }
+			  if (oBranch.getValue() == "") {
+				  oBranch.selectByValue("HEAD");
+			  }
+
 		      $(window).trigger('hashchange');
 		      _updateDynaTree();
 		});
@@ -192,6 +196,10 @@
 
 		function setHash(hash) {
 			return document.location.hash = hash;
+		}
+		
+		function getBranch(){
+			return encodeURIComponent(oBranch.getValue());
 		}
 		
 		/** resize list **/
@@ -234,12 +242,11 @@
 		_initResizeList();
 		/** end of resize list **/
 
-		$(".branch-item").click(function(ev) {
+		oBranch.onChange(function(){
 			_updateDynaTree();
-			$("#selected-branch").text($(this).text());
 			$(window).trigger('hashchange');
 		});
-
+	
 		// adaptorForDynatree adaptor function is used for existed function
 		// Also, it pass the below tests
 		//
@@ -338,7 +345,7 @@
 
 		$(function(){
 		    var path = getHash().replace(/^#/, "");
-		    var branch = encodeURIComponent($("#selected-branch").text());
+		    var branch = getBranch();
 		    rootPath = "code/" + branch + "/!/";
 		    $.ajax({
 		        url: rootPath,
@@ -351,7 +358,7 @@
 
 		function _updateDynaTree(){
 		    var path = getHash(true);
-		    var branch = encodeURIComponent($("#selected-branch").text());
+		    var branch = getBranch();
 		    rootPath = "code/" + branch + "/!/";
 
 		    $.ajax({

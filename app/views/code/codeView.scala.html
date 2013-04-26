@@ -1,5 +1,26 @@
 @(project:Project, branches:List[String])
 
+@branchItemType(itemType:String) = @{
+	if(itemType == "heads"){
+		"branch"
+	} else {
+		itemType
+	}
+}
+
+@makeBranchItem(branch:String) = {
+	@defining(branch.split('/')){ names =>
+		@if(names(0).equals("refs") && names.length == 3){
+			<li data-value="@branch"><a href="#"><!-- 
+			 --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!-- 
+			 -->@names(2)
+			</a></li>
+		} else {
+			<li data-value="@branch"><a href="#">@branch</a></li>
+		}
+	}
+}
+
 @main(Messages("menu.code"), project, utils.MenuType.CODE){
 <div class="page">
 
@@ -19,15 +40,27 @@
 			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
 			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
-			<div class="btn-group">
-				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch"></button>
+             
+            <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
+				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label"></button>
+				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+				<ul class="dropdown-menu">
+					@for(branch <- branches){
+						@makeBranchItem(branch)
+					}
+				</ul>
+			</div> 
+			<!-- 
+			<div class="btn-group branches">
+				<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite" id="selected-branch" data-branch="HEAD"></button>
 				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
 				<ul class="dropdown-menu">
 					@for(name <- branches){
-					<li><a href="#" class="branch-item">@name</a></li>
+					<li><a href="#" class="branch-item" data-branch="@name">@name</a></li>
 					}
 				</ul>
 			</div>
+			 -->
 		</div>
 		<hr class="double-sp" />
 		<div class="code-browse-wrap">
