@@ -3,25 +3,34 @@ package controllers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
+import models.ProjectUser;
 import org.apache.commons.mail.*;
 
 import models.Project;
 import models.User;
 import org.apache.commons.mail.SimpleEmail;
+import org.codehaus.jackson.JsonNode;
 import play.Configuration;
 import play.Logger;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
 
 import views.html.site.setting;
 import views.html.site.mail;
+import views.html.site.massMail;
 import views.html.site.userList;
 import views.html.site.projectList;
 
 import com.avaje.ebean.Page;
 import static play.data.Form.form;
+import static play.libs.Json.toJson;
+import play.i18n.Messages;
+
 import info.schleichardt.play2.mailplugin.Mailer;
 
 public class SiteApp extends Controller {
@@ -57,6 +66,21 @@ public class SiteApp extends Controller {
         String sender = config.getString("smtp.user") + "@" + config.getString("smtp.domain");
 
         return ok(mail.render("title.sendMail", notConfiguredItems, sender, errorMessage, sended));
+    }
+
+    public static Result massMail() {
+        Configuration config = play.Play.application().configuration();
+        List<String> notConfiguredItems = new ArrayList<String>();
+        String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
+        for(String key : requiredItems) {
+            if (config.getString(key) == null) {
+                notConfiguredItems.add(key);
+            }
+        }
+
+        String sender = config.getString("smtp.user") + "@" + config.getString("smtp.domain");
+
+        return ok(massMail.render("title.massMail", notConfiguredItems, sender));
     }
 
     public static Result setting() {
@@ -116,5 +140,44 @@ public class SiteApp extends Controller {
         }
         flash(Constants.WARNING, "auth.unauthorized.waringMessage");
         return redirect(routes.Application.index());
+    }
+
+    public static Result mailList() {
+        Set<String> emails = new HashSet<String>();
+        Map<String, String[]> projects = request().body().asFormUrlEncoded();
+
+        if(!UserApp.currentUser().isSiteManager()) {
+            return forbidden(Messages.get("auth.unauthorized.waringMessage"));
+        }
+
+        if (!request().accepts("application/json")) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        if (projects == null) {
+            return ok(toJson(new HashSet<String>()));
+        }
+
+        if (projects.containsKey("all")) {
+            if (projects.get("all")[0].equals("true")) {
+                for(User user : User.find.findList()) {
+                    emails.add(user.email);
+                }
+            }
+        } else {
+            for(String[] projectNames : projects.values()) {
+                String projectName = projectNames[0];
+                String[] parts = projectName.split("/");
+                String owner = parts[0];
+                String name = parts[1];
+                Project project = Project.findByNameAndOwner(owner, name);
+                for (ProjectUser projectUser : ProjectUser.findMemberListByProject(project.id)) {
+                    Logger.debug(projectUser.user.email);
+                    emails.add(projectUser.user.email);
+                }
+            }
+        }
+
+        return ok(toJson(emails));
     }
 }

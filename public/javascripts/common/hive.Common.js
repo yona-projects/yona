@@ -69,7 +69,7 @@ $hive = hive.Common = (function(){
 		// 그렇지 않으면 스크립트 파일 불러온 뒤 초기화 시도
 		if(registerModule(sName, htOptions) === false){
 			htVar.htTryLoad = htVar.htTryLoad || {};
-			htVar.htTryLoad[sName] = (typeof htVar.htTryLoad[sName] == "undefined") ? 1 : (htVar.htTryLoad[sName]++);
+			htVar.htTryLoad[sName] = (typeof htVar.htTryLoad[sName] == "undefined") ? 1 : (++htVar.htTryLoad[sName]);
 			
 			if(htVar.htTryLoad[sName] > 3){
 				console.log("[HIVE] fail to load module " + sName);
@@ -226,7 +226,7 @@ $hive = hive.Common = (function(){
 		welForm.ajaxForm({
 			"success" : htOptions.fOnLoad  || function(){},
 			"error"   : htOptions.fOnError || function(){},
-			"datatype": htOptions.sDataType || null
+			"dataType": htOptions.sDataType || null
 		});
 		welForm.submit();
 		

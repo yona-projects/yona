@@ -1,0 +1,42 @@
+@(message: String, notConfiguredItems: List[String], sender: String)
+
+@siteMngMain(message) {
+<div class="page-header">
+  <h3>@Messages(message)</h3>
+</div>
+
+<div>
+  <p>
+  <label class="radio">
+    <input type="radio" name="mailingType" value="all">
+    @Messages("site.massMail.toAll")
+  </label>
+  </p>
+  <p>
+  <label class="radio">
+    <input type="radio" name="mailingType" value="projects" checked>@Messages("site.massMail.toProjects"):
+    <span id="selected-projects"><!-- project names are added here by hive.site.MassMail.js --></span>
+    <input type="text" class="text uname"
+            id="input-project"
+            data-provider="typeahead" autocomplete="off"
+            placeholder="@Messages("project.name")"/>
+    <button type="submit" class="btn btn-primary" id="select-project" data-loading-text="@Messages("site.massMail.loading")">
+      <strong>@Messages("button.add")</strong>
+    </button>
+  </label>
+  </p>
+</div>
+
+<button type="submit" class="btn btn-primary" id="write-email">
+  <strong>@Messages("mail.write")</strong>
+</button>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    $hive.loadModule("site.MassMail", {
+        "sURLMailList": "@routes.SiteApp.mailList()",
+        "sURLProjects": "@routes.ProjectApp.projects()"
+    });
+  });
+</script>
+}

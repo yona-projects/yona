@@ -1,7 +1,12 @@
 package utils;
 
+import play.api.http.MediaRange;
+import play.mvc.Http;
+import scala.Option;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Map;
 
 public class HttpUtil {
@@ -24,5 +29,17 @@ public class HttpUtil {
         filename = URLEncoder.encode(filename, "UTF-8").replaceAll("\\+", "%20");
         filename = "filename*=UTF-8''" + filename;
         return filename;
+    }
+
+    public static String getPreferType(Http.Request request, String ... types) {
+        // acceptedTypes is sorted by preference.
+        for(MediaRange range : request.acceptedTypes()) {
+            for(String type : types) {
+                if (range.accepts(type)) {
+                    return type;
+                }
+            }
+        }
+        return null;
     }
 }

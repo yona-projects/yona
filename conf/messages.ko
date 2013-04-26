@@ -22,6 +22,7 @@ title.rememberMe = 로그인 유지하기
 title.commitHistory = 커밋 히스토리
 title.mailSetting = 메일 설정
 title.sendMail = 메일 발송
+title.massMail = 대량 메일 발송
 title.projectList = 프로젝트 목록
 title.help = 도움말
 title.search = 검색
@@ -287,6 +288,7 @@ site.sidebar.userList = 유저 관리
 site.sidebar.projectList = 프로젝트 설정
 site.sidebar.softwareMap = 소프트웨어 맵
 site.sidebar.mailSend = 메일 발송
+site.sidebar.massMail = 대량 메일 발송
 site.project.filter = 찾으려는 프로젝트 이름을 입력하세요
 site.userList.search = 찾으려는 사용자의 ID를 입력하세요
 site.userList.isActive = 활성 상태
@@ -297,6 +299,10 @@ site.project.delete = 프로젝트 삭제
 site.project.deleteConfirm = 정말로 해당 프로젝트를 사이트에서 삭제하겠습니까?
 site.userlist.unlocked = 활성화된 유저 목록
 site.userlist.locked = 계정이 잠긴 유저 목록
+site.massMail.toAll = 모두에게
+site.massMail.toProjects = 특정 프로젝트의 멤버들에게
+site.massMail.loading = 불러오는중...
+
 
 #User
 user.loginId = 아이디
@@ -390,6 +396,7 @@ mail.toPlaceholder = recipient@mail.com
 mail.subject = 제목
 mail.body = 본문
 mail.send = 발송
+mail.write = 메일 쓰기
 mail.fail = 메일 발송에 실패했습니다.
 mail.sended = 메일을 발송하였습니다.
 
