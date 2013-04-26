@@ -12,7 +12,7 @@
 	oNS.container[oNS.name] = function(htOptions){
 		
 		var htVar = {};
-		var htElements = {};
+		var htElement = {};
 
 		/**
 		 * initialize
@@ -65,7 +65,7 @@
         	// detachEvent() if available
         	
         	// free memory
-        	htVar = htElements = null;
+		htVar = htElement = null;
         }
         
         _init();
