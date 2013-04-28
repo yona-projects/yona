@@ -208,25 +208,28 @@
 			var welBtnResize = $(".btnResize");
 			var welWrapDirectory = $(".directory-wrap");
 			var waWrapFile = $(".file-wrap"); // fileList, fileView
-			
-			welBtnResize.mousedown(function(){
-				$(window).bind("mousemove", _resizeList);
-				return false;
-			});
-			welBtnResize.mouseup(function(){
+            var draggable = true;
+
+            welBtnResize.mousedown(function () {
+                if(draggable) $(window).bind("mousemove", _resizeList);
+                return false;
+            });
+            $(".directory-wrap").mouseup(function(){
 				$(window).unbind("mousemove", _resizeList);
 				return false;
 			});
 			$(window).click(function(){ // for IE
 				$(window).unbind("mousemove", _resizeList);
 			});
-			
+
 			// 더블클릭하면 디렉토리 목록 숨김
 			welBtnResize.dblclick(function(){
 				if(welWrapDirectory.css("display") == "none"){
+                    draggable = true;
 					welWrapDirectory.show();
 					waWrapFile.width(850 - welWrapDirectory.width());
 				} else {
+                    draggable = false;
 					welWrapDirectory.hide();
 					waWrapFile.width(850);
 				}
@@ -235,6 +238,7 @@
 			function _resizeList(weEvt){
 				var nWidth = weEvt.clientX - nFolderListX;
 				$(".directory-wrap").width(nWidth);
+                $(".directories").width(nWidth);
 				$(".file-wrap").width(850 - nWidth);
 			}
 		}
