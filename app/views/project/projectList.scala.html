@@ -42,7 +42,7 @@
                   <div class="desc">
                       @project.overview
                   </div>
-                  <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> <!--<span>20 days ago.</span>--></p>
+                  <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a>&nbsp;-&nbsp;@project.getCreatedDate</span> <!--<span>20 days ago.</span>--></p>
               </div>
               <div class="stats-wrap">
                   <div class="like">
