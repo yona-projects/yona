@@ -83,7 +83,7 @@
 			var sFieldValue = welTarget.attr("data-value");
 			var sFieldName	= htElement.welContainer.attr("data-name");
 			var welInput	= htElement.welContainer.find("input[name='" + sFieldName +"']");
-			htVar.sValue = sFieldValue;
+			htVar.sValue = sFieldValue;  
 			
 			if(typeof sFieldName == "undefined"){
 				return;
@@ -100,7 +100,7 @@
 		/**
 		 * 항목 값이 변경되면 실행될 함수 
 		 */
-		function _onChange(){
+		function _onChange(){				
 			if(typeof htVar.fOnChange == "function"){
 				setTimeout(function(){
 					htVar.fOnChange(_getValue());

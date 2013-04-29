@@ -65,7 +65,7 @@
         	// detachEvent() if available
         	
         	// free memory
-		htVar = htElement = null;
+        	htVar = htElement = null;
         }
         
         _init();

@@ -218,7 +218,9 @@
             var draggable = true;
 
             welBtnResize.mousedown(function () {
-                if(draggable) $(window).bind("mousemove", _resizeList);
+                if(draggable) {
+                	$(window).bind("mousemove", _resizeList);
+                }
                 return false;
             });
             $(".directory-wrap").mouseup(function(){
@@ -257,7 +259,7 @@
 			_updateDynaTree();
 			$(window).trigger('hashchange');
 		});
-
+	
 		// adaptorForDynatree adaptor function is used for existed function
 		// Also, it pass the below tests
 		//
