@@ -137,8 +137,7 @@
         }
 
         /**
-        * If user presses enter at newtag element, get list of tags from the
-        * server and show them in #tags div.
+        * Add a tag, which user types in htElement.welInputAddTag, into #tags div.
         *
         * @param {Object} oEvent
         */
