@@ -53,6 +53,7 @@ abstract public class Comment extends Model {
     }
 
     public void delete() {
+        Attachment.deleteAll(asResource().getType(), id);
         super.delete();
         getParent().save();
     }

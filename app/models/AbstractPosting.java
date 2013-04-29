@@ -13,6 +13,7 @@ import utils.JodaDateUtil;
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.List;
 
 import static com.avaje.ebean.Expr.contains;
 
@@ -127,7 +128,12 @@ abstract public class AbstractPosting extends Model {
         authorName = user.name;
     }
 
+    abstract public List<? extends Comment> getComments();
+
     public void delete() {
+        for (Comment comment: getComments()) {
+            comment.delete();
+        }
         Attachment.deleteAll(asResource().getType(), id);
         super.delete();
     }

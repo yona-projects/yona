@@ -61,4 +61,9 @@ public class Posting extends AbstractPosting {
                 .findPagingList(size).getPage(0)
                 .getList();
     }
+
+    @Transient
+    public List<? extends Comment> getComments() {
+        return comments;
+    }
 }
