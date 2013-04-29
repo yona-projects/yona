@@ -40,7 +40,7 @@ import static play.libs.Json.toJson;
 import static com.avaje.ebean.Expr.contains;
 
 public class ProjectApp extends Controller {
-	public static final String[] LOGO_TYPE = {"jpg", "png", "gif", "bmp"};
+    public static final String[] LOGO_TYPE = {"jpg", "jpeg", "png", "gif", "bmp"};
     private static final int MAX_FETCH_PROJECTS = 1000;
 
     public static Project getProject(String userName, String projectName) {
