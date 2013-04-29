@@ -4,6 +4,8 @@
 @import utils.AccessControl._
 @import scala.collection.immutable.Map
 
+@urlToList = {@routes.BoardApp.posts(project.owner, project.name, page.getPageIndex + 1)}
+
 @** header(label:String, key:String) = {
   <th>
     <a key="@key" href="@routes.BoardApp.posts(project.owner, project.name)">@label</a>
@@ -28,7 +30,7 @@
         <form method="get" id="option_form">
           <input type="hidden" name="orderBy"  value="@param.orderBy">
           <input type="hidden" name="orderDir" value="@param.orderDir">
-          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!-- 
+          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
            --><button type="submit" class="btn search-btn underConstruction">@Messages("post.menu.search")</button>
         </form>
       </div>
@@ -77,13 +79,25 @@
 
   <div class="filter-wrap board">
       <div class="filters" id="order">
-          <a href="#" key="date" class="filter underConstruction @if(param.orderBy == "date"){ active }">
-			<i class="ico btn-gray-arrow @if(param.orderBy == "date" && param.orderDir == "desc"){down}"></i>날짜순
-          </a>
+          @if(param.orderBy.equals("createdDate")) {
+            @if(param.orderDir.equals("asc")) {
+                <a href="#" data-orderBy="createdDate" data-orderDir="desc" class="filter active"><i class="ico btn-gray-arrow"></i>날짜순</a>
+            } else {
+                <a href="#" data-orderBy="createdDate" data-orderDir="asc" class="filter active"><i class="ico btn-gray-arrow down"></i>날짜순</a>
+            }
+          } else {
+              <a href="#" data-orderBy="createdDate" data-orderDir="asc" class="filter"><i class="ico btn-gray-arrow"></i>날짜순</a>
+          }
 
-          <a href="#" key="commentCount" class="filter underConstruction @if(param.orderBy == "commentCount"){ active }">
-            <i class="ico btn-gray-arrow @if(param.orderBy == "commentCount" && param.orderDir == "desc"){down}"></i>댓글순
-          </a>
+          @if(param.orderBy.equals("numOfComments")) {
+              @if(param.orderDir.equals("asc")) {
+                  <a href="#" data-orderBy="numOfComments" data-orderDir="desc" class="filter active"><i class="ico btn-gray-arrow"></i>댓글순</a>
+              } else {
+                  <a href="#" data-orderBy="numOfComments" data-orderDir="asc" class="filter active"><i class="ico btn-gray-arrow down"></i>댓글순</a>
+              }
+          } else {
+              <a href="#" data-orderBy="numOfComments" data-orderDir="asc" class="filter"><i class="ico btn-gray-arrow"></i>댓글순</a>
+          }
       </div>
   </div>
 

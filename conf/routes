@@ -23,6 +23,7 @@ GET     /users/signupform                               controllers.UserApp.sign
 POST    /users/signup                                   controllers.UserApp.newUser()
 GET     /user/editform                                  controllers.UserApp.editUserInfoForm()
 POST    /user/edit                                      controllers.UserApp.editUserInfo()
+POST	/user/resetPassword								controllers.UserApp.resetUserPassword()
 GET     /user/isExist/:loginId                          controllers.UserApp.isUserExist(loginId)
 GET     /user/isEmailExist/:email                       controllers.UserApp.isEmailExist(email)
 

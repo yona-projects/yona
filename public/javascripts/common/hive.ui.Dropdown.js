@@ -116,7 +116,7 @@
 			htVar.fOnChange = fOnChange;
 			return true;
 		}
-		
+
 		/**
 		 * 현재 선택된 값을 반환
 		 * @return {String}
@@ -124,14 +124,14 @@
 		function _getValue(){
 			return htVar.sValue;
 		}
-		
+
 		/**
 		 * 기본값 지정이 있으면 선택된 상태로 만들기
 		 */
 		function _selectDefault(){
 			return _selectItem("li[data-selected=true]");
 		}
-		
+
 		/**
 		 * 지정한 값을 data-value 로 가진 항목을 선택 상태로 만듬
 		 * @param {String} sValue
@@ -139,7 +139,7 @@
 		function _selectByValue(sValue){
 			return _selectItem("li[data-value='" + sValue + "']");
 		}
-		
+
 		/**
 		 * 지정한 항목을 선택 상태로 만듬
 		 * @param {String} sQuery 항목 선택 셀렉터 구문
@@ -153,12 +153,12 @@
 			var welTarget = $(waFind[0]);
 			_setItemSelected(welTarget);
 			_setFormValue(welTarget);
-			
+
 			return true;
 		}
 		
 		_init(htOptions);
-		
+
 		return {
 			"getValue": _getValue,
 			"onChange": _setOnChange,

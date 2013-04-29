@@ -25,6 +25,8 @@ import play.libs.Json;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.Transient;
+
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
@@ -198,6 +200,40 @@ public class UserApp extends Controller {
 		return user;
 	}
 
+	public static Result resetUserPassword() {
+		Form<User> userForm = form(User.class).bindFromRequest();
+
+		if(userForm.hasErrors()) {
+			return badRequest();
+		}
+
+		User currentUser = currentUser();
+		User user = userForm.get();
+		
+		if(!isValidPassword(currentUser, user.oldPassword)) {
+			Form<User> currentUserForm = new Form<User>(User.class);
+			currentUserForm = currentUserForm.fill(currentUser);
+	    
+			flash(Constants.WARNING, "user.wrongPassword.alert");
+			return badRequest(edit.render(currentUserForm, currentUser));
+		}
+		
+		resetPassword(currentUser, user.password);
+		
+		//go to login page
+		session().clear();
+		response().discardCookie(TOKEN);
+		
+		flash(Constants.WARNING, "user.loginWithNewPassword");
+        return redirect(routes.UserApp.loginForm());
+
+	}
+	
+	public static boolean isValidPassword(User currentUser, String password) {
+		String hashedOldPassword = hashedPassword(password, currentUser.passwordSalt);
+		return currentUser.password.equals(hashedOldPassword); 
+	}
+	
     public static void resetPassword(User user, String newPassword) {
 		user.password = new Sha256Hash(newPassword,
 				ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();

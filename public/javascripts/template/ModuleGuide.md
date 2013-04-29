@@ -4,7 +4,7 @@
 
 ----
 ## 명명 규칙
-	
+
 * NamingGuide.md 참조
 
 ## 폴더 구조
@@ -19,7 +19,7 @@
 
 * __javascripts/service__
 
-    각 페이지에 사용되는 자바스크립트 모듈
+    각 페이지에 사용되는 자바스크립트 모듈.
     함수로 작성한다
 
 * __javascripts/deprecated__
@@ -50,24 +50,23 @@
 * 현재 페이지 내에서 해당 모듈을 찾을 수 없는 경우, 즉 명시적으로 <script> 태그를 통해 포함하지 않은 경우
     자동으로 javascripts/service 에서 동적으로 자바스크립트 파일을 로딩하려 시도한다.
     이미 페이지 내에 <script> 태그를 이용해 포함한 경우에는 동적 로딩은 시도되지 않는다.
-    동적 로딩을 시도하는 파일 경로는 javascripts/service/hive.(module.Name).js 이다. 
+    동적 로딩을 시도하는 파일 경로는 javascripts/service/hive.(module.Name).js 이다.
 * 자바스크립트 파일 로딩이 완료되어 모듈 코드를 사용할 수 있을 때 자동으로 초기화를 시도하며 내부적으로 수행되는 코드는 아래와 같다.
     이 중 htOption 변수는 $hive.loadModule() 의 두번째 인자와 동일하다
 
 >        new hive.module.Name(htOption)
 
-* $hive.loadModule()는 모듈 함수를 실행하는 역할만 한다. 별도의 인터페이스가 필요한 것은 아니기 때문에 
+* $hive.loadModule()는 모듈 함수를 실행하는 역할만 한다. 별도의 인터페이스가 필요한 것은 아니기 때문에
     모듈 내부의 함수 구조가 모듈 로딩 자체에 영향을 주지는 않는다.
 
 ## 기타
 
-* HTML 템플릿은 최대한 자바스크립트 파일 내에 포함하지 않는다
-* HTML 템플릿 데이터는 정적 페이지내에 <script type="text/template"> 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다  
+* HTML 템플릿은 가능한 한 자바스크립트 파일 내에 포함하지 않는다
+* HTML 템플릿 데이터는 정적 페이지내에 <script type="text/template"> 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
 
 >    <script type="text/template" id="tplItem">
 >        ${name} ${email}
 >    </script>
 >
 >    var sTpl = document.getElementById("tplItem").text;
-
 
