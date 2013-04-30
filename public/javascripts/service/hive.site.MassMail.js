@@ -131,8 +131,8 @@
             };
 
             var welProject = $('<span class="label label-info">' + sName + " </span>")
-		.append($('<a href="javascript:void(0)">x</a>')
-		.click(fOnClickUnselect));
+            	.append($('<a href="javascript:void(0)">x</a>')
+            	.click(fOnClickUnselect));
 
             return welProject;
         }
@@ -142,9 +142,9 @@
         *
         * @param {Object} htProjects
         */
-        function _appendProjectLabel(htProjects) {
-            for(var sId in htProjects) {
-                htElement.welSelectedProjects.append(_createProjectLabel(htProjects[sId]));
+        function _appendProjectLabel(htTags) {
+            for(var sId in htTags) {
+                htElement.welSelectedProjects.append(_createProjectLabel(sId, htTags[sId]));
             }
         }
 
