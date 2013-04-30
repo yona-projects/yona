@@ -104,18 +104,16 @@ public class Issue extends AbstractPosting {
     }
 
     /**
-     * JXL 라이브러리를 이용하여 엑셀 파일로 저장하며, 해당 파일이 저장된 주소를 반환한다.
+     * Generate a Microsoft Excel file in byte array from the given issue list,
+     * using JXL.
      *
-     * @param resultList 엑셀로 저장하고자 하는 리스트
-     * @param pageName   엑셀로 저장하고자 하는 목록의 페이지(내용, ex 이슈, 게시물 등) 이름
+     * @param issueList 엑셀로 저장하고자 하는 리스트
      * @return
      * @throws WriteException
      * @throws IOException
      * @throws Exception
      */
-    public static File excelSave(List<Issue> resultList, String pageName) throws WriteException, IOException {
-        String excelFile = pageName + "_" + JodaDateUtil.today().getTime() + ".xls";
-        String fullPath = "public/uploadFiles/" + excelFile;
+    public static byte[] excelFrom(List<Issue> issueList) throws WriteException, IOException {
         WritableWorkbook workbook = null;
         WritableSheet sheet = null;
 
@@ -131,7 +129,8 @@ public class Issue extends AbstractPosting {
         cf2.setBorder(Border.ALL, BorderLineStyle.THIN);
         cf2.setAlignment(Alignment.CENTRE);
 
-        workbook = Workbook.createWorkbook(new File(fullPath));
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        workbook = Workbook.createWorkbook(bos);
         sheet = workbook.createSheet(String.valueOf(JodaDateUtil.today().getTime()), 0);
 
         String[] labalArr = {"ID", "STATE", "TITLE", "ASSIGNEE", "DATE"};
@@ -140,8 +139,8 @@ public class Issue extends AbstractPosting {
             sheet.addCell(new Label(i, 0, labalArr[i], cf1));
             sheet.setColumnView(i, 20);
         }
-        for (int i = 1; i < resultList.size() + 1; i++) {
-            Issue issue = resultList.get(i - 1);
+        for (int i = 1; i < issueList.size() + 1; i++) {
+            Issue issue = issueList.get(i - 1);
             int colcnt = 0;
             sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
             sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
@@ -159,7 +158,8 @@ public class Issue extends AbstractPosting {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new File(fullPath);
+
+        return bos.toByteArray();
     }
 
     /**
