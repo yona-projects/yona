@@ -31,9 +31,9 @@ public class TagApp extends Controller {
             response().setHeader("Content-Range", "items " + MAX_FETCH_TAGS + "/" + total);
         }
 
-        Map<Long, String> tags = new HashMap<Long, String>();
+        List<String> tags = new ArrayList<String>();
         for (Tag tag: el.findList()) {
-            tags.put(tag.id, tag.name);
+            tags.add(tag.name);
         }
 
         return ok(toJson(tags));
