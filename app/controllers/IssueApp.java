@@ -25,16 +25,13 @@ import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map;
 
-import static com.avaje.ebean.Expr.contains;
 import static com.avaje.ebean.Expr.icontains;
 
 public class IssueApp extends AbstractPostingApp {
@@ -149,14 +146,14 @@ public class IssueApp extends AbstractPostingApp {
 
     public static Result issuesAsExcel(ExpressionList<Issue> el, Project project)
             throws WriteException, IOException, UnsupportedEncodingException {
-        File excelFile = Issue.excelSave(el.findList(), project.name + "_issues");
+        byte[] excelData = Issue.excelFrom(el.findList());
+        String filename = HttpUtil.encodeContentDisposition(
+                project.name + "_issues_" + JodaDateUtil.today().getTime() + ".xls");
 
-        String filename = HttpUtil.encodeContentDisposition(excelFile.getName());
-
-        response().setHeader("Content-Type", new Tika().detect(excelFile));
+        response().setHeader("Content-Type", new Tika().detect(filename));
         response().setHeader("Content-Disposition", "attachment; " + filename);
 
-        return ok(excelFile);
+        return ok(excelData);
     }
 
     public static Result issue(String userName, String projectName, Long issueId) {
