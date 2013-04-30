@@ -82,7 +82,8 @@
 			  	"elTarget"    : htElement.welTarget,
 			  	"elTextarea"  : htElement.welTextarea,
 			  	"sTplFileItem": htVar.sTplFileItem,
-			  	"sAction"     : htVar.sUploaderAction
+			  	"sAction"     : htVar.sUploaderAction,
+			  	"sMode"       : htVar.sMode
 			});
 		}
 		

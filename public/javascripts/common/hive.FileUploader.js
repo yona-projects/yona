@@ -22,9 +22,13 @@ hive.FileUploader = (function() {
 	function _init(htOptions){
 		htOptions = htOptions || {};
 		
-		_initVar(htOptions);
 		_initElement(htOptions);
+		_initVar(htOptions);
 		_attachEvent();
+		
+		if(htVar.sMode == "edit") {
+			_requestList();			
+		}
 	}
 	
 	/**
@@ -42,6 +46,10 @@ hive.FileUploader = (function() {
 			"beforeSubmit"  : _onBeforeSubmitForm,
 			"uploadProgress": _onUploadProgressForm
 		};
+		
+		htVar.sMode = htOptions.sMode;
+		htVar.sResourceId = htElements.welTarget.attr('resourceId');
+		htVar.sResourceType = htElements.welTarget.attr('resourceType');		
 	}
 
 	/**
@@ -66,6 +74,60 @@ hive.FileUploader = (function() {
 		htElements.welInputFile.click(function(){
 			_setProgressBar(0);
 		});
+	}
+	
+	/**
+	 * request attached file list
+	 */
+	function _requestList(){
+		var htData = _getRequestData();
+
+		$hive.sendForm({
+			"sURL"     : htVar.sAction,
+			"htData"   : htData,
+			"htOptForm": {"method":"get"},
+			"fOnLoad"  : _onLoadRequest
+		});		
+	}
+	
+	/**
+	 * get request parameters
+	 * @return {Hash Table}
+	 */
+	function _getRequestData(){
+		var htData = {};
+		
+		if(typeof htVar.sResourceType !== "undefined"){
+			htData.containerType = htVar.sResourceType;
+		}
+		
+		if(typeof htVar.sResourceId !== "undefined"){
+			htData.containerId = htVar.sResourceId;
+		}
+		
+		return htData;
+	}
+	
+	function _onLoadRequest(oRes) {
+
+		var aItems = [];
+		var aFiles = oRes.attachments;
+
+		if(aFiles == null || aFiles.length === 0){
+			return;
+		}
+		
+		var totalFileSize = 0;
+		aFiles.forEach(function(oFile) {
+			var welItem = _createFileItem(oFile);
+			welItem.click(_onClickListItem);
+			htElements.welFileList.append(welItem);
+			totalFileSize = totalFileSize + parseInt(oFile.size);
+		});
+		
+		_setProgressBar(100);
+		_updateTotalFilesize(totalFileSize);
+		
 	}
 	
 	/**
@@ -132,7 +194,7 @@ hive.FileUploader = (function() {
 
 		// create list item
 		var welItem = _createFileItem(oRes);
-			welItem.click(_onClickListItem);
+		welItem.click(_onClickListItem);
 		htElements.welFileList.append(welItem);
 		
 		_setProgressBar(100);

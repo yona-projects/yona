@@ -46,7 +46,7 @@
 			<div class="avatar-wrap">
 				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
 			</div>
-			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_POST">
+			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_POST" resourceId="@postId">
 				<div>
 					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
 					<strong>total</strong> <span class="total-num">0MB</span>
