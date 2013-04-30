@@ -79,10 +79,10 @@ public class Project extends Model {
     public Set<Tag> tags;
 
     public String getCreatedDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
         return sdf.format(this.createdDate);
     }
-    
+
     public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;
         newProject.createdDate = new Date();

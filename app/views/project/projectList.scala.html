@@ -1,4 +1,5 @@
 @(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String, listState:String)
+@import utils.TemplateHelper._
 
 @home(message, utils.MenuType.PROJECTS) {
 <div class="page">
@@ -18,7 +19,7 @@
 					<input name="state" type="hidden" value="@listState">
 					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!-- 
 				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button><!-- 
-				 	<a href="#" class="btn-advanced"><i class="ico"></i>Advanced Search</a> -->
+					<a href="#" class=tn-advanced"><i class="ico"></i>Advanced Search</a> -->
                      
 					<div class="srch-advanced">
 	                 	<!-- TODO: fill this form -->
@@ -42,7 +43,7 @@
                   <div class="desc">
                       @project.overview
                   </div>
-                  <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a>&nbsp;-&nbsp;@project.getCreatedDate</span> <!--<span>20 days ago.</span>--></p>
+                  <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)"><b>@project.owner</b></a> since @agoString(project.ago)</p>
               </div>
               <div class="stats-wrap">
                   <div class="like">
