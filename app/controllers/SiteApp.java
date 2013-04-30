@@ -1,37 +1,23 @@
 package controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
-
-import models.ProjectUser;
-import org.apache.commons.mail.*;
-
-import models.Project;
-import models.User;
+import com.avaje.ebean.Page;
+import info.schleichardt.play2.mailplugin.Mailer;
+import models.*;
+import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
-import org.codehaus.jackson.JsonNode;
 import play.Configuration;
 import play.Logger;
+import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
+import views.html.site.*;
 
-import views.html.site.setting;
-import views.html.site.mail;
-import views.html.site.massMail;
-import views.html.site.userList;
-import views.html.site.projectList;
+import java.util.*;
 
-import com.avaje.ebean.Page;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
-import play.i18n.Messages;
-
-import info.schleichardt.play2.mailplugin.Mailer;
 
 public class SiteApp extends Controller {
     public static Result sendMail() throws EmailException{
@@ -86,16 +72,26 @@ public class SiteApp extends Controller {
     public static Result setting() {
         return ok(setting.render("title.siteSetting"));
     }
-    
+
     public static Result userList(int pageNum, String loginId) {
         return ok(userList.render("title.siteSetting", User.findUsers(pageNum, loginId)));
     }
-    
+
+    public static Result postList(int pageNum) {
+        Page<Posting> page = Posting.finder.order("createdDate DESC").findPagingList(30).getPage(pageNum - 1);
+        return ok(postList.render("title.siteSetting", page));
+    }
+
+    public static Result issueList(int pageNum) {
+        Page<Issue> page = Issue.finder.order("createdDate DESC").findPagingList(30).getPage(pageNum - 1);
+        return ok(issueList.render("title.siteSetting", page));
+    }
+
     public static Result searchUser() {
         String loginId = form(User.class).bindFromRequest().get().loginId;
         return redirect(routes.SiteApp.userList(0, loginId));
     }
-    
+
     public static Result deleteUser(Long userId) {
         if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
             if(Project.isOnlyManager(userId).size() == 0)
@@ -108,12 +104,12 @@ public class SiteApp extends Controller {
 
         return redirect(routes.SiteApp.userList(0, null));
     }
-        
+
     public static Result projectList(String filter) {
         Page<Project> projects = Project.findByName(filter, 25, 0);
         return ok(projectList.render("title.projectList", projects, filter));
     }
-    
+
     public static Result deleteProject(Long projectId){
         if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
             Project.find.byId(projectId).delete();
@@ -122,7 +118,7 @@ public class SiteApp extends Controller {
         }
         return redirect(routes.SiteApp.projectList(""));
     }
-    
+
     public static Result softwareMap() {
         return TODO;
     }

@@ -64,7 +64,7 @@ label.manage = 라벨관리
 label.confirm.delete = 라벨을 삭제하면 이슈에 지정한 라벨도 함께 제거됩니다. 정말 삭제하시겠습니까?
 label.select = 라벨 선택
 label.error.duplicated = 라벨 생성에 실패했습니다.\n이미 동일한 라벨이 존재할지도 모릅니다.
-label.error.creationFailed = 라벨 생성에 실패했습니다.\n서버에 문제가 있거나 올바른 요청이 아닐 수 있습니다. 
+label.error.creationFailed = 라벨 생성에 실패했습니다.\n서버에 문제가 있거나 올바른 요청이 아닐 수 있습니다.
 
 order.all = 전체
 order.date = 날짜순
@@ -121,7 +121,7 @@ milestone.form.state = 마일스톤 상태
 milestone.form.dueDate = 완료일을 선택하세요
 milestone.error.title = 마일스톤 제목을 입력해주세요
 milestone.error.content = 마일스톤 내용을 입력해주세요
-milestone.error.duedateFormat = 완료일 형식이 잘못되었습니다. YYYY-MM-DD 형식으로 입력해주세요. 
+milestone.error.duedateFormat = 완료일 형식이 잘못되었습니다. YYYY-MM-DD 형식으로 입력해주세요.
 
 #Issue
 issue.state.unit = 이슈
@@ -198,7 +198,11 @@ issue.advancedSearch = 고급검색
 issue.downloadAsExcel = 엑셀파일로 다운받기
 issue.search = 검색
 issue.error.emptyTitle = 이슈 제목을 입력해주세요
-issue.error.emptyBody = 이슈 내용을 입력해주세요  
+issue.error.emptyBody = 이슈 내용을 입력해주세요
+issue.title = 제목
+issue.createdDate = 작성일
+issue.attachment = 첨부파일
+issue.numOfComments = 댓글개수
 
 #Post
 post.new = 새글
@@ -216,6 +220,10 @@ post.popup.fileAttach.title = 첨부파일 선택
 post.popup.fileAttach.contents = 첨부할 파일을 선택해주세요.
 post.edit.rejectNotAuthor = 글쓴이가 아닙니다.
 post.update.error = 입력값 오류
+post.title = 제목
+post.createdDate = 작성일
+post.attachment = 첨부파일
+post.numOfComments = 댓글개수
 
 #Project
 project.myproject = 내 프로젝트
@@ -284,7 +292,9 @@ project.codeLanguage = 프로그래밍 언어
 #Site
 site.sidebar = 사이트 관리
 site.sidebar.setting = 설정
-site.sidebar.userList = 유저 관리
+site.sidebar.userList = 유저
+site.sidebar.postList = 게시물
+site.sidebar.issueList = 이슈
 site.sidebar.projectList = 프로젝트 설정
 site.sidebar.softwareMap = 소프트웨어 맵
 site.sidebar.mailSend = 메일 발송
@@ -406,7 +416,7 @@ milestone = 마일스톤
 none = 없음
 comment = 댓글
 noAssignee = 담당자 없음
-noMilestone = 마일스톤 없음 
+noMilestone = 마일스톤 없음
 
 #validation
 validation.tooShortPassword = 비밀번호를 4자 이상으로 만들어 주세요!

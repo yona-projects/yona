@@ -47,6 +47,9 @@ GET     /lostPassword                                   controllers.PasswordRese
 POST    /lostPassword                                   controllers.PasswordResetApp.requestResetPasswordEmail()
 GET     /resetPassword                                  controllers.PasswordResetApp.resetPasswordForm(s:String)
 POST    /resetPassword                                  controllers.PasswordResetApp.resetPassword()
+GET     /sites/postList                                 controllers.SiteApp.postList(pageNum: Int ?= 1)
+GET     /sites/issueList                                controllers.SiteApp.issueList(pageNum: Int ?= 1)
+
 
 # Attachments
 GET     /files                                          controllers.AttachmentApp.getFileList()

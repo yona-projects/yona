@@ -62,7 +62,7 @@ label.manage = Manage Label
 label.confirm.delete = Are you Sure?
 label.select = Select Label
 label.error.duplicated = Failed to create new label. It might be same label exists already.
-label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid. 
+label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid.
 
 order.all = All
 order.date = Date
@@ -116,7 +116,7 @@ milestone.form.state = State
 milestone.form.dueDate = Choose due date
 milestone.error.title = Title is required
 milestone.error.content = Description is required
-milestone.error.duedateFormat = Invalid format of due date (YYYY-MM-DD) 
+milestone.error.duedateFormat = Invalid format of due date (YYYY-MM-DD)
 
 #Issue
 issue.state.unit = issues
@@ -192,7 +192,11 @@ issue.advancedSearch = Advanced Search
 issue.downloadAsExcel = Download as Excel
 issue.search = SEARCH
 issue.error.emptyTitle = Title of this issue is required
-issue.error.emptyBody = Description about this issue is required 
+issue.error.emptyBody = Description about this issue is required
+issue.title = Title
+issue.createdDate = Created Date
+issue.attachment = Attachment
+issue.numOfComments = Comment Count
 
 #Post
 post.new = New
@@ -210,6 +214,10 @@ post.popup.fileAttach.title = Select file
 post.popup.fileAttach.contents = Please, select file to attach
 post.edit.rejectNotAuthor = You don't have permisstion to access.
 post.update.error = Errors on Input Value
+post.title = Title
+post.createdDate = Created Date
+post.attachment = Attachment
+post.numOfComments = Comment Count
 
 #Project
 project.myproject = MY PROJECTS
@@ -278,6 +286,8 @@ project.license = License
 site.sidebar = Site Management
 site.sidebar.setting = Site Setting
 site.sidebar.userList = Users
+site.sidebar.postList = Posts
+site.sidebar.issueList = Issues
 site.sidebar.projectList = Projects
 site.sidebar.softwareMap = Software Map
 site.sidebar.mailSend = Send a Email
@@ -398,7 +408,7 @@ milestone = Milestone
 none = None
 comment = Comment
 noAssignee = No Assignee
-noMilestone = No Milestone 
+noMilestone = No Milestone
 
 #validation
 validation.tooShortPassword = The password field must be at least 4 characters in length.
