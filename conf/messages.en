@@ -68,6 +68,8 @@ order.all = All
 order.date = Date
 order.state = State
 order.comments = Comments
+order.completionRate = Completion Rate
+order.dueDate = Due Date
 
 button.save = Save
 button.confirm = Confirm
@@ -373,7 +375,7 @@ code.files = Files
 code.commits = Commits
 code.newer = Newer
 code.older = Older
-code.repoUrl = REPOSITORY URL
+code.repoUrl = URL
 
 #mail
 mail.password = Password
