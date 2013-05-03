@@ -24,10 +24,10 @@
                         <li>@Messages("project.logo.maxFileSize") <span class="point">1MB</span></li>
                         <li>@Messages("project.logo.size") <span class="point">234px × 168px</span></li>
                         <li>
-                            <div class="fake-file-wrap">
-								<input type="file" class="file" name="logoPath" size="1" accept="image/*">
-								<div class="ns-btn">
-									<i class="ico ico-plus-blue"></i>@Messages("button.upload")
+                        	<div class="btn-wrap">
+								<div class="nbtn medium white fake-file-wrap">
+									<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!-- 
+								--> <input type="file" class="file" name="logoPath" accept="image/*">
 								</div>
 							</div>
                         </li>
@@ -36,15 +36,7 @@
             </div>
             <dl class="setting-box right">
             	<dt>
-            	 <!-- 
-                 <div class="n-alert hide" id="alert_msg">
-                     <div class="n-inner">
-                         <span class="msg">@Messages("project.wrongName")</span>
-                         <a href="#" class="ico btn-delete" data-dismiss="alert"></a>
-                     </div>
-                 </div>
-                 -->
-                 <label for="project-name">@Messages("project.name.placeholder")</label>
+					<label for="project-name">@Messages("project.name.placeholder")</label>
                 </dt>
                 <dd>
                     @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250")
@@ -65,7 +57,7 @@
                     <!-- tags will be added here by hive.project.Settings.js -->
                 </div>
                 <input name="newTag" type="text" class="text" style="margin-bottom:0px" data-provider="typeahead" autocomplete="off"/>
-                <button id="addTag" type="button" class="btn-transparent n-btn med gray">@Messages("button.add")</button>
+                <button id="addTag" type="button" class="nbtn medium">@Messages("button.add")</button>
             </div>
         </div>
         
@@ -85,7 +77,7 @@
         **@
     </div>
     <div class="box-wrap bottom">
-        <button id="save" type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>
+        <button id="save" type="submit" class="nbtn orange medium">@Messages("button.save")</button>
     </div>
 	}
 

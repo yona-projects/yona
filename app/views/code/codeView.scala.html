@@ -26,7 +26,7 @@
 
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	<ul class="nav nav-tabs hive-tabs">
+	<ul class="nav nav-tabs">
 		<li class="active">
 			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
 		</li>
@@ -41,15 +41,17 @@
 			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
 
-            <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
-				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label"></button>
-				<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
+				<button class="btn dropdown-toggle large" data-toggle="dropdown">
+					<span class="d-label"></span>
+					<span class="d-caret"><span class="caret"></span></span>
+				</button>
 				<ul class="dropdown-menu">
 					@for(branch <- branches){
 						@makeBranchItem(branch)
 					}
 				</ul>
-			</div> 
+			</div>
 		</div>
 		<hr class="double-sp" />
 		<div class="code-browse-wrap">

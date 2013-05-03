@@ -19,7 +19,7 @@
                    data-provider="typeahead" autocomplete="off"
 				   placeholder="@Messages("project.members.addMember")"
 				   pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!-- 
-         --><button class="ns-btn" type="submit"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
+         --><button type="submit" class="nbtn medium white"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
 		</form>
 	</div>
 
@@ -40,20 +40,24 @@
 					<p class="name">(@member.user.name)</p>
 				</div>
 				<div class="td">
+					@if(!project.isOwner(member.user)) {
+					
 					<div class="btn-group" data-name="roleof-@member.user.loginId">
-						<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label">@member.role.name</button>
-						<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
-                        @if(!project.isOwner(member.user)) {
+						<button class="btn dropdown-toggle large" data-toggle="dropdown">
+							<span class="d-label">@member.role.name</span>
+							<span class="d-caret"><span class="caret"></span></span>
+						</button>
 						<ul class="dropdown-menu">@memberRole(member.role.name)</ul>
-                        }
 					</div>
-                    @if(!project.isOwner(member.user)) {
+					
 					<p class="btns">
-						<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="n-btn small light-gray"><!-- 
+						<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn medium"><!-- 
 						 --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a> 
-						<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="n-btn small orange"><!-- 
+						<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn medium orange"><!-- 
 						 --><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
 					</p>
+                    } else {
+                    	<p style="height:65px;">@member.role.name</p>
                     }
 				</div>
 			</div>

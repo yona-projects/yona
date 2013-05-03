@@ -14,14 +14,14 @@
 		                        <a href="#!/close" class="ico btn-delete"></a>
 		                    </div>
 		                </div>
-            			<label for="project-name">새 프로젝트 이름을 입력해주세요</label>
+            			<label for="project-name">@Messages("project.name.placeholder")</label>
             		</dt>
             		<dd>
-            			<input id="project-name" type="text" name="name" class="text" placeholder="영문으로 공백없이 작성해 주세요" maxlength="250">
+            			<input id="project-name" type="text" name="name" class="text" placeholder="@Messages("project.name.alert")" maxlength="250">
             		</dd>
             		
             		<dt>
-						<label for="description">프로젝트 설명을 입력해주세요</label>
+						<label for="description">@Messages("project.description.placeholder")</label>
 					</dt>
 					<dd>
 						<textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
@@ -30,25 +30,27 @@
 
                 <ul class="options unstyled">
                     <li class="option">
-                        <div class="option-label">공개설정</div>
+                        <div class="option-label">@Messages("project.shareOption")</div>
                         <div class="option-desc">
                             <input name="share_option" type="radio" checked="checked" id="public" value="true" class="radio-btn"><label for="public" class="bg-radiobtn label-public">공개</label>
                             <input name="share_option" type="radio" id="private" value="false" class="radio-btn"><label for="private" class="bg-radiobtn label-private">비공개</label>
-                            <span class="note">비공개 프로젝트도 프로젝트 이름, 설명, 로그 등은 모든 사용자가 볼 수 있습니다.</span>
+                            <span class="note">@Messages("project.private.notice")</span>
                         </div>
                     </li>
                     <li class="option">
-                        <div class="option-label">코드관리시스템</div>
+                        <div class="option-label">@Messages("project.vcs")</div>
                         <div class="option-desc">
-                            <div class="btn-group" data-name="vcs">
-                                <button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite"></button>
-                                <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
-                                <ul class="dropdown-menu">
+							<div class="btn-group" data-name="vcs">
+								<button class="btn dropdown-toggle large" data-toggle="dropdown">
+									<span class="d-label"></span> 
+									<span class="d-caret"><span class="caret"></span></span>
+								</button>
+								<ul class="dropdown-menu">
                                     @RepositoryService.vcsTypes.map{ v =>
                                         <li data-value="@v._1" @if(v._1 == "GIT"){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages(v._2)</a></li>
                                     }
-                                </ul>
-                            </div>
+								</ul>
+							</div>
                         </div>
                     </li>
                     
