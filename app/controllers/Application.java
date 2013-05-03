@@ -8,6 +8,7 @@ import play.mvc.Result;
 import playRepository.RepositoryService;
 //import views.html.code.codeNavi;
 import views.html.index;
+import views.html.hiveUI;
 
 import java.io.File;
 import java.util.List;
@@ -60,4 +61,7 @@ public class Application extends Controller {
     	return ok(index.render(null, null));
     }
 
+    public static Result hiveUI(){
+    	return ok(views.html.hiveUI.render());
+    }
 }

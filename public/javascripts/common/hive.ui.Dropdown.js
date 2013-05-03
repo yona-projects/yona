@@ -42,7 +42,7 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welContainer = $(htOptions.elContainer);
-			htElement.welSelectedLabel = htElement.welContainer.find("button.d-label");
+			htElement.welSelectedLabel = htElement.welContainer.find(".d-label");
 			htElement.waItems = htElement.welContainer.find(".dropdown-menu li");
 		}
 		

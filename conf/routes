@@ -2,7 +2,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET     /navitest                                      controllers.Application.navi()
+GET     /navitest                                       controllers.Application.navi()
 
 # Home page
 GET     /                                               controllers.Application.index()
@@ -13,6 +13,7 @@ GET     /messages.js                                    controllers.Application.
 
 # Bootstrapping for test
 GET     /init                                           controllers.Application.init()
+GET		/hiveUI											controllers.Application.hiveUI()
 
 # User
 GET     /users                                          controllers.UserApp.users(query: String ?= "")

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<title>HIVE UI</title>
+	<base href="http://localhost:9000">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" type="image/png" href="/assets/images/favicon.ico">
+	<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/nforge.css">
+	<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery-1.9.0.js"></script>
+	<script type="text/javascript" src="/assets/javascripts/common/hive.Common.js"></script>
+	<script type="text/javascript" src="/assets/javascripts/lib/bootstrap.js"></script>
+	<style type="text/css">
+		body { color:#ccc; }
+		dl { display:inline-block; margin:18px; }
+		dd { margin-left:0; }
+		.gnb-logo { display:inline-block !important; }
+		.gnb-outer { text-align:center; }
+		.subtitle { font-size:24px; font-weight:bold; height:55px; line-height:55px; vertical-align:bottom; }
+		.css { display:none;font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
+	</style>
+</head>
+<body>
+
+<header class="gnb-outer">
+	<span class="gnb-logo orange">HIVE</span>
+	<span class="subtitle">User Interface Kit</span>
+</header>
+
+<div class="container page-wrap">
+	<div class="page">
+	
+		<h3>Buttons</h5>
+		<div>
+			<p class="css">.nbtn</p>
+			<p>
+				<a href="#" class="nbtn medium">Default Button</a><!-- 
+			 --><button type="button" class="nbtn medium orange">Primary Button</button><!-- 
+			 --><a href="#" class="nbtn medium black">Cancel Button</a><!-- 
+			 --><a href="#" class="nbtn medium white">Action Button</a>
+			</p>
+			<p>
+				<button type="button" class="nbtn medium">Default Button</button><!-- 
+			 --><a href="#" class="nbtn medium orange">Primary Button</a><!-- 
+			 --><button type="button" class="nbtn medium black">Cancel Button</button><!-- 
+			 --><button type="button" class="nbtn medium white">Action Button</button>
+			</p>
+			
+			<p class="css">.btn-wrap > .fake-file-wrap</p>
+			<div class="btn-wrap">
+				<div class="nbtn medium white fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>Upload<!-- 
+				--> <input type="file" class="file" name="filePath" accept="image/*">
+				</div>
+			</div>
+
+			<p class="css">.btn-wrap > .fake-file-wrap</p>
+			<div class="btn-wrap">
+				<div class="nbtn medium white fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>파일 올리기<!-- 
+				--> <input type="file" class="file" name="filePath" accept="image/*">
+				</div>
+			</div>
+
+			<p>&nbsp;</p>
+			<p>
+				<a href="#" class="nbtn large orange">Create your project</a>
+			</p>
+			
+			<p>
+				<a href="#" class="nbtn small">Small button</a>
+				<button type="button" class="nbtn medium">Medium button</button>
+				<a href="#" class="nbtn large">Large button</a>
+			</p>
+		</div>
+		<!-- // buttons -->
+		<hr/>
+		
+		<h3>Select</h5>
+		<div>
+			<p class="css">.dropdown-toggle</p>
+			
+			<!-- ui.dropdown -->
+			<div class="btn-group" data-name="assigneeId">
+				<button class="btn dropdown-toggle small" data-toggle="dropdown">
+					<span class="d-label">전체</span>
+					<span class="d-caret"><span class="caret"></span></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+					<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+				</ul>
+			</div>
+			<!-- // ui.dropdown -->
+
+			<!-- ui.dropdown -->
+			<div class="btn-group" data-name="assigneeId">
+				<button class="btn dropdown-toggle medium" data-toggle="dropdown">
+					<span class="d-label">전체</span>
+					<span class="d-caret"><span class="caret"></span></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+					<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+				</ul>
+			</div>
+			<!-- // ui.dropdown -->
+
+			<!-- ui.dropdown -->
+			<div class="btn-group" data-name="assigneeId">
+				<button class="btn dropdown-toggle large" data-toggle="dropdown">
+					<span class="d-label">전체</span>
+					<span class="d-caret"><span class="caret"></span></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+					<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+				</ul>
+			</div>
+			<!-- // ui.dropdown -->
+
+		</div>
+		<!-- // select -->
+		<hr/>
+		
+		<h3>Form</h3>
+		<div>
+			<p class="css">.form-search</p>
+			<form class="form-search">
+				<input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
+		 	 --><button type="button" class="btn">검색</button>
+			</form>
+			
+			<p class="css">.form-searchbar</p>
+			<form class="form-searchbar">
+				<input type="text" class="text" name="filter"><!-- 
+			 --><button type="button" class="ico ico-search"></button>
+			</form>
+		</div>
+		<hr/>
+		<!-- // input -->
+		
+		<h3>Labels</h3>
+		<div>
+			<p class="css">.issue-label</p>
+			<p>
+				<button class="issue-label">Clean</button>
+				<button class="issue-label">Fresh</button>
+				<button class="issue-label">Modern</button>
+				<button class="issue-label">Unique</button>
+			</p>
+			<p class="css">.issue-label .active</p>
+			<p>
+				<button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
+				<button class="issue-label active" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
+				<button class="issue-label active" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
+				<button class="issue-label active" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
+			</p>
+			<p class="css">.issue-label .active .editable</p>
+			<p>
+				<button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
+				<button class="issue-label active editable" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
+				<button class="issue-label active editable" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
+				<button class="issue-label active editable" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
+			</p>
+		</div>
+		<!-- // labels -->
+		<hr/>
+		
+		<h3>Avatar</h3>
+		<div>
+			<p class="css">.avatar-wrap</p>
+			<dl>
+				<dt>
+					<span class="css">.small</span>
+				</dt>
+				<dd>
+					<a href="#" class="avatar-wrap small">
+						<img src="/assets/images/default-avatar-128.png" width="24" height="24">
+					</a>
+				</dd>
+			</dl>
+			<dl>
+				<dt>
+					<span class="css">.medium</span>
+				</dt>
+				<dd>
+					<a href="#" class="avatar-wrap medium">
+						<img src="/assets/images/default-avatar-128.png" width="32" height="32">
+					</a>
+				</dd>
+			</dl>
+			<dl>
+				<dt>
+					<span class="css">.large</span>
+				</dt>
+				<dd>
+					<a href="#" class="avatar-wrap large">
+						<img src="/assets/images/default-avatar-128.png" width="64" height="64">
+					</a>
+				</dd>
+			</dl>
+			<dl>
+				<dt>
+					<span class="css">.xlarge</span>
+				</dt>
+				<dd>
+					<a href="#" class="avatar-wrap xlarge">
+						<img src="/assets/images/default-avatar-128.png" width="128" height="128">
+					</a>
+				</dd>
+			</dl>
+		</div>
+		<!-- //avatar -->
+		<hr/>
+		
+		<h3>Tabs</h3>
+		<div>
+			<ul class="nav nav-tabs hive-tabs">
+				<li class="active">
+					<a href="#">파일</a>
+				</li>
+				<li>
+					<a href="#">커밋</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<footer class="page-footer-outer">
+	<div class="page-footer">
+		<span class="provider">&copy; <strong>NHN Corp.</strong></span>
+	</div>
+</footer>
+
+</body>
+</html>

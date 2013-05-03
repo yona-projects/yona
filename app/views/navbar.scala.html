@@ -45,10 +45,11 @@
                 	<a href="@routes.UserApp.signupForm()" class="d-link signup">@Messages("title.signup")</a>
                 </li>
             	}
-                <li class="search-bar">
-                    <form action="@routes.ProjectApp.projects()">
-                        <input type="text" autocomplete="off" class="query" name="filter" accesskey="S" /><button type="submit" class="ico ico-search btn-transparent"></button>
-                    </form>
+            	<li class="search-bar">
+                	<form action="@routes.ProjectApp.projects()" class="form-searchbar">
+						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!-- 
+			 		 --><button type="submit" class="ico ico-search"></button>
+					</form>
                 </li>
             </ul>
         </div>

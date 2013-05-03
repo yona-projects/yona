@@ -31,12 +31,6 @@ a {
 }
 
 
-/** override bootstrap **/
-.dropdown-toggle.d-label {
-    .border-radius(4px 0 0 4px) !important;
-    min-width: 100px;
-    text-align: left;
-}
 /*
 .btn {
     margin-right:5px;
@@ -134,7 +128,11 @@ a {
     margin-right:5px; -webkit-transition-duration:0.25s;
     &:last-of-type { margin:0; }
     
-    .del-link { margin-left:8px; padding:8px 4px; }
+    .del-link { 
+        margin-left:8px; padding:8px 4px;
+        -webkit-transition-duration:inherit;
+        &:hover { background:rgba(0,0,0,.2); } 
+    }
     
     &.active {
         .border-radius(2px);

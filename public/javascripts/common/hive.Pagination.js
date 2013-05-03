@@ -14,7 +14,7 @@
  * 굳이 페이징 링크를 굳이 동적으로 만들어야 할까? 개선 검토 필요
  */
 hive.Pagination = (function(window, document) {
-	
+
 	var htRegEx = {};
 	
 	/**
@@ -82,7 +82,7 @@ hive.Pagination = (function(window, document) {
 	 * validateOptions
 	 */
 	function validateOptions(options) {
-		if (!Number.isFinite(options.current)) {
+		if (!$.isNumeric(options.current)) {
 			throw new Error("options.current is not valid: " + options.current);
 		}
 	}
@@ -105,7 +105,7 @@ hive.Pagination = (function(window, document) {
 		var pageNumFromUrl;
 		var paramNameForPage = options.paramNameForPage || 'pageNum';
 
-		if (!Number.isFinite(options.current)) {
+		if (!$.isNumeric(options.current)) {
 			query = getQuery(options.url);
 			pageNumFromUrl  = parseInt(valueFromQuery(paramNameForPage, query));
 			options.current = pageNumFromUrl || options.firstPage;

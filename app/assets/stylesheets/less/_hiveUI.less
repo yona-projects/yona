@@ -1,0 +1,255 @@
+form { margin:0 0 2px; }
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+    .box-shadow(none);
+    .border-radius(2px);
+}
+
+/** ui.Dropdown **/
+.dropdown-toggle {
+    background:@white; text-align:left;
+    padding:0; padding-left:12px;
+    .border-radius(2px);
+    
+    .d-label {
+        float:left; margin:0;
+        padding:4px 0; padding-right:9px;
+        width:116px; overflow:hidden; 
+        .inline-block;        
+    }
+    &.small  .d-label { width: 29px;  }
+    &.medium .d-label { width: 58px;  }
+    &.large  .d-label { width: 116px; }
+    &.auto   .d-label { width: inherit; } 
+
+    .d-caret {
+        float:right; margin:0; 
+        padding:4px 9px;
+        border-left:1px solid #d9d9d9;
+    }    
+}
+.btn-group.open .btn.dropdown-toggle {
+    background:darken(@white, 10%);
+}
+.btn .caret {
+    border-top-color:@blue;
+}
+.dropdown-menu li>a:hover,.dropdown-menu li>a:focus,.dropdown-submenu:hover>a {
+    background-color:@darkgray !important;
+    .linear-gradient(@darkgray, darken(@darkgray, 10%));
+}
+.dropdown-menu .active > a, .dropdown-menu .active > a:hover {
+    color:#fff;
+    background-color:@darkgray !important;
+    .linear-gradient(@darkgray, darken(@darkgray, 10%));    
+}
+
+/** buttons **/
+.nbtn {
+    text-align :center;
+    font-weight:bold;
+    font-size: 11px;
+    line-height: 18px;
+    height: 18px;
+    border:0; padding:0; 
+
+    .border-radius(2px);
+    .box-shadow(0 1px 2px rgba(0, 0, 0, .25));
+    .inline-block;
+    > i.ico { margin-right: 5px; }
+
+    color: @white;
+    background-color: #707070;
+    &:hover { 
+        background-color: darken(#707070, 10%);
+        text-decoration: none;
+    }
+
+    &.blue {
+        background-color: @blue; /*#56B5D9*/
+        &:hover { background-color: darken(@blue, 10%); }
+    }
+
+    &.orange {
+        background-color: @orange;
+        &:hover { background-color: darken(@orange, 10%); }
+    }
+    
+    &.black {
+        background-color: #222;
+        &:hover { background-color : #000;  }
+    }
+    
+    &.white {
+        color: #222;
+        background-color: @white;
+        &:hover { background-color: darken(@white, 10%); }
+    }
+}
+a.nbtn, div.nbtn, span.nbtn, p.nbtn {
+    &.small  { padding: 3px 10px; }
+    &.medium { padding: 6px 20px; }
+    &.large  { padding: 9px 30px; font-size:15px; }
+}
+button.nbtn {
+    &.small  { padding:1px 10px; height:24px; line-height:1; }
+    &.medium { padding:4px 20px; height:30px; line-height:1; }
+    &.large  { padding:8px 30px; height:36px; line-height:1; font-size:15px; }
+}
+
+/* fileUpload button **/
+.fake-file-wrap {
+    position: relative; display:block; clear:both; 
+    overflow: hidden; cursor:pointer; 
+    width:70px; margin-top:10px; 
+    &:hover {
+        background:darken(@white, 10%);
+    }
+    
+    .file {
+        position: absolute; z-index:2; cursor:pointer; 
+        top:0; left: -15px; width:100px;
+        .opacity(0);
+    }    
+}
+
+/** issue label **/
+.issue-label {
+    border:none; padding:2px 4px; margin-right:5px; 
+    font-size:11px; font-weight:bold;
+    box-shadow: inset 0px -1px 1px rgba(0,0,0,0.3);
+    -webkit-transition-duration:0.25s;
+    &:last-of-type { margin:0; }
+    
+    .delete { 
+        margin-left:8px; padding:8px 4px;
+        -webkit-transition-duration:inherit;
+        &:hover { background:rgba(0,0,0,.2); } 
+    }
+    
+    &.active {
+        .border-radius(2px);
+        &.active-white   { color:#fff; }
+        &.active-dimgray { color:#696969; }
+    }
+}
+
+/** input **/
+/** 화면 중앙의 프로젝트 내 검색 폼 **/
+.form-search {
+    .text {
+        width: 360px;
+        margin: 5px 0 0;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-right: 0 none;
+        .box-shadow(none);
+        .border-radius(2px 0 0 2px);
+        &:focus { .box-shadow(none); }
+    }
+
+    .btn {
+        width  : 88px;
+        margin : 5px 0 0;
+        padding: 4px 0;
+        border : 1px solid #a9a9a9;
+        color  : @black;
+        text-align : center;
+        font-weight: bold;
+        font-size  : 11px;
+        .border-radius(0 2px 2px 0);
+
+        &:hover { color:@link-hover-color; }
+    }
+}
+
+/** 화면 상단의 전체 검색 폼 **/
+.form-searchbar {
+    width: 146px; height: 19px;
+    margin: 0; padding: 0 6px;
+    background-color: @search-bar-bg-color;
+    border:1px solid @search-bar-border-color;
+    
+    .border-radius(2px);
+    .box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));
+    
+    .text {
+        width: 128px; height: 13px;
+        margin: 0; margin-right:3px;
+        padding:4px 0px; 
+        border: 0 none;
+        
+        font-size: 11px;
+        color: @search-input-color;
+        background-color: transparent;
+       
+       .box-shadow(none);
+       &:focus { .box-shadow(none); }
+    }
+    
+    .ico-search {
+        border:0; padding:0;
+        background-color:transparent;
+        margin-bottom:2px;
+    }
+}
+
+/** Avatar Wraps **/
+.avatar-wrap {
+    width:32px; height:32px; /* default size: medium */
+    display:inline-block;
+    vertical-align:middle;
+    overflow:hidden; 
+    border: 1px solid #ccc;
+    .border-radius(3px) !important;
+    
+    &.small   { width:24px; height:24px;   }
+    &.medium  { width:32px; height:32px;   }
+    &.large   { width:64px; height:64px;   }
+    &.xlarge  { width:128px; height:128px; }
+}
+    
+/** tab UI **/
+.nav-tabs {
+    li {
+        a { 
+            padding-left:30px; padding-right:30px;
+            background:#ececec;
+            border:1px solid #d3d3d3;
+            .box-shadow(inset 0px 1px 1px #fff);
+        }
+        &.active a {
+            font-weight:bold;
+            letter-spacing:-1pt;
+        }
+    }
+}
+
+/** alert **/
+.hiveDialog {
+    .border-radius(none);
+    border:10px solid #bebebe;
+    padding:16px 20px; width:500px;
+    
+    .btn-dismiss {
+        padding:0; margin:0; width:100%; text-align: right;
+        display:block; clear:both;
+        
+        button {
+            font-size:24px; font-weight:bold; color:#898989;
+            border:none; background:transparent;
+        }
+    }
+    
+    .message {
+        .msg {
+            text-align:center;
+            font-weight:bold; font-size:18px; 
+            margin-bottom:20px; line-height:1.5em;
+        }
+    }
+}
+.alert { display:none; } /** use .hiveDialog **/
+

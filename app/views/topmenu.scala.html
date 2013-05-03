@@ -39,9 +39,10 @@
                 </li>
             	}
                 <li class="search-bar">
-                    <form action="@routes.ProjectApp.projects()">
-                        <input type="text" autocomplete="off" class="query" name="filter" /><button type="submit" class="ico ico-search btn-transparent"></button>
-                    </form>
+                	<form action="@routes.ProjectApp.projects()" class="form-searchbar">
+						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!-- 
+			 		 --><button type="submit" class="ico ico-search"></button>
+					</form>
                 </li>
             </ul>
         </div>
