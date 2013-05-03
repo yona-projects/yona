@@ -1,24 +1,25 @@
+@import utils.TemplateHelper._
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-	<meta charset="utf-8">
-	<title>HIVE UI</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="shortcut icon" type="image/png" href="/assets/images/favicon.ico">
-	<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/nforge.css">
-	<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery-1.9.0.js"></script>
-	<script type="text/javascript" src="/assets/javascripts/common/hive.Common.js"></script>
-	<script type="text/javascript" src="/assets/javascripts/lib/bootstrap.js"></script>
-	<style type="text/css">
-		body { color:#ccc; }
-		dl { display:inline-block; margin:18px; }
-		dd { margin-left:0; }
-		.gnb-logo { display:inline-block !important; }
-		.gnb-outer { text-align:center; }
-		.subtitle { font-size:24px; font-weight:bold; height:55px; line-height:55px; vertical-align:bottom; }
-		.css { display:none;font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
-	</style>
+<meta charset="utf-8">
+<title>HIVE UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("nforge")">
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery-1.9.0")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Common")"></script>
+<style type="text/css">
+body { color:#ccc; }
+dl { display:inline-block; margin:18px; }
+dd { margin-left:0; }
+.gnb-logo { display:inline-block !important; }
+.gnb-outer { text-align:center; }
+.subtitle { font-size:24px; font-weight:bold; height:55px; line-height:55px; vertical-align:bottom; }
+.css { display:none;font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
+</style>
 </head>
 <body>
 

@@ -1,3 +1,20 @@
+/** 
+ * bootstrap 2.2.1 기준 글자 크기로 조정 
+ * bootstrap 2.3.1 기본 글자 크기는 14px 
+ */
+body { font-size:12px; }
+label, input, button, select, textarea { font-size:12px; }
+select, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"],
+input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"],
+input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"],
+.uneditable-input { font-size:12px; }
+.btn-group > .btn,
+.btn-group > .dropdown-menu,
+.btn-group > .popover {
+  font-size: 12px;
+}
+
+/** HIVE UI 시작 **/ 
 form { margin:0 0 2px; }
 textarea, input[type="text"], input[type="password"], input[type="datetime"],
 input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"],
@@ -88,6 +105,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     }
 }
 a.nbtn, div.nbtn, span.nbtn, p.nbtn {
+    vertical-align:middle;
     &.small  { padding: 3px 10px; }
     &.medium { padding: 6px 20px; }
     &.large  { padding: 9px 30px; font-size:15px; }
@@ -136,6 +154,20 @@ button.nbtn {
 }
 
 /** input **/
+/* 검색버튼 스타일 */
+.btn-search {
+    width  : 88px;
+    margin : 5px 0 0;
+    padding: 4px 0;
+    border : 1px solid #a9a9a9;
+    color  : @black;
+    text-align : center;
+    font-weight: bold;
+    font-size  : 11px;
+    .border-radius(0 2px 2px 0);
+
+    &:hover { color:@link-hover-color; }    
+}
 /** 화면 중앙의 프로젝트 내 검색 폼 **/
 .form-search {
     .text {
@@ -150,17 +182,7 @@ button.nbtn {
     }
 
     .btn {
-        width  : 88px;
-        margin : 5px 0 0;
-        padding: 4px 0;
-        border : 1px solid #a9a9a9;
-        color  : @black;
-        text-align : center;
-        font-weight: bold;
-        font-size  : 11px;
-        .border-radius(0 2px 2px 0);
-
-        &:hover { color:@link-hover-color; }
+        .btn-search;
     }
 }
 
