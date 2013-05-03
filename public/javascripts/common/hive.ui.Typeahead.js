@@ -30,6 +30,7 @@
 		function _initVar(htOptions){
 			htVar.sActionURL = htOptions.sActionURL || "/users";
 			htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
+            htVar.htData = htOptions.htData;
 		}
 		
 		/**
@@ -39,8 +40,11 @@
 		 */
 		function _initElement(sQuery){
 			htElement.welInput = $(sQuery);
-			htElement.welInput.typeahead();
-			htElement.welInput.data("typeahead").source = _onTypeAhead;
+			htElement.welInput.typeahead({
+                source: _onTypeAhead,
+                minLength: 0,
+                items: htVar.htData.limit || 8
+            });
 		}
 		
         /**
@@ -56,10 +60,11 @@
             if (sQuery.match(htVar.sLastQuery) && htVar.bIsLastRangeEntire) {
             	fProcess(htVar.htCachedUsers);
             } else {
+                htVar.htData.query = sQuery;
             	$hive.sendForm({
             		"sURL"		: htVar.sActionURL,
             		"htOptForm"	: {"method":"get"},
-            		"htData"	: {"query": sQuery},
+			"htData"	: htVar.htData,
                     "sDataType" : "json",
             		"fOnLoad"	: function(oData, oStatus, oXHR){
             			var sContentRange = oXHR.getResponseHeader('Content-Range');
