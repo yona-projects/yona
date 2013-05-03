@@ -141,10 +141,12 @@ button.nbtn {
     &:last-of-type { margin:0; }
 
     .delete {
+        display:none;
         margin-left:8px; padding:8px 4px;
         -webkit-transition-duration:inherit;
         &:hover { background:rgba(0,0,0,.2); }
     }
+    &.editable .delete { display:inline; }
 
     &.active {
         .border-radius(2px);
