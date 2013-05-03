@@ -23,7 +23,6 @@
 			_initVar(htOpt);
 			_initElement(htOpt);
 			_attachEvent();
-            _updateTags();
 			
 			htVar.waPopOvers.popover();
 		}
@@ -35,8 +34,6 @@
 		function _initVar(htOptions){
 			htVar.rxLogoExt = /\.(gif|bmp|jpg|jpeg|png)$/i;
 			htVar.rxPrjName = /^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$/;
-            htVar.sURLProjectTags = htOptions.sURLProjectTags;
-            htVar.sURLTags = htOptions.sURLTags;
 		}
 
 		/**
@@ -60,27 +57,15 @@
 			
 			// popovers
 			htVar.waPopOvers = $([$("#project_name"), $("#share_option_explanation"), $("#terms")]);
-
-            // tags
-            htElement.welInputAddTag = $('input[name="newTag"]');
-            htElement.welTags = $('#tags');
-            htElement.welBtnAddTag = $('#addTag');
-            
-            htVar.oTagInput = new hive.ui.Typeahead(htElement.welInputAddTag, {
-            	"sActionURL": htVar.sURLTags
-            });
 		}
 
-        /**
+		/**
 		 * attach event handlers
 		 */
 		function _attachEvent(){
 			htElement.welInputLogo.change(_onChangeLogoPath);
 			htElement.welBtnDeletePrj.click(_onClickBtnDeletePrj);
 			htElement.welBtnSave.click(_onClickBtnSave);
-            htElement.welInputAddTag.keypress(_onKeyPressNewTag);
-//                .typeahead().data('typeahead').source = _tagTypeaheadSource;
-            htElement.welBtnAddTag.click(_submitTag);
 		}
 		
 		/**
@@ -124,76 +109,6 @@
 			htElement.welAlertName.hide();
 			return true;
 		}
-
-        /**
-        * Submit new tag to add that.
-        */
-        function _submitTag () {
-        	$hive.sendForm({
-        		"sURL"   : htVar.sURLProjectTags,
-        		"htData" : {"name": htElement.welInputAddTag.val()},
-        		"fOnLoad": _appendTags
-        	});
-        }
-
-        /**
-        * Add a tag, which user types in htElement.welInputAddTag, into #tags div.
-        *
-        * @param {Object} oEvent
-        */
-        function _onKeyPressNewTag(oEvent) {
-            if (oEvent.keyCode == 13) {
-                _submitTag();
-                htElement.welInputAddTag.val("");
-                return false;
-            }
-        }
-
-        /**
-        * Get list of tags from the server and show them in #tags div.
-        */
-        function _updateTags() {
-        	$hive.sendForm({
-        		"sURL"     : htVar.sURLProjectTags,
-        		"htOptForm": {"method":"get"},
-        		"fOnLoad"  : _appendTags
-        	});
-        }
-
-        /**
-        * Make a tag element by given id and name.
-
-        * @param {String} sId
-        * @param {String} sName
-        */
-        function _createTag(sId, sName) {
-            var fOnClickDelete = function() {
-            	$hive.sendForm({
-            		"sURL"   : htVar.sURLProjectTags + '/' + sId,
-            		"htData" : {"_method":"DELETE"},
-            		"fOnLoad": function(){
-            			welTag.remove();
-            		}
-            	});            	
-            };
-
-            var welTag = $('<span class="label label-info">' + sName + " </span>")
-            	.append($('<a href="javascript:void(0)">x</a>')
-            	.click(fOnClickDelete));
-
-            return welTag;
-        }
-
-        /**
-        * Append the given tags on #tags div to show them.
-        *
-        * @param {Object} htTags
-        */
-        function _appendTags(htTags) {
-            for(var sId in htTags) {
-                htElement.welTags.append(_createTag(sId, htTags[sId]));
-            }
-        }
 
 		_init(htOptions);
 	};
