@@ -138,15 +138,17 @@ public class BoardApp extends AbstractPostingApp {
     public static Result editPost(String userName, String projectName, Long postId) {
         Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
-        Posting post = postForm.get();
-        Posting original = Posting.finder.byId(postId);
+        final Posting post = postForm.get();
+        final Posting original = Posting.finder.byId(postId);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
-        Callback doNothing = new Callback() {
+        Callback updatePostingBeforeUpdate = new Callback() {
             @Override
-            public void run() { }
+            public void run() {
+                post.comments = original.comments;
+            }
         };
 
-        return editPosting(original, post, postForm, redirectTo, doNothing);
+        return editPosting(original, post, postForm, redirectTo, updatePostingBeforeUpdate);
     }
 
     public static Result deletePost(String userName, String projectName, Long postingId) {

@@ -243,7 +243,7 @@ public class IssueApp extends AbstractPostingApp {
         Callback updateIssueBeforeSave = new Callback() {
             @Override
             public void run() {
-                issue.project = project;
+                issue.comments = originalIssue.comments;
                 addLabels(issue.labels, request());
             }
         };
