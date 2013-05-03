@@ -1,6 +1,7 @@
 package models;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.persistence.*;
@@ -76,6 +77,11 @@ public class Project extends Model {
 
     @ManyToMany
     public Set<Tag> tags;
+
+    public String getCreatedDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
+        return sdf.format(this.createdDate);
+    }
 
     public static Long create(Project newProject) {
 		newProject.siteurl = "http://localhost:9000/" + newProject.name;

@@ -17,6 +17,12 @@
         <li class="@isActiveMenu(routes.SiteApp.userList())">
             <a href="@routes.SiteApp.userList()"><i class="icon-user"></i>@Messages("site.sidebar.userList")</a>
         </li>
+        <li class="@isActiveMenu(routes.SiteApp.postList())">
+            <a href="@routes.SiteApp.postList()"><i class="icon-pencil"></i>@Messages("site.sidebar.postList")</a>
+        </li>
+        <li class="@isActiveMenu(routes.SiteApp.issueList())">
+            <a href="@routes.SiteApp.issueList()"><i class="icon-check"></i>@Messages("site.sidebar.issueList")</a>
+        </li>
         <li class="@isActiveMenu(routes.SiteApp.projectList())">
             <a href="@routes.SiteApp.projectList()"><i class="icon-folder-open"></i>@Messages("site.sidebar.projectList")</a>
         </li>
@@ -26,6 +32,9 @@
         <li class="divider"></li>
         <li class="@isActiveMenu(routes.Application.index())">
             <a href="@routes.SiteApp.writeMail()"><i class="icon-envelope"></i>@Messages("site.sidebar.mailSend")</a>
+        </li>
+        <li class="@isActiveMenu(routes.Application.index())">
+            <a href="@routes.SiteApp.massMail()"><i class="icon-envelope"></i>@Messages("site.sidebar.massMail")</a>
         </li>
     </ul>
 </div> <!-- /well -->

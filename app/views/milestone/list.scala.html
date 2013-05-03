@@ -65,9 +65,9 @@
                <a href="@makeSortLink("completionRate")" class="filter active"><i class="ico ico-sort @sortMark("completionRate")"></i>@Messages("order.completionRate")</a>
            </div>
        	<div class="legend">
-       		<i class="orange"></i>완료
-       		<i class="blue"></i>진행중
-       		<i class="gray"></i>미할당
+       		<i class="gray"></i>@Messages("issue.state.open")
+            <i class="blue"></i>@Messages("issue.state.assigned")
+            <i class="orange"></i>@Messages("issue.state.closed")
        	</div>
     </div>
 
@@ -102,7 +102,7 @@
                     <strong class="version"></strong>
                     <span class="title">@milestone.title</span>
                     <span class="sp">|</span>
-                    <span class="due-date">완료일 <strong>@milestone.getDueDateString</strong></span>
+                    <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
                 </div>
                 
                 <div class="progress-wrap">
@@ -115,15 +115,10 @@
 					<div class="progress-label">
 						@** 0% 일 수도 있어서 최소한의 텍스트 영역 확보 **@
 						<div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
-							<a href="@makeIssuesLink(milestone.id,"closed")">완료 <strong>@milestone.getCompletionRate%</strong></a>
+							<a href="@makeIssuesLink(milestone.id,"closed")">@Messages("milestone.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
 						</div>
-						<!-- 
-						<div class="pull-left center-txt" style="width: 30%;">
-							진행중 <strong>30%</strong>
-						</div> 
-						-->
 						<div class="pull-right">
-							<a href="@makeIssuesLink(milestone.id,"open")">미완료 <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+							<a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
 						</div>
 					</div>
 				</div>

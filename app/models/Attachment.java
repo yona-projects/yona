@@ -88,6 +88,12 @@ public class Attachment extends Model {
                 .eq("containerId", containerId).findList();
     }
 
+    public static int countByContainer(ResourceType containerType, Long containerId) {
+        return find.where()
+                .eq("containerType", containerType)
+                .eq("containerId", containerId).findRowCount();
+    }
+
     public static List<Attachment> findByContainer(Resource resource) {
         return findByContainer(resource.getType(), resource.getId());
     }

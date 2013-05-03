@@ -35,6 +35,8 @@ GET     /memberinfo/edit                                controllers.UserApp.memb
 GET     /sites/setting                                  controllers.SiteApp.setting()
 GET     /sites/mail                                     controllers.SiteApp.writeMail(errorMessage:String ?= "", sended:Boolean ?= false)
 POST    /sites/mail                                     controllers.SiteApp.sendMail()
+GET     /sites/massmail                                 controllers.SiteApp.massMail()
+POST    /sites/mailList                                 controllers.SiteApp.mailList()
 GET     /sites/userList                                 controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
 POST    /sites/userList                                 controllers.SiteApp.searchUser()
 GET     /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
@@ -46,6 +48,9 @@ GET     /lostPassword                                   controllers.PasswordRese
 POST    /lostPassword                                   controllers.PasswordResetApp.requestResetPasswordEmail()
 GET     /resetPassword                                  controllers.PasswordResetApp.resetPasswordForm(s:String)
 POST    /resetPassword                                  controllers.PasswordResetApp.resetPassword()
+GET     /sites/postList                                 controllers.SiteApp.postList(pageNum: Int ?= 1)
+GET     /sites/issueList                                controllers.SiteApp.issueList(pageNum: Int ?= 1)
+
 
 # Attachments
 GET     /files                                          controllers.AttachmentApp.getFileList()

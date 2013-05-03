@@ -1,0 +1,46 @@
+@(page:com.avaje.ebean.Page[_ <: play.db.ebean.Model], pageNum:Int, divId:String, listUrl:String)
+
+@{
+    var currentPageNum = page.getPageIndex + 1
+    var lastPageNum = page.getTotalPageCount()
+    var str = ""
+
+    if(currentPageNum <= pageNum/2) {
+        currentPageNum = pageNum/2 +1
+    } else if(currentPageNum > lastPageNum - pageNum/2) {
+        currentPageNum = lastPageNum - pageNum/2 - 1
+    }
+    makeList(currentPageNum)
+}
+@makeList(currentPageNum:Int) = {
+    <div class='pagination' id="@divId"><ul>
+    @if(page.hasPrev){
+        @makeLink("Prev", page.getPageIndex)
+    } else {
+        <li class="disabled"><a>Prev</a></li>
+    }
+
+    @if(page.getTotalPageCount() < pageNum) {
+        @for(x <- (1 to page.getTotalPageCount())){
+            @makeLink(x + "", x)
+        }
+    } else {
+        @for( x <- (currentPageNum - pageNum/2 to currentPageNum + pageNum/2)){
+            @makeLink(x + "", x)
+        }
+    }
+
+
+    @if(page.hasNext) {
+        @makeLink("Next",page.getPageIndex + 2)
+    } else {
+        <li class="disabled"><a>Next</a></li>
+    }
+
+    </ul></div>
+}
+@makeLink(title:String, index:Int) = {
+    <li class="@if((page.getPageIndex + 1).equals(index)){active}">
+      <a href="@(listUrl + "?pageNum=" + index)" pageNum="@index">@title</a>
+    </li>
+}

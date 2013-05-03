@@ -1,6 +1,7 @@
 package controllers;
 
 import com.avaje.ebean.Page;
+import com.avaje.ebean.ExpressionList;
 import models.*;
 import models.enumeration.Operation;
 import models.enumeration.RoleType;
@@ -32,12 +33,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
+import static com.avaje.ebean.Expr.contains;
 
 public class ProjectApp extends Controller {
-	public static final String[] LOGO_TYPE = {"jpg", "png", "gif", "bmp"};
+    public static final String[] LOGO_TYPE = {"jpg", "jpeg", "png", "gif", "bmp"};
+    private static final int MAX_FETCH_PROJECTS = 1000;
 
     public static Project getProject(String userName, String projectName) {
         return Project.findByNameAndOwner(userName, projectName);
@@ -247,6 +251,30 @@ public class ProjectApp extends Controller {
     }
 
     public static Result projects(String filter, String state, int pageNum) {
+        final String HTML = "text/html";
+        final String JSON = "application/json";
+        String prefer = HttpUtil.getPreferType(request(), JSON, HTML);
+
+        if (prefer == null) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+
+        if (prefer.equals(JSON)) {
+            String query = request().getQueryString("query");
+            List<String> projectNames = new ArrayList<String>();
+            ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
+            int total = el.findRowCount();
+            if (total > MAX_FETCH_PROJECTS) {
+                el.setMaxRows(MAX_FETCH_PROJECTS);
+                response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
+            }
+            for (Project project: el.findList()) {
+                projectNames.add(project.owner + "/" + project.name);
+            }
+
+            return ok(toJson(projectNames));
+        }
+
         OrderParams orderParams = new OrderParams();
         SearchParams searchParams = new SearchParams();
 

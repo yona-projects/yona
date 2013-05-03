@@ -60,6 +60,7 @@
             		"sURL"		: htVar.sActionURL,
             		"htOptForm"	: {"method":"get"},
             		"htData"	: {"query": sQuery},
+                    "sDataType" : "json",
             		"fOnLoad"	: function(oData, oStatus, oXHR){
             			var sContentRange = oXHR.getResponseHeader('Content-Range');
             			
@@ -78,7 +79,7 @@
          * Return whether the given content range is an entire range for items.
          * e.g) "items 10/10"
          *
-         * @param {String} sContentRange the vaule of Content-Range header from response
+         * @param {String} sContentRange the value of Content-Range header from response
          * @return {Boolean}
          */
          function _isEntireRange(sContentRange){
