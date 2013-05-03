@@ -1,27 +1,18 @@
-@(menuType:utils.MenuType)
+@(project:Project)
 
-@import utils.TemplateHelper._
 @import utils._
+@import models.enumeration.ResourceType;
+@import utils.TemplateHelper._
+@import utils.AccessControl._
 
-@isActiveMenu(m_type:MenuType) = @{
-    if(m_type == menuType){ "active" }
-}
-
-<header class="gnb-outer">
     <div class="gnb-inner">
         <div class="gnb-menu-wrap">
-            <a href="@routes.Application.index()" class="logo"><span>@Messages("hive.name")</span></a>
-            <ul class="gnb-menus unstyled">
-                <li class="menu @isActiveMenu(MenuType.NEW_PROJECT)">
-                    <a href="@routes.ProjectApp.newProjectForm()">@Messages("title.newProject")</a>
-                </li>
-                <li class="menu @isActiveMenu(MenuType.PROJECTS)">
-                    <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
-                </li>
-                <li class="menu @isActiveMenu(MenuType.HELP)">
-                    <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
-                </li>
-            </ul>
+            <a href="@routes.Application.index()" class="logo"><span>HIVE</span></a>
+
+			<h1 class="page-title">
+				<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / </span><!-- 
+				 --><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
+			</h1>
 
 			<div class="gnb-menus right">
 				@if(session.contains("loginId")){
@@ -64,24 +55,12 @@
 			<a href="@routes.UserApp.signupForm()" class="d-link signup">@Messages("title.signup")</a>
                 </li>
 		}
-		        <li class="search-bar">
-			        <form action="@routes.ProjectApp.projects()" class="form-searchbar">
-						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S">
-					    <button type="submit" class="ico ico-search"></button>
+                <li class="search-bar">
+			<form action="@routes.ProjectApp.projects()" class="form-searchbar">
+						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!--
+					 --><button type="submit" class="ico ico-search"></button>
 					</form>
                 </li>
             </ul>
         </div>
     </div>
-    
-	@** for Site Administrator **@
-    @if(session.contains("userId") && session.get("userId").equals("1")){
-    <div class="side-menu-wrap">
-        <ul class="side-menus unstyled bg">
-            <li class="side-menu"><a href="/statistics"><i class="ico ico-statistics"></i></a></li>
-            <li class="side-menu"><a href="@routes.SiteApp.userList()"><i class="ico ico-setting"></i></a></li>
-        </ul>
-    </div>
-    }
-    @** // **@
-</header>

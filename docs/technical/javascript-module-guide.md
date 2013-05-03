@@ -10,7 +10,7 @@
 ## 폴더 구조
 * __javascripts/lib__
 
-    jQuery를 포함한 프레임워크, 라이브러리 파일  
+    jQuery를 포함한 프레임워크, 라이브러리 파일
 
 * __javascripts/common__
 
@@ -29,13 +29,13 @@
 ## 코드 구조
 * hive.CodeTemplate.js 참조
 
->    * 초기화 함수는 \_init() 으로 통일하고, 이 함수 내에서 \_initVar, \_initElement, \_attachEvent 를 호출한다. 
+>    * 초기화 함수는 \_init() 으로 통일하고, 이 함수 내에서 \_initVar, \_initElement, \_attachEvent 를 호출한다.
 >        각 함수의 순서는 필요에 따라 배치할 수 있고 굳이 해당 함수가 필요치 않는 경우 작성하지 않아도 무방하다.
 >    * 모듈 내에서 사용되는 변수는 htVar의 멤버 변수로 할당하며 초기화 단계에서 수행하는 함수명은 \_initVar() 으로 한다
 >    * 모듈 내에서 사용되는 HTML Element 변수는 htElement 의 멤버 변수로 할당하며 초기화 단계에서 수행하는 함수명은 \_initElement() 로 한다
 >    * 특별히 제약이 없는 한 이벤트 핸들러 지정은 \_attachEvent 에서 일괄적으로 수행하도록 구성한다
 
-* UI 컴포넌트 등 공통 코드는 함수, 객체 등 명명 규칙을 준수한다는 전제하에 코드 구조는 자유롭게 구성해도 무방하다 
+* UI 컴포넌트 등 공통 코드는 함수, 객체 등 명명 규칙을 준수한다는 전제하에 코드 구조는 자유롭게 구성해도 무방하다
 
 
 ## $hive.loadModule 사용법
@@ -68,12 +68,4 @@
 >        <div>${name} ${email}</div>
 >    </script>
 >
->    <script type="text/javascript">
->        var sTpl = document.getElementById("tplItem").text;
->        var htData = {
->            "name" : "John Doe", 
->            "email": "john@doe.com"
->        };
->
->        $.tmpl(sTpl, htData).appendTo("#target");
->    </script>
+>    var sTpl = document.getElementById("tplItem").text;

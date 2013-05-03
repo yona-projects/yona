@@ -57,11 +57,10 @@ public class Application extends Controller {
     }
 
     public static Result navi() {
-//        return ok(codeNavi.render());
     	return ok(index.render(null, null));
     }
 
     public static Result hiveUI(){
-    	return ok(views.html.hiveUI.render());
+        return ok(views.html.hiveUI.render());
     }
 }

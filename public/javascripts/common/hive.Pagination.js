@@ -14,7 +14,6 @@
  * 굳이 페이징 링크를 굳이 동적으로 만들어야 할까? 개선 검토 필요
  */
 hive.Pagination = (function(window, document) {
-
 	var htRegEx = {};
 	
 	/**

@@ -1,25 +1,24 @@
-@import utils.TemplateHelper._
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<title>HIVE UI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
-<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap")">
-<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("nforge")">
-<script type="text/javascript" src="@getJSLink("lib/jquery/jquery-1.9.0")"></script>
-<script type="text/javascript" src="@getJSLink("lib/bootstrap")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.Common")"></script>
-<style type="text/css">
-body { color:#ccc; }
-dl { display:inline-block; margin:18px; }
-dd { margin-left:0; }
-.gnb-logo { display:inline-block !important; }
-.gnb-outer { text-align:center; }
-.subtitle { font-size:24px; font-weight:bold; height:55px; line-height:55px; vertical-align:bottom; }
-.css { display:none;font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
-</style>
+	<meta charset="utf-8">
+	<title>HIVE UI</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" type="image/png" href="/assets/images/favicon.ico">
+	<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" media="screen" href="/assets/stylesheets/nforge.css">
+	<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery-1.9.0.js"></script>
+	<script type="text/javascript" src="/assets/javascripts/common/hive.Common.js"></script>
+	<script type="text/javascript" src="/assets/javascripts/lib/bootstrap.js"></script>
+	<style type="text/css">
+		body { color:#ccc; }
+		dl { display:inline-block; margin:18px; }
+		dd { margin-left:0; }
+		.gnb-logo { display:inline-block !important; }
+		.gnb-outer { text-align:center; }
+		.subtitle { font-size:24px; font-weight:bold; height:55px; line-height:55px; vertical-align:bottom; }
+		.css { display:none;font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
+	</style>
 </head>
 <body>
 
@@ -30,35 +29,34 @@ dd { margin-left:0; }
 
 <div class="container page-wrap">
 	<div class="page">
-	
 		<h3>Buttons</h5>
 		<div>
 			<p class="css">.nbtn</p>
 			<p>
-				<a href="#" class="nbtn medium">Default Button</a><!-- 
-			 --><button type="button" class="nbtn medium orange">Primary Button</button><!-- 
-			 --><a href="#" class="nbtn medium black">Cancel Button</a><!-- 
+				<a href="#" class="nbtn medium">Default Button</a><!--
+			 --><button type="button" class="nbtn medium orange">Primary Button</button><!--
+			 --><a href="#" class="nbtn medium black">Cancel Button</a><!--
 			 --><a href="#" class="nbtn medium white">Action Button</a>
 			</p>
 			<p>
-				<button type="button" class="nbtn medium">Default Button</button><!-- 
-			 --><a href="#" class="nbtn medium orange">Primary Button</a><!-- 
-			 --><button type="button" class="nbtn medium black">Cancel Button</button><!-- 
+				<button type="button" class="nbtn medium">Default Button</button><!--
+			 --><a href="#" class="nbtn medium orange">Primary Button</a><!--
+			 --><button type="button" class="nbtn medium black">Cancel Button</button><!--
 			 --><button type="button" class="nbtn medium white">Action Button</button>
 			</p>
-			
+
 			<p class="css">.btn-wrap > .fake-file-wrap</p>
 			<div class="btn-wrap">
 				<div class="nbtn medium white fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>Upload<!-- 
-				--> <input type="file" class="file" name="filePath" accept="image/*">
+					<i class="ico ico-plus-blue"></i>Upload
+				    <input type="file" class="file" name="filePath" accept="image/*">
 				</div>
 			</div>
 
 			<p class="css">.btn-wrap > .fake-file-wrap</p>
 			<div class="btn-wrap">
 				<div class="nbtn medium white fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>파일 올리기<!-- 
+					<i class="ico ico-plus-blue"></i>파일 올리기<!--
 				--> <input type="file" class="file" name="filePath" accept="image/*">
 				</div>
 			</div>
@@ -67,7 +65,6 @@ dd { margin-left:0; }
 			<p>
 				<a href="#" class="nbtn large orange">Create your project</a>
 			</p>
-			
 			<p>
 				<a href="#" class="nbtn small">Small button</a>
 				<button type="button" class="nbtn medium">Medium button</button>
@@ -76,11 +73,11 @@ dd { margin-left:0; }
 		</div>
 		<!-- // buttons -->
 		<hr/>
-		
+
 		<h3>Select</h5>
 		<div>
 			<p class="css">.dropdown-toggle</p>
-			
+
 			<!-- ui.dropdown -->
 			<div class="btn-group" data-name="assigneeId">
 				<button class="btn dropdown-toggle small" data-toggle="dropdown">
@@ -123,24 +120,22 @@ dd { margin-left:0; }
 		</div>
 		<!-- // select -->
 		<hr/>
-		
 		<h3>Form</h3>
 		<div>
 			<p class="css">.form-search</p>
 			<form class="form-search">
 				<input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
-		 	 --><button type="button" class="btn">검색</button>
+			 --><button type="button" class="btn">검색</button>
 			</form>
-			
+
 			<p class="css">.form-searchbar</p>
 			<form class="form-searchbar">
-				<input type="text" class="text" name="filter"><!-- 
+				<input type="text" class="text" name="filter"><!--
 			 --><button type="button" class="ico ico-search"></button>
 			</form>
 		</div>
 		<hr/>
 		<!-- // input -->
-		
 		<h3>Labels</h3>
 		<div>
 			<p class="css">.issue-label</p>
@@ -167,7 +162,6 @@ dd { margin-left:0; }
 		</div>
 		<!-- // labels -->
 		<hr/>
-		
 		<h3>Avatar</h3>
 		<div>
 			<p class="css">.avatar-wrap</p>
@@ -214,7 +208,6 @@ dd { margin-left:0; }
 		</div>
 		<!-- //avatar -->
 		<hr/>
-		
 		<h3>Tabs</h3>
 		<div>
 			<ul class="nav nav-tabs hive-tabs">
