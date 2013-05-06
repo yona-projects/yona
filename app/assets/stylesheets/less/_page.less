@@ -1694,12 +1694,12 @@
     
     .milestone {
         border-bottom: 1px solid @gray-d4;
-        padding: 15px 30px;
+        padding: 15px 0px; /* 15px 30px;*/
         overflow: hidden;
         &:last-of-type { border-bottom:none; }
         
         .infos {
-            width: 660px;
+            width: 700px; /*660px;*/
             float: left;
             .contributors {
                 margin: 0;
@@ -1717,33 +1717,36 @@
             }
             .meta-info {
                 margin:5px 0 10px;
-                .sp {
-                    margin: 0 5px;
-                    color:#E4E4E4;
-                }
-                .due-date {
-                    color: #666; /*999;*/
-                }
+                .title    { font-size:15px; font-weight:bold; }
+                .sp       { margin: 0 5px; color:#E4E4E4; }
+                .due-date { color: #666; /*999;*/ }
             }
+            
             .progress-wrap {
                 overflow: hidden;
                 color: #999;
                 font-size: 11px;
             }
+            
             .desc {
                 font-size: 11px;
                 margin-top: 15px;
                 padding: 15px;
-                .border-radius(2px);
                 background-color: #EBEBEB;
                 border-top:1px solid #D3D3D3;
+                .border-radius(2px);
+            }
+            
+            .actrow {
+                text-align:right;
+                padding-top:10px;
             }
         }
+        
         .completion-rate {
-            margin-left: 700px;/*660px;*/
+            margin-left: 730px;/*700px;*/
             text-align: center;
             font-size: 56px;
-            /*.helvetic-light;*/
             line-height: 2.8; /*1.3;*/
             letter-spacing: -5px;
             &.done {
@@ -1962,27 +1965,22 @@
 }
 
 .board-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
     .board {
         border-bottom: 1px solid @gray-d4;
         padding: 15px 20px;
+        
         > div {
             display: table-cell;
             vertical-align: top;
         }
-        .num {
-            width: 35px;
-            color: #B2B2B2;
-        }
+        .num { width: 35px; color: #B2B2B2; }
+        
         .attach-wrap {
             width: 35px;
             text-align: center;
-            .ico {
-                margin-top: 5px;
-            }
+            .ico { margin-top: 5px; }
         }
+        
         .contents {
             width: 590px;
             padding-right: 90px;
@@ -1994,26 +1992,27 @@
                 line-height: 14px;
                 font-size: 11px;
                 color: #999;
-                .author {
-                    color: #696969;
-                }
+                .author { color: #696969; }
             }
         }
+        
         .right-panel {
             width: 90px;
             .comment-wrap {
                 float: left;
                 margin-top: 7px;
-                .ico {
-                    vertical-align: bottom;
-                    margin-right: 5px;
-                }
-                .num {
-                    color: #4489A4;
-                }
+                .ico { vertical-align: bottom; margin-right: 5px; }
+                .num { color: @blue; }
             }
         }
     }
+}
+
+.notice-wrap {
+    margin-top:20px;
+    border:1px solid #eee;
+    
+    .board-list .board:last-of-type { border-bottom:none; }
 }
 
 .write-btn-wrap {
@@ -2031,6 +2030,7 @@
         margin-right: 5px;
     }
 }
+/*
 .board-header{
     padding: 15px 20px;
     border-top: 1px solid @gray-d4;
@@ -2066,7 +2066,7 @@
         }
     }
 }
-
+*/
 .board-body {
     padding: 20px;
     .author-info {

@@ -6,39 +6,15 @@
 @import scala.collection.immutable.Map
 @import models.enumeration._
 
-
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
-@**
-@ordering(label:String, sortBy:String) = {
-  @if(sortBy == param.sortBy) {
-    @if(param.orderBy == "desc") {
-      <a selected href="@urlToList&sortBy=@sortBy&orderBy=asc">▼@label</a>
-    } else {
-      <a selected href="@urlToList&sortBy=@sortBy&orderBy=desc">▲@label</a>
-    }
-  } else {
-    <a href="@urlToList&sortBy=@sortBy">@label</a>
-  }
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+	@if(orderBy.equals(fieldName)) {
+		<a href="@urlToList&orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+	} else {
+	    <a href="@urlToList&orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
+	}
 }
-
-@header(label:String, sortBy:String) = {
-    <th>
-        @if(sortBy == param.sortBy){
-            @(param.state = "")
-            @if(param.orderBy == "desc"){
-                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBy=asc" data-sort-by="@sortBy">@label</a>
-                <i class="icon-chevron-down"></i>
-            } else {
-                <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy&orderBY=desc" data-sort-by="@sortBy">@label</a>
-                <i class="icon-chevron-up"></i>
-            }
-        } else {
-            <a class="th-sort" href="@routes.IssueApp.issues(project.owner, project.name, param.state)&sortBy=@sortBy" data-sort-by="@sortBy">@label</a>
-        }
-    </th>
-}
-**@
 
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
@@ -118,41 +94,17 @@
 		</div>
 	</div>
 
+@if(currentPage.getList().size() > 0){
+	@if(currentPage.getList().size() > 1){
 	<div class="filter-wrap board">
 		<div class="filters">
-            @if(param.orderBy.equals("state")) {
-                @if(param.orderDir.equals("asc")) {
-                    <a href="@urlToList&orderBy=state&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
-                } else {
-                    <a href="@urlToList&orderBy=state&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.state")</a>
-                }
-            } else {
-                <a href="@urlToList&orderBy=state&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.state")</a>
-            }
-
-            @if(param.orderBy.equals("createdDate")) {
-                @if(param.orderDir.equals("asc")) {
-                    <a href="@urlToList&orderBy=createdDate&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
-                } else {
-                    <a href="@urlToList&orderBy=createdDate&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.date")</a>
-                }
-            } else {
-                <a href="@urlToList&orderBy=createdDate&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.date")</a>
-            }
-
-            @if(param.orderBy.equals("numOfComments")) {
-                @if(param.orderDir.equals("asc")) {
-                    <a href="@urlToList&orderBy=numOfComments&orderDir=desc" class="filter active"><i class="ico btn-gray-arrow"></i>@Messages("order.comments")</a>
-                } else {
-                    <a href="@urlToList&orderBy=numOfComments&orderDir=asc" class="filter active"><i class="ico btn-gray-arrow down"></i>@Messages("order.comments")</a>
-                }
-            } else {
-                <a href="@urlToList&orderBy=numOfComments&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@Messages("order.comments")</a>
-            }
+			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
+			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
+			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
 		</div>
 	</div>
+	}
 
-@if(currentPage.getList().size() > 0){
 	<ol class="issue-list">
 		@for(issue <- currentPage.getList){
 	    <li class="issue">

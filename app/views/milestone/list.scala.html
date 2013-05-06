@@ -42,7 +42,9 @@
     
     <div class="tab-wrap">
         <div class="pull-right btns">
+        	@**<!-- 
             <a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="nbtn medium">@Messages("milestone.menu.manage")</a>
+             -->**@
             <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="nbtn medium orange">@Messages("milestone.menu.new")</a>
         </div>
         
@@ -59,7 +61,17 @@
         </ul>
     </div>
     
-	<div class="filter-wrap milestone">
+	@if(milestones == null || milestones.isEmpty()){
+
+		<div class="error-wrap">
+			<i class="ico ico-err1"></i>
+			<p>@Messages("milestone.is.empty")</p>
+		</div>  
+
+	} else {
+	
+	@if(milestones.length > 1){
+		<div class="filter-wrap milestone">
 		<div class="filters">
                <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>@Messages("order.dueDate")</a>
                <a href="@makeSortLink("completionRate")" class="filter active"><i class="ico ico-sort @sortMark("completionRate")"></i>@Messages("order.completionRate")</a>
@@ -70,37 +82,23 @@
             <i class="orange"></i>@Messages("issue.state.closed")
        	</div>
     </div>
+    }
 
-	@if(milestones == null || milestones.isEmpty()){
-
-		<div class="error-wrap">
-			<i class="ico ico-err1"></i>
-			<p>@Messages("milestone.is.empty")</p>
-		</div>  
-
-	} else {
-	
     <ul class="milestones">
         @for(milestone <- milestones){
         <li class="milestone">
             <div class="infos">
-            	<!-- 
+            	@**<!-- 
                 <ul class="contributors">
                     <li class="contributor">
                         <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
                     </li>
-                    <li class="contributor">
-                        <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
-                    </li>
-                    <li class="contributor">
-                        <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
-                    </li>
                 </ul>
-                 -->
+                 -->**@
                 
                 <div class="meta-info">
                     <strong class="version"></strong>
-                    <span class="title">@milestone.title</span>
+                    <a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="title">@milestone.title</a>
                     <span class="sp">|</span>
                     <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
                 </div>
@@ -108,9 +106,11 @@
                 <div class="progress-wrap">
 					<div class="progress">
 						<div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
+						@**
 						<!-- 
 						<div class="bar blue" style="width: 30%"></div>  
 						-->
+						**@
 					</div>
 					<div class="progress-label">
 						@** 0% 일 수도 있어서 최소한의 텍스트 영역 확보 **@
@@ -126,10 +126,15 @@
                 <div class="desc">
                     @milestone.contents
                 </div>
+                
+                <div class="actrow">
+                	<a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="nbtn medium white">@Messages("button.edit")</a>
+                	<a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="nbtn medium black">@Messages("button.delete")</a>
+                </div>
             </div>
-            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">
-            	@milestone.getCompletionRate
-            	<i>%</i>
+            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!-- 
+             -->@milestone.getCompletionRate<!-- 
+             --><i>%</i>
 			</div>
         </li>
         }
