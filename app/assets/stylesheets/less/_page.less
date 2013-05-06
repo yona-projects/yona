@@ -1723,13 +1723,11 @@
                 .sp       { margin: 0 5px; color:#E4E4E4; }
                 .due-date { color: #666; /*999;*/ }
             }
-            
             .progress-wrap {
                 overflow: hidden;
                 color: #999;
                 font-size: 11px;
             }
-            
             .desc {
                 font-size: 11px;
                 margin-top: 15px;
@@ -1738,13 +1736,11 @@
                 border-top:1px solid #D3D3D3;
                 .border-radius(2px);
             }
-            
             .actrow {
                 text-align:right;
                 padding-top:10px;
             }
         }
-        
         .completion-rate {
             margin-left: 730px;/*700px;*/
             text-align: center;
@@ -1979,19 +1975,16 @@
     .board {
         border-bottom: 1px solid @gray-d4;
         padding: 15px 20px;
-        
         > div {
             display: table-cell;
             vertical-align: top;
         }
         .num { width: 35px; color: #B2B2B2; }
-        
         .attach-wrap {
             width: 35px;
             text-align: center;
             .ico { margin-top: 5px; }
         }
-        
         .contents {
             width: 590px;
             padding-right: 90px;
@@ -2006,7 +1999,6 @@
                 .author { color: #696969; }
             }
         }
-        
         .right-panel {
             width: 90px;
             .comment-wrap {
@@ -2020,9 +2012,9 @@
 }
 
 .notice-wrap {
-    margin:20px 0 0 0;
+    margin-top:20px;
     border:1px solid #eee;
-    
+
     .board-list .board:last-of-type { border-bottom:none; }
 }
 
@@ -2037,43 +2029,6 @@
         margin-right: 5px;
     }
 }
-
-.board-header{
-    padding: 15px 20px;
-    border-top: 1px solid @gray-d4;
-    border-bottom: 1px solid @gray-d4;
-    .div {
-        display: table-cell;
-        vertical-align: top;
-    }
-    .board-id {
-        width: 35px;
-        padding-right: 10px;
-    }
-    .title {
-        width: 655px;
-        padding-right: 20px;
-        font-size: 14px;
-        line-height: 16px;
-        color: #000;
-    }
-    .date {
-        width: 120px;
-        color: #999;
-    }
-    &.issue {
-        .title { width:650px; }
-        .badge {
-            font-size:11px;
-            text-shadow:none;
-            .border-radius(2px);
-        }
-        .badge-issue-open {
-            background-color:@secondary;
-        }
-    }
-}
-
 .board-body {
     padding: 20px;
     .author-info {

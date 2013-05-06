@@ -8,9 +8,9 @@
 
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
 	@if(orderBy.equals(fieldName)) {
-		<a href="@urlToList?orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+		<a href="@urlToList&orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
 	} else {
-	    <a href="@urlToList?orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
+	    <a href="@urlToList&orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
 	}
 }
 
@@ -31,25 +31,7 @@
 	  </div>
 	</div>
 
-	@if(page.getTotalRowCount == 0){
-
-	<div class="error-wrap">
-		<i class="ico ico-err1"></i>
-		<p>@Messages("post.is.empty")</p>
-	</div>
-
-	} else {
-
-	@if(page.getTotalRowCount > 1){
-	<div class="filter-wrap board">
-	    <div class="filters">
-			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
-	    </div>
-	</div>
-	}
-
-  	@if(notices != null && notices.size > 0) {
+	@if(notices != null && notices.size > 0) {
     <div class="notice-wrap bubble-wrap gray">
 		<ul class="board-list unstyled">
 		@for(post <- notices) {
@@ -63,25 +45,43 @@
                     }
                 </div>
                 <div class="contents">
-                	<p class="title">
-                		<a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a>
-                	</p>
-                	<p class="infos nm">
-                		by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!-- 
+			<p class="title">
+				<a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a>
+			</p>
+			<p class="infos nm">
+				by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!--
 					-->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
 					</p>
                 </div>
                 <div class="right-panel">
-                	<div class="comment-wrap">
-                		<i class="ico ico-comment-bubble"></i> <span class="num">@post.numOfComments</span>
-                	</div>
-                	<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-right"><!-- 
-                 	--><img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="32" height="32">
-                	</a>
+			<div class="comment-wrap">
+				<i class="ico ico-comment-bubble"></i> <span class="num">@post.numOfComments</span>
+			</div>
+			<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-right"><!--
+			--><img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="32" height="32">
+			</a>
 				</div>
 			</li>
 		}
         </ul>
+	</div>
+	}
+
+	@if(page.getTotalRowCount == 0){
+
+	<div class="error-wrap">
+		<i class="ico ico-err1"></i>
+		<p>@Messages("post.is.empty")</p>
+	</div>
+
+	} else {
+
+	@if(page.getTotalRowCount > 1){
+	<div class="filter-wrap board">
+	    <div id="order" class="filters">
+			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
+			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
+	    </div>
 	</div>
 	}
 
@@ -92,8 +92,8 @@
 				<a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.getNumber</a>
 			</div>
 			<div class="attach-wrap">
-				@if(Attachment.findByContainer(post.asResource).size > 0){ 
-					<i class="ico ico-clip"></i> 
+				@if(Attachment.findByContainer(post.asResource).size > 0){
+					<i class="ico ico-clip"></i>
 				}
 			</div>
 			<div class="contents">
@@ -101,7 +101,7 @@
 					<a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a>
 				</p>
 				<p class="infos nm">
-					by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!-- 
+					by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!--
 				 -->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
 				</p>
 			</div>
@@ -109,17 +109,17 @@
 				<div class="comment-wrap">
 					<i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
 				</div>
-				<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-right"><!-- 
+				<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-right"><!--
 				 --><img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName" width="32" height="32">
 				</a>
 			</div>
-		</li> 
+		</li>
 		}
 	</ul>
   }
 
 	<div class="write-btn-wrap">
-		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium">@Messages("post.write")</a>
+		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn orange med">@Messages("post.write")</a>
 	</div>
 
 	<div id="pagination">
