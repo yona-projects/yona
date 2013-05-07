@@ -29,38 +29,28 @@
 					<ul class="dropdown-menu">
 						<li><a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a></li>
 						<li><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></li>
-						<li><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
 						<li class="divider"></li>
-				@defining(User.findByLoginId(session.get("loginId")).myProjects()) { myProjects =>
-					@if(myProjects.length > 0){
-						<li class="disabled"><span>@Messages("project.myproject")</span></li>
-						@for(project <- myProjects){
-						<li><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name (@project.owner)</a></li>
-						}
-					}
-				}
+						<li><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
 					</ul>
 				</div>
 				} else {
 				<div class="usermenu lnk-group">
-                	<a href="@routes.UserApp.loginForm()">
-                		<span class="avatar-wrap smaller">
-                			<img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20">
-                		</span>
-                		@Messages("title.login")
-			</a>
-                </li>
-                <li class="sp-line">|</li>
-                <li class="d-link-wrap d-link-r">
-			<a href="@routes.UserApp.signupForm()" class="d-link signup">@Messages("title.signup")</a>
-                </li>
-		}
-                <li class="search-bar">
+			<a href="@routes.UserApp.loginForm()">
+				<span class="avatar-wrap smaller">
+					<img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20">
+				</span>
+				@Messages("title.login")
+			</a><!--
+                 --><a href="@routes.UserApp.signupForm()">@Messages("title.signup")</a>
+				</div>
+				}
+
+				<div class="search-bar">
 			<form action="@routes.ProjectApp.projects()" class="form-searchbar">
 						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!--
 					 --><button type="submit" class="ico ico-search"></button>
 					</form>
-                </li>
-            </ul>
+				</div>
+			</div>
         </div>
     </div>

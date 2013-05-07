@@ -167,7 +167,6 @@
         background:none;
         border:none;
     }
-    
     .gnb-inner {
         height:56px; /*line-height:56px;*/
         border-top: 1px solid #6e6e6e;
@@ -200,7 +199,7 @@
 
             .gnb-menus {
                 margin: 15px 10px 17px 34px;
-                
+
                 &.right {
                     margin-top:9px;
                     .dropdown-toggle { 
@@ -219,6 +218,12 @@
                     .sp-line { 
                         color:#626262 !important; 
                         opacity:1 !important; 
+                    }
+                    .lnk-group {
+                        a {
+                            color:#fff;
+                            &:hover { color:@primary; }
+                        }
                     }
                 }
             } /* gnb-menus */
@@ -1480,27 +1485,6 @@
         }
     }
 }
-/*
-.fake-file-wrap {
-    margin-top: 10px;
-    position: relative;
-    overflow: hidden;
-
-    height:40px; display:block; clear:both;
-
-    .file {
-        position: absolute; z-index:2;
-        cursor:pointer;
-        left: -15px;
-        .opacity(0);
-    }
-
-    .ns-btn {
-        position:absolute; z-index:1;
-        display:block !important;
-    }
-}
-*/
 .cu-label {
     width: 80px;
     padding-right: 45px;
@@ -1533,13 +1517,13 @@
     ul { margin:0 !important; }
     li { line-height:40px; padding:0; .inline-block; }
 
-    .project-menu-wrap { 
-        position:relative; height:40px; padding:0px 0px; 
+    .project-menu-wrap {
+        position:relative; height:40px; padding:0px 0px;
     }
-    
+
     .main { 
         background:#f9f9f9; text-align:center;
-        a { 
+        a {
             position:relative; padding:0 45px;
             font-weight:bold; color:#777;
             &:hover { color:@primary; text-decoration:underline; }
@@ -1555,11 +1539,11 @@
             }
         }
     }
-    
+
     .sub {
         border-top:1px solid #d4d5d7; z-index:100;
         background:#fff;
-        
+
         ul { 
             position:absolute; 
             &.on-home  { left:70px;  }
@@ -1573,7 +1557,6 @@
         a { font-weight:bold; color:#959595; padding:0 25px; font-size:11px; }
         .active a { color:#000 !important; }
     }
-    
     .sp-line { 
         width:1px; color:#d7d8d9; 
         padding:0; margin:0;
@@ -2796,7 +2779,7 @@ div.markdown-preview {
         border-left: 1px solid #ccc;
         background: #e8e8e8;
         background: -webkit-gradient(linear, left top, right top, color-stop(0%,#f5f5f5), color-stop(100%,#e9e9e9));
-    }    
+    }
 }
 
 .code-view-table {
