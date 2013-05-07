@@ -211,7 +211,8 @@ post.new.title = 제목
 post.new.contents = 내용
 post.new.filePath = 파일 경로
 post.author = 글쓴이
-post.notice = 공지
+post.notice = 공지사항
+post.notice.label = 이 글을 공지사항으로 설정합니다
 post.age = 나이
 post.menu.search = 검색
 post.delete.confirm = 해당 게시물이 삭제되면 영원히 복구할 수 없습니다. 그래도 삭제하시겠습니까?
@@ -224,6 +225,8 @@ post.title = 제목
 post.createdDate = 작성일
 post.attachment = 첨부파일
 post.numOfComments = 댓글개수
+post.error.emptyTitle = 글 제목을 입력해주세요
+post.error.emptyBody = 글 내용을 입력해주세요
 
 #Project
 project.myproject = 내 프로젝트
@@ -433,6 +436,8 @@ auth.unauthorized.waringMessage = 권한이 없거나 로그인을 하지 않았
 auth.unauthorized.comment = 로그인 후 댓글 입력이 가능합니다.
 
 #userinfo
+userinfo.profile = 프로필
+userinfo.accountSetting = 설정
 userinfo.myProjects = 내 프로젝트
 userinfo.starredProjects = 관심 프로젝트
 
