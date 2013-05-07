@@ -3,14 +3,6 @@
 @import utils.TemplateHelper._
 
 @home(user.loginId, utils.MenuType.USER) {
-    @if(user != null && session != null && user.loginId == session.get("loginId")){
-		<div class="side-menu-wrap">
-		    <ul class="side-menus unstyled bg">
-		        <li class="side-menu"><a href="@routes.UserApp.editUserInfoForm()"><i class="ico ico-setting on"></i></a></li>
-		    </ul>
-		</div>
-    }
-
 
 <div class="page-wrap container">
 	<div class="page">
@@ -29,7 +21,6 @@
 				<div class="user-location info-box">
 					<p class="u-location">
 						<i class="ico ico-location"></i>@user.email
-						<!-- Seoul, Korea, South -->
 					</p>
 				</div>
 				
@@ -47,10 +38,6 @@
 				
 				<hr />
 				<div class="user-other-info info-box">
-					<!-- 
-			        <p><strong>FOCUS</strong></p>
-			        <p class="focuses">C#, JAVA, SQL, JAVASCRIPT</p>
-			         -->
 					<p class="since">
 						<strong>MEMBER SINCE</strong>
 					</p>
@@ -69,12 +56,12 @@
 			</div>
 
 			<div class="user-stream-box">
-				<!-- 
+				@**<!-- 
 				    <ul class="nav nav-tabs user-stream-tab hive-tabs">
 				        <li class="active"><a href="#">Repositories</a></li>
 				        <li><a href="#">Activities</a></li>
 				    </ul>
-     			-->
+     			-->**@
 				<div class="user-stream-wrap">
 					<div class="header-wrap" style="margin-top: 0;">
 						<div class="search-wrap user-setting">
@@ -95,6 +82,10 @@
 							<div class="header">
 								<a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
 								@if(!project.share_option){ <i class="ico ico-lock"></i> }
+								
+								@if(user != null && session != null && user.loginId == session.get("loginId")){
+								<!-- <a href="@routes.UserApp.leave(project.owner, project.name)" class="nbtn black small">탈퇴</a> -->
+								}
 							</div>
 							<div class="desc">@project.overview</div>
 							<p class="name-tag">
