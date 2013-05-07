@@ -78,7 +78,12 @@ public class History {
         if(commits != null) {
             for(Commit commit : commits) {
                 History commitHistory = new History();
-                setUserPageUrl(commitHistory, User.findByEmail(commit.getAuthorEmail()));
+                String authorEmail = commit.getAuthorEmail();
+                if(User.isEmailExist(authorEmail)) {
+                    setUserPageUrl(commitHistory, User.findByEmail(authorEmail));
+                } else {
+                    commitHistory.setWho(commit.getAuthorName());
+                }
                 commitHistory.setWhen(commit.getCommitterDate());
                 commitHistory.setWhere(project.name);
                 commitHistory.setWhat("commit");
