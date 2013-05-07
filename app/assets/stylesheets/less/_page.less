@@ -99,6 +99,7 @@
                             .d-label { 
                                 width:70px;
                                 span.text { margin-left:5px; }
+                                .avatar-wrap img { vertical-align: top; }
                             }
                             .d-caret {
                                 padding:5px 9px;
@@ -194,7 +195,18 @@
                 
                 &.right {
                     margin-top:9px;
-                    .dropdown-toggle { background:#fff !important; }
+                    .dropdown-toggle {
+                        /*background:#fff !important;*/
+                       color:#fff;
+                       border-bottom-color:inherit;
+
+                       .d-label {
+                           text-shadow:0 1px 1px rgba(0, 0, 0, 0.75);
+                       }
+                       .d-caret {
+                           border-left:1px solid #787878;
+                       }
+                    }
                     .sp-line { 
                         color:#626262 !important; 
                         opacity:1 !important; 
@@ -1794,25 +1806,38 @@
 .project-home {
     padding: 10px;
     font-size: 0;
+
     .inner {
-        font-size: 12px;
-        .inline-block;
-        vertical-align: top;
-        .box-shadow(0 1px 0 rgba(0, 0, 0, .25));
-        background-color: @white;
-        .border-radius(10px);
-        margin-right: 10px;
         height: 188px;
+        background-color: @white;
+        margin-right: 10px;
+        font-size: 12px;
         overflow: hidden;
+        vertical-align: top;
+
+        .inline-block;
+        .box-shadow(0 1px 0 rgba(0, 0, 0, .25));
+        .border-radius(10px);
+
         &.member-info {
             width: 230px;
             margin-right: 0;
         }
+
         &.logo {
-            padding: 10px 13px;
             width: 234px;
             height: 168px;
+            padding: 10px 13px;
+            line-height:168px;
+            text-align:center;
+
+            .logo-wrap {
+                .inline-block;
+                /*width:230px;
+                height:160px;*/
+            }
         }
+
         &.project-info {
             width: 350px;
             .infos {
@@ -1841,14 +1866,16 @@
                 float: right;
             }
         }
+
         .member-wrap {
             height: 130px;
             overflow-y: auto;
         }
+
         .project-members {
             list-style: none;
-            margin: 0;
-            padding: 10px;
+            margin: 0; padding: 10px;
+
             .member {
                 padding: 5px 10px;
                 border-bottom: 1px solid @gray-d4;
@@ -1874,6 +1901,7 @@
                }
             }
         }
+
         header {
             background-color: #F8F8F8;
             padding: 10px 15px; /*10px 20px;*/
@@ -1887,16 +1915,9 @@
             .project-status {
                 float: right;
                 line-height: 19px;
-                .ico-like {
-                    vertical-align: bottom;
-                }
-                .num {
-                    color: #4489A4;
-                }
-                .sp {
-                    color: #CCC;
-                    margin: 0 7px;
-                }
+                .ico-like { vertical-align: bottom; }
+                .num { color: #4489A4; }
+                .sp { color: #ccc; margin: 0 7px; }
             }
         }
     }
