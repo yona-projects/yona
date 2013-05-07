@@ -104,6 +104,15 @@ public class User extends Model {
         }
     }
 
+    public static User findByEmail(String email) {
+        User user = find.where().eq("email", email).findUnique();
+        if(  user == null ) {
+            UserApp.anonymous.email = email;
+            return UserApp.anonymous;
+        } else {
+            return user;
+        }
+    }
     /**
      * 존재하는 유저인지를 검사합니다.
      *
