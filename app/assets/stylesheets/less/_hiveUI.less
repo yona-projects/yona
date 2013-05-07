@@ -54,13 +54,20 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     border-top-color:@blue;
 }
 .dropdown-menu li>a:hover,.dropdown-menu li>a:focus,.dropdown-submenu:hover>a {
-    background-color:@darkgray !important;
-    .linear-gradient(@darkgray, darken(@darkgray, 10%));
+    color:#fff;
+    background:@darkgray !important;
+    filter:none; /* for IE */
+    /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/
 }
 .dropdown-menu .active > a, .dropdown-menu .active > a:hover {
     color:#fff;
-    background-color:@darkgray !important;
-    .linear-gradient(@darkgray, darken(@darkgray, 10%));
+    background:@darkgray !important;
+    filter:none; /* for IE */
+    /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/
+}
+.dropdown-menu .disabled span {
+    padding-left:10px;
+    font-weight:bold; color:@darkgray;
 }
 
 /** buttons **/
