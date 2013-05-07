@@ -28,8 +28,8 @@
 					<a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorLoginId</strong></a>
 				</p>
 				<p class="status">
-					<!--Hit <strong class="num">777</strong> 
-	          	 -->Comment <strong class="num">@post.numOfComments</strong> 
+					<!--Hit <strong class="num">777</strong>
+			 -->Comment <strong class="num">@post.numOfComments</strong>
 				</p>
 			</div>
 		</div>
@@ -57,10 +57,10 @@
 	@** Comment **@
 	<div class="board-comment-wrap">
 		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@post.comments.size()</strong></div>
-    	<hr class="nm" />
-    	
-    	<ul class="comments">
-    	@for(comment <-post.comments){
+	    <hr class="nm" />
+
+	    <ul class="comments">
+	    @for(comment <-post.comments){
 			<li class="comment">
 				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
 					<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
@@ -77,25 +77,24 @@
 					<div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
 				</div>
 			</li>
-    	}
+	}
 		</ul>
     
         @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
-		<hr class="nm" />
+        <hr class="nm" />
         @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
 		<div class="write-comment-box">
 			<div class="write-comment-wrap">
-				<textarea name="contents" id="contents" class="text comment" markdown="true"></textarea><!-- 
+				<textarea name="contents" id="contents" class="text comment" markdown="true"></textarea><!--
 			 --><button class="comment-btn">@Messages("button.comment.new")</button>
 			</div>
-        
+
 			@** fileUploader **@
 			@if(UserApp.currentUser() != UserApp.anonymous) {
 			<div class="attach-wrap">
 				<div class="avatar-wrap pull-left">
 					<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="32" height="32">
 				</div>
-			
 				<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.NONISSUE_COMMENT">
 					<div>
 						<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
@@ -110,7 +109,7 @@
 			
 				<div class="btn-wrap">
 					<div class="nbtn medium white fake-file-wrap">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!-- 
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
 					--> <input type="file" class="file" name="filePath">
 					</div>
 				</div>
@@ -120,12 +119,12 @@
 			</div>
 			}
 			@** end of fileUploader **@
-			
+
 		</div>
 		} @** end of comment form **@
-		
+
 		@** end of write-comment-box **@
-		
+
 		} else {
 		<div class="write-comment-box">
 			<div class="write-comment-wrap">

@@ -69,25 +69,25 @@
                 }
 
                 &.right {
-                    float: right; position:absolute; 
+                    float: right; position:absolute;
                     right:0; top:0;
                     margin-top:19px;
                     
                     /** 사이트 검색폼 **/
                     .search-bar {
-                        display:inline-block;                        
+                        display:inline-block;
                         padding:3px 0 0 5px;
                     }
-                   
+
                     /** 로그인 하지 않은 경우 메뉴 **/
                     .lnk-group {
                         a {
                             padding-right:5px; margin-right:8px;
                             border-right:1px solid @gnb-action-separate-border-color;
-                            
+
                             &:last-of-type {
                                 padding-right:0; margin-right:0;
-                                border-right:none; 
+                                border-right:none;
                             }
                         }
                         margin-right:10px;
@@ -99,9 +99,22 @@
                         }
                     }
                     
-                    .search-bar {
-                        padding:3px 0 0 5px;
-                    } /*.search-bar */
+                    /** 로그인한 사용자의 dropdown 메뉴 **/
+                    .usermenu {
+                        margin:0; display:inline-block; vertical-align:middle;
+
+                        .dropdown-toggle {
+                            background:transparent;
+
+                            .d-label {
+                                width:70px;
+                                span.text { margin-left:5px; }
+                            }
+                            .d-caret {
+                                padding:5px 9px;
+                            }
+                        }
+                    }
                 } // .right
             }// gnb-menu
         }//gnb-menu-wrap
@@ -2012,7 +2025,7 @@
 }
 
 .notice-wrap {
-    margin-top:20px;
+    margin:20px 0 0 0;
     border:1px solid #eee;
 
     .board-list .board:last-of-type { border-bottom:none; }
@@ -2029,6 +2042,43 @@
         margin-right: 5px;
     }
 }
+
+.board-header{
+    padding: 15px 20px;
+    border-top: 1px solid @gray-d4;
+    border-bottom: 1px solid @gray-d4;
+    .div {
+        display: table-cell;
+        vertical-align: top;
+    }
+    .board-id {
+        width: 35px;
+        padding-right: 10px;
+    }
+    .title {
+        width: 655px;
+        padding-right: 20px;
+        font-size: 14px;
+        line-height: 16px;
+        color: #000;
+    }
+    .date {
+        width: 120px;
+        color: #999;
+    }
+    &.issue {
+        .title { width:650px; }
+        .badge {
+            font-size:11px;
+            text-shadow:none;
+            .border-radius(2px);
+        }
+        .badge-issue-open {
+            background-color:@secondary;
+        }
+    }
+}
+
 .board-body {
     padding: 20px;
     .author-info {

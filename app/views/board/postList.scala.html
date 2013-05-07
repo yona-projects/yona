@@ -8,9 +8,9 @@
 
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
 	@if(orderBy.equals(fieldName)) {
-		<a href="@urlToList&orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+		<a href="@urlToList?orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
 	} else {
-	    <a href="@urlToList&orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
+	    <a href="@urlToList?orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
 	}
 }
 
@@ -30,6 +30,24 @@
 	    </div>
 	  </div>
 	</div>
+
+	@if(page.getTotalRowCount == 0){
+
+	<div class="error-wrap">
+		<i class="ico ico-err1"></i>
+		<p>@Messages("post.is.empty")</p>
+	</div>
+
+	} else {
+
+	@if(page.getTotalRowCount > 1){
+	<div class="filter-wrap board">
+	    <div class="filters">
+			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
+			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
+	    </div>
+	</div>
+	}
 
 	@if(notices != null && notices.size > 0) {
     <div class="notice-wrap bubble-wrap gray">
@@ -67,24 +85,6 @@
 	</div>
 	}
 
-	@if(page.getTotalRowCount == 0){
-
-	<div class="error-wrap">
-		<i class="ico ico-err1"></i>
-		<p>@Messages("post.is.empty")</p>
-	</div>
-
-	} else {
-
-	@if(page.getTotalRowCount > 1){
-	<div class="filter-wrap board">
-	    <div id="order" class="filters">
-			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
-	    </div>
-	</div>
-	}
-
 	<ul class="board-list unstyled">
 	@for(post <- page.getList()){
 		<li class="board">
@@ -119,7 +119,7 @@
   }
 
 	<div class="write-btn-wrap">
-		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="n-btn orange med">@Messages("post.write")</a>
+		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium">@Messages("post.write")</a>
 	</div>
 
 	<div id="pagination">

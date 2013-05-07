@@ -13,19 +13,19 @@
 		<dl>
 			<dt>
 				<label for="title">@Messages("post.new.title")</label>
- 			</dt>
+			</dt>
 			<dd>
 				@helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
 			</dd>
-			
+
 			<dd>
 				@helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 			</dd>
-			
+
 			@if(isAllowedToNotice){
 			@helper.input(form("notice")){(id, name, value, args) =>
 			<dd class="right-txt">
-				<input type="checkbox" id="notice" name="notice" class="checkbox" @toHtmlArgs(args) @(if(value.equals(Some("true"))) "checked" else "")/><!-- 
+				<input type="checkbox" id="notice" name="notice" class="checkbox" @toHtmlArgs(args) @(if(value.equals(Some("true"))) "checked" else "")/><!--
 			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
 			</dd>
 			}
@@ -50,10 +50,10 @@
 						</div>
 					</div>
 				</div>
-	
+
 				<div class="btn-wrap">
 					<div class="nbtn medium white fake-file-wrap">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!-- 
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
 					--> <input type="file" class="file" name="filePath">
 					</div>
 				</div>
@@ -63,7 +63,6 @@
 				<strong>${fileName}(${fileSizeReadable})</strong><!--
 				--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
 			</script>
-	
 			<div class="attached-files-wrap">
 				<ul class="attached-files"></ul>
 			</div>
@@ -72,10 +71,10 @@
 		@** end of fileUploader **@
 
 		<div class="actions">
-			<button class="nbtn medium orange" tabindex="3">@Messages("button.save")</button><!-- 
-	 	 --><a href="javascript:history.back();" class="nbtn medium last" tabindex="4">@Messages("button.cancel")</a>
+			<button class="nbtn medium orange" tabindex="3">@Messages("button.save")</button><!--
+		 --><a href="javascript:history.back();" class="nbtn medium last" tabindex="4">@Messages("button.cancel")</a>
 		</div>
-		
+
 	</div>
 	</form>
 </div>

@@ -13,18 +13,18 @@
 		<dl>
 			<dt>
 				<label for="title">@Messages("post.new.title")</label>
- 			</dt>
+			</dt>
 			<dd>
 				<input type="text" id="title" name="title" class="text title" maxlength="250" tabindex="1" />
 			</dd>
-			
+
 			<dd>
 				<textarea id="body" name="body" class="text content" markdown="true" tabindex="2"></textarea>
 			</dd>
-			
+
 			@if(isAllowedToNotice){
 			<dd class="right-txt">
-				<input type="checkbox" id="notice" name="notice" class="checkbox" /><!-- 
+				<input type="checkbox" id="notice" name="notice" class="checkbox" /><!--
 			 --><label for="notice" class="label-public">@Messages("post.notice.label")</label>
 			</dd>
 			}
@@ -48,10 +48,10 @@
 						</div>
 					</div>
 				</div>
-	
+
 				<div class="btn-wrap">
 					<div class="nbtn medium white fake-file-wrap">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!-- 
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
 					--> <input type="file" class="file" name="filePath">
 					</div>
 				</div>
@@ -61,7 +61,7 @@
 				<strong>${fileName}(${fileSizeReadable})</strong><!--
 				--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
 			</script>
-	
+
 			<div class="attached-files-wrap">
 				<ul class="attached-files"></ul>
 			</div>
@@ -70,10 +70,10 @@
 		@** end of fileUploader **@
 
 		<div class="actions">
-			<button class="nbtn medium orange" tabindex="3">@Messages("button.save")</button><!-- 
-	 	 --><a href="javascript:history.back();" class="nbtn medium last" tabindex="4">@Messages("button.cancel")</a>
+			<button class="nbtn medium orange" tabindex="3">@Messages("button.save")</button><!--
+		 --><a href="javascript:history.back();" class="nbtn medium last" tabindex="4">@Messages("button.cancel")</a>
 		</div>
-		
+
 	</div>
 	</form>
 </div>

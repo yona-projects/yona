@@ -71,6 +71,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     line-height: 18px;
     height: 18px;
     border:0; padding:0;
+    margin-right:5px;
 
     .border-radius(2px);
     .box-shadow(0 1px 2px rgba(0, 0, 0, .25));
@@ -83,6 +84,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         background-color: darken(#707070, 10%);
         text-decoration: none;
     }
+    &.last { margin-right:0; }
 
     &.blue {
         background-color: @blue; /*#56B5D9*/
@@ -114,6 +116,9 @@ button.nbtn {
     &.small  { padding:1px 10px; height:24px; line-height:1; }
     &.medium { padding:4px 20px; height:30px; line-height:1; }
     &.large  { padding:8px 30px; height:36px; line-height:1; font-size:15px; }
+}
+.nbtn-group:last-child {
+    margin-right:0px;
 }
 
 /* fileUpload button **/
@@ -190,7 +195,7 @@ button.nbtn {
 
 /** 화면 상단의 전체 검색 폼 **/
 .form-searchbar {
-    width: 146px; height: 19px;
+    width: 146px; height: 29px;
     margin: 0; padding: 0 6px;
     background-color: @search-bar-bg-color;
     border:1px solid @search-bar-border-color;
@@ -199,12 +204,11 @@ button.nbtn {
     .box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));
 
     .text {
-        width: 128px; height: 13px;
+        width: 128px; /*height: 13px;*/
         margin: 0; margin-right:3px;
         padding:4px 0px;
         border: 0 none;
-
-        font-size: 11px;
+        font-size: 14px; /* 11px */
         color: @search-input-color;
         background-color: transparent;
 
@@ -215,7 +219,8 @@ button.nbtn {
     .ico-search {
         border:0; padding:0;
         background-color:transparent;
-        margin-bottom:2px;
+        /*margin-bottom:2px;*/
+        margin-top:2px;
     }
 }
 
@@ -228,6 +233,8 @@ button.nbtn {
     border: 1px solid #ccc;
     .border-radius(3px) !important;
 
+    &.mini    { width:12px; height:12px;   }
+    &.smaller { width:20px; height:20px;   }
     &.small   { width:24px; height:24px;   }
     &.medium  { width:32px; height:32px;   }
     &.large   { width:64px; height:64px;   }
