@@ -21,16 +21,16 @@
 
     <div class="input-prepend project-hometop-wrap">
     	<div class="vcs-wrap pull-left">
-    		<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!-- 
+    		<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!--
     	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)">
         </div>
         <div class="issue-wrap btn-group pull-right">
             <button class="btn" disabled="true">@Messages("menu.issue")</button>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
-                @Messages("issue.state.open") <strong class="num open">@Issue.countIssues(project.id, State.OPEN)</strong> 
+                @Messages("issue.state.open") <strong class="num open">@Issue.countIssues(project.id, State.OPEN)</strong>
             </a>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
-                @Messages("issue.state.closed") <strong class="num">@Issue.countIssues(project.id, State.CLOSED)</strong> 
+                @Messages("issue.state.closed") <strong class="num">@Issue.countIssues(project.id, State.CLOSED)</strong>
             </a>
         </div>
     </div>
@@ -92,7 +92,13 @@
                 @for(history <- histories.iterator()) {
                     <tr>
                         <td>@agoString(ago(history.getWhen()))</td>
-                        <td><a href="@history.getUserPageUrl()">@history.getWho()</a></td>
+                        <td>
+                            @if(history.getUserPageUrl() != null) {
+                                <a href="@history.getUserPageUrl()">@history.getWho()</a>
+                            } else {
+                                @history.getWho()
+                            }
+                        </td>
                         <td>@history.getWhat()</td>
                         <td><a href="@history.getUrl()">@history.getHow()</a></td>
                     </tr>
