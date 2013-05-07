@@ -47,9 +47,7 @@
 			// Validate
 			htElement.welForm = $("form");
 			htElement.welInputTitle = $("input#title");
-			htElement.welInputBody = $("textarea#contents");
-			htElement.welWarning = $("#warning");
-			htElement.welWarningBtn = htElement.welWarning.find("button"); 			
+			htElement.welInputBody = $("textarea#body");
 		}
 		
 		/**
@@ -63,11 +61,13 @@
 		 * Validate form on submit
 		 */
 		function _onSubmitForm(){
-			if(htElement.welInputTitle.val() == "" || htElement.welInputBody.val() == ""){
-				htElement.welWarningBtn.click(function(){
-					htElement.welWarning.hide();
-				});
-				htElement.welWarning.show();
+			if(htElement.welInputTitle.val() == ""){
+				$hive.showAlert(Messages("post.error.emptyTitle"));
+				return false;
+			}
+
+			if(htElement.welInputBody.val() == ""){
+				$hive.showAlert(Messages("post.error.emptyBody"));
 				return false;
 			}
 			

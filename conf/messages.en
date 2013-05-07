@@ -208,6 +208,7 @@ post.new.contents = Contents
 post.new.filePath = File Path
 post.author = Author
 post.notice = Notice
+post.notice.label = Set this post to notice
 post.age = Age
 post.menu.search = Search
 post.delete.confirm = If this is deleted, then it cannot be recovered. Is it okay and go through?
@@ -220,6 +221,8 @@ post.title = Title
 post.createdDate = Created Date
 post.attachment = Attachment
 post.numOfComments = Comment Count
+post.error.emptyTitle = Title is required
+post.error.emptyBody = Post with empty body cannot be created
 
 #Project
 project.myproject = MY PROJECTS
@@ -427,6 +430,8 @@ auth.unauthorized.waringMessage = You don't have authorization or aren't logged 
 auth.unauthorized.comment = You need authorization to comment
 
 #userinfo
+userinfo.profile = My Profile
+userinfo.accountSetting = Account Setting
 userinfo.myProjects = My Projects
 userinfo.starredProjects = Starred
 
