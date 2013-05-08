@@ -1,24 +1,72 @@
-@(project: Project, patch: String)
+@(project: Project, commitId:String, patch: String)
 
-@main(Messages("Commit"), project, utils.MenuType.CODE) {
+@import playRepository.RepositoryService
+@import java.net.URLEncoder
 
-<script type="text/javascript" src="/assets/javascripts/hljs.js"></script>
-<script type="text/javascript" src="/assets/javascripts/hljs.jquery.js"></script>
-<script type="text/javascript" src="/assets/javascripts/languages/allinone.js"></script>
-<style>
-@@IMPORT url("/assets/stylesheets/hljsstyles/googlecode.css");
-</style>
+@main(Messages("code.commits") + " @" + commitId, project, utils.MenuType.CODE) {
 
-<ul class="nav nav-tabs">
-    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a></li>
-    <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
-</ul>
+<div class="page">
 
-<div class="row" id="commit">
-    <pre><code>@patch</code></pre>
+	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+
+	<ul class="nav nav-tabs">
+		<li>
+			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		</li>
+		<li class="active">
+			<a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+		</li>
+	</ul>
+
+	<div class="bubble-wrap dark-gray repo-wrap">
+		<div class="inner-bubble repo-info">
+			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!--
+             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+
+			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
+				<button class="btn dropdown-toggle large" data-toggle="dropdown">
+					<span class="d-label"></span>
+					<span class="d-caret"><span class="caret"></span></span>
+				</button>
+				@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+					@if(branches.length > 0) {
+					<ul class="dropdown-menu">
+						@branches.map { branch =>
+							@defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
+							<li><a href="@url">@branch</a></li>
+							}
+						}
+					</ul>
+					}
+				}
+			</div>
+		</div>
+		<hr class="double-sp" />
+
+		<div class="code-browse-wrap">
+			<div class="code-browse-header">
+				@Messages("code.commits")
+				<strong class="commitId">@@@commitId</strong>
+			</div>
+			<div id="commit">
+			<pre class="diff"><code>@patch</code></pre>
+			</div>
+		</div>
+	</div>
+
+	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
 </div>
 
+<link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/monokai.css" />
+
+<script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.js"></script>
+<script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.jquery.js"></script>
+<script type="text/javascript" src="/assets/javascripts/lib/hljs/languages/allinone.js"></script>
 <script type="text/javascript">
-  $("code").highlight('diff');
+	$(document).ready(function(){
+		$("code").highlight('diff');
+	});
 </script>
+
 }

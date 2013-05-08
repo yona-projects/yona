@@ -66,7 +66,7 @@ public class CodeHistoryApp extends Controller {
         }
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
 
-        return ok(diff.render(project, patch));
+        return ok(diff.render(project, commitId, patch));
     }
 
 }
