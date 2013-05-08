@@ -30,6 +30,7 @@ import controllers.UserApp;
 /**
  * User 클래스
  * 
+ *
  * @author WanSoon Park
  */
 @Table(name = "n4user")
@@ -43,7 +44,6 @@ public class User extends Model {
      * 한 페이지에 보여줄 사용자 개수.
      */
     public static final int USER_COUNT_PER_PAGE = 30;
-    
     /**
      * 사이트 관리자의 id값.
      */
@@ -54,7 +54,6 @@ public class User extends Model {
      */
     @Id
     public Long id;
-    
     /**
      * 화면에 보여줄 사용자 이름
      */
@@ -65,18 +64,15 @@ public class User extends Model {
      */
     @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", message = "user.wrongloginId.alert") @Required
     public String loginId;
- 
     /**
      * 비밀번호 수정할 때 기존 비밀번호 확인할 때 사용하는 값
      */
     @Transient
     public String oldPassword;
-    
     /**
      * 비밀번호
      */
     public String password;
-    
     /**
      * 비밀번호 암화할 할 때 사용하는 값
      */
@@ -87,12 +83,10 @@ public class User extends Model {
      */
     @Email(message = "user.wrongEmail.alert")
     public String email;
-    
     /**
      * 아바타 URL
      */
     public String avatarUrl;
-    
     /**
      * 로그인 정보를 기억할지 나타내는 값
      */
@@ -122,10 +116,10 @@ public class User extends Model {
     public User(Long id){
         this.id = id;
     }
-    
+
     /**
      * 완료일을 yyyy-MM-dd 형식의 문자열로 변환한다.
-     * 
+     *
      * view에서 노출하기 위한 용도로 사용한다.
      *
      * @return
@@ -137,7 +131,7 @@ public class User extends Model {
 
     /**
      * 자신이 속한 프로젝트 목록을 반환한다.
-     * 
+     *
      * @return
      */
     public List<Project> myProjects(){
@@ -146,9 +140,9 @@ public class User extends Model {
 
     /**
      * 사용자를 추가한다.
-     * 
+     *
      * 사용자 추가시 생성일을 설정하고 PK를 반환한다.
-     * 
+     *
      * @param user
      * @return
      */
@@ -160,9 +154,9 @@ public class User extends Model {
 
     /**
      * 로그인 아이디로 사용자를 조회한다.
-     * 
+     *
      * 사용자가 없으면 {@link controllers.UserApp.anonymous} 객체를 반환한다.
-     * 
+     *
      * @param loginId
      * @return
      */
@@ -177,9 +171,9 @@ public class User extends Model {
 
     /**
      * email로 사용자를 조회한다.
-     * 
+     *
      * 사용자가 없으면 {@link controllers.UserApp.anonymous}객체에 email을 할당하고 반환한다.
-     * 
+     *
      * @param email
      * @return
      */
@@ -192,7 +186,6 @@ public class User extends Model {
             return user;
         }
     }
-    
     /**
      * 로그인아이디로 존재하는 사용자인지를 확인한다.
      *
@@ -206,7 +199,7 @@ public class User extends Model {
 
     /**
      * 전체 사용자 PK와 이름을 반환한다.
-     *  
+     *
      * @return
      */
     public static Map<String, String> options() {
@@ -219,9 +212,9 @@ public class User extends Model {
 
     /**
      * 익명사용자와 사이트 관리자를 제외한 사이트에 가입된 사용자 목록을 로그인 아이디로 정렬하여 Page객체로 반환한다.
-     *   
+     *
      * @param pageNum 해당 페이지
-     * @param loginId {@code loginId}가 null이 아니면 {@code loginId}를 포함하고 있는 사용자 목록을 검색한다. 
+     * @param loginId {@code loginId}가 null이 아니면 {@code loginId}를 포함하고 있는 사용자 목록을 검색한다.
      * @return
      */
     public static Page<User> findUsers(int pageNum, String loginId) {
@@ -263,7 +256,7 @@ public class User extends Model {
 
     /**
      * 기존에 존재하는 email인지 확인한다.
-     * 
+     *
      * @param emailAddress
      * @return email이 있으면 true / 없으면 false
      */
@@ -281,8 +274,8 @@ public class User extends Model {
     }
 
     /**
-     * 로그인 아이디로 사용자를 조회하고 새 비밀번호를 암호화하여 설정한다. 
-     *  
+     * 로그인 아이디로 사용자를 조회하고 새 비밀번호를 암호화하여 설정한다.
+     *
      * @param loginId
      * @param newPassword {@link User.passwordSalt}로 암호화하여 설정할 새 비밀번호
      */
@@ -295,9 +288,9 @@ public class User extends Model {
 
     /**
      * 모델을 리소스 객체로 반환한다.
-     * 
+     *
      * 권한검사와 첨부파일 정보를 포함한다.
-     * 
+     *
      * @return
      */
     public Resource asResource() {
