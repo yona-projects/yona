@@ -2567,6 +2567,11 @@ div.markdown-preview {
         background-color: @white;
     }
     
+    .diff {
+        border-bottom:none;
+        .border-radius(0px);
+    }
+    
     .cell {
         display: table-cell;
         background-color: @white;
@@ -2657,8 +2662,17 @@ div.markdown-preview {
             }
         }
         .commit-id {
+            width: 100px;
             padding-left: 20px;
-            width: 80px;
+            
+            font-family:Consolas; font-size:12px; font-weight:bold;
+            
+            a { 
+                color:@secondary;
+                &:hover { color:@link-hover-color; text-decoration:underline; }
+                
+                i { vertical-align:middle; margin-bottom:2px; } 
+            }
         }
         .filename {
             padding-left: 20px;
