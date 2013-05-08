@@ -5,7 +5,6 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @project.projectMngMain(title, projectInst) {
-
 @prjmenu(projectInst, utils.MenuType.MILESTONE, "")
 
 <div class="form-wrap milestone frm-wrap">
@@ -13,13 +12,7 @@
 	<div class="inner left">
 		<dl>
 			<dt>
-				<div class="n-alert hide" id="title_error">
-					<div class="n-inner">
-						<span class="msg">제목을 입력해주세요.</span>
-						<a href="#!/close" class="ico btn-delete"></a>
-					</div>
-				</div>
-				<label for="title">마일스톤 제목</label>
+				<label for="title">@Messages("milestone.form.title")</label>
 			</dt>
 			<dd>
 				@helper.input(form("title")){(id, name, value, args) =>
@@ -28,13 +21,7 @@
 			</dd>
 	
 			<dt>
-				<div class="n-alert hide" id="contents_error">
-					<div class="n-inner">
-						<span class="msg">내용</span>
-						<a href="#!/close" class="ico btn-delete"></a>
-					</div>
-				</div>
-				<label for="contents">내용을 입력해주세요</label>
+				<label for="contents">@Messages("milestone.form.content")</label>
 			</dt>
 			<dd>
 				@helper.input(form("contents")){(id, name, value, args) =>
@@ -44,25 +31,19 @@
 		</dl>
 
 		<div class="actions">
-			<button type="submit" class="n-btn orange med btn-transparent save">SAVE</button>
-			<a href="@routes.MilestoneApp.manageMilestones(projectInst.owner, projectInst.name)" class="n-btn gray med">CANCEL</a>
+			<button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
+			<a href="@routes.MilestoneApp.milestones(projectInst.owner, projectInst.name)" class="nbtn medium">@Messages("button.cancel")</a>
 		</div>
 	</div>
 
 	<div class="inner right bubble-wrap dark-gray">
-		<p>마일스톤 상태</p>
+		<p>@Messages("milestone.form.state")</p>
 		<div>
 			<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">Open</label>&nbsp;
 			<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">Closed</label>
 		</div>
 		<hr/>
-		<p>완료일을 선택하세요</p>
-		<div class="n-alert hidden">
-			<div class="n-inner">
-				<span class="msg">완료일을 입력해주세요.</span>
-				<a href="#!/close" class="ico btn-delete"></a>
-			</div>
-		</div>
+		<p>@Messages("milestone.form.dueDate")</p>
 		<label for="dueDate">
 			@helper.input(form("dueDate")){(id, name, value, args) =>
 			<input type="text" name="@name" id="@id" class="validate due-date" value="@value">

@@ -93,7 +93,7 @@ GET     /:user/:project/member/:id/delete               controllers.ProjectApp.d
 
 # Milestones
 GET     /:user/:project/milestones                      controllers.MilestoneApp.milestones(user, project)
-GET     /:user/:project/milestones/manage               controllers.MilestoneApp.manageMilestones(user, project)
+#GET     /:user/:project/milestones/manage               controllers.MilestoneApp.manageMilestones(user, project)
 GET     /:user/:project/newMilestoneForm                controllers.MilestoneApp.newMilestoneForm(user, project)
 POST    /:user/:project/milestones                      controllers.MilestoneApp.newMilestone(user, project)
 GET     /:user/:project/milestone/:id/editform          controllers.MilestoneApp.editMilestoneForm(user, project, id: Long)

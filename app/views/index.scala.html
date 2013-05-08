@@ -80,22 +80,22 @@
                         <div class="project-list-sort">
                             <span class="ordertype-date">
                                 @if( orderString == "createdDate desc" ){
-                                    <a href="@routes.Application.index()?order=createdDate"><strong>@Messages("orderby.recent")</strong> <i class="icon-chevron-down"></i></a>
+                                    <a href="@routes.Application.index()?order=createdDate"><strong>@Messages("order.recent")</strong> <i class="icon-chevron-down"></i></a>
                                 } else {
                                     @if( orderString == "createdDate" ){
-                                        <a href="@routes.Application.index()?order=createdDate desc"><strong>@Messages("orderby.recent")</strong> <i class="icon-chevron-up"></i></a>
+                                        <a href="@routes.Application.index()?order=createdDate desc"><strong>@Messages("order.recent")</strong> <i class="icon-chevron-up"></i></a>
                                     } else {
-                                        <a href="@routes.Application.index()?order=createdDate">@Messages("orderby.recent")</a>
+                                        <a href="@routes.Application.index()?order=createdDate">@Messages("order.recent")</a>
                                     }
                                 }
                             </span><span class="delimeter"> | </span><span class="ordertype-name">
                                 @if( orderString == "name desc" ){
-                                    <a href="@routes.Application.index()?order=name"><strong>@Messages("orderby.name")</strong> <i class="icon-chevron-down"></i></a>
+                                    <a href="@routes.Application.index()?order=name"><strong>@Messages("order.name")</strong> <i class="icon-chevron-down"></i></a>
                                 } else {
                                     @if( orderString == "name" ){
-                                        <a href="@routes.Application.index()?order=name desc"><strong>@Messages("orderby.name")</strong> <i class="icon-chevron-up"></i></a>
+                                        <a href="@routes.Application.index()?order=name desc"><strong>@Messages("order.name")</strong> <i class="icon-chevron-up"></i></a>
                                     } else {
-                                        <a href="@routes.Application.index()?order=name">@Messages("orderby.name")</a>
+                                        <a href="@routes.Application.index()?order=name">@Messages("order.name")</a>
                                     }
                                 }
                             </span>

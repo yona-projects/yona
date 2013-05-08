@@ -11,75 +11,63 @@
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 
 <div class="page">
-  @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
   
-  <div class="content-wrap frm-wrap">
-  
+	<div class="content-wrap frm-wrap">  
+    
     @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.id), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
-    <input type="hidden" value="@issue.authorId" name="authorId">
+    <input type="hidden" name="authorId" value="@issue.authorId">
     
     <dl>
     	<dt>
-    	  <!-- 
-	      <div id="warning" class="n-alert hide">
-	        <div class="n-inner">
-	          <span class="msg">제목과 본문에 빈칸이 있습니다.</span>
-	          <a href="#" class="ico btn-delete"></a>
-	        </div>
-	      </div>
-	      -->
-	      <label for="title"><!-- <strong class="secondary-txt">#@issue.id</strong>-->@Messages("post.new.title")</label>
+			<label for="title"><!-- <strong class="secondary-txt">#@issue.id</strong>-->@Messages("post.new.title")</label>
     	</dt>
     	<dd>
     		<input type="text" id="title" name="title" value="@issue.title" class="text title" maxlength="250" tabindex="1">
     	</dd>
+    	<dd>
+    		<textarea id="body" name="body" markdown="true" class="text content" tabindex="2">@issue.body</textarea>
+    	</dd>
     </dl>
 
-	<textarea id="body" name="body" markdown="true" class="text content" tabindex="2">@issue.body</textarea>
-
+	@** fileUploader **@
+    @if(UserApp.currentUser() != UserApp.anonymous) {
 	<div class="content-footer">
-		@** fileUploader **@
-	    @if(UserApp.currentUser() != UserApp.anonymous) {
-	    
 		<div class="attach-wrap">
 			<div class="avatar-wrap">
-				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
+				<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="32" height="32">
 			</div>
 			<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id">
 				<div>
 					<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
-					<strong>total</strong> <span class="total-num">0MB</span>
+					<strong>total</strong> <span class="total-num">0Mb</span>
 				</div>
 				<div class="progress-wrap">
 					<div class="progress n4">
 						<div class="bar orange" style="width: 0%;"></div>
 					</div>
 				</div>
-				<!-- <a href="#!/cancel"><i class="ico btn-cancel"></i></a> -->
 			</div>
-		
+
 			<div class="btn-wrap">
-				<div class="fake-file-wrap">
-					<input type="file" class="file" name="filePath" size="1">
-					<div class="ns-btn">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")
-					</div>
+				<div class="nbtn medium white fake-file-wrap">
+					<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!-- 
+				--> <input type="file" class="file" name="filePath">
 				</div>
 			</div>
 		</div>
 		<script type="text/template" id="tplAttachedFile"><!--
-		--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
-		<strong>${fileName}(${fileSizeReadable})</strong><!--
-		--><a class="attached-delete"><i class="ico btn-delete"></i></a><!--
-		--></li>
-		</script>
-	
+				--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+				<strong>${fileName}(${fileSizeReadable})</strong><!--
+				--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
+			</script>
+
 		<div class="attached-files-wrap">
 			<ul class="attached-files"></ul>
 		</div>
+	</div>
 	}
 	@** end of fileUploader **@
-    </div>
 
 	<br>
 	
@@ -89,9 +77,11 @@
 		<li class="option">
              <div class="option-label">@Messages("issue.state")</div>
              <div class="option-desc">
-				<div id="assignee" class="btn-group" data-name="state">
-					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.state")</button>
-					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+             	<div id="state" class="btn-group" data-name="state">
+					<button class="btn dropdown-toggle large" data-toggle="dropdown">
+						<span class="d-label">@Messages("issue.state")</span>
+						<span class="d-caret"><span class="caret"></span></span>
+					</button>
 					<ul class="dropdown-menu">
 						<li data-value="@State.OPEN.name" @if(issue.state == State.OPEN){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.state.open")</a></li>
 						<li data-value="@State.CLOSED.name" @if(issue.state == State.CLOSED){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.state.closed")</a></li>
@@ -105,9 +95,11 @@
 		<li class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.assignee")</div>
              <div class="option-desc">
-				<div id="assignee" class="btn-group" data-name="assignee.user.id">
-					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.assignee")</button>
-					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+             	<div id="assignee" class="btn-group" data-name="assignee.user.id">
+					<button class="btn dropdown-toggle large" data-toggle="dropdown">
+						<span class="d-label">@Messages("issue.new.selectDefault.assignee")</span>
+						<span class="d-caret"><span class="caret"></span></span>
+					</button>
 					<ul class="dropdown-menu">
 						@ProjectUser.options(project.id).map{ v =>
 						<li data-value="@v._1" @if(issue.assignee != null && issue.assignee.user.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
@@ -123,8 +115,10 @@
              <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
              <div class="option-desc">
 				<div id="milestoneId" class="btn-group" data-name="milestoneId">
-					<button data-toggle="dropdown" class="btn dropdown-toggle d-label bgwhite">@Messages("issue.new.selectDefault.milestone")</button>
-					<button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+					<button class="btn dropdown-toggle large" data-toggle="dropdown">
+						<span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
+						<span class="d-caret"><span class="caret"></span></span>
+					</button>
 					<ul class="dropdown-menu">
 						@Milestone.options(project.id).map{ v =>
 						<li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
@@ -136,48 +130,19 @@
 		}
 	</ul>
 	
-	@**
-	<fieldset class="labels">
-      @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
-            @select(
-                issueForm("state"),
-                options(State.OPEN.name -> "Open", State.CLOSED.name -> "Closed"),
-                '_label-> Messages("issue.state"),
-                '_showConstraints -> false)
-            }
-      @if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
-            @select(
-                issueForm("assignee.user.id"),
-                options(ProjectUser.options(project.id)),
-                '_label-> Messages("issue.new.detailInfo.assignee"),
-                '_default -> Messages("issue.new.selectDefault.assignee"),
-                '_showConstraints -> false)
-            }
-      @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
-            @select(
-                issueForm("milestoneId"),
-                options(Milestone.options(project.id)),
-                '_label-> Messages("issue.new.detailInfo.milestone"),
-                '_default -> Messages("issue.new.selectDefault.milestone"),
-                '_showConstraints -> false)
-            }
-    </fieldset>
-    **@	
-
 	<!-- issue.label js module appends a label selector here. -->
 	<p class="option-label">@Messages("label.select")</p>
 	<fieldset class="labels issue-form-labels form-horizontal bubble-wrap gray"></fieldset>
 
 	<div class="actions">
-		<button type="submit" class="btn-transparent n-btn orange med">@Messages("button.save")</button>
-		<a href="javascript:history.back();" class="n-btn gray med cancel">@Messages("button.cancel")</a>
-		<!-- 
-			<a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="n-btn gray med">@Messages("button.cancel")</a>
-		-->
+	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
+	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a> 
 	</div>
+	@** <!-- @routes.IssueApp.issues(project.owner, project.name, "all") --> **@
 
-  } @** end of form **@
-  </div>
+	} @** end of form **@
+	</div>
+</div>
 
 @markdown()
 
@@ -202,5 +167,5 @@
 		});
 	});
 </script>
-</div>
+
 }
