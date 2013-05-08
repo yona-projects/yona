@@ -6,7 +6,7 @@
  */
 
 .pika-single {
-    z-index: 9999;
+    z-index: 9;/*999;*/
     display: block;
     position: relative;
     width: 240px;

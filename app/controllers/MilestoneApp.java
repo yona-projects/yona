@@ -64,18 +64,19 @@ public class MilestoneApp extends Controller {
             Milestone newMilestone = milestoneForm.get();
             newMilestone.project = project;
             Milestone.create(newMilestone);
-            return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
+            return redirect(routes.MilestoneApp.milestones(userName, projectName));
         }
     }
 
     private static void validate(Project project, Form<Milestone> milestoneForm) {
-        // 중복된 title로 만들 수 없다.
+        // 중복된 제목으로 만들 수 없다
         if (!Milestone.isUniqueProjectIdAndTitle(project.id, milestoneForm.field("title").value())) {
             milestoneForm.reject("title", "milestone.title.duplicated");
             flash(Constants.WARNING, "milestone.title.duplicated");
         }
     }
 
+    /*
     public static Result manageMilestones(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
@@ -88,6 +89,7 @@ public class MilestoneApp extends Controller {
                 Direction.getValue(mCondition.direction));
         return ok(manage.render("title.milestoneManage", milestones, project, mCondition));
     }
+    */
 
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
@@ -115,7 +117,7 @@ public class MilestoneApp extends Controller {
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());
-            return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
+            return redirect(routes.MilestoneApp.milestones(userName, projectName));
         }
     }
 
@@ -129,7 +131,7 @@ public class MilestoneApp extends Controller {
             return internalServerError();
         }
         Milestone.findById(id).delete();
-        return redirect(routes.MilestoneApp.manageMilestones(userName, projectName));
+        return redirect(routes.MilestoneApp.milestones(userName, projectName));
 
     }
 }

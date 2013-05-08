@@ -11,14 +11,14 @@ title.projectHome = Project Home
 title.newProject = Create a New Project
 title.projectSetting = Project Setting
 title.memberList = Member List
-title.post.notExistingPage = Not Existing Page
+title.post.notExistingPage = Page not found
 title.siteSetting = Site Setting
 title.site.userEdit = Edit a User
 title.login = Log in
 title.logout = Log out
 title.signup = Sign Up
 title.forgotpassword = Forgot password?
-title.rememberMe = REMEMBER ME
+title.rememberMe = Remember Me
 title.commitHistory = Commit History
 title.mailSetting = Mail Configuration
 title.sendMail = Send Mail
@@ -30,9 +30,6 @@ title.resetPassword = Reset Password
 hive.name = HIVE
 hive.title = Collaborative Software Development Platform
 hive.description = Make it better and simpler!
-
-orderby.name = Name
-orderby.recent = Recent
 
 menu.home = Home
 menu.board = Board
@@ -57,7 +54,7 @@ label.new = New Label
 label.customColor = Custom Color
 label.category = Category
 label.name = Name
-label.add = Add
+label.add = Add Label
 label.manage = Manage Label
 label.confirm.delete = Are you Sure?
 label.select = Select Label
@@ -70,6 +67,8 @@ order.state = State
 order.comments = Comments
 order.completionRate = Completion Rate
 order.dueDate = Due Date
+order.name = Name
+order.recent = Recent
 
 button.save = Save
 button.confirm = Confirm
@@ -109,8 +108,6 @@ milestone.state.closed = Closed
 milestone.is.empty = There is no milestone.
 milestone.menu.manage = Manage
 milestone.menu.new = New
-sort.by.dueDate = Due Date
-sort.by.completionRate = Completeness
 milestone.title.duplicated = Title is duplicated.
 milestone.form.title = Title
 milestone.form.content = Descriptions
@@ -367,11 +364,11 @@ board.notAuthor = You are not author!
 #Search
 label.writer = Writer
 post.is.empty = There is no post.
-title.contentSearchResult = Conetnet Search Result
+title.contentSearchResult = Content Search Result
 
-#Vaildation
-error.required = It is required.
-error.wrong.format = It is wrong format.
+#Validation
+error.required = Mandatory field is empty
+error.wrong.format = Wrong format
 
 #Code
 code.files = Files

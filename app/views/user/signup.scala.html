@@ -2,66 +2,68 @@
 @import utils.TemplateHelper._
 
 @home(message, utils.MenuType.NONE) {
-	@** Messages("title.signup") **@
-	<div class="page full">
-        <div class="center-wrap tag-line-wrap signup">
-            <h1 class="title"><span class="high-light">Sign Up for</span> @Messages("hive.name")</h1>
-            <p class="tag-line">Software development platform for Open Source project.</p>
-        </div>
-        
-        <div class="signup-form-wrap frm-wrap">
-            <form action="@routes.UserApp.newUser()" method="POST" name="signup">
-            	<dl>
-            		<dt>
-            			<label for="loginId">@Messages("user.signupId")</label>
-            		</dt>
-            		<dd>
-            			<input type="text" class="text password" id="loginId" placeholder="" autocomplete="off" name="loginId">
-            		</dd>
+<div class="page full">
+	<div class="center-wrap tag-line-wrap signup">
+		<h1 class="title">
+			<span class="high-light">Sign Up for</span> @Messages("hive.name")
+		</h1>
+		<p class="tag-line">Software development platform for Open Source
+			project.</p>
+	</div>
 
-					<dt>
-						<label for="uname">@Messages("user.name")</label>
-					</dt>
-					<dd>
-						<input type="text" class="text password" id="uname" placeholder="" autocomplete="off" name="name">
-					</dd>
-					
-					<dt>
-						<label for="email">@Messages("user.email")</label>
-					</dt>
-					<dd>
-						<input type="text" class="text password" id="email" placeholder="" autocomplete="off" name="email">
-					</dd>
-					
-					<dt>
-						<label for="password">@Messages("user.password")</label>
-					</dt>
-					<dd>
-						<input type="password" class="text password" id="password" placeholder="" autocomplete="off" name="password">
-					</dd>
-					
-					<dt>
-						<label for="retypedPassword">@Messages("validation.retypePassword")</label>
-					</dt>
-					<dd>
-						<input type="password" class="text password" id="retypedPassword" placeholder="" autocomplete="off" name="retypedPassword">
-					</dd>
-            	</dl>
+	<div class="signup-form-wrap frm-wrap">
+		<form action="@routes.UserApp.newUser()" method="post" name="signup">
+			<dl>
+				<dt>
+					<label for="loginId">@Messages("user.signupId")</label>
+				</dt>
+				<dd>
+					<input id="loginId" type="text" name="loginId" class="text password" placeholder="" autocomplete="off">
+				</dd>
 
-                <div class="act-row">
-                    @Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
-                </div>
-                <div class="btns-row">
-                    <button type="submit" class="n-btn orange sign-up">@Messages("user.signupBtn")</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
-    <script type="text/javascript">
-    	$(document).ready(function(){
+				<dt>
+					<label for="uname">@Messages("user.name")</label>
+				</dt>
+				<dd>
+					<input id="uname" type="text" name="name" class="text password" placeholder="" autocomplete="off">
+				</dd>
+
+				<dt>
+					<label for="email">@Messages("user.email")</label>
+				</dt>
+				<dd>
+					<input id="email" type="text" name="email" class="text password" placeholder="" autocomplete="off">
+				</dd>
+
+				<dt>
+					<label for="password">@Messages("user.password")</label>
+				</dt>
+				<dd>
+					<input id="password" type="password" name="password" class="text password" placeholder="" autocomplete="off">
+				</dd>
+
+				<dt>
+					<label for="retypedPassword">@Messages("validation.retypePassword")</label>
+				</dt>
+				<dd>
+					<input id="retypedPassword" type="password" name="retypedPassword" class="text password" placeholder="" autocomplete="off">
+				</dd>
+			</dl>
+
+			<div class="act-row">
+				@Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
+			</div>
+			<div class="btns-row">
+				<button type="submit" class="nbtn medium orange">@Messages("user.signupBtn")</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<script type="text/javascript" src="@getJSLink("lib/validate")"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
 		$hive.loadModule("user.SignUp");
-    	});
-    </script>
+	});
+</script>
 }
