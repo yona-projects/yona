@@ -42,7 +42,7 @@ public class AttachmentApp extends Controller {
 
         // Store the file in the user's temporary area.
         Attachment attach = new Attachment();
-        boolean isCreated = attach.storeInUserTemporaryArea(file, filePart.getFilename(), UserApp.currentUser().id);
+        boolean isCreated = attach.storeToUserArea(file, filePart.getFilename(), UserApp.currentUser().id);
 
         // The request has been fulfilled and resulted in a new resource being
         // created. The newly created resource can be referenced by the URI(s)
@@ -129,46 +129,51 @@ public class AttachmentApp extends Controller {
 
         attach.delete();
 
-        if (!Attachment.exists(attach.hash)) {
-            if (!Attachment.fileExists(attach.hash)) {
-                Logger.error("The uploaded file '" + attach.name + "'cannot be " +
-                        "found even if the file is still referred by some" +
-                        "attachments.");
-            }
-            return ok("Both the attachment and its origin file are removed successfully.");
+        logIfOriginFileIsNotValid(attach.hash, attach.name);
+
+        if (Attachment.fileExists(attach.hash)) {
+            return ok("The attachment is removed successfully, but its origin file still exists.");
         } else {
-            if (Attachment.fileExists(attach.hash)) {
-                Logger.warn("The attachment is removed successfully, but its " +
-                        "origin file still exists abnormally even if the file " +
-                        "referred by nowhere.");
-            }
-            return ok("The attachment is removed successfully, but its " +
-                    "origin file still exists.");
+            return ok("Both the attachment and its origin file are removed successfully.");
         }
     }
 
-    public static Map<String, String> fileAsMap(Attachment attach) {
-        Map<String, String> file = new HashMap<String, String>();
+    private static void logIfOriginFileIsNotValid(String hash) {
+        if (!Attachment.fileExists(hash) && Attachment.exists(hash)) {
+            Logger.error("The origin file '" + hash + "' cannot be " +
+                    "found even if the file is still referred by some" +
+                    "attachments.");
+        }
 
-        file.put("id", attach.id.toString());
-        file.put("mimeType", attach.mimeType);
-        file.put("name", attach.name);
-        file.put("url", routes.AttachmentApp.getFile(attach.id).url());
-        file.put("size", attach.size.toString());
+        if (Attachment.fileExists(hash) && !Attachment.exists(hash)) {
+            Logger.warn("The attachment is removed successfully, but its " +
+                    "origin file '" + hash + "' still exists abnormally even if the file " +
+                    "referred by nowhere.");
+        }
+    }
 
-        return file;
+    private static Map<String, String> extractFileMetaDataFromAttachementAsMap(Attachment attach) {
+        Map<String, String> metadata = new HashMap<String, String>();
+
+        metadata.put("id", attach.id.toString());
+        metadata.put("mimeType", attach.mimeType);
+        metadata.put("name", attach.name);
+        metadata.put("url", routes.AttachmentApp.getFile(attach.id).url());
+        metadata.put("size", attach.size.toString());
+
+        return metadata;
     }
 
     public static Result getFileList() {
         Map<String, List<Map<String, String>>> files =
                 new HashMap<String, List<Map<String, String>>>();
 
-        // Get files from the user's temporary area.
-        List<Map<String, String>> tempFiles = new ArrayList<Map<String, String>>();
-        for (Attachment attach : Attachment.findTempFiles(UserApp.currentUser().id)) {
-            tempFiles.add(fileAsMap(attach));
+        // Get files from the user's area.
+        List<Map<String, String>> userFiles = new ArrayList<Map<String, String>>();
+        for (Attachment attach : Attachment.findByContainer(UserApp.currentUser().asResource())) {
+            userFiles.add(extractFileMetaDataFromAttachementAsMap(attach));
         }
-        files.put("tempFiles", tempFiles);
+        files.put("tempFiles", userFiles);
 
         // Get attached files only if the user has permission to read it.
         Map<String, String[]> query = request().queryString();
@@ -183,7 +188,7 @@ public class AttachmentApp extends Controller {
                         attach.asResource(), Operation.READ)) {
                     return forbidden();
                 }
-                attachments.add(fileAsMap(attach));
+                attachments.add(extractFileMetaDataFromAttachementAsMap(attach));
             }
             files.put("attachments", attachments);
         }

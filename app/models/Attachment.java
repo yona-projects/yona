@@ -29,7 +29,7 @@ import scalax.file.NotDirectoryException;
 @Entity
 public class Attachment extends Model {
     private static final long serialVersionUID = 7856282252495067924L;
-    private static Finder<Long, Attachment> find = new Finder<Long, Attachment>(Long.class,
+    public static Finder<Long, Attachment> find = new Finder<Long, Attachment>(Long.class,
             Attachment.class);
     private static String uploadDirectory = "uploads";
     @Id
@@ -58,7 +58,7 @@ public class Attachment extends Model {
      * @param userId
      * @return
      */
-    public static List<Attachment> findTempFiles(Long userId) {
+    public static List<Attachment> findUserFiles(Long userId) {
         return find.where()
                 .eq("containerType", ResourceType.USER)
                 .eq("containerId", userId).findList();
@@ -102,7 +102,7 @@ public class Attachment extends Model {
     public static int attachFiles(
             Long userId, Long projectId, ResourceType containerType, Long containerId) {
         // Move the attached files in the temporary area to the issue area.
-        List<Attachment> attachments = Attachment.findTempFiles(userId);
+        List<Attachment> attachments = Attachment.findByContainer(ResourceType.USER, userId);
         for (Attachment attachment : attachments) {
             attachment.projectId = projectId;
             attachment.containerType = containerType;
@@ -193,8 +193,8 @@ public class Attachment extends Model {
         }
    }
 
-    // Store the files in the user's temporary area.
-    public boolean storeInUserTemporaryArea(File file, String name, Long userId)
+    // Store the files in the user's area.
+    public boolean storeToUserArea(File file, String name, Long userId)
             throws NoSuchAlgorithmException, IOException {
         return store(file, name, User.find.byId(userId).asResource());
     }

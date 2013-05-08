@@ -54,7 +54,7 @@ GET     /sites/issueList                                controllers.SiteApp.issu
 
 # Attachments
 GET     /files                                          controllers.AttachmentApp.getFileList()
-POST    /files                                          controllers.AttachmentApp.newFile()
+POST    /files                                          controllers.AttachmentApp.uploadFile()
 GET     /files/:id                                      controllers.AttachmentApp.getFile(id: Long)
 GET     /files/:id/?                                    controllers.AttachmentApp.getFile(id: Long)
 POST    /files/:id/?                            		controllers.AttachmentApp.deleteFile(id: Long)
