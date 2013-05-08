@@ -101,6 +101,7 @@
 	<div class="board-comment-wrap">
 		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
     
+<<<<<<< HEAD
 	@if(issue.comments.size > 0) {
 		<ul class="comments">
 		@for(comment <- issue.comments){
@@ -125,7 +126,7 @@
 		</ul>
 	}
 
-	@if(isCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
+    @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
 		@form(routes.IssueApp.newComment(project.owner, project.name, issue.id), 'id -> "comment-form", 'enctype -> "multipart/form-data"){
 		<div class="write-comment-box">
 			<div class="write-comment-wrap">

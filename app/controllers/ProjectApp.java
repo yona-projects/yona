@@ -3,10 +3,7 @@ package controllers;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 import models.*;
-import models.enumeration.Operation;
-import models.enumeration.RoleType;
-import models.enumeration.Direction;
-import models.enumeration.Matching;
+import models.enumeration.*;
 import models.support.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -113,22 +110,22 @@ public class ProjectApp extends Controller {
 
     @Transactional
     public static Result newProject() throws Exception {
+        if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
+           return forbidden("'" + UserApp.currentUser().name + "' has no permission");
+        }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
-        if (Project.isProject(UserApp.currentUser().loginId,
-                filledNewProjectForm.field("name").value())) {
+        if (Project.exists(UserApp.currentUser().loginId, filledNewProjectForm.field("name").value())) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledNewProjectForm.reject("name");
             return badRequest(create.render("title.newProject", filledNewProjectForm));
         } else if (filledNewProjectForm.hasErrors()) {
-            System.out.println("=====" + filledNewProjectForm.errorsAsJson());
             filledNewProjectForm.reject("name");
             flash(Constants.WARNING, "project.name.alert");
             return badRequest(create.render("title.newProject", filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             project.owner = UserApp.currentUser().loginId;
-            ProjectUser.assignRole(UserApp.currentUser().id,
-                    Project.create(project), RoleType.MANAGER);
+            ProjectUser.assignRole(UserApp.currentUser().id, Project.create(project), RoleType.MANAGER);
 
             RepositoryService.createRepository(project);
 
@@ -361,9 +358,9 @@ public class ProjectApp extends Controller {
         orderParams.add("createdDate", Direction.DESC);
         searchParams.add("name", filter, Matching.CONTAINS);
         if (state.toLowerCase().equals("public")) {
-            searchParams.add("share_option", true, Matching.EQUALS);
+            searchParams.add("isPublic", true, Matching.EQUALS);
         } else if (state.toLowerCase().equals("private")) {
-            searchParams.add("share_option", false, Matching.EQUALS);
+            searchParams.add("isPublic", false, Matching.EQUALS);
         }
 
         Page<Project> projects = FinderTemplate.getPage(

@@ -89,7 +89,7 @@ public class AbstractPostingApp extends Controller {
     }
 
     public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
-        if (!AccessControl.isCreatable(UserApp.currentUser(), project, resourceType)) {
+        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, resourceType)) {
             return forbidden(views.html.project.unauthorized.render(project));
         }
 

@@ -17,7 +17,7 @@ public class AccessControl {
         return !user.isAnonymous();
     }
 
-    public static boolean isCreatable(User user, Project project, ResourceType resourceType) {
+    public static boolean isProjectResourceCreatable(User user, Project project, ResourceType resourceType) {
         if (user == null) return false;
         if (user.isSiteManager()) {
             return true;
@@ -28,7 +28,7 @@ public class AccessControl {
             return true;
         } else {
             // If the project is private, nonmembers cannot create anything.
-            if (!project.share_option) {
+            if (!project.isPublic) {
                 return false;
             }
 
@@ -49,19 +49,18 @@ public class AccessControl {
 
     private static boolean isGlobalResourceAllowed(User user, Resource resource, Operation operation) {
         // Temporary attachments are allowed only for the user who uploads them.
-        if (resource.getType().equals(ResourceType.ATTACHMENT)) {
-            if (resource.getContainer().getType() == ResourceType.USER) {
-                return user.id == resource.getContainer().getId();
-            }
+        if (resource.getType() == ResourceType.ATTACHMENT
+                && resource.getContainer().getType() == ResourceType.USER) {
+            return user.id == resource.getContainer().getId();
         }
 
-        if (operation.equals(Operation.READ)) {
-            if (resource.getType().equals(ResourceType.PROJECT)) {
+        if (operation == Operation.READ) {
+            if (resource.getType() == ResourceType.PROJECT) {
                 Project project = Project.find.byId(resource.getId());
-                return project != null && (project.share_option || ProjectUser.isMember(user.id, project.id));
+                return project != null && (project.isPublic || ProjectUser.isMember(user.id, project.id));
             }
 
-            // anyone can read all resources which doesn't belong to a project.
+            // anyone can read any resource which is not a project.
             return true;
         }
 
@@ -104,23 +103,24 @@ public class AccessControl {
         // See docs/technical/access-control.md for more information.
         switch(operation) {
         case READ:
-            return project.share_option || ProjectUser.isMember(user.id, project.id);
+            return project.isPublic || ProjectUser.isMember(user.id, project.id);
         case UPDATE:
             if (ProjectUser.isMember(user.id, project.id)) {
                 return true;
             }
 
-            if (resource.getType() != ResourceType.CODE) {
-                return project.share_option && isEditableAsAuthor(user, project, resource);
-            } else {
+            if (resource.getType() == ResourceType.CODE) {
+                // Nonmember cannot update the repository.
                 return false;
+            } else {
+                return project.isPublic && isEditableAsAuthor(user, project, resource);
             }
         case DELETE:
-            if (resource.getType() != ResourceType.CODE) {
-                return ProjectUser.isMember(user.id, project.id) ||
-                        (project.share_option && isEditableAsAuthor(user, project, resource));
-            } else {
+            if (resource.getType() == ResourceType.CODE) {
                 return false;
+            } else {
+                return ProjectUser.isMember(user.id, project.id) ||
+                        (project.isPublic && isEditableAsAuthor(user, project, resource));
             }
         default:
             // undefined

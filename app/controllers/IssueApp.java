@@ -189,7 +189,7 @@ public class IssueApp extends AbstractPostingApp {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
 
-        if (!AccessControl.isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
+        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
             return forbidden(unauthorized.render(project));
         }
 

@@ -57,7 +57,7 @@ public class Project extends Model {
 	public String siteurl;
     public String owner;
 
-	public boolean share_option;
+	public boolean isPublic;
 
     public Date createdDate;
 
@@ -112,7 +112,7 @@ public class Project extends Model {
 	 * @param projectName 프로젝트이름
 	 * @return
 	 */
-	public static boolean isProject(String userName, String projectName) {
+	public static boolean exists(String userName, String projectName) {
 		int findRowCount = find.where().eq("name", projectName)
 				.eq("owner", userName).findRowCount();
 		return (findRowCount != 0) ? true : false;
@@ -211,9 +211,9 @@ public class Project extends Model {
 		if (state == "all") {
 			return find.findRowCount();
 		} else if (state == "public") {
-			return find.where().eq("share_option", true).findRowCount();
+			return find.where().eq("isPublic", true).findRowCount();
 		} else if (state == "private") {
-			return find.where().eq("share_option", false).findRowCount();
+			return find.where().eq("isPublic", false).findRowCount();
 		} else {
 			return 0;
 		}

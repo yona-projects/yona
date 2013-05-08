@@ -1,18 +1,15 @@
 package controllers;
 
 import models.*;
-import org.codehaus.jackson.JsonNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.Helpers;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -61,7 +58,7 @@ public class IssueAppTest {
         assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is not a manager").isFalse();
         assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
         assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
-        assertThat(project.share_option).isTrue();
+        assertThat(project.isPublic).isTrue();
     }
 
     @After

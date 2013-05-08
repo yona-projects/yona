@@ -70,7 +70,7 @@
 
 	<!-- issue options -->
 	<ul id="options" class="options unstyled issue-options">
-		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
+		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
 		<li class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.assignee")</div>
              <div class="option-desc">
@@ -89,7 +89,7 @@
 		</li>
 		}
 		
-		@if(isCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
 		<li class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
              <div class="option-desc">

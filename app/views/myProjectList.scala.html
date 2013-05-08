@@ -8,7 +8,7 @@
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
                         <strong>
                             @project.name (@project.owner)
-                            @if(!project.share_option){
+                            @if(!project.isPublic){
                             <i class="ico ico-lock"></i>
                             }
                         </strong>

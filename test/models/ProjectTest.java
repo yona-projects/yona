@@ -2,21 +2,9 @@ package models;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.util.List;
 
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoFilepatternException;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import playRepository.Commit;
-import playRepository.GitRepository;
 
 /**
  * @author "Hwi Ahn"
@@ -30,7 +18,7 @@ public class ProjectTest extends ModelTest<Project> {
         Project project = new Project();
         project.name = "prj_test";
         project.overview = "Overview for prj_test";
-        project.share_option = false;
+        project.isPublic = false;
         project.vcs = "GIT";
         // When
         Project.create(project);
@@ -81,7 +69,7 @@ public class ProjectTest extends ModelTest<Project> {
         // Then
         assertThat(project.name).isEqualTo("nForge4java");
         assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
-        assertThat(project.share_option).isEqualTo(true);
+        assertThat(project.isPublic).isEqualTo(true);
         assertThat(project.vcs).isEqualTo("GIT");
         assertThat(project.siteurl).isEqualTo("http://localhost:9000/nForge4java");
       
@@ -125,8 +113,8 @@ public class ProjectTest extends ModelTest<Project> {
         String projectName = "nForge4java";
         String newProjectName = "NanumFont";
         // When
-        boolean result1 = Project.isProject(userName, projectName);
-        boolean result2 = Project.isProject(userName, newProjectName);
+        boolean result1 = Project.exists(userName, projectName);
+        boolean result2 = Project.exists(userName, newProjectName);
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);
