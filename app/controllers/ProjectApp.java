@@ -43,10 +43,26 @@ public class ProjectApp extends Controller {
     public static final String[] LOGO_TYPE = {"jpg", "jpeg", "png", "gif", "bmp"};
     private static final int MAX_FETCH_PROJECTS = 1000;
 
+    /**
+     * getProject
+     * @param userName
+     * @param projectName
+     * @return
+     */
     public static Project getProject(String userName, String projectName) {
         return Project.findByNameAndOwner(userName, projectName);
     }
 
+    /**
+     * project
+     * @param userName
+     * @param projectName
+     * @return
+     * @throws IOException
+     * @throws ServletException
+     * @throws SVNException
+     * @throws GitAPIException
+     */
     public static Result project(String userName, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -67,6 +83,10 @@ public class ProjectApp extends Controller {
         return ok(overview.render("title.projectHome", getProject(userName, projectName), histories));
     }
 
+    /**
+     * newProjectForm
+     * @return
+     */
     public static Result newProjectForm() {
         if (session().get(UserApp.SESSION_USERID) == null) {
             flash(Constants.WARNING, "user.login.alert");
@@ -75,6 +95,12 @@ public class ProjectApp extends Controller {
             return ok(create.render("title.newProject", form(Project.class)));
     }
 
+    /**
+     * settingForm
+     * @param userName
+     * @param projectName
+     * @return
+     */
     public static Result settingForm(String userName, String projectName) {
         Project project = getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -106,11 +132,18 @@ public class ProjectApp extends Controller {
 
             RepositoryService.createRepository(project);
 
-            return redirect(routes.ProjectApp.project(project.owner,
-                    project.name));
+            return redirect(routes.ProjectApp.project(project.owner, project.name));
         }
     }
 
+    /**
+     * settingProject
+     * @param userName
+     * @param projectName
+     * @return
+     * @throws IOException
+     * @throws NoSuchAlgorithmException
+     */
     public static Result settingProject(String userName, String projectName) throws IOException, NoSuchAlgorithmException {
         Form<Project> filledUpdatedProjectForm = form(Project.class)
                 .bindFromRequest();
@@ -152,6 +185,11 @@ public class ProjectApp extends Controller {
         }
     }
 
+    /**
+     * isImageFile
+     * @param filename
+     * @return
+     */
     public static boolean isImageFile(String filename) {
         boolean isImageFile = false;
         for(String suffix : LOGO_TYPE) {
@@ -161,6 +199,12 @@ public class ProjectApp extends Controller {
         return isImageFile;
     }
 
+    /**
+     * deleteForm
+     * @param userName
+     * @param projectName
+     * @return
+     */
     public static Result deleteForm(String userName, String projectName) {
         Project project = getProject(userName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -171,6 +215,13 @@ public class ProjectApp extends Controller {
         return ok(delete.render("title.projectSetting", projectForm, project));
     }
     
+    /**
+     * deleteProject
+     * @param userName
+     * @param projectName
+     * @return
+     * @throws Exception
+     */
     public static Result deleteProject(String userName, String projectName) throws Exception {
         Project project = getProject(userName, projectName);
 
@@ -184,13 +235,25 @@ public class ProjectApp extends Controller {
         }
     }
 
+    /**
+     * members
+     * @param userName
+     * @param projectName
+     * @return
+     */
     public static Result members(String userName, String projectName) {
         Project project = getProject(userName, projectName);
-        return ok(memberList.render("title.memberList",
+        return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
     }
 
+    /**
+     * newMember
+     * @param userName
+     * @param projectName
+     * @return
+     */
     public static Result newMember(String userName, String projectName) {
         // TODO change into view validation
         Form<User> addMemberForm = form(User.class).bindFromRequest();
@@ -217,6 +280,13 @@ public class ProjectApp extends Controller {
         return redirect(routes.ProjectApp.members(userName, projectName));
     }
 
+    /**
+     * deleteMember
+     * @param userName
+     * @param projectName
+     * @param userId
+     * @return
+     */
     public static Result deleteMember(String userName, String projectName,
             Long userId) {
         Project project = getProject(userName, projectName);
@@ -232,6 +302,13 @@ public class ProjectApp extends Controller {
         }
     }
 
+    /**
+     * editMemeber
+     * @param userName
+     * @param projectName
+     * @param userId
+     * @return
+     */
     public static Result editMember(String userName, String projectName, Long userId) {
         Project project = getProject(userName, projectName);
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -246,6 +323,13 @@ public class ProjectApp extends Controller {
         }
     }
 
+    /**
+     * projects
+     * @param filter
+     * @param state
+     * @param pageNum
+     * @return
+     */
     public static Result projects(String filter, String state, int pageNum) {
         final String HTML = "text/html";
         final String JSON = "application/json";
@@ -285,9 +369,15 @@ public class ProjectApp extends Controller {
         Page<Project> projects = FinderTemplate.getPage(
                 orderParams, searchParams, Project.find, Project.PROJECT_COUNT_PER_PAGE, pageNum - 1);
 
-        return ok(projectList.render("title.projectList", projects, filter, state));
+        return ok(views.html.project.list.render("title.projectList", projects, filter, state));
     }
 
+    /**
+     * tags
+     * @param ownerName
+     * @param projectName
+     * @return
+     */
     public static Result tags(String ownerName, String projectName) {
         Project project = Project.findByNameAndOwner(ownerName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -306,6 +396,12 @@ public class ProjectApp extends Controller {
         return ok(toJson(tags));
     }
 
+    /**
+     * tag
+     * @param ownerName
+     * @param projectName
+     * @return
+     */
     public static Result tag(String ownerName, String projectName) {
         Project project = Project.findByNameAndOwner(ownerName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -332,6 +428,13 @@ public class ProjectApp extends Controller {
         }
     }
 
+    /**
+     * untag
+     * @param ownerName
+     * @param projectName
+     * @param id
+     * @return
+     */
     public static Result untag(String ownerName, String projectName, Long id) {
         Project project = Project.findByNameAndOwner(ownerName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {

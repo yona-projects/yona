@@ -1,0 +1,72 @@
+@(project:Project) 
+@import utils._ 
+@import models.enumeration.ResourceType; 
+@import utils.TemplateHelper._ 
+@import utils.AccessControl._
+
+<div class="gnb-inner">
+	<div class="gnb-menu-wrap">
+		<a href="@routes.Application.index()" class="logo"><span>@Messages("hive.name")</span></a>
+
+		<h1 class="page-title">
+			<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /</span><!-- 
+	 	--> <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
+		</h1>
+
+		<div class="gnb-menus right">
+			@if(session.contains("loginId")){
+			<div class="usermenu btn-group">
+				<button class="btn dropdown-toggle large" data-toggle="dropdown">
+					<div class="d-label">
+						<span class="avatar-wrap smaller">
+							<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="20" height="20">
+						</span> <span class="text">@session.get("loginId")</span>
+					</div>
+					<span class="d-caret"><span class="caret"></span></span>
+				</button>
+				<ul class="dropdown-menu">
+					<li><a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a></li>
+					<li><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></li>
+					<li><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
+					<li class="divider"></li>
+			@defining(User.findByLoginId(session.get("loginId")).myProjects()){ myProjects => 
+				@if(myProjects.length > 0){
+					<li class="disabled"><span>@Messages("project.myproject")</span></li>
+					@for(project <- myProjects){
+					<li><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name (@project.owner)</a></li>
+					}
+				} 
+			}
+				</ul>
+			</div>
+			} else {
+			<div class="usermenu lnk-group">
+				<a href="@routes.UserApp.loginForm()">
+					<span class="avatar-wrap smaller">
+						<img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20">
+					</span> @Messages("title.login")
+				</a><!-- 
+             --><a href="@routes.UserApp.signupForm()">@Messages("title.signup")</a>
+			</div>
+			}
+
+			<div class="search-bar">
+				<form action="@routes.ProjectApp.projects()" class="form-searchbar">
+					<input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!-- 
+		 		 --><button type="submit" class="ico ico-search"></button>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@if(ProjectUser.isAllowedToSettings(session.get("loginId"), project)) {
+<div class="side-menu-wrap">
+    <ul class="side-menus unstyled bg">
+		<!--
+        <li class="side-menu"><a href="@routes.StatisticsApp.statistics(project.owner, project.name)"><i class="ico ico-statistics"></i></a></li>
+        -->
+        <li class="side-menu"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="ico ico-setting"></i></a></li>
+    </ul>
+</div>
+}
