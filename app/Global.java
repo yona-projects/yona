@@ -1,3 +1,4 @@
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,11 @@ import play.Application;
 import play.GlobalSettings;
 import play.api.mvc.Handler;
 import play.libs.Yaml;
+import play.mvc.Action;
+import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
+import play.mvc.Result;
+import utils.AccessLogger;
 
 public class Global extends GlobalSettings {
     public void onStart(Application app) {
@@ -80,6 +85,19 @@ public class Global extends GlobalSettings {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
+    public Action onRequest(final Http.Request request, Method actionMethod) {
+        final long start = System.currentTimeMillis();
+        return new Action.Simple() {
+            public Result call(Http.Context ctx) throws Throwable {
+                Result result = delegate.call(ctx);
+                AccessLogger.log(request, result, start);
+                return result;
+            }
+        };
+    }
+
+    @Override
     public Handler onRouteRequest(RequestHeader request) {
         // Route here these webdav methods to be used for serving Subversion
         // repositories, because Play2 cannot route them.
@@ -95,5 +113,23 @@ public class Global extends GlobalSettings {
     }
 
     public void onStop(Application app) {
+    }
+
+    @Override
+    public Result onHandlerNotFound(RequestHeader request) {
+        AccessLogger.log(request, null, Http.Status.NOT_FOUND);
+        return super.onHandlerNotFound(request);
+    }
+
+    @Override
+    public Result onError(RequestHeader request, Throwable t) {
+        AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
+        return super.onError(request, t);
+    }
+
+    @Override
+    public Result onBadRequest(RequestHeader request, String error) {
+        AccessLogger.log(request, null, Http.Status.BAD_REQUEST);
+        return super.onBadRequest(request, error);
     }
 }
