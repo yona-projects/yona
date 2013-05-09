@@ -91,6 +91,14 @@
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='@{startColor}', endColorstr='@{endColor}',GradientType=0 ); /* IE6-9 */    
 }
 
+// BackgroundSize
+.background-size(@param:cover){
+  -webkit-background-size: @param;
+  -moz-background-size: @param;
+  -o-background-size: @param;
+  background-size: @param;    
+}
+
 // Text overflow
 // -------------------------
 // Requires inline-block or block for proper styling

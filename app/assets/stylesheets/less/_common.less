@@ -14,7 +14,7 @@ a {
     text-decoration: none;
     outline: none;
     &:hover { outline: none !important; color: @link-hover-color; text-decoration: underline; }
-    &:focus { outline: none !important; }
+    &:focus { outline: none !important; color: @link-hover-color; text-decoration: underline; }
 }
 
 .btn-transparent { border: 0; padding: 0; background: transparent; }
@@ -24,19 +24,6 @@ a {
     display: none !important;
     visibility: hidden !important;
 }
-/*
-.btns {
-    font-size: 0;
-    .n-btn:first-child { margin-right: 5px; }
-}
-*/
-
-/*
-.btn {
-    margin-right:5px;
-    &:last-of-type { margin-right:0; }
-}
-*/
 
 /** pagination **/
 .page-navigation-wrap {

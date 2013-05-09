@@ -4,7 +4,7 @@
 @import utils._
 
 @isActiveMenu(m_type:MenuType) = @{
-    if(m_type == menuType){ "selected" }
+    if(m_type == menuType){ "active" }
 }
 
 <header class="gnb-outer">
@@ -12,14 +12,14 @@
         <div class="gnb-menu-wrap">
             <a href="@routes.Application.index()" class="logo"><span>@Messages("hive.name")</span></a>
             <ul class="gnb-menus unstyled">
-                <li class="menu">
-                    <a href="@routes.ProjectApp.newProjectForm()" class="@isActiveMenu(MenuType.NEW_PROJECT)">@Messages("title.newProject")</a>
+                <li class="menu @isActiveMenu(MenuType.NEW_PROJECT)">
+                    <a href="@routes.ProjectApp.newProjectForm()">@Messages("title.newProject")</a>
                 </li>
-                <li class="menu">
-                    <a href="@routes.ProjectApp.projects()" class="@isActiveMenu(MenuType.PROJECTS)">@Messages("title.projectList")</a>
+                <li class="menu @isActiveMenu(MenuType.PROJECTS)">
+                    <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
                 </li>
-                <li class="menu">
-                    <a href="@routes.HelpApp.help()" class="@isActiveMenu(MenuType.HELP)">@Messages("title.help")</a>
+                <li class="menu @isActiveMenu(MenuType.HELP)">
+                    <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
                 </li>
             </ul>
 

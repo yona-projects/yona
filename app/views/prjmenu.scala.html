@@ -6,7 +6,7 @@
 @import utils.AccessControl._
 
 @isActiveMenu(m_type:MenuType) = @{
-    if (m_type == menuType) {"highlight"}
+    if (m_type == menuType) {"active"}
 }
 
 @makeSubMenu(call:Call, name:String) = {
@@ -16,7 +16,7 @@
     var menuState = ""
     for(call <- calls) {
         if(call.toString().equals(request().path().toString())) {
-            menuState = "highlight"
+            menuState = "active"
         }
     }
     menuState
@@ -57,20 +57,3 @@
 	</div>
 }
 </div>
-
-<script type="text/javascript">
-$(document).ready(function(){
-	try {
-		var welLink;
-
-		$(".project-menu-wrap a").each(function(n, el){
-			welLink = $(el);
-			
-			if(welLink.attr("href").split("?")[0] == document.location.pathname){
-				$(".project-menu-wrap li").removeClass("highlight");
-				welLink.parent().addClass("highlight");
-			}
-		});
-	}catch(e){}
-});
-</script>

@@ -15,14 +15,14 @@ public class MilestoneApp extends Controller {
 
     public static class MilestoneCondition {
 
-        public String state = "open";
-        public String sort = "dueDate";
-        public String direction = "asc";
+        public String state    = "open";
+        public String orderBy  = "dueDate";
+        public String orderDir = "asc";
 
         public MilestoneCondition() {
-            this.state = "open";
-            this.sort = "dueDate";
-            this.direction = "asc";
+            this.state    = "open";
+            this.orderBy  = "dueDate";
+            this.orderDir = "asc";
         }
     }
 
@@ -36,8 +36,8 @@ public class MilestoneApp extends Controller {
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
                 State.getValue(mCondition.state),
-                mCondition.sort,
-                Direction.getValue(mCondition.direction));
+                mCondition.orderBy,
+                Direction.getValue(mCondition.orderDir));
 
         return ok(list.render("title.milestoneList", milestones, project, mCondition));
     }

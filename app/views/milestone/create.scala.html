@@ -1,12 +1,14 @@
-@(title:String, form: Form[Milestone], projectInst: Project)
+@(title:String, form: Form[Milestone], project: Project)
 
 @import utils.TemplateHelper._
 @import models.enumeration._
-@project.projectMngMain(title, projectInst) {
-    @prjmenu(projectInst, utils.MenuType.MILESTONE, "")
+
+@main(title, project, utils.MenuType.MILESTONE) {
+<div class="page">
+	@prjmenu(project, utils.MenuType.MILESTONE, "")
 
     <div class="form-wrap milestone frm-wrap">
-        <form class="nm" action="@routes.MilestoneApp.newMilestone(projectInst.owner, projectInst.name)" method="post">
+        <form class="nm" action="@routes.MilestoneApp.newMilestone(project.owner, project.name)" method="post">
             <div class="inner left">
             	<dl>
             		<dt>
@@ -26,7 +28,7 @@
 
                 <div class="actions">
                     <button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
-                    <a href="@routes.MilestoneApp.milestones(projectInst.owner, projectInst.name)" class="nbtn medium">@Messages("button.cancel")</a>
+                    <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium">@Messages("button.cancel")</a>
                 </div>
             </div>
             
@@ -47,6 +49,7 @@
             </div>
         </form>
     </div>
+</div>
 
 <link rel="stylesheet" type="text/css" href="@getCSSLink("pikaday")" />
 <script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>

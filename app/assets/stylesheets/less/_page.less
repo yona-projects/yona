@@ -39,22 +39,33 @@
             .gnb-menus {
                 float: left;
                 /*overflow: hidden;*/
-                margin: 23px 10px 22px 34px;
-                
+                margin: 0px 10px 22px 34px;
+                /*margin: 23px 10px 22px 34px;*/
+               
                 .menu {
                     float: left;
-                    height: 24px;
-                    line-height: 24px;
                     margin-left: 35px;
                     color: @gnb-link-color;
+                    
                     a {
+                        display: block;
+                        min-width:100px;
+                        height: 24px;
+                        line-height: 24px;
+                        padding-top:23px; 
+                        text-align:center;
                         font-size: 13px;
-                        &:hover, &.selected {
-                            color: @gnb-link-hover-color;
-                        }
+                        &:hover { color: @gnb-link-hover-color; }
                     }
-                    &.highlight {
-                        a { color: @gnb-link-highlight-color; }
+                    
+                    &.active {
+                        border-top:3px solid @gnb-link-active-color;
+                        
+                        a { 
+                            padding-top:20px; 
+                            color: @gnb-link-active-color;
+                            font-weight:bold; text-shadow:0px 0px 2px #fff;
+                        }
                     }
                 }
 
@@ -1426,31 +1437,43 @@
         border-bottom: 0 none;
         text-align: center;
     }
+    
+    /* 프로젝트 설정 */
     .setting-box {
         float: left;
         width: 399px;
+        
         &.left {
             padding-right: 20px;
             border-right: 1px solid @white;
             .logo-wrap {
-                vertical-align: top;
+                width:260px; height:188px;
+                background-repeat:no-repeat;
+                background-size:cover;
+                .border-radius(10px);
                 .inline-block;
-                width: 234px;
-                margin-right: 20px;
-                img { .border-radius(2px); }
             }
             .logo-desc {
-                width: 140px;
+                width: 120px;
+                font-size: 12px;
+                margin-left:10px; 
+                vertical-align:top;
+                
                 .inline-block;
-                font-size: 11px;
                 .point {
-                    color: #51AACC;
+                    color: @secondary;
+                    font-weight:bold;
+                    text-transform:uppercase;
+                    display:block; clear:both;
                 }
-                &:first-child {
-                    margin-bottom: 17px;
+                
+                .descs li { 
+                    margin-top:10px;
+                    &:last-of-type { margin-top:25px; } 
                 }
             }
         }
+        
         &.right {
             padding-left: 20px;
             border-left: 1px solid @gray-d4;
@@ -1458,7 +1481,7 @@
                 width: 380px;
             }
             .textarea {
-                height: 70px; /*111px;*/
+                height: 80px; /*111px;*/
                 margin-bottom: 0;
                 resize:vertical;
             }
@@ -1510,7 +1533,7 @@
             &:hover { color:@primary; text-decoration:underline; }
         }
         
-        .highlight a { 
+        .active a { 
             color:@primary !important;            
             &:after {
                 content:'';
@@ -1536,7 +1559,7 @@
         }
         
         a { font-weight:bold; color:#959595; padding:0 25px; font-size:11px; }
-        .highlight a { color:#000 !important; }
+        .active a { color:#000 !important; }
     }
     
     .sp-line { 
@@ -1635,7 +1658,7 @@
         float: right;
         .filter {
             margin-right:10px;
-            &.active { font-weight:bold; }
+            &.active { font-weight:bold; color:@primary; }
             &:last-of-type { margin:0; }
         }
         i { margin-right: 5px; }
@@ -1819,17 +1842,10 @@
         }
         
         &.logo {
-            width: 234px;
-            height: 168px; 
-            padding: 10px 13px;
-            line-height:168px; 
-            text-align:center;
-            
-            .logo-wrap {
-                .inline-block;
-                /*width:230px; 
-                height:160px;*/
-            }
+            width:260px; height:188px;
+            background-repeat:no-repeat;
+            background-position:center;
+            .background-size(cover);
         }
         
         &.project-info {

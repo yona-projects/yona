@@ -1,58 +1,46 @@
-@(title: String, milestones: List[models.Milestone], projectInst: Project, mCondition: MilestoneApp.MilestoneCondition)
+@(title: String, milestones: List[models.Milestone], project: Project, param: MilestoneApp.MilestoneCondition)
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
 
-@makeSortLink(_sort:String) = @{
-    var _direction = "asc";
-    if(mCondition.sort.equals(_sort)) {
-        if(_direction.equals(mCondition.direction)) {
-            _direction = "desc"
-        }
-    }
-    buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
-      Map("state"->mCondition.state, "sort"->_sort, "direction"->_direction)
-    )
-}
-@makeIssuesLink(mId: Long, _state: String) = @{
-  buildQueryString(routes.IssueApp.issues(projectInst.owner, projectInst.name, _state),
-    Map("milestone"->mId.toString)
-  )
-}
-@sortMark(_sort: String) = @{
-    /* TODO It will be chnaged. */
-    if(mCondition.sort.equals(_sort)) {
-        if(mCondition.direction.equals("desc")){
-        "down"
-        } else {
-        "up"
-        }
-    } else {
-    	/*"up hidden"*/
-        "up"
-    }
-}
-@makeMilestoneListLink(_state: String) = @{
-  buildQueryString(routes.MilestoneApp.milestones(projectInst.owner, projectInst.name),
-    Map("state"->_state)
-  )
+@urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
+
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+	@if(orderBy.equals(fieldName)) {
+		<a href="@urlToList?orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+	} else {
+	    <a href="@urlToList?orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
+	}
 }
 
-@project.projectMngMain(title, projectInst) {
-    @prjmenu(projectInst, utils.MenuType.MILESTONE, "")
+@makeMilestoneListLink(_state: String) = @{
+	buildQueryString(routes.MilestoneApp.milestones(project.owner, project.name),
+		Map("state"->_state)
+	)
+}
+
+@makeIssuesLink(mId: Long, _state: String) = @{
+	buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),
+		Map("milestone"->mId.toString)
+	)
+}
+
+@main(title, project, utils.MenuType.MILESTONE) {
+<div class="page">
+	@prjmenu(project, utils.MenuType.MILESTONE, "")
     
     <div class="tab-wrap">
         <div class="pull-right btns">
-            <a href="@routes.MilestoneApp.newMilestoneForm(projectInst.owner, projectInst.name)" class="nbtn medium orange">@Messages("milestone.menu.new")</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="nbtn medium orange">@Messages("milestone.menu.new")</a>
         </div>
         
         <ul class="nav nav-tabs">
-            <li class="@if(mCondition.state.equals("all")){active}">
+            <li class="@if(param.state.equals("all")){active}">
                 <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
             </li>
-            <li class="@if(mCondition.state.equals("open")){active}">
+            <li class="@if(param.state.equals("open")){active}">
                 <a href="@makeMilestoneListLink("open")">@Messages("milestone.state.open")</a>
             </li>
-            <li class="@if(mCondition.state.equals("closed")){active}">
+            <li class="@if(param.state.equals("closed")){active}">
                 <a href="@makeMilestoneListLink("closed")">@Messages("milestone.state.closed")</a>
             </li>
         </ul>
@@ -70,9 +58,9 @@
 	@if(milestones.length > 1){
 		<div class="filter-wrap milestone">
 		<div class="filters">
-               <a href="@makeSortLink("dueDate")" class="filter"><i class="ico ico-sort @sortMark("dueDate")"></i>@Messages("order.dueDate")</a>
-               <a href="@makeSortLink("completionRate")" class="filter active"><i class="ico ico-sort @sortMark("completionRate")"></i>@Messages("order.completionRate")</a>
-           </div>
+			@makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("order.dueDate"))
+			@makeFilterLink("completionRate", param.orderBy, param.orderDir, Messages("order.completionRate"))
+		</div>
        	<div class="legend">
        		<i class="gray"></i>@Messages("issue.state.open")
             <i class="blue"></i>@Messages("issue.state.assigned")
@@ -95,7 +83,7 @@
                 
                 <div class="meta-info">
                     <strong class="version"></strong>
-                    <a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="title">@milestone.title</a>
+                    <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
                     <span class="sp">|</span>
                     <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
                 </div>
@@ -125,8 +113,8 @@
                 </div>
                 
                 <div class="actrow">
-                	<a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!-- 
-                 --><a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="nbtn medium white"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
+                	<a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!-- 
+                 --><a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium white"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
                 </div>
             </div>
             <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!-- 

@@ -64,8 +64,7 @@ public class ProjectApp extends Controller {
 
         List<History> histories = History.makeHistory(userName, project, commits, issues, postings);
 
-        return ok(projectHome.render("title.projectHome",
-                getProject(userName, projectName), histories));
+        return ok(overview.render("title.projectHome", getProject(userName, projectName), histories));
     }
 
     public static Result newProjectForm() {
@@ -73,8 +72,7 @@ public class ProjectApp extends Controller {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.UserApp.loginForm());
         } else
-            return ok(newProject
-                    .render("title.newProject", form(Project.class)));
+            return ok(create.render("title.newProject", form(Project.class)));
     }
 
     public static Result settingForm(String userName, String projectName) {
@@ -94,14 +92,12 @@ public class ProjectApp extends Controller {
                 filledNewProjectForm.field("name").value())) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledNewProjectForm.reject("name");
-            return badRequest(newProject.render("title.newProject",
-                    filledNewProjectForm));
+            return badRequest(create.render("title.newProject", filledNewProjectForm));
         } else if (filledNewProjectForm.hasErrors()) {
             System.out.println("=====" + filledNewProjectForm.errorsAsJson());
             filledNewProjectForm.reject("name");
             flash(Constants.WARNING, "project.name.alert");
-            return badRequest(newProject.render("title.newProject",
-                    filledNewProjectForm));
+            return badRequest(create.render("title.newProject", filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
             project.owner = UserApp.currentUser().loginId;
@@ -172,7 +168,7 @@ public class ProjectApp extends Controller {
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
-        return ok(projectDelete.render("title.projectSetting", projectForm, project));
+        return ok(delete.render("title.projectSetting", projectForm, project));
     }
     
     public static Result deleteProject(String userName, String projectName) throws Exception {

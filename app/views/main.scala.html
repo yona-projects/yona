@@ -3,19 +3,18 @@
 @import utils._
 
 @layout(Messages(title) + " (" + project.name + ")")("prj") {
-  <header class="gnb-outer">
-    @topmenu(project)
-	@sidemenu(project)
-  </header>
+<header class="gnb-outer">
+@views.html.project.navbar(project)
+</header>
   
-  <div class="container page-wrap">
-    @alert()
-    @content
-  </div>
+<div class="container page-wrap">
+@alert()
+@content
+</div>
   
-  <footer class="page-footer-outer">
-    <div class="page-footer">
-      <span class="provider">Powered by <strong>HIVE</strong></span>
-    </div>
-  </footer>
+<footer class="page-footer-outer">
+	<div class="page-footer">
+		<span class="provider">Powered by <strong>HIVE</strong></span>
+	</div>
+</footer>
 }
