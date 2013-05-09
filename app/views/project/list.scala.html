@@ -3,7 +3,7 @@
 
 @home(message, utils.MenuType.PROJECTS) {
 <div class="page">
-  
+
 	<div class="header-wrap">
 		<div class="stats-wrap">
 			@for(state <- Array("all", "public", "private")) {
@@ -17,25 +17,25 @@
 			<div id="search" class="inner">
 				<form action="@routes.ProjectApp.projects()" method="get">
 					<input name="state" type="hidden" value="@listState">
-					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!-- 
-				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button><!-- 
+					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!--
+				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button><!--
 					<a href="#" class=tn-advanced"><i class="ico"></i>Advanced Search</a> -->
-                     
+
 					<div class="srch-advanced">
-	                 	<!-- TODO: fill this form -->
+				<!-- TODO: fill this form -->
 					</div>
 				</form>
              </div>
          </div>
 	</div>
-      
+
 	<ul class="all-projects">
       @for(project <- currentPage.getList) {
           <li class="project">
               <div class="info-wrap">
                   <div class="header">
                       <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-            		  @if(!project.share_option){ <i class="ico ico-lock"></i> }
+			  @if(!project.share_option){ <i class="ico ico-lock"></i> }
                       @for(tag <- project.tags) {
                       <span class="label label-info">@tag.name</span>
                       }
@@ -49,7 +49,7 @@
                   <div class="like">
                       <i class="ico ico-like"></i><span class="num">1</span>
                   </div>
-                  <i class="ico ico-activity low"></i><!-- 
+                  <i class="ico ico-activity low"></i><!--
                --><a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap img-rounded">
 						<img src="@project.getOwnerByName(project.owner).avatarUrl" width="32" height="32">
 				  </a>
@@ -57,7 +57,7 @@
           </li>
 	  }
 	</ul>
-	
+
 	<!-- pagination.js will fill here. -->
 	<div id="pagination"></div>
 </div>
