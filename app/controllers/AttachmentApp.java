@@ -173,7 +173,7 @@ public class AttachmentApp extends Controller {
 
         attach.delete();
 
-        logIfOriginFileIsNotValid(attach.hash, attach.name);
+        logIfOriginFileIsNotValid(attach.hash);
 
         if (Attachment.fileExists(attach.hash)) {
             return ok("The attachment is removed successfully, but its origin file still exists.");
