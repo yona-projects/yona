@@ -27,6 +27,11 @@ import com.avaje.ebean.Page;
 
 import controllers.UserApp;
 
+/**
+ * User 클래스
+ * 
+ * @author WanSoon Park
+ */
 @Table(name = "n4user")
 @Entity
 public class User extends Model {
@@ -34,30 +39,81 @@ public class User extends Model {
     public static Model.Finder<Long, User> find = new Finder<Long, User>(Long.class,
             User.class);
 
+    /**
+     * 한 페이지에 보여줄 사용자 개수.
+     */
     public static final int USER_COUNT_PER_PAGE = 30;
+    
+    /**
+     * 사이트 관리자의 id값.
+     */
     public static final Long SITE_MANAGER_ID = 1l;
 
+    /**
+     * PK
+     */
     @Id
     public Long id;
+    
+    /**
+     * 화면에 보여줄 사용자 이름
+     */
     public String name;
 
+    /**
+     * 로그인할 때 사용할 아이디
+     */
     @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", message = "user.wrongloginId.alert") @Required
     public String loginId;
-    
+ 
+    /**
+     * 비밀번호 수정할 때 기존 비밀번호 확인할 때 사용하는 값
+     */
     @Transient
     public String oldPassword;
+    
+    /**
+     * 비밀번호
+     */
     public String password;
+    
+    /**
+     * 비밀번호 암화할 할 때 사용하는 값
+     */
     public String passwordSalt;
 
+    /**
+     * 이메일
+     */
     @Email(message = "user.wrongEmail.alert")
     public String email;
+    
+    /**
+     * 아바타 URL
+     */
     public String avatarUrl;
+    
+    /**
+     * 로그인 정보를 기억할지 나타내는 값
+     */
     public boolean rememberMe;
+
+    /**
+     * 계정 잠금
+     */
     public boolean isLocked = false;
 
+    /**
+     * 계정 생성일
+     */
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date createdDate;
 
+    /**
+     * 프로젝트에서 사용자의 역할을 나타내는 값
+     * 
+     * 해당 프로젝트의 관리자 혹은 멤버일 수 있다.
+     */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
 
@@ -66,8 +122,11 @@ public class User extends Model {
     public User(Long id){
         this.id = id;
     }
+    
     /**
-     * 완료일을 yyyy-MM-dd 형식의 문자열로 변환시킵니다.
+     * 완료일을 yyyy-MM-dd 형식의 문자열로 변환한다.
+     * 
+     * view에서 노출하기 위한 용도로 사용한다.
      *
      * @return
      */
@@ -76,25 +135,37 @@ public class User extends Model {
         return sdf.format(this.createdDate);
     }
 
+    /**
+     * 자신이 속한 프로젝트 목록을 반환한다.
+     * 
+     * @return
+     */
     public List<Project> myProjects(){
         return Project.findProjectsByMember(id);
     }
 
+    /**
+     * 사용자를 추가한다.
+     * 
+     * 사용자 추가시 생성일을 설정하고 PK를 반환한다.
+     * 
+     * @param user
+     * @return
+     */
     public static Long create(User user) {
     	user.createdDate = JodaDateUtil.now();
         user.save();
         return user.id;
     }
 
-    public static User findByName(String name) {
-        return find.where().eq("name", name).findUnique();
-    }
-
-    public static User findProjectsById(Long id) {
-        return find.fetch("projectUser.project", "name").where().eq("id", id)
-                .findUnique();
-    }
-
+    /**
+     * 로그인 아이디로 사용자를 조회한다.
+     * 
+     * 사용자가 없으면 {@link controllers.UserApp.anonymous} 객체를 반환한다.
+     * 
+     * @param loginId
+     * @return
+     */
     public static User findByLoginId(String loginId) {
         User user = find.where().eq("loginId", loginId).findUnique();
         if(  user == null ) {
@@ -104,6 +175,14 @@ public class User extends Model {
         }
     }
 
+    /**
+     * email로 사용자를 조회한다.
+     * 
+     * 사용자가 없으면 {@link controllers.UserApp.anonymous}객체에 email을 할당하고 반환한다.
+     * 
+     * @param email
+     * @return
+     */
     public static User findByEmail(String email) {
         User user = find.where().eq("email", email).findUnique();
         if(  user == null ) {
@@ -113,17 +192,23 @@ public class User extends Model {
             return user;
         }
     }
+    
     /**
-     * 존재하는 유저인지를 검사합니다.
+     * 로그인아이디로 존재하는 사용자인지를 확인한다.
      *
      * @param loginId
-     * @return
+     * @return 사용자 존재여부
      */
     public static boolean isLoginIdExist(String loginId) {
         int findRowCount = find.where().eq("loginId", loginId).findRowCount();
         return (findRowCount != 0);
     }
 
+    /**
+     * 전체 사용자 PK와 이름을 반환한다.
+     *  
+     * @return
+     */
     public static Map<String, String> options() {
         LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
         for (User user : User.find.orderBy("name").findList()) {
@@ -133,10 +218,10 @@ public class User extends Model {
     }
 
     /**
-     * Site manager를 제외한 사이트에 가입된 유저들의 리스트를 Page 형태로 반환합니다.
-     *
-     * @param pageNum
-     * @param loginId
+     * 익명사용자와 사이트 관리자를 제외한 사이트에 가입된 사용자 목록을 로그인 아이디로 정렬하여 Page객체로 반환한다.
+     *   
+     * @param pageNum 해당 페이지
+     * @param loginId {@code loginId}가 null이 아니면 {@code loginId}를 포함하고 있는 사용자 목록을 검색한다. 
      * @return
      */
     public static Page<User> findUsers(int pageNum, String loginId) {
@@ -156,7 +241,7 @@ public class User extends Model {
     }
 
     /**
-     * 해당 프로젝트에 속하는 유저들의 리스트를 제공합니다. (Site manager는 hidden role로서 반환되지 않습니다.)
+     * 사이트 관리자를 제외한 특정 프로젝트에 속한 사용자 목록을 반환한다.
      *
      * @param projectId
      * @return
@@ -167,20 +252,40 @@ public class User extends Model {
                 .findList();
     }
 
+    /**
+     * 사용자의 아바타 아이디를 반환한다.
+     * @return
+     */
     @Transient
     public Long avatarId(){
         return Attachment.findByContainer(ResourceType.USER_AVATAR, id).get(0).id;
     }
 
+    /**
+     * 기존에 존재하는 email인지 확인한다.
+     * 
+     * @param emailAddress
+     * @return email이 있으면 true / 없으면 false
+     */
     public static boolean isEmailExist(String emailAddress) {
         User user = find.where().ieq("email", emailAddress).findUnique();
         return user != null;
     }
 
+    /**
+     * 사용자가 익명사용자인지 확인한다.
+     * @return
+     */
     public boolean isAnonymous() {
         return this == UserApp.anonymous;
     }
 
+    /**
+     * 로그인 아이디로 사용자를 조회하고 새 비밀번호를 암호화하여 설정한다. 
+     *  
+     * @param loginId
+     * @param newPassword {@link User.passwordSalt}로 암호화하여 설정할 새 비밀번호
+     */
     public static void resetPassword(String loginId, String newPassword) {
         User user = findByLoginId(loginId);
         user.password = new Sha256Hash(newPassword,
@@ -188,6 +293,13 @@ public class User extends Model {
         user.save();
     }
 
+    /**
+     * 모델을 리소스 객체로 반환한다.
+     * 
+     * 권한검사와 첨부파일 정보를 포함한다.
+     * 
+     * @return
+     */
     public Resource asResource() {
         return new Resource() {
             @Override
@@ -207,6 +319,10 @@ public class User extends Model {
         };
     }
 
+    /**
+     * 사이트 관리자 여부를 확인한다.
+     * @return
+     */
     public boolean isSiteManager() {
         return SiteAdmin.exists(this);
     }

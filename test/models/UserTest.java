@@ -54,15 +54,6 @@ public class UserTest extends ModelTest<User> {
 	}
 
 	@Test
-	public void findByName() throws Exception {
-		// Given
-		// When
-		User user = User.findByName("Hobi");
-		// Then
-		assertThat(user.id).isEqualTo(2l);
-	}
-
-	@Test
     public void findNameById() throws Exception {
         //Given
         //When
@@ -96,16 +87,6 @@ public class UserTest extends ModelTest<User> {
 	    Page<User> searchUsers = User.findUsers(0, "ho");
 	    // Then
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
-	}
-
-	@Test
-	public void findProjectsById() throws Exception {
-	    // Given
-	    // When
-	    User user = User.findProjectsById(2l);
-	    // Then
-	    assertThat(user.projectUser.size()).isEqualTo(2);
-	    assertThat(user.projectUser.iterator().next().project.name).isEqualTo("nForge4java");
 	}
 
 	@Test
