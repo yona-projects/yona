@@ -78,8 +78,12 @@ public class History {
         if(commits != null) {
             for(Commit commit : commits) {
                 History commitHistory = new History();
-                String authorName = commit.getAuthorName();
-                setUserPageUrl(commitHistory, authorName);
+                String authorEmail = commit.getAuthorEmail();
+                if(User.isEmailExist(authorEmail)) {
+                    setUserPageUrl(commitHistory, User.findByEmail(authorEmail));
+                } else {
+                    commitHistory.setWho(commit.getAuthorName());
+                }
                 commitHistory.setWhen(commit.getCommitterDate());
                 commitHistory.setWhere(project.name);
                 commitHistory.setWhat("commit");
@@ -93,7 +97,7 @@ public class History {
             History issueHistory = new History();
             String authorName = issue.authorName;
             issueHistory.setWho(authorName);
-            setUserPageUrl(issueHistory, authorName);
+            setUserPageUrl(issueHistory, User.findByLoginId(issue.authorLoginId));
             issueHistory.setWhen(issue.createdDate);
             issueHistory.setWhere(project.name);
             issueHistory.setWhat("issue");
@@ -106,7 +110,7 @@ public class History {
             History postingHistory = new History();
             String authorName = posting.authorName;
             postingHistory.setWho(authorName);
-            setUserPageUrl(postingHistory, authorName);
+            setUserPageUrl(postingHistory, User.findByLoginId(posting.authorLoginId));
             postingHistory.setWhen(posting.createdDate);
             postingHistory.setWhere(project.name);
             postingHistory.setWhat("post");
@@ -125,13 +129,8 @@ public class History {
         return histories;
     }
 
-    private static void setUserPageUrl(History history, String authorName) {
-        history.setWho(authorName);
-        User user = User.findByName(authorName);
-        if(user != null) {
-            history.setUserPageUrl("/" + user.loginId);
-        }
+    private static void setUserPageUrl(History history, User user) {
+        history.setWho(user.name);
+        history.setUserPageUrl("/" + user.loginId);
     }
-
-
 }

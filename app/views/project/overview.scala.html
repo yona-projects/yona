@@ -4,6 +4,7 @@
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 @import models.enumeration._
+@import utils.AccessControl._
 
 @projectLogoImage = @{
 	defining(Attachment.findByContainer(project.asResource)) { files =>
@@ -21,16 +22,16 @@
 
     <div class="input-prepend project-hometop-wrap">
     	<div class="vcs-wrap pull-left">
-    		<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!-- 
+    		<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!--
     	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)">
         </div>
         <div class="issue-wrap btn-group pull-right">
             <button class="btn" disabled="true">@Messages("menu.issue")</button>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
-                @Messages("issue.state.open") <strong class="num open">@Issue.countIssues(project.id, State.OPEN)</strong> 
+                @Messages("issue.state.open") <strong class="num open">@Issue.countIssues(project.id, State.OPEN)</strong>
             </a>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
-                @Messages("issue.state.closed") <strong class="num">@Issue.countIssues(project.id, State.CLOSED)</strong> 
+                @Messages("issue.state.closed") <strong class="num">@Issue.countIssues(project.id, State.CLOSED)</strong>
             </a>
         </div>
     </div>
@@ -40,29 +41,16 @@
         <div class="inner project-info">
             <header>
                 <h3>@Messages("project.info")</h3>
-                <!--<div class="project-status">
-                    <i class="ico ico-like"></i>
-                    <span class="num">100</span>
-                    <span class="sp">|</span>
-                    <i class="ico ico-activity high"></i>
-                </div>-->
+                @if(isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)){
+                <button type="button" class="btn btn-small" data-toggle="button" id="tag-editor-toggle">@Messages("button.edit")</button>
+                }
             </header>
-            <ul class="infos">
-                <li class="info">
-                    <strong>@Messages("project.license") :</strong> GPL v2
-                </li>
-                <li class="info">
-                    <strong>@Messages("project.tags") :</strong>
-                    @for(tag <- project.tags) {
-                    <span class="label">@tag.name</span>
-                    }
-                </li>
-                <li class="info">
-                    <strong>@Messages("project.codeLanguage") :</strong> Java, JavaScript
-                </li>
-                <li class="info">
-                    <strong>@Messages("project.vcs") :</strong> @project.vcs
-                </li>
+            <ul class="infos" id="tags">
+                <!-- tags are added here by hive.project.Home.js -->
+            </ul>
+            <ul>
+                <input name="newTag" type="text" class="text hidden" style="margin-bottom:0px;" data-provider="typeahead" autocomplete="off"/>
+                <button id="addTag" type="button" class="btn-transparent n-btn med gray hidden">@Messages("button.add")</button>
             </ul>
         </div>
         <div class="inner member-info">
@@ -92,7 +80,13 @@
                 @for(history <- histories.iterator()) {
                     <tr>
                         <td>@agoString(ago(history.getWhen()))</td>
-                        <td><a href="@history.getUserPageUrl()">@history.getWho()</a></td>
+                        <td>
+                            @if(history.getUserPageUrl() != null) {
+                                <a href="@history.getUserPageUrl()">@history.getWho()</a>
+                            } else {
+                                @history.getWho()
+                            }
+                        </td>
                         <td>@history.getWhat()</td>
                         <td><a href="@history.getUrl()">@history.getHow()</a></td>
                     </tr>
@@ -120,7 +114,11 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-	$hive.loadModule("project.Home");
+    $hive.loadModule("project.Home", {
+        "sURLProjectTags": "@routes.ProjectApp.tags(project.owner, project.name)",
+        "sURLTags"       : "@routes.TagApp.tags()",
+        "nProjectId"     : @project.id
+    });
 });
 </script>
 }

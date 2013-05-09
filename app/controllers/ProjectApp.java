@@ -390,7 +390,7 @@ public class ProjectApp extends Controller {
 
         Map<Long, String> tags = new HashMap<Long, String>();
         for (Tag tag: project.tags) {
-            tags.put(tag.id, tag.name);
+            tags.put(tag.id, tag.toString());
         }
 
         return ok(toJson(tags));
@@ -404,27 +404,53 @@ public class ProjectApp extends Controller {
      */
     public static Result tag(String ownerName, String projectName) {
         Project project = Project.findByNameAndOwner(ownerName, projectName);
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)) {
             return forbidden();
         }
 
-        // Get tag name from the request. Return empty map if the name is not given.
+        // Get category and name from the request. Return 400 Bad Request if name is not given.
         Map<String, String[]> data = request().body().asFormUrlEncoded();
+        String category = HttpUtil.getFirstValueFromQuery(data, "category");
         String name = HttpUtil.getFirstValueFromQuery(data, "name");
         if (name == null || name.length() == 0) {
-            return ok(toJson(new HashMap<Long, String>()));
+            // A tag must have its name.
+            return badRequest("Tag name is missing.");
         }
 
-        Tag tag = project.tag(name);
+        Tag tag = Tag.find
+            .where().eq("category", category).eq("name", name).findUnique();
 
+        boolean isCreated = false;
         if (tag == null) {
-            // Return empty map if the tag has been already attached.
-            return ok(toJson(new HashMap<Long, String>()));
-        } else {
-            // Return the tag.
+            // Create new tag if there is no tag which has the given name.
+            tag = new Tag(category, name);
+            tag.save();
+            isCreated = true;
+        }
+
+        Boolean isAttached = project.tag(tag);
+
+        if (!isCreated && !isAttached) {
+            // Something is wrong. This case is not possible.
+            play.Logger.warn(
+                    "A tag '" + tag + "' is created but failed to attach to project '"
+                    + project + "'.");
+        }
+
+        if (isAttached) {
+            // Return the attached tag. The return type is Map<Long, String>
+            // even if there is only one tag, to unify the return type with
+            // ProjectApp.tags().
             Map<Long, String> tags = new HashMap<Long, String>();
-            tags.put(tag.id, tag.name);
-            return ok(toJson(tags));
+            tags.put(tag.id, tag.toString());
+            if (isCreated) {
+                return created(toJson(tags));
+            } else {
+                return ok(toJson(tags));
+            }
+        } else {
+            // Return 204 No Content if the tag has been attached already.
+            return status(Http.Status.NO_CONTENT);
         }
     }
 
@@ -437,7 +463,7 @@ public class ProjectApp extends Controller {
      */
     public static Result untag(String ownerName, String projectName, Long id) {
         Project project = Project.findByNameAndOwner(ownerName, projectName);
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)) {
             return forbidden();
         }
 

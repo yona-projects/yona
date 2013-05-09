@@ -72,7 +72,7 @@ POST    /:user/:project/post/:id/edit                   controllers.BoardApp.edi
 GET     /:user/:project/post/:id/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, id:Long, commentId:Long)
 
 # Tags
-GET    /tags                                            controllers.TagApp.tags(query: String ?= "")
+GET    /tags                                            controllers.TagApp.tags(query: String ?= "", context: String ?= "", limit: Integer ?= null)
 GET    /:user/:project/tags                             controllers.ProjectApp.tags(user, project)
 POST   /:user/:project/tags                             controllers.ProjectApp.tag(user, project)
 POST   /:user/:project/tags/:id                         controllers.ProjectApp.untag(user, project, id: Long)

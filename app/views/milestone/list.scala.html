@@ -113,8 +113,13 @@
                 </div>
                 
                 <div class="actrow">
+<<<<<<< HEAD
                 	<a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!-- 
                  --><a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium white"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
+=======
+			<a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!--
+                 --><a href="@routes.MilestoneApp.editMilestoneForm(projectInst.owner, projectInst.name, milestone.id)" class="nbtn medium white"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
+>>>>>>> 53d89320c5c77dfdfe739439aa95a5bbf4071703
                 </div>
             </div>
             <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!-- 

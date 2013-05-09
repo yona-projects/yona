@@ -9,6 +9,7 @@ import javax.servlet.ServletException;
 import javax.validation.constraints.NotNull;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
@@ -308,6 +309,27 @@ public class Project extends Model {
         }
     }
 
+	public Resource tagsAsResource() {
+	    return new Resource() {
+
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return Project.this;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.PROJECT_TAGS;
+            }
+
+	    };
+	}
+
 	public Resource asResource() {
 	    return new Resource() {
 
@@ -333,25 +355,17 @@ public class Project extends Model {
         return User.findByLoginId(userId);
     }
 
-    public Tag tag(String tagName) {
-        // Find a tag by the given name.
-        Tag tag = Tag.find.where().eq("name", tagName).findUnique();
-
-        if (tag == null) {
-            // Create new tag if there is no tag which has the given name.
-            tag = new Tag();
-            tag.name = tagName;
-            tag.save();
-        } else if (tag.projects.contains(this)) {
-            // Return empty map if the tag has been already attached.
-            return null;
+    public Boolean tag(Tag tag) {
+       if (tags.contains(tag)) {
+            // Return false if the tag has been already attached.
+            return false;
         }
 
         // Attach new tag.
-        tag.projects.add(this);
-        tag.update();
+        tags.add(tag);
+        update();
 
-        return tag;
+        return true;
     }
 
     public void untag(Tag tag) {
@@ -365,5 +379,9 @@ public class Project extends Model {
 
     public boolean isOwner(User user) {
         return owner.toLowerCase().equals(user.loginId.toLowerCase());
+    }
+
+    public String toString() {
+        return owner + "/" + name;
     }
 }
