@@ -50,16 +50,6 @@
                 </dd>
             </dl>
         </div>
-        <div class="box-wrap middle">
-            <div class="cu-label" style="line-height:30px;">@Messages("project.tags")</div>
-            <div class="cu-desc">
-                <div id="tags">
-                    <!-- tags will be added here by hive.project.Settings.js -->
-                </div>
-                <input name="newTag" type="text" class="text" style="margin-bottom:0px" data-provider="typeahead" autocomplete="off"/>
-                <button id="addTag" type="button" class="nbtn medium">@Messages("button.add")</button>
-            </div>
-        </div>
         
         <div class="box-wrap middle">
             <div class="cu-label">@Messages("project.shareOption")</div>
@@ -83,10 +73,7 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-        $hive.loadModule("project.Setting", {
-			"sURLProjectTags": "@routes.ProjectApp.tags(project.owner, project.name)",
-            "sURLTags"       : "@routes.TagApp.tags()"
-        });
+        $hive.loadModule("project.Setting");
 	});
 </script>
 

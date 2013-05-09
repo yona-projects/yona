@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"category", "name"}))
 public class Tag extends Model {
 
     /**
@@ -22,23 +23,26 @@ public class Tag extends Model {
     public Long id;
 
     @Required
-    @Column(unique=true)
+    public String category;
+
+    @Required
     public String name;
 
     @ManyToMany(mappedBy="tags")
     public Set<Project> projects;
 
-    public static List<Tag> findByProjectId(Long projectId) {
-        return find.where().eq("project.id", projectId).findList();
-    }
-
-    public static Tag findById(Long id) {
-        return find.byId(id);
+    public Tag(String category, String name) {
+        if (category == null) {
+            category = "Tag";
+        }
+        this.category = category;
+        this.name = name;
     }
 
     @Transient
     public boolean exists() {
-        return find.where().eq("name", name).findRowCount() > 0;
+        return find.where().eq("category", category).eq("name", name)
+            .findRowCount() > 0;
     }
 
     @Override
@@ -48,6 +52,11 @@ public class Tag extends Model {
             project.save();
         }
         super.delete();
+    }
+
+    @Override
+    public String toString() {
+        return category + " - " + name;
     }
 
     public Resource asResource() {

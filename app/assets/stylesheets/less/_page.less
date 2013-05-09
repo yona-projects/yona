@@ -1830,7 +1830,15 @@
                         padding-bottom: 0;
                         border-bottom: 0 none;
                     }
+                    span:not(.label) {
+                        &:not(:last-child):after {
+                            content: ", ";
+                        }
+                    }
                 }
+            }
+            button#edit-toggle {
+                float: right;
             }
         }
         .member-wrap {
