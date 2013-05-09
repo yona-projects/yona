@@ -38,7 +38,7 @@ projects:
     - !!models.Project
         name:           nForge4java
         overview:       nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
-        share_option:   true
+        isPublic:   true
         vcs:            GIT
         siteurl:       http://localhost:9000/nForge4java
         owner:          hobi
@@ -46,7 +46,7 @@ projects:
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
-        share_option:   false
+        isPublic:   false
         vcs:            Subversion
         siteurl:       http://localhost:9000/Jindo
         owner:          k16wire
@@ -54,7 +54,7 @@ projects:
     - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
-        share_option:   false
+        isPublic:   false
         vcs:            GIT
         siteurl:       http://localhost:9000/CUBRID
         owner:          doortts
@@ -62,7 +62,7 @@ projects:
     - !!models.Project
         name:           HelloSocialApp
         overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
-        share_option:   false
+        isPublic:   false
         vcs:            GIT
         siteurl:       http://localhost:9000/HelloSocialApp
         owner:          hobi
