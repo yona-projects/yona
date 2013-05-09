@@ -1,19 +1,7 @@
 package playRepository;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-
+import controllers.ProjectApp;
+import models.Project;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -28,14 +16,17 @@ import org.eclipse.jgit.transport.UploadPack;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
-
 import play.mvc.Http.RawBuffer;
-import play.mvc.Http.Response;
 import play.mvc.Http.Request;
+import play.mvc.Http.Response;
 
-import models.Project;
-
-import controllers.ProjectApp;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import java.io.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RepositoryService {
     public static final String VCS_SUBVERSION = "Subversion";
@@ -80,13 +71,13 @@ public class RepositoryService {
      * @param projectName
      * @param path
      * @return
-     * @throws ServletException 
-     * @throws IOException 
-     * @throws UnsupportedOperationException 
-     * @throws AmbiguousObjectException 
-     * @throws IncorrectObjectTypeException 
-     * @throws MissingObjectException 
-     * @throws SVNException 
+     * @throws ServletException
+     * @throws IOException
+     * @throws UnsupportedOperationException
+     * @throws AmbiguousObjectException
+     * @throws IncorrectObjectTypeException
+     * @throws MissingObjectException
+     * @throws SVNException
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String path)
             throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException,
@@ -144,7 +135,7 @@ public class RepositoryService {
     }
 
     public static Repository createGitRepository(Project project) throws IOException {
-        return GitRepository.createGitRepository(project);
+        return GitRepository.buildGitRepository(project);
     }
 
     public static byte[] gitAdvertise(Project project, String service, Response response) throws IOException {
