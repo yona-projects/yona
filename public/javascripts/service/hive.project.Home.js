@@ -59,8 +59,9 @@
                     _showTagEditor();
                 }
             });
+            
             new hive.ui.Typeahead(htElement.welInputAddTag, {
-		"sActionURL": htVar.sURLTags,
+            	"sActionURL": htVar.sURLTags,
                 "htData": {
                     "context": "PROJECT_TAGGING_TYPEAHEAD",
                     "project_id": htVar.nProjectId,
@@ -162,15 +163,8 @@
 		});
             };
 
-            var welDeleteButton = $('<a>')
-                .attr('href', 'javascript:void(0)')
-                .text(' x')
-                .click(fOnClickDelete);
-
-            var welTag = $('<span>')
-                .text(sName)
-                .addClass('label')
-		.append(welDeleteButton);
+            var welDeleteButton = $('<a href="javascript:void(0)">&times;</a>').click(fOnClickDelete);
+            var welTag = $('<span class="label">' + sName + '</span>').append(welDeleteButton);
 
             welTag.setRemovability = function(bFlag) {
                 if (bFlag === true) {
@@ -203,8 +197,7 @@
                 if (waChildren.length > 0) {
                     waChildren.append(_createTag(sInstanceId, htTag.name));
                 } else {
-                    newCategory = $('<li>')
-                        .addClass('info')
+                    newCategory = $('<li class="info">')
                         .attr('category', htTag.category)
                         .append($('<strong>').text(htTag.category + ' : '))
                         .append(_createTag(sInstanceId, htTag.name));
