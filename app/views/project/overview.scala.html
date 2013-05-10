@@ -3,6 +3,7 @@
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 @import models.enumeration._
+@import utils.AccessControl._
 
 @projectLogoImage = @{
 	defining(Attachment.findByContainer(project.asResource)) { files =>
