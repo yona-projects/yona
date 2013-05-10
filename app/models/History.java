@@ -11,6 +11,7 @@ public class History {
 
     private String who;
     private String userPageUrl;
+    private String userAvatarUrl;
     private Date when;
     private String where;
     private String what;
@@ -73,6 +74,14 @@ public class History {
         this.userPageUrl = userPageUrl;
     }
 
+    public void setUserAvatarUrl(String userAvatarUrl){
+    	this.userAvatarUrl = userAvatarUrl;
+    }
+    
+    public String getUserAvatarUrl(){
+    	return userAvatarUrl;
+    }
+    
     public static List<History> makeHistory(String userName, Project project, List<Commit> commits, List<Issue> issues, List<Posting> postings) {
         List<History> histories = new ArrayList<History>();
         if(commits != null) {
@@ -101,7 +110,7 @@ public class History {
             issueHistory.setWhen(issue.createdDate);
             issueHistory.setWhere(project.name);
             issueHistory.setWhat("issue");
-            issueHistory.setHow(issue.title);
+            issueHistory.setHow("#" + issue.id + " " + issue.title);
             issueHistory.setUrl("/" + userName + "/" + project.name + "/issue/" + issue.id);
             histories.add(issueHistory);
         }
@@ -132,5 +141,6 @@ public class History {
     private static void setUserPageUrl(History history, User user) {
         history.setWho(user.name);
         history.setUserPageUrl("/" + user.loginId);
+        history.setUserAvatarUrl(user.avatarUrl);
     }
 }

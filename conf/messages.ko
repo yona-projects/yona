@@ -289,6 +289,12 @@ project.tags = 태그
 project.license = 라이센스
 project.codeLanguage = 프로그래밍 언어
 
+# project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
+project.history.item = {0}님이 {1} {2}  
+project.history.type.commit = 코드를 커밋했습니다
+project.history.type.issue = 새 이슈를 등록했습니다
+project.history.type.post = 새 글을 작성했습니다
+
 #Site
 site.sidebar = 사이트 관리
 site.sidebar.setting = 설정
