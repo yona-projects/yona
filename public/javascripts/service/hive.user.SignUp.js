@@ -108,6 +108,8 @@
 		    }).done(function(htData){
 		        if(htData.isExist === true){
 		            showErrorMessage(welInput, Messages("validation.duplicated"));
+		        } else if (htData.isReserved == true) {
+		        	showErrorMessage(welInput, Messages("validation.reservedWord"));
 		        } else {
 		        	hideErrorMessage(welInput);
 		        }

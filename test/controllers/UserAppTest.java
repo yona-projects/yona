@@ -26,6 +26,7 @@ public class UserAppTest {
     @Test
     public void findById_doesntExist() {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+            @Override
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<String,String>();
@@ -39,7 +40,8 @@ public class UserAppTest {
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);
-                assertThat(contentAsString(result)).contains("{\"isExist\":false}");
+                assertThat(contentAsString(result)).contains("\"isExist\":false");
+                assertThat(contentType(result)).contains("json");
             }
         });
     }
@@ -47,6 +49,7 @@ public class UserAppTest {
     @Test
     public void findById_alreadyExist() {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+            @Override
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<String,String>();
@@ -60,7 +63,8 @@ public class UserAppTest {
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);
-                assertThat(contentAsString(result)).contains("{\"isExist\":true}");
+                assertThat(contentAsString(result)).contains("\"isExist\":true");
+                assertThat(contentType(result)).contains("json");
             }
         });
     }
@@ -68,6 +72,7 @@ public class UserAppTest {
     @Test
     public void isEmailExist() {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+            @Override
             public void run() {
                 //Given
                 //When
@@ -87,6 +92,7 @@ public class UserAppTest {
         Map<String, String> fakeConf = inmemoryWithCustomConfig("signup.require.confirm", "true");
 
         running(fakeApplication(fakeConf), new Runnable() {
+            @Override
             public void run() {
                 //Given
                 User user = new User(-31l);
@@ -128,6 +134,7 @@ public class UserAppTest {
     public void newUser_confirmSignUpMode() {
         Map<String, String> map = inmemoryWithCustomConfig("signup.require.confirm", "true");
         running(fakeApplication(map), new Runnable() {
+            @Override
             public void run() {
                 //Given
                 final String loginId = "somefakeuserid";
@@ -145,6 +152,26 @@ public class UserAppTest {
 
                 //Then
                 assertThat(status(result)).describedAs("result status should '303 see other'").isEqualTo(303);
+            }
+        });
+    }
+
+    @Test
+    public void findById_reserved() {
+        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+            @Override
+            public void run() {
+                //Given
+                Map<String,String> data = new HashMap<String,String>();
+                data.put("loginId", "messages.js");
+
+                //When
+                Result result = callAction(controllers.routes.ref.UserApp.isUserExist("messages.js"));
+
+                //Then
+                assertThat(status(result)).isEqualTo(OK);
+                assertThat(contentAsString(result)).contains("\"isReserved\":true");
+                assertThat(contentType(result)).contains("json");
             }
         });
     }

@@ -420,6 +420,7 @@ validation.invalidEmail = Confirm valid email address!
 validation.required = Required!
 validation.duplicated = Already exists!
 validation.allowedCharsForLoginId = Login id may only contain alphanumeric characters, dash, underscore or dot and cannot begin or end with underscore or dot.
+validation.reservedWord = It's a reserved word, so you cannot use it.
 
 #Unauthorized
 auth.unauthorized.title = You need access Control!
