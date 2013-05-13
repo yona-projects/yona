@@ -26,9 +26,7 @@ hive.FileUploader = (function() {
 		_initVar(htOptions);
 		_attachEvent();
 		
-		if(htVar.sMode == "edit") {
-			_requestList();			
-		}
+        _requestList();
 	}
 	
 	/**
@@ -109,25 +107,32 @@ hive.FileUploader = (function() {
 	}
 	
 	function _onLoadRequest(oRes) {
+        var fAddFiles = function(aFiles, sNotice) {
+            var totalFileSize = 0;
 
-		var aItems = [];
-		var aFiles = oRes.attachments;
+            if (sNotice === undefined || sNotice === null) {
+                sNotice = "";
+            }
 
-		if(aFiles == null || aFiles.length === 0){
-			return;
-		}
-		
-		var totalFileSize = 0;
-		aFiles.forEach(function(oFile) {
-			var welItem = _createFileItem(oFile);
-			welItem.click(_onClickListItem);
-			htElements.welFileList.append(welItem);
-			totalFileSize = totalFileSize + parseInt(oFile.size);
-		});
+            if(aFiles != null && aFiles.length !== 0){
+                aFiles.forEach(function(oFile) {
+                    var welItem = _createFileItem(oFile, sNotice);
+                    welItem.click(_onClickListItem);
+                    htElements.welFileList.append(welItem);
+                    totalFileSize = totalFileSize + parseInt(oFile.size);
+                });
+            }
+
+            return totalFileSize;
+        }
+
+        var totalFileSize = 0;
+
+        totalFileSize += fAddFiles(oRes.attachments);
+        totalFileSize += fAddFiles(oRes.tempFiles, _attachIfYouSaveNotice());
 		
 		_setProgressBar(100);
 		_updateTotalFilesize(totalFileSize);
-		
 	}
 	
 	/**
@@ -176,6 +181,10 @@ hive.FileUploader = (function() {
 		
 		return !(sFileName == "");
 	}
+
+    function _attachIfYouSaveNotice() {
+        return " (" + Messages("attach.attachIfYouSave") + ")";
+    }
 	
 	/**
 	 * On success to submit temporary form created in onChangeFile()
@@ -193,7 +202,7 @@ hive.FileUploader = (function() {
 		}
 
 		// create list item
-		var welItem = _createFileItem(oRes);
+        var welItem = _createFileItem(oRes, _attachIfYouSaveNotice());
 		welItem.click(_onClickListItem);
 		htElements.welFileList.append(welItem);
 		
@@ -216,15 +225,16 @@ hive.FileUploader = (function() {
 	 * @param {Hash Table} htFile
 	 * @returns {HTMLElement} 
 	 */
-	function _createFileItem(htFile) {
+	function _createFileItem(htFile, sNotice) {
 		var oItem = $.tmpl(htVar.sTplFileItem, {
 			"mimeType": htFile.mimeType,
 			"fileName": htFile.name,
 			"fileHref": htFile.url,
 			"fileSize": htFile.size,
-			"fileSizeReadable": humanize.filesize(htFile.size)
+			"fileSizeReadable": humanize.filesize(htFile.size),
+            "notice": sNotice
 		});
-		
+
 		return oItem;
 	}
 	
