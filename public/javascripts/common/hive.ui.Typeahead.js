@@ -41,9 +41,9 @@
 		function _initElement(sQuery){
 			htElement.welInput = $(sQuery);
 			htElement.welInput.typeahead({
-                "source": _onTypeAhead,
-                "minLength": 0,
-                "items": htVar.htData.limit || 8
+                source: _onTypeAhead,
+                minLength: 0,
+                items: (parseInt(htVar.htData.limit) !== NaN) ? htVar.htData.limit : 8
             });
 		}
 		
