@@ -6,6 +6,7 @@ import java.util.Map;
 import models.IssueLabel;
 import models.Project;
 import models.enumeration.Operation;
+import models.enumeration.ResourceType;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
@@ -40,8 +41,14 @@ public class IssueLabelApp extends Controller {
     public static Result newLabel(String userName, String projectName) {
         Form<IssueLabel> labelForm = new Form<IssueLabel>(IssueLabel.class).bindFromRequest();
 
+        Project project = ProjectApp.getProject(userName, projectName);
+
+        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
+            return forbidden();
+        }
+
         IssueLabel label = labelForm.get();
-        label.project = ProjectApp.getProject(userName, projectName);
+        label.project = project;
 
         if (label.exists()) {
             return ok();

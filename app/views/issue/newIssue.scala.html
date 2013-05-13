@@ -131,7 +131,8 @@
 			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
 		};				
-		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+
+        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
 			htOptLabel.bEditable = true;
 		}
 	

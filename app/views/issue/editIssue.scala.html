@@ -7,7 +7,6 @@
 @import utils.AccessControl._
 @import models.enumeration._
 
-
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 
 <div class="page">
@@ -154,7 +153,8 @@
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
 			"htActive"     : {@for(label <- issue.labels) { "@label.id":"@label.color", }"":""}
 		};
-		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+
+        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
 			htOptLabel.bEditable = true;
 		}
 		
