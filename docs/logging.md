@@ -20,6 +20,24 @@ HIVE는 사이트 운영자와 HIVE 개발자를 위해 운영중에 발생한 �
 
 주의: PlayFramework는 `conf/application.conf`를 통해서도 로그에 대한 설정을 할 수 있도록 허용한다. 그러나 HIVE에서는 보다 정교한 설정을 위해 `conf/application-logger.xml`에 설정을 남기도록 하고 있다. 두 파일의 설정이 각각 다른 경우 의도하지 않은 동작을 하게 될 수 있으므로, 로그 관련 설정은 `conf/application-logger.xml`에서만 하도록 한다.
 
+로그 레벨
+---------
+
+다음의 표는 로그 레벨의 의미하는 바를 설명한 것이다. 로그 메시지를 남길 때, 로그 레벨을 어떤 것으로 할 것인가에 대해서는 이 표를 참고하라.
+
+<table>
+<thead>
+<tr><td>로그 레벨</td><td>설명</td></tr>
+</thead>
+<tbody>
+<tr><td>ERROR</td><td>비정상적인 상황을 만났다. 오동작했거나, 혹은 그럴 가능성이 상당히 있다.</td></tr>
+<tr><td>WARNING</td><td>비정상적인 상황을 만났다. 복원 혹은 무시하고 정상적으로 진행했으며, 오동작이 있었을 가능성은 낮다.</td></tr>
+<tr><td>INFO</td><td>개발 및 운영에 도움을 주기 위한 정보</td></tr>
+<tr><td>DEBUG</td><td>디버깅에 도움을 주기 위한 정보</td></tr>
+<tr><td>TRACE</td><td>현재 사용하지 않는다.</td></tr>
+</tbody>
+</table>
+
 로그 포맷
 ---------
 
