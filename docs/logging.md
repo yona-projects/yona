@@ -41,9 +41,13 @@ HIVE는 사이트 운영자와 HIVE 개발자를 위해 운영중에 발생한 �
 로그 포맷
 ---------
 
-로그 포맷은 로그 설정 파일을 통해 설정할 수 있다.
+### 애플리케이션 로그
 
-다만 logs/access.log에 기록되는(기본 설정에서) 액세스 로그의 경우, 다음의 예와 같이 [Apache HTTP Server의 Combined Log Format](http://httpd.apache.org/docs/2.2/logs.html)을 따른다. 다만 log entry의 끝에 처리시간(요청이 처리되는데 소요된 시간)이 추가된다는 점만이 Combined Log Format과 다르다.
+애플리케이션 로그의 포맷은, 로그 설정 파일을 통해 설정할 수 있다.
+
+### 액세스 로그
+
+logs/access.log에 기록되는(기본 설정에서) 액세스 로그는, 다음의 예와 같이 [Apache HTTP Server의 Combined Log Format](http://httpd.apache.org/docs/2.2/logs.html)을 따른다. 다만 log entry의 끝에 처리시간(요청이 처리되는데 소요된 시간)이 추가된다는 점만이 Combined Log Format과 다르다.
 
     127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200 - "http://www.example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)" 70ms
 
