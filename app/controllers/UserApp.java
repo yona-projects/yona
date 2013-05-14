@@ -321,12 +321,20 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result editUserInfo() {
-        //FIXME email검증이 필요함.
-        Form<User> userForm = new Form<User>(User.class).bindFromRequest();
+        Form<User> userForm = new Form<User>(User.class).bindFromRequest("name", "email");
+        String newEmail = userForm.data().get("email");
+        String newName = userForm.data().get("name");
         User user = UserApp.currentUser();
-        user.email = userForm.data().get("email");
-        user.name = userForm.data().get("name");
-
+        if (!StringUtils.equals(user.email, newEmail)) {
+            if (User.isEmailExist(newEmail)) {
+                userForm.reject("email", "user.email.duplicate");
+            }
+        }
+        if (userForm.error("email") != null) {
+            return badRequest(edit.render(userForm, user));
+        }
+        user.email = newEmail;
+        user.name = newName;
         Attachment.deleteAll(ResourceType.USER_AVATAR, currentUser().id);
         int attachFiles = Attachment.attachFiles(currentUser().id, null, ResourceType.USER_AVATAR, currentUser().id);
         if (attachFiles > 0) {
