@@ -41,14 +41,6 @@ public class Project extends Model {
 
     /** 한 페이지에 보여줄 프로젝트 개수 */
     public static final int PROJECT_COUNT_PER_PAGE = 10;
-    /** The sort by name with ignore case. */
-    public static Comparator<Project> sortByNameWithIgnoreCase = new SortByNameWithIgnoreCase();
-    /** The sort by name with ignore case desc. */
-    public static Comparator<Project> sortByNameWithIgnoreCaseDesc = new SortByNameWithIgnoreCaseDesc();
-    /** The sort by date. */
-    public static Comparator<Project> sortByDate = new SortByDate();
-    /** The sort by date desc. */
-    public static Comparator<Project> sortByDateDesc = new SortByDateDesc();
 
     @Id
     public Long id;
@@ -100,18 +92,6 @@ public class Project extends Model {
 
     @ManyToMany
     public Set<Tag> tags;
-
-    /**
-     * 프로젝트 생성일 yyyy.MM.dd 패턴으로 반환한다.
-     *
-     * TODO : 사용하는곳이 없어서 삭제할 예정입니다.
-     *
-     * @return the created date
-     */
-    public String getCreatedDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
-        return sdf.format(this.createdDate);
-    }
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -206,6 +186,7 @@ public class Project extends Model {
      * 사이트관리자가 사용자 삭제시 사용한다.
      *
      * TODO 네이밍과 반환타입이 맞지 않음.
+     * TODO 현재는 해당 사용자에 관계없이 프로젝트당 관리자가 1명 이상일 경우 사용자를 삭제하고 있음. 기준이 모호함
      *
      * @param userId the user id
      * @return the list
@@ -253,39 +234,8 @@ public class Project extends Model {
         }
 
         List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
-        Collections.sort(filteredList, determineComparator(orderString));
+
         return filteredList;
-    }
-
-    /**
-     * {@orderString} 으로 분기하여 해당 {@link Comparator} 객체를 반환한다.
-     *
-     * @param orderString the order string
-     * @return 정렬을 위한 {@link Comparator} 객체 반환
-     */
-    private static Comparator<? super Project> determineComparator(String orderString) {  //TODO: Some ugly coding...
-        if( orderString.contains("name desc")){
-            return sortByNameWithIgnoreCaseDesc;
-        } else if ( orderString.contains("name") ) {
-            return sortByNameWithIgnoreCase;
-        } else if ( orderString.contains("createdDate desc") ){
-            return sortByDateDesc;
-        } else if ( orderString.contains("createdDate") ){
-            return sortByDate;
-        } else {  // TODO: another sorting case doesn't exist in this moment
-            throw new UnsupportedOperationException("unsupported sorting type");
-        }
-    }
-
-    /**
-     *
-     * TODO : 사용하지 않는 메서드. 삭제예정
-     *
-     * @param pageNum the page num
-     * @return the page
-     */
-    public static Page<Project> projects(int pageNum) {
-        return find.findPagingList(25).getPage(pageNum);
     }
 
     /**
@@ -422,50 +372,6 @@ public class Project extends Model {
     }
 
     /**
-     * The Class SortByNameWithIgnoreCase.
-     *
-     * 프로젝트 이름 소문자 기준으로 오름차순 정렬을 구현한다.
-     */
-    public static class SortByNameWithIgnoreCase implements Comparator<Project> {
-        public int compare(Project o1, Project o2) {
-            return o1.name.toLowerCase().compareTo(o2.name.toLowerCase());
-        }
-    }
-
-    /**
-     * The Class SortByNameWithIgnoreCaseDesc.
-     *
-     * 프로젝트 이름 소문자 기준으로 내림차순 정렬을 구현한다.
-     */
-    public static class SortByNameWithIgnoreCaseDesc implements Comparator<Project> {
-        public int compare(Project o1, Project o2) {
-            return -sortByNameWithIgnoreCase.compare(o1, o2);
-        }
-    }
-
-    /**
-     * The Class SortByDate.
-     *
-     * 생성일 기준 오름차순 정렬을 구현한다.
-     */
-    public static class SortByDate implements Comparator<Project> {
-        public int compare(Project o1, Project o2) {
-            return o1.createdDate.compareTo(o2.createdDate);
-        }
-    }
-
-    /**
-     * The Class SortByDateDesc.
-     *
-     * 생성일 기준 내림차순 정렬을 구현한다.
-     */
-    public static class SortByDateDesc implements Comparator<Project> {
-        public int compare(Project o1, Project o2) {
-            return -sortByDate.compare(o1, o2);
-        }
-    }
-
-    /**
      * Tags as resource.
      *
      * @return the resource
@@ -520,13 +426,11 @@ public class Project extends Model {
     /**
      * loginId로 관리자(Project owner) 정보를 가져온다.
      *
-     * TODO : 실제 파라미터는 loginId 이나 Name, {@code userId} 등과 같이 사용하여 혼동의 여지가 있음 네이밍 변경 필요
-     *
-     * @param userId the user id
+     * @param loginId the user id
      * @return the owner by name
      */
-    public User getOwnerByName(String userId){
-        return User.findByLoginId(userId);
+    public User getOwnerByLoginId(String loginId){
+        return User.findByLoginId(loginId);
     }
 
     /**
