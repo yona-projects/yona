@@ -334,6 +334,7 @@ user.wrongPassword.alert = 잘못된 비밀번호입니다!
 user.name = 이름
 user.email = 이메일
 user.yourEmail = yourEmail@address.com
+user.email.duplicate = 이미 존재하는 이메일입니다.
 user.wrongEmail.alert = 이메일이 잘못되었습니다.
 user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
 user.logout.success = 로그아웃했습니다

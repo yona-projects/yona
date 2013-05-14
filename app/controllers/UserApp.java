@@ -455,7 +455,10 @@ public class UserApp extends Controller {
             newUserForm.reject("loginId", "user.loginId.duplicate");
         }
         
-        // TODO : 이메일 중복 체크
+        // 중복된 email로 가입할 수 없다.
+        if (User.isEmailExist(newUserForm.field("email").value())) {
+            newUserForm.reject("email", "user.email.duplicate");
+        }
     }
     
     /*

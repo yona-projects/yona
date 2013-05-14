@@ -322,6 +322,7 @@ user.wrongPassword.alert = Wrong password!
 user.name = Name
 user.email = E-mail
 user.yourEmail = Your email address
+user.email.duplicate = Already existing email
 user.wrongEmail.alert = Wrong email address.
 user.login.failed = Your login ID or password is not valid.
 user.logout.success = Logout successfully
