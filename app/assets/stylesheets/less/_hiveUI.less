@@ -16,9 +16,9 @@ input[type="email"], input[type="url"], input[type="search"], input[type="tel"],
 
 /** HIVE UI 시작 **/ 
 form { margin:0 0 2px; }
-textarea, input[type="text"], input[type="password"], input[type="datetime"],
-input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"],
-input[type="week"], input[type="number"], input[type="email"], input[type="url"],
+textarea, input[type="text"], input[type="password"], input[type="datetime"], 
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
+input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
 input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     .box-shadow(none);
     .border-radius(2px);
@@ -52,6 +52,9 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 }
 .btn .caret {
     border-top-color:@blue;
+}
+.dropdown-menu li {
+    margin-bottom:1px;
 }
 .dropdown-menu li>a:hover,.dropdown-menu li>a:focus,.dropdown-submenu:hover>a {
     color:#fff;
@@ -107,6 +110,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         background-color: #222;
         &:hover { background-color : #000;  }
     }
+    
     &.white {
         color: #222;
         background-color: @white;
@@ -138,8 +142,8 @@ button.nbtn {
     }
 
     .file {
-        position: absolute; z-index:2; cursor:pointer;
-        top:0; left: -15px; width:100px;
+        position: absolute; z-index:2; cursor:pointer; 
+        top:0; left: 5px; /*-15px;*/ width:100px;
         .opacity(0);
     }
 }
@@ -215,6 +219,7 @@ button.nbtn {
         margin: 0; margin-right:3px;
         padding:4px 0px;
         border: 0 none;
+        
         font-size: 14px; /* 11px */
         color: @search-input-color;
         background-color: transparent;
@@ -283,9 +288,43 @@ button.nbtn {
     .message {
         .msg {
             text-align:center;
-            font-weight:bold; font-size:18px;
+            font-weight:bold; font-size:18px; 
             margin-bottom:20px; line-height:1.5em;
         }
     }
 }
-.alert { display:none; } /** use .hiveDialog **/
+
+.hiveToasts {
+    position: fixed; 
+    overflow: hidden;
+    right: 0 !important; 
+    bottom: 0 !important;
+    margin: 10px; width:240px;
+
+    .toast {
+        display:inline-block;
+        width: 200px; height: 50px; line-height: 50px;
+        margin: 10px; padding: 10px;
+        outline:none; text-align: center; font-weight: bold;
+        
+        border: 1px solid #fac7ab;
+        color: #222; background-color: #fff0e8;    
+        -webkit-transition-duration: 0.3s;
+        
+        .opacity(0);
+        .box-shadow(0px 0px 5px rgba(240, 160, 132, 0.6));         
+        .border-radius(2px);
+        
+        .btn-dismiss {
+            float: right;
+            line-height: 10px;
+        }
+        .msg { 
+            display:inline-block;
+            word-wrap: break-word;
+            word-break:break-all;
+            line-height:16px;
+            margin: 0;
+        }
+    }
+}

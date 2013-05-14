@@ -245,14 +245,40 @@ $hive = hive.Common = (function(){
 	/**
 	 * Show alert dialog
 	 * @param {String} sMessage Message string
-	 * @param {Function} fCallback Call this function after hidden dialog (optional)
+	 * @param {Function} fOnAfterHide Call this function after hidden dialog (optional)
 	 */
-	function showAlert(sMessage, fCallback){
-		if(!htVar.oAlertDialog) {
-			htVar.oAlertDialog = new hive.ui.Dialog("#hiveDialog");
+	function showAlert(sMessage, fOnAfterHide){
+		if(!htVar.oAlertDialog){
+			htVar.oAlertDialog = new hive.ui.Dialog("#hiveAlert");
 		}
 		
-		htVar.oAlertDialog.show(sMessage, fCallback);
+		htVar.oAlertDialog.show(sMessage, {
+			"fOnAfterHide": fCallback
+		});
+	}
+	
+	/**
+	 * Show notification message using Toast PopUp
+	 * @param {String} sMessage
+	 * @param {Number} nDuration
+	 */
+	function notify(sMessage, nDuration){
+		if(!htVar.oToast){
+			htVar.oToast = new hive.ui.Toast("#hiveToasts", {
+				"sTplToast": $("#tplHiveToast").text()
+			});
+		}
+		
+		htVar.oToast.push(sMessage, nDuration);
+	}
+	
+	/**
+	 * Inserts HTML line breaks before all newlines in a string
+	 * @param {String} sText
+	 * @return {String}
+	 */
+	function nl2br(sText){
+		return sText.split("\n").join("<br>");		
 	}
 	
 	/* public Interface */
@@ -265,7 +291,9 @@ $hive = hive.Common = (function(){
 		"getContrastColor": getContrastColor,
 		"sendForm"        : sendForm,
 		"getTrim"         : getTrim,
-		"showAlert"       : showAlert
+		"showAlert"       : showAlert,
+		"notify"		  : notify,
+		"nl2br"			  : nl2br
 	};
 })();
 

@@ -41,6 +41,7 @@
 		 * 이벤트 설정
 		 */
 		function _attachEvent(){
+			htElement.welContainer.on("shown", _onShownDialog);
 			htElement.welContainer.on("hidden", _onHiddenDialog);
 		}
 		
@@ -48,11 +49,12 @@
 		 * 메시지 출력
 		 * @param {String} sMessage
 		 */
-		function showDialog(sMessage, fCallback){
-			sMessage = sMessage.split("\n").join("<br>"); // nl2br
-			htElement.welMessage.html(sMessage);
+		function showDialog(sMessage, htOptions){
+			htVar.fOnAfterShow = htOptions.fOnAfterShow;
+			htVar.fOnAfterHide = htOptions.fOnAfterHide;
+			
+			htElement.welMessage.html($hive.nl2br(sMessage));
 			htElement.welContainer.modal("show");
-			htVar.fCallback = fCallback;
 		}
 
 		/**
@@ -61,13 +63,21 @@
 		function hideDialog(){
 			htElement.welContainer.modal("hide");
 		}
+
+		/**
+		 * 커스텀 이벤트 핸들러
+		 */
+		function _onShownDialog(){
+			if(typeof htVar.fOnAfterShow == "function"){
+				htVar.fOnAfterShow();
+			}
+		}
 		
 		function _onHiddenDialog(){
 			htElement.welMessage.html("");
 			
-			if(typeof htVar.fCallback == "function"){
-				htVar.fCallback();
-				htVar.fCallback = null; 
+			if(typeof htVar.fOnAfterHide == "function"){
+				htVar.fOnAfterHide(); 
 			}
 		}
 		
