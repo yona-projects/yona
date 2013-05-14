@@ -37,6 +37,7 @@ public class UserApp extends Controller {
     public static final int MAX_AGE = 30*24*60*60;
     public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
     public static final int MAX_FETCH_USERS = 1000;
+    private static final int HASH_ITERATIONS = 1024;
 
     //TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
     public static User anonymous = new NullUser();
@@ -87,25 +88,10 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result logout() {
-        session().clear();
-        response().discardCookie(TOKEN);
-
+        processLogout();
         flash(Constants.SUCCESS, "user.logout.success");
         return redirect(routes.Application.index());
-    }
-
-    /*
-     * 시스템 설정에서 가입 승인 여부 조회
-     */
-    private static boolean isUseSignUpConfirm(){
-        Configuration config = play.Play.application().configuration();
-        String useSignUpConfirm = config.getString("signup.require.confirm");
-        if (useSignUpConfirm != null && useSignUpConfirm.equals("true")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    }    
     
     /**
      * 로그인 처리
@@ -124,14 +110,14 @@ public class UserApp extends Controller {
         User sourceUser = form(User.class).bindFromRequest().get();
 
         if (isUseSignUpConfirm()) {
-            if( User.findByLoginId(sourceUser.loginId).isLocked == true ){
+            if (User.findByLoginId(sourceUser.loginId).isLocked == true ) {
                 flash(Constants.WARNING, "user.locked");
                 return redirect(routes.UserApp.loginForm());
             }
         }
         User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
-        if(authenticate != null) {
+        if (authenticate != null) {
             addUserInfoToSession(authenticate);
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
@@ -154,12 +140,7 @@ public class UserApp extends Controller {
      */
     public static User authenticateWithHashedPassword(String loginId, String password) {
         User user = User.findByLoginId(loginId);
-        if (!user.isAnonymous()) {
-            if (user.password.equals(password)) {
-                return user;
-            }
-        }
-        return null;
+        return authenticate(user, password);
     }
 
     /**
@@ -173,22 +154,7 @@ public class UserApp extends Controller {
      */
     public static User authenticateWithPlainPassword(String loginId, String password) {
         User user = User.findByLoginId(loginId);
-        if (!user.isAnonymous()) {
-            if (user.password.equals(hashedPassword(password,
-                    user.passwordSalt))) {
-                return user;
-            }
-        }
-        return null;
-    }
-
-    /*
-     * 비밀번호 hash 값 생성
-     */
-    private static String hashedPassword(String plaintextPassword,
-            String passwordSalt) {
-        return new Sha256Hash(plaintextPassword,
-                ByteSource.Util.bytes(passwordSalt), 1024).toBase64();
+        return authenticate(user, hashedPassword(password, user.passwordSalt));
     }
 
     /**
@@ -201,27 +167,18 @@ public class UserApp extends Controller {
     public static boolean isRememberMe() {
         // Remember Me
         Cookie cookie = request().cookies().get(TOKEN);
-
         if (cookie != null) {
             String[] subject = cookie.value().split(":");
             Logger.debug(cookie.value());
             if(subject.length < 2) return false;
             User user = authenticateWithHashedPassword(subject[0], subject[1]);
-            if(user!=null) {
+            if (user != null) {
                 addUserInfoToSession(user);
             }
             return true;
         }
         return false;
-    }
-
-    /*
-     * 로그인 유지기능 활성화
-     */
-    private static void setupRememberMe(User user) {
-        response().setCookie(TOKEN, user.loginId + ":" + user.password, MAX_AGE);
-        Logger.debug("remember me enabled");
-    }
+    }    
 
     /**
      * 사용자 가입 화면 이동
@@ -243,46 +200,18 @@ public class UserApp extends Controller {
     public static Result newUser() {
         Form<User> newUserForm = form(User.class).bindFromRequest();
         validate(newUserForm);
-        if (newUserForm.hasErrors())
+        if (newUserForm.hasErrors()) {
             return badRequest(signup.render("title.signup", newUserForm));
-        else {
-            User user = newUserForm.get();
-            user.avatarUrl = DEFAULT_AVATAR_URL;
-            lockAccountIfSignUpConfirmModeIsUsed(user);
-            User.create(hashedPassword(user));
-            if(user.isLocked){
+        } else {
+            User user = createNewUser(newUserForm.get());
+            User.create(user);
+            if (user.isLocked) {
                 flash(Constants.INFO, "user.signup.requested");
             } else {
                 addUserInfoToSession(user);
             }
             return redirect(routes.Application.index());
         }
-    }
-
-    /*
-     * 시스템 설정의 가입승인이 활성화 되어 있다면 User 객체의 잠금필드 값을 true 로 설정한다
-     */
-    private static void lockAccountIfSignUpConfirmModeIsUsed(User user) {
-        Configuration config = play.Play.application().configuration();
-        String useSignUpConfirm = config.getString("signup.require.confirm");
-        if (useSignUpConfirm != null && useSignUpConfirm.equals("true")) {
-            user.isLocked = true;
-        }
-    }
-
-    /**
-     * 비밀번호 hash 값 생성
-     *
-     * @param user 사용자 객체
-     * @return 비밀번호 hash 값
-     */
-    public static User hashedPassword(User user) {
-        // FIXME user.password가 plain text 였다가 다시 덮여쓰여지는 식으로 동작한다. 혹시라도 패스워드 reset을 위해 이 메소드를 잘못 사용했다가는 자칫 로그인을 할 수 없게 되는 상황이 발생할 수 있다.
-        RandomNumberGenerator rng = new SecureRandomNumberGenerator();
-        user.passwordSalt = rng.nextBytes().getBytes().toString();
-        user.password = new Sha256Hash(user.password,
-                ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
-        return user;
     }
 
     /**
@@ -310,12 +239,10 @@ public class UserApp extends Controller {
             return badRequest(edit.render(currentUserForm, currentUser));
         }
         
-        resetPassword(currentUser, user.password);
+        resetPassword(currentUser, user.password);        
         
         //go to login page
-        session().clear();
-        response().discardCookie(TOKEN);
-        
+        processLogout();
         flash(Constants.WARNING, "user.loginWithNewPassword");
         return redirect(routes.UserApp.loginForm());
 
@@ -332,8 +259,8 @@ public class UserApp extends Controller {
     public static boolean isValidPassword(User currentUser, String password) {
         String hashedOldPassword = hashedPassword(password, currentUser.passwordSalt);
         return currentUser.password.equals(hashedOldPassword); 
-    }
-    
+    }   
+
     /**
      * 신규 비밀번호의 hash 값을 구하여 설정 후 저장한다
      * 
@@ -341,21 +268,9 @@ public class UserApp extends Controller {
      * @param newPassword 신규비밀번호
      */
     public static void resetPassword(User user, String newPassword) {
-        user.password = new Sha256Hash(newPassword,
-                ByteSource.Util.bytes(user.passwordSalt), 1024).toBase64();
+        user.password = hashedPassword(newPassword, user.passwordSalt);
         user.save();
-    }
-
-    /**
-     * 사용자 정보를 세션에 저장한다 (로그인 처리됨)
-     * 
-     * @param user 사용자 객체
-     */
-    public static void addUserInfoToSession(User user) {
-        session(SESSION_USERID, String.valueOf(user.id));
-        session(SESSION_LOGINID, user.loginId);
-        session(SESSION_USERNAME, user.name);
-    }
+    }   
 
     /**
      * 세션에 저장된 정보를 이용해서 사용자 객체를 생성한다
@@ -370,57 +285,10 @@ public class UserApp extends Controller {
         }
         User foundUser = User.find.byId(Long.valueOf(userId));
         if (foundUser == null) {
-            session().clear();
-            response().discardCookie(TOKEN);
+            processLogout();
             return anonymous;
         }
         return foundUser;
-    }
-
-    /**
-     * 사용자 가입 입력 폼 유효성 체크
-     * 
-     * @param newUserForm 사용자 가입 정보
-     */
-    public static void validate(Form<User> newUserForm) {
-        // loginId가 빈 값이 들어오면 안된다.
-        if (newUserForm.field("loginId").value() == "") {
-            newUserForm.reject("loginId", "user.wrongloginId.alert");
-        }
-
-        if (newUserForm.field("loginId").value().contains(" ")) {
-            newUserForm.reject("loginId", "user.wrongloginId.alert");
-        }
-
-        // password가 빈 값이 들어오면 안된다.
-        if (newUserForm.field("password").value() == "") {
-            newUserForm.reject("password", "user.wrongPassword.alert");
-        }
-
-		// 중복된 loginId로 가입할 수 없다.
-		if (User.isLoginIdExist(newUserForm.field("loginId").value())) {
-			newUserForm.reject("loginId", "user.loginId.duplicate");
-		}
-		
-		if (User.isEmailExist(newUserForm.field("email").value())) {
-		    newUserForm.reject("email", "validation.duplicated");
-		}
-		
-	}
-
-    /**
-     * 사용자 정보 수정 폼으로 이동
-     * 수정할 대상의 사용자ID 를 지정할 수 있으나, 권한체크가 없음
-     * 사용하는 곳은 없는듯 ..
-     * 
-     * @param userId 사용자ID
-     * @return
-     */
-    public static Result memberEdit(Long userId) {
-        User user = User.find.byId(userId);
-        Form<User> userForm = new Form<User>(User.class);
-        userForm = userForm.fill(user);
-        return ok(edit.render(userForm, user));
     }
 
     /**
@@ -444,7 +312,6 @@ public class UserApp extends Controller {
         User user = UserApp.currentUser();
         Form<User> userForm = new Form<User>(User.class);
         userForm = userForm.fill(user);
-
         return ok(edit.render(userForm, user));
     }
 
@@ -462,7 +329,7 @@ public class UserApp extends Controller {
 
         Attachment.deleteAll(ResourceType.USER_AVATAR, currentUser().id);
         int attachFiles = Attachment.attachFiles(currentUser().id, null, ResourceType.USER_AVATAR, currentUser().id);
-        if(attachFiles>0) {
+        if (attachFiles > 0) {
             user.avatarUrl = "/files/" + user.avatarId();
         }
 
@@ -506,5 +373,111 @@ public class UserApp extends Controller {
         ObjectNode result = Json.newObject();
         result.put("isExist", User.isEmailExist(email));
         return ok(result);
+    }
+
+    /**
+     * 비밀번호 hash 값 생성
+     * 
+     * @param plainTextPassword plain text
+     * @param passwordSalt hash salt
+     * @return hashed password
+     */
+    public static String hashedPassword(String plainTextPassword, String passwordSalt) {
+        return new Sha256Hash(plainTextPassword, ByteSource.Util.bytes(passwordSalt), HASH_ITERATIONS).toBase64();
+    }
+    
+    /*
+     * 사용자 인증
+     * 
+     * 사용자 객체와 hash 값을 이용
+     */
+    private static User authenticate(User user, String password) {
+        if (!user.isAnonymous()) {
+            if (user.password.equals(password)) {
+                return user;
+            }
+        }
+        return null;
+    }
+    
+    /*
+     * 시스템 설정에서 가입 승인 여부 조회
+     */
+    private static boolean isUseSignUpConfirm(){
+        Configuration config = play.Play.application().configuration();
+        String useSignUpConfirm = config.getString("signup.require.confirm");
+        if (useSignUpConfirm != null && useSignUpConfirm.equals("true")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    /*
+     * 로그인 유지기능 활성화
+     */
+    private static void setupRememberMe(User user) {
+        response().setCookie(TOKEN, user.loginId + ":" + user.password, MAX_AGE);
+        Logger.debug("remember me enabled");
+    }
+    
+    /*
+     * 로그아웃 처리
+     * 
+     * 세션 데이터 클리어
+     * 로그인 유지 쿠키 폐기
+     */
+    private static void processLogout() {
+        session().clear();
+        response().discardCookie(TOKEN);
+    }
+    
+    /*
+     * 사용자 가입 입력 폼 유효성 체크
+     */
+    private static void validate(Form<User> newUserForm) {
+        // loginId가 빈 값이 들어오면 안된다.
+        if (newUserForm.field("loginId").value() == "") {
+            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        }
+
+        if (newUserForm.field("loginId").value().contains(" ")) {
+            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        }
+
+        // password가 빈 값이 들어오면 안된다.
+        if (newUserForm.field("password").value() == "") {
+            newUserForm.reject("password", "user.wrongPassword.alert");
+        }
+
+        // 중복된 loginId로 가입할 수 없다.
+        if (User.isLoginIdExist(newUserForm.field("loginId").value())) {
+            newUserForm.reject("loginId", "user.loginId.duplicate");
+        }
+        
+        // TODO : 이메일 중복 체크
+    }
+    
+    /*
+     * 신규 가입 사용자 생성
+     */
+    private static User createNewUser(User user) {
+        RandomNumberGenerator rng = new SecureRandomNumberGenerator();
+        user.passwordSalt = rng.nextBytes().getBytes().toString();
+        user.password = hashedPassword(user.password, user.passwordSalt);
+        user.avatarUrl = DEFAULT_AVATAR_URL;
+        if (isUseSignUpConfirm()) {
+            user.isLocked = true;
+        }
+        return user;
+    }
+    
+    /*
+     * 사용자 정보를 세션에 저장한다 (로그인 처리됨)
+     */
+    private static void addUserInfoToSession(User user) {
+        session(SESSION_USERID, String.valueOf(user.id));
+        session(SESSION_LOGINID, user.loginId);
+        session(SESSION_USERNAME, user.name);
     }
 }
