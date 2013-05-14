@@ -51,8 +51,9 @@ public class ProjectAppTest {
                 Tag expected = new Tag();
                 expected.id = Long.valueOf(field.getKey());
                 expected.name = field.getValue().asText();
+
                 assertThat(expected.name).isEqualTo("OS - linux");
-                assertThat(Project.findByNameAndOwner("hobi", "nForge4java").tags.contains(expected)).isTrue();
+                assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").tags.contains(expected)).isTrue();
             }
         });
     }
@@ -62,7 +63,7 @@ public class ProjectAppTest {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
-                Project project = Project.findByNameAndOwner("hobi", "nForge4java");
+                Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
                 Tag tag1 = new Tag("OS", "linux");
                 tag1.save();
@@ -98,7 +99,7 @@ public class ProjectAppTest {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
-                Project project = Project.findByNameAndOwner("hobi", "nForge4java");
+                Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
                 Tag tag1 = new Tag("OS", "linux");
                 tag1.save();
@@ -123,7 +124,7 @@ public class ProjectAppTest {
 
                 //Then
                 assertThat(status(result)).isEqualTo(204);
-                assertThat(Project.findByNameAndOwner("hobi", "nForge4java").tags.contains(tag1)).isFalse();
+                assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").tags.contains(tag1)).isFalse();
             }
         });
     }

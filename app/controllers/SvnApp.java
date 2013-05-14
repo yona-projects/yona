@@ -58,7 +58,7 @@ public class SvnApp extends Controller {
         }
 
         // Get userName and pathInfo from path segments.
-        String userName = segments[1];
+        String loginId = segments[1];
         String pathInfo = segments[2];
 
         // Get projectName from the pathInfo.
@@ -67,7 +67,7 @@ public class SvnApp extends Controller {
         // if user is anon, currentUser is null
         User currentUser = UserApp.currentUser();
         // Check the user has a permission to access this repository.
-        Project project = Project.findByNameAndOwner(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         PlayRepository repository = RepositoryService.getRepository(project);
         if (!AccessControl.isAllowed(currentUser, repository.asResource(),
@@ -86,7 +86,7 @@ public class SvnApp extends Controller {
         PlayServletResponse response = new PlayServletResponse(response());
 
         // Get DAVServlet from SVNRepository and serve the request using it.
-        RepositoryService.createDavServlet(userName).service(request, response);
+        RepositoryService.createDavServlet(loginId).service(request, response);
 
         response.flushBuffer();
 

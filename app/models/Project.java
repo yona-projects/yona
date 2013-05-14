@@ -99,22 +99,21 @@ public class Project extends Model {
 				.findPagingList(pageSize).getPage(pageNum);
 	}
 
-	public static Project findByNameAndOwner(String userName, String projectName) {
-		return find.where().eq("name", projectName).eq("owner", userName)
+	public static Project findByOwnerAndProjectName(String loginId, String projectName) {
+		return find.where().eq("owner", loginId).eq("name", projectName)
 				.findUnique();
 	}
 
 	/**
-	 * 해당 프로젝트가 존재하는지 여부를 검사합니다. 해당 파라미터에 대하여 프로젝트가 존재하면 true, 존재하지 않으면 false를
-	 * 반환합니다.
+	 * 해당 프로젝트 존재 여부를 반환한다.
 	 *
-	 * @param userName 사용자이름
-	 * @param projectName 프로젝트이름
-	 * @return
+	 * @param loginId 로그인 아이디
+	 * @param projectName 프로젝트 이름
+	 * @return 프로젝트가 존재하면 true, 존재하지 않으면 false
 	 */
-	public static boolean exists(String userName, String projectName) {
-		int findRowCount = find.where().eq("name", projectName)
-				.eq("owner", userName).findRowCount();
+	public static boolean exists(String loginId, String projectName) {
+		int findRowCount = find.where().eq("owner", loginId)
+				.eq("name", projectName).findRowCount();
 		return (findRowCount != 0) ? true : false;
 	}
 

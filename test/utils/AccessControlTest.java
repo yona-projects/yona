@@ -13,7 +13,7 @@ public class AccessControlTest extends ModelTest<Role>{
     public void isAllowed_siteAdmin() {
         // Given
         User admin = User.findByLoginId("admin");
-        Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
+        Project nforge4java = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
         // When
         boolean canUpdate = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.UPDATE);
@@ -30,7 +30,7 @@ public class AccessControlTest extends ModelTest<Role>{
     public void isAllowed_projectCreator() {
         // Given
         User hobi = User.findByLoginId("hobi");
-        Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
+        Project nforge4java = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
         // When
         boolean canUpdate = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.UPDATE);
@@ -47,7 +47,7 @@ public class AccessControlTest extends ModelTest<Role>{
     public void isAllowed_notAMember() {
         // Given
         User notMember = User.findByLoginId("nori");
-        Project nforge4java = Project.findByNameAndOwner("hobi", "nForge4java");
+        Project nforge4java = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
         // When
         boolean canUpdate = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.UPDATE);

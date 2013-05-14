@@ -33,10 +33,10 @@ public class CodeHistoryApp extends Controller {
         return history(userName, projectName, null);
     }
 
-    public static Result history(String userName, String projectName, String branch) throws IOException,
+    public static Result history(String loginId, String projectName, String branch) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        Project project = Project.findByNameAndOwner(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -57,10 +57,10 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
-    public static Result show(String userName, String projectName, String commitId)
+    public static Result show(String loginId, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        Project project = Project.findByNameAndOwner(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }

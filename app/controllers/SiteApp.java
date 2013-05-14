@@ -166,7 +166,7 @@ public class SiteApp extends Controller {
                 String[] parts = projectName.split("/");
                 String owner = parts[0];
                 String name = parts[1];
-                Project project = Project.findByNameAndOwner(owner, name);
+                Project project = Project.findByOwnerAndProjectName(owner, name);
                 for (ProjectUser projectUser : ProjectUser.findMemberListByProject(project.id)) {
                     Logger.debug(projectUser.user.email);
                     emails.add(projectUser.user.email);

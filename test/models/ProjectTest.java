@@ -101,7 +101,7 @@ public class ProjectTest extends ModelTest<Project> {
         String userName = "hobi";
         String projectName = "nForge4java";
         // When
-        Project project = Project.findByNameAndOwner(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         // Then
         assertThat(project.id).isEqualTo(1l);
     }
@@ -115,6 +115,7 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         boolean result1 = Project.exists(userName, projectName);
         boolean result2 = Project.exists(userName, newProjectName);
+
         // Then
         assertThat(result1).isEqualTo(true);
         assertThat(result2).isEqualTo(false);

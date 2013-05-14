@@ -38,7 +38,7 @@ public class IssueAppTest {
         app = Helpers.fakeApplication(Helpers.inMemoryDatabase());
         Helpers.start(app);
 
-        Project project = Project.findByNameAndOwner("hobi", "nForge4java");
+        Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
         admin = User.findByLoginId("admin");
         manager = User.findByLoginId("hobi");
         member = User.findByLoginId("k16wire");

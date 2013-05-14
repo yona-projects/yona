@@ -85,7 +85,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     public void roleOf() {
         // GIVEN
         String loginId = "hobi";
-        Project project = Project.findByNameAndOwner(loginId, "nForge4java");
+        Project project = Project.findByOwnerAndProjectName(loginId, "nForge4java");
         // WHEN
         String roleName = ProjectUser.roleOf(loginId, project);
         // THEN
@@ -116,7 +116,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     public void isAllowedToSettings() {
         // GIVEN
         String loginId = "hobi";
-        Project project = Project.findByNameAndOwner(loginId, "nForge4java");
+        Project project = Project.findByOwnerAndProjectName(loginId, "nForge4java");
         // WHEN // THEN
         assertThat(ProjectUser.isAllowedToSettings(loginId, project)).isTrue();
         // WHEN // THEN
