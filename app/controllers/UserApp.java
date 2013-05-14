@@ -279,6 +279,11 @@ public class UserApp extends Controller {
 		if (User.isLoginIdExist(newUserForm.field("loginId").value())) {
 			newUserForm.reject("loginId", "user.loginId.duplicate");
 		}
+		
+		if (User.isEmailExist(newUserForm.field("email").value())) {
+		    newUserForm.reject("email", "validation.duplicated");
+		}
+		
 	}
 
 	public static Result memberEdit(Long userId) {
