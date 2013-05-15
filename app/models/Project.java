@@ -185,27 +185,25 @@ public class Project extends Model {
      *
      * 사이트관리자가 사용자 삭제시 사용한다.
      *
-     * TODO 네이밍과 반환타입이 맞지 않음.
-     * TODO 현재는 해당 사용자에 관계없이 프로젝트당 관리자가 1명 이상일 경우 사용자를 삭제하고 있음. 기준이 모호함
-     *
      * @param userId the user id
-     * @return the list
+     * @return {@code userId} 가 유일한 관리자인 프로젝트가 있으면 true, 없으면 false
      * @see {@link RoleType#MANAGER}
      */
-    public static List<Project> isOnlyManager(Long userId) {
+    public static boolean isOnlyManager(Long userId) {
         List<Project> projects = find.select("id").select("name").where()
                 .eq("projectUser.user.id", userId)
                 .eq("projectUser.role.id", RoleType.MANAGER.roleType())
                 .findList();
+
         Iterator<Project> iterator = projects.iterator();
+
         while (iterator.hasNext()) {
             Project project = iterator.next();
-            if (ProjectUser.checkOneMangerPerOneProject(project.id)) {
-                iterator.remove();
+            if (ProjectUser.checkOneMangerPerOneProject(userId, project.id)) {
+                return true;
             }
         }
-
-        return projects;
+        return false;
     }
 
     /**

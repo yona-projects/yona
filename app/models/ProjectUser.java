@@ -98,15 +98,17 @@ public class ProjectUser extends Model {
     }
 
     /**
-     * 해당 프로젝트에 최소 1명 이상의 관리자가 남아있는지 확인합니다.
+     * 해당 프로젝트에 {@code userId} 를 제외한 최소 1명 이상의 관리자가 남아있는지 확인합니다.
      *
-     * @param projectId
+     * @param userId 사용자 아이디
+     * @param projectId 프로젝트 아이디
      * @return
      */
-    public static boolean checkOneMangerPerOneProject(Long projectId) {
+    public static boolean checkOneMangerPerOneProject(Long userId, Long projectId) {
         int findRowCount = find.where().eq("role.id", RoleType.MANAGER.roleType())
-                .eq("project.id", projectId).findRowCount();
-        return (findRowCount > 0) ? true : false;
+                .eq("project.id", projectId).ne("user.id", userId).findRowCount();
+
+        return (findRowCount > 0) ? false : true;
     }
 
     /**
