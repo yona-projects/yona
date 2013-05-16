@@ -94,10 +94,10 @@ public class SiteApp extends Controller {
 
     public static Result deleteUser(Long userId) {
         if (User.findByLoginId(session().get("loginId")).isSiteManager()){
-            if (!Project.isOnlyManager(userId)) {
-                User.find.byId(userId).delete();                
-            } else {
+            if (Project.isOnlyManager(userId)) {
                 flash(Constants.WARNING, "site.userList.deleteAlert");                
+            } else {
+                User.find.byId(userId).delete();                
             }
         } else {
             flash(Constants.WARNING, "auth.unauthorized.waringMessage");
