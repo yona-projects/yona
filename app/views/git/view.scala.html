@@ -1,0 +1,58 @@
+@(project: Project, pull: PullRequest, isSafe: Boolean)
+
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+
+@main(Messages("title.commitHistory"), project, utils.MenuType.PULL_REQUEST) {
+    <div class="page">
+        @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+
+        <ul class="nav nav-tabs hive-tabs">
+            <li class="active">
+                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.id)">개요</a>
+            </li>
+            <li>
+                <a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.id)">커밋</a>
+            </li>
+        </ul>
+
+        @** Pull Request Info **@
+        <div class="board-header">
+            <div class="board-id div">@pull.id</div>
+            <h1 class="title div">@pull.title</h1>
+            <div class="date div">@utils.TemplateHelper.agoString(pull.createdAgo())</div>
+            <div class="div">
+                <span class="badge badge-issue-@pull.state.state.toLowerCase">@Messages("issue.state." + pull.state.state)</span>
+            </div>
+        </div>
+
+        <div class="board-body">
+            <p class="labels-wrap">
+                <button class="issue-label">@pull.fromProject.owner/@pull.fromProject.name/@pull.fromBranch</button>
+                <button class="issue-label disabled"><i class="icon-arrow-right"></i></button>
+                <button class="issue-label">@pull.toProject.owner/@pull.toProject.name/@pull.toBranch</button>
+            </p>
+            <div class="content" markdown="true">@pull.body</div>
+        </div>
+
+        @if(pull.isOpen()){
+            @if(isSafe){
+                <p>@Messages("pullRequest.is.safe")</p>
+            } else {
+                <p>@Messages("pullRequest.is.not.safe")</p>
+            }
+        }
+
+        <div class="board-footer board-actrow">
+            @if(pull.isOpen()){
+                @if(isSafe){
+                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="n-btn orange med">@Messages("pullRequest.accept")</a>
+                }
+                <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="n-btn orange med">@Messages("pullRequest.reject")</a>
+                <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="n-btn gray med">@Messages("pullRequest.cancel")</a>
+            }
+        </div>
+    </div>
+
+@views.html.markdown()
+}

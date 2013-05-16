@@ -10,9 +10,16 @@
             <a href="@routes.Application.index()" class="logo"><span>HIVE</span></a>
 
 			<h1 class="page-title">
-				<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / </span><!-- 
-				 --><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
+				<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / </span>
+                <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
 			</h1>
+            @if(project.originalProject != null){
+                <h1 class="page-title">
+                    &nbsp;forked from
+                    <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
+                    <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
+                </h1>
+            }
 
 			<div class="gnb-menus right">
 				@if(session.contains("loginId")){
@@ -35,20 +42,20 @@
 				</div>
 				} else {
 				<div class="usermenu lnk-group">
-			<a href="@routes.UserApp.loginForm()">
-				<span class="avatar-wrap smaller">
-					<img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20">
-				</span>
-				@Messages("title.login")
-			</a><!--
-                 --><a href="@routes.UserApp.signupForm()">@Messages("title.signup")</a>
+                    <a href="@routes.UserApp.loginForm()">
+                        <span class="avatar-wrap smaller">
+                            <img src="@routes.Assets.at("images/default-avatar-34.png")" width="20" height="20">
+                        </span>
+                        @Messages("title.login")
+                    </a>
+                    <a href="@routes.UserApp.signupForm()">@Messages("title.signup")</a>
 				</div>
 				}
 
 				<div class="search-bar">
-			<form action="@routes.ProjectApp.projects()" class="form-searchbar">
-						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!--
-					 --><button type="submit" class="ico ico-search"></button>
+			        <form action="@routes.ProjectApp.projects()" class="form-searchbar">
+						<input type="text" class="text" name="filter" autocomplete="off" accesskey="S">
+                        <button type="submit" class="ico ico-search"></button>
 					</form>
 				</div>
 			</div>

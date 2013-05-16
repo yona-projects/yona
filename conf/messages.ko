@@ -11,6 +11,7 @@ title.projectHome = Overview
 title.newProject = 새 프로젝트 시작
 title.projectSetting = 프로젝트 설정
 title.memberList = 멤버 목록
+title.post.notExistingPage = 페이지를 찾지 못했습니다.
 title.siteSetting = 사이트 설정
 title.site.userEdit = 사용자 설정
 title.login = 로그인
@@ -26,6 +27,7 @@ title.projectList = 프로젝트 목록
 title.help = 도움말
 title.search = 검색
 title.resetPassword = 비밀번호 재설정
+title.newPullRequest = 코드 보내기
 
 hive.name = HIVE
 hive.title = 협업개발 플랫폼
@@ -39,6 +41,7 @@ menu.wiki = 위키
 menu.admin = 프로젝트 설정
 menu.siteAdmin = 사이트 관리
 menu.task = 작업
+menu.pullRequest = 코드 주고받기
 
 message.warning = 경고
 message.success = 성공
@@ -294,7 +297,7 @@ project.onmember = <strong>{0}명</strong> 참여 중
 project.lastUpdate = 마지막 업데이트
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
-project.history.item = {0}님이 {1} {2}  
+project.history.item = {0}님이 {1} {2}
 project.history.type.commit = 코드를 커밋했습니다
 project.history.type.issue = 새 이슈를 등록했습니다
 project.history.type.post = 새 글을 작성했습니다
@@ -322,7 +325,6 @@ site.userlist.locked = 계정이 잠긴 사용자 목록
 site.massMail.toAll = 모두에게
 site.massMail.toProjects = 특정 프로젝트의 멤버들에게
 site.massMail.loading = 불러오는중...
-
 
 #User
 user.loginId = 아이디
@@ -374,6 +376,7 @@ time.days = {0} 일 전
 board.post.empty = 제목과 본문에 빈칸이 있습니다.
 board.post.notExist = 존재하지 않는 게시물입니다.
 board.post.new = 새 게시물
+board.write = 글쓰기
 board.post.modify = 게시물 수정
 board.comment.empty = 댓글 내용은 반드시 입력해야 합니다.
 board.notAuthor = 글쓴이가 아닙니다.
@@ -395,7 +398,6 @@ code.older = 다음
 code.repoUrl = 저장소 URL
 
 #mail
-
 mail.password = 비밀번호
 mail.passwordPlaceholder = 이 비밀번호는 서버에 평문으로 저장됩니다.
 mail.host =	호스트
@@ -409,7 +411,6 @@ mail.tls = TLS
 mail.authMethod = 인증 방법
 mail.save = 저장
 mail.authMethodPlaceholder = LOGIN 혹은 PLAIN
-
 mail.notConfigured = 메일러가 설정되지 않았습니다. conf/application.conf에서 다음의 속성을 설정해주세요.
 mail.from = 보내는 메일 주소
 mail.fromPlaceholder = sender@mail.com
@@ -474,3 +475,19 @@ error.notfound.post = 존재하지 않는 글입니다
 error.notfound.issue = 존재하지 않는 이슈입니다
 error.forbidden = 권한이 없습니다
 error.unauthorized = 로그인 해야 합니다
+
+#PullReqeust
+pullRequest.is.safe = 코드를 안전하게 자동으로 병합할 수 있습니다.
+pullRequest.is.not.safe = 코드를 자동으로 병합할 때 충돌이 발생합니다. 자동으로 코드를 병합할 수 없습니다.
+pullRequest.accept = 수락
+pullRequest.reject = 보류
+pullRequest.cancel = 취소
+pullRequest.select.branch = 브랜치를 선택하세요.
+pullRequest.from = 코드 보내는 곳
+pullRequest.to = 코드 받을 곳
+pullRequest.opened.code = 확인할 코드
+pullRequest.accepted.code = 받은 코드
+pullRequest.rejected.code = 보류한 코드
+pullRequest.sent.code = 보낸 코드
+fork = 프로젝트 복사
+pullRequest = 코드 보내기

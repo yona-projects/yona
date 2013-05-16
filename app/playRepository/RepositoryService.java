@@ -262,21 +262,7 @@ public class RepositoryService {
         return servlet;
     }
 
-    /**
-     * {@code project}의 Git 저장소를 반환한다.
-     * <p/>
-     * when: {@link #gitAdvertise(models.Project, String, play.mvc.Http.Response)}와
-     * {@link #gitRpc(models.Project, String, play.mvc.Http.Request, play.mvc.Http.Response)}에서 사용한다.
-     * <p/>
-     * {@link GitRepository#buildGitRepository(models.Project)}를 사용하여 Git 저장소를 참조할 객체를 생성한다.
-     *
-     * @param project
-     * @return
-     * @throws IOException
-     */
-    public static Repository createGitRepository(Project project) throws IOException {
-        return GitRepository.buildGitRepository(project);
-    }
+
 
     /**
      * Git advertise 요청을 처리한다.
@@ -300,7 +286,7 @@ public class RepositoryService {
         packetLineOut.end();
         PacketLineOutRefAdvertiser packetLineOutRefAdvertiser = new PacketLineOutRefAdvertiser(packetLineOut);
 
-        Repository repository = createGitRepository(project);
+        Repository repository = GitRepository.createGitRepository(project);
 
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);
@@ -348,7 +334,7 @@ public class RepositoryService {
             in = new FileInputStream(raw.asFile());
         }
 
-        Repository repository = createGitRepository(project);
+        Repository repository = GitRepository.createGitRepository(project);
 
         if (service.equals("git-upload-pack")) {
             UploadPack uploadPack = new UploadPack(repository);

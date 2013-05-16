@@ -1,7 +1,7 @@
 package models.enumeration;
 
 public enum State {
-    ALL("all"), OPEN("open"), CLOSED("closed");
+    ALL("all"), OPEN("open"), CLOSED("closed"), REJECTED("rejected");
     private String state;
 
     State(String state) {
