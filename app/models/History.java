@@ -5,17 +5,27 @@ import playRepository.Commit;
 import java.util.*;
 
 /**
+ * 프로젝트 Overview 화면에서 보여줄 히스토리를 나타내는 클래스
+ *
  * @author Keesun Baik
  */
 public class History {
 
     private String who;
+
+    /**
+     * 사용자 페이지로 이동할 수 있는 링크에 사용할 URL
+     */
     private String userPageUrl;
     private String userAvatarUrl;
     private Date when;
     private String where;
     private String what;
     private String how;
+
+    /**
+     * 특정 작업(이슈, 게시물, 커밋)을 구체적으로 조회할 수 있는 링크에 사용할 URL
+     */
     private String url;
 
     public String getWho() {
@@ -82,8 +92,24 @@ public class History {
     	return userAvatarUrl;
     }
     
+    /**
+     * {@code commits}, {@code issues}, {@code postings} 목록으로 {@link History} 목록을 만들어 반환한다.
+     *
+     * when: 프로젝트 Overview 화면에 보여줄 히스토리 목록을 생성할 때 사용한다.
+     *
+     * 커밋 목록으로 히스토리 목록을 만들 때는 커밋 author의 email에 해당하는 사용자가 있는지 확인한다.
+     * 해당하는 사용자가 없는 경우에는 {@link #userPageUrl}을 설정하지 않는다.
+     * 히스토리 목록을 만든다음 최근에 발생한 이벤트 순으로 정렬하여 목록을 반환한다.
+     *
+     * @param userName
+     * @param project
+     * @param commits
+     * @param issues
+     * @param postings
+     * @return
+     */
     public static List<History> makeHistory(String userName, Project project, List<Commit> commits, List<Issue> issues, List<Posting> postings) {
-        List<History> histories = new ArrayList<History>();
+        List<History> histories = new ArrayList<>();
         if(commits != null) {
             for(Commit commit : commits) {
                 History commitHistory = new History();
