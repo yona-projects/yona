@@ -27,16 +27,16 @@ public class CodeHistoryApp extends Controller {
 
     private static final int HISTORY_ITEM_LIMIT = 25;
 
-    public static Result historyUntilHead(String userName, String projectName) throws IOException,
+    public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        return history(userName, projectName, null);
+        return history(ownerName, projectName, null);
     }
 
-    public static Result history(String loginId, String projectName, String branch) throws IOException,
+    public static Result history(String ownerName, String projectName, String branch) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -57,10 +57,10 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
-    public static Result show(String loginId, String projectName, String commitId)
+    public static Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.project.unauthorized.render(project));
         }
