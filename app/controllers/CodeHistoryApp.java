@@ -27,12 +27,51 @@ public class CodeHistoryApp extends Controller {
 
     private static final int HISTORY_ITEM_LIMIT = 25;
 
+
+    /**
+     * 코드 저장소의 커밋 로그 목록 페이지에 대한 요청에 응답한다.
+     *
+     * when: 코드 메뉴의 커밋 탭을 클릭했을 때
+     *
+     * {@code ownerName}과 {@code projectName}에 대응하는 프로젝트의 코드 저장소에서, HEAD 까지의 커밋
+     * 목록에 대한 페이지로 응답한다. 브랜치는 선택하지 않은 것으로 간주한다.
+     *
+     * @param ownerName 프로젝트 소유자
+     * @param projectName 프로젝트 이름
+     * @return 커밋 로그 목록 HTML 페이지를 담은 응답
+     * @throws IOException
+     * @throws UnsupportedOperationException
+     * @throws ServletException
+     * @throws GitAPIException
+     * @throws SVNException
+     */
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         return history(ownerName, projectName, null);
     }
 
+    /**
+     * 코드 저장소의 특정 {@code branch}에 대한 커밋 로그 목록 페이지에 대한 요청에 응답한다.
+     *
+     * when: 코드 메뉴의 커밋 탭에서 특정 브랜치를 선택했을 때
+     *
+     * {@code ownerName}과 {@code projectName}에 대응하는 프로젝트의 코드 저장소에서, 지정한
+     * {@code branch}의 커밋 목록 중, 한 페이지의 크기를 {@link #HISTORY_ITEM_LIMIT}로 했을 때
+     * {@code page}(요청의 쿼리에서 얻음)번째 페이지를 응답 메시지에 담아 반환한다.
+     *
+     * 만약 HEAD가 존재하지 않는 경우에는, 저장소를 만들어야 한다는 안내 페이지로 응답한다.
+     *
+     * @param ownerName 프로젝트 소유자
+     * @param projectName 프로젝트 이름
+     * @param branch 선택한 브랜치
+     * @return 커밋 로그 목록 HTML 페이지를 담은 응답
+     * @throws IOException
+     * @throws UnsupportedOperationException
+     * @throws ServletException
+     * @throws GitAPIException
+     * @throws SVNException
+     */
     public static Result history(String ownerName, String projectName, String branch) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
@@ -67,6 +106,24 @@ public class CodeHistoryApp extends Controller {
         }
     }
 
+    /**
+     * 코드 저장소의 특정 커밋을 보여달라는 요청에 응답한다.
+     *
+     * when: 코드 메뉴의 커밋 탭에서, 커밋의 목록 중 특정 커밋을 클릭했을 때
+     *
+     * {@code ownerName}과 {@code projectName}에 대응하는 프로젝트의 코드 저장소에서, 지정한
+     * {@code commitId}에 해당하는 커밋과 그 부모 커밋과의 차이를 HTML 페이지로 렌더링하여 응답한다.
+     *
+     * @param ownerName 프로젝트 소유자
+     * @param projectName 프로젝트 이름
+     * @param commitId 커밋 아이디
+     * @return 특정 커밋을 보여주는 HTML 페이지를 담은 응답
+     * @throws IOException
+     * @throws UnsupportedOperationException
+     * @throws ServletException
+     * @throws GitAPIException
+     * @throws SVNException
+     */
     public static Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
