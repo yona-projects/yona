@@ -18,6 +18,12 @@ HIVE는 GNU GPL v2로 배포되는 오픈소스입니다. (MIT 라이센스로 �
 
 ## 설치하기
 
+### java version 확인
+
+    java -version
+
+java 7(1.7) 이상이어야 합니다.
+
 ### playframework 내려 받기
     
     curl -O http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
