@@ -37,10 +37,15 @@ public class CodeHistoryApp extends Controller {
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
+
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return forbidden(views.html.project.unauthorized.render(project));
         }
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
@@ -51,9 +56,14 @@ public class CodeHistoryApp extends Controller {
 
         try {
             List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch);
+
+            if (commits == null) {
+                return notFound();
+            }
+
             return ok(history.render(project, commits, page, branch));
         } catch (NoHeadException e) {
-            return ok(nohead.render(project));
+            return notFound(nohead.render(project));
         }
     }
 
@@ -61,10 +71,20 @@ public class CodeHistoryApp extends Controller {
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+
+        if (project == null) {
+            return notFound();
         }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return forbidden(views.html.project.unauthorized.render(project));
+        }
+
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
+
+        if (patch == null) {
+            return notFound();
+        }
 
         return ok(diff.render(project, commitId, patch));
     }

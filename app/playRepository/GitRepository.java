@@ -295,6 +295,11 @@ public class GitRepository implements PlayRepository {
     public String getPatch(String rev) throws GitAPIException, IOException {
         // Get the trees, from current commit and its parent, as treeWalk.
         ObjectId commitId = repository.resolve(rev);
+
+        if (commitId == null) {
+            return null;
+        }
+
         TreeWalk treeWalk = new TreeWalk(repository);
         RevWalk revWalk = new RevWalk(repository);
         RevCommit commit = revWalk.parseCommit(commitId);
@@ -332,7 +337,11 @@ public class GitRepository implements PlayRepository {
         // Get the list of commits from HEAD to the given pageNumber.
         LogCommand logCommand = new Git(repository).log();
         if (untilRevName != null) {
-            logCommand.add(repository.resolve(untilRevName));
+            ObjectId objectId = repository.resolve(untilRevName);
+            if (objectId == null) {
+                return null;
+            }
+            logCommand.add(objectId);
         }
         Iterable<RevCommit> iter = logCommand.setMaxCount(pageNumber * pageSize + pageSize).call();
         List<RevCommit> list = new LinkedList<>();
