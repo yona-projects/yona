@@ -16,7 +16,6 @@
                         <img src="@user.avatarUrl" width="128" height="128" />
                     </div>
 					<p class="uname">@user.name</p>
-					<p class="name">(@user.loginId)</p>
 					@if(user != null && session != null && user.loginId == session.get("loginId")){
                     <a href="@routes.UserApp.editUserInfoForm()" class="nbtn white small">
                         <i class="ico ico-edit-small vmiddle"></i>
