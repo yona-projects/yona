@@ -22,6 +22,7 @@ import play.data.format.Formats;
 import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
+import utils.ReservedWordsValidator;
 
 import com.avaje.ebean.Page;
 
@@ -63,6 +64,7 @@ public class User extends Model {
      * 로그인할 때 사용할 아이디
      */
     @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", message = "user.wrongloginId.alert") @Required
+    @ValidateWith(ReservedWordsValidator.class)
     public String loginId;
     /**
      * 비밀번호 수정할 때 기존 비밀번호 확인할 때 사용하는 값
@@ -147,7 +149,7 @@ public class User extends Model {
      * @return
      */
     public static Long create(User user) {
-    	user.createdDate = JodaDateUtil.now();
+        user.createdDate = JodaDateUtil.now();
         user.save();
         return user.id;
     }

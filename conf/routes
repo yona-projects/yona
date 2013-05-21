@@ -10,6 +10,7 @@ GET     /                                               controllers.Application.
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                   controllers.Assets.at(path="/public", file)
 GET     /messages.js                                    controllers.Application.jsMessages()
+GET     /favicon.ico                                    controllers.Assets.at(path="/public", file="images/favicon.ico")
 
 # Bootstrapping for test
 GET     /init                                           controllers.Application.init()
@@ -29,7 +30,6 @@ GET     /user/isExist/:loginId                          controllers.UserApp.isUs
 GET     /user/isEmailExist/:email                       controllers.UserApp.isEmailExist(email)
 
 GET 	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
-GET     /memberinfo/edit                                controllers.UserApp.memberEdit(userId:Long)
 
 # Site
 GET     /sites/setting                                  controllers.SiteApp.setting()

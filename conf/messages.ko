@@ -334,6 +334,7 @@ user.wrongPassword.alert = 잘못된 비밀번호입니다!
 user.name = 이름
 user.email = 이메일
 user.yourEmail = yourEmail@address.com
+user.email.duplicate = 이미 존재하는 이메일입니다.
 user.wrongEmail.alert = 이메일이 잘못되었습니다.
 user.login.failed = 아이디 또는 비밀번호가 잘못되었습니다.
 user.logout.success = 로그아웃했습니다
@@ -432,6 +433,7 @@ validation.invalidEmail = 올바른 이메일을 입력해 주세요.
 validation.required = 필수 항목 입니다.
 validation.duplicated = 이미 존재합니다!
 validation.allowedCharsForLoginId = 아이디는 알파벳 숫자 - _ . 를 포함할 수 있으나 _ . 로 시작하거나 끝날 수 없습니다.
+validation.reservedWord = 예약어는 사용할 수 없습니다.
 
 #Unauthorized
 auth.unauthorized.title = 접근 권한 오류
