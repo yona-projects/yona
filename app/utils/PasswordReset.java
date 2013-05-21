@@ -1,5 +1,6 @@
-package models;
+package utils;
 
+import models.User;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import org.apache.shiro.crypto.hash.Sha1Hash;
 import org.joda.time.DateTime;
@@ -9,53 +10,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PasswordReset {
-    private static Map<String, String> resetHashMap = new HashMap<String, String>();
-    private static Map<String, DateTime> resetHashTimetable = new HashMap<String, DateTime>();
-    public static final int HASH_EXPIRE_TIME_SEC = 3600;
+    public static Map<String, String> resetHashMap = new HashMap<>();
+    public static Map<String, Long> resetHashTimetable = new HashMap<>();
+    public static final int HASH_EXPIRE_TIME_MILLISEC = 3600*1000;
 
-    public static String generateResetHash(String userId) {
-        return new Sha1Hash(userId, new SecureRandomNumberGenerator().nextBytes(), 1).toHex();
+    public static String generateResetHash(String loginId) {
+        return new Sha1Hash(loginId, new SecureRandomNumberGenerator().nextBytes(), 1).toHex();
     }
 
     public static void addHashToResetTable(String userId, String hashString) {
         Logger.debug(">> add to HashTable " + userId + ":" + hashString);
         PasswordReset.resetHashMap.put(userId, hashString);
-        resetHashTimetable.put(hashString, new DateTime());
-    }
-
-    public static String getResetHash(String userId) {
-        return PasswordReset.resetHashMap.get(userId);
-    }
-
-    public static boolean invalidateResetHash(String userId) {
-        String targetIdToReset = PasswordReset.resetHashMap.get(userId);
-        if (targetIdToReset == null){
-            return false;
-        }
-
-        PasswordReset.resetHashMap.remove(userId);
-        return true;
-    }
-
-    public static boolean isHashExist(String userId) {
-        return PasswordReset.resetHashMap.get(userId) != null;
-    }
-
-    public static void resetHashTable() {
-        resetHashMap.clear();
+        resetHashTimetable.put(hashString, new DateTime().getMillis());
     }
 
     public static boolean isValidResetHash(String hashString) {
         Logger.debug("Reset hash entry size:" + resetHashMap.size());
-        for(Map.Entry<String, String> entry: resetHashMap.entrySet()){
-            Logger.debug(">> " + entry.getKey());
-        }
         if( !resetHashMap.containsValue(hashString) ) {
             Logger.debug("HashString doesn't exists in resetHashMap: " + hashString);
             return false;
         }
 
-        if(isExpiredHashString(hashString)) {
+        if(isExpired(hashString)) {
             Logger.debug("HashString was expired: " + hashString);
             return false;
         }
@@ -63,18 +39,15 @@ public class PasswordReset {
         return true;
     }
 
-    private static boolean isExpiredHashString(String hashString) {
-        return resetHashTimetable.get(hashString).getMillis() < new DateTime().minusSeconds(PasswordReset.HASH_EXPIRE_TIME_SEC).getMillis();
+    private static boolean isExpired(String hashString) {
+        return resetHashTimetable.get(hashString) + PasswordReset.HASH_EXPIRE_TIME_MILLISEC
+                < new DateTime().getMillis();
     }
 
-    public static void removeResetHash(String hashString) {
+    private static void removeResetHash(String hashString) {
         String key = getKeyByValue(resetHashMap, hashString);
         resetHashMap.remove(key);
         resetHashTimetable.remove(hashString);
-    }
-
-    static Map<String, DateTime> getResetHashTimetable(){
-        return resetHashTimetable;
     }
 
     private static <T, E> T getKeyByValue(Map<T, E> map, E value) {

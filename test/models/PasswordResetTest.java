@@ -6,6 +6,7 @@ import static org.fest.assertions.Fail.fail;
 import controllers.UserApp;
 import org.joda.time.DateTime;
 import org.junit.*;
+import utils.PasswordReset;
 
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
 
     @Before
     public void setUp() throws Exception {
-        PasswordReset.resetHashTable();
+        PasswordReset.resetHashMap.clear();
     }
 
     @Test
@@ -43,7 +44,7 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         PasswordReset.addHashToResetTable(userId, hashString);
 
         //Then
-        assertThat(PasswordReset.getResetHash(userId)).isEqualTo(hashString);
+        assertThat(getHashString(userId)).isEqualTo(hashString);
     }
 
     @Test
@@ -54,11 +55,11 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         PasswordReset.addHashToResetTable(userId, hashString);
 
         //When
-        boolean result = PasswordReset.invalidateResetHash(userId);
+        boolean result = invalidateResetHash(userId);
 
         //Then
         assertThat(result).isTrue();
-        assertThat(PasswordReset.getResetHash(userId)).isNull();
+        assertThat(getHashString(userId)).isNull();
     }
     
     @Test
@@ -69,7 +70,7 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         PasswordReset.addHashToResetTable(userId, hashString);
 
         //When
-        boolean result = PasswordReset.isHashExist(userId);
+        boolean result = hashStringExist(userId);
 
         //Then
         assertThat(result).isTrue();
@@ -81,7 +82,7 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         String userId = "doortts";
 
         //When
-        boolean result = PasswordReset.isHashExist(userId);
+        boolean result = hashStringExist(userId);
 
         //Then
         assertThat(result).isFalse();
@@ -102,12 +103,12 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         String userId = "doortts";
         String hashString = PasswordReset.generateResetHash(userId);
         PasswordReset.addHashToResetTable(userId, hashString);
-        Map<String, DateTime> timetable = PasswordReset.getResetHashTimetable();
+        Map<String, Long> timetable = getResetHashTimetable();
         DateTime current = new DateTime();
 
         //When //forced assume that time has passed
         timetable.remove(hashString);
-        timetable.put(hashString, current.minusSeconds(PasswordReset.HASH_EXPIRE_TIME_SEC+1));
+        timetable.put(hashString, current.minusSeconds(PasswordReset.HASH_EXPIRE_TIME_MILLISEC +1000).getMillis());
 
         //Then
         assertThat(PasswordReset.isValidResetHash(hashString)).isFalse();
@@ -125,20 +126,6 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
 
         //Then
         assertThat(result).isTrue();
-    }
-
-    @Test
-    public void testRemoveResetHash() {
-        //Given
-        String userId = "doortts";
-        String hashString = PasswordReset.generateResetHash(userId);
-        PasswordReset.addHashToResetTable(userId, hashString);
-
-        //When
-        PasswordReset.removeResetHash(hashString);
-
-        //Then
-        assertThat(PasswordReset.isValidResetHash(hashString)).isFalse();
     }
 
     @Test
@@ -172,5 +159,27 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         //Then
         assertThat(result).isFalse();
         assertThat(UserApp.authenticateWithPlainPassword(userId, newPassword)).isNull();
+    }
+
+    private static boolean hashStringExist(String loginId) {
+        return getHashString(loginId) != null;
+    }
+
+    private static String getHashString(String loginId) {
+        return PasswordReset.resetHashMap.get(loginId);
+    }
+
+    public static boolean invalidateResetHash(String loginId) {
+        String targetIdToReset = PasswordReset.resetHashMap.get(loginId);
+        if (targetIdToReset == null){
+            return false;
+        }
+
+        PasswordReset.resetHashMap.remove(loginId);
+        return true;
+    }
+
+    private static Map<String, Long> getResetHashTimetable(){
+        return PasswordReset.resetHashTimetable;
     }
 }

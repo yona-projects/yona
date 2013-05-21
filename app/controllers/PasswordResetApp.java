@@ -1,7 +1,7 @@
 package controllers;
 
 import info.schleichardt.play2.mailplugin.Mailer;
-import models.PasswordReset;
+import utils.PasswordReset;
 import models.User;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
