@@ -1,6 +1,7 @@
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -79,11 +80,11 @@ public class ProjectTest extends ModelTest<Project> {
     public void isOnlyManager() throws Exception {
         // Given
         // When
-        List<Project> projectsHobi = Project.isOnlyManager(2l);
-        List<Project> projectsEungjun = Project.isOnlyManager(5l);
+        boolean hobiIsOnlyManager = Project.isOnlyManager(2l);
+        boolean EungjunIsOnlyManager = Project.isOnlyManager(5l);
         // Then
-        assertThat(projectsHobi.size()).isEqualTo(0);
-        assertThat(projectsEungjun.size()).isEqualTo(0);
+        assertTrue(hobiIsOnlyManager);
+        assertFalse(EungjunIsOnlyManager);
     }
 
     @Test
