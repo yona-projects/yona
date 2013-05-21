@@ -169,6 +169,14 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         return PasswordReset.resetHashMap.get(loginId);
     }
 
+    /**
+     * 특정 loginId의 hashString을 제거한다.
+     *
+     * testability를 위해 만들어졌을 뿐 특별히 사용되는 곳은 없다.
+     *
+     * @param loginId
+     * @return 정상 제거 여부
+     */
     public static boolean invalidateResetHash(String loginId) {
         String targetIdToReset = PasswordReset.resetHashMap.get(loginId);
         if (targetIdToReset == null){
@@ -179,6 +187,13 @@ public class PasswordResetTest extends ModelTest<PasswordReset> {
         return true;
     }
 
+    /**
+     * {@code HashMap<hashString, millisecond>}을 돌려준다.
+     *
+     * 현재는 test코드 이외에서는 특별히 사용할 곳이 없다.
+     *
+     * @return
+     */
     private static Map<String, Long> getResetHashTimetable(){
         return PasswordReset.resetHashTimetable;
     }
