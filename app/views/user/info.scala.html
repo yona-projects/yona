@@ -12,11 +12,17 @@
 		<section class="user-box">
 			<div class="user-info-box">
 				<div class="whoami-wrap">
-					<div class="avatar">
-						<img src="@user.avatarUrl" width="127" height="127" class="img-rounded">
-					</div>
+				    <div class="avatar-wrap xlarge">
+                        <img src="@user.avatarUrl" width="128" height="128" />
+                    </div>
 					<p class="uname">@user.name</p>
 					<p class="name">(@user.loginId)</p>
+					@if(user != null && session != null && user.loginId == session.get("loginId")){
+                    <a href="@routes.UserApp.editUserInfoForm()" class="nbtn white small">
+                        <i class="ico ico-edit-small vmiddle"></i>
+                        @Messages("userinfo.editProfile")
+                    </a>
+                    }
 				</div>
 				<div class="user-location info-box">
 					<p class="u-location">
@@ -39,7 +45,7 @@
 				<hr />
 				<div class="user-other-info info-box">
 					<p class="since">
-						<strong>MEMBER SINCE</strong>
+						<strong>@Messages("userinfo.since")</strong>
 					</p>
 					<p>
 						<span class="since">@user.getDateString</span>
@@ -56,18 +62,21 @@
 			</div>
 
 			<div class="user-stream-box">
+			    @** TODO: 검색기능 (미구현 상태이므로 주석처리합니다)
+                <!--
 				<div class="user-stream-wrap">
 					<div class="header-wrap" style="margin-top: 0;">
 						<div class="search-wrap user-setting">
 							<div class="inner">
 								<form action="" method="get">
 									<input name="query" class="text" type="text" placeholder=""><!-- 
-									 --><button type="submit" class="btn search-btn">@Messages("title.search")</button>
+									 --<button type="submit" class="btn search-btn">@Messages("title.search")</button>
 								</form>
 							</div>
 						</div>
 					</div>
 				</div>
+				-->**@
 				<ul class="user-streams all-projects">
 					@for(project <- user.myProjects()){
 
@@ -78,7 +87,7 @@
 								@if(!project.isPublic){ <i class="ico ico-lock"></i> }
 								
 								@if(user != null && session != null && user.loginId == session.get("loginId")){
-								<!-- <a href="@routes.UserApp.leave(project.owner, project.name)" class="nbtn black small">탈퇴</a> -->
+								<a href="#" data-projectName="@project.name" class="nbtn black small leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a><!-- @routes.UserApp.leave(project.owner, project.name) -->
 								}
 							</div>
 							<div class="desc">@project.overview</div>
@@ -104,5 +113,18 @@
 		</section>
 	</div>
 </div>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $("a.leaveProject").click(function(weEvt){
+        var sProjectName = $(this).attr("data-projectName");
+        if(confirm(Messages("userinfo.leaveProject.confirm", sProjectName)) === false){
+            weEvt.preventDefault();
+            weEvt.stopPropagation();
+            return false;
+        }
+    });
+});
+</script>
 
 }

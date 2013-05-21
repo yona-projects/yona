@@ -327,6 +327,7 @@ user.wrongloginId.alert = 올바른 아이디를 입력하세요.
 user.loginId.duplicate = 이미 존재하는 아이디입니다.
 user.login.alert = 로그인이 필요합니다.
 user.password = 비밀번호
+user.currentPassword = 현재 비밀번호
 user.newPassword = 신규 비밀번호
 user.confirmPassword = 비밀번호 확인
 user.confirmPassword.alert = 입력한 두 비밀번호가 서로 일치하지 않습니다
@@ -445,6 +446,13 @@ userinfo.profile = 프로필
 userinfo.accountSetting = 설정
 userinfo.myProjects = 내 프로젝트
 userinfo.starredProjects = 관심 프로젝트
+userinfo.editProfile = 프로필 수정
+userinfo.changePassword = 비밀번호 변경
+userinfo.changeAvatar = 아바타 변경
+userinfo.changeAvatarHelp = 프로필 수정 버튼을 누르면<br>새 아바타가 반영됩니다
+userinfo.since = 가입일
+userinfo.leaveProject = 프로젝트 탈퇴
+userinfo.leaveProject.confirm = 정말 {0} 프로젝트에서 탈퇴하시겠습니까?
 
 #Admin
 admin.resetPasswordEmail.title = [HIVE] 비밀번호 재 설정

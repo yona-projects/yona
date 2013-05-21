@@ -2818,6 +2818,58 @@ div.markdown-preview {
     }
 }
 
+//-- user setting2
+.profile-frmwrap {
+    .avatar-frm {
+        display:inline-block;
+        vertical-align:top;
+        margin:30px; margin-right:50px;
+
+        .avatar-wrap {
+            position:relative;
+
+            .progress {
+                position:absolute;
+                width:130px; height:0px;
+                padding:0; margin:0; bottom:0px;
+                background:@primary; .opacity(80);
+                -webkit-transition-duration:1s;
+                &.loading { height:130px; }
+            }
+        }
+
+        .btn-wrap {
+            margin-left:10px;
+            .nbtn i { vertical-align:top; margin-right:2px; }
+        }
+    }
+
+    dl {
+        display:inline-block;
+    }
+
+    form {
+        display:inline-block;
+        vertical-align: top;
+        margin-right:50px;
+        &:last-of-type { margin-right:0px; }
+    }
+
+}
+#avatarUploaded {
+    display:none;
+
+    .msg {
+        width: 210px;
+        font-size: 11px;
+        padding: 5px; margin: 10px 0px;
+        text-align: center;
+        background: #FFF0E8;
+        border: 1px solid #fac7ab;
+        color: #F36C22;
+        font-weight: bold;
+    }
+}
 
 //-- user setting.
 .user-info-box {
@@ -2828,11 +2880,12 @@ div.markdown-preview {
     .border-radius(10px);
     /*.box-shadow(0 -1px 0 rgba(0,0,0, .15));*/
     .whoami-wrap {
+        padding: 10px;
+        text-align: center;
         background-color: @white;
         .border-radius(10px);
         .box-shadow(0 1px 0 rgba(0,0,0, .15));
-        padding: 10px;
-        text-align: center;
+
         .uname {
             font-size: 18px;
         }
@@ -2840,13 +2893,12 @@ div.markdown-preview {
             font-weight: bold;
             color: #707070;
         }
-        .avatar {
-            width:127px; height:127px;
-            overflow:hidden; margin-bottom:15px;
+        .avatar-wrap {
+            margin-bottom:15px;
             .inline-block;
-            .img-rounded;
         }
     }
+
     .user-location {
         color: #707070;
         font-size: 11px;
@@ -2858,6 +2910,7 @@ div.markdown-preview {
         }
 
     }
+
     .user-status {
         .labels {
             .inline-block;
@@ -2872,6 +2925,7 @@ div.markdown-preview {
         }
         p { line-height:2em; }
     }
+
     .user-other-info {
         p {
             color: #707070;

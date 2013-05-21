@@ -316,6 +316,7 @@ user.loginId.duplicate = Already existing ID
 user.login.alert = Please, login.
 user.password = Password
 user.newPassword = New Password
+user.currentPassword = Current Password
 user.confirmPassword = Confirm Password
 user.confirmPassword.alert = Password doesn't match the confirmation
 user.wrongPassword.alert = Wrong password!
@@ -433,6 +434,13 @@ userinfo.profile = My Profile
 userinfo.accountSetting = Account Setting
 userinfo.myProjects = My Projects
 userinfo.starredProjects = Starred
+userinfo.editProfile = Edit Profile
+userinfo.changePassword = Change Password
+userinfo.changeAvatar = Change Avatar
+userinfo.changeAvatarHelp = Uploaded image will be applied<br>after click 'Edit Profile' button
+userinfo.since = Member Since
+userinfo.leaveProject = Leave this project
+userinfo.leaveProject.confirm = Are you sure to leave {0}?
 
 #Admin
 admin.resetPasswordEmail.title = [HIVE] Password reset mail request
