@@ -16,6 +16,9 @@ import javax.persistence.*;
 import java.io.*;
 import java.util.*;
 
+/**
+ * 이슈
+ */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
 public class Issue extends AbstractPosting {
@@ -53,28 +56,47 @@ public class Issue extends AbstractPosting {
     @OneToMany(cascade = CascadeType.ALL)
     public List<IssueComment> comments;
 
+    /**
+     * @return
+     * @see models.AbstractPosting#computeNumOfComments()
+     */
     public int computeNumOfComments() {
         return comments.size();
     }
 
+    /**
+     * @return
+     * @see models.AbstractPosting#getFinder()
+     */
     @Override
     public Finder<Long, ? extends AbstractPosting> getFinder() {
         return finder;
     }
 
+    /**
+     * {@link Project}의 {@link Issue} 마다 유일하게 증가하는 번호를 갖도록
+     * 최근 이슈 번호를 반환한다.
+     *
+     * @return
+     * @see models.Project#increaseLastIssueNumber()
+     */
     @Override
     protected Long increaseNumber() {
         return project.increaseLastIssueNumber();
     }
 
     /**
-     * issueList, issue view에서 assignee의 이름을 출력해준다. 아래의 getAssigneeName과 합쳐질 수
-     * 있을듯.
+     * issueList, issue view에서 assignee의 이름을 출력해준다.
+     * 아래의 getAssigneeName과 합쳐질 수 있을듯.
      */
     public String assigneeName() {
         return (this.assignee != null ? assignee.user.name : null);
     }
 
+    /**
+     * 담당자가 지정되어 있다면 {@link Assignee} 정보를 저장한다.
+     * @see Assignee#add(Long, Long)
+     */
     private void fetchAssignee() {
         if (assignee != null && assignee.user.id != null) {
             assignee = Assignee.add(assignee.user.id, project.id);
@@ -83,18 +105,34 @@ public class Issue extends AbstractPosting {
         }
     }
 
+    /**
+     * 수정할 때 담당자 정보를 저장할 수도 있다.
+     * @see #fetchAssignee()
+     */
     @Transient
     public void update() {
         fetchAssignee();
         super.update();
     }
 
+    /**
+     * 저장할 때 담당자 정보를 저정할 수도 있다.
+     * @see #fetchAssignee()
+     */
     @Transient
     public void save() {
         fetchAssignee();
         super.save();
     }
 
+    /**
+     * {@code projectId}에 해당한느 프로젝트에
+     * {@link State}에 해당하는 이슈 개수를 반환한다.
+     *
+     * @param projectId
+     * @param state
+     * @return
+     */
     public static int countIssues(Long projectId, State state) {
         if (state == State.ALL) {
             return finder.where().eq("project.id", projectId).findRowCount();
@@ -218,6 +256,15 @@ public class Issue extends AbstractPosting {
         return fieldAsResource(ResourceType.ISSUE_ASSIGNEE);
     }
 
+    /**
+     * {@code project}에 최근에 생성된 이슈를 {@code size} 개수 만큼 반환한다.
+     *
+     * when: 프로젝트 overview 화면에서 최근 활동 내역 만들 때 사용한다.
+     *
+     * @param project
+     * @param size
+     * @return
+     */
     public static List<Issue> findRecentlyCreated(Project project, int size) {
         return finder.where().eq("project.id", project.id)
                 .order().desc("createdDate")
@@ -225,6 +272,10 @@ public class Issue extends AbstractPosting {
                 .getList();
     }
 
+    /**
+     * @return
+     * @see models.AbstractPosting#getComments()
+     */
     @Transient
     public List<? extends Comment> getComments() {
         return comments;
