@@ -436,3 +436,6 @@ userinfo.starredProjects = Starred
 admin.resetPasswordEmail.title = [HIVE] Password reset mail request
 admin.resetPasswordEmail.mailcontents = copy the below url and paste it to browser url bar
 admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
+
+#Attachment
+attach.attachIfYouSave = This will be attached if you save

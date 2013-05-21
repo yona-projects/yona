@@ -448,3 +448,6 @@ userinfo.starredProjects = 관심 프로젝트
 admin.resetPasswordEmail.title = [HIVE] 비밀번호 재 설정
 admin.resetPasswordEmail.mailcontents = 아래 URL을 브라우저 주소창에 붙여 넣으세요
 admin.resetPasswordEmail.invalidRequest = 잘못된 비밀번호 재 설정 요청입니다.
+
+#Attachment
+attach.attachIfYouSave = 저장하면 첨부됩니다
