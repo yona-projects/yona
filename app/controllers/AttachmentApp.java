@@ -39,6 +39,10 @@ public class AttachmentApp extends Controller {
      * 요청에 첨부파일이 없는 것으로 보일때는 400 Bad Request로 응답
      * 업로더가 익명 사용자일 경우에는 403 Forbidden 으로 응답
      *
+     * 업로드된 파일은 그 파일을 업로드한 사용자에게 첨부된 상태가 된다. 이후
+     * {@link Attachment#moveAll(models.resource.Resource, models.resource.Resource)} 등의 메소드를
+     * 사용해서 사용자의 첨부를 이슈 등의 다른 리소스로 옮길 수 있다.
+     *
      * @return 생성된 파일의 메타데이터를 JSON 타입으로 반환하는 응답
      * @throws NoSuchAlgorithmException
      * @throws IOException
@@ -94,8 +98,8 @@ public class AttachmentApp extends Controller {
         JsonNode responseBody = toJson(fileInfo);
 
         if (isCreated) {
-            // If an attachment has been created -- it does NOT mean that
-            // a file is created in the filesystem -- return 201 Created.
+            // If an attachment has been created - it does NOT mean that
+            // a file is created in the filesystem - return 201 Created.
             return created(responseBody);
         } else {
             // If the attachment already exists, return 200 OK.
