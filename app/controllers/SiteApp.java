@@ -1,8 +1,11 @@
 package controllers;
 
 import com.avaje.ebean.Page;
+
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
@@ -24,6 +27,10 @@ import static play.libs.Json.toJson;
  */
 public class SiteApp extends Controller {
     
+    private static final int PROJECT_COUNT_PER_PAGE = 25;
+    private static final int POSTING_COUNT_PER_PAGE = 30;
+    private static final int ISSUE_COUNT_PER_PAGE = 30;
+
     /**
      * 메일을 발송한다.
      * 
@@ -89,36 +96,10 @@ public class SiteApp extends Controller {
      * 
      * when 관리자 대량 메일 발송페이지
      * 
-     * {@code application.conf}에서 SMTP 관련 설정을 가져온다.
-     * {@code requiredItems} 중 설정되지 않은 item을 {@code notConfiguredItems}에 저장하고 페이지에 전달한다.
-     * 메일 sender는 {@code smtp.user}@{@code smtp.domain} 값으로 구성된다.
-     * 
      * @return the result
      */
     public static Result massMail() {
-        Configuration config = play.Play.application().configuration();
-        List<String> notConfiguredItems = new ArrayList<String>();
-        String[] requiredItems = {"smtp.host", "smtp.user", "smtp.password"};
-        for(String key : requiredItems) {
-            if (config.getString(key) == null) {
-                notConfiguredItems.add(key);
-            }
-        }
-
-        String sender = config.getString("smtp.user") + "@" + config.getString("smtp.domain");
-
-        return ok(massMail.render("title.massMail", notConfiguredItems, sender));
-    }
-
-    /**
-     * 사이즈 관리자 페이지로 이동한다.
-     * 
-     * TODO 페이지 개발
-     *
-     * @return the result
-     */
-    public static Result setting() {
-        return ok(setting.render("title.siteSetting"));
+        return ok(massMail.render("title.massMail"));
     }
 
     /**
@@ -149,7 +130,7 @@ public class SiteApp extends Controller {
      * @return the result
      */
     public static Result postList(int pageNum) {
-        Page<Posting> page = Posting.finder.order("createdDate DESC").findPagingList(30).getPage(pageNum - 1);
+        Page<Posting> page = Posting.finder.order("createdDate DESC").findPagingList(POSTING_COUNT_PER_PAGE).getPage(pageNum - 1);
         return ok(postList.render("title.siteSetting", page));
     }
 
@@ -159,28 +140,13 @@ public class SiteApp extends Controller {
      * when 관리자 페이지의 이슈 관리
      * 
      * 최근작성일로 정렬된 {@code pageNum} 에 해당하는 이슈 목록을 가져온다.
-     * 
-     * TODO Magic Number 제거
      *
      * @param pageNum page number
      * @return the result
      */
     public static Result issueList(int pageNum) {
-        Page<Issue> page = Issue.finder.order("createdDate DESC").findPagingList(30).getPage(pageNum - 1);
+        Page<Issue> page = Issue.finder.order("createdDate DESC").findPagingList(ISSUE_COUNT_PER_PAGE).getPage(pageNum - 1);
         return ok(issueList.render("title.siteSetting", page));
-    }
-
-    /**
-     * 사용자 목록 조회
-     * 
-     * TODO userList로 통합되었음 삭제 예정
-     * TODO userList.scala.html의 form 정보도 searchUser() --> userList()로 수정할것 
-     *
-     * @return the result
-     */
-    public static Result searchUser() {
-        String loginId = form(User.class).bindFromRequest().get().loginId;
-        return redirect(routes.SiteApp.userList(0, loginId));
     }
 
     /**
@@ -212,18 +178,16 @@ public class SiteApp extends Controller {
      * 
      * when 관리자 페이지의 프로젝트 설정
      * 
-     * 프로젝트명이 {@code filter} 값을 포함하는 프로젝트 목록을 가져온다. 
+     * 프로젝트명이 {@code project name} 값을 포함하는 프로젝트 목록을 가져온다. 
      * 
-     * TODO 더이상 다른 조건이 추가되지 않는다면 filter -> projectName으로 변경
-     * TODO Magic Number 제거
-     * 
-     * @param filter the filter
+     * @param projectName the project name
+     * @param pageNum page number
      * @return the result
      * @see {@link Project#findByName(String, int, int)}
      */
-    public static Result projectList(String filter) {
-        Page<Project> projects = Project.findByName(filter, 25, 0);
-        return ok(projectList.render("title.projectList", projects, filter));
+    public static Result projectList(String projectName, int pageNum) {
+        Page<Project> projects = Project.findByName(projectName, PROJECT_COUNT_PER_PAGE, pageNum);
+        return ok(projectList.render("title.projectList", projects, projectName));
     }
 
     /**
@@ -243,16 +207,7 @@ public class SiteApp extends Controller {
         } else {
             flash(Constants.WARNING, "auth.unauthorized.waringMessage");
         }
-        return redirect(routes.SiteApp.projectList(""));
-    }
-
-    /**
-     * Software map.
-     *
-     * @return the result
-     */
-    public static Result softwareMap() {
-        return TODO;
+        return redirect(routes.SiteApp.projectList(StringUtils.EMPTY, 0));
     }
 
     /**
@@ -261,7 +216,7 @@ public class SiteApp extends Controller {
      * when 사용자 관리 페이지의 계정 장금/해제
      * 
      * 세션 {@code loginId} 가 사이트 관리자이고 삭제할 {@code loginId}가 {@code anonymous}가 아니면 계정 장금 또는 해제한후 사용자 관리페이지로 리다이렉트한다.
-     * 세션 {@code loginId} 가 사이트 관리자이고 샂게할 {@code loginId}가 익명사용자이면 경고메세지와 함께사용자 관리페이지로 리다이렉트한다.
+     * 세션 {@code loginId} 가 사이트 관리자이고 삭제할 {@code loginId}가 익명사용자이면 경고메세지와 함께사용자 관리페이지로 리다이렉트한다.
      * 세션 {@code loginId} 가 사이트 관리자가 아니면 경고메세지와 함께 Hive 첫페이지로 리다이렉트한다. 
      *
      * @param loginId the login id

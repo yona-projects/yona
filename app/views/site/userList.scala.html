@@ -3,7 +3,7 @@
 @siteMngMain(message) {
   <h2>@Messages("site.sidebar.userList")</h2>
   <div class="row-fluid">
-    <form class="form-search" action="@routes.SiteApp.searchUser()">
+    <form class="form-search" action="@routes.SiteApp.userList()">
       <input type="text" class="input-medium search-query input-xlarge" name="loginId" placeholder="@Messages("site.userList.search")">
       <button type="submit" class="btn">검색</button>
     </form>

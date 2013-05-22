@@ -11,9 +11,6 @@
 <div class="well" style="padding: 8px 0;">
     <ul class="nav nav-list">
         <li class="nav-header">@Messages("site.sidebar")</li>
-        <!-- li class="@isActiveMenu(routes.SiteApp.setting())">
-            <a href="@routes.SiteApp.setting()"><i class="icon-cog"></i>@Messages("site.sidebar.setting")</a>
-        </li-->
         <li class="@isActiveMenu(routes.SiteApp.userList())">
             <a href="@routes.SiteApp.userList()"><i class="icon-user"></i>@Messages("site.sidebar.userList")</a>
         </li>
@@ -26,9 +23,6 @@
         <li class="@isActiveMenu(routes.SiteApp.projectList())">
             <a href="@routes.SiteApp.projectList()"><i class="icon-folder-open"></i>@Messages("site.sidebar.projectList")</a>
         </li>
-        <!-- li class="@isActiveMenu(routes.SiteApp.softwareMap())">
-            <a href="@routes.SiteApp.softwareMap()"><i class="icon-road"></i>@Messages("site.sidebar.softwareMap")</a>
-        </li-->
         <li class="divider"></li>
         <li class="@isActiveMenu(routes.Application.index())">
             <a href="@routes.SiteApp.writeMail()"><i class="icon-envelope"></i>@Messages("site.sidebar.mailSend")</a>
