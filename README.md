@@ -18,10 +18,6 @@ HIVE offers many features to increase productivity and quality of your software:
 <img src="https://raw.github.com/nforge/hive/master/docs/hive_front.png">
 
 
-License
---
-HIVE is under GPL v2. (We are checking if we can change its license to MIT license.)
-
 ## Installation
 
 ### check java version
@@ -80,28 +76,6 @@ If you want to run hive in production mode, use **start** , not **run**.
 If you want to change port, check your permission to use 80 port
 
 see [http://www.playframework.com/documentation/2.1.1/Production](http://www.playframework.com/documentation/2.1.1/Production)
-
-
-
----
-
-Copyright (C) 2013 NHN Corp.
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
----
 
 <br/>
 <br/>
