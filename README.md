@@ -1,5 +1,5 @@
 <a name="english"></a>
-[[한글]](#korean)
+[[한국어]](#korean)
 HIVE
 =======
 [![Build Status](https://travis-ci.org/nforge/hive.png?branch=master)](https://travis-ci.org/nforge/hive)
