@@ -27,7 +27,7 @@ public class AttachmentTest extends ModelTest<Attachment> {
 
         // When
         Attachment attach = new Attachment();
-        attach.storeToUserArea(file, "bar.txt", userId);
+        attach.store(file, "bar.txt", User.find.byId(userId).asResource());
 
         FileInputStream is = new FileInputStream(attach.getFile());
         byte[] b = new byte[1024];
@@ -48,9 +48,9 @@ public class AttachmentTest extends ModelTest<Attachment> {
         Long userId = 1L;
 
         // When
-        new Attachment().storeToUserArea(foo, "foo.txt", userId);
-        new Attachment().storeToUserArea(bar, "bar.html", userId);
-        Attachment.attachFiles(userId, issue.asResource());
+        new Attachment().store(foo, "foo.txt", User.find.byId(userId).asResource());
+        new Attachment().store(bar, "bar.html", User.find.byId(userId).asResource());
+        Attachment.moveAll(User.find.byId(userId).asResource(), issue.asResource());
         List<Attachment> attachedFiles = Attachment.findByContainer(issue.asResource());
 
         // Then

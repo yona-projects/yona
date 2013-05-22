@@ -254,7 +254,7 @@ public class User extends Model {
      */
     @Transient
     public Long avatarId(){
-        return Attachment.findByContainer(ResourceType.USER_AVATAR, id).get(0).id;
+        return Attachment.findByContainer(avatarAsResource()).get(0).id;
     }
 
     /**
@@ -311,6 +311,25 @@ public class User extends Model {
             @Override
             public ResourceType getType() {
                 return ResourceType.USER;
+            }
+        };
+    }
+
+    public Resource avatarAsResource() {
+        return new Resource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return null;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.USER_AVATAR;
             }
         };
     }

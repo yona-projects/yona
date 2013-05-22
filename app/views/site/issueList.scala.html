@@ -34,7 +34,7 @@
         <td>@issue.authorName</td>
         <td><a href="@routes.BoardApp.post(issue.project.owner, issue.project.name, issue.id)">@issue.title</a></td>
         <td>@utils.TemplateHelper.agoString(issue.ago())</td>
-        <td>@models.Attachment.countByContainer(models.enumeration.ResourceType.ISSUE_POST, issue.id)</td>
+        <td>@models.Attachment.countByContainer(issue.asResource)</td>
         <td>@issue.numOfComments</td>
     </tr>
 }

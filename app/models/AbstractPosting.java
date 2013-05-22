@@ -187,7 +187,7 @@ abstract public class AbstractPosting extends Model {
         for (Comment comment: getComments()) {
             comment.delete();
         }
-        Attachment.deleteAll(asResource().getType(), id);
+        Attachment.deleteAll(asResource());
         super.delete();
     }
 }

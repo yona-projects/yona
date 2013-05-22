@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import models.Attachment;
+import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
@@ -51,14 +52,16 @@ public class AttachmentApp extends Controller {
         }
         File file = filePart.getFile();
 
+        User uploader = UserApp.currentUser();
+
         // Anonymous cannot upload a file.
-        if (UserApp.currentUser() == UserApp.anonymous) {
+        if (uploader == UserApp.anonymous) {
             return forbidden();
         }
 
-        // Store the file in the user's temporary area.
+        // Attach the file to the user who upload it.
         Attachment attach = new Attachment();
-        boolean isCreated = attach.storeToUserArea(file, filePart.getFilename(), UserApp.currentUser().id);
+        boolean isCreated = attach.store(file, filePart.getFilename(), uploader.asResource());
 
         // The request has been fulfilled and resulted in a new resource being
         // created. The newly created resource can be referenced by the URI(s)
@@ -115,7 +118,7 @@ public class AttachmentApp extends Controller {
      * @throws IOException
      */
     public static Result getFile(Long id) throws NoSuchAlgorithmException, IOException {
-        Attachment attachment = Attachment.findById(id);
+        Attachment attachment = Attachment.find.byId(id);
 
         if (attachment == null) {
             return notFound();
@@ -162,7 +165,7 @@ public class AttachmentApp extends Controller {
         }
 
         // Remove the attachment.
-        Attachment attach = Attachment.findById(id);
+        Attachment attach = Attachment.find.byId(id);
         if (attach == null) {
             return notFound();
         }

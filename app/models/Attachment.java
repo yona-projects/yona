@@ -58,27 +58,16 @@ public class Attachment extends Model {
      * @param userId
      * @return
      */
-    public static List<Attachment> findUserFiles(Long userId) {
-        return find.where()
-                .eq("containerType", ResourceType.USER)
-                .eq("containerId", userId).findList();
-    }
-
     private static Attachment findBy(Attachment attach) {
         return find.where()
                 .eq("name", attach.name)
                 .eq("hash", attach.hash)
-                .eq("projectId", attach.projectId)
                 .eq("containerType", attach.containerType)
                 .eq("containerId", attach.containerId).findUnique();
     }
 
     public static boolean exists(String hash) {
         return find.where().eq("hash", hash).findRowCount() > 0;
-    }
-
-    public static Attachment findById(Long id) {
-        return find.byId(id);
     }
 
     public static List<Attachment> findByContainer(
@@ -88,33 +77,27 @@ public class Attachment extends Model {
                 .eq("containerId", containerId).findList();
     }
 
-    public static int countByContainer(ResourceType containerType, Long containerId) {
-        return find.where()
-                .eq("containerType", containerType)
-                .eq("containerId", containerId).findRowCount();
+    public static List<Attachment> findByContainer(Resource container) {
+        return findByContainer(container.getType(), container.getId());
     }
 
-    public static List<Attachment> findByContainer(Resource resource) {
-        return findByContainer(resource.getType(), resource.getId());
+    public static int countByContainer(Resource container) {
+        return find.where()
+                .eq("containerType", container.getType())
+                .eq("containerId", container.getId()).findRowCount();
     }
 
     // Attach the files from the user's temporary area to the given container.
-    public static int attachFiles(
-            Long userId, Long projectId, ResourceType containerType, Long containerId) {
+    public static int moveAll(Resource from, Resource to) {
         // Move the attached files in the temporary area to the issue area.
-        List<Attachment> attachments = Attachment.findByContainer(ResourceType.USER, userId);
+        List<Attachment> attachments = Attachment.findByContainer(from);
         for (Attachment attachment : attachments) {
-            attachment.projectId = projectId;
-            attachment.containerType = containerType;
-            attachment.containerId = containerId;
+            attachment.projectId = to.getProject().id;
+            attachment.containerType = to.getType();
+            attachment.containerId = to.getId();
             attachment.save();
         }
         return attachments.size();
-    }
-
-    public static int attachFiles(Long userId, Resource container) {
-        return attachFiles(userId, container.getProject().id,
-                container.getType(), container.getId());
     }
 
     // Store the files in the filesystem.
@@ -193,12 +176,6 @@ public class Attachment extends Model {
         }
    }
 
-    // Store the files in the user's area.
-    public boolean storeToUserArea(File file, String name, Long userId)
-            throws NoSuchAlgorithmException, IOException {
-        return store(file, name, User.find.byId(userId).asResource());
-    }
-
     public File getFile() {
         return new File(uploadDirectory, this.hash);
     }
@@ -219,15 +196,12 @@ public class Attachment extends Model {
         }
     }
 
-    public static void deleteAll(ResourceType containerType, Long containerId) {
-        List<Attachment> attachments = findByContainer(containerType, containerId);
+
+    public static void deleteAll(Resource container) {
+        List<Attachment> attachments = findByContainer(container);
         for (Attachment attachment : attachments) {
             attachment.delete();
         }
-    }
-
-    public static void deleteAll(Resource resource) {
-        deleteAll(resource.getType(), resource.getId());
     }
 
     public Resource asResource() {

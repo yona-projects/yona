@@ -335,8 +335,9 @@ public class UserApp extends Controller {
         }
         user.email = newEmail;
         user.name = newName;
-        Attachment.deleteAll(ResourceType.USER_AVATAR, currentUser().id);
-        int attachFiles = Attachment.attachFiles(currentUser().id, null, ResourceType.USER_AVATAR, currentUser().id);
+        Attachment.deleteAll(user.avatarAsResource());
+        int attachFiles = Attachment.moveAll(currentUser().asResource(),
+                currentUser().avatarAsResource());
         if (attachFiles > 0) {
             user.avatarUrl = "/files/" + user.avatarId();
         }

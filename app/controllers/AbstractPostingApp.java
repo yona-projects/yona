@@ -49,7 +49,7 @@ public class AbstractPostingApp extends Controller {
         comment.save();
 
         // Attach all of the files in the current user's temporary storage.
-        Attachment.attachFiles(UserApp.currentUser().id, comment.asResource());
+        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
         return redirect(redirectTo);
     }
@@ -83,7 +83,7 @@ public class AbstractPostingApp extends Controller {
         posting.update();
 
         // Attach the files in the current user's temporary storage.
-        Attachment.attachFiles(UserApp.currentUser().id, original.asResource());
+        Attachment.moveAll(UserApp.currentUser().asResource(), original.asResource());
 
         return redirect(redirectTo);
     }

@@ -210,7 +210,7 @@ public class IssueApp extends AbstractPostingApp {
         newIssue.save();
 
         // Attach all of the files in the current user's temporary storage.
-        Attachment.attachFiles(UserApp.currentUser().id, newIssue.asResource());
+        Attachment.moveAll(UserApp.currentUser().asResource(), newIssue.asResource());
 
         return redirect(routes.IssueApp.issues(project.owner, project.name,
                 State.OPEN.state(), "html", 1));
