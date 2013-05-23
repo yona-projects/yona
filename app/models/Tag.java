@@ -71,7 +71,7 @@ public class Tag extends Model {
     public void delete() {
         for(Project project: projects) {
             project.tags.remove(this);
-            project.save();
+            project.update();
         }
         super.delete();
     }
