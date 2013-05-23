@@ -20,3 +20,5 @@ db
 .DS_Store
 bin
 .svn
+nohup.out
+tags
