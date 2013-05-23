@@ -220,4 +220,24 @@ public class MilestoneApp extends Controller {
         Milestone.findById(id).delete();
         return redirect(routes.MilestoneApp.milestones(userName, projectName));
     }
+
+    /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트에
+     * {@code milestoneId}에 해당하는 마일스톤 상세 정보를 조회한다.
+     *
+     * when: GET /:user/:project/milestone/:id
+     *
+     * @param userName
+     * @param projectName
+     * @param id
+     * @return
+     */
+    public static Result milestone(String userName, String projectName, Long id) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if(project == null ) {
+            return notFound();
+        }
+        Milestone milestone = Milestone.findById(id);
+        return ok(view.render(milestone.title, milestone, project));
+    }
 }

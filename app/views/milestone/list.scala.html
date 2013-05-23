@@ -27,12 +27,12 @@
 @main(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.MILESTONE, "")
-    
+
     <div class="tab-wrap">
         <div class="pull-right btns">
             <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="nbtn medium orange">@Messages("milestone.menu.new")</a>
         </div>
-        
+
         <ul class="nav nav-tabs">
             <li class="@if(param.state.equals("all")){active}">
                 <a href="@makeMilestoneListLink("all")">@Messages("milestone.state.all")</a>
@@ -45,16 +45,16 @@
             </li>
         </ul>
     </div>
-    
+
 	@if(milestones == null || milestones.isEmpty()){
 
 		<div class="error-wrap">
 			<i class="ico ico-err1"></i>
 			<p>@Messages("milestone.is.empty")</p>
-		</div>  
+		</div>
 
 	} else {
-	
+
 	@if(milestones.length > 1){
 		<div class="filter-wrap milestone">
 		<div class="filters">
@@ -73,27 +73,27 @@
         @for(milestone <- milestones){
         <li class="milestone">
             <div class="infos">
-            	@**<!-- 
+            	@**<!--
                 <ul class="contributors">
                     <li class="contributor">
                         <a href="/uname" class="img-rounded"><img src="/assets/images/default-avatar-34.png"></a>
                     </li>
                 </ul>
                  -->**@
-                
+
                 <div class="meta-info">
                     <strong class="version"></strong>
-                    <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
+                    <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
                     <span class="sp">|</span>
                     <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
                 </div>
-                
+
                 <div class="progress-wrap">
 					<div class="progress">
 						<div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
 						@**
-						<!-- 
-						<div class="bar blue" style="width: 30%"></div>  
+						<!--
+						<div class="bar blue" style="width: 30%"></div>
 						-->
 						**@
 					</div>
@@ -107,23 +107,23 @@
 						</div>
 					</div>
 				</div>
-				
+
                 <div class="desc">
                     @milestone.contents
                 </div>
-                
+
                 <div class="actrow">
-                	<a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!-- 
+                	<a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!--
                  --><a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium white"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
                 </div>
             </div>
-            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!-- 
-             -->@milestone.getCompletionRate<!-- 
+            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!--
+             -->@milestone.getCompletionRate<!--
              --><i>%</i>
 			</div>
         </li>
         }
     </ul>
-    
+
     }
 }
