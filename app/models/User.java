@@ -137,8 +137,8 @@ public class User extends Model {
      *
      * @return
      */
-    public List<Project> myProjects(){
-        return Project.findProjectsByMember(id);
+    public List<Project> myProjects(String orderString){
+        return Project.findProjectsByMemberWithFilter(id, orderString);
     }
 
     /**

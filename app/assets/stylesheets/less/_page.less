@@ -1244,6 +1244,9 @@
         padding: 20px;
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
+        &:first-child {
+            padding-top:5px;
+        }
         &:last-child {
             border-bottom: 0 none;
         }
@@ -1256,6 +1259,7 @@
                 margin-bottom: 15px;
                 .project-name {
                     color: #888;
+                    &:hover { color:@primary; }
                 }
             }
             .desc {
@@ -1289,10 +1293,22 @@
                     margin-right: 3px;
                 }
             }
-            /*.user-thumb-wrap {
-                margin-left: 38px;
-            }*/
-            .avatar-wrap { margin-left:38px; }           
+
+           .members {
+               ul {
+                    display:inline-block;
+                    width:102px; max-height:68px;
+                    overflow:hidden;
+                    
+                    li { 
+                        float:right;
+                        .avatar-wrap { .border-radius(0px); }
+                    }
+                }
+                
+                strong { color:@secondary; }
+                .leaveProject { margin-top:15px; }
+           }
         }
     }
     
@@ -2874,80 +2890,94 @@ div.markdown-preview {
 //-- user setting.
 .user-info-box {
     float: left;
-    padding: 10px;
-    width: 180px;
-    background-color: #F2F2F2;
-    .border-radius(10px);
-    /*.box-shadow(0 -1px 0 rgba(0,0,0, .15));*/
+    width:200px;
+
     .whoami-wrap {
-        padding: 10px;
-        text-align: center;
-        background-color: @white;
-        .border-radius(10px);
-        .box-shadow(0 1px 0 rgba(0,0,0, .15));
+        position:relative; overflow:hidden;
+        width:200px; height:200px;
+        background-color:#ccc;
+        background-position:center;
+        .background-size(cover);
+        .border-radius(4px);
+        .box-shadow(inset 1px 1px 0 rgba(0,0,0,.15));
 
-        .uname {
-            font-size: 18px;
+        .whoami {
+            width:100%; height:50px; left:0;
+            background: rgba(0,0,0,0.85); 
+            border-top:5px solid @primary;
+            color:#fff;
+            text-shadow:1px 1px #000;
+            text-align:left; line-height:120%;
+            padding:10px; padding-left:15px; margin-top:73%;
+            
+            .uname {
+                font-size:18px;
+                font-weight:bold;
+            }
+            .email {
+                display:block;
+                font-size:11px; font-family:Tahoma;
+                margin-left:2px; 
+                .opacity(80);
+            }
         }
-        .name {
-            font-weight: bold;
-            color: #707070;
+        
+        .edit {
+            position:absolute;
+            top:0px; right:0px;
+            color:#fff; text-shadow:1px 1px #000;
+            padding:5px 10px;
+            font-weight:bold;
+            i { vertical-align:top; margin-top:2px; }
         }
-        .avatar-wrap {
-            margin-bottom:15px;
-            .inline-block;
-        }
-    }
-
-    .user-location {
-        color: #707070;
-        font-size: 11px;
-        .ico {
-            margin-right: 5px;
-        }
-        .u-location {
-            margin: 10px 0 0;
-        }
-
     }
 
     .user-status {
-        .labels {
-            .inline-block;
-            color: #707070;
-            width: 70px;
-        }
-        .num {
-            color: @orange;
-            font-size:2em; 
-            font-weight:bold;
-            float:right;
-        }
-        p { line-height:2em; }
-    }
+        margin-top:20px; 
+        
+        p { 
+            display:inline-block;
+            line-height:2em;
+            padding:0 10px;
+            height:50px; 
+            
+            .num {
+                display:block;
+                color: @primary;
+                font-size:2em; 
+                font-weight:bold;
+            }
 
-    .user-other-info {
-        p {
-            color: #707070;
-            margin-bottom: 2px;
-            &.since {
-                margin-top: 14px;
+            .labels {
+                display:block;
+                color: #707070;
+                width: 70px;
             }
-            &.social-btns {
-                margin-top: 18px;
+            
+            &:last-of-type {
+                border-left:1px solid #eee;
+                padding-left:20px;
             }
         }
-        .focuses {
-            font-size: 10px;
-            color: #4092A1;
+        
+        .nbtn {
+            margin-top:20px; margin-left:3px;
+            text-shadow:1px 1px rgba(0,0,0,0.2);
+            i { vertical-align:top; }
         }
+    }
+    
+    .user-since {
+        padding:0 10px;
+        
         .since {
-            font-size: 11px;
+            display:block;
+            font-size: 14px;
+            font-weight:bold;
+            color:@primary;
         }
     }
-    .info-box {
-        padding: 0 20px;
-    }
+    
     .btn-wrap {
         text-align: center;
     }

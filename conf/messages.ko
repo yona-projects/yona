@@ -288,6 +288,8 @@ project.wrongName = 프로젝트 이름이 올바르지 않습니다.
 project.tags = 태그
 project.license = 라이센스
 project.codeLanguage = 프로그래밍 언어
+project.onmember = <strong>{0}명</strong> 참여 중
+project.lastUpdate = 마지막 업데이트
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
 project.history.item = {0}님이 {1} {2}  
