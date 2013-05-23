@@ -7,6 +7,22 @@
  * http://hive.dev.naver.com/license
  */
 
+/**
+ * bootstrap-typeahead.js 사용을 위한 공통 인터페이스
+ *   
+ * @example 
+ * new hive.ui.Typeahead(htElement.welInputAddTag, {
+ *      "sActionURL": htVar.sURLTags,
+ *      "htData": {
+ *          "context": "PROJECT_TAGGING_TYPEAHEAD",
+ *          "project_id": htVar.nProjectId,
+ *          "limit": 8
+ *      }
+ * });
+ * 
+ * @require bootstrap-typeahead.js
+ */
+
 (function(ns){
 	
 	var oNS = $hive.createNamespace(ns);
@@ -16,7 +32,10 @@
 		var htElement = {};
 	
 		/**
+		 * 초기화
 		 * Initialize component
+		 * @param {String} sQuery ui.Typeahead 를 적용할 대상
+		 * @param {Hash Table} htOptions
 		 */
 		function _init(sQuery, htOptions){
 			_initVar(htOptions);
@@ -24,6 +43,7 @@
 		}
 		
 		/**
+		 * 변수 초기화
 		 * Initialize variables
 		 * @param {Hash Table} htOptions
 		 */
@@ -34,16 +54,16 @@
 		}
 		
 		/**
+		 * 엘리먼트 초기화
 		 * Initialize element
-		 * @requires bootstrap.js
 		 * @param {String} sQuery
 		 */
 		function _initElement(sQuery){
 			htElement.welInput = $(sQuery);
 			htElement.welInput.typeahead({
-                source: _onTypeAhead,
-                minLength: 0,
-                items: (parseInt(htVar.htData.limit) !== NaN) ? htVar.htData.limit : 8
+                "minLength": 0,
+                "source"   : _onTypeAhead,
+                "items"    : htVar.htData.limit || 8
             });
 		}
 		
