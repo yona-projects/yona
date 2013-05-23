@@ -7,12 +7,29 @@
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
+        <div class="labels-wrap">
+            <button class="issue-label active" style="background-color:#ff9933; color:#fff;">
+                @pull.fromProject.owner/@pull.fromProject.name
+            </button>
+            <button class="issue-label">@pull.fromBranch</button>
+            <span class="icon-arrow-right"></span>
+            <button class="issue-label active" style="background-color:#ff9933; color:#fff;">
+                @pull.toProject.owner/@pull.toProject.name
+            </button>
+            <button class="issue-label">@pull.toBranch</button>
+            <hr>
+        </div>
+
         <ul class="nav nav-tabs hive-tabs">
             <li>
-                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.id)">개요</a>
+                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.id)">
+                    @Messages("pullRequest.menu.overview")
+                </a>
             </li>
             <li class="active">
-                <a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.id)">커밋</a>
+                <a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.id)">
+                    @Messages("pullRequest.menu.commit")
+                </a>
             </li>
         </ul>
 

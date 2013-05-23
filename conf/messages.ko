@@ -491,3 +491,5 @@ pullRequest.rejected.code = 보류한 코드
 pullRequest.sent.code = 보낸 코드
 fork = 프로젝트 복사
 pullRequest = 코드 보내기
+pullRequest.menu.overview = 개요
+pullRequest.menu.commit = 커밋

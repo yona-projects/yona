@@ -491,3 +491,5 @@ pullRequest.rejected.code = Rejected Code
 pullRequest.sent.code = Sent Code
 fork = Fork
 pullRequest = PullRequest
+pullRequest.menu.overview = Overview
+pullRequest.menu.commit = Commits
