@@ -14,7 +14,9 @@ import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.With;
 import utils.Constants;
+import utils.SiteManagerAuthAction;
 import views.html.site.*;
 
 import java.util.*;
@@ -25,6 +27,7 @@ import static play.libs.Json.toJson;
 /**
  * The Class SiteApp.
  */
+ @With(SiteManagerAuthAction.class)
 public class SiteApp extends Controller {
     
     private static final int PROJECT_COUNT_PER_PAGE = 25;
