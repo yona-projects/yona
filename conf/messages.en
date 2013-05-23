@@ -196,6 +196,9 @@ issue.title = Title
 issue.createdDate = Created Date
 issue.attachment = Attachment
 issue.numOfComments = Comment Count
+issue.update.state = Update state
+issue.update.assignee = Update assignee
+issue.update.milestone = Update milestone
 
 #Post
 post.new = New
@@ -406,6 +409,8 @@ mail.write = Write
 mail.fail = Failed to send a mail.
 mail.sended = Mail is sent.
 
+state = State
+label = Label
 author = Author
 assignee = Assignee
 milestone = Milestone
@@ -413,6 +418,7 @@ none = None
 comment = Comment
 noAssignee = No Assignee
 noMilestone = No Milestone
+noChange = No Change
 
 #validation
 validation.tooShortPassword = The password field must be at least 4 characters in length.

@@ -98,10 +98,8 @@ public class Issue extends AbstractPosting {
      * @see Assignee#add(Long, Long)
      */
     private void fetchAssignee() {
-        if (assignee != null && assignee.user.id != null) {
+        if (assignee != null && assignee.id == null && assignee.user.id != null) {
             assignee = Assignee.add(assignee.user.id, project.id);
-        } else {
-            assignee = null;
         }
     }
 
