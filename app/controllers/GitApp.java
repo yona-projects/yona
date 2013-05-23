@@ -26,7 +26,8 @@ public class GitApp extends Controller {
                 && (service.equals("git-upload-pack") || service.equals("git-receive-pack"));
     }
 
-    public static boolean isAllowed(Project project, String service) throws UnsupportedOperationException, IOException, ServletException {
+    private static boolean isAllowed(Project project, String service) throws
+            UnsupportedOperationException, IOException, ServletException {
         Operation operation = Operation.UPDATE;
         if (service.equals("git-upload-pack")) {
             operation = Operation.READ;
@@ -41,24 +42,23 @@ public class GitApp extends Controller {
         return false;
     }
 
-    public static Result service(String userName, String projectName, String service,
-            boolean isAdvertise) throws IOException, ServiceMayNotContinueException,
-            UnsupportedOperationException, ServletException {
+    public static Result service(String ownerName, String projectName, String service,
+            boolean isAdvertise) throws IOException, UnsupportedOperationException,
+            ServletException {
         if (!isSupportedService(service)) {
             return forbidden(String.format("Unsupported service: '%s'", service));
         }
 
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (project == null) {
             return notFound();
         }
 
         if (!isAllowed(project, service)) {
-            if (UserApp.currentUser().id == UserApp.anonymous.id) {
+            if (UserApp.currentUser().isAnonymous()) {
                 return BasicAuthAction.unauthorized(response());
             } else {
-                response().setContentType("text/plain");
                 return forbidden("'" + UserApp.currentUser().name + "' has no permission");
             }
         }
@@ -86,19 +86,14 @@ public class GitApp extends Controller {
      * @throws ServiceMayNotContinueException
      */
     @With(BasicAuthAction.class)
-    public static Result advertise(String userName, String projectName)
-            throws ServiceMayNotContinueException, UnsupportedOperationException, IOException,
-            ServletException {
-        String service = HttpUtil.getFirstValueFromQuery(request().queryString(), "service");
+    public static Result advertise(String ownerName, String projectName, String service)
+            throws UnsupportedOperationException, IOException, ServletException {
         if (service == null) {
             // If service parameter is not specified then git server should do getanyfile service,
             // but we don't support that.
             return forbidden("Unsupported service: getanyfile");
         }
-
-        Logger.debug("GitApp.advertise:" + request().toString());
-
-        return GitApp.service(userName, projectName, service, true);
+        return GitApp.service(ownerName, projectName, service, true);
     }
 
     /**
@@ -115,12 +110,9 @@ public class GitApp extends Controller {
      * @throws ServiceMayNotContinueException
      */
     @With(BasicAuthAction.class)
-    public static Result serviceRpc(String userName, String projectName, String service)
-            throws ServiceMayNotContinueException, UnsupportedOperationException, IOException,
-            ServletException {
-        Logger.debug("GitApp.advertise: " + request().toString());
-
-        return GitApp.service(userName, projectName, service, false);
+    public static Result serviceRpc(String ownerName, String projectName, String service)
+            throws UnsupportedOperationException, IOException, ServletException {
+        return GitApp.service(ownerName, projectName, service, false);
     }
 
 }

@@ -117,7 +117,7 @@ POST	/:user/:project/labels					        controllers.IssueLabelApp.newLabel(user,
 POST	/:user/:project/label/:id/delete 	            controllers.IssueLabelApp.delete(user, project, id:Long)
 
 # Git
-GET     /:ownerName/:project/info/refs                  controllers.GitApp.advertise(ownerName:String, project:String)
+GET     /:ownerName/:project/info/refs                  controllers.GitApp.advertise(ownerName:String, project:String, service:String ?= null)
 POST    /:ownerName/:project/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(ownerName:String, project:String, service:String)
 
 # SVN
