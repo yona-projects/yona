@@ -283,6 +283,8 @@ project.searchPlaceholder = search at current project
 project.wrongName = Project name is wrong
 project.tags = Tags
 project.license = License
+project.onmember = <strong>{0}</strong> members
+project.lastUpdate = Last Update 
 
 #Site
 site.sidebar = Site Management

@@ -5,59 +5,58 @@
 
 @home(user.loginId, utils.MenuType.USER) {
 
-<div class="page-wrap container">
-    <div class="page">
-        <h1 class="page-title">
-            <span class="gray">HIVE/</span>@user.loginId
-        </h1>
+<div class="page">
+    <h1 class="page-title">
+        <span class="gray">@Messages("hive.name")/</span>@user.loginId
+    </h1>
 
-        <div class="profile-frmwrap">
-            <div class="frm-wrap">
-                @helper.form(action=routes.UserApp.editUserInfo()){
-                <div class="avatar-frm">
-                    <div id="avatarWrap" class="avatar-wrap xlarge">
-                        <img src="@user.avatarUrl" width="128" height="128" />
-                        <div class="progress"></div>
-                    </div>
-                    <div class="btn-wrap">
-                        <div class="nbtn medium white fake-file-wrap">
-                            <i class="icon-picture"></i>@Messages("userinfo.changeAvatar")<!--
-                        --> <input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
-                        </div>
+    <div class="profile-frmwrap">
+        <div class="frm-wrap">
+            @helper.form(action=routes.UserApp.editUserInfo()){
+            <div class="avatar-frm">
+                <div id="avatarWrap" class="avatar-wrap xlarge">
+                    <img src="@user.avatarUrl" width="128" height="128" />
+                    <div class="progress"></div>
+                </div>
+                <div class="btn-wrap">
+                    <div class="nbtn medium white fake-file-wrap">
+                        <i class="icon-picture"></i>@Messages("userinfo.changeAvatar")<!--
+                    --> <input id="avatarFile" type="file" class="file" name="filePath" accept="image/*">
                     </div>
                 </div>
-                <dl>
-                    <dt>@Messages("user.name")</dt>
-                    <dd><input type="text" name="name" class="text" value="@user.name" /></dd>
-                    <dt>@Messages("user.email")</dt>
-                    <dd><input type="email" name="email" class="text" value="@user.email" /></dd>
-                    <dd id="avatarUploaded" class="avatarUploaded">
-                        <div class="msg">@Html(Messages("userinfo.changeAvatarHelp"))</div>
-                    </dd>
-                    <dd>
-                        <button type="submit" class="nbtn medium orange">@Messages("userinfo.editProfile")</button>
-                    </dd>
-                </dl>
-                }
-
-                @helper.form(action=routes.UserApp.resetUserPassword()){
-                <input type="hidden" name="loginId" value="@user.loginId" />
-                <dl>
-                    <dt>@Messages("user.currentPassword")</dt>
-                    <dd><input type="password" name="oldPassword" value="" autocomplete="off" /></dd>
-                    <dt>@Messages("user.newPassword")</dt>
-                    <dd><input type="password" id="password" name="password" value="" autocomplete="off" /></dd>
-                    <dt>@Messages("validation.retypePassword")</dt>
-                    <dd><input type="password" id="retypedPassword" name="retypedPassword" value="" autocomplete="off" /></dd>
-                    <dd>
-                        <button type="submit" class="nbtn medium blue">@Messages("userinfo.changePassword")</button>
-                    </dd>
-                </dl>
-                }
             </div>
+            <dl>
+                <dt>@Messages("user.name")</dt>
+                <dd><input type="text" name="name" class="text" value="@user.name" /></dd>
+                <dt>@Messages("user.email")</dt>
+                <dd><input type="email" name="email" class="text" value="@user.email" /></dd>
+                <dd id="avatarUploaded" class="avatarUploaded">
+                    <div class="msg">@Html(Messages("userinfo.changeAvatarHelp"))</div>
+                </dd>
+                <dd>
+                    <button type="submit" class="nbtn medium orange">@Messages("userinfo.editProfile")</button>
+                </dd>
+            </dl>
+            }
+
+            @helper.form(action=routes.UserApp.resetUserPassword()){
+            <input type="hidden" name="loginId" value="@user.loginId" />
+            <dl>
+                <dt>@Messages("user.currentPassword")</dt>
+                <dd><input type="password" name="oldPassword" value="" autocomplete="off" /></dd>
+                <dt>@Messages("user.newPassword")</dt>
+                <dd><input type="password" id="password" name="password" value="" autocomplete="off" /></dd>
+                <dt>@Messages("validation.retypePassword")</dt>
+                <dd><input type="password" id="retypedPassword" name="retypedPassword" value="" autocomplete="off" /></dd>
+                <dd>
+                    <button type="submit" class="nbtn medium blue">@Messages("userinfo.changePassword")</button>
+                </dd>
+            </dl>
+            }
         </div>
     </div>
 </div>
+
 <script type="text/javascript">
     $(document).ready(function(){
         $hive.loadModule("user.Setting", {
