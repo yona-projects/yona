@@ -87,7 +87,7 @@ public class IssueAppTest {
         data.put("body", "universe");
 
         return callAction(
-                controllers.routes.ref.IssueApp.editIssue("hobi", "nForge4java", issue.id),
+                controllers.routes.ref.IssueApp.editIssue("hobi", "nForge4java", issue.getNumber()),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
                         .withSession(UserApp.SESSION_USERID, user.id.toString())
@@ -96,7 +96,7 @@ public class IssueAppTest {
 
     private Result deleteBy(User user) {
         return callAction(
-                controllers.routes.ref.IssueApp.deleteIssue("hobi", "nForge4java", issue.id),
+                controllers.routes.ref.IssueApp.deleteIssue("hobi", "nForge4java", issue.getNumber()),
                 fakeRequest()
                         .withSession(UserApp.SESSION_USERID, user.id.toString())
         );
