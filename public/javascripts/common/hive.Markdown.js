@@ -27,7 +27,7 @@ hive.Markdown = function(htOptions){
 	 * @param {Hash Table} htOptions
 	 */
 	function _initVar(htOptions){
-		htVar.rxMarkdown = /```(\w+)(?:\r\n|\r|\n)((\r|\n|.)*?)(\r|\n)```/gm;
+		htVar.rxCodeBlock = /```(\w+)(?:\r\n|\r|\n)((\r|\n|.)*?)(\r|\n)```/gm;
 		htVar.sTplSwitch = htOptions.sTplSwitch;
 	}
 	
@@ -47,7 +47,7 @@ hive.Markdown = function(htOptions){
 	 * @return {String}
 	 */
 	function _renderMarkdown(sText) {
-		sText = sText.replace(htVar.rxMarkdown, function(match, p1, p2) {
+		sText = sText.replace(htVar.rxCodeBlock, function(match, p1, p2) {
 			try {
 				return '<pre><code class="' + p1 + '">' + hljs(p2, p1).value + '</code></pre>';
 			} catch (e) {
