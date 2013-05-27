@@ -1,34 +1,29 @@
 @(message: String)
 
 @siteMngMain(message) {
-<div class="page-header">
-  <h3>@Messages(message)</h3>
+<div class="title_area">
+    <h2 class="fl">@Messages(message)</h2>
 </div>
 
 <div>
-  <p>
-  <label class="radio">
-    <input type="radio" name="mailingType" value="all">
-    @Messages("site.massMail.toAll")
-  </label>
-  </p>
-  <p>
-  <label class="radio">
-    <input type="radio" name="mailingType" value="projects" checked>@Messages("site.massMail.toProjects"):
-    <span id="selected-projects"><!-- project names are added here by hive.site.MassMail.js --></span>
-    <input type="text" class="text uname"
-            id="input-project"
-            data-provider="typeahead" autocomplete="off"
-            placeholder="@Messages("project.name")"/>
-    <button type="submit" class="btn btn-primary" id="select-project" data-loading-text="@Messages("site.massMail.loading")">
-      <strong>@Messages("button.add")</strong>
-    </button>
-  </label>
-  </p>
+    <p>
+        <input id="mailtoAll" type="radio" name="mailingType" value="all">
+        <label for="mailtoAll" class="radio">@Messages("site.massMail.toAll")</label>
+    </p>
+    <p>
+        <input id="mailtoPrj" type="radio" name="mailingType" value="projects" checked>@Messages("site.massMail.toProjects"):
+        <label for="mailtoPrj" class="radio">
+            <span id="selected-projects"><!-- project names are added here by hive.site.MassMail.js --></span>
+            <input id="input-project" type="text" class="text uname" data-provider="typeahead" autocomplete="off" placeholder="@Messages("project.name")"/>
+            <button id="select-project" type="submit" class="btn btn-primary" data-loading-text="@Messages("site.massMail.loading")">
+                <strong>@Messages("button.add")</strong>
+            </button>
+        </label>
+    </p>
 </div>
 
-<button type="submit" class="btn btn-primary" id="write-email">
-  <strong>@Messages("mail.write")</strong>
+<button id="write-email" type="submit" class="btn btn-primary">
+    <strong>@Messages("mail.write")</strong>
 </button>
 
 <script type="text/javascript">

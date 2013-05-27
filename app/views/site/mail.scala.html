@@ -1,64 +1,71 @@
 @(message: String, notConfiguredItems: List[String], sender: String, errorMessage: String, sended: Boolean)
 
 @siteMngMain(message) {
-@if(errorMessage) {
-<div class="alert alert-error">
-    <p>@Messages("mail.fail")</p>
-    <p>@Html(Messages(errorMessage))</p>
+<div class="title_area">
+    <h2 class="fl">@Messages(message)</h2>
 </div>
-}
-<form method="post" action="@routes.SiteApp.sendMail()" id="mailForm" class="span9 form-horizontal">
-  <div class="page-header">
-    <h3>@Messages(message)</h3>
-  </div>
-  @if(sended) {
-  <div class="alert alert-success">
-    @Messages("mail.sended")
-  </div>
-  }
 
-  @if(notConfiguredItems != null && notConfiguredItems.size() > 0) {
-  <div class="alert alert-error">
-    <p>@Html(Messages("mail.notConfigured", "/admin/mailconf"))</p>
-    <ul>
-    @for(item <- notConfiguredItems.iterator()) {
-      <li>@item</li>
+<form method="post" action="@routes.SiteApp.sendMail()" id="mailForm" class="span9 form-horizontal">
+    @if(errorMessage) {
+    <div class="alert alert-error">
+	    <p>@Messages("mail.fail")</p>
+	    <p>@Html(Messages(errorMessage))</p>
+	</div>
+	}
+	
+    @if(sended) {
+    <div class="alert alert-success">
+        @Messages("mail.sended")
+    </div>
     }
-    </ul>
-  </div>
-  }
-  <div class="control-group">
-    <label name="from" class="control-label">@Messages("mail.from")</label>
-    <div class="controls">
-      <input type="text" name="from" value="@sender" required="" placeholder="@Messages("mail.fromPlaceholder")">
+
+    @if(notConfiguredItems != null && notConfiguredItems.size() > 0) {
+    <div class="alert alert-error">
+        <p>@Html(Messages("mail.notConfigured", "/admin/mailconf"))</p>
+        <ul>
+        @for(item <- notConfiguredItems.iterator()) {
+            <li>@item</li>
+        }
+        </ul>
     </div>
-  </div>
-  <div class="control-group">
-    <label name="to" class="control-label">@Messages("mail.to")</label>
-    <div class="controls">
-      <input type="text" name="to" required="" placeholder="@Messages("mail.toPlaceholder")">
+    }
+  
+    <div class="control-group">
+        <label name="from" class="control-label">@Messages("mail.from")</label>
+        <div class="controls">
+            <input type="text" name="from" value="@sender" required="" placeholder="@Messages("mail.fromPlaceholder")">
+        </div>
     </div>
-  </div>
-  <div style="margin-right: 10px" class="control-group">
-    <label name="subject" class="control-label">@Messages("mail.subject")</label>
-    <div class="controls">
-      <input type="text" name="subject">
+    
+    <div class="control-group">
+        <label name="to" class="control-label">@Messages("mail.to")</label>
+        <div class="controls">
+            <input type="text" name="to" required="" placeholder="@Messages("mail.toPlaceholder")">
+        </div>
     </div>
-  </div>
-  <div style="margin-right: 10px" class="control-group">
-    <label name="body" class="control-label">@Messages("mail.body")</label>
-    <div class="controls">
-      <textarea id="body" name="body" cols="32" rows="16" class="input-xlarge textbody"></textarea>
+    
+    <div style="margin-right: 10px" class="control-group">
+        <label name="subject" class="control-label">@Messages("mail.subject")</label>
+        <div class="controls">
+            <input type="text" name="subject">
+        </div>
     </div>
-  </div>
-  <div>
-    <button type="submit" class="btn btn-primary">
-      <strong>@Messages("mail.send")</strong>
-    </button>
-  </div>
+    
+    <div style="margin-right: 10px" class="control-group">
+        <label name="body" class="control-label">@Messages("mail.body")</label>
+        <div class="controls">
+            <textarea id="body" name="body" cols="32" rows="16" class="input-xlarge textbody"></textarea>
+        </div>
+    </div>
+
+    <div>
+        <button type="submit" class="btn btn-primary">
+            <strong>@Messages("mail.send")</strong>
+        </button>
+    </div>
 </form>
 
 <script type="text/javascript">
-  nforge.require('admin.mail');
+// nforge.require('admin.mail');
 </script>
 }
