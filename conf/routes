@@ -32,17 +32,14 @@ GET     /user/isEmailExist/:email                       controllers.UserApp.isEm
 GET 	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
 
 # Site
-GET     /sites/setting                                  controllers.SiteApp.setting()
 GET     /sites/mail                                     controllers.SiteApp.writeMail(errorMessage:String ?= "", sended:Boolean ?= false)
 POST    /sites/mail                                     controllers.SiteApp.sendMail()
 GET     /sites/massmail                                 controllers.SiteApp.massMail()
 POST    /sites/mailList                                 controllers.SiteApp.mailList()
 GET     /sites/userList                                 controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
-POST    /sites/userList                                 controllers.SiteApp.searchUser()
 GET     /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
-GET     /sites/projectList                              controllers.SiteApp.projectList(filter:String ?= "")
+GET     /sites/projectList                              controllers.SiteApp.projectList(filter:String ?= "", pageNum: Int ?=0)
 GET     /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
-GET     /sites/softwareMap                              controllers.SiteApp.softwareMap()
 GET     /sites/toggleAccountLock/:loginId               controllers.SiteApp.toggleAccountLock(loginId: String)
 GET     /lostPassword                                   controllers.PasswordResetApp.lostPassword
 POST    /lostPassword                                   controllers.PasswordResetApp.requestResetPasswordEmail()
