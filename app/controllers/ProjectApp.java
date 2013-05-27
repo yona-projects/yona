@@ -87,7 +87,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return unauthorized(views.html.error.unauthorized.render(project));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -138,7 +138,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return unauthorized(views.html.error.unauthorized.render(project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -273,7 +273,7 @@ public class ProjectApp extends Controller {
     public static Result deleteForm(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return unauthorized(views.html.error.unauthorized.render(project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -385,7 +385,7 @@ public class ProjectApp extends Controller {
             ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(loginId, projectName));
         } else {
-            return forbidden(views.html.project.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
     }
 

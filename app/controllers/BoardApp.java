@@ -8,11 +8,8 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
-import views.html.board.editPost;
-import views.html.board.newPost;
-import views.html.board.postList;
-import views.html.board.notExistingPage;
-import views.html.project.unauthorized;
+import views.html.board.*;
+import views.html.error.*;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -61,7 +58,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
@@ -75,7 +72,7 @@ public class BoardApp extends AbstractPostingApp {
         Page<Posting> posts = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
         List<Posting> notices = Posting.findNotices(project);
 
-        return ok(postList.render("menu.board", project, posts, searchCondition, notices));
+        return ok(list.render("menu.board", project, posts, searchCondition, notices));
     }
 
     /**
@@ -95,7 +92,7 @@ public class BoardApp extends AbstractPostingApp {
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
         return newPostingForm(project, ResourceType.BOARD_POST,
-                newPost.render("board.post.new", new Form<Posting>(Posting.class), project, isAllowedToNotice));
+                create.render("board.post.new", new Form<Posting>(Posting.class), project, isAllowedToNotice));
     }
 
     /**
@@ -114,12 +111,12 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
-            return badRequest(newPost.render(postForm.errors().toString(), postForm, project, isAllowedToNotice));
+            return badRequest(create.render(postForm.errors().toString(), postForm, project, isAllowedToNotice));
         }
 
         Posting post = postForm.get();
@@ -153,15 +150,15 @@ public class BoardApp extends AbstractPostingApp {
         Posting post = Posting.finder.byId(postId);
         
         if (post == null) {
-            return notFound(notExistingPage.render("title.post.notExistingPage", project));
+            return notFound(views.html.error.notfound.render("error.notfound", project, "post"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), post.asResource(), Operation.READ)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class);
-        return ok(views.html.board.post.render(post, commentForm, project));
+        return ok(view.render(post, commentForm, project));
     }
 
     /**
@@ -182,13 +179,13 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<Posting> editForm = new Form<Posting>(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
-        return ok(editPost.render("board.post.modify", editForm, postId, project, isAllowedToNotice));
+        return ok(edit.render("board.post.modify", editForm, postId, project, isAllowedToNotice));
     }
 
     /**

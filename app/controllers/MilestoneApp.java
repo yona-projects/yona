@@ -123,21 +123,6 @@ public class MilestoneApp extends Controller {
         }
     }
 
-    /*
-    public static Result manageMilestones(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
-        if(project == null ) {
-            return notFound();
-        }
-        MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
-        List<Milestone> milestones = Milestone.findMilestones(project.id,
-                State.ALL,
-                mCondition.sort,
-                Direction.getValue(mCondition.direction));
-        return ok(manage.render("title.milestoneManage", milestones, project, mCondition));
-    }
-    */
-
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트에
      * {@code milestoneId}에 해당하는 마일스톤 수정 화면으로 이동한다.

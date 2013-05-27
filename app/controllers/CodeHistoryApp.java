@@ -84,7 +84,7 @@ public class CodeHistoryApp extends Controller {
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.project.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
@@ -134,7 +134,7 @@ public class CodeHistoryApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.project.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         String patch = RepositoryService.getRepository(project).getPatch(commitId);

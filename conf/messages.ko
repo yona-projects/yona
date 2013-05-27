@@ -11,7 +11,6 @@ title.projectHome = Overview
 title.newProject = 새 프로젝트 시작
 title.projectSetting = 프로젝트 설정
 title.memberList = 멤버 목록
-title.post.notExistingPage = 존재하지 않는 게시물
 title.siteSetting = 사이트 설정
 title.site.userEdit = 사용자 설정
 title.login = 로그인
@@ -445,7 +444,6 @@ validation.allowedCharsForLoginId = 아이디는 알파벳 숫자 - _ . 를 포�
 validation.reservedWord = 예약어는 사용할 수 없습니다.
 
 #Unauthorized
-auth.unauthorized.title = 접근 권한 오류
 auth.unauthorized.waringMessage = 권한이 없거나 로그인을 하지 않았습니다.
 auth.unauthorized.comment = 로그인 후 댓글 입력이 가능합니다.
 
@@ -469,3 +467,10 @@ admin.resetPasswordEmail.invalidRequest = 잘못된 비밀번호 재 설정 요�
 
 #Attachment
 attach.attachIfYouSave = 저장하면 첨부됩니다
+
+#Error
+error.notfound = 페이지를 찾을 수 없습니다
+error.notfound.post = 존재하지 않는 글입니다
+error.notfound.issue = 존재하지 않는 이슈입니다
+error.forbidden = 권한이 없습니다
+error.unauthorized = 로그인 해야 합니다

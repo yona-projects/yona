@@ -11,7 +11,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
-import views.html.code.codeView;
+import views.html.code.view;
 import views.html.code.nohead;
 
 import javax.servlet.ServletException;
@@ -25,7 +25,7 @@ public class CodeApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.project.unauthorized.render(project));
+            return unauthorized(views.html.error.unauthorized.render(project));
         }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
@@ -38,7 +38,7 @@ public class CodeApp extends Controller {
             return ok(nohead.render(project));
         }
 
-        return ok(codeView.render(project, branches));
+        return ok(view.render(project, branches));
     }
 	public static Result codeBrowserWithBranch(String userName, String projectName, String branch)
             throws IOException, UnsupportedOperationException, ServletException {
@@ -50,7 +50,7 @@ public class CodeApp extends Controller {
 
         List<String> branches = RepositoryService.getRepository(project).getBranches();
 
-        return ok(codeView.render(project, branches));
+        return ok(view.render(project, branches));
     }
 
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{

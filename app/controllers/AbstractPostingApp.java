@@ -70,7 +70,7 @@ public class AbstractPostingApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.project.unauthorized.render(original.project));
+            return forbidden(views.html.error.forbidden.render(original.project));
         }
 
         posting.id = original.id;
@@ -90,7 +90,7 @@ public class AbstractPostingApp extends Controller {
 
     public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, resourceType)) {
-            return forbidden(views.html.project.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         return ok(content);

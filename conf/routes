@@ -14,7 +14,7 @@ GET     /favicon.ico                                    controllers.Assets.at(pa
 
 # Bootstrapping for test
 GET     /init                                           controllers.Application.init()
-GET		/hiveUI											controllers.Application.hiveUI()
+GET		/UIKit											controllers.Application.UIKit()
 
 # User
 GET     /users                                          controllers.UserApp.users(query: String ?= "")
