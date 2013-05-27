@@ -200,6 +200,9 @@ issue.title = 제목
 issue.createdDate = 작성일
 issue.attachment = 첨부파일
 issue.numOfComments = 댓글개수
+issue.update.state = 상태 변경
+issue.update.assignee = 담당자 변경
+issue.update.milestone = 마일스톤 변경
 
 #Post
 post.new = 새글
@@ -420,6 +423,8 @@ mail.write = 메일 쓰기
 mail.fail = 메일 발송에 실패했습니다.
 mail.sended = 메일을 발송하였습니다.
 
+state = 상태
+label = 라벨
 author = 작성자
 assignee = 담당자
 milestone = 마일스톤
@@ -427,6 +432,7 @@ none = 없음
 comment = 댓글
 noAssignee = 담당자 없음
 noMilestone = 마일스톤 없음
+noChange = 변경 없음
 
 #validation
 validation.tooShortPassword = 비밀번호를 4자 이상으로 만들어 주세요!

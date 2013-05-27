@@ -37,6 +37,7 @@
 			htVar.oTypeahead = new hive.ui.Typeahead("input[name=authorLoginId]", {
 				"sActionURL": "/users"
 			});
+            htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
 		}
 		
 		/**
@@ -48,6 +49,23 @@
 			htElement.welPagination = $(htOptions.elPagination || "#pagination");
 
 			htElement.waLabels    = $("button.issue-label[data-color]"); // 목록 > 라벨
+
+            htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
+            htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
+
+            htElement.oState = new hive.ui.Dropdown({
+                "elContainer": htOptions.welState
+            });
+
+            htElement.oMilestone = new hive.ui.Dropdown({
+                "elContainer": htOptions.welMilestone
+            });
+
+            htElement.oAssignee = new hive.ui.Dropdown({
+                "elContainer": htOptions.welAssignee
+            });
+
+
 		}
 		
 		/**
@@ -55,8 +73,45 @@
 		 */
 		function _attachEvent(){
 			htElement.welBtnAdvance.click(_onClickBtnAdvance);
+            htElement.oState.onChange(_onChangeUpdateField);
+            htElement.oMilestone.onChange(_onChangeUpdateField);
+            htElement.oAssignee.onChange(_onChangeUpdateField);
+            $(htVar.sIssueCheckBoxesSelector).change(_onCheckIssue);
 		}
-		
+
+        /**
+         * When check an issue, enable Mass Update dropdowns if only one or
+         * more issues are checked, otherwise disable them.
+         */
+        function _onCheckIssue() {
+            htElement.welMassUpdateButtons.attr('disabled', true);
+            $(htVar.sIssueCheckBoxesSelector + ':checked').each(function() {
+                htElement.welMassUpdateButtons.removeAttr('disabled');
+            });
+        }
+
+        /**
+         * When change the value of any field in the Mass Update form, submit
+         * the form and request to update issues.
+         */
+        function _onChangeUpdateField() {
+            var nCnt = 0;
+            var welForm = htElement.welMassUpdateForm;
+            var fAddCheckedIssueId = function() {
+                welForm.append(
+                    $('<input>')
+                        .attr('type', 'hidden')
+                        .attr('name', 'issues[' + (nCnt++) + '].id')
+                        .attr('value', $(this).data('issue-id'))
+                );
+            }
+
+            $(htVar.sIssueCheckBoxesSelector + ':checked')
+                .each(fAddCheckedIssueId);
+
+            welForm.submit();
+        }
+
 		/**
 		 * 상세검색 영역 토글
 		 */

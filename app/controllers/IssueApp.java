@@ -185,6 +185,66 @@ public class IssueApp extends AbstractPostingApp {
                 newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
+    /**
+     * 여러 이슈를 한번에 갱신하려는 요청에 응답한다.
+     *
+     * when: 이슈 목록 페이지에서 이슈를 체크하고 상단의 갱신 드롭박스를 이용해 체크한 이슈들을 갱신할 때
+     *
+     * 갱신을 시도한 이슈들 중 하나 이상 갱신에 성공했다면 이슈 목록 페이지로 리다이렉트한다. (303 See Other)
+     * 어떤 이슈에 대한 갱신 요청이든 모두 실패했으며, 그 중 권한 문제로 실패한 것이 한 개 이상 있다면 403
+     * Forbidden 으로 응답한다.
+     * 갱신 요청이 잘못된 경우엔 400 Bad Request 로 응답한다.
+     *
+     * @param ownerName 프로젝트 소유자 이름
+     * @param projectName 프로젝트 이름
+     * @return
+     * @throws IOException
+     */
+    public static Result massUpdate(String ownerName, String projectName) throws IOException {
+        Form<IssueMassUpdate> issueMassUpdateForm
+                = new Form<IssueMassUpdate>(IssueMassUpdate.class).bindFromRequest();
+        if (issueMassUpdateForm.hasErrors()) {
+            return badRequest(issueMassUpdateForm.errorsAsJson());
+        }
+        IssueMassUpdate issueMassUpdate = issueMassUpdateForm.get();
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        int updatedItems = 0;
+        int rejectedByPermission = 0;
+
+        for (Issue issue : issueMassUpdate.issues) {
+
+            if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
+                    Operation.UPDATE)) {
+                rejectedByPermission++;
+                continue;
+            }
+
+            if (issueMassUpdate.assignee != null) {
+                issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+            }
+
+            if (issueMassUpdate.state != null) {
+                issue.state = issueMassUpdate.state;
+            }
+
+            if (issueMassUpdate.milestone != null) {
+                issue.milestone = issueMassUpdate.milestone;
+            }
+
+            issue.update();
+            updatedItems++;
+        }
+
+        if (updatedItems == 0 && rejectedByPermission > 0) {
+            return forbidden(unauthorized.render(project));
+        }
+
+        return redirect(
+                routes.IssueApp.issues(ownerName, projectName, "all", "html", 1));
+    }
+
     public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);

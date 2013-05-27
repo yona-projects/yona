@@ -101,6 +101,7 @@ GET     /:user/:project/milestone/:id                   controllers.MilestoneApp
 # Issues
 GET     /:user/:project/issues                          controllers.IssueApp.issues(user, project, state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET     /:user/:project/issueform                       controllers.IssueApp.newIssueForm(user, project)
+POST    /:user/:project/issues                          controllers.IssueApp.massUpdate(user, project)
 POST    /:user/:project/issues                          controllers.IssueApp.newIssue(user, project)
 GET     /:user/:project/issue/:id                       controllers.IssueApp.issue(user, project, id:Long)
 GET     /:user/:project/issue/:id/editform              controllers.IssueApp.editIssueForm(user, project, id:Long)

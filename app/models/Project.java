@@ -487,4 +487,8 @@ public class Project extends Model {
     public String toString() {
         return owner + "/" + name;
     }
+
+    public List<ProjectUser> members() {
+        return ProjectUser.findMemberListByProject(this.id);
+    }
 }
