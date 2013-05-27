@@ -369,7 +369,7 @@ public class IssueApp extends AbstractPostingApp {
         String[] labelIds = form.get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                labels.add(IssueLabel.findById(Long.parseLong(labelId)));
+                labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
             }
         }
     }

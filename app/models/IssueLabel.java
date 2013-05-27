@@ -22,7 +22,7 @@ public class IssueLabel extends Model {
      *
      */
     private static final long serialVersionUID = -35487506476718498L;
-    private static Finder<Long, IssueLabel> finder = new Finder<Long, IssueLabel>(Long.class, IssueLabel.class);
+    public static Finder<Long, IssueLabel> finder = new Finder<Long, IssueLabel>(Long.class, IssueLabel.class);
 
     @Id
     public Long id;
@@ -42,12 +42,8 @@ public class IssueLabel extends Model {
     @ManyToMany(mappedBy="labels", fetch = FetchType.EAGER)
     public Set<Issue> issues;
 
-    public static List<IssueLabel> findByProjectId(Long projectId) {
-        return finder.where().eq("project.id", projectId).findList();
-    }
-
-    public static IssueLabel findById(Long id) {
-        return finder.byId(id);
+    public static List<IssueLabel> findByProject(Project project) {
+        return finder.where().eq("project.id", project.id).findList();
     }
 
     @Transient

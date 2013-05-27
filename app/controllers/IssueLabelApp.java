@@ -52,7 +52,7 @@ public class IssueLabelApp extends Controller {
         }
 
         List<Map<String, String>> labels = new ArrayList<Map<String, String>>();
-        for (IssueLabel label : IssueLabel.findByProjectId(project.id)) {
+        for (IssueLabel label : IssueLabel.findByProject(project)) {
             Map<String, String> labelPropertyMap = new HashMap<String, String>();
             labelPropertyMap.put("id", "" + label.id);
             labelPropertyMap.put("category", label.category);
@@ -148,7 +148,7 @@ public class IssueLabelApp extends Controller {
             return badRequest("_method must be 'delete'.");
         }
 
-        IssueLabel label = IssueLabel.findById(id);
+        IssueLabel label = IssueLabel.finder.byId(id);
 
         if (label == null) {
             return notFound("The label #" + label.id + " is not found.");
