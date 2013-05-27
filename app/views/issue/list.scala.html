@@ -142,6 +142,30 @@
             </ul>
         </div>
 
+        <div id="attaching-label" class="btn-group" data-name="attachingLabel.id">
+            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+                <span class="d-label">@Messages("issue.update.attachLabel")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+                @for(label <- IssueLabel.findByProject(project)) {
+                <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
+                }
+            </ul>
+        </div>
+
+        <div id="detaching-label" class="btn-group" data-name="detachingLabel.id">
+            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+                <span class="d-label">@Messages("issue.update.detachLabel")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+                @for(label <- IssueLabel.findByProject(project)) {
+                <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
+                }
+            </ul>
+        </div>
+
     </form>
 	<ol class="issue-list">
 		@for(issue <- currentPage.getList){
@@ -213,6 +237,8 @@
 			"welState": $("#state"),
 			"welMilestone": $("#milestone"),
 			"welAssignee": $("#assignee"),
+			"welAttachingLabel": $("#attaching-label"),
+			"welDetachingLabel": $("#detaching-label"),
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
 			"nTotalPages" : @currentPage.getTotalPageCount,
 			"htOptLabel"  : htOptLabel

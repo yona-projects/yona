@@ -205,6 +205,8 @@ issue.numOfComments = Comment Count
 issue.update.state = Update state
 issue.update.assignee = Update assignee
 issue.update.milestone = Update milestone
+issue.update.attachLabel = Attach label
+issue.update.detachLabel = Detach label
 
 #Post
 post.new = New
