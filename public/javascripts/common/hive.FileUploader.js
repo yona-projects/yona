@@ -30,7 +30,9 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
-	 * init variables
+	 * 변수 초기화
+	 * initialize variables
+	 * @param {Hash Table} htOptions 초기화 옵션
 	 */
 	function _initVar(htOptions){
 		htVar.nTotalSize   = 0;
@@ -51,7 +53,9 @@ hive.FileUploader = (function() {
 	}
 
 	/**
-	 * init elements
+	 * 엘리먼트 초기화
+	 * initialize elements
+	 * @param {Hash Table} htOptions 초기화 옵션
 	 */
 	function _initElement(htOptions){
 		htElements.welTarget      = $(htOptions.elTarget);
@@ -65,7 +69,8 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
-	 * init event handlers
+	 * 이벤트 핸들러 설정
+	 * attach event handlers
 	 */
 	function _attachEvent(){
 		htElements.welInputFile.change(_onChangeFile);
@@ -75,6 +80,7 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
+	 * 서버에 첨부파일 목록 요청
 	 * request attached file list
 	 */
 	function _requestList(){
@@ -89,6 +95,7 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
+	 * 서버에 요청할 인자 반환
 	 * get request parameters
 	 * @return {Hash Table}
 	 */
@@ -106,44 +113,53 @@ hive.FileUploader = (function() {
 		return htData;
 	}
 	
+    /**
+     * 서버에서 수신한 첨부파일 목록 처리함수
+     * @param {Object} oRes
+     */
 	function _onLoadRequest(oRes) {
-        var fAddFiles = function(aFiles, sNotice) {
-            var totalFileSize = 0;
+        var nTotalFileSize = 0;
+        var sNotice = " (" + Messages("attach.attachIfYouSave") + ")";
 
-            if (sNotice === undefined || sNotice === null) {
-                sNotice = "";
-            }
-
-            if(aFiles != null && aFiles.length !== 0){
-                aFiles.forEach(function(oFile) {
-                    var welItem = _createFileItem(oFile, sNotice);
-                    welItem.click(_onClickListItem);
-                    htElements.welFileList.append(welItem);
-                    totalFileSize = totalFileSize + parseInt(oFile.size);
-                });
-            }
-
-            return totalFileSize;
-        }
-
-        var totalFileSize = 0;
-
-        totalFileSize += fAddFiles(oRes.attachments);
-        totalFileSize += fAddFiles(oRes.tempFiles, _attachIfYouSaveNotice());
+        nTotalFileSize += _addFilesToList(oRes.attachments); // 이미 첨부되어 있는 파일
+        nTotalFileSize += _addFilesToList(oRes.tempFiles, sNotice); // 임시 파일 (저장하면 첨부됨)
 		
 		_setProgressBar(100);
-		_updateTotalFilesize(totalFileSize);
+		_updateTotalFilesize(nTotalFileSize);
+	}
+
+	/**
+	 * 첨부파일 정보를 HTML 목록에 추가하는 함수
+	 * @param {Array} aFiles 첨부파일 절보
+	 * @param {String} sNotice 
+	 */
+	function _addFilesToList(aFiles, sNotice){
+	    if(!(aFiles instanceof Array) || aFiles.length === 0){
+	        return 0;
+	    }
+	    
+        var welItem;
+        var nTotalSize = 0;
+        sNotice = sNotice || "";
+
+        aFiles.forEach(function(oFile) {
+            welItem = _createFileItem(oFile, sNotice);
+            welItem.click(_onClickListItem);
+            htElements.welFileList.append(welItem);
+            nTotalSize += parseInt(oFile.size, 10);
+        });
+
+        return nTotalSize;
 	}
 	
 	/**
+	 * 파일 선택시 이벤트 핸들러
 	 * change event handler on <input type="file">
 	 */
 	function _onChangeFile(){
 		// Validation
 		var sFileName = _getBasename(htElements.welInputFile.val());
-		//console.log("changeFile : " + sFileName);
-		
-		if(sFileName == ""){
+		if(!sFileName || sFileName === ""){
 			return;
 		}
 
@@ -165,9 +181,10 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
-	 * Returns trailing name component of path
+	 * 문자열에서 경로를 제거하고 파일명만 반환
+	 * return trailing name component of path
 	 * @param {String} sPath
-	 * @returns {String}  
+	 * @return {String}  
 	 */
 	function _getBasename(sPath){
 		var sSeparator = 'fakepath';
@@ -175,21 +192,21 @@ hive.FileUploader = (function() {
 		return (nPos > -1) ? sPath.substring(nPos + sSeparator.length + 1) : sPath;
 	}
 	
+	/**
+	 * 파일 전송하기 전에 실행되는 함수
+	 * 선택된 파일이 없으면 false 반환
+	 * @return {Boolean}
+	 */
 	function _onBeforeSubmitForm(){
 		var sFileName = _getBasename(htElements.welInputFile.val());
-		//console.log("beforeSubmit: " + sFileName);
-		
-		return !(sFileName == "");
+		return !!sFileName;
 	}
 
-    function _attachIfYouSaveNotice() {
-        return " (" + Messages("attach.attachIfYouSave") + ")";
-    }
-	
 	/**
+	 * 첨부 파일 전송에 성공시 이벤트 핸들러
 	 * On success to submit temporary form created in onChangeFile()
 	 * @param {Hash Table} htData
-	 * @returns
+	 * @return
 	 */
 	function _onSuccessSubmitForm(oRes){
 		htElements.welInputFile.val("");
@@ -221,9 +238,10 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
+	 * 파일 목록에 추가할 수 있는 LI 엘리먼트를 반환하는 함수
 	 * Create uploaded file item HTML element using template string
-	 * @param {Hash Table} htFile
-	 * @returns {HTMLElement} 
+	 * @param {Hash Table} htFile 파일 정보
+	 * @return {HTMLElement} 
 	 */
 	function _createFileItem(htFile, sNotice) {
 		var oItem = $.tmpl(htVar.sTplFileItem, {
@@ -239,38 +257,46 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
+	 * 파일 전송에 실패한 경우
 	 * On error to submit temporary form created in onChangeFile()
+	 * @param {Object} oRes
 	 */
 	function _onErrorSubmitForm(oRes){
 		_setProgressBar(0);
-		//console.log("errorSubmit : %o", oRes);
 	}
 	
 	/**
+	 * 파일 업로드 진행상태 표시 함수
 	 * uploadProgress event handler 
+	 * @param {Object} oEvent
+	 * @param {Number} nPos
+	 * @param {Number} nTotal
+	 * @param {Number} nPercentComplete
 	 */
 	function _onUploadProgressForm(oEvent, nPos, nTotal, nPercentComplete){
 		_setProgressBar(nPercentComplete);
 	}
 
 	/**
+	 * 업로드 진행상태 표시바 너비 지정
 	 * Set Progress Bar Width 
-	 * @param nProgress
+	 * @param {Number} nProgress
 	 */
 	function _setProgressBar(nProgress) {
 		nProgress = nProgress * 1;
-//		htElements.welTarget.css("opacity", (nProgress === 0) ? 0 : 1);
 		htElements.welProgressBar.css("width", nProgress + "%");
 		htElements.welProgressNum.text(nProgress + "%");
 	}
 
 	
 	/**
+	 * 첨부파일 목록에서 항목을 클릭할 때 이벤트 핸들러
 	 * On Click attached files list
+	 * @param {Wrapped Event} weEvt
 	 */
-	function _onClickListItem(oEvt){
-		var welTarget = $(oEvt.target);
-		var welItem = $(oEvt.currentTarget);
+	function _onClickListItem(weEvt){
+		var welTarget = $(weEvt.target);
+		var welItem = $(weEvt.currentTarget);
 		
 		// 파일 아이템 전체에 이벤트 핸들러가 설정되어 있으므로
 		// 클릭이벤트 발생한 위치를 삭제버튼과 나머지 영역으로 구분하여 처리
@@ -283,6 +309,7 @@ hive.FileUploader = (function() {
 	
 	/**
 	 * 선택한 파일 아이템의 링크 텍스트를 <textarea>에 추가하는 함수
+     * @param {Wrapped Element} welItem
 	 */
 	function _insertLinkToTextarea(welItem){
 		var welTextarea = htElements.welTextarea;
@@ -300,6 +327,7 @@ hive.FileUploader = (function() {
 	/**
 	 * 선택한 파일 아이템을 첨부 파일에서 삭제
 	 * <textarea>에서 해당 파일의 링크 텍스트도 제거함 (_clearLinkInTextarea)
+	 * @param {Wrapped Element} welItem
 	 */
 	function _deleteAttachedFile(welItem){	
 		var nFileSize = welItem.attr("data-size") * 1;

@@ -12,6 +12,7 @@ hive.FileDownloader = function(htOptions) {
 	var htElement = {};
 
 	/**
+	 * 초기화
 	 * initialize
 	 */
 	function _init(htOptions){
@@ -22,6 +23,7 @@ hive.FileDownloader = function(htOptions) {
 	}
 	
 	/**
+	 * 엘리먼트 초기화
 	 * initialize element
 	 */
 	function _initElement(htOptions){
@@ -30,6 +32,7 @@ hive.FileDownloader = function(htOptions) {
 	}
 	
 	/**
+	 * 변수 초기화
 	 * initialize variable
 	 */
 	function _initVar(htOptions){
@@ -41,6 +44,7 @@ hive.FileDownloader = function(htOptions) {
 	}
 	
 	/**
+	 * 서버에 첨부파일 목록 요청
 	 * request attached file list
 	 */
 	function _requestList(){
@@ -55,6 +59,7 @@ hive.FileDownloader = function(htOptions) {
 	}
 	
 	/**
+	 * 서버에 요청할 인자 반환
 	 * get request parameters
 	 * @return {Hash Table}
 	 */
@@ -73,7 +78,8 @@ hive.FileDownloader = function(htOptions) {
 	}
 	
 	/**
-	 * on load file list
+	 * 서버에서 수신한 첨부파일 목록 처리함수
+	 * @param {Object} oRes
 	 */
 	function _onLoadRequest(oRes){
 		var aItems = [];
@@ -92,6 +98,8 @@ hive.FileDownloader = function(htOptions) {
 	}
 	
 	/**
+	 * 첨부파일 목록에 추가할 항목(LI)을 반환하는 함수
+	 * @param {Object} oFile 첨부파일 정보
 	 * @returns {Wrapped Element}
 	 */
 	function _getFileItemHTML(oFile) {

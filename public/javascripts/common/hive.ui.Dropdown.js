@@ -10,12 +10,15 @@
 /**
  * bootstrap-dropdown.js 에서는 단순히 목록 토글 기능만 제공하므로
  * hive.Dropdown 로 해당 영역을 지정하면 <select> 의 기능을 하도록 만든다
+ * 
  * @example 
  * var oSelect = new hive.Dropdown({
  *     "elContainer": ".btn-group",
  *     "fOnChange"  : function(){},
  *     "
  * });
+ * 
+ * @require bootstrap-dropdown.js
  */
 (function(ns){
 	
