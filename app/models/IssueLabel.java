@@ -52,8 +52,12 @@ public class IssueLabel extends Model {
 
     @Transient
     public boolean exists() {
-        return finder.where().eq("project.id", project.id)
-                .eq("name", name).eq("color", color).findRowCount() > 0;
+        return finder.where()
+                .eq("project.id", project.id)
+                .eq("category", category)
+                .eq("name", name)
+                .eq("color", color)
+                .findRowCount() > 0;
     }
 
     @Override
