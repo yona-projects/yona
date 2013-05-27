@@ -214,7 +214,6 @@ public class IssueApp extends AbstractPostingApp {
         int rejectedByPermission = 0;
 
         for (Issue issue : issueMassUpdate.issues) {
-
             if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                     Operation.UPDATE)) {
                 rejectedByPermission++;
@@ -327,9 +326,9 @@ public class IssueApp extends AbstractPostingApp {
         return delete(issue, issue.asResource(), redirectTo);
     }
 
-    public static Result newComment(String userName, String projectName, Long number) throws IOException {
-        final Issue issue = Issue.finder.byId(number);
-        Project project = issue.project;
+    public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        final Issue issue = Issue.findByNumber(project, number);
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
