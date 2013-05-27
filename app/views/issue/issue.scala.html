@@ -19,7 +19,7 @@
 @main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
-  
+
 	@** Post Info **@
 	<div class="board-header issue">
 		<div class="board-id div"><strong class="secondary-txt">#@issue.getNumber</strong></div>
@@ -29,7 +29,7 @@
 			<span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
 		</div>
 	</div>
-  
+
 	@** Content body **@
 	<div class="board-body">
 		<div class="author-info">
@@ -39,15 +39,15 @@
 			<div class="media-body">
 				<p>
 					@**<!-- author  -->**@
-					@Messages("issue.author") 
+					@Messages("issue.author")
 					<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" @if(issue.assigneeName != null){ class="gray-txt" }>
 						<strong>@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</strong>
 					</a>
 					&nbsp;&middot;&nbsp;
-					
+
 					@**<!-- assignee  -->**@
 					@Messages("issue.assignee")
-					@if(issue.assigneeName == null){ 
+					@if(issue.assigneeName == null){
 					<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)#options} else {#}" class="gray-txt">
 						<strong>@Messages("issue.noAssignee")</strong>
 					</a>
@@ -57,17 +57,17 @@
 					</a>
 					}
 				</p>
-        
+
 				@** status **@
 				<p>
-					@**<!-- comment  
+					@**<!-- comment
 					@Messages("comment") <strong class="num">@issue.comments.size</strong>
 					-->**@
-					
+
 					@**<!-- milestone  -->**@
 					@Messages("milestone")
 					@if(issue.milestone != null) {
-						<strong class="num">@issue.milestone.title</strong>
+						<a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)"><strong class="num">@issue.milestone.title</strong></a>
 					} else {
 						<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)#options} else {#}" class="gray-txt"><strong>@Messages("none")</strong></a>
 					}
@@ -77,30 +77,30 @@
     	<div class="content" markdown="true">@issue.body</div>
     	<div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
 	</div>
-	
+
 	<div class="board-footer board-actrow">
 		@** labels **@
 		<p class="labels-wrap pull-left">
-		@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) { 
-			<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button> 
+		@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+			<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button>
 		}
 		</p>
-  
+
 		@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
 		<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="nbtn medium orange">@Messages("button.edit")</a>
 		}
-		
+
 		@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
 		<a href="#deleteConfirm" data-toggle="modal" class="nbtn medium black">@Messages("button.delete")</a>
 		}
-		
+
 		<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium last">@Messages("button.list")</a>
 	</div>
 
 	@** Comment **@
 	<div class="board-comment-wrap">
 		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
-    
+
 	@if(issue.comments.size > 0) {
 		<ul class="comments">
 		@for(comment <- issue.comments){
@@ -112,7 +112,7 @@
 					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
 					<a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.id, comment.id)">&times;</a>
 					}
-					
+
 					<p class="commenter">
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
 						<span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
@@ -132,7 +132,7 @@
 				<textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
 				<button class="comment-btn">@Messages("button.comment.new")</button>
 			</div>
-	        
+
 	        @** fileUploader **@
 		    @if(UserApp.currentUser() != UserApp.anonymous) {
 			<div class="attach-wrap">
@@ -152,7 +152,7 @@
 				</div>
 				<div class="btn-wrap">
 					<div class="nbtn medium white fake-file-wrap">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!-- 
+						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
 					--> <input type="file" class="file" name="filePath">
 					</div>
 				</div>
@@ -183,7 +183,7 @@
 	--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
 </script>
 
-@**<!-- 
+@**<!--
 <div class="board-footer">
   @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
 	<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="nbtn orange medium">@Messages("button.edit")</a>
@@ -217,15 +217,15 @@
 		// hive.Label
 		var htOptLabel = {
 			"bEditable"    : false,
-			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
+			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
 		};
-		
+
 		// hive.issue.View
 		$hive.loadModule("issue.View", {
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"    : htOptLabel
-		});		
+		});
 	});
 </script>
 }
