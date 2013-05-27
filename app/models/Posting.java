@@ -104,4 +104,8 @@ public class Posting extends AbstractPosting {
     public List<? extends Comment> getComments() {
         return comments;
     }
+
+    public static Posting findByNumber(Project project, Long number) {
+        return AbstractPosting.findByNumber(finder, project, number);
+    }
 }

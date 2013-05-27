@@ -124,6 +124,10 @@ abstract public class AbstractPosting extends Model {
                 .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
 
+    public static <T> T findByNumber(Finder<Long, T> finder, Project project, Long number) {
+        return finder.where().eq("project.id", project.id).eq("number", number).findUnique();
+    }
+
     /**
      * 현재 글을 쓴지 얼마나 되었는지를 얻어내는 함수
      *

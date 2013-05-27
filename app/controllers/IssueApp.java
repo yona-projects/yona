@@ -156,9 +156,9 @@ public class IssueApp extends AbstractPostingApp {
         return ok(excelData);
     }
 
-    public static Result issue(String userName, String projectName, Long issueId) {
+    public static Result issue(String userName, String projectName, Long number) {
         Project project = ProjectApp.getProject(userName, projectName);
-        Issue issueInfo = Issue.finder.byId(issueId);
+        Issue issueInfo = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
             return forbidden(unauthorized.render(project));
@@ -173,7 +173,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         Form<Comment> commentForm = new Form<Comment>(Comment.class);
-        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(Issue.finder.byId(issueId));
+        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(Issue.findByNumber(project, number));
 
         return ok(issue.render("title.issueDetail", issueInfo, editForm, commentForm, project));
     }
@@ -276,9 +276,9 @@ public class IssueApp extends AbstractPostingApp {
                 State.OPEN.state(), "html", 1));
     }
 
-    public static Result editIssueForm(String userName, String projectName, Long id) {
-        Issue issue = Issue.finder.byId(id);
+    public static Result editIssueForm(String userName, String projectName, Long number) {
         Project project = ProjectApp.getProject(userName, projectName);
+        Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
             return forbidden(unauthorized.render(project));
@@ -289,12 +289,12 @@ public class IssueApp extends AbstractPostingApp {
         return ok(editIssue.render("title.editIssue", editForm, issue, project));
     }
 
-    public static Result editIssue(String userName, String projectName, Long id) throws IOException {
+    public static Result editIssue(String userName, String projectName, Long number) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
-        final Issue originalIssue = Issue.finder.byId(id);
-        final Project project = originalIssue.project;
+        final Project project = ProjectApp.getProject(userName, projectName);
+        final Issue originalIssue = Issue.findByNumber(project, number);
         Call redirectTo =
                 routes.IssueApp.issues(project.owner, project.name, State.OPEN.name(), "html", 1);
 
@@ -318,19 +318,19 @@ public class IssueApp extends AbstractPostingApp {
         }
     }
 
-    public static Result deleteIssue(String userName, String projectName, Long issueId) {
-        Issue issue = Issue.finder.byId(issueId);
-        Project project = issue.project;
+    public static Result deleteIssue(String userName, String projectName, Long number) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        Issue issue = Issue.findByNumber(project, number);
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
 
         return delete(issue, issue.asResource(), redirectTo);
     }
 
-    public static Result newComment(String userName, String projectName, Long issueId) throws IOException {
-        final Issue issue = Issue.finder.byId(issueId);
+    public static Result newComment(String userName, String projectName, Long number) throws IOException {
+        final Issue issue = Issue.finder.byId(number);
         Project project = issue.project;
-        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, issueId);
+        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
                 .bindFromRequest();
 
@@ -348,7 +348,7 @@ public class IssueApp extends AbstractPostingApp {
         });
     }
 
-    public static Result deleteComment(String userName, String projectName, Long issueId,
+    public static Result deleteComment(String userName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);
         Project project = comment.asResource().getProject();

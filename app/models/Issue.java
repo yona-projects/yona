@@ -279,5 +279,8 @@ public class Issue extends AbstractPosting {
         return comments;
     }
 
+    public static Issue findByNumber(Project project, Long number) {
+        return AbstractPosting.findByNumber(finder, project, number);
+    }
 }
 

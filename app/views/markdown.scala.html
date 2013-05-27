@@ -1,3 +1,5 @@
+@(project: Project = null)
+
 @import utils.TemplateHelper._
 
 <link rel="stylesheet" type="text/css" href="@getCSSLink("hljsstyles/googlecode")" />
@@ -8,10 +10,17 @@
 <script type="text/javascript" src="@getJSLink("Markdown.Sanitizer")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
-	hive.Markdown({
+    var htOptions = {
 		"aTarget"   : $("[markdown]"),
-		"sTplSwitch": $("#tplMarkdownPreview").text()
-	});
+		"sTplSwitch": $("#tplMarkdownPreview").text(),
+    }
+
+    @if(project != null){
+    htOptions.sIssuesUrl = "@routes.IssueApp.issues(project.owner, project.name)";
+    htOptions.sProjectUrl = "@routes.ProjectApp.project(project.owner, project.name)";
+    }
+
+	hive.Markdown(htOptions);
 });
 </script>
 
