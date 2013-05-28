@@ -315,11 +315,14 @@ public class Project extends Model {
     }
 
     /**
-     * 프로젝트 저장소로부터 파일(디렉토리) 정보를 가져오고 {@code baseFileName} 와 동일한 파일명을 찾아 반환한다.
+     * 프로젝트의 README 파일 이름을 얻는다. 없다면 {@code null}을 반환한다.
      *
-     * 같은 파일명이 존재하면 해당 파일명을 반환하고 없으면 {@code baseFileName} 을 반환한다.
+     * 코드저장소 루트 디렉토리에서 다음의 순서로 파일을 찾아서 발견되는대로 그 이름을 반환한다.
      *
-     * @return the readme file name
+     * - README.md
+     * - readme.md
+     *
+     * @return the readme file name or {@code null} if the file does not exist
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws GitAPIException the git api exception
      * @throws SVNException the sVN exception
