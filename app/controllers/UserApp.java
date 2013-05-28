@@ -392,6 +392,9 @@ public class UserApp extends Controller {
      * @return hashed password
      */
     public static String hashedPassword(String plainTextPassword, String passwordSalt) {
+        if (plainTextPassword == null  || passwordSalt == null) {
+            return null;
+        }
         return new Sha256Hash(plainTextPassword, ByteSource.Util.bytes(passwordSalt), HASH_ITERATIONS).toBase64();
     }
     
