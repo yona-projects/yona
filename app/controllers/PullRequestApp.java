@@ -205,7 +205,6 @@ public class PullRequestApp extends Controller {
         }
 
         boolean isSafe = false;
-        List<GitCommit> commits = null;
         if(pullRequest.isOpen()) {
             isSafe = GitRepository.isSafeToMerge(pullRequest);
         }
