@@ -52,8 +52,7 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public byte[] getRawFile(String path) throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
-        org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
+        org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         repository.getFile(path, -1l, null, baos);
         return baos.toByteArray();
@@ -61,8 +60,7 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public ObjectNode findFileInfo(String path) throws SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
-        org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
+        org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
 
@@ -115,11 +113,11 @@ public class SVNRepository implements PlayRepository {
             return null;
         }
     }
+
     @Override
     public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException,
             IOException, SVNException {
-        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
-        org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
+        org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
 
@@ -254,5 +252,26 @@ public class SVNRepository implements PlayRepository {
             }
 
         };
+    }
+
+    private org.tmatesoft.svn.core.io.SVNRepository getSVNRepository() throws SVNException {
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" +
+                projectName));
+
+        return SVNRepositoryFactory.create(svnURL);
+    }
+
+    public boolean isFile(String path, long rev) throws SVNException {
+        return getSVNRepository().checkPath(path, rev) == SVNNodeKind.FILE;
+    }
+
+    @Override
+    public boolean isFile(String path) throws SVNException, IOException {
+        return isFile(path, getSVNRepository().getLatestRevision());
+    }
+
+    @Override
+    public boolean isFile(String path, String revStr) throws SVNException {
+        return isFile(path, Long.valueOf(revStr));
     }
 }
