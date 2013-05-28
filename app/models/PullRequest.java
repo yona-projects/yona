@@ -2,10 +2,12 @@ package models;
 
 import models.enumeration.State;
 import org.joda.time.Duration;
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
+import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
@@ -22,6 +24,8 @@ public class PullRequest extends Model {
     @Id
     public Long id;
 
+    @Constraints.Required
+    @Size(max=255)
     public String title;
 
     @Lob
@@ -33,8 +37,12 @@ public class PullRequest extends Model {
     @ManyToOne
     public Project fromProject;
 
+    @Constraints.Required
+    @Size(max=255)
     public String toBranch;
 
+    @Constraints.Required
+    @Size(max=255)
     public String fromBranch;
 
     @ManyToOne

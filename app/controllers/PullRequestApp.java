@@ -86,7 +86,7 @@ public class PullRequestApp extends Controller {
         }
 
         if(!project.isFork()) {
-            badRequest("this request is allowed to only fork project");
+            return badRequest("this request is allowed to only fork project");
         }
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
@@ -109,11 +109,13 @@ public class PullRequestApp extends Controller {
      */
     public static Result newPullRequest(String userName, String projectName) {
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
-        Project project = ProjectApp.getProject(userName, projectName);
+        if(form.hasErrors()) {
+            return badRequest(form.errors().toString());
+        }
 
-        // 포크 프로젝트만 코드를 보낼 수 있다.
+        Project project = ProjectApp.getProject(userName, projectName);
         if(!project.isFork()) {
-            badRequest();
+            return badRequest("this request is allowed to only fork project");
         }
 
         Project originalProject = project.originalProject;
