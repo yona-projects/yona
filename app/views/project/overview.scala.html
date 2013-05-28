@@ -119,18 +119,21 @@
 	}
 
     <div class="bubble-wrap dark-gray readme">
-        @if(project.readme == null) {
-            <p class="default">
-                @Messages("project.readme")
-            </p>
-        } else {
-        <div class="readme-wrap">
-           <header><i class="ico ico-readme-book"></i><strong>README.md</strong></header>
-           <div class="readme-body" markdown="true">
-               @project.readme
-           </div>
-        </div>
+        @defining(project.readme) { readme =>
+            @if(readme == null) {
+                <p class="default">
+                    @Messages("project.readme")
+                </p>
+            } else {
+                <div class="readme-wrap">
+                    <header><i class="ico ico-readme-book"></i><strong>README.md</strong></header>
+                    <div class="readme-body" markdown="true">
+                        @project.readme
+                    </div>
+                </div>
+            }
         }
+
 	    @markdown()
     </div>
 </div>
