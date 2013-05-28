@@ -54,10 +54,10 @@
         <div class="board-footer board-actrow">
             @if(pull.isOpen()){
                 @if(isSafe){
-                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="n-btn orange med">@Messages("pullRequest.accept")</a>
+                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
                 }
-                <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="n-btn orange med">@Messages("pullRequest.reject")</a>
-                <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="n-btn gray med">@Messages("pullRequest.cancel")</a>
+                <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reject")</a>
+                <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
             }
         </div>
     </div>
