@@ -22,10 +22,12 @@ title.rememberMe = Remember Me
 title.commitHistory = Commit History
 title.mailSetting = Mail Configuration
 title.sendMail = Send Mail
+title.massMail = Send Massive Mail
 title.projectList = Project List
 title.help = HELP
 title.search = SEARCH
 title.resetPassword = Reset Password
+title.newPullRequest = Pull Request
 
 hive.name = HIVE
 hive.title = Collaborative Software Development Platform
@@ -38,6 +40,8 @@ menu.issue = Issue
 menu.wiki = Wiki
 menu.admin = Administrator
 menu.siteAdmin = Site Admin
+menu.task = Task
+menu.pullRequest = Pull Request
 
 message.warning = Warning
 message.success = Success
@@ -108,6 +112,7 @@ milestone.state.closed = Closed
 milestone.is.empty = There is no milestone.
 milestone.menu.manage = Manage
 milestone.menu.new = New
+milestone.none = None
 milestone.title.duplicated = Title is duplicated.
 milestone.form.title = Title
 milestone.form.content = Descriptions
@@ -122,6 +127,7 @@ issue.state.unit = issues
 issue.state.all = All
 issue.state.open = Open
 issue.state.closed = Closed
+issue.state.rejected = Rejected
 issue.state.assigned = Assigned
 issue.state.enrolled = Enrolled
 issue.state.solved = Solved
@@ -286,8 +292,15 @@ project.searchPlaceholder = search at current project
 project.wrongName = Project name is wrong
 project.tags = Tags
 project.license = License
+project.codeLanguage = Programming Language
 project.onmember = <strong>{0}</strong> members
-project.lastUpdate = Last Update 
+project.lastUpdate = Last Update
+
+# project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
+project.history.item = {0}님이 {1} {2}
+project.history.type.commit = 코드를 커밋했습니다
+project.history.type.issue = 새 이슈를 등록했습니다
+project.history.type.post = 새 글을 작성했습니다
 
 #Site
 site.sidebar = Site Management
@@ -398,7 +411,6 @@ mail.tls = TLS
 mail.authMethod = Authentication method
 mail.save = Save Changes
 mail.authMehtodPlaceholder = LOGIN or PLAIN
-
 mail.notConfigured = Mailer is not configured. Set below properties in conf/application.conf.
 mail.from = From
 mail.fromPlaceholder = sender@mail.com
@@ -463,3 +475,21 @@ error.notfound.post = Post not found
 error.notfound.issue = Issue not found
 error.forbidden = You need access Control!
 error.unauthorized = Login required
+
+# Fork & PullRequest
+pullRequest.is.safe = This pull request can be merged safely.
+pullRequest.is.not.safe = This pull request can not be merged safely, There may be some conflicts.
+pullRequest.accept = Accept
+pullRequest.reject = Reject
+pullRequest.cancel = Cancel
+pullRequest.select.branch = Select Branch
+pullRequest.from = From
+pullRequest.to = To
+pullRequest.opened.code = Opened Code
+pullRequest.accepted.code = Accepted Code
+pullRequest.rejected.code = Rejected Code
+pullRequest.sent.code = Sent Code
+fork = Fork
+pullRequest = PullRequest
+pullRequest.menu.overview = Overview
+pullRequest.menu.commit = Commits

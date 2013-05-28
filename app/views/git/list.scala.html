@@ -1,0 +1,71 @@
+@(project: Project, pullRequests: List[PullRequest], requestType: String)
+
+@main(Messages("title.commitHistory"), project, utils.MenuType.PULL_REQUEST) {
+    <div class="page">
+        @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+
+        <ul class="nav nav-tabs hive-tabs">
+            @if(project.hasForks()){
+                <li @if(requestType.equals("opened")){class="active"}>
+                    <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">@Messages("pullRequest.opened.code")</a>
+                </li>
+                <li @if(requestType.equals("closed")){class="active"}>
+                    <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">@Messages("pullRequest.accepted.code")</a>
+                </li>
+                <li @if(requestType.equals("rejected")){class="active"}>
+                    <a href="@routes.PullRequestApp.rejectedPullRequests(project.owner, project.name)">@Messages("pullRequest.rejected.code")</a>
+                </li>
+            }
+            @if(project.isFork()){
+                <li @if(requestType.equals("sent")){class="active"}>
+                    <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("pullRequest.sent.code")</a>
+                </li>
+            }
+            <li class="pull-right">
+                <div class="btn-group">
+                    <a href="@routes.PullRequestApp.fork(project.owner, project.name)" class="btn">@Messages("fork")</a>
+                    <a href="#" class="btn">@project.forkingProjects.size</a>
+                    @if(project.isFork) {
+                        <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="btn">@Messages("pullRequest")</a>
+                    }
+                </div>
+            </li>
+        </ul>
+
+        <div class="row-fluid">
+            <ul class="issue-list unstyled">
+            @for(req <- pullRequests.iterator()) {
+                <li class="issue">
+                    <div class="num">
+                        @req.id
+                    </div>
+                    <div class="contents">
+                        <p class="title">
+                            <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, req.id)">@req.title</a>
+                        </p>
+                        <p class="infos nm">
+                            by <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.loginId</a>
+                            &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.createdAgo())</span>
+                            @if(req.receiver != null) {
+                            &nbsp; and merged by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
+                            &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
+                            }
+                        </p>
+                    </div>
+                    <div class="right-panel">
+                        <div class="state @req.state.toString.toLowerCase">@Messages("issue.state." + req.state.toString.toLowerCase)</div>
+                        @if(req.receiver != null) {
+                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap img-rounded pull-right">
+                            <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name"></a>
+                        }
+                        <i class="icon-arrow-right pull-right"></i>
+                        <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap pull-right">
+                            <img src="@req.contributor.avatarUrl" alt="@req.contributor.name" width="32" height="32">
+                        </a>
+                    </div>
+                </li>
+            }
+            </ul>
+        </div>
+    </div>
+}

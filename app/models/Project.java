@@ -1,25 +1,15 @@
 package models;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import javax.persistence.*;
-import javax.servlet.ServletException;
-import javax.validation.constraints.NotNull;
-
 import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Page;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
-
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
-
 import org.tmatesoft.svn.core.SVNException;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -29,7 +19,10 @@ import playRepository.GitRepository;
 import playRepository.RepositoryService;
 import utils.JodaDateUtil;
 
-import com.avaje.ebean.Page;
+import javax.persistence.*;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Project.
@@ -93,6 +86,12 @@ public class Project extends Model {
     @ManyToMany
     public Set<Tag> tags;
 
+    @ManyToOne
+    public Project originalProject;
+
+    @OneToMany(mappedBy = "originalProject")
+    public List<Project> forkingProjects;
+
     /**
      * 신규 프로젝트를 생성한다.
      *
@@ -128,7 +127,7 @@ public class Project extends Model {
      * @return {@link Page} 형태의 프로젝트
      */
     public static Page<Project> findByName(String name, int pageSize,
-            int pageNum) {
+                                           int pageNum) {
         return find.where().ilike("name", "%" + name + "%")
                 .findPagingList(pageSize).getPage(pageNum);
     }
@@ -168,12 +167,12 @@ public class Project extends Model {
      * 프로젝트 정보(이름) 변경시 중복방지를 위해 사용한다.
      *
      * @param id 현재 프로젝트 id
-     * @param owner 프로젝트 관리자 loginId
+     * @param userName 프로젝트 관리자 loginId
      * @param projectName 프로젝트 이름
      * @return 자신을 제외한 프로젝트 중 동일한 프로젝트 이름이 있으면 false, 없으면 true를 반환
      */
     public static boolean projectNameChangeable(Long id, String userName,
-            String projectName) {
+                                                String projectName) {
         int findRowCount = find.where().eq("name", projectName)
                 .eq("owner", userName).ne("id", id).findRowCount();
         return (findRowCount == 0) ? true : false;
@@ -441,7 +440,7 @@ public class Project extends Model {
      * @return 이미 태그가 있을 경우 false / 없으면 추가하고 true 반환
      */
     public Boolean tag(Tag tag) {
-       if (tags.contains(tag)) {
+        if (tags.contains(tag)) {
             // Return false if the tag has been already attached.
             return false;
         }
@@ -490,5 +489,83 @@ public class Project extends Model {
 
     public List<ProjectUser> members() {
         return ProjectUser.findMemberListByProject(this.id);
+    }
+
+    /**
+     * 이 프로젝트가 포크 프로젝트인지 확인한다.
+     *
+     * @return
+     */
+    public boolean isFork() {
+        return this.originalProject != null;
+    }
+
+    /**
+     * 이 프로젝트를 포크 받은 프로젝트가 있는지 확인한다.
+     *
+     * @return
+     */
+    public boolean hasForks() {
+        return this.forkingProjects.size() > 0;
+    }
+
+    /**
+     * 포크 프로젝트 목록을 반환한다.
+     *
+     * @return
+     */
+    public List<Project> getForkingProjects() {
+        if(this.forkingProjects == null) {
+            this.forkingProjects = new ArrayList<>();
+        }
+        return forkingProjects;
+    }
+
+    /**
+     * 포크를 추가한다.
+     *
+     * @param forkProject
+     */
+    public void addFork(Project forkProject) {
+        getForkingProjects().add(forkProject);
+        forkProject.originalProject = this;
+    }
+
+    /**
+     * {@code loginId}에 해당하는 유저가 {@code originalProject}를 포크 받은 프로젝트를 반환한다.
+     *
+     * when: fork 할 때 기존에 포크 받은 프로젝트가 있는지 확인할 때 사용한다.
+     *
+     * @param loginId
+     * @param originalProject
+     * @return
+     */
+    public static Project findByOwnerAndOriginalProject(String loginId, Project originalProject) {
+        return find.where()
+                .eq("originalProject", originalProject)
+                .eq("owner", loginId)
+                .findUnique();
+    }
+
+    /**
+     * 포크 프로젝트를 삭제한다.
+     *
+     * when: 프로젝트를 삭제할 때 해당 프로젝트가 포크 프로젝트라면 원본 프로젝트의 포크 프로젝트 목록에서
+     * 해당 프로젝트를 삭제한다.
+     */
+    public void deleteFork() {
+        if(this.originalProject != null) {
+            this.originalProject.deleteFork(this);
+        }
+    }
+
+    /**
+     * {@code project}를 포크 목록에서 삭제한다.
+     *
+     * @param project
+     */
+    private void deleteFork(Project project) {
+        getForkingProjects().remove(project);
+        project.originalProject = null;
     }
 }

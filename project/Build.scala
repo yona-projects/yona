@@ -20,9 +20,9 @@ object ApplicationBuild extends Build {
       "mysql" % "mysql-connector-java" % "5.1.18",
       "postgresql" % "postgresql" % "9.1-901.jdbc4",
       // Core Library
-      "org.eclipse.jgit" % "org.eclipse.jgit" % "2.0.0.201206130900-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "2.3.1.201302201838-r",
       // Smart HTTP Servlet
-      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "2.0.0.201206130900-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "2.3.1.201302201838-r",
       // svnkit
       "sonia.svnkit" % "svnkit" % "1.7.5-1",
       // svnkit-dav

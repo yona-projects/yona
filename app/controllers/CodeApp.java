@@ -85,11 +85,14 @@ public class CodeApp extends Controller {
 
     public static String getURL(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
+        return getURL(project);
+    }
 
+    public static String getURL(Project project) {
         if (RepositoryService.VCS_GIT.equals(project.vcs)) {
-            return utils.Url.create(Arrays.asList(ownerName, projectName), request().host());
+            return utils.Url.create(Arrays.asList(project.owner, project.name), request().host());
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
-            return utils.Url.create(Arrays.asList("svn", ownerName, projectName), request().host());
+            return utils.Url.create(Arrays.asList("svn", project.owner, project.name), request().host());
         } else {
             return null;
         }

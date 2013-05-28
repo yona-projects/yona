@@ -1,0 +1,67 @@
+@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String])
+
+@import utils.TemplateHelper._
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
+
+@main(title, project, utils.MenuType.PULL_REQUEST) {
+<div class="page">
+    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    <div class="content-wrap frm-wrap">
+        @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
+
+            <div class="form-inline">
+                <label class="control-label pull-left">@Messages("pullRequest.from"): @project.owner/@project.name/
+                <div class="btn-group" data-name="fromBranch">
+                    <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("pullRequest.select.branch")</button>
+                    <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li data-value="none" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("pullRequest.select.branch")</a></li>
+                        @for(branch <- fromBranches) {
+                            @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/origin")) {
+                                <li data-value="@branch"><a href="javascript:void(0)">@branch</a></li>
+                            }
+                        }
+                    </ul>
+                </div>
+                </label>
+
+                <i class="icon-arrow-right offset1"></i>
+
+                <label class="control-label pull-right">@Messages("pullRequest.to"): @project.originalProject.owner/@project.originalProject.name/
+                <div class="btn-group" data-name="toBranch">
+                    <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite d-label input-medium">@Messages("pullRequest.select.branch")</button>
+                    <button data-toggle="dropdown" class="btn dropdown-toggle bgwhite"><span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        <li data-value="none" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("pullRequest.select.branch")</a></li>
+                        @for(branch <- toBranches) {
+                            @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/origin")) {
+                                <li data-value="@branch"><a href="javascript:void(0)">@branch</a></li>
+                            }
+                        }
+                    </ul>
+                </div>
+                </label>
+            </div>
+
+            @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")
+            @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+
+            <div class="actions">
+                <button class="btn-transparent n-btn orange med">@Messages("button.save")</button>
+                <a href="javascript:history.back();" class="n-btn gray med cancel">@Messages("button.cancel")</a>
+            </div>
+        }
+    </div>
+</div>
+
+@views.html.markdown()
+
+<script type="text/javascript">
+	$(document).ready(function() {
+//		$hive.loadModule("milestone.Write", {
+//			"elDueDate"   : $("#dueDate"),
+//			"elDatePicker": $("#datepicker")
+//		});
+	});
+</script>
+}

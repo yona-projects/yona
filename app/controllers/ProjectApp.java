@@ -279,7 +279,7 @@ public class ProjectApp extends Controller {
         Form<Project> projectForm = form(Project.class).fill(project);
         return ok(delete.render("title.projectSetting", projectForm, project));
     }
-    
+
     /**
      * 프로젝트를 삭제한다.<p />
      *
@@ -296,6 +296,7 @@ public class ProjectApp extends Controller {
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(loginId, projectName, project.vcs);
+            project.deleteFork();
             project.delete();
             return redirect(routes.Application.index());
         } else {
@@ -375,7 +376,7 @@ public class ProjectApp extends Controller {
      * @return the result
      */
     public static Result deleteMember(String loginId, String projectName, Long userId) {
-	Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (UserApp.currentUser().id == userId
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -404,7 +405,7 @@ public class ProjectApp extends Controller {
      * @return
      */
     public static Result editMember(String loginId, String projectName, Long userId) {
-	Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {

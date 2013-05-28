@@ -1,0 +1,76 @@
+@(project: Project, pull: PullRequest, commits: List[playRepository.GitCommit])
+
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+
+@main(Messages("title.commitHistory"), project, utils.MenuType.PULL_REQUEST) {
+    <div class="page">
+        @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+
+        <div class="labels-wrap">
+            <button class="issue-label active" style="background-color:#ff9933; color:#fff;">
+                @pull.fromProject.owner/@pull.fromProject.name
+            </button>
+            <button class="issue-label">@pull.fromBranch</button>
+            <span class="icon-arrow-right"></span>
+            <button class="issue-label active" style="background-color:#ff9933; color:#fff;">
+                @pull.toProject.owner/@pull.toProject.name
+            </button>
+            <button class="issue-label">@pull.toBranch</button>
+            <hr>
+        </div>
+
+        <ul class="nav nav-tabs hive-tabs">
+            <li>
+                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.id)">
+                    @Messages("pullRequest.menu.overview")
+                </a>
+            </li>
+            <li class="active">
+                <a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.id)">
+                    @Messages("pullRequest.menu.commit")
+                </a>
+            </li>
+        </ul>
+
+        <div class="code-browse-wrap">
+            <div class="commit-wrap" id="history">
+                <table class="code-table commits">
+                    <thead class="thead">
+                    <tr>
+                        <td class="commit-id"><strong>@@</strong></td>
+                        <td class="messages"><strong>COMMIT MESSAGES</strong></td>
+                        <td class="date"><strong>COMMIT DATE</strong></td>
+                        <td class="author"><strong>AUTHOR</strong></td>
+                    </tr>
+                    </thead>
+                    <tbody class="tbody">
+                    @for(commit <- commits.iterator()) {
+                    <tr>
+                        <td class="commit-id">
+                            <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                                @commit.getShortId()
+                                <i class="ico ico-gray-arrow-right"></i>
+                            </a>
+                        </td>
+                        <td class="messages">@commit.getMessage()</td>
+                        <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                        <td class="author @commit.getAuthorEmail">@defining(User.find.where.eq("email",
+                            commit.getAuthorEmail).findUnique) { user => @if(user != null) {
+                            <a href="@routes.UserApp.userInfo(user.loginId)">
+                                <img src="@user.avatarUrl" alt="@user.name" width="34" height="34"/>
+                            </a>
+                            } else {
+                            <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)">
+                            }}
+                        </td>
+                    </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+@views.html.markdown()
+}
