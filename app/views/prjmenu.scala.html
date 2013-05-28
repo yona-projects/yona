@@ -27,6 +27,16 @@
      @Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))
 </div>
 
+
+@if(project.isFork()){
+<div class="label inline-block pull-right" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
+    <i class="icon-random icon-white" style="vertical-align:bottom;"></i>
+    &nbsp;원본 프로젝트
+    <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
+    <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
+</div>
+}
+
 <div class="project-menu @menuCSS">
 	<div class="project-menu-wrap main">
 		<ul class="unstyled">
