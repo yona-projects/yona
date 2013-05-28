@@ -4,12 +4,12 @@ import models.*;
 import models.enumeration.*;
 
 import play.mvc.Http;
-import views.html.issue.editIssue;
-import views.html.issue.issue;
-import views.html.issue.issueList;
-import views.html.issue.newIssue;
-import views.html.issue.notExistingPage;
-import views.html.project.unauthorized;
+import views.html.issue.edit;
+import views.html.issue.view;
+import views.html.issue.list;
+import views.html.issue.create;
+import views.html.error.notfound;
+import views.html.error.forbidden;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -117,7 +117,7 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
@@ -140,7 +140,7 @@ public class IssueApp extends AbstractPostingApp {
             Page<Issue> issues = el
                 .findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
 
-            return ok(issueList.render("title.issueList", issues, searchCondition, project));
+            return ok(list.render("title.issueList", issues, searchCondition, project));
         }
     }
 
@@ -160,12 +160,12 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
         Issue issueInfo = Issue.findByNumber(project, number);
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
-            return forbidden(unauthorized.render(project));
+        if (issueInfo == null) {
+            return notFound(views.html.error.notfound.render("error.notfound", project, "issue"));
         }
 
-        if (issueInfo == null) {
-            return notFound(notExistingPage.render("title.post.notExistingPage", project));
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         for (IssueLabel label: issueInfo.labels) {
@@ -175,14 +175,14 @@ public class IssueApp extends AbstractPostingApp {
         Form<Comment> commentForm = new Form<Comment>(Comment.class);
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(Issue.findByNumber(project, number));
 
-        return ok(issue.render("title.issueDetail", issueInfo, editForm, commentForm, project));
+        return ok(view.render("title.issueDetail", issueInfo, editForm, commentForm, project));
     }
 
     public static Result newIssueForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
 
         return newPostingForm(project, ResourceType.ISSUE_POST,
-                newIssue.render("title.newIssue", new Form<Issue>(Issue.class), project));
+                create.render("title.newIssue", new Form<Issue>(Issue.class), project));
     }
 
     /**
@@ -237,7 +237,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         return redirect(
@@ -249,11 +249,11 @@ public class IssueApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         if (issueForm.hasErrors()) {
-            return badRequest(newIssue.render(issueForm.errors().toString(), issueForm, project));
+            return badRequest(create.render(issueForm.errors().toString(), issueForm, project));
         }
 
         Issue newIssue = issueForm.get();
@@ -280,12 +280,12 @@ public class IssueApp extends AbstractPostingApp {
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return forbidden(unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<Issue> editForm = new Form<Issue>(Issue.class).fill(issue);
 
-        return ok(editIssue.render("title.editIssue", editForm, issue, project));
+        return ok(edit.render("title.editIssue", editForm, issue, project));
     }
 
     public static Result editIssue(String userName, String projectName, Long number) throws IOException {

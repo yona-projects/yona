@@ -1,13 +1,13 @@
 @(project: Project) 
 
-@main(Messages("auth.unauthorized.title"), project, utils.MenuType.NONE) {
+@main(Messages("error.forbidden"), project, utils.MenuType.NONE) {
 <div class="page">
 
 	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
 
 	<div class="error-wrap">
 			<i class="ico ico-err2"></i>
-			<p>@Messages("auth.unauthorized.waringMessage")</p>
+			<p>@Messages("error.unauthorized")</p>
 		</div>  
     <div>
 </div>

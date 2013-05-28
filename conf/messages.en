@@ -433,7 +433,6 @@ validation.allowedCharsForLoginId = Login id may only contain alphanumeric chara
 validation.reservedWord = It's a reserved word, so you cannot use it.
 
 #Unauthorized
-auth.unauthorized.title = You need access Control!
 auth.unauthorized.waringMessage = You don't have authorization or aren't logged in
 auth.unauthorized.comment = You need authorization to comment
 
@@ -457,3 +456,10 @@ admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
 
 #Attachment
 attach.attachIfYouSave = This will be attached if you save
+
+#Error
+error.notfound = Page not found
+error.notfound.post = Post not found
+error.notfound.issue = Issue not found
+error.forbidden = You need access Control!
+error.unauthorized = Login required

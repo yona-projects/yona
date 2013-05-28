@@ -1,6 +1,10 @@
 /** 
- * bootstrap 2.2.1 기준 글자 크기로 조정 
- * bootstrap 2.3.1 기본 글자 크기는 14px 
+ * Bootstrap theme: HIVE UI
+ *
+ * Override bootstrap::
+ * 기본 글자 크기 12px로 설정
+ * (bootstrap 2.3.1 : 14px, 
+ *  bootstrap 2.2.1 : 12px)
  */
 body { font-size:12px; }
 label, input, button, select, textarea { font-size:12px; }
@@ -14,7 +18,7 @@ input[type="email"], input[type="url"], input[type="search"], input[type="tel"],
   font-size: 12px;
 }
 
-/** HIVE UI 시작 **/ 
+/* box-shadow, border-radius */
 form { margin:0 0 2px; }
 textarea, input[type="text"], input[type="password"], input[type="datetime"],
 input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"],
@@ -24,7 +28,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     .border-radius(2px);
 }
 
-/** ui.Dropdown **/
+/** hive.ui.Dropdown **/
 .dropdown-toggle {
     background:@white; text-align:left;
     padding:0; padding-left:12px;

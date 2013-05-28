@@ -344,10 +344,10 @@ hive.LabelEditor = (function(welContainer, htOptions){
 			<input id="custom-label-color" type="text" class="input-small" placeholder="${labelCustomColor}">\
 			<input id="custom-label-category" type="text" class="input-small" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
 			<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}" autocomplete="off">\
-			<button id="custom-label-submit" type="button" class="btn-transparent n-btn med black" style="vertical-align:top;">${labelAdd}</button>\
+			<button id="custom-label-submit" type="button" class="btn-transparent nbtn medium black" style="vertical-align:top;">${labelAdd}</button>\
 		</div>\
 		</div>';
-		htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label n-btn small" style="background-color:${color}">&nbsp;';		
+		htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label nbtn small" style="background-color:${color}">&nbsp;';		
 	}
 	
 	/**

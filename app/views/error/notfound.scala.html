@@ -1,0 +1,44 @@
+@(title:String, project:Project, targetType:String)
+
+@getMenuType(target:String) = @{
+    if(target.equals("issue")) {
+        utils.MenuType.ISSUE
+    } else if(target.equals("post")) {
+        utils.MenuType.BOARD
+    } else {
+        utils.MenuType.NONE
+    }
+}
+
+@getReturnURL(target:String) = @{
+    if(target.equals("issue")) {
+        routes.IssueApp.issues(project.owner, project.name, "all")
+    } else if(target.equals("post")) {
+        routes.BoardApp.posts(project.owner, project.name)
+    } else {
+        "javascript:history.back();"
+    }
+}
+
+@getMessage(target:String) = @{
+    if(target){
+        Messages("error.notfound." + target)
+    } else {
+        Messages("error.notfound")
+    }
+}
+
+@main(title, project, utils.MenuType.NONE) {
+<div class="page">
+
+    @prjmenu(project, getMenuType(targetType), "")
+
+    <div class="error-wrap">
+        <i class="ico ico-err2"></i>
+        <p>@getMessage(targetType)</p>
+        
+        <a href="@getReturnURL(targetType)" class="nbtn medium">@Messages("button.list")</a>
+    </div>
+    
+</div>
+}

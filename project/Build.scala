@@ -50,7 +50,7 @@ object ApplicationBuild extends Build {
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
       resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
       templatesImport += "models.enumeration._",
-      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "nforge.less"),
+      lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "hive.less"),
         //      jacoco.settings:_*,
       javaOptions in test ++= Seq("-Xmx512m", "-XX:MaxPermSize=512m"),
       javacOptions ++= Seq("-Xlint:all", "-Xlint:-path"),
