@@ -7,18 +7,21 @@
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
-        <div class="labels-wrap">
-            <button class="issue-label active" style="background-color:#ff9933; color:#fff;">
-                @pull.fromProject.owner/@pull.fromProject.name
-            </button>
-            <button class="issue-label">@pull.fromBranch</button>
-            <span class="icon-arrow-right"></span>
-            <button class="issue-label active" style="background-color:#ff9933; color:#fff;">
-                @pull.toProject.owner/@pull.toProject.name
-            </button>
-            <button class="issue-label">@pull.toBranch</button>
-            <hr>
-        </div>
+        <p>
+            @Messages("pullRequest.from")
+            <span class="label label-info">
+                <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
+                <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>
+            </span>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch)" class="label label-success">@pull.fromBranch</a>
+
+            @Messages("pullRequest.to")
+            <span class="label label-info">
+                <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
+                <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
+            </span>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch)" class="label label-success">@pull.toBranch</a>
+        </p>
 
         <ul class="nav nav-tabs hive-tabs">
             <li>
