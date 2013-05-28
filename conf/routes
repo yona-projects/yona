@@ -102,7 +102,7 @@ GET     /:user/:project/milestone/:id                   controllers.MilestoneApp
 GET     /:user/:project/issues                          controllers.IssueApp.issues(user, project, state:String ?= "", format:String ?= "html", pageNum: Int ?= 1)
 GET     /:user/:project/issueform                       controllers.IssueApp.newIssueForm(user, project)
 POST    /:user/:project/issues                          controllers.IssueApp.massUpdate(user, project)
-POST    /:user/:project/issues                          controllers.IssueApp.newIssue(user, project)
+POST    /:user/:project/issues/latest                   controllers.IssueApp.newIssue(user, project)
 GET     /:user/:project/issue/:number                       controllers.IssueApp.issue(user, project, number:Long)
 GET     /:user/:project/issue/:number/editform              controllers.IssueApp.editIssueForm(user, project, number:Long)
 POST    /:user/:project/issue/:number/edit                  controllers.IssueApp.editIssue(user, project, number:Long)

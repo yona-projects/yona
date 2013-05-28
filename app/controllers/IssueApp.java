@@ -3,6 +3,7 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 
+import play.data.DynamicForm;
 import play.mvc.Http;
 import views.html.issue.edit;
 import views.html.issue.view;
