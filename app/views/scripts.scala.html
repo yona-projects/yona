@@ -1,0 +1,78 @@
+@()(implicit lang:Lang)
+@import utils.TemplateHelper._
+
+@**<!-- hive.ui.Dialog -->**@
+<div id="hiveDialog" class="modal hide fade hiveDialog" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
+	<div class="message">
+		<p class="center-text msg"></p>
+		<p class="center-txt">
+			<button type="submit" class="nbtn orange medium" data-dismiss="modal">@Messages("button.confirm")</button>
+		</p>
+	</div>
+</div>
+@**<!-- //hive.ui.Dialog -->**@
+
+@**<!-- hive.ui.Toast -->**@
+<div id="hiveToasts" class="hiveToasts"></div>
+<script type="text/template" id="tplHiveToast">
+<div class="toast" tabindex="-1">
+	<div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>
+	<div class="center-text msg"></div>
+</div>
+</script>
+@**<!-- //hive.ui.Toast -->**@
+
+<script type="text/javascript" src="@routes.Application.jsMessages()"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.tmpl")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.form")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.validate")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.zclip.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/jquery/jquery.placeholder.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap-better-typeahead")"></script>
+<script type="text/javascript" src="@getJSLink("lib/rgbcolor")"></script>
+<script type="text/javascript" src="@getJSLink("lib/humanize")"></script>
+<script type="text/javascript" src="@getJSLink("lib/validate")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Markdown")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.FileDownloader")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.Shortcut")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Dropdown")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Typeahead")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Dialog")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Toast")"></script>
+<script type="text/javascript">
+	$hive.setScriptPath("@getJSPath()");
+	
+	$(document).ready(function(){
+		// tooltip
+		$(".n-tooltip").tooltip();	
+		
+		// n-alert
+		$(".n-alert").click(function(){ 
+			$(this).hide(); 
+		});
+		
+    	// jquery.placeholder plugin initiator
+        $('input, textarea').placeholder();
+
+    	// show setting menu tooltips 
+    	// with bootstrap if it can (temporary before redesign)
+        $(".bg-side-menu").tooltip({placement: 'left', title: '설정'});
+    
+     	// show on developing message
+        $(".underConstruction").tooltip({placement: 'left', title: 'Sorry! Under construction...'});
+     	
+     	// hive.Dropdown
+     	var sActivation;
+        $(".btn-group[data-name]").each(function(i, el){
+        	sActivation = $(el).attr("data-activate");
+        	if(typeof sActivation == "undefined" || sActivation != "manual"){
+        		(new hive.ui.Dropdown({"elContainer":el}));
+        	}
+        });
+	});
+</script>
