@@ -1,14 +1,14 @@
 @(title: String)(content: Html)
 
 @home(Messages(title), utils.MenuType.SITE_SETTING) {
-    <div class="page full">
+    <div class="page full site-setting-wrap">
         <div class="row-fluid">
-            <div class="span2">
+            <div class="site_lnb">
                 @views.html.site.sidebar(title)
             </div>
-            <div class="span10">
+            <div class="content_area">
                 @content
             </div>
-        </div>     
+        </div>
     </div>
 }

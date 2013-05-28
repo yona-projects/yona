@@ -8,9 +8,9 @@
     }
     menuState
 }
-<div class="well" style="padding: 8px 0;">
-    <ul class="nav nav-list">
-        <li class="nav-header">@Messages("site.sidebar")</li>
+<div class="lnb_area">
+    <h3 class="h_site">@Messages("site.sidebar")</h3>
+    <ul>
         <li class="@isActiveMenu(routes.SiteApp.userList())">
             <a href="@routes.SiteApp.userList()"><i class="icon-user"></i>@Messages("site.sidebar.userList")</a>
         </li>
@@ -31,4 +31,4 @@
             <a href="@routes.SiteApp.massMail()"><i class="icon-envelope"></i>@Messages("site.sidebar.massMail")</a>
         </li>
     </ul>
-</div> <!-- /well -->
+</div>
