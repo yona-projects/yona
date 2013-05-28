@@ -3,6 +3,7 @@ package playRepository;
 import models.resource.Resource;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 
@@ -97,4 +98,8 @@ public interface PlayRepository {
     public abstract ObjectNode findFileInfo(String branch, String path) throws IOException, SVNException, GitAPIException;
 
     public abstract Resource asResource();
+
+    public abstract boolean isFile(String path) throws SVNException, IOException;
+
+    public abstract boolean isFile(String path, String revStr) throws SVNException, IOException;
 }

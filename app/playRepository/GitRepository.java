@@ -15,6 +15,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -151,6 +152,33 @@ public class GitRepository implements PlayRepository {
     @Override
     public ObjectNode findFileInfo(String path) throws IOException, NoHeadException, GitAPIException, SVNException {
         return findFileInfo(null, path);
+    }
+
+    public boolean isFile(String path, String revStr) throws IOException {
+        ObjectId commitId;
+
+        if (revStr == null){
+            commitId = repository.resolve(Constants.HEAD);
+        } else {
+            commitId = repository.resolve(revStr);
+        }
+
+        if (commitId == null) {
+            return false;
+        }
+
+        RevWalk revWalk = new RevWalk(repository);
+        RevTree revTree = revWalk.parseTree(commitId);
+        TreeWalk treeWalk = new TreeWalk(repository);
+        treeWalk.addTree(revTree);
+
+        while (treeWalk.next()) {
+            if (treeWalk.getPathString().equals(path) && !treeWalk.isSubtree()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -419,6 +447,11 @@ public class GitRepository implements PlayRepository {
             }
 
         };
+    }
+
+    @Override
+    public boolean isFile(String path) throws IOException {
+        return isFile(path, Constants.HEAD);
     }
 
     /**

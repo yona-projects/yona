@@ -16,6 +16,7 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import playRepository.Commit;
 import playRepository.GitRepository;
+import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.JodaDateUtil;
 
@@ -306,8 +307,8 @@ public class Project extends Model {
      */
     public String readme() {
         try {
-            String realFileName = getReadmeFileName();
-            return new String(RepositoryService.getRepository(this).getRawFile(realFileName));
+            return new String(RepositoryService.getRepository(this).getRawFile
+                    (getReadmeFileName()));
         } catch (Exception e) {
             return null;
         }
@@ -326,18 +327,18 @@ public class Project extends Model {
      */
     private String getReadmeFileName() throws IOException, GitAPIException, SVNException, ServletException {
         String baseFileName = "README.md";
-        ObjectNode objectNode = RepositoryService.getRepository(this).findFileInfo("/");
-        List<JsonNode> nodes = objectNode.findValues("data");
-        for(JsonNode node : nodes) {
-            Iterator<String> fieldNames = node.getFieldNames();
-            while(fieldNames.hasNext()) {
-                String fieldName = fieldNames.next();
-                if(fieldName.toLowerCase().equals(baseFileName.toLowerCase())) {
-                    return fieldName;
-                }
-            }
+
+        PlayRepository repo = RepositoryService.getRepository(this);
+
+        if (repo.isFile(baseFileName)) {
+            return baseFileName;
         }
-        return baseFileName;
+
+        if (repo.isFile(baseFileName.toLowerCase())) {
+            return baseFileName.toLowerCase();
+        }
+
+        return null;
     }
 
     /**
