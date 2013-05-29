@@ -4,6 +4,17 @@
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
+        <div class="pull-right">
+            <a href="@routes.PullRequestApp.fork(project.owner, project.name)" class="nbtn medium">
+                @Messages("fork")
+                <span class="num-badge">@project.forkingProjects.size</span>
+            </a>
+
+            @if(project.isFork) {
+            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange">@Messages("pullRequest")</a>
+            }
+        </div>
+
         <ul class="nav nav-tabs hive-tabs">
             @if(project.hasForks()){
                 <li @if(requestType.equals("opened")){class="active"}>
@@ -21,15 +32,6 @@
                     <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("pullRequest.sent.code")</a>
                 </li>
             }
-            <li class="pull-right">
-                <div class="btn-group">
-                    <a href="@routes.PullRequestApp.fork(project.owner, project.name)" class="btn">@Messages("fork")</a>
-                    <a href="#" class="btn">@project.forkingProjects.size</a>
-                    @if(project.isFork) {
-                        <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="btn">@Messages("pullRequest")</a>
-                    }
-                </div>
-            </li>
         </ul>
 
         <div class="row-fluid">

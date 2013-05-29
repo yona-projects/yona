@@ -113,6 +113,8 @@
                             }
                             .d-caret {
                                 padding:5px 9px;
+                                border-left:none;
+                                .caret { border-top-color:@primary; }
                             }
                         }
                     }
@@ -1244,9 +1246,6 @@
         padding: 20px;
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
-        &:first-child {
-            padding-top:5px;
-        }
         &:last-child {
             border-bottom: 0 none;
         }
@@ -1317,6 +1316,9 @@
         .project {
             .info-wrap {
                 width: 450px;
+            }
+            &:first-of-type {
+                padding-top:5px;
             }
         }
     }
@@ -3335,5 +3337,29 @@ div.markdown-preview {
           .btn{padding:1px 16px;font-size:12px}
           }
         }
+    }
+}
+
+// -- pull request
+.pull-request-wrap {
+    margin-bottom:20px;
+    
+    .request-from {
+        display:inline-block; width:400px;
+        .repo { color:@secondary; font-size:14px; }
+        .dropdown-toggle { width:400px; }
+        .dropdown-menu   { width:400px; }
+    }
+    
+    .request-to {
+        display:inline-block; width:400px;
+        .repo { color:@primary; font-size:14px; }
+        .dropdown-toggle { width:400px; }
+        .dropdown-menu   { width:400px; }
+    }
+    
+    .arrow {
+        display:inline-block; width:74px;
+        text-align:center;
     }
 }
