@@ -58,6 +58,7 @@ public class PullRequestApp extends Controller {
         forkProject.overview = originalProject.overview;
         forkProject.vcs = originalProject.vcs;
         forkProject.owner = currentUser.loginId;
+        forkProject.isPublic = originalProject.isPublic;
         originalProject.addFork(forkProject);
 
         // git clone으로 Git 저장소 생성하고 새 프로젝트를 만들고 권한 추가.
