@@ -86,6 +86,15 @@
                     <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
                     <span class="sp">|</span>
                     <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+                    <div class="issue-wrap btn-group pull-right">
+                        <button class="btn" disabled="true">@Messages("menu.issue")</button>
+                        <a href="@makeIssuesLink(milestone.id,"closed")" class="btn">
+                            @Messages("issue.state.open") <strong class="num open">@milestone.getNumOpenIssues</strong>
+                        </a>
+                        <a href="@makeIssuesLink(milestone.id,"open")" class="btn">
+                            @Messages("issue.state.closed") <strong class="num">@milestone.getNumClosedIssues</strong>
+                        </a>
+                    </div>
                 </div>
 
                 <div class="progress-wrap">
@@ -112,10 +121,6 @@
                     @milestone.contents
                 </div>
 
-                <div class="actrow">
-                	<a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a><!--
-                 --><a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium white"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
-                </div>
             </div>
             <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!--
              -->@milestone.getCompletionRate<!--
