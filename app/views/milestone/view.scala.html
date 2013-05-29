@@ -42,7 +42,7 @@
     <ol class="issue-list">
         @for(issue <- milestone.issues){
         <li class="issue">
-            <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.getNumber</a></div>
+            <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
             <div class="attach-wrap">
                 @if(Attachment.findByContainer(issue.asResource).size > 0){
                 <i class="ico ico-clip"></i>
@@ -50,7 +50,7 @@
             </div>
             <div class="contents">
                 <p class="title">
-                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.id)">@issue.title</a>
+                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
                     @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
                     <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
                     }
