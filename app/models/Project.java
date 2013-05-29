@@ -33,9 +33,6 @@ public class Project extends Model {
     private static final long serialVersionUID = 1L;
     public static Finder<Long, Project> find = new Finder<Long, Project>(Long.class, Project.class);
 
-    /** 한 페이지에 보여줄 프로젝트 개수 */
-    public static final int PROJECT_COUNT_PER_PAGE = 10;
-
     @Id
     public Long id;
 
@@ -571,5 +568,13 @@ public class Project extends Model {
     private void deleteFork(Project project) {
         getForkingProjects().remove(project);
         project.originalProject = null;
+    }
+    
+    
+    /**
+     * 프로젝트 상태(공개/비공개)
+     */
+    public enum State {
+        PUBLIC, PRIVATE, ALL
     }
 }
