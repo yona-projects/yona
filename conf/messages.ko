@@ -206,6 +206,8 @@ issue.numOfComments = 댓글개수
 issue.update.state = 상태 변경
 issue.update.assignee = 담당자 변경
 issue.update.milestone = 마일스톤 변경
+issue.update.attachLabel = 라벨 추가
+issue.update.detachLabel = 라벨 제거
 
 #Post
 post.new = 새글

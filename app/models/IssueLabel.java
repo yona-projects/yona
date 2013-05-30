@@ -46,6 +46,10 @@ public class IssueLabel extends Model {
         return finder.where().eq("project.id", project.id).findList();
     }
 
+    public String toString() {
+        return category + " - " + name;
+    }
+
     @Transient
     public boolean exists() {
         return finder.where()

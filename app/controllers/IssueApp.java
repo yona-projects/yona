@@ -239,6 +239,16 @@ public class IssueApp extends AbstractPostingApp {
                 issue.milestone = issueMassUpdate.milestone;
             }
 
+            if (issueMassUpdate.attachingLabel != null) {
+                issue.refresh();
+                issue.labels.add(issueMassUpdate.attachingLabel);
+            }
+
+            if (issueMassUpdate.detachingLabel != null) {
+                issue.refresh();
+                issue.labels.remove(issueMassUpdate.detachingLabel);
+            }
+
             issue.update();
             updatedItems++;
         }
