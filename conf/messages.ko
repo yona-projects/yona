@@ -501,3 +501,4 @@ fork = 프로젝트 복사
 pullRequest = 코드 보내기
 pullRequest.menu.overview = 개요
 pullRequest.menu.commit = 커밋
+already.existing.fork.alert = 이전에 만들어둔 포크 프로젝트로 이동합니다.

@@ -10,9 +10,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 import playRepository.GitCommit;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
+import utils.Constants;
 import utils.JodaDateUtil;
 import views.html.git.create;
 import views.html.git.list;
@@ -42,13 +44,24 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result fork(String userName, String projectName) throws GitAPIException, IOException {
-        Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
-
         User currentUser = UserApp.currentUser();
+        if(currentUser.isAnonymous()) {
+            flash(Constants.WARNING, "user.login.alert");
+            return redirect(routes.UserApp.loginForm());
+        }
+
+        Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
+        if(originalProject == null) {
+            return badRequestForNullProject(userName, projectName);
+        }
+        if(!originalProject.isPublic) {
+            return badRequest("private project can't be forked");
+        }
 
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, originalProject);
         if(forkedProject != null) {
+            flash(Constants.WARNING, "already.existing.fork.alert");
             return redirect(routes.ProjectApp.project(forkedProject.owner, forkedProject.name));
         }
 
@@ -81,13 +94,11 @@ public class PullRequestApp extends Controller {
      * @throws ServletException
      */
     public static Result newPullRequestForm(String userName, String projectName) throws IOException, ServletException {
-        Project project = ProjectApp.getProject(userName, projectName);
-        if(project == null ) {
-            return notFound();
-        }
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        if(!project.isFork()) {
-            return badRequest("this request is allowed to only fork project");
+        Result result = validateBeforePullRequest(project, userName, projectName);
+        if(result != null) {
+            return result;
         }
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
@@ -109,14 +120,16 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result newPullRequest(String userName, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        Result result = validateBeforePullRequest(project, userName, projectName);
+        if(result != null) {
+            return result;
+        }
+
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
         if(form.hasErrors()) {
             return badRequest(form.errors().toString());
-        }
-
-        Project project = ProjectApp.getProject(userName, projectName);
-        if(!project.isFork()) {
-            return badRequest("this request is allowed to only fork project");
         }
 
         Project originalProject = project.originalProject;
@@ -146,7 +159,10 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result pullRequests(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        if(project == null) {
+            return badRequestForNullProject(userName, projectName);
+        }
         List<PullRequest> pullRequests = PullRequest.findOpendPullRequests(project);
         return ok(list.render(project, pullRequests, "opened"));
     }
@@ -159,7 +175,10 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result closedPullRequests(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        if(project == null) {
+            return badRequestForNullProject(userName, projectName);
+        }
         List<PullRequest> pullRequests = PullRequest.findClosedPullRequests(project);
         return ok(list.render(project, pullRequests, "closed"));
     }
@@ -172,7 +191,10 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result rejectedPullRequests(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        if(project == null) {
+            return badRequestForNullProject(userName, projectName);
+        }
         List<PullRequest> pullRequests = PullRequest.findRejectedPullRequests(project);
         return ok(list.render(project, pullRequests, "rejected"));
     }
@@ -185,7 +207,10 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result sentPullRequests(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        if(project == null) {
+            return badRequestForNullProject(userName, projectName);
+        }
         List<PullRequest> pullRequests = PullRequest.findSentPullRequests(project);
         return ok(list.render(project, pullRequests, "sent"));
     }
@@ -201,10 +226,12 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result pullRequest(String userName, String projectName, long pullRequestId) {
-        Project project = ProjectApp.getProject(userName, projectName);
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        if(pullRequest == null) {
-            return notFound();
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
         }
 
         boolean isSafe = false;
@@ -215,12 +242,24 @@ public class PullRequestApp extends Controller {
         return ok(view.render(project, pullRequest, isSafe));
     }
 
+    /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
+     * {@code pullRequestId}에 해당하는 코드 요청의 커밋 목록을 조회한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
     public static Result pullRequestCommits(String userName, String projectName, long pullRequestId) {
-        Project project = ProjectApp.getProject(userName, projectName);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        if(pullRequest == null) {
-            return notFound();
+
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
         }
+
         List<GitCommit> commits = GitRepository.getPullingCommits(pullRequest);
         return ok(viewCommits.render(project, pullRequest, commits));
     }
@@ -237,6 +276,13 @@ public class PullRequestApp extends Controller {
      */
     public static Result accept(String userName, String projectName, long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
+        }
+
         GitRepository.merge(pullRequest);
         if(pullRequest.state == State.CLOSED) {
             pullRequest.received = JodaDateUtil.now();
@@ -245,6 +291,8 @@ public class PullRequestApp extends Controller {
         }
         return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
     }
+
+
 
     /**
      * {@code pullRequestId}에 해당하는 코드 요청을 보류한다.
@@ -258,6 +306,13 @@ public class PullRequestApp extends Controller {
      */
     public static Result reject(String userName, String projectName, Long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
+        }
+
         pullRequest.state = State.REJECTED;
         pullRequest.received = JodaDateUtil.now();
         pullRequest.receiver = UserApp.currentUser();
@@ -277,6 +332,13 @@ public class PullRequestApp extends Controller {
      */
     public static Result open(String userName, String projectName, Long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
+        }
+
         pullRequest.state = State.OPEN;
         pullRequest.received = JodaDateUtil.now();
         pullRequest.receiver = UserApp.currentUser();
@@ -294,6 +356,21 @@ public class PullRequestApp extends Controller {
      */
     public static Result cancel(String userName, String projectName, Long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
+        }
+
+        // 프로젝트의 관리자와 멤버 그리고 코드 요청을 보낸 사용자는 취소 할 수 있다.
+        if(!ProjectUser.isMemberOrManager(userName, project)) {
+            User user = UserApp.currentUser();
+            if(!user.equals(pullRequest.contributor)) {
+                forbidden("Only this project's member and manager and the pull_request's author are allowed.");
+            }
+        }
+
         pullRequest.delete();
         return redirect(routes.PullRequestApp.pullRequests(userName, projectName));
     }
@@ -321,6 +398,110 @@ public class PullRequestApp extends Controller {
                 return newProjectName;
             }
         }
+    }
+
+
+    /**
+     * {@link PullRequest}를 만들어 보내기 전에 프로젝트와 현재 사용자의 권한을 검증한다.
+     *
+     * when: {@link PullRequest}를 생성하는 폼이나 폼 서브밋을 처리하기 전에 사용한다.
+     *
+     * 현재 사용자가 익명 사용자일 경우 로그인 페이지로 이동하는 303 응답을 반환한다.
+     * 프로젝트가 null이면 400(bad request) 응답을 반환한다.
+     * 프로젝트가 Fork 프로젝트가 아닐 경우에도 400(bad request) 응답을 반환한다.
+     * 사용자의 프로젝트 권한이 guest일 경우에도 400(bad request) 응답을 반환한다.
+     * 이외의 경우에는 null을 반환한다.
+     *
+     * @param userName
+     * @param projectName
+     * @return
+     */
+    private static Result validateBeforePullRequest(Project project, String userName, String projectName) {
+        User currentUser = UserApp.currentUser();
+        if(currentUser.isAnonymous()) {
+            flash(Constants.WARNING, "user.login.alert");
+            return redirect(routes.UserApp.loginForm());
+        }
+
+        if(project == null ) {
+            return badRequestForNullProject(userName, projectName);
+        }
+        if(!project.isFork()) {
+            return badRequest("Only fork project is allowed this request");
+        }
+
+        String role = ProjectUser.roleOf(currentUser.loginId, project);
+        // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
+        if(role.equals("guest")) {
+            return badRequest("Guest is not allowed this request");
+        }
+
+        return null;
+    }
+
+    /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트가 없을 경우에 보내는 응답
+     *
+     * @param userName
+     * @param projectName
+     * @return
+     */
+    private static Status badRequestForNullProject(String userName, String projectName) {
+        return badRequest("No project matches given parameters'" + userName + "' and project_name '" + projectName + "'");
+    }
+
+    /**
+     * {@code project}과 {@code pullRequest}가 null인지 확인한다.
+     *
+     * @param project
+     * @param pullRequest
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
+    private static Result validatePullRequest(Project project, PullRequest pullRequest,
+                                              String userName, String projectName, long pullRequestId) {
+        if(project == null) {
+            return badRequestForNullProject(userName, projectName);
+        }
+
+        if(pullRequest == null) {
+            return badRequest("No pull_request matches given pull_request_id '" + pullRequestId + "'");
+        }
+        return null;
+    }
+
+    /**
+     * 코드 요청에 대한 수락과 보류 작업을 실행할 수 없을 경우에 보내는 응답.
+     *
+     * @return
+     */
+    private static Status forbiddenExceptProjectMemberOrManager() {
+        return forbidden("Only this project's member and manager are allowed.");
+    }
+
+    /**
+     * {@code project}와 {@code pullRequest}가 null인지 확인하고
+     * 현재 사용자가 {@code project}의 코드 요청을 처리 할 수 있는지 확인한다.
+     *
+     * @param project
+     * @param pullRequest
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
+    private static Result validatePullRequestOperation(Project project, PullRequest pullRequest,
+                                                       String userName, String projectName, long pullRequestId) {
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+
+        User user = UserApp.currentUser();
+        if(!ProjectUser.isMemberOrManager(user.loginId, project)) {
+            result = forbiddenExceptProjectMemberOrManager();
+        }
+
+        return result;
     }
 
 }

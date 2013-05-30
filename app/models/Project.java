@@ -5,8 +5,6 @@ import com.avaje.ebean.Page;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
@@ -609,9 +607,24 @@ public class Project extends Model {
      */
     @Override
     public void delete() {
+        deleteFork();
+        deletePullRequests();
+
         for (Assignee assignee : assignees) {
             assignee.delete();
         }
         super.delete();
+    }
+
+    private void deletePullRequests() {
+        List<PullRequest> sentPullRequests = PullRequest.findSentPullRequests(this);
+        for(PullRequest pullRequest : sentPullRequests) {
+            pullRequest.delete();
+        }
+
+        List<PullRequest> allReceivedRequests = PullRequest.allReceivedRequests(this);
+        for(PullRequest pullRequest : allReceivedRequests) {
+            pullRequest.delete();
+        }
     }
 }
