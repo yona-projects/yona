@@ -112,7 +112,7 @@ public class IssueApp extends AbstractPostingApp {
      * 입력된 검색 조건이 있다면 적용하고 페이징 처리된 목록을 보여준다.
      * 요청 형식({@code format})이 엑셀(xls)일 경우 목록을 엑셀로 다운로드한다.
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param state 이슈 상태 (해결 / 미해결)
      * @param format 요청 형식
@@ -121,8 +121,8 @@ public class IssueApp extends AbstractPostingApp {
      * @throws WriteException
      * @throws IOException
      */
-    public static Result issues(String userName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
-        Project project = ProjectApp.getProject(userName, projectName);
+    public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
+        Project project = ProjectApp.getProject(ownerName, projectName);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -184,13 +184,13 @@ public class IssueApp extends AbstractPostingApp {
      * 접근 권한이 없을 경우, Forbidden 으로 응답한다.
      * 조회하려는 이슈가 존재하지 않을 경우엔 NotFound 로 응답한다.
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
      * @return
      */
-    public static Result issue(String userName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(userName, projectName);
+    public static Result issue(String ownerName, String projectName, Long number) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issueInfo = Issue.findByNumber(project, number);
 
         if (issueInfo == null) {
@@ -216,13 +216,13 @@ public class IssueApp extends AbstractPostingApp {
      * 
      * <p>when: 새로운 이슈 작성</p>
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @return
      * @see {@link AbstractPostingApp#newPostingForm(Project, ResourceType, play.mvc.Content)}
      */
-    public static Result newIssueForm(String userName, String projectName) {
-        Project project = ProjectApp.getProject(userName, projectName);
+    public static Result newIssueForm(String ownerName, String projectName) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
 
         return newPostingForm(project, ResourceType.ISSUE_POST,
                 create.render("title.newIssue", new Form<Issue>(Issue.class), project));
@@ -364,13 +364,13 @@ public class IssueApp extends AbstractPostingApp {
      *  
      *  이슈 수정 권한이 없을 경우 Forbidden 으로 응답한다.
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
      * @return
      */
-    public static Result editIssueForm(String userName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(userName, projectName);
+    public static Result editIssueForm(String ownerName, String projectName, Long number) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -391,18 +391,18 @@ public class IssueApp extends AbstractPostingApp {
      * 기존 이슈에 작성되어 있던 댓글 정보를 정리하여 저장한다.
      * 저장후 목록 화면으로 돌아간다.
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
      * @return
      * @throws IOException
      * @see {@link AbstractPostingApp#editPosting(AbstractPosting, AbstractPosting, Form, Call, Callback)}
      */
-    public static Result editIssue(String userName, String projectName, Long number) throws IOException {
+    public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
-        final Project project = ProjectApp.getProject(userName, projectName);
+        final Project project = ProjectApp.getProject(ownerName, projectName);
         final Issue originalIssue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
@@ -437,14 +437,14 @@ public class IssueApp extends AbstractPostingApp {
      * 
      * 이슈 번호에 해당하는 이슈 삭제 후 이슈 목록 화면으로 돌아간다.
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
      * @return
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
-    public static Result deleteIssue(String userName, String projectName, Long number) {
-        Project project = ProjectApp.getProject(userName, projectName);
+    public static Result deleteIssue(String ownerName, String projectName, Long number) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
         Issue issue = Issue.findByNumber(project, number);
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
@@ -495,14 +495,14 @@ public class IssueApp extends AbstractPostingApp {
      * 댓글을 삭제하고 이슈 조회 화면으로 돌아간다.
      * 삭제 권한이 없을 경우 Forbidden 으로 응답한다.
      * 
-     * @param userName 프로젝트 소유자 이름
+     * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param issueNumber 이슈 번호
      * @param commentId 댓글ID
      * @return
      * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
-    public static Result deleteComment(String userName, String projectName, Long issueNumber,
+    public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);
         Project project = comment.asResource().getProject();
