@@ -128,6 +128,7 @@ issue.state = 상태
 issue.state.all = 전체
 issue.state.open = 미해결
 issue.state.closed = 해결
+issue.state.rejected = 보류
 issue.state.assigned = 할당됨
 issue.state.enrolled = 등록
 issue.state.solved = 해결됨
