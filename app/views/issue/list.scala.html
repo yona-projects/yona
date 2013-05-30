@@ -58,7 +58,7 @@
                                         <ul class="dropdown-menu">
                                             <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("order.all")</a></li>
                                             <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
-                                            @for(assignee <- Assignee.finder.where.eq("project.id", project.id).findSet) {
+                                            @for(assignee <- project.assignees) {
                                             <li data-value="@assignee.user.id"><a href="javascript:void(0)">@User.find.byId(assignee.user.id).name (@User.find.byId(assignee.user.id).loginId)</a></li>
                                             }
                                         </ul>
