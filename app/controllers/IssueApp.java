@@ -215,6 +215,8 @@ public class IssueApp extends AbstractPostingApp {
         int rejectedByPermission = 0;
 
         for (Issue issue : issueMassUpdate.issues) {
+            issue.refresh();
+
             if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                     Operation.UPDATE)) {
                 rejectedByPermission++;
