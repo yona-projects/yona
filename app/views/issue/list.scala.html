@@ -122,7 +122,7 @@
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu">
-                <li data-value="0"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
+                <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
                 @for(member <- project.members()) {
                 <li data-value="@member.user.id"><a href="javascript:void(0)">@User.find.byId(member.user.id).name (@User.find.byId(member.user.id).loginId)</a></li>
                 }

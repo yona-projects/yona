@@ -224,7 +224,11 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (issueMassUpdate.assignee != null) {
-                issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                if (issueMassUpdate.assignee.isAnonymous()) {
+                    issue.assignee = null;
+                } else {
+                    issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                }
             }
 
             if (issueMassUpdate.state != null) {
