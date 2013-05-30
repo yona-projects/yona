@@ -124,6 +124,7 @@ milestone.error.duedateFormat = Invalid format of due date (YYYY-MM-DD)
 
 #Issue
 issue.state.unit = issues
+issue.state = State
 issue.state.all = All
 issue.state.open = Open
 issue.state.closed = Closed

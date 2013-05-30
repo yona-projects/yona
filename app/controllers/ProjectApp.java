@@ -58,6 +58,14 @@ public class ProjectApp extends Controller {
 
 	private static final int RECENLTY_POSTING_SHOW_LIMIT = 5;
 
+    private static final int PROJECT_COUNT_PER_PAGE = 10;    
+    
+    private static final String HTML = "text/html";
+    
+    private static final String JSON = "application/json";
+    
+
+    
     /**
      * getProject
      * @param userName
@@ -430,16 +438,15 @@ public class ProjectApp extends Controller {
      * <br />
      * 2. 프로젝트 목록 페이지 이동<br />
      * 프로젝트 목록을 최근 생성일 기준으로 정렬하여 페이지(사이즈 : {@link Project#PROJECT_COUNT_PER_PAGE}) 단위로 가져오고<br />
-     * 조회 조건은 프로젝트 이름({@code filter}), 공개 여부({@code state}) 이다.<br />
+     * 조회 조건은 프로젝트명 또는 프로젝트관리자({@code query}), 공개 여부({@code state}) 이다.<br />
      *
-     * @param filter the filter
+     * @param query the query
      * @param state the state
      * @param pageNum the page num
      * @return json일 경우 json형태의 프로젝트명 목록, html일 경우 java객체 형태의 프로젝트 목록
      */
-    public static Result projects(String filter, String state, int pageNum) {
-        final String HTML = "text/html";
-        final String JSON = "application/json";
+    public static Result projects(String query, String state, int pageNum) {
+
         String prefer = HttpUtil.getPreferType(request(), JSON, HTML);
 
         if (prefer == null) {
@@ -447,37 +454,62 @@ public class ProjectApp extends Controller {
         }
 
         if (prefer.equals(JSON)) {
-            String query = request().getQueryString("query");
-            List<String> projectNames = new ArrayList<String>();
-            ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
-            int total = el.findRowCount();
-            if (total > MAX_FETCH_PROJECTS) {
-                el.setMaxRows(MAX_FETCH_PROJECTS);
-                response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
-            }
-            for (Project project: el.findList()) {
-                projectNames.add(project.owner + "/" + project.name);
-            }
+            return getProjectsToJSON(query);        
+        } else {
+            return getPagingProjects(query, state, pageNum);
+        }
+    }
 
-            return ok(toJson(projectNames));
+    /**
+     * 프로젝트 목록을 가져온다.
+     * 
+     * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시 
+     * 
+     * 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 
+     * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
+     * 
+     * @param query 검색질의(프로젝트명 또는 관리자)
+     * @param state 프로젝트 상태(공개/비공개)
+     * @param pageNum 페이지번호
+     * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
+     */
+    private static Result getPagingProjects(String query, String state, int pageNum) {
+        ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
+        
+        Project.State stateType = Project.State.valueOf(state.toUpperCase()); 
+        if (stateType == Project.State.PUBLIC) {
+            el.eq("isPublic", true);
+        } else if (stateType == Project.State.PRIVATE) {
+            el.eq("isPublic", false);
+        }
+        el.orderBy("createdDate desc");
+        Page<Project> projects = el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
+
+        return ok(views.html.project.list.render("title.projectList", projects, query, state));
+    }
+
+    /**
+     * 프로젝트 정보를 JSON으로 가져온다.
+     * 
+     * 프로젝트명 또는 관리자 아이디에 {@code query} 가 포함되는 프로젝트 목록을 {@link MAX_FETCH_PROJECTS} 만큼 가져오고
+     * JSON으로 변환하여 반환한다.
+     * 
+     * @param query 검색질의(프로젝트명 또는 관리자)
+     * @return JSON 형태의 프로젝트 목록
+     */
+    private static Result getProjectsToJSON(String query) {
+        List<String> projectNames = new ArrayList<String>();
+        ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
+        int total = el.findRowCount();
+        if (total > MAX_FETCH_PROJECTS) {
+            el.setMaxRows(MAX_FETCH_PROJECTS);
+            response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
+        }
+        for (Project project: el.findList()) {
+            projectNames.add(project.owner + "/" + project.name);
         }
 
-        OrderParams orderParams = new OrderParams();
-        SearchParams searchParams = new SearchParams();
-
-        orderParams.add("createdDate", Direction.DESC);
-        searchParams.add("name", filter, Matching.CONTAINS);
-
-        if (state.toLowerCase().equals("public")) {
-            searchParams.add("isPublic", true, Matching.EQUALS);
-        } else if (state.toLowerCase().equals("private")) {
-            searchParams.add("isPublic", false, Matching.EQUALS);
-        }
-
-        Page<Project> projects = FinderTemplate.getPage(
-                orderParams, searchParams, Project.find, Project.PROJECT_COUNT_PER_PAGE, pageNum - 1);
-
-        return ok(views.html.project.list.render("title.projectList", projects, filter, state));
+        return ok(toJson(projectNames));
     }
 
     /**
