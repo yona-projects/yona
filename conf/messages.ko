@@ -206,6 +206,8 @@ issue.numOfComments = 댓글개수
 issue.update.state = 상태 변경
 issue.update.assignee = 담당자 변경
 issue.update.milestone = 마일스톤 변경
+issue.update.attachLabel = 라벨 추가
+issue.update.detachLabel = 라벨 제거
 
 #Post
 post.new = 새글
@@ -483,6 +485,7 @@ pullRequest.is.not.safe = 코드를 자동으로 병합할 때 충돌이 발생�
 pullRequest.accept = 수락
 pullRequest.reject = 보류
 pullRequest.cancel = 취소
+pullRequest.reopen = 다시 확인
 pullRequest.select.branch = 브랜치를 선택하세요.
 pullRequest.from = 코드 보내는 곳
 pullRequest.to = 코드 받을 곳

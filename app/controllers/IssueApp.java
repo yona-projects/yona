@@ -215,6 +215,8 @@ public class IssueApp extends AbstractPostingApp {
         int rejectedByPermission = 0;
 
         for (Issue issue : issueMassUpdate.issues) {
+            issue.refresh();
+
             if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                     Operation.UPDATE)) {
                 rejectedByPermission++;
@@ -222,7 +224,11 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (issueMassUpdate.assignee != null) {
-                issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                if (issueMassUpdate.assignee.isAnonymous()) {
+                    issue.assignee = null;
+                } else {
+                    issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                }
             }
 
             if (issueMassUpdate.state != null) {
@@ -231,6 +237,16 @@ public class IssueApp extends AbstractPostingApp {
 
             if (issueMassUpdate.milestone != null) {
                 issue.milestone = issueMassUpdate.milestone;
+            }
+
+            if (issueMassUpdate.attachingLabel != null) {
+                issue.refresh();
+                issue.labels.add(issueMassUpdate.attachingLabel);
+            }
+
+            if (issueMassUpdate.detachingLabel != null) {
+                issue.refresh();
+                issue.labels.remove(issueMassUpdate.detachingLabel);
             }
 
             issue.update();

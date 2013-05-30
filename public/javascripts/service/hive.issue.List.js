@@ -65,6 +65,13 @@
                 "elContainer": htOptions.welAssignee
             });
 
+            htElement.oAttachingLabel = new hive.ui.Dropdown({
+                "elContainer": htOptions.welAttachingLabel
+            });
+
+            htElement.oDetachingLabel = new hive.ui.Dropdown({
+                "elContainer": htOptions.welDetachingLabel
+            });
 
 		}
 		
@@ -76,6 +83,8 @@
             htElement.oState.onChange(_onChangeUpdateField);
             htElement.oMilestone.onChange(_onChangeUpdateField);
             htElement.oAssignee.onChange(_onChangeUpdateField);
+            htElement.oAttachingLabel.onChange(_onChangeUpdateField);
+            htElement.oDetachingLabel.onChange(_onChangeUpdateField);
             $(htVar.sIssueCheckBoxesSelector).change(_onCheckIssue);
 		}
 

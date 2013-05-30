@@ -74,7 +74,7 @@ public class BasicAuthAction extends Action<Object> {
             return UserApp.authenticateWithPlainPassword(authUser.loginId, authUser.password);
         } else {
             if (isAnonymousSupported) {
-                return UserApp.anonymous;
+                return User.anonymous;
             } else {
                 return null;
             }

@@ -59,7 +59,7 @@ public class AttachmentApp extends Controller {
         User uploader = UserApp.currentUser();
 
         // Anonymous cannot upload a file.
-        if (uploader == UserApp.anonymous) {
+        if (uploader.isAnonymous()) {
             return forbidden();
         }
 

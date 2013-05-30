@@ -206,6 +206,8 @@ issue.numOfComments = Comment Count
 issue.update.state = Update state
 issue.update.assignee = Update assignee
 issue.update.milestone = Update milestone
+issue.update.attachLabel = Attach label
+issue.update.detachLabel = Detach label
 
 #Post
 post.new = New
@@ -483,6 +485,7 @@ pullRequest.is.not.safe = This pull request can not be merged safely, There may 
 pullRequest.accept = Accept
 pullRequest.reject = Reject
 pullRequest.cancel = Cancel
+pullRequest.reopen = Reopen
 pullRequest.select.branch = Select Branch
 pullRequest.from = From
 pullRequest.to = To

@@ -39,9 +39,6 @@ public class UserApp extends Controller {
     public static final int MAX_FETCH_USERS = 1000;
     private static final int HASH_ITERATIONS = 1024;
 
-    //TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
-    public static User anonymous = new NullUser();
-
     /**
      * ajax 를 이용한 사용자 검색
      * 요청 헤더의 accept 파라미터에 application/json 값이 없으면 406 응답
@@ -281,12 +278,12 @@ public class UserApp extends Controller {
     public static User currentUser() {
         String userId = session().get(SESSION_USERID);
         if (StringUtils.isEmpty(userId) || !StringUtils.isNumeric(userId)) {
-            return anonymous;
+            return User.anonymous;
         }
         User foundUser = User.find.byId(Long.valueOf(userId));
         if (foundUser == null) {
             processLogout();
-            return anonymous;
+            return User.anonymous;
         }
         return foundUser;
     }

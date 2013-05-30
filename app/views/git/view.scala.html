@@ -13,14 +13,14 @@
                 <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
                 <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>
             </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch)" class="label label-success">@pull.fromBranch</a>
+            <span class="label label-success">@pull.fromBranch</span>
 
             @Messages("pullRequest.to")
             <span class="label label-info">
                 <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
                 <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
             </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch)" class="label label-success">@pull.toBranch</a>
+            <span class="label label-success">@pull.toBranch</span>
         </p>
 
         <ul class="nav nav-tabs hive-tabs">
@@ -67,6 +67,10 @@
                 }
                 <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reject")</a>
                 <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+            }
+            @if(pull.isRejected()){
+            <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
+            <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
             }
         </div>
     </div>

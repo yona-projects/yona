@@ -266,6 +266,25 @@ public class PullRequestApp extends Controller {
     }
 
     /**
+     * {@code pullRequestId}에 해당하는 코드 요청을 다시 열어준다.
+     *
+     * when: 보류 상태로 변경했던 코드 요청을 다시 Open 상태로 변경할 때 사용한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
+    public static Result open(String userName, String projectName, Long pullRequestId) {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        pullRequest.state = State.OPEN;
+        pullRequest.received = JodaDateUtil.now();
+        pullRequest.receiver = UserApp.currentUser();
+        pullRequest.update();
+        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+    }
+
+    /**
      * {@code pullRequestId}에 해당하는 코드 요청을 삭제한다.
      *
      * @param userName

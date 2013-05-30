@@ -122,7 +122,7 @@
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu">
-                <li data-value="0"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
+                <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
                 @for(member <- project.members()) {
                 <li data-value="@member.user.id"><a href="javascript:void(0)">@User.find.byId(member.user.id).name (@User.find.byId(member.user.id).loginId)</a></li>
                 }
@@ -138,6 +138,30 @@
                 <li data-value="0"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
                 @for(milestone <- Milestone.findByProjectId(project.id)) {
                 <li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
+                }
+            </ul>
+        </div>
+
+        <div id="attaching-label" class="btn-group" data-name="attachingLabel.id">
+            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+                <span class="d-label">@Messages("issue.update.attachLabel")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+                @for(label <- IssueLabel.findByProject(project)) {
+                <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
+                }
+            </ul>
+        </div>
+
+        <div id="detaching-label" class="btn-group" data-name="detachingLabel.id">
+            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+                <span class="d-label">@Messages("issue.update.detachLabel")</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+                @for(label <- IssueLabel.findByProject(project)) {
+                <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
                 }
             </ul>
         </div>
@@ -170,9 +194,9 @@
 	            <div class="comment-wrap">
 	                <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
 	            </div>
-                @if(issue.assignee != null) {
+                @if(issue.assigneeName != null) {
                     <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded pull-right">
-                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assignee.user.name"></a>
+                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName"></a>
                 }
 	        </div>
 	    </li>
@@ -213,6 +237,8 @@
 			"welState": $("#state"),
 			"welMilestone": $("#milestone"),
 			"welAssignee": $("#assignee"),
+			"welAttachingLabel": $("#attaching-label"),
+			"welDetachingLabel": $("#detaching-label"),
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
 			"nTotalPages" : @currentPage.getTotalPageCount,
 			"htOptLabel"  : htOptLabel
