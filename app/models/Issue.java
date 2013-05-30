@@ -90,7 +90,7 @@ public class Issue extends AbstractPosting {
      * 아래의 getAssigneeName과 합쳐질 수 있을듯.
      */
     public String assigneeName() {
-        return (this.assignee != null ? assignee.user.name : null);
+        return ((assignee != null && assignee.user != null) ? assignee.user.name : null);
     }
 
     /**
