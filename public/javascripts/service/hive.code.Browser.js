@@ -236,11 +236,11 @@
 				if(welWrapDirectory.css("display") == "none"){
                     draggable = true;
 					welWrapDirectory.show();
-					waWrapFile.width(850 - welWrapDirectory.width());
+					waWrapFile.width(930 - welWrapDirectory.width());
 				} else {
                     draggable = false;
 					welWrapDirectory.hide();
-					waWrapFile.width(850);
+					waWrapFile.width(930);
 				}
 			});
 			
@@ -248,7 +248,7 @@
 				var nWidth = weEvt.clientX - nFolderListX;
 				$(".directory-wrap").width(nWidth);
                 $(".directories").width(nWidth);
-				$(".file-wrap").width(850 - nWidth);
+				$(".file-wrap").width(930 - nWidth);
 			}
 		}
 		

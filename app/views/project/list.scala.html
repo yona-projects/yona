@@ -46,13 +46,26 @@
                   <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)"><b>@project.owner</b></a> since @agoString(project.ago)</p>
               </div>
               <div class="stats-wrap">
-                  <div class="like">
-                      <i class="ico ico-like"></i><span class="num">1</span>
-                  </div>
-                  <i class="ico ico-activity low"></i><!--
-               --><a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap img-rounded">
-						<img src="@project.getOwnerByLoginId(project.owner).avatarUrl" width="32" height="32">
-				  </a>
+                @if(project.isPublic){
+                <div class="members">
+                    <ul class="unstyled">
+                    @for(member <- User.findUsersByProject(project.id)){
+                        <li>
+                            <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
+                                <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
+                            </a>
+                        </li>
+                    }
+                    </ul>
+                    <p>
+                        @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                    </p>
+                </div>
+                } else {
+                <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap img-rounded">
+                    <img src="@project.getOwnerByLoginId(project.owner).avatarUrl" width="32" height="32">
+                </a>
+                }
               </div>
           </li>
 	  }
