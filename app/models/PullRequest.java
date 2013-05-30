@@ -89,8 +89,12 @@ public class PullRequest extends Model {
         return JodaDateUtil.ago(this.received);
     }
 
-    public boolean isOpen(){
+    public boolean isOpen() {
         return this.state == State.OPEN;
+    }
+
+    public boolean isRejected() {
+        return this.state == State.REJECTED;
     }
 
     public static PullRequest findById(long id) {

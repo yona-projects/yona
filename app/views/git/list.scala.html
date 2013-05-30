@@ -47,8 +47,12 @@
                             by <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.loginId</a>
                             &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.createdAgo())</span>
 
-                            @if(req.receiver != null) {
+                            @if(req.state == models.enumeration.State.CLOSED) {
                             &nbsp; and merged by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
+                            &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
+                            }
+                            @if(req.state == models.enumeration.State.REJECTED) {
+                            &nbsp; and rejected by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
                             &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
                             }
                         </p>

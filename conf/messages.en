@@ -483,6 +483,7 @@ pullRequest.is.not.safe = This pull request can not be merged safely, There may 
 pullRequest.accept = Accept
 pullRequest.reject = Reject
 pullRequest.cancel = Cancel
+pullRequest.reopen = Reopen
 pullRequest.select.branch = Select Branch
 pullRequest.from = From
 pullRequest.to = To

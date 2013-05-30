@@ -68,6 +68,10 @@
                 <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reject")</a>
                 <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
             }
+            @if(pull.isRejected()){
+            <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
+            <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+            }
         </div>
     </div>
 
