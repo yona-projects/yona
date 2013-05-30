@@ -1,16 +1,32 @@
 @(project: Project)
 
+@getCodeURL(project: Project) = @{
+    if(session == null){
+        CodeApp.getURL(project.owner, project.name)
+    } else {
+        defining(ProjectUser.roleOf(session.get("loginId"), project)) { role =>
+            if(role == "manager" || role == "member"){
+                CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
+            } else {
+                CodeApp.getURL(project.owner, project.name)
+            }
+        }
+    }
+}
+
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 		
 	<div class="row-fluid">
-		<div class="well span12">
-			<p>HEAD커밋이 존재하지 않습니다. 다음과 같은 방법을 시도해 보세요</p>
-			<pre><code>git clone @CodeApp.getURL(project.owner, project.name)
+		<div class="span12">
+			<h5>@Html(Messages("code.nohead"))</h5>
+            
+			<pre><code>git clone @getCodeURL(project)
+cd @project.name/
 touch readme.md
 git add readme.md
-git commit -m "init"
+git commit -m "Hello @Messages("hive.name")"
 git push origin master</code></pre>
 		</div>
 	</div>

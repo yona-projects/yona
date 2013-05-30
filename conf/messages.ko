@@ -399,6 +399,7 @@ code.commits = 커밋
 code.newer = 이전
 code.older = 다음
 code.repoUrl = 저장소 URL
+code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요 
 
 #mail
 mail.password = 비밀번호
