@@ -235,6 +235,7 @@ post.error.emptyBody = 글 내용을 입력해주세요
 
 #Project
 project.myproject = 내 프로젝트
+project.watchingproject = 관심 프로젝트
 project.create = 프로젝트 생성
 project.name = 프로젝트 이름
 project.name.placeholder = 프로젝트 이름을 입력해주세요.

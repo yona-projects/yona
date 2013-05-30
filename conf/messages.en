@@ -234,7 +234,8 @@ post.error.emptyTitle = Title is required
 post.error.emptyBody = Post with empty body cannot be created
 
 #Project
-project.myproject = MY PROJECTS
+project.myproject = My Projects
+project.watchingproject = Watching Projects
 project.create = Create a project
 project.name = Project Name
 project.name.placeholder = input project name
