@@ -100,6 +100,7 @@
 						<span class="d-caret"><span class="caret"></span></span>
 					</button>
 					<ul class="dropdown-menu">
+                        <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li> 
 						@ProjectUser.options(project.id).map{ v =>
 						<li data-value="@v._1" @if(issue.assignee != null && issue.assignee.user.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
 						}
@@ -119,6 +120,7 @@
 						<span class="d-caret"><span class="caret"></span></span>
 					</button>
 					<ul class="dropdown-menu">
+					    <li data-value="" @if(issue.milestone == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("none")</a></li>
 						@Milestone.options(project.id).map{ v =>
 						<li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
 						}

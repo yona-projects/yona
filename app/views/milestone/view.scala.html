@@ -13,13 +13,13 @@
 @main(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.MILESTONE, "")
-    <h1>
+    <h3>
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
         <small>
             <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
             <span class="badge badge-issue-@milestone.state.state.toLowerCase">@Messages("issue.state." + milestone.state.state)</span>
         </small>
-    </h1>
+    </h3>
 
     <div class="progress">
         <div class="bar bar-success" style="width: @milestone.getCompletionRate%;"></div>
@@ -74,9 +74,10 @@
         }
     </ol>
 
-    <div class="actrow">
-        <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black pull-right"><i class="ico ico-delete-small"></i>@Messages("button.delete")</a>
-        <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium white pull-right"><i class="ico ico-edit-small"></i>@Messages("button.edit")</a>
+    <div class="actrow pull-right">
+        <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("button.delete")</a>
+        <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
+        <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium orange">@Messages("button.list")</a>
     </div>
 
 

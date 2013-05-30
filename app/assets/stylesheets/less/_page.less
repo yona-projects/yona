@@ -113,6 +113,8 @@
                             }
                             .d-caret {
                                 padding:5px 9px;
+                                border-left:none;
+                                .caret { border-top-color:@primary; }
                             }
                         }
                     }
@@ -231,7 +233,10 @@
         } /* gnb-menu-wrap */
     } /* gnb-inner */
     
-    .page { padding:40px 39px 60px 39px; }
+    .page { 
+        /*padding:40px 39px 60px 39px;*/
+        padding:30px 19px 50px 19px; 
+    }
 }
 
 .page-wrap {
@@ -546,7 +551,7 @@
     padding:8px 0px 19px 20px;
     
     .main-stream {
-        width: 660px;
+        width: 700px;
         /*margin-right: 10px;*/
         float: left;
         .activity-streams {
@@ -1005,7 +1010,7 @@
             padding: 10px 20px;
             .border-radius(5px);
             height: 31px;
-            width: 252px; /*240px;*/
+            width: 266px;/*278px;*//*252px;*/ /*240px;*/
             margin-right: 10px;
             float: left;
             &:last-child {
@@ -1039,7 +1044,7 @@
         }
         
         .stat-issue {
-            width:240px;
+            width:266px; /*240px;*/
             border-bottom:1px solid #c5c5c5;
             
             &.active {
@@ -1244,9 +1249,6 @@
         padding: 20px;
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
-        &:first-child {
-            padding-top:5px;
-        }
         &:last-child {
             border-bottom: 0 none;
         }
@@ -1317,6 +1319,9 @@
         .project {
             .info-wrap {
                 width: 450px;
+            }
+            &:first-of-type {
+                padding-top:5px;
             }
         }
     }
@@ -1612,7 +1617,7 @@
     
     .member {
         float: left;
-        width: 375px;
+        width: 415px; /*375px;*/
         padding: 20px;
         margin-bottom: 6px;
         background-color: @white;
@@ -1725,7 +1730,7 @@
             }
             .meta-info {
                 margin:5px 0 10px;
-                .title    { font-size:15px; font-weight:bold; }
+                .title    { font-size:20px; font-weight:bold; }
                 .sp       { margin: 0 5px; color:#E4E4E4; }
                 .due-date { color: #666; /*999;*/ }
             }
@@ -1784,10 +1789,10 @@
     &.milestone {
         .inner {
             &.left {
-                width: 598px;
+                width: 673px;/*598px;*/
                 float: left;
                 .text , .textarea {
-                    width: 584px;
+                    width: 655px; /*584px;*/
                 }
                 .textarea {
                     height: 306px;
@@ -1805,7 +1810,7 @@
             
             &.right {
                 height:385px;
-                margin-left: 610px;
+                margin-left: 690px;/*610px;*/
                 padding: 15px 10px;
                 background-color: #ececec;
                 .border-radius(5px);
@@ -1838,7 +1843,7 @@
         .border-radius(10px);
         
         &.member-info {
-            width: 230px;
+            width: 270px; /*230px;*/
             margin-right: 0;
         }
         
@@ -1850,7 +1855,7 @@
         }
         
         &.project-info {
-            width: 350px;
+            width: 390px; /*350px;*/
             .infos {
                 list-style: none;
                 margin: 0;
@@ -2335,7 +2340,7 @@ div.markdown-preview {
 }
 .content-wrap {    
     .text {
-        width: 866px;
+        width: 946px;/*866px;*/
         resize:vertical;
     }
     .title {
@@ -2600,7 +2605,7 @@ div.markdown-preview {
         -webkit-transition-duration:0.1s;
         
         &.directory-wrap {
-            width: 196px;
+            width: 259px;/*196px;*/
             /*min-width: 196px;
             max-width: 196px;*/
             overflow: auto;
@@ -3335,5 +3340,29 @@ div.markdown-preview {
           .btn{padding:1px 16px;font-size:12px}
           }
         }
+    }
+}
+
+// -- pull request
+.pull-request-wrap {
+    margin-bottom:20px;
+    
+    .request-from {
+        display:inline-block; width:435px;
+        .repo { color:@secondary; font-size:14px; }
+        .dropdown-toggle { width:435px; }
+        .dropdown-menu   { width:435px; }
+    }
+    
+    .request-to {
+        display:inline-block; width:435px;
+        .repo { color:@primary; font-size:14px; }
+        .dropdown-toggle { width:435px; }
+        .dropdown-menu   { width:435px; }
+    }
+    
+    .arrow {
+        display:inline-block; width:83px;
+        text-align:center;
     }
 }
