@@ -129,7 +129,7 @@ public class BoardApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), post.asResource());
 
-        return redirect(routes.BoardApp.posts(project.owner, project.name, 1));
+        return redirect(routes.BoardApp.post(project.owner, project.name, post.id));
     }
 
     /**
@@ -206,7 +206,7 @@ public class BoardApp extends AbstractPostingApp {
         Project project = ProjectApp.getProject(userName, projectName);
         final Posting post = postForm.get();
         final Posting original = Posting.finder.byId(postId);
-        Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
+        Call redirectTo = routes.BoardApp.post(project.owner, project.name, postId);
         Callback updatePostingBeforeUpdate = new Callback() {
             @Override
             public void run() {

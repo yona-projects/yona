@@ -288,8 +288,7 @@ public class IssueApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), newIssue.asResource());
 
-        return redirect(routes.IssueApp.issues(project.owner, project.name,
-                State.OPEN.state(), "html", 1));
+        return redirect(routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber()));
     }
 
     public static Result editIssueForm(String userName, String projectName, Long number) {
@@ -311,8 +310,8 @@ public class IssueApp extends AbstractPostingApp {
         setMilestone(issueForm, issue);
         final Project project = ProjectApp.getProject(userName, projectName);
         final Issue originalIssue = Issue.findByNumber(project, number);
-        Call redirectTo =
-                routes.IssueApp.issues(project.owner, project.name, State.OPEN.name(), "html", 1);
+
+        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
 
         // updateIssueBeforeSave.run would be called just before this issue is saved.
         // It updates some properties only for issues, such as assignee or labels, but not for non-issues.
