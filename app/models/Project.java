@@ -90,6 +90,9 @@ public class Project extends Model {
     @OneToMany(mappedBy = "originalProject")
     public List<Project> forkingProjects;
 
+    @OneToMany(mappedBy = "project")
+    public Set<Assignee> assignees;
+
     /**
      * 신규 프로젝트를 생성한다.
      *
@@ -576,5 +579,27 @@ public class Project extends Model {
      */
     public enum State {
         PUBLIC, PRIVATE, ALL
+    }
+
+    /**
+     * <p>프로젝트를 삭제한다.</p>
+     *
+     * <p>{@link play.db.ebean.Model#delete()}를 override해서 이 메소드를 구현한 이유는,
+     * {@link #assignees}를 삭제하기 위해서이며, {@code Cascading.REMOVE}로 삭제 가능함에도 굳이 직접
+     * 삭제하는 것은 cascading을 설정한 상태에서 프로젝트 삭제시 발생하는 다음의 예외를 피하기 위함이다.</p>
+     *
+     * <pre>Parameter "#1" is not set; SQL statement: delete from issue_comment where (issue_id in (?) [90012-168]]</pre>
+     *
+     * <p>이것은 Ebean의 버그로 알려져있다.</p>
+     *
+     * @see <a href="http://www.avaje.org/bugdetail-420.html">
+     *     BUG 420 : SQLException with CascadeType.REMOVE</a>
+     */
+    @Override
+    public void delete() {
+        for (Assignee assignee : assignees) {
+            assignee.delete();
+        }
+        super.delete();
     }
 }
