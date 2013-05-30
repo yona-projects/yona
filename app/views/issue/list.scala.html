@@ -59,7 +59,7 @@
                                             <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("order.all")</a></li>
                                             <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
                                             @for(assignee <- project.assignees) {
-                                            <li data-value="@assignee.user.id"><a href="javascript:void(0)">@User.find.byId(assignee.user.id).name (@User.find.byId(assignee.user.id).loginId)</a></li>
+                                            <li data-value="@assignee.user.id"><a href="javascript:void(0)">@assignee.user.name (@assignee.user.loginId)</a></li>
                                             }
                                         </ul>
                                     </div>
@@ -124,7 +124,7 @@
             <ul class="dropdown-menu">
                 <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
                 @for(member <- project.members()) {
-                <li data-value="@member.user.id"><a href="javascript:void(0)">@User.find.byId(member.user.id).name (@User.find.byId(member.user.id).loginId)</a></li>
+                <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
                 }
             </ul>
         </div>
