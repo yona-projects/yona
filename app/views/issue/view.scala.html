@@ -134,7 +134,7 @@
 			</div>
 
 	        @** fileUploader **@
-		    @if(UserApp.currentUser() != UserApp.anonymous) {
+		    @if(!UserApp.currentUser.isAnonymous) {
 			<div class="attach-wrap">
 				<div class="avatar-wrap">
 					<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="32" height="32">

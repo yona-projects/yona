@@ -33,7 +33,7 @@
 		</dl>
 
 		@** fileUploader **@
-	    @if(UserApp.currentUser() != UserApp.anonymous) {
+        @if(!UserApp.currentUser.isAnonymous) {
 		<div class="content-footer">
 			<div class="attach-wrap">
 				<div class="avatar-wrap">

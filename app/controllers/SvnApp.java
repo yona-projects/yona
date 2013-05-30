@@ -72,7 +72,7 @@ public class SvnApp extends Controller {
         PlayRepository repository = RepositoryService.getRepository(project);
         if (!AccessControl.isAllowed(currentUser, repository.asResource(),
                 getRequestedOperation(request().method()))) {
-            if (currentUser.id == UserApp.anonymous.id) {
+            if (currentUser.isAnonymous()) {
                 return BasicAuthAction.unauthorized(response());
             } else {
                 return forbidden("You have no permission to access this repository.");

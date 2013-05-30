@@ -27,8 +27,6 @@ import utils.ReservedWordsValidator;
 
 import com.avaje.ebean.Page;
 
-import controllers.UserApp;
-
 /**
  * User 클래스
  * 
@@ -50,6 +48,9 @@ public class User extends Model {
      * 사이트 관리자의 id값.
      */
     public static final Long SITE_MANAGER_ID = 1l;
+
+    //TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
+    public static User anonymous = new NullUser();
 
     /**
      * PK
@@ -158,7 +159,7 @@ public class User extends Model {
     /**
      * 로그인 아이디로 사용자를 조회한다.
      *
-     * 사용자가 없으면 {@link controllers.UserApp.anonymous} 객체를 반환한다.
+     * 사용자가 없으면 {@link #anonymous} 객체를 반환한다.
      *
      * @param loginId
      * @return
@@ -166,7 +167,7 @@ public class User extends Model {
     public static User findByLoginId(String loginId) {
         User user = find.where().eq("loginId", loginId).findUnique();
         if(  user == null ) {
-            return UserApp.anonymous;
+            return anonymous;
         } else {
             return user;
         }
@@ -175,7 +176,7 @@ public class User extends Model {
     /**
      * email로 사용자를 조회한다.
      *
-     * 사용자가 없으면 {@link controllers.UserApp.anonymous}객체에 email을 할당하고 반환한다.
+     * 사용자가 없으면 {@link #anonymous}객체에 email을 할당하고 반환한다.
      *
      * @param email
      * @return
@@ -183,8 +184,8 @@ public class User extends Model {
     public static User findByEmail(String email) {
         User user = find.where().eq("email", email).findUnique();
         if(  user == null ) {
-            UserApp.anonymous.email = email;
-            return UserApp.anonymous;
+            anonymous.email = email;
+            return anonymous;
         } else {
             return user;
         }
@@ -225,7 +226,7 @@ public class User extends Model {
                 Direction.ASC);
         SearchParams searchParams = new SearchParams().add("id", 1l,
                 Matching.NOT_EQUALS);
-        searchParams.add("loginId", UserApp.anonymous.loginId,
+        searchParams.add("loginId", anonymous.loginId,
                 Matching.NOT_EQUALS);
 
         if (loginId != null) {
@@ -273,7 +274,7 @@ public class User extends Model {
      * @return
      */
     public boolean isAnonymous() {
-        return this == UserApp.anonymous;
+        return this == anonymous;
     }
 
     /**

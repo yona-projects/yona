@@ -118,7 +118,7 @@ public class ProjectApp extends Controller {
 	/**
      * 신규 프로젝트 생성 페이지로 이동한다.<p />
      *
-     * 비로그인 상태({@link controllers.UserApp#anonymous})이면 로그인 경고메세지와 함께 로그인페이지로 redirect 된다.<br />
+     * 비로그인 상태({@link models.User#anonymous})이면 로그인 경고메세지와 함께 로그인페이지로 redirect 된다.<br />
      * 로그인 상태이면 프로젝트 생성 페이지로 이동한다.<br />
      *
      * @return 익명사용자이면 로그인페이지, 로그인 상태이면 프로젝트 생성페이지
