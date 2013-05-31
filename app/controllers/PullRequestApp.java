@@ -55,7 +55,10 @@ public class PullRequestApp extends Controller {
             return badRequestForNullProject(userName, projectName);
         }
         if(!originalProject.isPublic) {
-            return badRequest("private project can't be forked");
+            User user = UserApp.currentUser();
+            if(!ProjectUser.isMemberOrManager(user.loginId, originalProject)) {
+                return badRequest("private project can't be forked");
+            }
         }
 
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
