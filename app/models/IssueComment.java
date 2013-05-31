@@ -13,10 +13,6 @@ public class IssueComment extends Comment {
     @ManyToOne
     public Issue issue;
 
-    public IssueComment() {
-        super();
-    }
-
     public AbstractPosting getParent() {
         return issue;
     }

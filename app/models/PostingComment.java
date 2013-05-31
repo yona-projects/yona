@@ -13,10 +13,6 @@ public class PostingComment extends Comment {
     @ManyToOne
     public Posting posting;
 
-    public PostingComment() {
-        super();
-    }
-
     public AbstractPosting getParent() {
         return posting;
     }
