@@ -173,5 +173,5 @@ GET     /:user/:project/statistics                      controllers.StatisticsAp
 GET     /:user                                          controllers.UserApp.userInfo(user)
 
 # Watching Projects
-GET     /:user/:project/watch                           controllers.WatchProjectApp.watch(user, project)
-GET     /:user/:project/unwatch                         controllers.WatchProjectApp.unwatch(user, project)
+POST    /:user/:project/watch                           controllers.WatchProjectApp.watch(user, project)
+POST    /:user/:project/unwatch                         controllers.WatchProjectApp.unwatch(user, project)

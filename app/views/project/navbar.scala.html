@@ -77,11 +77,11 @@
         }
         @if(User.isWatching(project)){
         <li class="side-menu" data-toggle="tooltip" title="unwatch" data-placement="right">
-            <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)"><i class="icon-star icon-white" style="vertical-align:bottom;"></i></a>
+            <a class="watchBtn" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)"><i class="icon-star icon-white" style="vertical-align:bottom;"></i></a>
         </li>
         } else {
         <li class="side-menu" data-toggle="tooltip" title="watch" data-placement="right">
-            <a href="@routes.WatchProjectApp.watch(project.owner, project.name)"><i class="icon-star-empty icon-white" style="vertical-align:bottom;"></i></a>
+            <a class="watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)"><i class="icon-star-empty icon-white" style="vertical-align:bottom;"></i></a>
         </li>
         }
     </ul>
@@ -90,5 +90,10 @@
 <script type="text/javascript">
     $(function(){
         $('.side-menus li').tooltip();
+        $('.watchBtn').click(function(e){
+            e.preventDefault();
+            $.post($(this).attr('href'));
+            location.reload();
+        });
     });
 </script>
