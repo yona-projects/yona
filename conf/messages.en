@@ -399,6 +399,7 @@ code.commits = Commits
 code.newer = Newer
 code.older = Older
 code.repoUrl = URL
+code.nohead = Create a new repository on the command line
 
 #mail
 mail.password = Password
