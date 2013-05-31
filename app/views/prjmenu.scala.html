@@ -23,12 +23,7 @@
 }
 
 <div class="label inline-block" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
-    @if(User.isWatching(project)){
-    <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)"><i class="icon-star icon-white" style="vertical-align:bottom;"></i></a> |
-    } else {
-    <a href="@routes.WatchProjectApp.watch(project.owner, project.name)"><i class="icon-star-empty icon-white" style="vertical-align:bottom;"></i></a> |
-    }
-
+    <i class="icon-eye-open icon-white"></i>
     @Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))
 </div>
 
