@@ -104,7 +104,7 @@ public class MilestoneApp extends Controller {
             Milestone newMilestone = milestoneForm.get();
             newMilestone.project = project;
             Milestone.create(newMilestone);
-            return redirect(routes.MilestoneApp.milestones(userName, projectName));
+            return redirect(routes.MilestoneApp.milestone(userName, projectName, newMilestone.id));
         }
     }
 
@@ -175,7 +175,7 @@ public class MilestoneApp extends Controller {
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());
-            return redirect(routes.MilestoneApp.milestones(userName, projectName));
+            return redirect(routes.MilestoneApp.milestone(userName, projectName, existingMilestone.id));
         }
     }
 
