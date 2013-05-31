@@ -9,6 +9,7 @@ public class IssueMassUpdate {
     public State state;
     public User assignee;
     public Milestone milestone;
+    public boolean delete;
 
     @Constraints.Required
     public List<Issue> issues;
