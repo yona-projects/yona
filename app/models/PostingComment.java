@@ -5,6 +5,9 @@ import models.resource.Resource;
 
 import javax.persistence.*;
 
+/**
+ * 게시물의 댓글
+ */
 @Entity
 public class PostingComment extends Comment {
     private static final long serialVersionUID = 1L;
@@ -13,10 +16,16 @@ public class PostingComment extends Comment {
     @ManyToOne
     public Posting posting;
 
+    /**
+     * @see Comment#getParent()
+     */
     public AbstractPosting getParent() {
         return posting;
     }
 
+    /**
+     * @see Comment#asResource()
+     */
     public Resource asResource() {
         return new Resource() {
             @Override
