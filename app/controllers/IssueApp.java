@@ -240,12 +240,10 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (issueMassUpdate.attachingLabel != null) {
-                issue.refresh();
                 issue.labels.add(issueMassUpdate.attachingLabel);
             }
 
             if (issueMassUpdate.detachingLabel != null) {
-                issue.refresh();
                 issue.labels.remove(issueMassUpdate.detachingLabel);
             }
 
