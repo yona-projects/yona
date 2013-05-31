@@ -217,6 +217,17 @@ public class IssueApp extends AbstractPostingApp {
         for (Issue issue : issueMassUpdate.issues) {
             issue.refresh();
 
+            if (issueMassUpdate.delete == true) {
+                if (AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
+                        Operation.DELETE)) {
+                    issue.delete();
+                    continue;
+                } else {
+                    rejectedByPermission++;
+                    continue;
+                }
+            }
+
             if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                     Operation.UPDATE)) {
                 rejectedByPermission++;

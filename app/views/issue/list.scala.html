@@ -166,6 +166,23 @@
             </ul>
         </div>
 
+		<button href="#deleteConfirm" data-toggle="modal" class="nbtn medium black" disabled>@Messages("button.delete")</button>
+
+        @** Confirm to delete post **@
+        <div id="deleteConfirm" class="modal hide fade">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h3>@Messages("issue.delete.window")</h3>
+            </div>
+            <div class="modal-body">
+                <p>@Messages("post.delete.confirm")</p>
+            </div>
+            <div class="modal-footer">
+                <a id="delete" class="btn btn-danger med">@Messages("button.yes")</a>
+                <a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
+            </div>
+        </div>
+
     </form>
 	<ol class="issue-list">
 		@for(issue <- currentPage.getList){
@@ -239,6 +256,7 @@
 			"welAssignee": $("#assignee"),
 			"welAttachingLabel": $("#attaching-label"),
 			"welDetachingLabel": $("#detaching-label"),
+			"welDeleteButton": $("#delete"),
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
 			"nTotalPages" : @currentPage.getTotalPageCount,
 			"htOptLabel"  : htOptLabel
