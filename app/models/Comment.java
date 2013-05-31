@@ -49,12 +49,12 @@ abstract public class Comment extends Model {
 
     public void save() {
         super.save();
-        getParent().save();
+        getParent().update();
     }
 
     public void delete() {
         Attachment.deleteAll(asResource());
         super.delete();
-        getParent().save();
+        getParent().update();
     }
 }
