@@ -94,6 +94,11 @@ public class Project extends Model {
     public Set<Assignee> assignees;
 
     /**
+     * 사용자에게 관심 프로젝트로 등록된 개수
+     */
+    public long watchingCount;
+
+    /**
      * 신규 프로젝트를 생성한다.
      *
      * 프로젝트 생성시 사용한다.
@@ -572,8 +577,15 @@ public class Project extends Model {
         getForkingProjects().remove(project);
         project.originalProject = null;
     }
-    
-    
+
+    public void upWatcingCount() {
+        this.watchingCount++;
+    }
+
+    public void downWathcingCount() {
+        this.watchingCount--;
+    }
+
     /**
      * 프로젝트 상태(공개/비공개)
      */
