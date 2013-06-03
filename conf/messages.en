@@ -502,3 +502,4 @@ fork = Fork
 pullRequest = PullRequest
 pullRequest.menu.overview = Overview
 pullRequest.menu.commit = Commits
+already.existing.fork.alert = Moved to existing fork project

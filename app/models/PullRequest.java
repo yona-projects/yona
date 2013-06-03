@@ -137,4 +137,10 @@ public class PullRequest extends Model {
                 .eq("state", State.REJECTED)
                 .findList();
     }
+
+    public static List<PullRequest> allReceivedRequests(Project project) {
+        return finder.where()
+                .eq("toProject", project)
+                .findList();
+    }
 }
