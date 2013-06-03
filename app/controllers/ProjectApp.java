@@ -24,6 +24,7 @@ import utils.HttpUtil;
 import views.html.project.*;
 import play.i18n.Messages;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -58,14 +59,14 @@ public class ProjectApp extends Controller {
 
 	private static final int RECENLTY_POSTING_SHOW_LIMIT = 5;
 
-    private static final int PROJECT_COUNT_PER_PAGE = 10;    
-    
-    private static final String HTML = "text/html";
-    
-    private static final String JSON = "application/json";
-    
+    private static final int PROJECT_COUNT_PER_PAGE = 10;
 
-    
+    private static final String HTML = "text/html";
+
+    private static final String JSON = "application/json";
+
+
+
     /**
      * getProject
      * @param userName
@@ -93,6 +94,12 @@ public class ProjectApp extends Controller {
      */
     public static Result project(String loginId, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+
+        if(project == null) {
+            return notFound("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'");
+        }
+
+        project.deleteInvalidOriginal();
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.error.unauthorized.render(project));
@@ -304,7 +311,6 @@ public class ProjectApp extends Controller {
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(loginId, projectName, project.vcs);
-            project.deleteFork();
             project.delete();
             return redirect(routes.Application.index());
         } else {
@@ -454,7 +460,7 @@ public class ProjectApp extends Controller {
         }
 
         if (prefer.equals(JSON)) {
-            return getProjectsToJSON(query);        
+            return getProjectsToJSON(query);
         } else {
             return getPagingProjects(query, state, pageNum);
         }
@@ -462,12 +468,12 @@ public class ProjectApp extends Controller {
 
     /**
      * 프로젝트 목록을 가져온다.
-     * 
-     * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시 
-     * 
-     * 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 
+     *
+     * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시
+     *
+     * 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고
      * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
-     * 
+     *
      * @param query 검색질의(프로젝트명 또는 관리자)
      * @param state 프로젝트 상태(공개/비공개)
      * @param pageNum 페이지번호
@@ -475,8 +481,8 @@ public class ProjectApp extends Controller {
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
         ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
-        
-        Project.State stateType = Project.State.valueOf(state.toUpperCase()); 
+
+        Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {
             el.eq("isPublic", true);
         } else if (stateType == Project.State.PRIVATE) {
@@ -490,10 +496,10 @@ public class ProjectApp extends Controller {
 
     /**
      * 프로젝트 정보를 JSON으로 가져온다.
-     * 
+     *
      * 프로젝트명 또는 관리자 아이디에 {@code query} 가 포함되는 프로젝트 목록을 {@link MAX_FETCH_PROJECTS} 만큼 가져오고
      * JSON으로 변환하여 반환한다.
-     * 
+     *
      * @param query 검색질의(프로젝트명 또는 관리자)
      * @return JSON 형태의 프로젝트 목록
      */

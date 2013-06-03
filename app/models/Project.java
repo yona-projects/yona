@@ -594,6 +594,17 @@ public class Project extends Model {
         this.watchingCount--;
     }
 
+    public void deleteInvalidOriginal() {
+        if(originalProject != null) {
+            try {
+                String owner = originalProject.owner;
+            } catch (EntityNotFoundException e) {
+                originalProject = null;
+                super.update();
+            }
+        }
+    }
+
     /**
      * 프로젝트 상태(공개/비공개)
      */
@@ -620,10 +631,22 @@ public class Project extends Model {
         deleteFork();
         deletePullRequests();
 
+        if(this.hasForks()) {
+            for(Project fork : forkingProjects) {
+                fork.deletePullRequests();
+                fork.deleteOriginal();
+                fork.update();
+            }
+        }
+
         for (Assignee assignee : assignees) {
             assignee.delete();
         }
         super.delete();
+    }
+
+    private void deleteOriginal() {
+        this.originalProject = null;
     }
 
     private void deletePullRequests() {
