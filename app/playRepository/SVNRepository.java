@@ -216,7 +216,7 @@ public class SVNRepository implements PlayRepository {
         long startRevision = repository.getLatestRevision();
         long endRevision = startRevision - limit;
         if (endRevision < 1) {
-            return new ArrayList<Commit>();
+            endRevision = 1;
         }
 
         // Get the logs
