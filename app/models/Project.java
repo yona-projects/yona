@@ -239,6 +239,16 @@ public class Project extends Model {
         return filteredList;
     }
 
+    public static List<Project> findProjectsCreatedByUser(String loginId, String orderString) {
+        List<Project> userProjectList = find.where().eq("owner", loginId).findList();
+        if( orderString == null ){
+            return userProjectList;
+        }
+
+        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
+
+        return filteredList;
+    }
     /**
      * {@code state} 별 프로젝트 카운트를 반환한다.
      *

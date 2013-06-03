@@ -32,8 +32,8 @@
                 @if(user != null && session != null && user.loginId == session.get("loginId")){
                     <br>
                 }
-                <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
             </span>
         </div>
+        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
     </div>
 </li>
