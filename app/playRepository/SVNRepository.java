@@ -219,6 +219,11 @@ public class SVNRepository implements PlayRepository {
             endRevision = 1;
         }
 
+        // No log to return.
+        if (startRevision < endRevision) {
+            return new ArrayList<Commit>();
+        }
+
         // Get the logs
         List<Commit> result = new ArrayList<Commit>();
         for(Object entry : repository.log(paths, null, startRevision, endRevision, false, false)) {
