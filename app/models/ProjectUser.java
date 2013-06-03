@@ -286,11 +286,6 @@ public class ProjectUser extends Model {
         return roleType.getLowerCasedName();
     }
 
-    public static boolean isMemberOrManager(String loginId, Project project) {
-        String role = roleOf(loginId, project);
-        return role.equals("member") || role.equals("manager");
-    }
-
     /**
      * 해당 사용자가 설정 권한이 있는지 확인한다.
      *

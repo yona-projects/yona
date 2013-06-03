@@ -54,10 +54,11 @@ public class PullRequestApp extends Controller {
         if(originalProject == null) {
             return badRequestForNullProject(userName, projectName);
         }
+
+        // private 프로젝트일 경우에는 해당 프로젝트의 멤버나 매니저만 fork할 수 있다.
         if(!originalProject.isPublic) {
-            User user = UserApp.currentUser();
-            if(!ProjectUser.isMemberOrManager(user.loginId, originalProject)) {
-                return badRequest("private project can't be forked");
+            if(isGuest(originalProject, currentUser)) {
+                return badRequest("Only project's member and manager can fork private project");
             }
         }
 
@@ -360,15 +361,15 @@ public class PullRequestApp extends Controller {
     public static Result cancel(String userName, String projectName, Long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        User user = UserApp.currentUser();
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
         if(result != null) {
             return result;
         }
 
-        // 프로젝트의 관리자와 멤버 그리고 코드 요청을 보낸 사용자는 취소 할 수 있다.
-        if(!ProjectUser.isMemberOrManager(userName, project)) {
-            User user = UserApp.currentUser();
+        // 게스트 중에서 코드 요청을 보낸 사용자는 취소 할 수 있다.
+        if(isGuest(project, user)) {
             if(!user.equals(pullRequest.contributor)) {
                 forbidden("Only this project's member and manager and the pull_request's author are allowed.");
             }
@@ -433,13 +434,16 @@ public class PullRequestApp extends Controller {
             return badRequest("Only fork project is allowed this request");
         }
 
-        String role = ProjectUser.roleOf(currentUser.loginId, project);
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
-        if(role.equals("guest")) {
+        if(isGuest(project, currentUser)) {
             return badRequest("Guest is not allowed this request");
         }
 
         return null;
+    }
+
+    private static boolean isGuest(Project project, User currentUser) {
+        return ProjectUser.roleOf(currentUser.loginId, project).equals("guest");
     }
 
     /**
@@ -476,15 +480,6 @@ public class PullRequestApp extends Controller {
     }
 
     /**
-     * 코드 요청에 대한 수락과 보류 작업을 실행할 수 없을 경우에 보내는 응답.
-     *
-     * @return
-     */
-    private static Status forbiddenExceptProjectMemberOrManager() {
-        return forbidden("Only this project's member and manager are allowed.");
-    }
-
-    /**
      * {@code project}와 {@code pullRequest}가 null인지 확인하고
      * 현재 사용자가 {@code project}의 코드 요청을 처리 할 수 있는지 확인한다.
      *
@@ -497,11 +492,16 @@ public class PullRequestApp extends Controller {
      */
     private static Result validatePullRequestOperation(Project project, PullRequest pullRequest,
                                                        String userName, String projectName, long pullRequestId) {
+        User user = UserApp.currentUser();
+        if(user.isAnonymous()) {
+            flash(Constants.WARNING, "user.login.alert");
+            return redirect(routes.UserApp.loginForm());
+        }
+
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
 
-        User user = UserApp.currentUser();
-        if(!ProjectUser.isMemberOrManager(user.loginId, project)) {
-            result = forbiddenExceptProjectMemberOrManager();
+        if(isGuest(project, user)) {
+            result = forbidden("Guest is not allowed this request");
         }
 
         return result;
