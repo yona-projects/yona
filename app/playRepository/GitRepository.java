@@ -374,6 +374,7 @@ public class GitRepository implements PlayRepository {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DiffFormatter diffFormatter = new DiffFormatter(out);
         diffFormatter.setRepository(repository);
+        treeWalk.setRecursive(true);
         diffFormatter.format(DiffEntry.scan(treeWalk));
 
         return out.toString("UTF-8");
