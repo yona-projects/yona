@@ -1,7 +1,7 @@
 @(projects:List[Project], orderString:String)
 @import utils.TemplateHelper._
 @if(projects != null){
-    <p class="my-project-head">@Messages("project.createdByMe")</p>
+    <p class="my-project-head">@Messages("project.createdByMe") (@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</p>
     @for(project <- projects){
         @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
         <li class="my-project">
@@ -19,7 +19,7 @@
         </li>
         }
     }
-    <p class="my-project-head">@Messages("project.belongsToMe")</p>
+    <p class="my-project-head">@Messages("project.belongsToMe") (@(projects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()))</p>
     @for(project <- projects){
         @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
             <li class="my-project">

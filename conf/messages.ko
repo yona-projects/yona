@@ -300,7 +300,7 @@ project.codeLanguage = 프로그래밍 언어
 project.onmember = <strong>{0}명</strong> 참여 중
 project.lastUpdate = 마지막 업데이트
 project.createdByMe = 만든 프로젝트
-project.belongsToMe = 멤버로 참여 중인 프로젝트
+project.belongsToMe = 프로젝트 멤버
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
 project.history.item = {0}님이 {1} {2}

@@ -17,14 +17,14 @@
             @defining(User.findByLoginId(session.get("loginId")).myProjects("name")){ myProjects =>
                 @if(myProjects.length > 0 ){
                     <li class="divider"></li>
-                    <li class="disabled"><span>@Messages("project.createdByMe")</span></li>
+                    <li class="disabled"><span>@Messages("project.createdByMe") (@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</span></li>
                     @for(project <- myProjects){
                         @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
                         <li><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name (@project.owner)</a></li>
                         }
                     }
                     <li class="divider"></li>
-                    <li class="disabled"><span>@Messages("project.belongsToMe")</span></li>
+                    <li class="disabled"><span>@Messages("project.belongsToMe") (@(myProjects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()))</span></li>
                     @for(project <- myProjects){
                         @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
                         <li><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name (@project.owner)</a></li>
@@ -35,7 +35,7 @@
             @defining(User.findByLoginId(session.get("loginId")).getWatchingProjects()){ watchingProjects =>
                 @if(watchingProjects.length > 0) {
                     <li class="divider"></li>
-                    <li class="disabled"><span>@Messages("project.watchingproject")</span></li>
+                    <li class="disabled"><span>@Messages("project.watchingproject") (@watchingProjects.size())</span></li>
                     @for(project <- watchingProjects){
                     <li><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name (@project.owner)</a></li>
                     }
