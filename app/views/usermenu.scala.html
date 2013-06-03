@@ -11,9 +11,10 @@
             <span class="d-caret"><span class="caret"></span></span>
         </button>
         <ul class="dropdown-menu">
-            <li><a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a></li>
-            <li><a href="@routes.UserApp.editUserInfoForm()">@Messages("userinfo.accountSetting")</a></li>
-            <li><a href="@routes.UserApp.logout()">@Messages("title.logout")</a></li>
+            <li><a href="@routes.UserApp.userInfo(session.get("loginId"))"><i class="icon-user"></i> @Messages("userinfo.profile")</a></li>
+            <li><a href="@routes.ProjectApp.newProjectForm()"><i class="icon-plus"></i> @Messages("title.newProject")</a></li>
+            <li><a href="@routes.UserApp.editUserInfoForm()"><i class="icon-cog"></i> @Messages("userinfo.accountSetting")</a></li>
+            <li><a href="@routes.UserApp.logout()"><i class="icon-off"></i> @Messages("title.logout")</a></li>
             @defining(User.findByLoginId(session.get("loginId")).myProjects("name")){ myProjects =>
                 @if(myProjects.length > 0 ){
                     <li class="divider"></li>
