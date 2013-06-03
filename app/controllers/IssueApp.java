@@ -36,6 +36,8 @@ import java.util.Set;
 import static com.avaje.ebean.Expr.icontains;
 
 public class IssueApp extends AbstractPostingApp {
+    private static final String EXCEL_EXT = "xls";
+
     public static class SearchCondition extends AbstractPostingApp.SearchCondition {
         public String state;
         public Boolean commentedCheck;
@@ -142,38 +144,21 @@ public class IssueApp extends AbstractPostingApp {
 
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
 
-        if (format.equals("xls")) {
-            return issuesAsExcel(el, project);
+        if (EXCEL_EXT.equals(format)) {
+            byte[] excelData = Issue.excelFrom(el.findList());
+            String filename = HttpUtil.encodeContentDisposition(
+                    project.name + "_issues_" + JodaDateUtil.today().getTime() + "." + EXCEL_EXT);
+
+            response().setHeader("Content-Type", new Tika().detect(filename));
+            response().setHeader("Content-Disposition", "attachment; " + filename);
+
+            return ok(excelData);
         } else {
             Page<Issue> issues = el
                 .findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
 
             return ok(list.render("title.issueList", issues, searchCondition, project));
         }
-    }
-
-    /**
-     * 이슈 목록 엑셀 다운로드
-     * 
-     * TODO : 메소드 참조 / 재활용 고려해서 {@link IssueApp#issues(String, String, String, String, int)} 내부로 이전
-     * 
-     * @param el 검색 조건
-     * @param project 프로젝트
-     * @return
-     * @throws WriteException
-     * @throws IOException
-     * @throws UnsupportedEncodingException
-     */
-    public static Result issuesAsExcel(ExpressionList<Issue> el, Project project)
-            throws WriteException, IOException, UnsupportedEncodingException {
-        byte[] excelData = Issue.excelFrom(el.findList());
-        String filename = HttpUtil.encodeContentDisposition(
-                project.name + "_issues_" + JodaDateUtil.today().getTime() + ".xls");
-
-        response().setHeader("Content-Type", new Tika().detect(filename));
-        response().setHeader("Content-Disposition", "attachment; " + filename);
-
-        return ok(excelData);
     }
 
     /**
