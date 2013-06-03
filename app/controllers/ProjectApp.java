@@ -4,7 +4,6 @@ import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 import models.*;
 import models.enumeration.*;
-import models.support.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -24,7 +23,6 @@ import utils.HttpUtil;
 import views.html.project.*;
 import play.i18n.Messages;
 
-import javax.persistence.EntityNotFoundException;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -99,7 +97,7 @@ public class ProjectApp extends Controller {
             return notFound("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'");
         }
 
-        project.deleteInvalidOriginal();
+        project.fixInvalidForkData();
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.error.unauthorized.render(project));

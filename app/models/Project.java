@@ -594,9 +594,16 @@ public class Project extends Model {
         this.watchingCount--;
     }
 
-    public void deleteInvalidOriginal() {
+    /**
+     * 데이터 교정용 메서드로, 원본이 삭제된 포크 프로젝트일 경우에 포크 프로젝트를 원본 프로젝트로 만든다.
+     *
+     * when: 프로젝트 조회할 때 사용.
+     *
+     */
+    public void fixInvalidForkData() {
         if(originalProject != null) {
             try {
+                // originalProject의 속성에 접근해봐야 알 수 있다.
                 String owner = originalProject.owner;
             } catch (EntityNotFoundException e) {
                 originalProject = null;
