@@ -302,11 +302,12 @@ project.lastUpdate = Last Update
 project.createdByMe = I create...
 project.belongsToMe = I'm a member of...
 
-# project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
-project.history.item = {0}님이 {1} {2}
-project.history.type.commit = 코드를 커밋했습니다
-project.history.type.issue = 새 이슈를 등록했습니다
-project.history.type.post = 새 글을 작성했습니다
+# project.history.item: {0}=who ,{1}=what ,{2}=how
+project.history.item = {0} {1} {2}
+project.history.type.commit = commit
+project.history.type.issue = created an issue
+project.history.type.post = wrote a post
+project.history.type.pullrequest = sent some code
 
 
 #Site

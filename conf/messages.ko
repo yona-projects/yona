@@ -307,6 +307,7 @@ project.history.item = {0}님이 {1} {2}
 project.history.type.commit = 코드를 커밋했습니다
 project.history.type.issue = 새 이슈를 등록했습니다
 project.history.type.post = 새 글을 작성했습니다
+project.history.type.pullrequest = 새 코드를 보냈습니다.
 
 #Site
 site.sidebar = 사이트 관리
@@ -402,7 +403,7 @@ code.commits = 커밋
 code.newer = 이전
 code.older = 다음
 code.repoUrl = 저장소 URL
-code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요 
+code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요
 
 #mail
 mail.password = 비밀번호
