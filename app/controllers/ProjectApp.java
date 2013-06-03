@@ -57,6 +57,8 @@ public class ProjectApp extends Controller {
 
 	private static final int RECENLTY_POSTING_SHOW_LIMIT = 5;
 
+    private static final int RECENT_PULL_REQUEST_SHOW_LIMIT = 5;
+
     private static final int PROJECT_COUNT_PER_PAGE = 10;
 
     private static final String HTML = "text/html";
@@ -113,9 +115,10 @@ public class ProjectApp extends Controller {
         }
 
         List<Issue> issues = Issue.findRecentlyCreated(project, RECENLTY_ISSUE_SHOW_LIMIT);
-        List<Posting> postings = Posting.findRecentlyUpdated(project, RECENLTY_POSTING_SHOW_LIMIT);
+        List<Posting> postings = Posting.findRecentlyCreated(project, RECENLTY_POSTING_SHOW_LIMIT);
+        List<PullRequest> pullRequests = PullRequest.findRecentlyReceived(project, RECENT_PULL_REQUEST_SHOW_LIMIT);
 
-        List<History> histories = History.makeHistory(loginId, project, commits, issues, postings);
+        List<History> histories = History.makeHistory(loginId, project, commits, issues, postings, pullRequests);
 
         return ok(overview.render("title.projectHome", project, histories));
     }
