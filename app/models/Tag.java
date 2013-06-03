@@ -114,4 +114,8 @@ public class Tag extends Model {
             }
         };
     }
+
+    public void delete(Project project) {
+        this.projects.remove(project);
+    }
 }
