@@ -73,57 +73,21 @@
             -->
             **@
 
+            <h3 class="h3-title">@Messages("project.createdByMe")</h3>
             <ul class="user-streams all-projects">
                 @for(project <- user.myProjects("name")){
-
-                <li class="project">
-                    <div class="info-wrap">
-                        <div class="header">
-                            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-                            @if(!project.isPublic){ <i class="ico ico-lock"></i> }
-                        </div>
-                        <div class="desc tag">
-                            @for(tag <- project.tags) {
-                                <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
-                            }
-                        </div>
-                        <div class="desc">@project.overview</div>
-                        <p class="name-tag">
-                            <span>@agoString(project.ago)</span> @Messages("project.lastUpdate")
-                        </p>
-                    </div>
-                    <div class="stats-wrap">
-                        <!-- 
-                        <div class="like">
-                            <i class="ico ico-like"></i><span class="num">1</span>
-                        </div>
-                        <i class="ico ico-activity low"></i>
-                        <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap img-rounded">
-                            <img src="@project.getOwnerByLoginId(project.owner).avatarUrl" width="32" height="32">
-                        </a>
-                        -->
-                        <div class="members">
-	                        <ul class="unstyled">
-	                        @for(member <- User.findUsersByProject(project.id)){
-	                            <li>
-	                                <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
-	                                    <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
-	                                </a>
-	                            </li>
-	                        }
-	                        </ul>
-	                        <p>
-	                           @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
-                               @if(user != null && session != null && user.loginId == session.get("loginId")){
-                                   <br>
-                                   <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
-                               }
-                            </p>
-                        </div>
-                    </div>
-                </li>
-                
+                    @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
+                       @partial_projectlist(project, user)
+                    }
                 }
+            </ul>
+            <h3 class="h3-title">@Messages("project.belongsToMe")</h3>
+            <ul class="user-streams all-projects">
+            @for(project <- user.myProjects("name")){
+                @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
+                    @partial_projectlist(project, user)
+                }
+            }
             </ul>
         </div>
     </section>

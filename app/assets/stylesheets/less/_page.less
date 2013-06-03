@@ -685,12 +685,6 @@
                     margin-right:5px;
                     color:#c9c9c9;
                 }
-                /*
-                .ico {
-                    vertical-align: middle;
-                    margin: 0 3px;
-                }
-                */
                 .p-num{
                     .inline-block;
                     text-align: center;
@@ -706,38 +700,44 @@
             }
             
             .my-projects {
-                padding:9px;
                 border:1px solid @gray-ea;
                 border-top-color:#f6f6f6;
+                margin-bottom: 0px;
+
+                .project-list-sort{
+                  margin: 5px 0px 5px 80px;
+                }
+                .my-project-head {
+                  font-weight: bold;
+                  padding: 10px;
+                  padding-bottom: 5px;
+                  margin: 0px 0 10px;
+                  background-color: #f8f8f8;
+                  border-top: 1px solid lightgray;
+                  border-bottom: 1px solid lightgray;
+                }
                 
                 .my-project {
                     position:relative;
-                    font-size: 12px;
-                    color: #999;
-                    /*margin-bottom: 5px;*/
-                    /*.border-radius(5px);*/
-                    padding: 7px 10px;
-                    padding-bottom:3px;
-                    border-bottom:1px solid #e8e8e8;
-                    /*.box-shadow(0 1px 2px rgba(0,0,0, .3));*/
-                   
+                    padding-left: 15px;
+                    padding-bottom: 10px;
+                    margin: 1px;
+
                     .project-header {
-                        font-size: 0;
-                        
+
                         .name-wrap {
                             .inline-block;
-                            font-size: 12px;
-                            line-height: 20px;
-                            width: 150px;
+                            font-size: 16px;
+                            color: #777;
                             
                             i { margin-left:3px; }
                             
                             a { 
-                                margin-top:4px; .inline-block;
+                                .inline-block;
                                 
                                 strong { 
                                     text-overflow:ellipsis; overflow:hidden; 
-                                    display:inline-block; width:135px; 
+                                    display:inline-block; max-width:135px;
                                 }
                             }
                         }
@@ -1246,7 +1246,7 @@
     
     // -- project list -- //
     .project {
-        padding: 20px;
+        padding: 10px;
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
         &:last-child {
@@ -1313,7 +1313,7 @@
            }
         }
     }
-    
+
     // -- userinfo -- //
     &.user-streams {
         .project {
@@ -2994,6 +2994,11 @@ div.markdown-preview {
 .user-stream-box {
     margin-left: 220px;
     overflow: hidden;
+    .h3-title {
+      background-color: black;
+      color: white;
+      padding: 10px;
+    }
     /*
     .user-streams {
         margin: 0;
