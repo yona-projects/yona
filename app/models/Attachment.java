@@ -133,7 +133,11 @@ public class Attachment extends Model {
     public static int moveAll(Resource from, Resource to) {
         List<Attachment> attachments = Attachment.findByContainer(from);
         for (Attachment attachment : attachments) {
-            attachment.projectId = to.getProject().id;
+            if(to.getProject() != null) {
+                attachment.projectId = to.getProject().id;
+            } else {
+                attachment.projectId = null;
+            }
             attachment.containerType = to.getType();
             attachment.containerId = to.getId();
             attachment.save();
