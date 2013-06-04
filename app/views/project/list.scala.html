@@ -5,17 +5,17 @@
 <div class="page">
 
 	<div class="header-wrap">
-		<div class="stats-wrap">
-			@for(state <- Array("all", "public", "private")) {
-            <a href="@routes.ProjectApp.projects(state=state)" class="stat stat-projectlist @state @if(listState.equals(state)){ active }">
-				<span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
-				<span class="num @state">@Project.countByState(state)</span>
-			</a>
-			}
-		</div>
 		<div class="search-wrap projects">
 			<div id="search" class="inner">
 				<form action="@routes.ProjectApp.projects()" method="get">
+                    <div class="btn-group text-right">
+                    @for(state <- Array("all", "public", "private")) {
+                        <a href="@routes.ProjectApp.projects(state=state)" class="btn @state @if(listState.equals(state)){ active }">
+                            <span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
+                            <span class="num @state">(@Project.countByState(state))</span>
+                        </a>
+                    }
+                    </div>
 					<input name="state" type="hidden" value="@listState">
 					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!--
 				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button><!--
@@ -24,6 +24,7 @@
 					<div class="srch-advanced">
 				<!-- TODO: fill this form -->
 					</div>
+
 				</form>
              </div>
          </div>
