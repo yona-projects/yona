@@ -6,6 +6,14 @@
             <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
             @if(!project.isPublic){ <i class="ico ico-lock"></i> }
         </div>
+        @if(project.isFork()){
+        <div class="desc label" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
+            <i class="icon-random icon-white"></i>
+            &nbsp;@Messages("fork.original")
+            <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
+            <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
+        </div>
+        }
         <div class="desc tag">
         @for(tag <- project.tags) {
             <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
