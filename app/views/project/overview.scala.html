@@ -72,6 +72,9 @@
         <div class="inner member-info">
             <header>
                 <h3>@Messages("project.members")</h3>
+                @if(isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)){
+                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="nbtn small" id="member-add-link">@Messages("button.add")</a>
+                }
             </header>
             <div class="member-wrap">
                 <ul class="project-members">
