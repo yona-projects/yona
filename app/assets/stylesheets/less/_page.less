@@ -698,8 +698,7 @@
             }
             
             .my-projects {
-                border:2px solid #AAA9A9;
-                border-top-color:#554F4F;
+                border:1px solid #ddd;
                 margin-bottom: 0px;
 
                 .project-list-sort{
@@ -709,8 +708,8 @@
                   font-weight: bold;
                   padding: 6px;
                   margin: 0px 0 10px;
-                  background-color: #DFDADA;
-                  border-bottom: 2px solid #bbb;
+                  background-color: #efefef;
+                  border-bottom: 1px solid #ddd;
                 }
                 
                 .my-project {
@@ -1105,25 +1104,16 @@
             margin: 0;
         }
         .inner {
-            /*
-            background-image: url('@{base-image-path}/assets/bg-search-man.png');
-            background-position: 785px bottom;
-            background-repeat: no-repeat;
-            */
-            /*
-             * height: 37px;
-            -webkit-transition-duration:0.5s;
-             * */
             background-color: #fff;
             padding: 5px; /*10px 20px 10px 40px;*/
             .border-radius(10px);
             
-            input { }
+            input { margin:0; }
             form  { margin:0 auto; text-align:center; }
             
             .text {
                 width: 360px;
-                margin: 5px 0 0;
+                /*margin: 5px 0 0;*/
                 background-color: #fff; /*F3F3F3;*/
                 border: 1px solid #CCC;
                 border-right: 0 none;
@@ -1134,7 +1124,7 @@
                 }
             }
             .search-btn {
-                margin: 5px 0 0;
+                /*margin: 5px 0 0;*/
                 border: 1px solid #a9a9a9;
                 width: 88px;
                 text-align: center;
@@ -1250,25 +1240,28 @@
                 font-weight: bold;
                 margin-bottom: 15px;
                 .project-name {
-                    color: #888;
+                    color: #222;
                     &:hover { color:@primary; }
                 }
             }
             .desc {
                 margin-bottom: 5px;
+                margin-left:15px;
                 line-height: 180%;
+                white-space:nowrap;
+                overflow: hidden;
+                text-overflow:ellipsis;
             }
             .name-tag {
                 margin: 0;
+                margin-left:15px;
                 font-size: 11px;
                 color: #999;
-                a {
-                    color: #696969;
-                }
+                a { color: #696969; }
             }
         }
         .stats-wrap {
-            margin-top: 20px;
+            margin-top: 0px;
             text-align: right;
             
             .like {
@@ -1287,9 +1280,10 @@
             }
 
            .members {
+               width:115px;
                ul {
                     display:inline-block;
-                    width:102px; max-height:68px;
+                    width:115px; max-height:68px;
                     overflow:hidden;
                     
                     li { 
@@ -1299,8 +1293,9 @@
                 }
                 
                 strong { color:@secondary; }
-                .leaveProject { margin-top:15px; }
            }
+           
+           .leaveProject { margin-top:15px; }
         }
     }
 
@@ -1976,6 +1971,8 @@
     .board {
         border-bottom: 1px solid @gray-d4;
         padding: 15px 20px;
+        &:hover { background:#f7f7f7; }
+        
         > div {
             display: table-cell;
             vertical-align: top;
@@ -1992,6 +1989,7 @@
             .title {
                 margin-bottom: 5px;
                 text-align:justify;
+                a { display:block; }
             }
             .infos {
                 line-height: 14px;
@@ -2383,9 +2381,12 @@ div.markdown-preview {
     margin: 0;
     padding: 0;
     list-style: none;
+
     .issue {
         border-bottom: 1px solid @gray-d4;
         padding: 15px 20px;
+        &:hover { background:#f7f7f7; }
+        
         > div {
             display: table-cell;
             vertical-align: top;
@@ -2697,17 +2698,13 @@ div.markdown-preview {
             .text-overflow;
         }
         .messages {
-            .text-overflow;
+            /*.text-overflow;*/
+           pre { background:none; border:none; margin:0; }
         }
         .author {
             width: 40px;
             text-align: right;
-            
-            .img-rounded {
-                width:32px; height:32px; overflow:hidden;
-                display:block; padding:0; margin:0;
-                img { vertical-align:top; } 
-            }
+            line-height:1 !important;
         }
         .date {
             width: 80px;

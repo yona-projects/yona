@@ -42,12 +42,11 @@
     	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)">
         </div>
         <div class="issue-wrap btn-group pull-right">
-            <button class="btn" disabled="true">@Messages("menu.issue")</button>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
-                @Messages("issue.state.open") <strong class="num open">@Issue.countIssues(project.id, State.OPEN)</strong>
+                @Messages("issue.state.open") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.OPEN)</strong>
             </a>
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
-                @Messages("issue.state.closed") <strong class="num">@Issue.countIssues(project.id, State.CLOSED)</strong>
+                @Messages("issue.state.closed") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.CLOSED)</strong>
             </a>
         </div>
     </div>

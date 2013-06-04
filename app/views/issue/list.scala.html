@@ -27,9 +27,9 @@
 				<form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
                     <div class="btn-group text-right">
                     @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
-                        <a href="@routes.IssueApp.issues(project.owner, project.name, state.state)" class="btn @if(param.state == state.state) { active }">
+                        <a href="@routes.IssueApp.issues(project.owner, project.name, state.state)" class="btn small @if(param.state == state.state) { active }">
                             <span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> </span>
-                            <span class="num @state.state">(@Issue.countIssues(project.id, state))</span>
+                            <span class="num-badge">@Issue.countIssues(project.id, state)</span>
                         </a>
                     }
                     </div>
@@ -104,7 +104,7 @@
 	</div>
 	}
 
-    <form id="mass-update-form" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="POST">
+    <form id="mass-update-form" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
         <div id="state" class="btn-group" data-name="state">
             <button class="btn dropdown-toggle large" data-toggle="dropdown" disabled>
                 <span class="d-label">@Messages("issue.update.state")</span>

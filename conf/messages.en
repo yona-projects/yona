@@ -298,6 +298,7 @@ project.tags = Tags
 project.license = License
 project.codeLanguage = Programming Language
 project.onmember = <strong>{0}</strong> members
+project.onwatching = <strong>{0}</strong> watchers
 project.lastUpdate = Last Update
 project.createdByMe = create...
 project.belongsToMe = I'm a member of...
