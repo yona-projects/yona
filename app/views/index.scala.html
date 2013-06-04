@@ -76,7 +76,7 @@
                 <div class="gray-bubble-wrap">
                     
                     <div class="project-count-wrap">
-                        @Messages("project.myproject") <i>&middot;</i><span class="p-num">@projects.size()</span>
+                        <a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("project.myproject")</a> <i>&middot;</i><span class="p-num">@projects.size()</span>
                     </div>
 
 
