@@ -39,7 +39,7 @@
 		 * initialize element variable
 		 */
 		function _initElement(htOptions){
-			htElement.welTarget = $(htOptions.elTarget || "#upload");
+			htElement.welUploader = $(htOptions.elTarget || "#upload");
 			htElement.welTextarea = $(htOptions.elTextarea || "#body");
 
 			htElement.welTplFileItem = $('#tplAttachedFile');
@@ -79,7 +79,7 @@
 		 */
 		function _initFileUploader(){
 			hive.FileUploader.init({
-			  	"elTarget"    : htElement.welTarget,
+			  	"elContainer" : htElement.welUploader,
 			  	"elTextarea"  : htElement.welTextarea,
 			  	"sTplFileItem": htVar.sTplFileItem,
 			  	"sAction"     : htVar.sUploaderAction,

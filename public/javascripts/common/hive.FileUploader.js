@@ -14,6 +14,7 @@ hive.FileUploader = (function() {
 	/**
 	 * initialize fileUploader
 	 * 파일 업로더 초기화 함수. fileUploader.init(htOptions) 으로 사용한다.
+	 * 
 	 * @param {Hash Table} htOptions
 	 * @param {Variant} htOptions.elTarget     첨부파일 
 	 * @param {Variant} htOptions.elTextarea   이미지 첨부파일의 경우 클릭시 이 영역에 태그를 삽입한다   
@@ -24,48 +25,55 @@ hive.FileUploader = (function() {
 		
 		_initElement(htOptions);
 		_initVar(htOptions);
-		_attachEvent();
+		_initDroppable();
 		
+		_attachEvent();
         _requestList();
 	}
-	
+
 	/**
 	 * 변수 초기화
 	 * initialize variables
+	 * 
 	 * @param {Hash Table} htOptions 초기화 옵션
 	 */
 	function _initVar(htOptions){
-		htVar.nTotalSize   = 0;
 		htVar.sAction      = htOptions.sAction;
 		htVar.sTplFileItem = htOptions.sTplFileItem;
-		
-		htVar.htUploadOpts = {
-			"dataType"      : "json",
-			"error"         : _onErrorSubmitForm,
-			"success"       : _onSuccessSubmitForm,
-			"beforeSubmit"  : _onBeforeSubmitForm,
-			"uploadProgress": _onUploadProgressForm
-		};
+		htVar.htUploadOpts = {"dataType": "json"};
 		
 		htVar.sMode = htOptions.sMode;
-		htVar.sResourceId = htElements.welTarget.attr('resourceId');
-		htVar.sResourceType = htElements.welTarget.attr('resourceType');		
+		htVar.sResourceId = htElements.welContainer.attr('data-resourceId');
+		htVar.sResourceType = htElements.welContainer.attr('data-resourceType');
+		
+		htVar.bDroppable = false;
 	}
 
 	/**
 	 * 엘리먼트 초기화
 	 * initialize elements
+	 * 
 	 * @param {Hash Table} htOptions 초기화 옵션
 	 */
 	function _initElement(htOptions){
-		htElements.welTarget      = $(htOptions.elTarget);
-		htElements.welTextarea    = $(htOptions.elTextarea);
+		htElements.welContainer = $(htOptions.elContainer);
+		htElements.welTextarea  = $(htOptions.elTextarea);
 		
-		htElements.welInputFile   = $(htOptions.elInputFile   || ".file");
-		htElements.welTotalNum    = $(htOptions.elTotalNum    || ".total-num");
-		htElements.welProgressNum = $(htOptions.elProgressNum || ".progress-num");
-		htElements.welProgressBar = $(htOptions.elProgressBar || ".progress > .bar");
-		htElements.welFileList    = $(htOptions.elFileList    || "ul.attached-files");
+		htElements.welInputFile = htElements.welContainer.find("input.file");
+		htElements.welFileList  = htElements.welContainer.find("ul.attached-files");
+		htElements.welFileListHelp = htElements.welContainer.find("p.help");
+		htElements.welHelpDroppable = htElements.welContainer.find(".help-droppable");
+	}
+	
+	/**
+	 * 드래그앤드롭 설정
+	 * initialize drag&drop upload 
+	 */
+	function _initDroppable(){
+	    if(window.File && window.FileList){
+	        htVar.bDroppable = true;
+	        htElements.welHelpDroppable.show();
+	    }
 	}
 	
 	/**
@@ -74,9 +82,44 @@ hive.FileUploader = (function() {
 	 */
 	function _attachEvent(){
 		htElements.welInputFile.change(_onChangeFile);
-		htElements.welInputFile.click(function(){
-			_setProgressBar(0);
-		});
+		
+		if(htVar.bDroppable){
+		    htElements.welContainer.bind("dragover", function(weEvt){
+		        weEvt.preventDefault(); 
+		    });
+		    htElements.welContainer.bind("drop", _onDropFile);
+		}
+	}
+	
+	/**
+	 * 파일을 드래그앤드롭해서 가져왔을 때 이벤트 핸들러
+	 * @param {Wrapped Event} weEvt
+	 */
+	function _onDropFile(weEvt){
+	    var oFiles = weEvt.originalEvent.dataTransfer.files;
+	    if(!oFiles || oFiles.length === 0){
+	        return;
+	    }
+	    
+	    var welForm = _getAjaxForm(oFiles);
+        var oFile = welForm.data("file");
+        _appendFileItem(oFile, true);
+	    
+        try {
+            welForm.submit();
+        } finally {
+            welForm.remove();
+            welForm = null;
+        }
+        
+        // TODO: 여러 파일 전송 지원
+        if(oFiles.length > 1){
+            $hive.notify(Messages("attach.multipleNotYet"));
+        }
+        
+	    weEvt.stopPropagation();
+	    weEvt.preventDefault();
+	    return false;
 	}
 	
 	/**
@@ -84,7 +127,15 @@ hive.FileUploader = (function() {
 	 * request attached file list
 	 */
 	function _requestList(){
-		var htData = _getRequestData();
+        var htData = {};
+        
+        if(typeof htVar.sResourceType !== "undefined"){
+            htData.containerType = htVar.sResourceType;
+        }
+        
+        if(typeof htVar.sResourceId !== "undefined"){
+            htData.containerId = htVar.sResourceId;
+        }
 
 		$hive.sendForm({
 			"sURL"     : htVar.sAction,
@@ -94,204 +145,248 @@ hive.FileUploader = (function() {
 		});		
 	}
 	
-	/**
-	 * 서버에 요청할 인자 반환
-	 * get request parameters
-	 * @return {Hash Table}
-	 */
-	function _getRequestData(){
-		var htData = {};
-		
-		if(typeof htVar.sResourceType !== "undefined"){
-			htData.containerType = htVar.sResourceType;
-		}
-		
-		if(typeof htVar.sResourceId !== "undefined"){
-			htData.containerId = htVar.sResourceId;
-		}
-		
-		return htData;
-	}
-	
     /**
      * 서버에서 수신한 첨부파일 목록 처리함수
+     * 
      * @param {Object} oRes
      */
 	function _onLoadRequest(oRes) {
-        var nTotalFileSize = 0;
-        var sNotice = " (" + Messages("attach.attachIfYouSave") + ")";
-
-        nTotalFileSize += _addFilesToList(oRes.attachments); // 이미 첨부되어 있는 파일
-        nTotalFileSize += _addFilesToList(oRes.tempFiles, sNotice); // 임시 파일 (저장하면 첨부됨)
-		
-		_setProgressBar(100);
-		_updateTotalFilesize(nTotalFileSize);
+        _appendFileItem(oRes.attachments, false); // 이미 첨부되어 있는 파일
+        _appendFileItem(oRes.tempFiles, true);    // 임시 파일 (저장하면 첨부됨)
 	}
 
-	/**
-	 * 첨부파일 정보를 HTML 목록에 추가하는 함수
-	 * @param {Array} aFiles 첨부파일 절보
-	 * @param {String} sNotice 
-	 */
-	function _addFilesToList(aFiles, sNotice){
-	    if(!(aFiles instanceof Array) || aFiles.length === 0){
-	        return 0;
-	    }
-	    
-        var welItem;
-        var nTotalSize = 0;
-        sNotice = sNotice || "";
-
-        aFiles.forEach(function(oFile) {
-            welItem = _createFileItem(oFile, sNotice);
-            welItem.click(_onClickListItem);
-            htElements.welFileList.append(welItem);
-            nTotalSize += parseInt(oFile.size, 10);
-        });
-
-        return nTotalSize;
-	}
-	
 	/**
 	 * 파일 선택시 이벤트 핸들러
 	 * change event handler on <input type="file">
 	 */
 	function _onChangeFile(){
-		// Validation
 		var sFileName = _getBasename(htElements.welInputFile.val());
 		if(!sFileName || sFileName === ""){
 			return;
 		}
-
-		// Submit
-		var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
-		var welInputFile = htElements.welInputFile.clone();
-		welInputFile[0].files = htElements.welInputFile[0].files;
-		welForm.attr('action', htVar.sAction);
-		welForm.append(welInputFile).appendTo(document.body);
-		welForm.ajaxForm(htVar.htUploadOpts);
 		
+		// AjaxForm 생성하고 파일 첨부 목록에 항목 추가
+        var welForm = _getAjaxForm();
+        var oFile = welForm.data("file");
+		_appendFileItem(oFile, true);
+
 		try {
 			welForm.submit();
 		} finally {
-			welInputFile.remove();
 			welForm.remove();
-			welForm = welInputFile = null;
+			welForm = null;
 		}
 	}
-	
+
 	/**
-	 * 문자열에서 경로를 제거하고 파일명만 반환
-	 * return trailing name component of path
-	 * @param {String} sPath
-	 * @return {String}  
+	 * 파일 전송을 위한 ajaxForm 객체를 반환하는 함수
+     * 전송 상태 표시를 위한 이벤트 핸들러를 설정하고
+     * 선택한 파일 정보는 welForm.data("files") 로 제공한다 
+	 * 
+	 * - _onChangeFile 에서 호출하는 경우:
+	 *    파일을 선택한 <input type="file">을 복제하여 사용한다
+	 * 
+	 * - _onDropFile 에서 호출하는 경우:
+	 *    파일 목록(FileList) 객체를 인자로 받아 사용한다
+	 * 
+	 * @param {FileList} oFiles FileList 객체 (Optional)
+	 * @return {Wrapped Element}
 	 */
-	function _getBasename(sPath){
-		var sSeparator = 'fakepath';
-		var nPos = sPath.indexOf(sSeparator);		
-		return (nPos > -1) ? sPath.substring(nPos + sSeparator.length + 1) : sPath;
+	function _getAjaxForm(oFiles){
+	    var nSubmitId = parseInt(Math.random() * new Date().getTime());
+        var welInputFile = htElements.welInputFile.clone();
+        var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');    
+        welInputFile[0].files = oFiles || htElements.welInputFile[0].files;
+        
+        // TODO: 여러 파일 전송
+        
+        // 전송 상태 표시를 위한 submitId 값
+        var oFile = welInputFile[0].files[0];
+        oFile.nSubmitId = nSubmitId;
+        
+        welForm.attr('action', htVar.sAction);
+        welForm.data('file', oFile);
+        welForm.append(welInputFile).appendTo(document.body);
+        
+        // 폼 이벤트 핸들러 설정: nSubmitId 가 필요한 부분만
+        var htUploadOpts = htVar.htUploadOpts;
+        htUploadOpts.success = function(oRes){
+            _onSuccessSubmit(nSubmitId, oRes);
+        };
+        htUploadOpts.uploadProgress = function(oEvent, nPos, nTotal, nPercentComplete){
+            _onUploadProgress(nSubmitId, oEvent, nPos, nTotal, nPercentComplete);
+        };
+        htUploadOpts.error = function(oRes){
+            _onErrorSubmit(nSubmitId, oRes);
+        };
+
+        welForm.ajaxForm(htUploadOpts);
+        
+        return welForm;
 	}
 	
 	/**
-	 * 파일 전송하기 전에 실행되는 함수
-	 * 선택된 파일이 없으면 false 반환
-	 * @return {Boolean}
+	 * 파일 항목을 첨부 파일 목록에 추가한다
+	 * 이미 전송된 파일 목록은 _onLoadRequest 에서 호출하고
+	 * 아직 전송전 임시 파일은 _onChangeFile  에서 호출한다
+	 *  
+	 * oFile.id 가 존재하는 경우는 이미 전송된 파일 항목이고
+	 * oFile.id 가 없는 경우는 전송대기 상태의 임시 항목이다
+	 *  
+	 * @param {Variant} vFile 하나의 파일 항목 객체(Object) 또는 여러 파일 항목을 담고 있는 배열(Array)
+	 * @param {Boolean} bTemp 임시 저장 여부
+	 * @return {Number} 이번에 목록에 추가된 파일들의 크기 합계
 	 */
-	function _onBeforeSubmitForm(){
-		var sFileName = _getBasename(htElements.welInputFile.val());
-		return !!sFileName;
+	function _appendFileItem(vFile, bTemp){
+	    if(typeof vFile === "undefined"){
+	        return 0;
+	    }
+	    
+        var welItem;
+        var nFileSize = 0;
+	    var aFiles = (vFile instanceof Array) ? vFile : [vFile]; // 배열 변수로 단일화
+	    var aWelItems = [];
+	    
+        aFiles.forEach(function(oFile) {
+            welItem = _getFileItem(oFile, bTemp);
+            
+            if(typeof oFile.id !== "undefined"){ // 서버의 첨부 목록에서 가져온 경우
+                welItem.addClass("complete");
+                welItem.click(_onClickListItem);
+            } else {                            // 전송하기 전의 임시 항목
+                welItem.attr("id", oFile.nSubmitId);
+                welItem.css("opacity", "0.2");
+                welItem.data("progressBar", welItem.find(".progress > .bar"));                
+            }
+            
+            aWelItems.push(welItem);
+            nFileSize += parseInt(oFile.size, 10);
+        });
+
+        if(aWelItems.length > 0){
+            htElements.welFileList.show();
+            htElements.welFileListHelp.show();
+        }
+
+        // DOM 변형 작업은 한번에 하는게 성능향상
+        htElements.welFileList.append(aWelItems);
+        return nFileSize;
 	}
+	
+    /**
+     * 파일 목록에 추가할 수 있는 LI 엘리먼트를 반환하는 함수
+     * Create uploaded file item HTML element using template string
+     * 
+     * @param {Hash Table} htFile 파일 정보
+     * @param {Boolean} bTemp 임시 파일 여부
+     * @return {Wrapped Element} 
+     */
+    function _getFileItem(htFile, bTemp) {
+        var welItem = $.tmpl(htVar.sTplFileItem, {
+            "fileId"  : htFile.id,
+            "fileName": htFile.name,
+            "fileHref": htFile.url,
+            "fileSize": htFile.size,
+            "fileSizeReadable": humanize.filesize(htFile.size),
+            "mimeType": htFile.mimeType
+        });
+        
+        // 임시 파일 표시
+        if(bTemp){
+            welItem.addClass("temporary");
+        }
+        return welItem;
+    }
+    
+    /**
+     * 파일 목록에 임시 추가 상태의 항목을 업데이트 하는 함수
+     * _onChangeFile    에서 _appendFileItem 을 할 때는 파일 이름만 있는 상태 (oFile.id 없음)
+     * _onSuccessSubmit 에서 _updateFileItem 을 호출해서 나머지 정보 마저 업데이트 하는 구조
+     * 
+     * @param {Number} nSubmitId
+     * @param {Object} oRes
+     */
+    function _updateFileItem(nSubmitId, oRes){
+        var welItem = $("#" + nSubmitId);
+        welItem.attr({
+            "data-id"  : oRes.id,
+            "data-href": oRes.url,
+            "data-name": oRes.name,
+            "data-mime": oRes.mimeType
+        });
+        welItem.click(_onClickListItem);
+    }
+
+    /**
+     * 파일 업로드 진행상태 처리 함수
+     * uploadProgress event handler 
+     * 
+     * @param {Object} oEvent
+     * @param {Number} nPos
+     * @param {Number} nTotal
+     * @param {Number} nPercentComplete
+     */
+    function _onUploadProgress(nSubmitId, oEvent, nPos, nTotal, nPercentComplete){
+        _setProgressBar(nSubmitId, nPercentComplete);
+    }
 
 	/**
 	 * 첨부 파일 전송에 성공시 이벤트 핸들러
 	 * On success to submit temporary form created in onChangeFile()
+	 * 
 	 * @param {Hash Table} htData
 	 * @return
 	 */
-	function _onSuccessSubmitForm(oRes){
+	function _onSuccessSubmit(nSubmitId, oRes){
 		htElements.welInputFile.val("");
 		
-		// Validation
+		// Validate server response
 		if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
-			//console.log("Failed to upload - Server Error");
-			_setProgressBar(0);
-			return;
+		    return _onErrorSubmit(nSubmitId, oRes);
 		}
 
-		// create list item
-        var welItem = _createFileItem(oRes, _attachIfYouSaveNotice());
-		welItem.click(_onClickListItem);
-		htElements.welFileList.append(welItem);
-		
-		_setProgressBar(100);
-		_updateTotalFilesize(oRes.size);
+        // 업로드 완료된 뒤 항목 업데이트
+		_updateFileItem(nSubmitId, oRes);
+		_setProgressBar(nSubmitId, 100);
 	}
-	
-	/**
-	 * 첨부 파일 크기 합계 표시
-	 * @param {Number} nValue 첨부 파일 크기 변화할 값
-	 */
-	function _updateTotalFilesize(nValue){
-		nValue = (nValue || 0) * 1;
-		htVar.nTotalSize += nValue;
-		htElements.welTotalNum.text(humanize.filesize(htVar.nTotalSize));
-	}
-	
-	/**
-	 * 파일 목록에 추가할 수 있는 LI 엘리먼트를 반환하는 함수
-	 * Create uploaded file item HTML element using template string
-	 * @param {Hash Table} htFile 파일 정보
-	 * @return {HTMLElement} 
-	 */
-	function _createFileItem(htFile, sNotice) {
-		var oItem = $.tmpl(htVar.sTplFileItem, {
-			"mimeType": htFile.mimeType,
-			"fileName": htFile.name,
-			"fileHref": htFile.url,
-			"fileSize": htFile.size,
-			"fileSizeReadable": humanize.filesize(htFile.size),
-            "notice": sNotice
-		});
 
-		return oItem;
-	}
-	
-	/**
+    /**
+     * 업로드 진행상태 표시
+     * Set Progress Bar status 
+     * 
+     * @param {Number} nSubmitId
+     * @param {Number} nProgress
+     */
+    function _setProgressBar(nSubmitId, nProgress) {
+        var welItem = $("#" + nSubmitId);
+        welItem.data("progressBar").css("width", nProgress + "%");
+
+        // 완료 상태로 표시
+        if(nProgress*1 === 100){
+            welItem.css("opacity", "1");
+            setTimeout(function(){
+                welItem.addClass("complete");
+            }, 1000);
+        }
+    }
+
+    /**
 	 * 파일 전송에 실패한 경우
-	 * On error to submit temporary form created in onChangeFile()
+	 * On error to submit temporary form created in onChangeFile().
+	 * 
+	 * @param {Number} nSubmitId
 	 * @param {Object} oRes
 	 */
-	function _onErrorSubmitForm(oRes){
-		_setProgressBar(0);
-	}
-	
-	/**
-	 * 파일 업로드 진행상태 표시 함수
-	 * uploadProgress event handler 
-	 * @param {Object} oEvent
-	 * @param {Number} nPos
-	 * @param {Number} nTotal
-	 * @param {Number} nPercentComplete
-	 */
-	function _onUploadProgressForm(oEvent, nPos, nTotal, nPercentComplete){
-		_setProgressBar(nPercentComplete);
+	function _onErrorSubmit(nSubmitId, oRes){
+	    var welItem = $("#" + nSubmitId);
+	        welItem.remove();
+	    $hive.notify(Messages("attach.error"));
 	}
 
-	/**
-	 * 업로드 진행상태 표시바 너비 지정
-	 * Set Progress Bar Width 
-	 * @param {Number} nProgress
-	 */
-	function _setProgressBar(nProgress) {
-		nProgress = nProgress * 1;
-		htElements.welProgressBar.css("width", nProgress + "%");
-		htElements.welProgressNum.text(nProgress + "%");
-	}
-
-	
 	/**
 	 * 첨부파일 목록에서 항목을 클릭할 때 이벤트 핸들러
 	 * On Click attached files list
+	 * 
 	 * @param {Wrapped Event} weEvt
 	 */
 	function _onClickListItem(weEvt){
@@ -308,7 +403,8 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
-	 * 선택한 파일 아이템의 링크 텍스트를 <textarea>에 추가하는 함수
+	 * 선택한 파일 아이템의 링크 텍스트를 textarea에 추가하는 함수
+	 * 
      * @param {Wrapped Element} welItem
 	 */
 	function _insertLinkToTextarea(welItem){
@@ -326,12 +422,11 @@ hive.FileUploader = (function() {
 	
 	/**
 	 * 선택한 파일 아이템을 첨부 파일에서 삭제
-	 * <textarea>에서 해당 파일의 링크 텍스트도 제거함 (_clearLinkInTextarea)
+	 * textarea에서 해당 파일의 링크 텍스트도 제거함 (_clearLinkInTextarea)
+	 * 
 	 * @param {Wrapped Element} welItem
 	 */
-	function _deleteAttachedFile(welItem){	
-		var nFileSize = welItem.attr("data-size") * 1;
-		
+	function _deleteAttachedFile(welItem){			
 		$hive.sendForm({
 			"sURL": welItem.attr("data-href"),
 			"htOptForm": {
@@ -340,16 +435,21 @@ hive.FileUploader = (function() {
 			},
 			"htData" : {"_method":"delete"},
 			"fOnLoad": function(){
-				_updateTotalFilesize(nFileSize * -1);
 				_clearLinkInTextarea(welItem);
-				_setProgressBar(0);
-				welItem.remove();				
+				welItem.remove();
+				
+				// 남은 항목이 없으면 목록 감춤
+				if(htElements.welFileList.children().length === 0){
+				    htElements.welFileList.hide();
+				    htElements.welFileListHelp.hide();
+				}
 			}
 		});
 	}
 	
 	/**
 	 * 파일 아이템으로부터 링크 텍스트를 생성하여 반환하는 함수
+	 * 
 	 * @param {Wrapped Element} welItem 템플릿 htVar.sTplFileItem 에 의해 생성된 첨부 파일 아이템
 	 * @return {String}
 	 */
@@ -359,7 +459,7 @@ hive.FileUploader = (function() {
 		var sFilePath = welItem.attr("data-href");
 		
 		var sLinkText = '';
-		if (sMimeType.substr(0,5) == "image"){
+		if (sMimeType.substr(0,5) === "image"){
 			sLinkText = '<img src="' + sFilePath + '">';
 		} else {
 			sLinkText = '[' + sFileName +'](' + sFilePath + ')';
@@ -369,7 +469,9 @@ hive.FileUploader = (function() {
 	}
 	
 	/**
-	 * <textarea>에서 해당 파일 아이템의 링크 텍스트를 제거하는 함수
+	 * textarea에서 해당 파일 아이템의 링크 텍스트를 제거하는 함수
+	 * _deleteAttachedFile 에서 호출한다
+	 * 
 	 * @param {Wrapped Element} welItem
 	 */
 	function _clearLinkInTextarea(welItem){
@@ -382,11 +484,23 @@ hive.FileUploader = (function() {
 		welTextarea.val(welTextarea.val().split(sLink).join(''));		
 	}
 	
-	/**
+    /**
+     * 문자열에서 경로를 제거하고 파일명만 반환
+     * return trailing name component of path
+     * 
+     * @param {String} sPath
+     * @return {String}  
+     */
+    function _getBasename(sPath){
+        var sSeparator = 'fakepath';
+        var nPos = sPath.indexOf(sSeparator);       
+        return (nPos > -1) ? sPath.substring(nPos + sSeparator.length + 1) : sPath;
+    }
+
+    /**
 	 * 인터페이스 반환
 	 */
 	return {
 		"init": _init
 	};
 })();
-

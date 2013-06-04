@@ -134,34 +134,10 @@
 			</div>
 
 	        @** fileUploader **@
-		    @if(!UserApp.currentUser.isAnonymous) {
-			<div class="attach-wrap">
-				<div class="avatar-wrap">
-					<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="32" height="32">
-				</div>
-				<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.ISSUE_COMMENT">
-					<div>
-						<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
-						<strong>total</strong> <span class="total-num">0Mb</span>
-					</div>
-					<div class="progress-wrap">
-						<div class="progress n4">
-							<div class="bar orange" style="width: 0%;"></div>
-						</div>
-					</div>
-				</div>
-				<div class="btn-wrap">
-					<div class="nbtn medium white fake-file-wrap">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
-					--> <input type="file" class="file" name="filePath">
-					</div>
-				</div>
-			</div>
-			<div class="attached-files-wrap">
-				<ul class="attached-files"></ul>
-			</div>
-			}
-			@** end of fileUploader **@
+	        @if(!UserApp.currentUser.isAnonymous) {
+	            @fileUploader(ResourceType.ISSUE_COMMENT, null)
+	        }
+	        @** end of fileUploader **@
 		</div>
 		}
 		@** end of form **@

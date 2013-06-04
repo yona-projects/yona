@@ -43,7 +43,7 @@
 		 * initialize element variable
 		 */
 		function _initElement(htOptions){
-			htElement.welTarget = $(htOptions.elTarget || "#upload");
+			htElement.welUploader = $(htOptions.elUploader || "#upload");
 			htElement.welTextarea = $(htOptions.elTextarea || "#body");
 			htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
 
@@ -62,11 +62,11 @@
 		 */
 		function _initFileUploader(){
 			hive.FileUploader.init({
-			  	"elTarget"    : htElement.welTarget,
-			  	"elTextarea"  : htElement.welTextarea,
-			  	"sTplFileItem": htVar.sTplFileItem,
-			  	"sAction"     : htVar.sUploaderAction,
-			  	"sMode"       : htVar.sMode
+                "sMode"       : htVar.sMode,
+                "sAction"     : htVar.sUploaderAction,
+                "sTplFileItem": htVar.sTplFileItem,
+			  	"elContainer" : htElement.welUploader,
+			  	"elTextarea"  : htElement.welTextarea
 			});
 		}
 		
