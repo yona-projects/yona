@@ -1,5 +1,7 @@
 package playRepository;
 
+import models.User;
+
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -20,6 +22,11 @@ public class GitCommit implements Commit {
     @Override
     public String getMessage() {
         return revCommit.getFullMessage();
+    }
+
+    @Override
+    public User getAuthor() {
+        return User.findByEmail(getAuthorEmail());
     }
 
     @Override

@@ -77,14 +77,23 @@
 							</td>
 							<td class="messages">@commit.getMessage()</td>
 							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-							<td class="author @commit.getAuthorEmail">@defining(User.find.where.eq("email",
-								commit.getAuthorEmail).findUnique) { user => @if(user != null) {
-								<a href="@routes.UserApp.userInfo(user.loginId)">
-                                    <img src="@user.avatarUrl" alt="@user.name" width="34" height="34"/>
+                            <td class="author @commit.getAuthorEmail">
+                                @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+                                case (user: User, _, _) if !user.isAnonymous => {
+                                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)">
+                                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="34" height="34"/>
                                 </a>
-                                } else {
-                                <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)">
-                                }}
+                                }
+                                case (_, email, _) if email != null => {
+                                <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 34)">
+                                }
+                                case (_, _, name) if name != null => {
+                                <span>@commit.getAuthorName</span>
+                                }
+                                case (_, _, _) => {
+                                <span>@User.anonymous.name</span>
+                                }
+                                }
 							</td>
 						</tr>
 						}

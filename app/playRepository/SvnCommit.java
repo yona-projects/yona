@@ -1,5 +1,7 @@
 package playRepository;
 
+import models.User;
+
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -19,6 +21,11 @@ public class SvnCommit implements Commit {
     @Override
     public String getMessage() {
         return entry.getMessage();
+    }
+
+    @Override
+    public User getAuthor() {
+        return User.findByLoginId(getAuthorName());
     }
 
     @Override
