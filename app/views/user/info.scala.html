@@ -73,14 +73,20 @@
             -->
             **@
 
-            <h5 class="h5-title">@Messages("project.createdByMe") (@Project.findProjectsCreatedByUser(user.loginId, "name").size())</h3>
+            <h5 class="h5-title" style="margin-top:0px">
+                @Messages("project.createdByMe") 
+                <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span>
+            </h5>
             <ul class="user-streams all-projects">
                 @for(project <- Project.findProjectsCreatedByUser(user.loginId, "name")){
                    @partial_projectlist(project, user)
                 }
             </ul>
 
-            <h5 class="h5-title">@Messages("project.belongsToMe") (@(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size()))</h3>
+            <h5 class="h5-title">
+                @Messages("project.belongsToMe") 
+                <span class="num-badge">@(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())</span>
+            </h5>
             <ul class="user-streams all-projects">
             @for(project <- user.myProjects("name")){
                 @if(!project.isOwner(user)){

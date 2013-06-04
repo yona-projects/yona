@@ -3,12 +3,15 @@
 <li class="project">
     <div class="info-wrap">
         <div class="header">
-            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+            @if(project.owner != user.loginId){
+            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+            }
+            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
             @if(!project.isPublic){ <i class="ico ico-lock"></i> }
         </div>
         @if(project.isFork()){
-        <div class="desc label" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
-            <i class="icon-random icon-white"></i>
+        <div class="desc label" style="padding:3px 5px; font-size:11px">
+            <i class="icon-random icon-white vmiddle"></i>
             &nbsp;@Messages("fork.original")
             <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
             <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
@@ -24,7 +27,7 @@
             <span>@agoString(project.ago)</span> @Messages("project.lastUpdate")
         </div>
     </div>
-    <div class="stats-wrap">
+    <div class="stats-wrap pull-right">
         <div class="members">
             <ul class="unstyled">
             @for(member <- User.findUsersByProject(project.id)){
@@ -37,11 +40,13 @@
             </ul>
             <span>
                 @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
-                @if(user != null && session != null && user.loginId == session.get("loginId")){
-                    <br>
-                }
+                <br>
+                @Html(Messages("project.onwatching", project.watchingCount))
+		        @if(user != null && session != null && user.loginId == session.get("loginId")){
+		        <br>
+		        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
+		        }
             </span>
         </div>
-        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
     </div>
 </li>

@@ -75,17 +75,21 @@
 									<i class="ico ico-gray-arrow-right"></i>
 								</a>
 							</td>
-							<td class="messages">@commit.getMessage()</td>
+							<td class="messages">
+							    <pre>@commit.getMessage()</pre>
+							</td>
 							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
-                                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)">
-                                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="34" height="34"/>
+                                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
                                 </a>
                                 }
                                 case (_, email, _) if email != null => {
-                                <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 34)">
+                                <span class="avatar-wrap">
+                                    <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 32)">
+                                </span>
                                 }
                                 case (_, _, name) if name != null => {
                                 <span>@commit.getAuthorName</span>

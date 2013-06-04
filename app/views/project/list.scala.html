@@ -12,7 +12,7 @@
                     @for(state <- Array("all", "public", "private")) {
                         <a href="@routes.ProjectApp.projects(state=state)" class="btn @state @if(listState.equals(state)){ active }">
                             <span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
-                            <span class="num @state">(@Project.countByState(state))</span>
+                            <span class="num-badge">@Project.countByState(state)</span>
                         </a>
                     }
                     </div>
@@ -31,22 +31,22 @@
 	</div>
 
 	<ul class="all-projects">
-      @for(project <- currentPage.getList) {
-          <li class="project">
-              <div class="info-wrap">
-                  <div class="header">
-                      <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-			  @if(!project.isPublic){ <i class="ico ico-lock"></i> }
-                      @for(tag <- project.tags) {
-                      <span class="label label-info">@tag.name</span>
-                      }
-                  </div>
-                  <div class="desc">
-                      @project.overview
-                  </div>
-                  <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)"><b>@project.owner</b></a> since @agoString(project.ago)</p>
-              </div>
-              <div class="stats-wrap">
+    @for(project <- currentPage.getList) {
+        <li class="project">
+            <div class="info-wrap">
+                <div class="header">
+                    <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+                    @if(!project.isPublic){ <i class="ico ico-lock"></i> }
+                    @for(tag <- project.tags) {
+                        <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
+                    }
+                </div>
+                <div class="desc">
+                    @project.overview
+                </div>
+                <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)"><b>@project.owner</b></a> since @agoString(project.ago)</p>
+            </div>
+            <div class="stats-wrap pull-right">
                 @if(project.isPublic){
                 <div class="members">
                     <ul class="unstyled">
@@ -59,7 +59,8 @@
                     }
                     </ul>
                     <p>
-                        @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                        @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))<br>
+                        @Html(Messages("project.onwatching", project.watchingCount))
                     </p>
                 </div>
                 } else {
@@ -67,9 +68,9 @@
                     <img src="@project.getOwnerByLoginId(project.owner).avatarUrl" width="32" height="32">
                 </a>
                 }
-              </div>
-          </li>
-	  }
+            </div>
+        </li>
+    }
 	</ul>
 
 	<!-- pagination.js will fill here. -->
