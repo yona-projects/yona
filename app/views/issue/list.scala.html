@@ -135,7 +135,7 @@
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu">
-                <li data-value="0"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
+                <li data-value="-1"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
                 @for(milestone <- Milestone.findByProjectId(project.id)) {
                 <li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
                 }
@@ -207,13 +207,19 @@
                 </p>
 	        </div>
 	        <div class="right-panel">
-	        	<div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
-	            <div class="comment-wrap">
-	                <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
-	            </div>
+                <div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
+                <div class="comment-wrap">
+                    <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
+                </div>
+                @if(issue.milestone != null) {
+                <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
+                    <code>@issue.milestone.title</code>
+                </a>
+                }
                 @if(issue.assigneeName != null) {
-                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded pull-right">
-                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName"></a>
+                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded">
+                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
+                </a>
                 }
 	        </div>
 	    </li>

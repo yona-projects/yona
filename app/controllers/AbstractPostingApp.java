@@ -125,6 +125,7 @@ public class AbstractPostingApp extends Controller {
         posting.project = original.project;
         updatePosting.run();
         posting.update();
+        posting.updateProperties();
 
         // Attach the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), original.asResource());

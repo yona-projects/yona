@@ -194,4 +194,12 @@ abstract public class AbstractPosting extends Model {
         Attachment.deleteAll(asResource());
         super.delete();
     }
+
+    /**
+     * 특정 프로퍼티를 업데이트 할 때 사용한다.
+     */
+    public void updateProperties() {
+        // default implementation for convenience
+    };
+
 }
