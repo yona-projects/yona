@@ -370,6 +370,9 @@ role.sitemanager = 사이트 관리자
 
 #Time
 time.just = 방금 전
+time.today = 오늘
+time.after = {0} 일 후
+time.before = {0} 일 전
 time.second = {0} 초 전
 time.seconds = {0} 초 전
 time.minute = {0} 분 전

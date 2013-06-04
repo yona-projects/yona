@@ -309,7 +309,6 @@ project.history.type.issue = created an issue
 project.history.type.post = wrote a post
 project.history.type.pullrequest = sent some code
 
-
 #Site
 site.sidebar = Site Management
 site.sidebar.setting = Site Setting
@@ -371,6 +370,9 @@ role.sitemanager = Site Manager
 
 #Time
 time.just = just now
+time.today = today
+time.after = after {0} days
+time.before = before {0} days
 time.second = {0} second ago
 time.seconds = {0} seconds ago
 time.minute = {0} minute ago
