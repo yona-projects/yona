@@ -6,6 +6,7 @@ import java.util.*;
 import javax.servlet.*;
 
 import models.Project;
+import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
@@ -82,7 +83,9 @@ public class SVNRepository implements PlayRepository {
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
-                data.put("author", entry.getAuthor());
+                String author = entry.getAuthor();
+                data.put("author", author);
+                setAvatar(data, author);
                 data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
@@ -95,22 +98,29 @@ public class SVNRepository implements PlayRepository {
             //파일 내용 출력
             ObjectNode result = Json.newObject();
 
-
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             SVNProperties prop = new SVNProperties();
             repository.getFile(path, -1l, prop, baos);
 
             result.put("type", "file");
-
             result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
-            result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
-
+            String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
+            result.put("author", author);
+            setAvatar(result, author);
             result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
-
             result.put("data", baos.toString());
             return result;
         } else {
             return null;
+        }
+    }
+
+    private void setAvatar(ObjectNode data, String author) {
+        User user = User.findByLoginId(author);
+        if(user.isAnonymous()) {
+            data.put("avatar", "/assets/images/default-avatar-34.png");
+        } else {
+            data.put("avatar", user.avatarUrl);
         }
     }
 
@@ -139,7 +149,9 @@ public class SVNRepository implements PlayRepository {
                 ObjectNode data = Json.newObject();
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
-                data.put("author", entry.getAuthor());
+                String author = entry.getAuthor();
+                data.put("author", author);
+                setAvatar(data, author);
                 data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
@@ -152,18 +164,16 @@ public class SVNRepository implements PlayRepository {
             //파일 내용 출력
             ObjectNode result = Json.newObject();
 
-
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             SVNProperties prop = new SVNProperties();
             repository.getFile(path, -1l, prop, baos);
 
             result.put("type", "file");
-
             result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
-            result.put("author", prop.getStringValue(SVNProperty.LAST_AUTHOR));
-
+            String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
+            result.put("author", author);
+            setAvatar(result, author);
             result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
-
             result.put("data", baos.toString());
             return result;
         } else {
