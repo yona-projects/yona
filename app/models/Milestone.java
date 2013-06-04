@@ -30,7 +30,6 @@ public class Milestone extends Model {
     @Constraints.Required
     public String title;
 
-    @Constraints.Required
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
 
@@ -117,6 +116,9 @@ public class Milestone extends Model {
      * @return
      */
     public String getDueDateString() {
+        if (dueDate == null) {
+            return null;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(this.dueDate);
     }
