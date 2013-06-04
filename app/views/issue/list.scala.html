@@ -20,16 +20,8 @@
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
-
 	<div class="header-wrap">
-		<div class="stats-wrap">
-			@for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
-			<a href="@routes.IssueApp.issues(project.owner, project.name, state.state)" class="stat stat-issue @if(param.state == state.state) { active }">
-				<span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> @Messages("issue.state.unit")</span>
-                <span class="num @state.state">@Issue.countIssues(project.id, state)</span>
-			</a>
-			}
-		</div>
+
 		<div class="search-wrap projects">
 			<div class="inner">
 				<form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
@@ -38,7 +30,14 @@
 					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")"><!--
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
 	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
-
+                    <div class="btn-group text-right">
+                    @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+                        <a href="@routes.IssueApp.issues(project.owner, project.name, state.state)" class="btn @if(param.state == state.state) { active }">
+                            <span class="desc @state.state"><strong>@Messages("issue.state." + state.name.toLowerCase())</strong> </span>
+                            <span class="num @state.state">@Issue.countIssues(project.id, state)</span>
+                        </a>
+                    }
+                    </div>
 					<div id="advanced-search-form" class="srch-advanced form-horizontal">
 						<fieldset class="properties">
 							<div class="control-group">
