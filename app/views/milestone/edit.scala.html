@@ -40,8 +40,8 @@
 		<div class="inner right bubble-wrap dark-gray">
 			<p>@Messages("milestone.form.state")</p>
 			<div>
-				<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">Open</label>&nbsp;
-				<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">Closed</label>
+				<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>&nbsp;
+				<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
 			</div>
 			<hr/>
 			<p>@Messages("milestone.form.dueDate")</p>

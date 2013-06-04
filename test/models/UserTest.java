@@ -61,7 +61,7 @@ public class UserTest extends ModelTest<User> {
         //Then
 	    assertThat(name).isEqualTo("Hobi");
     }
-	
+
 	@Test
     public void options() throws Exception {
         // Given
@@ -97,7 +97,7 @@ public class UserTest extends ModelTest<User> {
         // Then
         assertThat(users.size()).isEqualTo(2);
     }
-	
+
 	@Test
 	public void isLoginId() throws Exception {
 	    // Given
@@ -129,6 +129,31 @@ public class UserTest extends ModelTest<User> {
 
         // When // Then
         assertThat(User.isEmailExist(expectedEmail)).isFalse();
+    }
+
+    @Test
+    public void watchingProject() {
+        // Given
+        Project project = new Project();
+        User user = new User();
+        assertThat(project.watchingCount).isEqualTo(0);
+        assertThat(user.getWatchingProjects().size()).isEqualTo(0);
+
+        // When
+        user.addWatching(project);
+
+        // Then
+        assertThat(user.getWatchingProjects().size()).isEqualTo(1);
+        assertThat(user.getWatchingProjects().contains(project)).isTrue();
+        assertThat(project.watchingCount).isEqualTo(1);
+
+        // when
+        user.removeWatching(project);
+
+        // Then
+        assertThat(user.getWatchingProjects().size()).isEqualTo(0);
+        assertThat(user.getWatchingProjects().contains(project)).isFalse();
+        assertThat(project.watchingCount).isEqualTo(0);
     }
 
 }

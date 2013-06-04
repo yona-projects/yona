@@ -5,8 +5,6 @@ import com.avaje.ebean.Page;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
@@ -92,6 +90,11 @@ public class Project extends Model {
 
     @OneToMany(mappedBy = "project")
     public Set<Assignee> assignees;
+
+    /**
+     * 사용자에게 관심 프로젝트로 등록된 개수
+     */
+    public long watchingCount;
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -236,6 +239,16 @@ public class Project extends Model {
         return filteredList;
     }
 
+    public static List<Project> findProjectsCreatedByUser(String loginId, String orderString) {
+        List<Project> userProjectList = find.where().eq("owner", loginId).findList();
+        if( orderString == null ){
+            return userProjectList;
+        }
+
+        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
+
+        return filteredList;
+    }
     /**
      * {@code state} 별 프로젝트 카운트를 반환한다.
      *
@@ -572,8 +585,33 @@ public class Project extends Model {
         getForkingProjects().remove(project);
         project.originalProject = null;
     }
-    
-    
+
+    public void upWatcingCount() {
+        this.watchingCount++;
+    }
+
+    public void downWathcingCount() {
+        this.watchingCount--;
+    }
+
+    /**
+     * 데이터 교정용 메서드로, 원본이 삭제된 포크 프로젝트일 경우에 포크 프로젝트를 원본 프로젝트로 만든다.
+     *
+     * when: 프로젝트 조회할 때 사용.
+     *
+     */
+    public void fixInvalidForkData() {
+        if(originalProject != null) {
+            try {
+                // originalProject의 속성에 접근해봐야 알 수 있다.
+                String owner = originalProject.owner;
+            } catch (EntityNotFoundException e) {
+                originalProject = null;
+                super.update();
+            }
+        }
+    }
+
     /**
      * 프로젝트 상태(공개/비공개)
      */
@@ -597,9 +635,46 @@ public class Project extends Model {
      */
     @Override
     public void delete() {
+        deleteFork();
+        deletePullRequests();
+
+        if(this.hasForks()) {
+            for(Project fork : forkingProjects) {
+                fork.deletePullRequests();
+                fork.deleteOriginal();
+                fork.update();
+            }
+        }
+
         for (Assignee assignee : assignees) {
             assignee.delete();
         }
+
+        for (Tag tag : tags) {
+            tag.delete(this);
+            tag.update();
+        }
+
+        for(IssueLabel label : IssueLabel.findByProject(this)) {
+            label.delete();
+        }
+
         super.delete();
+    }
+
+    private void deleteOriginal() {
+        this.originalProject = null;
+    }
+
+    private void deletePullRequests() {
+        List<PullRequest> sentPullRequests = PullRequest.findSentPullRequests(this);
+        for(PullRequest pullRequest : sentPullRequests) {
+            pullRequest.delete();
+        }
+
+        List<PullRequest> allReceivedRequests = PullRequest.allReceivedRequests(this);
+        for(PullRequest pullRequest : allReceivedRequests) {
+            pullRequest.delete();
+        }
     }
 }

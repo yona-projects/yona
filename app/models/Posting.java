@@ -88,7 +88,7 @@ public class Posting extends AbstractPosting {
      * @param size
      * @return
      */
-    public static List<Posting> findRecentlyUpdated(Project project, int size) {
+    public static List<Posting> findRecentlyCreated(Project project, int size) {
         return Posting.finder.where()
                 .eq("project.id", project.id)
                 .order().desc("createdDate")

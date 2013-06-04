@@ -1,14 +1,11 @@
 package models;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import javax.persistence.*;
 
+import controllers.UserApp;
 import models.enumeration.Direction;
 import models.enumeration.Matching;
 import models.enumeration.ResourceType;
@@ -29,7 +26,7 @@ import com.avaje.ebean.Page;
 
 /**
  * User 클래스
- * 
+ *
  *
  * @author WanSoon Park
  */
@@ -109,11 +106,21 @@ public class User extends Model {
 
     /**
      * 프로젝트에서 사용자의 역할을 나타내는 값
-     * 
+     *
      * 해당 프로젝트의 관리자 혹은 멤버일 수 있다.
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
+
+    /**
+     * 관심 프로젝트
+     */
+    @ManyToMany
+    @JoinTable(name = "user_watching_project",
+            joinColumns= @JoinColumn(name="user_id"),
+            inverseJoinColumns= @JoinColumn(name="project_id")
+    )
+    public List<Project> watchingProjects;
 
     public User(){}
 
@@ -342,4 +349,30 @@ public class User extends Model {
     public boolean isSiteManager() {
         return SiteAdmin.exists(this);
     }
+
+    public List<Project> getWatchingProjects(){
+        if(this.watchingProjects == null) {
+            this.watchingProjects = new ArrayList<>();
+        }
+        return this.watchingProjects;
+    }
+
+    public void addWatching(Project project) {
+        getWatchingProjects().add(project);
+        project.upWatcingCount();
+    }
+
+    public void removeWatching(Project project) {
+        getWatchingProjects().remove(project);
+        project.downWathcingCount();
+    }
+
+    public static boolean isWatching(Project project) {
+        User user = UserApp.currentUser();
+        if(user.isAnonymous()) {
+            return false;
+        }
+        return user.getWatchingProjects().contains(project);
+    }
+
 }

@@ -2,9 +2,13 @@ package models;
 
 import models.enumeration.*;
 import models.support.*;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import play.data.format.*;
 import play.data.validation.*;
 import play.db.ebean.*;
+import play.i18n.Messages;
+import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.text.*;
@@ -26,7 +30,6 @@ public class Milestone extends Model {
     @Constraints.Required
     public String title;
 
-    @Constraints.Required
     @Formats.DateTime(pattern = "yyyy-MM-dd")
     public Date dueDate;
 
@@ -113,6 +116,9 @@ public class Milestone extends Model {
      * @return
      */
     public String getDueDateString() {
+        if (dueDate == null) {
+            return null;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(this.dueDate);
     }
@@ -140,18 +146,18 @@ public class Milestone extends Model {
      */
     public static List<Milestone> findMilestones(Long projectId,
                                                  State state, String sort, final Direction direction) {
-    	
+
     	OrderParams orderParams = new OrderParams();
-    	
+
     	if(!"completionRate".equals(sort)) {
-    		orderParams.add(sort, direction);	
+		orderParams.add(sort, direction);
     	}
-    	    	
+
         SearchParams searchParams = new SearchParams().add("project.id", projectId, Matching.EQUALS);
         if(state != null && state != State.ALL) {
             searchParams.add("state", state, Matching.EQUALS);
         }
-        
+
         List<Milestone> milestones = FinderTemplate.findBy(orderParams, searchParams, find);
 
         if("completionRate".equals(sort)) {
@@ -160,7 +166,7 @@ public class Milestone extends Model {
 				public int compare(Milestone o1, Milestone o2) {
 					int o1CompletionRate = o1.getCompletionRate();
 					int o2CompletionRate = o2.getCompletionRate();
-					
+
 					if(direction == Direction.ASC) {
 				        return (o1CompletionRate < o2CompletionRate ? -1 : (o1CompletionRate == o2CompletionRate ? 0 : 1));
 					} else {
@@ -169,7 +175,7 @@ public class Milestone extends Model {
 				}
 			});
         }
-        
+
         return milestones;
     }
 
@@ -197,5 +203,17 @@ public class Milestone extends Model {
     public static boolean isUniqueProjectIdAndTitle(Long projectId, String title) {
         int count = find.where().eq("project.id", projectId).eq("title", title).findRowCount();
         return (count == 0);
+    }
+
+    public String until(){
+        Duration duration = new Duration(DateTime.now(), new DateTime(dueDate));
+        long days = duration.getStandardDays();
+        if(days < 0) {
+            return Messages.get("time.before", -days);
+        } else if(days == 0) {
+            return Messages.get("time.today");
+        } else {
+            return Messages.get("time.after", days);
+        }
     }
 }

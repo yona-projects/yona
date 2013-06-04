@@ -73,6 +73,7 @@
                 "elContainer": htOptions.welDetachingLabel
             });
 
+            htElement.welDeleteButton = htOptions.welDeleteButton;
 		}
 		
 		/**
@@ -86,7 +87,19 @@
             htElement.oAttachingLabel.onChange(_onChangeUpdateField);
             htElement.oDetachingLabel.onChange(_onChangeUpdateField);
             $(htVar.sIssueCheckBoxesSelector).change(_onCheckIssue);
+            htElement.welDeleteButton.click(_onClickBtnDelete);
 		}
+
+        /**
+         * Add a hidden input element into the given form.
+         */
+        function _addFormField(welForm, sName, sValue) {
+            $('<input>').attr({
+                'type': 'hidden',
+                'name': sName,
+                'value': sValue
+            }).appendTo(welForm);
+        }
 
         /**
          * When check an issue, enable Mass Update dropdowns if only one or
@@ -107,11 +120,10 @@
             var nCnt = 0;
             var welForm = htElement.welMassUpdateForm;
             var fAddCheckedIssueId = function() {
-                welForm.append(
-                    $('<input>')
-                        .attr('type', 'hidden')
-                        .attr('name', 'issues[' + (nCnt++) + '].id')
-                        .attr('value', $(this).data('issue-id'))
+                _addFormField(
+                    welForm,
+                    'issues[' + (nCnt++) + '].id',
+                    $(this).data('issue-id')
                 );
             }
 
@@ -120,6 +132,14 @@
 
             welForm.submit();
         }
+
+		/**
+		 * When click the delete button in the Mass Update form
+		 */
+		function _onClickBtnDelete(){
+            _addFormField(htElement.welMassUpdateForm, 'delete', 'true');
+            _onChangeUpdateField();
+		}
 
 		/**
 		 * 상세검색 영역 토글

@@ -84,13 +84,16 @@
                 <div class="meta-info">
                     <strong class="version"></strong>
                     <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
-                    <span class="sp">|</span>
-                    <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+                    @if(milestone.dueDate != null) {
+                        <span class="sp">|</span>
+                        <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+                        <span class="date">(@milestone.until)</span>
+                    }
                     <div class="issue-wrap pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn small">
+                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn small">
                             @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
                         </a>
-                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn small">
+                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn small">
                             @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
                         </a>
                     </div>

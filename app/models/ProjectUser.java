@@ -115,7 +115,7 @@ public class ProjectUser extends Model {
     /**
      * {@code userId} 와 {@code projectId} 로 사이트 관리자를 제외한 프로젝트 멤버 정보({@link ProjectUser})를 반환한다.
      *
-     * @param user 사용자 아이디
+     * @param userId 사용자 아이디
      * @param projectId 프로젝트 아이이
      * @return 프로젝트 멤버 정보({@link ProjectUser})
      */

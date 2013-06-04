@@ -1,38 +1,41 @@
 @(projects:List[Project], orderString:String)
 @import utils.TemplateHelper._
 @if(projects != null){
+    <p class="my-project-head">@Messages("project.createdByMe") (@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</p>
     @for(project <- projects){
+        @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
         <li class="my-project">
             <div class="project-header">
                 <div class="name-wrap">
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
                         <strong>
-                            @project.name (@project.owner)
+                            @project.name
                             @if(!project.isPublic){
                             <i class="ico ico-lock"></i>
                             }
-                        </strong>
+                        </strong><i class="ico ico-gray-arrow-right"></i>
                     </a>
                 </div>
-                <div class="ico-wrap">
-                    <i class="ico ico-gray-arrow-right"></i>
-                </div>
-
-            <div class="project-detail hidden">
-                <ul class="contributors unstyled">
-                    @project.projectUser.map{ member =>
-                        @if( member.user != null){
-                        @defining(User.find.byId(member.user.id)) { user =>
-                            <li class="contributor">
-                                <a class="n-tooltip" href="@routes.UserApp.userInfo(user.loginId)" data-original-title="@user.loginId" data-placement="bottom" rel="tooltip">
-                                    <img src="" alt="contributor" width="32" height="32">
-                                </a>
-                            </li>
-                        }
-                        }
-                    }
-                </ul>
-            </div>
         </li>
+        }
+    }
+    <p class="my-project-head">@Messages("project.belongsToMe") (@(projects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()))</p>
+    @for(project <- projects){
+        @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
+            <li class="my-project">
+                <div class="project-header">
+                    <div class="name-wrap">
+                        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+                        <strong>
+                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+                            @project.name
+                            @if(!project.isPublic){
+                                <i class="ico ico-lock"></i>
+                            }
+                        </strong><i class="ico ico-gray-arrow-right"></i>
+                    </a>
+                </div>
+            </li>
+        }
     }
 }

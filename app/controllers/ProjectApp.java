@@ -4,7 +4,6 @@ import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 import models.*;
 import models.enumeration.*;
-import models.support.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -58,14 +57,16 @@ public class ProjectApp extends Controller {
 
 	private static final int RECENLTY_POSTING_SHOW_LIMIT = 5;
 
-    private static final int PROJECT_COUNT_PER_PAGE = 10;    
-    
-    private static final String HTML = "text/html";
-    
-    private static final String JSON = "application/json";
-    
+    private static final int RECENT_PULL_REQUEST_SHOW_LIMIT = 5;
 
-    
+    private static final int PROJECT_COUNT_PER_PAGE = 10;
+
+    private static final String HTML = "text/html";
+
+    private static final String JSON = "application/json";
+
+
+
     /**
      * getProject
      * @param userName
@@ -94,6 +95,12 @@ public class ProjectApp extends Controller {
     public static Result project(String loginId, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
+        if(project == null) {
+            return notFound("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'");
+        }
+
+        project.fixInvalidForkData();
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.error.unauthorized.render(project));
         }
@@ -108,9 +115,10 @@ public class ProjectApp extends Controller {
         }
 
         List<Issue> issues = Issue.findRecentlyCreated(project, RECENLTY_ISSUE_SHOW_LIMIT);
-        List<Posting> postings = Posting.findRecentlyUpdated(project, RECENLTY_POSTING_SHOW_LIMIT);
+        List<Posting> postings = Posting.findRecentlyCreated(project, RECENLTY_POSTING_SHOW_LIMIT);
+        List<PullRequest> pullRequests = PullRequest.findRecentlyReceived(project, RECENT_PULL_REQUEST_SHOW_LIMIT);
 
-        List<History> histories = History.makeHistory(loginId, project, commits, issues, postings);
+        List<History> histories = History.makeHistory(loginId, project, commits, issues, postings, pullRequests);
 
         return ok(overview.render("title.projectHome", project, histories));
     }
@@ -304,7 +312,6 @@ public class ProjectApp extends Controller {
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(loginId, projectName, project.vcs);
-            project.deleteFork();
             project.delete();
             return redirect(routes.Application.index());
         } else {
@@ -319,13 +326,19 @@ public class ProjectApp extends Controller {
      * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 프로젝트 아이디로 해당 프로젝트의 멤버목록을 가져온다.<br />
      * 프로젝트 관련 Role 목록을 가져온다.<br />
+     * 프로젝트 수정 권한이 없을 경우 unauthorized 로 응답한다<br />
      *
      * @param loginId the user login id
      * @param projectName the project name
      * @return 프로젝트, 멤버목록, Role 목록
      */
     public static Result members(String loginId, String projectName) {
-	Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            return unauthorized(views.html.error.unauthorized.render(project));
+        }
+        
         return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
@@ -454,7 +467,7 @@ public class ProjectApp extends Controller {
         }
 
         if (prefer.equals(JSON)) {
-            return getProjectsToJSON(query);        
+            return getProjectsToJSON(query);
         } else {
             return getPagingProjects(query, state, pageNum);
         }
@@ -462,12 +475,12 @@ public class ProjectApp extends Controller {
 
     /**
      * 프로젝트 목록을 가져온다.
-     * 
-     * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시 
-     * 
-     * 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 
+     *
+     * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시
+     *
+     * 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고
      * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
-     * 
+     *
      * @param query 검색질의(프로젝트명 또는 관리자)
      * @param state 프로젝트 상태(공개/비공개)
      * @param pageNum 페이지번호
@@ -475,8 +488,8 @@ public class ProjectApp extends Controller {
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
         ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
-        
-        Project.State stateType = Project.State.valueOf(state.toUpperCase()); 
+
+        Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {
             el.eq("isPublic", true);
         } else if (stateType == Project.State.PRIVATE) {
@@ -490,10 +503,10 @@ public class ProjectApp extends Controller {
 
     /**
      * 프로젝트 정보를 JSON으로 가져온다.
-     * 
+     *
      * 프로젝트명 또는 관리자 아이디에 {@code query} 가 포함되는 프로젝트 목록을 {@link MAX_FETCH_PROJECTS} 만큼 가져오고
      * JSON으로 변환하여 반환한다.
-     * 
+     *
      * @param query 검색질의(프로젝트명 또는 관리자)
      * @return JSON 형태의 프로젝트 목록
      */

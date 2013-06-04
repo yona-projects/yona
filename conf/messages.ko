@@ -235,6 +235,7 @@ post.error.emptyBody = 글 내용을 입력해주세요
 
 #Project
 project.myproject = 내 프로젝트
+project.watchingproject = 관심 프로젝트
 project.create = 프로젝트 생성
 project.name = 프로젝트 이름
 project.name.placeholder = 프로젝트 이름을 입력해주세요.
@@ -298,12 +299,15 @@ project.license = 라이센스
 project.codeLanguage = 프로그래밍 언어
 project.onmember = <strong>{0}명</strong> 참여 중
 project.lastUpdate = 마지막 업데이트
+project.createdByMe = 만든 프로젝트
+project.belongsToMe = 프로젝트 멤버
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
 project.history.item = {0}님이 {1} {2}
 project.history.type.commit = 코드를 커밋했습니다
 project.history.type.issue = 새 이슈를 등록했습니다
 project.history.type.post = 새 글을 작성했습니다
+project.history.type.pullrequest = 새 코드를 보냈습니다.
 
 #Site
 site.sidebar = 사이트 관리
@@ -366,6 +370,9 @@ role.sitemanager = 사이트 관리자
 
 #Time
 time.just = 방금 전
+time.today = 오늘
+time.after = {0} 일 후
+time.before = {0} 일 전
 time.second = {0} 초 전
 time.seconds = {0} 초 전
 time.minute = {0} 분 전
@@ -399,7 +406,7 @@ code.commits = 커밋
 code.newer = 이전
 code.older = 다음
 code.repoUrl = 저장소 URL
-code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요 
+code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요
 
 #mail
 mail.password = 비밀번호
@@ -462,7 +469,7 @@ userinfo.changePassword = 비밀번호 변경
 userinfo.changeAvatar = 아바타 변경
 userinfo.changeAvatarHelp = 프로필 수정 버튼을 누르면<br>새 아바타가 반영됩니다
 userinfo.since = 가입일
-userinfo.leaveProject = 프로젝트 탈퇴
+userinfo.leaveProject = 탈퇴
 userinfo.leaveProject.confirm = 정말 {0} 프로젝트에서 탈퇴하시겠습니까?
 
 #Admin
@@ -499,6 +506,8 @@ pullRequest.accepted.code = 받은 코드
 pullRequest.rejected.code = 보류한 코드
 pullRequest.sent.code = 보낸 코드
 fork = 프로젝트 복사
+fork.original = 원본 프로젝트
 pullRequest = 코드 보내기
 pullRequest.menu.overview = 개요
 pullRequest.menu.commit = 커밋
+already.existing.fork.alert = 이전에 만들어둔 포크 프로젝트로 이동합니다.

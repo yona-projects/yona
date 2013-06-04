@@ -137,4 +137,19 @@ public class PullRequest extends Model {
                 .eq("state", State.REJECTED)
                 .findList();
     }
+
+    public static List<PullRequest> allReceivedRequests(Project project) {
+        return finder.where()
+                .eq("toProject", project)
+                .findList();
+    }
+
+    public static List<PullRequest> findRecentlyReceived(Project project, int size) {
+        return finder.where()
+                .eq("toProject", project)
+                .order().desc("created")
+                .findPagingList(size).getPage(0)
+                .getList();
+    }
+
 }

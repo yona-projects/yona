@@ -171,3 +171,7 @@ GET     /help                                           controllers.HelpApp.help
 # Statistics
 GET     /:user/:project/statistics                      controllers.StatisticsApp.statistics(user, project)
 GET     /:user                                          controllers.UserApp.userInfo(user)
+
+# Watching Projects
+POST    /:user/:project/watch                           controllers.WatchProjectApp.watch(user, project)
+POST    /:user/:project/unwatch                         controllers.WatchProjectApp.unwatch(user, project)

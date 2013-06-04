@@ -16,7 +16,10 @@
     <h3>
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
         <small>
+            @if(milestone.dueDate != null) {
             <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+            <span class="date">(@milestone.until)</span>
+            }
             <span class="badge badge-issue-@milestone.state.state.toLowerCase">@Messages("issue.state." + milestone.state.state)</span>
         </small>
     </h3>

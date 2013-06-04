@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://hive.dev.naver.com/license
  */
 
@@ -27,12 +27,12 @@
 
 			$(window).bind('hashchange', function(e){
 //				_updateDynaTree();
-				
+
 		        //대기 표시 한다.
 		        //여기서 요청을 보내고
 		        var path = getHash().replace(/^#/, "");
 		        var branch = getBranch();
-		
+
 		        $.ajax("code/" + branch + "/!" + path, {
 		          datatype : "json",
 		          success : function(data, textStatus, jqXHR){
@@ -85,7 +85,7 @@
 
 		        function handleFolder(data){
 		        	data.data = sortData(data.data);
-		        	
+
 		            //폴더내용을 리스팅 한다.
 		            $("#commiter").text(data.author);
 		            if(data.hasOwnProperty("msg")){
@@ -96,13 +96,13 @@
 		            }
 		            $("#commitDate").text(data.date);
 		            $(".contents").children().remove();
-		
+
 		            var aTmp = [];
 		            var info, tablerow;
-		            
+
 		            for(var name in data.data){
 		            	info = data.data[name];
-		              	tablerow = makeTableRow(name, info.msg, info.createdDate, info.author);
+				tablerow = makeTableRow(name, info.msg, info.createdDate, info.author, info.avatar);
 		              	aTmp.push(tablerow);
 		            }
 		            $(".contents").append(aTmp);
@@ -111,10 +111,10 @@
 		            $("#fileList").show();
 		            $("#fileView").hide();
 		        }
-		        
+
 				function sortData(target){
 				    result = [];
-				    
+
 				    /** case-insensitive sort **/
 				    var aTmp = [];
 				    for(var key in target){
@@ -125,27 +125,27 @@
 				    	if(a.toLowerCase() > b.toLowerCase()) { return 1; }
 				    	return 0;
 				    });
-				    
+
 				    var ht = {};
 				    aTmp.forEach(function(sKey){
 				    	ht[sKey] = target[sKey];
 				    });
 				    /** **/
-				    
+
 				    _.each(ht, function(value, key, list){
 				    	ht[key].name = key;
 				        result.push(ht[key]);
 				    });
-				    
+
 				    result = _.sortBy(result, function(elm){
 				        return -(elm.type === "folder");
 				    });
-				    
+
 				    var htResult = {};
 				    result.forEach(function(o){
 				    	htResult[o.name] = o;
 				    });
-				    
+
 				    try {
 				    	return htResult;
 				    } finally {
@@ -153,7 +153,7 @@
 				    }
 				}
 
-				function makeTableRow(name, message, date, author){
+				function makeTableRow(name, message, date, author, avatar){
 					if (message.length > 70){
 						message = message.substr(0, 70) + "...";
 					}
@@ -163,7 +163,7 @@
 			              .append($('<td><a class="filename" href="' + sFilePath + '">' + name + '</a></td>'))
 			              .append($('<td class="message">' + message + '</td>'))
 			              .append($('<td class="date">' + (moment(new Date(date)).fromNow()) + '</td>'))
-			              .append($('<td class="author"><a href="/'+ author+'"><img src="/assets/images/default-avatar-34.png" alt="avatar" class="img-rounded"></a></td>'));
+			              .append($('<td class="author"><a href="/'+ author+'"><img src="' + avatar + '" alt="avatar" class="img-rounded"></a></td>'));
 
 					try {
 						return welRow;
@@ -204,7 +204,7 @@
 		function setHash(hash) {
 			return document.location.hash = hash;
 		}
-		
+
 		function getBranch(){
 			return encodeURIComponent(oBranch.getValue());
 		}
@@ -243,7 +243,7 @@
 					waWrapFile.width(930);
 				}
 			});
-			
+
 			function _resizeList(weEvt){
 				var nWidth = weEvt.clientX - nFolderListX;
 				$(".directory-wrap").width(nWidth);
@@ -251,7 +251,7 @@
 				$(".file-wrap").width(930 - nWidth);
 			}
 		}
-		
+
 		_initResizeList();
 		/** end of resize list **/
 
@@ -259,7 +259,7 @@
 			_updateDynaTree();
 			$(window).trigger('hashchange');
 		});
-	
+
 		// adaptorForDynatree adaptor function is used for existed function
 		// Also, it pass the below tests
 		//

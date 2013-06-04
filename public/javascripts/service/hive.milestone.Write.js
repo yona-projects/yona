@@ -105,10 +105,8 @@
 			var sDueDate = htElement.welInputDueDate.val();
 			if(sDueDate.length > 0){
 				htVar.oPicker.setDate(sDueDate);
-			} else {
-				htElement.welInputDueDate.val(htVar.oPicker.getMoment().format(htVar.sDateFormat));
 			}
-			
+
 			// set relative event between dueDate input and datePicker
 			htElement.welInputDueDate.blur(function() {
 				htVar.oPicker.setDate(this.value);

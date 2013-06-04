@@ -1,0 +1,47 @@
+@(project:Project, user:User)
+@import utils.TemplateHelper._
+<li class="project">
+    <div class="info-wrap">
+        <div class="header">
+            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+            @if(!project.isPublic){ <i class="ico ico-lock"></i> }
+        </div>
+        @if(project.isFork()){
+        <div class="desc label" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
+            <i class="icon-random icon-white"></i>
+            &nbsp;@Messages("fork.original")
+            <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
+            <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
+        </div>
+        }
+        <div class="desc tag">
+        @for(tag <- project.tags) {
+            <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
+        }
+        </div>
+        <div class="desc">@project.overview</div>
+        <div class="name-tag">
+            <span>@agoString(project.ago)</span> @Messages("project.lastUpdate")
+        </div>
+    </div>
+    <div class="stats-wrap">
+        <div class="members">
+            <ul class="unstyled">
+            @for(member <- User.findUsersByProject(project.id)){
+                <li>
+                    <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
+                        <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
+                    </a>
+                </li>
+            }
+            </ul>
+            <span>
+                @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                @if(user != null && session != null && user.loginId == session.get("loginId")){
+                    <br>
+                }
+            </span>
+        </div>
+        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
+    </div>
+</li>

@@ -3,6 +3,7 @@ package playRepository;
 import controllers.ProjectApp;
 import models.Project;
 import models.PullRequest;
+import models.User;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
@@ -264,6 +265,7 @@ public class GitRepository implements PlayRepository {
         result.put("type", "file");
         result.put("msg", commit.getShortMessage());
         result.put("author", commit.getAuthorIdent().getName());
+        setAvatar(result, commit.getAuthorIdent().getEmailAddress());
         result.put("createdDate", commitTime);
         result.put("commitMessage", commit.getShortMessage());
         result.put("commiter", commit.getAuthorIdent().getName());
@@ -271,6 +273,15 @@ public class GitRepository implements PlayRepository {
         String str = new String(repository.open(treeWalk.getObjectId(0)).getBytes());
         result.put("data", str);
         return result;
+    }
+
+    private void setAvatar(ObjectNode objectNode, String emailAddress) {
+        User user = User.findByEmail(emailAddress);
+        if(user.isAnonymous()) {
+            objectNode.put("avatar", "/assets/images/default-avatar-34.png");
+        } else {
+            objectNode.put("avatar", user.avatarUrl);
+        }
     }
 
     /**
@@ -301,7 +312,7 @@ public class GitRepository implements PlayRepository {
             ObjectNode data = Json.newObject();
             data.put("type", treeWalk.isSubtree() ? "folder" : "file");
             data.put("msg", commit.getShortMessage());
-            data.put("author", commit.getAuthorIdent().getName());
+            setAvatar(data, commit.getAuthorIdent().getEmailAddress());
             data.put("createdDate", commit.getCommitTime() * 1000l);
             listData.put(treeWalk.getNameString(), data);
         }
@@ -374,6 +385,7 @@ public class GitRepository implements PlayRepository {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DiffFormatter diffFormatter = new DiffFormatter(out);
         diffFormatter.setRepository(repository);
+        treeWalk.setRecursive(true);
         diffFormatter.format(DiffEntry.scan(treeWalk));
 
         return out.toString("UTF-8");
