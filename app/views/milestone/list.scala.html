@@ -89,11 +89,11 @@
                         <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
                         <span class="date">(@milestone.until)</span>
                     }
-                    <div class="issue-wrap pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn small">
+                    <div class="issue-wrap btn-group pull-right">
+                        <a href="@makeIssuesLink(milestone.id,"open")" class="btn">
                             @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
                         </a>
-                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn small">
+                        <a href="@makeIssuesLink(milestone.id,"closed")" class="btn">
                             @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
                         </a>
                     </div>
@@ -118,11 +118,6 @@
 						</div>
 					</div>
 				</div>
-
-                <div class="desc">
-                    @milestone.contents
-                </div>
-
             </div>
             <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!--
              -->@milestone.getCompletionRate<!--
