@@ -121,6 +121,8 @@ milestone.form.dueDate = Choose due date
 milestone.error.title = Title is required
 milestone.error.content = Description is required
 milestone.error.duedateFormat = Invalid format of due date (YYYY-MM-DD)
+milestone.close = Close
+milestone.open = Open
 
 #Issue
 issue.state.unit = issues

@@ -96,6 +96,8 @@ POST    /:user/:project/milestones                      controllers.MilestoneApp
 GET     /:user/:project/milestone/:id/editform          controllers.MilestoneApp.editMilestoneForm(user, project, id: Long)
 POST    /:user/:project/milestone/:id/edit              controllers.MilestoneApp.editMilestone(user, project, id: Long)
 GET     /:user/:project/milestone/:id/delete            controllers.MilestoneApp.deleteMilestone(user, project, id: Long)
+GET     /:user/:project/milestone/:id/open              controllers.MilestoneApp.open(user, project, id: Long)
+GET     /:user/:project/milestone/:id/close             controllers.MilestoneApp.close(user, project, id: Long)
 GET     /:user/:project/milestone/:id                   controllers.MilestoneApp.milestone(user, project, id: Long)
 
 # Issues

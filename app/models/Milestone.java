@@ -1,6 +1,7 @@
 package models;
 
 import models.enumeration.*;
+import models.resource.Resource;
 import models.support.*;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -215,5 +216,34 @@ public class Milestone extends Model {
         } else {
             return Messages.get("time.after", days);
         }
+    }
+
+    public Resource asResource() {
+        return new Resource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.MILESTONE;
+            }
+        };
+    }
+
+    public void open() {
+        this.state = State.OPEN;
+        super.update();
+    }
+
+    public void close() {
+        this.state = State.CLOSED;
+        super.update();
     }
 }

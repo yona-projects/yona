@@ -4,6 +4,7 @@ import models.*;
 import models.enumeration.*;
 import play.data.*;
 import play.mvc.*;
+import utils.AccessControl;
 import utils.Constants;
 import views.html.milestone.*;
 
@@ -72,6 +73,10 @@ public class MilestoneApp extends Controller {
             return notFound();
         }
 
+        if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
+            return forbidden();
+        }
+
         return ok(create.render("title.newMilestone", new Form<>(Milestone.class), project));
     }
 
@@ -97,6 +102,11 @@ public class MilestoneApp extends Controller {
         if(project == null ) {
             return notFound();
         }
+
+        if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
+            return forbidden();
+        }
+
         validate(project, milestoneForm);
         if (milestoneForm.hasErrors()) {
             return ok(create.render("title.newMilestone", milestoneForm, project));
@@ -142,6 +152,11 @@ public class MilestoneApp extends Controller {
             return notFound();
         }
         Milestone milestone = Milestone.findById(milestoneId);
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
+            return forbidden();
+        }
+
         Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
         return ok(edit.render("title.editMilestone", editForm, milestoneId, project));
     }
@@ -167,6 +182,11 @@ public class MilestoneApp extends Controller {
         }
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Milestone original = Milestone.findById(milestoneId);
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
+            return forbidden();
+        }
+
         if(!original.title.equals(milestoneForm.field("title").value())) {
             validate(project, milestoneForm);
         }
@@ -199,11 +219,64 @@ public class MilestoneApp extends Controller {
         if(project == null ) {
             return notFound();
         }
-        if(!project.id.equals(Milestone.findById(id).project.id)) {
+        Milestone milestone = Milestone.findById(id);
+        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)) {
+            return forbidden();
+        }
+        if(!project.id.equals(milestone.project.id)) {
             return internalServerError();
         }
-        Milestone.findById(id).delete();
+        milestone.delete();
+
         return redirect(routes.MilestoneApp.milestones(userName, projectName));
+    }
+
+    /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트에
+     * {@code milestoneId}에 해당하는 마일스톤을 미해결 상태로 변경한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param id
+     * @return
+     */
+    public static Result open(String userName, String projectName, Long id) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if(project == null ) {
+            return notFound();
+        }
+        Milestone milestone = Milestone.findById(id);
+        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
+            return forbidden();
+        }
+
+        milestone.open();
+
+        return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
+    }
+
+    /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트에
+     * {@code milestoneId}에 해당하는 마일스톤을 해결 상태로 변경한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param id
+     * @return
+     */
+    public static Result close(String userName, String projectName, Long id) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if(project == null ) {
+            return notFound();
+        }
+        Milestone milestone = Milestone.findById(id);
+        if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
+            return forbidden();
+        }
+
+        milestone.close();
+
+        return redirect(routes.MilestoneApp.milestone(userName, projectName, id));
     }
 
     /**
