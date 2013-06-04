@@ -326,13 +326,19 @@ public class ProjectApp extends Controller {
      * {@code loginId}와 {@code projectName}으로 프로젝트 정보를 가져온다.<br />
      * 프로젝트 아이디로 해당 프로젝트의 멤버목록을 가져온다.<br />
      * 프로젝트 관련 Role 목록을 가져온다.<br />
+     * 프로젝트 수정 권한이 없을 경우 unauthorized 로 응답한다<br />
      *
      * @param loginId the user login id
      * @param projectName the project name
      * @return 프로젝트, 멤버목록, Role 목록
      */
     public static Result members(String loginId, String projectName) {
-	Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+            return unauthorized(views.html.error.unauthorized.render(project));
+        }
+        
         return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
