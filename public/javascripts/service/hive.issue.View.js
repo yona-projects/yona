@@ -40,7 +40,7 @@
 		 * initialize HTML Element variables
 		 */
 		function _initElement(htOptions){
-			htElement.welTarget = $("#upload");
+			htElement.welUploader = $("#upload");
 			htElement.welTextarea = $("#comment-editor");
 			
 			htElement.welAttachments = $(".attachments");
@@ -52,8 +52,8 @@
 		 */
 		function _initFileUploader(){
 			hive.FileUploader.init({
-				"elTarget": htElement.welTarget,
-				"elTextarea": htElement.welTextarea,
+				"elContainer" : htElement.welUploader,
+				"elTextarea"  : htElement.welTextarea,
 				"sTplFileItem": htVar.sTplFileItem,
 				"sAction": htVar.sAction
 			});

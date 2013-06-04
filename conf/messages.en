@@ -478,7 +478,11 @@ admin.resetPasswordEmail.mailcontents = copy the below url and paste it to brows
 admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
 
 #Attachment
-attach.attachIfYouSave = This will be attached if you save
+attach.attachIfYouSave = will be attached when you save
+attach.error = Upload failed by server error 
+attach.drophere = Drop files here or
+attach.clickbutton = click Upload button
+attach.multipleNotYet = Multiple upload does not supported yet
 
 #Error
 error.notfound = Page not found
