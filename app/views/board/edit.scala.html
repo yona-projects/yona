@@ -32,43 +32,11 @@
 			}
 		</dl>
 
-		@** fileUploader **@
+        @** fileUploader **@
         @if(!UserApp.currentUser.isAnonymous) {
-		<div class="content-footer">
-			<div class="attach-wrap">
-				<div class="avatar-wrap">
-					<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" class="img-rounded" width="32" height="32" alt="avatar">
-				</div>
-				<div id="upload" class="attach-info-wrap" resourceType="@ResourceType.BOARD_POST" resourceId="@postId">
-					<div>
-						<span class="progress-num">0%</span> <span class="sp-line">&nbsp;</span>
-						<strong>total</strong> <span class="total-num">0MB</span>
-					</div>
-					<div class="progress-wrap">
-						<div class="progress n4">
-							<div class="bar orange" style="width: 0%;"></div>
-						</div>
-					</div>
-				</div>
-
-				<div class="btn-wrap">
-					<div class="nbtn medium white fake-file-wrap">
-						<i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
-					--> <input type="file" class="file" name="filePath">
-					</div>
-				</div>
-			</div>
-			<script type="text/template" id="tplAttachedFile"><!--
-				--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
-                <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
-				--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
-			</script>
-			<div class="attached-files-wrap">
-				<ul class="attached-files"></ul>
-			</div>
-		</div>
-		}
-		@** end of fileUploader **@
+            @fileUploader(ResourceType.BOARD_POST, postId)
+        }
+        @** end of fileUploader **@
 
 		<div class="actions">
 			<button class="nbtn medium orange" tabindex="3">@Messages("button.save")</button><!--

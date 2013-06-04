@@ -1,0 +1,31 @@
+@(resType:ResourceType, resId:Long)
+
+<div id="upload" class="upload-wrap content-footer" data-resourceType="@resType" @if(resId != null){data-resourceId="@resId"}>
+    <div class="attach-wrap">
+        <span class="help-droppable">@Messages("attach.drophere")</span>
+        <div class="btn-wrap">
+             <div class="nbtn medium white fake-file-wrap">
+                 <i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
+             --> <input type="file" class="file" name="filePath">
+             </div>
+         </div>
+         <span>@Messages("attach.clickbutton")</span>
+    </div>
+       
+    <ul class="attached-files unstyled"></ul>
+    <p class="right-txt help">
+        <i class="icon-question-sign"></i> @Messages("attach.attachIfYouSave")
+    </p>
+</div>
+
+<script type="text/template" id="tplAttachedFile">
+    <li class="attached-file" data-id="${fileId}" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+        <i class="icon-question-sign"></i>
+        <strong class="name">${fileName}</strong>
+        <span class="size">${fileSizeReadable}</span>
+        <div class="progress-wrap pull-right">
+            <div class="progress n4"><div class="bar orange"></div></div>
+        </div>
+        <button type="button" class="btn-transparent btn-delete pull-right">×</button>
+    </li>            
+</script>

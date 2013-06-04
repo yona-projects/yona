@@ -993,9 +993,9 @@
 //--- projects
 .header-wrap {
     margin-top: 5px;
+    margin-bottom: 5px;
     padding: 5px;
     background-color: #ECECEC;
-    .border-radius(10px);
     .stats-wrap {
         padding: 0px 0px 5px 0px;
         overflow: hidden;
@@ -1519,8 +1519,8 @@
 
 .project-menu {
     border:1px solid #e7e7e7;
-    margin-bottom:10px;
-   
+    margin-bottom: 5px;
+
     ul { margin:0 !important; }
     li { line-height:40px; padding:0; .inline-block; }
 
@@ -2187,7 +2187,7 @@ div.markdown-preview {
         &.disabled { color:#ccc; }
     }
     .comment {
-        width: 715px;
+        width: 795px;
         height: 80px;
         margin: 0; margin-bottom:9px;
         resize:vertical;
@@ -2196,6 +2196,11 @@ div.markdown-preview {
         &:focus {
             border: 1px solid @gray-cc;
         }
+    }
+    .upload-wrap {
+        background:#efefef;
+        padding:15px;
+        .border-radius(5px);
     }
 }
 
@@ -2226,93 +2231,88 @@ div.markdown-preview {
     }
 }
 
-.attach-wrap {
-    > div {
-        display: table-cell;
-        vertical-align: top;
-    }
-    .avatar-wrap { 
-        margin-right:12px;
-        display:inline-block !important;
-        float:left;
-    }
-    /*.thumb-wrap {
-        width: 45px;
-    }*/
-    .attach-info-wrap {
-        width: 850px; /*657px;*/ /*715px;*/
-        font-size: 11px;
-        /*opacity:0;
-        -webkit-transition-duration:0.3s;
-        -webkit-transition-property:opacity;*/
+
+// -- new attach files //
+.upload-wrap {
+    .attach-wrap {
+        text-align:center;
         
-        .sp-line {
-            border-left: 1px solid @white;
-            .box-shadow(inset 1px 0 0 rgba(0, 0, 0, 0.15));
+        .btn-wrap {
+            display:inline-block !important;
+            margin:0 5px;        
         }
-        .progress-num {
-            color: #777;
-        }
-        .total-num {
-            color: #999;
-        }
-        .progress-wrap {
-            width: 380px;
-            float: left;
-            margin: 6px 5px 0 0;
-
+        span {
+            display:inline-block;
+            line-height:30px;
         }
     }
-    .btn-wrap {
-        width: 118px; /*138px; /*80px*/
-        text-align: right;
-    }
-}
 
-.attached-files-wrap {
-    .box-shadow(inset 0 1px 0 rgba(0, 0, 0, 0.15));
-    margin-top: 10px;
-    padding: 15px 20px;
-    background-color: #DFDFDF;
-    .border-radius(5px);
     .attached-files {
-        margin: 0;
+        display:none;
         padding: 0;
-        list-style: none;
+        margin-bottom: 0;
+        margin-top: 15px;
+        border-top: 1px solid #e0e0e0;
+        padding: 15px 0px;
+        
         .attached-file {
-            color: #999;
-            font-size: 11px;
-            cursor: pointer;
-            -webkit-transition-property: color;
-            -webkit-transition-duration: 0.5s;
-            &:hover { color: @orange; }
-        }
-        .attached-delete {
-            margin-left: 10px;
+            display: inline-block;
+            width: 280px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid #ccc;
+            background: #fafafa;
+            padding: 0 10px;
+            margin-bottom: 5px;
+            margin-right: 4px;
             cursor:pointer;
+            overflow: hidden;
+            -webkit-transition-duration: 0.5s;
+            
+            .icon-question-sign { display:none; }
+            .name {
+                display: inline-block;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space:nowrap;
+                -webkit-transition-duration: 0.5s;
+            }
+            .size { font-size:11px; }
+            
+            /* 업로드 하는 도중에는 진행 상태 표시 */
+            .progress {
+                display: inline-block;
+                width: 100px;
+                height: 10px;
+                margin: 0;
+                overflow: hidden;
+            }
+            .btn-delete { 
+                display:none;
+                width: 30px;
+                height: 30px;
+                font-size: 1.5em;
+                font-weight: bold;
+            }
+            
+            /* 업로드 완료 후에는 삭제 버튼 표시 */
+            &.complete {
+               .progress    { display:none; }
+               .btn-delete  { display:inline-block; }
+            }
+            
+            /* 임시 파일 표시 */
+            &.temporary {
+               .icon-question-sign { display:inline-block; }
+            }
         }
     }
+    
+    .help { display:none; }
+    .help-droppable { display:none; }
 }
-.attaches {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    &.wm {
-        margin-bottom: 20px;
-    }
-    .attach {
-        font-size: 11px;
-        color: #929292;
-        .ico-clip {
-            vertical-align: text-bottom;
-            margin-right: 5px;
-        }
-        margin-bottom: 5px;
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
-}
+// -- //
 
 .frm-wrap {
     dl, dt, dd { margin:0; padding:0; }
