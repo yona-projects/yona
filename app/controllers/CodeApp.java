@@ -101,7 +101,7 @@ public class CodeApp extends Controller {
 
     public static String getURLWithLoingid(Project project) {
         String url = getURL(project);
-        if(url != null) {
+        if(url != null && project.vcs.equals(RepositoryService.VCS_GIT)) {
             String loginId = session().get(UserApp.SESSION_LOGINID);
             if(loginId != null && !loginId.isEmpty()) {
                 url = url.replace("://", "://" + loginId + "@");
