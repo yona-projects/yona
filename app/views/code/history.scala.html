@@ -76,7 +76,9 @@
 								</a>
 							</td>
 							<td class="messages">
-							    <pre>@commit.getMessage()</pre>
+                                <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+							        <pre>@commit.getMessage()</pre>
+                                </a>
 							</td>
 							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">

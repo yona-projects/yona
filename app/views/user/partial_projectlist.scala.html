@@ -3,6 +3,9 @@
 <li class="project">
     <div class="info-wrap">
         <div class="header">
+            <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap">
+                <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name" width="32" height="32">
+            </a>&nbsp;
             @if(project.owner != user.loginId){
             <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
             }
@@ -31,22 +34,42 @@
         <div class="members">
             <ul class="unstyled">
             @for(member <- User.findUsersByProject(project.id)){
+                @if(member.loginId != project.owner){
                 <li>
                     <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
                         <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
                     </a>
                 </li>
+                }
             }
             </ul>
             <span>
                 @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
-                <br>
-                @Html(Messages("project.onwatching", project.watchingCount))
-		        @if(user != null && session != null && user.loginId == session.get("loginId")){
-		        <br>
+                <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
+		        @if(user.loginId != project.owner && user.loginId == session.get("loginId") && !User.isWatching(project)){
 		        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
 		        }
+                @if(session.get("loginId") != project.owner){
+                    @if(User.isWatching(project)){
+                        <span data-toggle="tooltip" title="unwatch" data-placement="right">
+                            <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn purple small last"><i class="icon-star icon-middle icon-white"></i> unwatch</a>
+                        </span>
+                    } else {
+                        <span data-toggle="tooltip" title="watch" data-placement="right">
+                            <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn purple small last "><i class="icon-star-empty icon-middle icon-white"></i> watch</a>
+                        </span>
+                    }
+                }
             </span>
         </div>
     </div>
 </li>
+<script type="text/javascript">
+    $(function(){
+        $('.watchBtn').click(function(e){
+            e.preventDefault();
+            $.post($(this).attr('href'));
+            location.reload();
+        });
+    });
+</script>

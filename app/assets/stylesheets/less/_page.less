@@ -1226,6 +1226,8 @@
 
     // -- project list -- //
     .project {
+        margin-left: 20px;
+        margin-right: 20px;
         padding: 10px;
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
@@ -1238,23 +1240,21 @@
             .header {
                 font-size: 20px;
                 font-weight: bold;
-                margin-bottom: 15px;
+                margin-bottom: 5px;
                 .project-name {
-                    color: #222;
+                    color: @gray-99;
                     &:hover { color:@primary; }
                 }
             }
             .desc {
-                margin-bottom: 5px;
-                margin-left:15px;
-                line-height: 180%;
+                margin-left:50px;
                 white-space:nowrap;
                 overflow: hidden;
                 text-overflow:ellipsis;
             }
             .name-tag {
                 margin: 0;
-                margin-left:15px;
+                margin-left:50px;
                 font-size: 11px;
                 color: #999;
                 a { color: #696969; }
@@ -1295,7 +1295,7 @@
                 strong { color:@secondary; }
            }
 
-           .leaveProject { margin-top:15px; }
+           .leaveProject { margin-top:2px; }
         }
     }
 

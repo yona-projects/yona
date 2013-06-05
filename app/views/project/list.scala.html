@@ -35,7 +35,10 @@
         <li class="project">
             <div class="info-wrap">
                 <div class="header">
-                    <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+                    <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap">
+                        <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name" width="32" height="32">
+                    </a>&nbsp;
+                    <a href="@routes.UserApp.userInfo(project.owner)" class="project-name">@project.owner</a> <span class="project-name">/</span> <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
                     @if(!project.isPublic){ <i class="ico ico-lock"></i> }
                     @for(tag <- project.tags) {
                         <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
@@ -44,29 +47,27 @@
                 <div class="desc">
                     @project.overview
                 </div>
-                <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)"><b>@project.owner</b></a> since @agoString(project.ago)</p>
+                <p class="name-tag">since @agoString(project.ago)</p>
             </div>
             <div class="stats-wrap pull-right">
                 @if(project.isPublic){
                 <div class="members">
                     <ul class="unstyled">
                     @for(member <- User.findUsersByProject(project.id)){
+                        @if(member.loginId != project.owner){
                         <li>
                             <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
                                 <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
                             </a>
                         </li>
+                        }
                     }
                     </ul>
                     <p>
-                        @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))<br>
-                        @Html(Messages("project.onwatching", project.watchingCount))
+                        @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
+                        <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
                     </p>
                 </div>
-                } else {
-                <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap img-rounded">
-                    <img src="@project.getOwnerByLoginId(project.owner).avatarUrl" width="32" height="32">
-                </a>
                 }
             </div>
         </li>

@@ -15,7 +15,7 @@
 
 <div class="page">
     <h1 class="page-title">
-        <span class="gray">@Messages("hive.name")/</span>@user.loginId
+        <span class="gray"><a href="@routes.ProjectApp.projects()">@Messages("hive.name")</a>/</span><a href="@routes.UserApp.userInfo(user.loginId)">@user.loginId</a>
     </h1>
     <section class="user-box">
         <div class="user-info-box">
@@ -37,7 +37,7 @@
                     <span class="labels">@Messages("userinfo.myProjects")</span>
                 </p>
                 <p>
-                    <span class="num">0</span>
+                    <span class="num">@watching_count(user.loginId)</span>
                     <span class="labels">@Messages("userinfo.starredProjects")</span>
                 </p>
                 
@@ -72,28 +72,46 @@
             </div>
             -->
             **@
-
-            <h5 class="h5-title" style="margin-top:0px">
-                @Messages("project.createdByMe") 
-                <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span>
-            </h5>
-            <ul class="user-streams all-projects">
-                @for(project <- Project.findProjectsCreatedByUser(user.loginId, "name")){
-                   @partial_projectlist(project, user)
-                }
-            </ul>
-
-            <h5 class="h5-title">
-                @Messages("project.belongsToMe") 
-                <span class="num-badge">@(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())</span>
-            </h5>
-            <ul class="user-streams all-projects">
-            @for(project <- user.myProjects("name")){
-                @if(!project.isOwner(user)){
-                    @partial_projectlist(project, user)
-                }
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#createdByMe" data-toggle="tab">@Messages("project.createdByMe")
+                    <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span></a></li>
+                <li><a href="#belongsToMe" data-toggle="tab">@Messages("project.belongsToMe")
+                    <span class="num-badge">@belongsToMe_count()</span></a></li>
+            @if(user.loginId == session.get("loginId")){
+                <li><a href="#watching" data-toggle="tab">@Messages("project.watchingproject") <span class="num-badge">@watching_count(session.get("loginId"))</span></a></li>
             }
             </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="createdByMe">
+                    <ul class="user-streams all-projects">
+                        @for(project <- Project.findProjectsCreatedByUser(user.loginId, "name")){
+                           @partial_projectlist(project, user)
+                        }
+                    </ul>
+                </div>
+                <div class="tab-pane" id="belongsToMe">
+                    <ul class="user-streams all-projects">
+                    @for(project <- user.myProjects("name")){
+                        @if(!project.isOwner(user)){
+                            @partial_projectlist(project, user)
+                        }
+                    }
+                    </ul>
+                </div>
+            @if(user.loginId == session.get("loginId")){
+                <div class="tab-pane" id="watching">
+                    <ul class="user-streams all-projects">
+                @defining(User.findByLoginId(session.get("loginId")).getWatchingProjects()){ watchingProjects =>
+                    @if(watchingProjects.length > 0) {
+                        @for(project <- watchingProjects){
+                            @partial_projectlist(project, user)
+                        }
+                    }
+                }
+                    </ul>
+                </div>
+            }
+           </div>
         </div>
     </section>
 </div>
@@ -110,4 +128,11 @@ $(document).ready(function(){
     });
 });
 </script>
+}
+
+@watching_count(loginId: String) = {
+    @User.findByLoginId(loginId).getWatchingProjects().size()
+}
+@belongsToMe_count() = {
+    @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())
 }
