@@ -3,6 +3,9 @@
 <li class="project">
     <div class="info-wrap">
         <div class="header">
+            <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap">
+                <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name" width="32" height="32">
+            </a>&nbsp;
             @if(project.owner != user.loginId){
             <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
             }
@@ -31,11 +34,13 @@
         <div class="members">
             <ul class="unstyled">
             @for(member <- User.findUsersByProject(project.id)){
+                @if(member.loginId != project.owner){
                 <li>
                     <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
                         <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
                     </a>
                 </li>
+                }
             }
             </ul>
             <span>
