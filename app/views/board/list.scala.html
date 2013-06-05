@@ -64,7 +64,7 @@
                 </div>
                 <div class="contents">
 			<p class="title">
-				<a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a>
+				<a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.title</a>
 			</p>
 			<p class="infos nm">
 				by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!--
@@ -98,7 +98,7 @@
 			</div>
 			<div class="contents">
 				<p class="title">
-					<a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.title</a>
+					<a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.title</a>
 				</p>
 				<p class="infos nm">
 					by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!--

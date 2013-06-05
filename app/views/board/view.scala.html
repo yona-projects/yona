@@ -48,7 +48,7 @@
 		}
 
 		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-		<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.id)" class="nbtn medium orange">@Messages("button.edit")</a>
+		<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="nbtn medium orange">@Messages("button.edit")</a>
 		}
 
 		<a href="@routes.BoardApp.posts(project.owner, project.name)" class="nbtn medium">@Messages("button.list")</a>
@@ -67,7 +67,7 @@
 				</a>
 				<div class="media-body">
 					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-						<a href="@routes.BoardApp.deleteComment(project.owner, project.name, post.id, comment.id)" class="pull-right close">&times;</a>
+						<a href="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="pull-right close">&times;</a>
 					}
 					<p class="commenter">
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
@@ -82,7 +82,7 @@
     
         @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
         <hr class="nm" />
-        @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.id), 'class->"nm", 'enctype -> "multipart/form-data"){
+        @helper.form(routes.BoardApp.newComment(project.owner, project.name, post.getNumber), 'class->"nm", 'enctype -> "multipart/form-data"){
 		<div class="write-comment-box">
 			<div class="write-comment-wrap">
 				<textarea name="contents" id="contents" class="text comment" markdown="true"></textarea><!--
@@ -126,7 +126,7 @@
 		<p>@Messages("post.delete.confirm")</p>
 	</div>
 	<div class="modal-footer">
-		<a class="btn btn-danger med" href="@routes.BoardApp.deletePost(project.owner, project.name, post.id)">@Messages("button.yes")</a>
+		<a class="btn btn-danger med" href="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</a>
 		<a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
 	</div>
 </div>

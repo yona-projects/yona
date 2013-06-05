@@ -1,4 +1,4 @@
-@(title:String, form:Form[Posting], postId:Long,  project:Project, isAllowedToNotice:Boolean)
+@(title:String, form:Form[Posting], number:Long,  project:Project, isAllowedToNotice:Boolean)
 
 @import utils.TemplateHelper._
 @import models.enumeration.ResourceType
@@ -8,7 +8,7 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
 
-	<form action="@routes.BoardApp.editPost(project.owner, project.name, postId)" method="post" enctype="multipart/form-data" class="nm">
+	<form action="@routes.BoardApp.editPost(project.owner, project.name, number)" method="post" enctype="multipart/form-data" class="nm">
 	<div class="content-wrap frm-wrap">
 		<dl>
 			<dt>
@@ -34,7 +34,7 @@
 
         @** fileUploader **@
         @if(!UserApp.currentUser.isAnonymous) {
-            @fileUploader(ResourceType.BOARD_POST, postId)
+            @fileUploader(ResourceType.BOARD_POST, number)
         }
         @** end of fileUploader **@
 
