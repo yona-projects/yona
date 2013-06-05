@@ -119,7 +119,7 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.Application.index());
+            return redirect(routes.UserApp.userInfo(authenticate.loginId));
         }
 
         flash(Constants.WARNING, "user.login.failed");
