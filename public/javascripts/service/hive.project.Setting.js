@@ -43,17 +43,9 @@
 			// 프로젝트 설정 관련
 			htElement.welForm = $("form#saveSetting");
 			htElement.welInputLogo = $("#logoPath");
-			htElement.welAlertLogo = $("#logoTypeAlert");
-			htElement.welInputName = $("input#project-name")
-			htElement.welAlertName = $("#alert_msg");		
+			htElement.welInputName = $("input#project-name");		
 
 			htElement.welBtnSave   = $("#save");
-			
-			// 프로젝트 삭제 관련
-			// TODO: 삭제는 별도 페이지로 이동 예정 hive.project.Delete.js
-			htElement.welAlertAccept  = $("#acceptAlert");
-			htElement.welChkAccept    = $("#accept");			
-			htElement.welBtnDeletePrj = $("#deletion");
 			
 			// popovers
 			htVar.waPopOvers = $([$("#project_name"), $("#share_option_explanation"), $("#terms")]);
@@ -64,7 +56,6 @@
 		 */
 		function _attachEvent(){
 			htElement.welInputLogo.change(_onChangeLogoPath);
-			htElement.welBtnDeletePrj.click(_onClickBtnDeletePrj);
 			htElement.welBtnSave.click(_onClickBtnSave);
 		}
 		
@@ -73,28 +64,15 @@
 		 */
 		function _onChangeLogoPath(){
 			var welTarget = $(this);
-			
+
 			// 확장자 규칙 검사
-			if(!htVar.rxLogoExt.text(welTarget.val())){
-				htElement.welAlertLogo.show();
+			if(!htVar.rxLogoExt.test(welTarget.val())){
+			    $hive.showAlert(Messages("project.logo.alert"));
 				welTarget.val('');
 				return;
 			}
-			htElement.welAlertLogo.hide();
-			
-			return htElement.welForm.submit();
-		}
-		
-		/**
-		 * 프로젝트 삭제 버튼 클릭시 이벤트 핸들러
-		 * 데이터 영구 삭제 동의에 체크했는지 확인하고
-		 * 체크되지 않았으면 경고 레이어 표시
-		 */
-		function _onClickBtnDeletePrj(){
-			var bChecked = htElement.welChkAccept.is(":checked");
-			var sMethod = bChecked ? "hide" : "show";
-			htElement.welAlertAccept[sMethod]();
-			return bChecked;
+
+			htElement.welForm.submit();
 		}
 		
 		/**
@@ -102,11 +80,10 @@
 		 */
 		function _onClickBtnSave(){
 			if(!htVar.rxPrjName.test(htElement.welInputLogo.val())){
-				htElement.welAlertName.show();
+			    $hive.showAlert(Messages("project.name.alert"));
 				return false;
 			}
 			
-			htElement.welAlertName.hide();
 			return true;
 		}
 

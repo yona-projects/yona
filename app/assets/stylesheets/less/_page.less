@@ -993,7 +993,9 @@
     margin-top: 5px;
     margin-bottom: 5px;
     padding: 5px;
-    background-color: #ECECEC;
+    /*background-color: #ECECEC;*/
+    border-bottom:1px solid #ececec;
+    
     .stats-wrap {
         padding: 0px 0px 5px 0px;
         overflow: hidden;
@@ -1161,8 +1163,8 @@
             }
 
             &.advanced {
-                /*height:210px;*/
-                border-bottom: 1px solid #D6D6D6;
+                /*height:210px;
+                border-bottom: 1px solid #D6D6D6;*/
 
                 .srch-advanced {
                     text-align:left;
@@ -1517,7 +1519,7 @@
 
 .project-menu {
     border:1px solid #e7e7e7;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
 
     ul { margin:0 !important; }
     li { line-height:40px; padding:0; .inline-block; }
@@ -1831,10 +1833,20 @@
         }
 
         &.logo {
+            position:relative;
             width:260px; height:188px;
             background-repeat:no-repeat;
             background-position:center;
             .background-size(cover);
+            
+            .edit {
+                position:absolute;
+                top:0px; right:0px;
+                color:#fff; text-shadow:1px 1px #000;
+                padding:5px 10px;
+                font-weight:bold;
+                i { vertical-align:top; margin-top:2px; }
+            }
         }
 
         &.project-info {
@@ -2766,6 +2778,13 @@ div.markdown-preview {
         background-color: rgb(36, 36, 36);
         border:none; margin:0 !important;
         .border-radius(0px);
+        
+        .linenum {
+            display:inline-block;
+            width:40px; background:#555; color:#fff;
+            text-align:right;
+            padding-right:3px; margin-right:6px;
+        }
     }
 
     .btnResize {

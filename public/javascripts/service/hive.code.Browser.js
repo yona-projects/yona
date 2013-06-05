@@ -64,8 +64,18 @@
                     if( isImageFile(path)) {
                         $("pre").html("<img src='./image" + path + "'>");
                     } else {
-                        $("pre").text(data.data);
-                        $("pre").highlight();
+                        $("#lineCode").text(data.data);
+                        $("#lineCode").highlight();
+                        
+                        // show line number
+                        var sHTML = $("#lineCode").html();
+                        var aLines = sHTML.split("\n");
+                        var nLength = aLines.length;
+                        for(var i = 0; i < nLength; i++){
+                            aLines[i] = '<span class="linenum">' + (i+1) + '</span>' + aLines[i];
+                        }
+                        $("#lineCode").html('<ol class="unstyled"><li>' + aLines.join('</li><li>') + '</li></ol>');
+                        // -- 
                     }
 		            $("#rawCode").attr("href", "rawcode"+path);
 		            $("#fileList").hide();

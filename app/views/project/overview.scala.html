@@ -52,7 +52,13 @@
     </div>
 
     <div class="bubble-wrap dark-gray project-home">
-        <div class="inner logo" style="background-image:url('@projectLogoImage');"></div>
+        <div class="inner logo" style="background-image:url('@projectLogoImage');">
+            @if(isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)){
+            <div class="edit">
+                <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="icon-edit icon-white"></i> @Messages("project.setting")</a>
+            </div>
+            }
+        </div>
         <div class="inner project-info">
             <header>
                 <h3>@Messages("project.info")</h3>
