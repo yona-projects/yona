@@ -249,11 +249,11 @@ $hive = hive.Common = (function(){
 	 */
 	function showAlert(sMessage, fOnAfterHide){
 		if(!htVar.oAlertDialog){
-			htVar.oAlertDialog = new hive.ui.Dialog("#hiveAlert");
+			htVar.oAlertDialog = new hive.ui.Dialog("#hiveDialog");
 		}
 		
 		htVar.oAlertDialog.show(sMessage, {
-			"fOnAfterHide": fCallback
+			"fOnAfterHide": fOnAfterHide
 		});
 	}
 	
