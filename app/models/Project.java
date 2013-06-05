@@ -281,10 +281,10 @@ public class Project extends Model {
      */
     public Date lastUpdateDate() {
         try {
-            GitRepository gitRepo = new GitRepository(owner, name);
-            List<String> branches = RepositoryService.getRepository(this)
-                    .getBranches();
-            if (!branches.isEmpty()) {
+            PlayRepository repository = RepositoryService.getRepository(this);
+            List<String> branches = repository.getBranches();
+            if (!branches.isEmpty() && repository instanceof GitRepository) {
+                GitRepository gitRepo = new GitRepository(owner, name);
                 List<Commit> history = gitRepo.getHistory(0, 2, "HEAD");
                 return history.get(0).getAuthorDate();
             }
