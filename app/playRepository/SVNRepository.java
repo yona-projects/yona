@@ -209,6 +209,7 @@ public class SVNRepository implements PlayRepository {
         diffClient.doDiff(svnURL, null, SVNRevision.create(rev), SVNRevision.create(rev - 1),
                 SVNDepth.INFINITY, true, byteArrayOutputStream);
 
+
         return byteArrayOutputStream.toString();
     }
 
@@ -245,7 +246,9 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public List<String> getBranches() {
-        return new ArrayList<String>();
+        ArrayList<String> branches = new ArrayList<>();
+        branches.add(SVNRevision.HEAD.getName());
+        return branches;
     }
 
     @Override
