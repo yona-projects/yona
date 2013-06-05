@@ -1,6 +1,7 @@
 @(title: String, milestone: models.Milestone, project: Project)
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
+@import utils.AccessControl._
 
 @urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
 
@@ -20,7 +21,7 @@
             <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
             <span class="date">(@milestone.until)</span>
             }
-            <span class="badge badge-issue-@milestone.state.state.toLowerCase">@Messages("issue.state." + milestone.state.state)</span>
+            <span class="badge badge-issue-@milestone.state.state.toLowerCase">@Messages("milestone.state." + milestone.state.state)</span>
         </small>
     </h3>
 
@@ -36,50 +37,63 @@
         </div>
     </div>
 
-    <hr>
-    <div class="desc">
+    <div class="milestone-desc">
         @milestone.contents
     </div>
 
-    <hr>
-    <ol class="issue-list">
-        @for(issue <- milestone.issues){
-        <li class="issue">
-            <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
-            <div class="attach-wrap">
-                @if(Attachment.findByContainer(issue.asResource).size > 0){
-                <i class="ico ico-clip"></i>
-                }
-            </div>
-            <div class="contents">
-                <p class="title">
-                    <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
-                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                    <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
+    <div class="issues">
+        <h5>
+            @Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong>
+        </h5>
+        <ol class="issue-list">
+            @for(issue <- milestone.issues){
+            <li class="issue">
+                <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
+                <div class="attach-wrap">
+                    @if(Attachment.findByContainer(issue.asResource).size > 0){
+                    <i class="ico ico-clip"></i>
                     }
-                </p>
-                <p class="infos nm">by
-                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
-                    <span class="date">@agoString(issue.ago)</span>
-                </p>
-            </div>
-            <div class="right-panel">
-                <div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
-                <div class="comment-wrap">
-                    <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
                 </div>
-                @if(issue.assignee != null) {
-                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded pull-right">
-                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assignee.user.name"></a>
-                }
-            </div>
-        </li>
-        }
-    </ol>
+                <div class="contents">
+                    <p class="title">
+                        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
+                        @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
+                        }
+                    </p>
+                    <p class="infos nm">by
+                        <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
+                        <span class="date">@agoString(issue.ago)</span>
+                    </p>
+                </div>
+                <div class="right-panel">
+                    <div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
+                    <div class="comment-wrap">
+                        <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
+                    </div>
+                    @if(issue.assignee != null) {
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded pull-right">
+                        <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assignee.user.name"></a>
+                    }
+                </div>
+            </li>
+            }
+        </ol>
+    </div>
 
-    <div class="actrow pull-right">
-        <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("button.delete")</a>
+    <div class="actrow pull-right" style="margin-top: 15px;">
+        @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
+        <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("button.delete")</a>
+        }
+        @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
         <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
+            @if(milestone.state == State.OPEN) {
+                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium orange">@Messages("milestone.close")</a>
+            }
+            @if(milestone.state == State.CLOSED) {
+                <a href="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium orange">@Messages("milestone.open")</a>
+            }
+        }
         <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium orange">@Messages("button.list")</a>
     </div>
 
