@@ -360,11 +360,13 @@ public class User extends Model {
     public void addWatching(Project project) {
         getWatchingProjects().add(project);
         project.upWatcingCount();
+        project.update();
     }
 
     public void removeWatching(Project project) {
         getWatchingProjects().remove(project);
         project.downWathcingCount();
+        project.update();
     }
 
     public static boolean isWatching(Project project) {
