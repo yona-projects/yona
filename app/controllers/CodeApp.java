@@ -1,6 +1,7 @@
 package controllers;
 
 import models.Project;
+import models.User;
 import models.enumeration.Operation;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
@@ -96,5 +97,16 @@ public class CodeApp extends Controller {
         } else {
             return null;
         }
+    }
+
+    public static String getURLWithLoingid(Project project) {
+        String url = getURL(project);
+        if(url != null) {
+            String loginId = session().get(UserApp.SESSION_LOGINID);
+            if(loginId != null && !loginId.isEmpty()) {
+                url = url.replace("://", "://" + loginId + "@");
+            }
+        }
+        return url;
     }
 }

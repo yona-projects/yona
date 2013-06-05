@@ -39,7 +39,7 @@
     <div class="input-prepend project-hometop-wrap">
     	<div class="vcs-wrap pull-left">
         <span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!--
-    	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)">
+    	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoingid(project)">
         </div>
         <div class="issue-wrap btn-group pull-right">
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">

@@ -37,8 +37,8 @@
 
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
-			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
-			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
+			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoingid(project)"><!--
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
 
 			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
@@ -64,7 +64,7 @@
 			</div>
 			<div class="btnResize cell">|||</div>
 			<div class="sp-wrap cell"></div>
-			
+
 			@** 파일 목록 **@
 			<div id="fileList" class="file-wrap cell">
 				<table class="code-table sources">
@@ -80,13 +80,13 @@
 				</table>
 			</div>
 			@** // **@
-			
+
 			@** 파일 보기 **@
 			<div id="fileView" class="file-wrap cell" style="display:none;">
 				<div class="file-header nm">
 					<div id="fileInfo" class="file-info">
-						<span id="commiter" class="commiter"></span> | 
-						<span id="commitDate" class="commitDate"></span> | 
+						<span id="commiter" class="commiter"></span> |
+						<span id="commitDate" class="commitDate"></span> |
 						<span id="revisionNo" class="revision"></span> |
 						<span id="commitMessage" calss="commitMsg"></span>
 					</div>

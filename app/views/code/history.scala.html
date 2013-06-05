@@ -32,9 +32,9 @@
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
 			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
-			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!--
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoingid(project)"><!--
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
-             
+
              <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
 				<button class="btn dropdown-toggle large" data-toggle="dropdown">
 					<span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
