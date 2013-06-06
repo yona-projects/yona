@@ -169,7 +169,7 @@ public class History {
             postingHistory.setWhat("post");
             postingHistory.setShortTitle("#" + posting.number);
             postingHistory.setHow(posting.title);
-            postingHistory.setUrl("/" + userName + "/" + project.name + "/post/" + posting.id);
+            postingHistory.setUrl("/" + userName + "/" + project.name + "/post/" + posting.number);
             histories.add(postingHistory);
         }
     }
@@ -185,7 +185,7 @@ public class History {
             issueHistory.setWhat("issue");
             issueHistory.setShortTitle("#" + issue.number);
             issueHistory.setHow(issue.title);
-            issueHistory.setUrl("/" + userName + "/" + project.name + "/issue/" + issue.id);
+            issueHistory.setUrl("/" + userName + "/" + project.name + "/issue/" + issue.number);
             histories.add(issueHistory);
         }
     }

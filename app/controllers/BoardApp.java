@@ -129,7 +129,7 @@ public class BoardApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), post.asResource());
 
-        return redirect(routes.BoardApp.post(project.owner, project.name, post.id));
+        return redirect(routes.BoardApp.post(project.owner, project.name, post.getNumber()));
     }
 
     /**
@@ -142,12 +142,12 @@ public class BoardApp extends AbstractPostingApp {
      * 
      * @param userName 프로젝트 소유자
      * @param projectName 프로젝트 이름
-     * @param postId 게시물ID
+     * @param number 게시물number
      * @return
      */
-    public static Result post(String userName, String projectName, Long postId) {
+    public static Result post(String userName, String projectName, Long number) {
         Project project = ProjectApp.getProject(userName, projectName);
-        Posting post = Posting.finder.byId(postId);
+        Posting post = Posting.findByNumber(project, number);
         
         if (post == null) {
             return notFound(views.html.error.notfound.render("error.notfound", project, "post"));
@@ -169,14 +169,14 @@ public class BoardApp extends AbstractPostingApp {
      * 수정 권한을 체크하고 접근 권한이 없다면 forbidden 처리한다.
      * 공지작성 권한이 있다면 등록 폼에서 공지사항 여부 체크 박스를 활성화한다.
      *
-     * @param userName 프로젝트 소유자
+     * @param owner 프로젝트 소유자
      * @param projectName 프로젝트 이름
-     * @param postId 게시물ID
+     * @param number 게시물number
      * @return
      */
-    public static Result editPostForm(String userName, String projectName, Long postId) {
-        Posting posting = Posting.finder.byId(postId);
-        Project project = ProjectApp.getProject(userName, projectName);
+    public static Result editPostForm(String owner, String projectName, Long number) {
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Posting posting = Posting.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -185,7 +185,7 @@ public class BoardApp extends AbstractPostingApp {
         Form<Posting> editForm = new Form<Posting>(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
-        return ok(edit.render("board.post.modify", editForm, postId, project, isAllowedToNotice));
+        return ok(edit.render("board.post.modify", editForm, number, project, isAllowedToNotice));
     }
 
     /**
@@ -197,16 +197,16 @@ public class BoardApp extends AbstractPostingApp {
      * 
      * @param userName 프로젝트 소유자
      * @param projectName 프로젝트 이름
-     * @param postId 게시물ID
+     * @param number 게시물number
      * @return
      * @see controllers.AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form, play.mvc.Call, utils.Callback)
      */
-    public static Result editPost(String userName, String projectName, Long postId) {
+    public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         final Posting post = postForm.get();
-        final Posting original = Posting.finder.byId(postId);
-        Call redirectTo = routes.BoardApp.post(project.owner, project.name, postId);
+        final Posting original = Posting.findByNumber(project, number);
+        Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
         Callback updatePostingBeforeUpdate = new Callback() {
             @Override
             public void run() {
@@ -224,15 +224,15 @@ public class BoardApp extends AbstractPostingApp {
      * 
      * 게시물을 삭제하고 게시물 목록 첫 페이지로 돌아간다
      * 
-     * @param userName 프로젝트 소유자
+     * @param owner 프로젝트 소유자
      * @param projectName 프로젝트 이름
-     * @param postingId 게시물ID
+     * @param number 게시물number
      * @return
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
-    public static Result deletePost(String userName, String projectName, Long postingId) {
-        Posting posting = Posting.finder.byId(postingId);
-        Project project = posting.project;
+    public static Result deletePost(String owner, String projectName, Long number) {
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
 
         return delete(posting, posting.asResource(), redirectTo);
@@ -246,17 +246,17 @@ public class BoardApp extends AbstractPostingApp {
      * validation check 하여 오류가 있다면 bad request
      * 작성된 댓글을 저장하고 게시물 상세화면으로 돌아간다
      * 
-     * @param userName 프로젝트 소유자
+     * @param owner 프로젝트 소유자
      * @param projectName 프로젝트 이름
-     * @param postId 게시물ID
+     * @param number 게시물number
      * @return
      * @throws IOException
      * @see controllers.AbstractPostingApp#newComment(models.Comment, play.date.Form, play.mvc.Call, utils.Callback)
      */
-    public static Result newComment(String userName, String projectName, Long postId) throws IOException {
-        final Posting posting = Posting.finder.byId(postId);
-        Project project = posting.project;
-        Call redirectTo = routes.BoardApp.post(project.owner, project.name, postId);
+    public static Result newComment(String owner, String projectName, Long number) throws IOException {
+        Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        final Posting posting = Posting.findByNumber(project, number);
+        Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
         Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class)
                 .bindFromRequest();
 
@@ -283,17 +283,16 @@ public class BoardApp extends AbstractPostingApp {
      * 
      * @param userName 프로젝트 소유자
      * @param projectName 프로젝트 이름
-     * @param postId 게시물ID
+     * @param number 게시물number
      * @param commentId 댓글ID
      * @return
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
-    public static Result deleteComment(String userName, String projectName, Long postId,
-            Long commentId) {
+    public static Result deleteComment(String userName, String projectName, Long number, Long commentId) {
         Comment comment = PostingComment.find.byId(commentId);
         Project project = comment.asResource().getProject();
         Call redirectTo =
-                routes.BoardApp.post(project.owner, project.name, comment.getParent().id);
+                routes.BoardApp.post(project.owner, project.name, number);
 
         return delete(comment, comment.asResource(), redirectTo);
     }

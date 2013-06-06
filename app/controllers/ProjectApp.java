@@ -49,7 +49,7 @@ public class ProjectApp extends Controller {
     /** 자동완성에서 보여줄 최대 프로젝트 개수 */
     private static final int MAX_FETCH_PROJECTS = 1000;
 
-	private static final int COMMIT_HISTORY_PAGE = 1;
+	private static final int COMMIT_HISTORY_PAGE = 0;
 
 	private static final int COMMIT_HISTORY_SHOW_LIMIT = 5;
 
