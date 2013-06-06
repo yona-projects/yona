@@ -107,13 +107,13 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 이슈 목록 조회
-     * 
+     *
      * <p>when: 프로젝트의 이슈 목록 진입, 이슈 검색</p>
-     * 
+     *
      * 현재 사용자가 프로젝트에 권한이 없다면 Forbidden 으로 응답한다.
      * 입력된 검색 조건이 있다면 적용하고 페이징 처리된 목록을 보여준다.
      * 요청 형식({@code format})이 엑셀(xls)일 경우 목록을 엑셀로 다운로드한다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param state 이슈 상태 (해결 / 미해결)
@@ -165,10 +165,10 @@ public class IssueApp extends AbstractPostingApp {
      * 이슈 조회
      *
      * <p>when: 단일 이슈의 상세내용 조회</p>
-     * 
+     *
      * 접근 권한이 없을 경우, Forbidden 으로 응답한다.
      * 조회하려는 이슈가 존재하지 않을 경우엔 NotFound 로 응답한다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
@@ -198,9 +198,9 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 새 이슈 등록 폼
-     * 
+     *
      * <p>when: 새로운 이슈 작성</p>
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @return
@@ -274,7 +274,11 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (issueMassUpdate.milestone != null) {
-                issue.milestone = issueMassUpdate.milestone;
+                if(issueMassUpdate.milestone.isNullMilestone()) {
+                    issue.milestone = null;
+                } else {
+                    issue.milestone = issueMassUpdate.milestone;
+                }
             }
 
             if (issueMassUpdate.attachingLabel != null) {
@@ -299,14 +303,14 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 새 이슈 등록
-     * 
+     *
      * <p>when: 새 이슈 등록 폼에서 저장</p>
-     * 
+     *
      * 이슈 생성 권한이 없다면 Forbidden 으로 응답한다.
      * 입력 폼에 문제가 있다면 BadRequest 로 응답한다.
      * 이슈 저장전에 임시적으로 사용자에게 첨부되었던 첨부파일들을 이슈 하위로 옮긴다,
      * 저장 이후 목록 화면으로 돌아간다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @return
@@ -344,11 +348,11 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 이슈 수정 폼
-     * 
+     *
      *  <p>when: 기존 이슈 수정</p>
-     *  
+     *
      *  이슈 수정 권한이 없을 경우 Forbidden 으로 응답한다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
@@ -369,13 +373,13 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 이슈 수정
-     * 
+     *
      * <p>when: 이슈 수정 폼에서 저장</p>
-     * 
+     *
      * 폼에서 전달 받은 내용, 마일스톤, 라벨 정보와
      * 기존 이슈에 작성되어 있던 댓글 정보를 정리하여 저장한다.
      * 저장후 목록 화면으로 돌아간다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
@@ -387,6 +391,7 @@ public class IssueApp extends AbstractPostingApp {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
+
         final Project project = ProjectApp.getProject(ownerName, projectName);
         final Issue originalIssue = Issue.findByNumber(project, number);
 
@@ -412,16 +417,18 @@ public class IssueApp extends AbstractPostingApp {
         String milestoneId = issueForm.data().get("milestoneId");
         if(milestoneId != null && !milestoneId.isEmpty()) {
             issue.milestone = Milestone.findById(Long.parseLong(milestoneId));
+        } else {
+            issue.milestone = null;
         }
     }
 
     /**
      * 이슈 삭제
-     * 
+     *
      * <p>when: 이슈 조회화면에서 삭제</p>
-     * 
+     *
      * 이슈 번호에 해당하는 이슈 삭제 후 이슈 목록 화면으로 돌아간다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
@@ -439,11 +446,11 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 댓글 작성
-     * 
+     *
      * <p>when: 이슈 조회화면에서 댓글 작성하고 저장</p>
-     * 
+     *
      * 현재 사용자를 댓글 작성자로 하여 저장하고 이슈 조회화면으로 돌아간다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param number 이슈 번호
@@ -474,12 +481,12 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 댓글 삭제
-     * 
+     *
      * <p>when: 댓글 삭제 버튼</p>
-     * 
+     *
      * 댓글을 삭제하고 이슈 조회 화면으로 돌아간다.
      * 삭제 권한이 없을 경우 Forbidden 으로 응답한다.
-     * 
+     *
      * @param ownerName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param issueNumber 이슈 번호
@@ -499,12 +506,12 @@ public class IssueApp extends AbstractPostingApp {
 
     /**
      * 이슈 라벨 구성
-     * 
+     *
      * <p>when: 새로 이슈를 작성하거나, 기존 이슈를 수정할때</p>
-     * 
+     *
      * {@code request} 에서 이슈 라벨 ID들을 추출하여 이에 대응하는 이슈라벨 정보들을
      * {@code labels} 에 저장한다.
-     * 
+     *
      * @param labels 이슈 라벨을 저장할 대상
      * @param request 요청 정보 (이슈라벨 ID를 추출하여 사용한다)
      */

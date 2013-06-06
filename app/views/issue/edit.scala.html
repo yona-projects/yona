@@ -11,12 +11,12 @@
 
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
-  
-	<div class="content-wrap frm-wrap">  
-    
+
+	<div class="content-wrap frm-wrap">
+
     @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.getNumber), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
     <input type="hidden" name="authorId" value="@issue.authorId">
-    
+
     <dl>
     	<dt>
 			<label for="title"><!-- <strong class="secondary-txt">#@issue.id</strong>-->@Messages("post.new.title")</label>
@@ -36,7 +36,7 @@
     @** end of fileUploader **@
 
 	<br>
-	
+
 	<!-- issue options -->
 	<ul id="options" class="options unstyled issue-options">
 		@if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
@@ -67,7 +67,7 @@
 						<span class="d-caret"><span class="caret"></span></span>
 					</button>
 					<ul class="dropdown-menu">
-                        <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li> 
+                        <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li>
 						@ProjectUser.options(project.id).map{ v =>
 						<li data-value="@v._1" @if(issue.assignee != null && issue.assignee.user.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
 						}
@@ -76,7 +76,7 @@
              </div>
 		</li>
 		}
-		
+
 		@if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
 		<li class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
@@ -97,14 +97,14 @@
 		</li>
 		}
 	</ul>
-	
+
 	<!-- issue.label js module appends a label selector here. -->
 	<p class="option-label">@Messages("label.select")</p>
 	<fieldset class="labels issue-form-labels form-horizontal bubble-wrap gray"></fieldset>
 
 	<div class="actions">
 	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
-	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a> 
+	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
 	</div>
 	@** <!-- @routes.IssueApp.issues(project.owner, project.name, "all") --> **@
 
@@ -118,7 +118,7 @@
 	$(document).ready(function(){
 		// hive.Label
 		var htOptLabel = {
-			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)", 
+			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
 			"htActive"     : {@for(label <- issue.labels) { "@label.id":"@label.color", }"":""}
 		};
@@ -126,7 +126,7 @@
         @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
 			htOptLabel.bEditable = true;
 		}
-		
+
 		// hive.issue.Write
 		$hive.loadModule("issue.Write", {
 			"sMode"			 : "edit",

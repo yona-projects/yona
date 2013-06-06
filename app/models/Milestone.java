@@ -25,6 +25,8 @@ public class Milestone extends Model {
 
     public static String DEFAULT_SORTER = "dueDate";
 
+    public static final Long NULL_MILESTONE_ID = -1l;
+
     @Id
     public Long id;
 
@@ -43,7 +45,7 @@ public class Milestone extends Model {
     @ManyToOne
     public Project project;
 
-    @OneToMany
+    @OneToMany(mappedBy = "milestone")
     public Set<Issue> issues;
 
     public void delete() {
@@ -246,4 +248,9 @@ public class Milestone extends Model {
         this.state = State.CLOSED;
         super.update();
     }
+
+    public boolean isNullMilestone() {
+        return this.id.equals(NULL_MILESTONE_ID);
+    }
+
 }

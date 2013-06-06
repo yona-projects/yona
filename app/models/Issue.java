@@ -1,5 +1,6 @@
 package models;
 
+import com.avaje.ebean.Ebean;
 import jxl.*;
 import jxl.format.*;
 import jxl.format.Colour;
@@ -111,6 +112,16 @@ public class Issue extends AbstractPosting {
     public void update() {
         fetchAssignee();
         super.update();
+    }
+
+    @Override
+    public void updateProperties() {
+        // update null milestone explicitly
+        if(this.milestone == null) {
+            HashSet<String> updateProps = new HashSet<>();
+            updateProps.add("milestone");
+            Ebean.update(this, updateProps);
+        }
     }
 
     /**
