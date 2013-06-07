@@ -5,6 +5,7 @@ import controllers.SearchApp;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import org.joda.time.Duration;
+import play.Logger;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.*;
@@ -96,7 +97,9 @@ abstract public class AbstractPosting extends Model {
             number = increaseNumber();
         }
         numOfComments = computeNumOfComments();
+        Logger.debug(String.format(">> new posting: before== #:%s by %s, %s, %s", number, authorLoginId, title, new Date() ));
         super.save();
+        Logger.debug(String.format(">> new posting: after == #:%s, id:%s", number, id ));
     }
 
     /**
