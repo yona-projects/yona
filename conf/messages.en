@@ -238,7 +238,7 @@ post.notice = notice
 
 #Project
 project.myproject = My Projects
-project.watchingproject = Watching Projects
+project.watchingproject = Watching
 project.create = Create a project
 project.name = Project Name
 project.name.placeholder = input project name
@@ -300,11 +300,11 @@ project.wrongName = Project name is wrong
 project.tags = Tags
 project.license = License
 project.codeLanguage = Programming Language
-project.onmember = <strong>{0}</strong> members
-project.onwatching = <strong>{0}</strong> watchers
+project.onmember = <i class="icon-user icon-middle"></i><strong>{0}</strong>
+project.onwatching = <strong>{0}</strong>
 project.lastUpdate = Last Update
-project.createdByMe = create...
-project.belongsToMe = I'm a member of...
+project.createdByMe = Create
+project.belongsToMe = Member of
 
 # project.history.item: {0}=who ,{1}=what ,{2}=how
 project.history.item = {0} {1} {2}
@@ -473,7 +473,7 @@ userinfo.changePassword = Change Password
 userinfo.changeAvatar = Change Avatar
 userinfo.changeAvatarHelp = Uploaded image will be applied<br>after click 'Edit Profile' button
 userinfo.since = Member Since
-userinfo.leaveProject = Leave this project
+userinfo.leaveProject = Leave
 userinfo.leaveProject.confirm = Are you sure to leave {0}?
 
 #Admin
