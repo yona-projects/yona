@@ -312,6 +312,7 @@ project.history.type.commit = 코드를 커밋했습니다
 project.history.type.issue = 새 이슈를 등록했습니다
 project.history.type.post = 새 글을 작성했습니다
 project.history.type.pullrequest = 새 코드를 보냈습니다.
+project.history.recent = 프로젝트 최근 이력
 
 #Site
 site.sidebar = 사이트 관리

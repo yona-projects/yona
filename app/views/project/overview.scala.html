@@ -98,7 +98,13 @@
         </div>
     </div>
 
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
+        <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</li>
+    </ul>
+    <div class="tab-content">
 	@if(histories.size > 0) {
+        <div class="tab-pane" id="recent">
 	<div class="content-container">
 		<div class="main-stream" style="width:100%;">
 			<ul class="activity-streams unstyled">
@@ -124,8 +130,9 @@
 			</ul>
 		</div>
 	</div>
+            </div>
 	}
-
+        <div class="tab-pane active" id="readme">
     <div class="bubble-wrap dark-gray readme">
         @defining(project.readme) { readme =>
             @if(readme == null) {
@@ -144,6 +151,8 @@
 
 	    @markdown()
     </div>
+            </div>
+        </div>
 </div>
 
 <script type="text/javascript">

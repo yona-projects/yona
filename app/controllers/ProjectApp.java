@@ -51,13 +51,13 @@ public class ProjectApp extends Controller {
 
 	private static final int COMMIT_HISTORY_PAGE = 0;
 
-	private static final int COMMIT_HISTORY_SHOW_LIMIT = 5;
+	private static final int COMMIT_HISTORY_SHOW_LIMIT = 10;
 
-	private static final int RECENLTY_ISSUE_SHOW_LIMIT = 5;
+	private static final int RECENLTY_ISSUE_SHOW_LIMIT = 10;
 
-	private static final int RECENLTY_POSTING_SHOW_LIMIT = 5;
+	private static final int RECENLTY_POSTING_SHOW_LIMIT = 10;
 
-    private static final int RECENT_PULL_REQUEST_SHOW_LIMIT = 5;
+    private static final int RECENT_PULL_REQUEST_SHOW_LIMIT = 10;
 
     private static final int PROJECT_COUNT_PER_PAGE = 10;
 

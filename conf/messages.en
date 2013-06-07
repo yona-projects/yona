@@ -312,6 +312,7 @@ project.history.type.commit = commit
 project.history.type.issue = created an issue
 project.history.type.post = wrote a post
 project.history.type.pullrequest = sent some code
+project.history.recent = Recent History
 
 #Site
 site.sidebar = Site Management
