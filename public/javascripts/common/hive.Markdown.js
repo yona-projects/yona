@@ -26,17 +26,18 @@ hive.Markdown = function(htOptions){
      * Return a regular expresion for autolink.
      */
     function _rxLink() {
-        var sUserPat = "[a-zA-Z0-9-_.]+";
-        var sProjectPat = "[-a-zA-Z0-9_]+";
+        // case insensitive match
+        var sUserPat = "[a-z0-9-_.]+";
+        var sProjectPat = "[-a-z0-9_]+";
         var sNumberPat = "[0-9]+";
-        var sShaPat = "[0-9a-fA-F]{7,40}";
+        var sShaPat = "[0-9a-f]{7,40}";
 
         var sProjectPathPat = sUserPat + "/" + sProjectPat;
         var sTargetPat =
             "#(" + sNumberPat + ")|(@)?(" + sShaPat + ")|@(" + sUserPat + ")";
 
         return new RegExp(
-                "(" + sProjectPathPat + ")?(?:" + sTargetPat + ")", "g");
+                "(\\S*)(" + sProjectPathPat + ")?(?:" + sTargetPat + ")(\\S*)", "gi");
     }
 
 	/**
@@ -80,8 +81,16 @@ hive.Markdown = function(htOptions){
         converter = Markdown.getSanitizingConverter();
 
         converter.hooks.chain("postBlockGamut", function(sText, runBlockGamut) {
-            var makeLink = function(sMatch, sProject, sNum, sAt, sSha, sUser) {
+            var makeLink = function(sMatch, sPre, sProject, sNum, sAt, sSha, sUser, sPost) {
                 var path, text;
+
+                if (sPost) {
+                    return sMatch;
+                }
+
+                if (sPre.substr(0, 4).toLowerCase() == 'http') {
+                    return sMatch;
+                }
 
                 if (sSha && sProject && sAt) {
                     // owner/sProject@2022d330c5858eae9ca9cb5acb9e6a5060563b2c
