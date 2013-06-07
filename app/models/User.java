@@ -45,6 +45,10 @@ public class User extends Model {
      * 사이트 관리자의 id값.
      */
     public static final Long SITE_MANAGER_ID = 1l;
+    /**
+     * 로그인ID 패턴
+     */
+    public static final String LOGIN_ID_PATTERN = "[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*";
 
     //TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
     public static User anonymous = new NullUser();
@@ -62,7 +66,7 @@ public class User extends Model {
     /**
      * 로그인할 때 사용할 아이디
      */
-    @Pattern(value = "^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$", message = "user.wrongloginId.alert") @Required
+    @Pattern(value = "^" + LOGIN_ID_PATTERN + "$", message = "user.wrongloginId.alert") @Required
     @ValidateWith(ReservedWordsValidator.class)
     public String loginId;
     /**

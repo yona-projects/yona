@@ -2,9 +2,13 @@ package utils;
 
 import static org.junit.Assert.*;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import play.data.validation.Constraints.Validator;
+import play.test.FakeApplication;
+import play.test.Helpers;
 
 /**
  * Reserved words Validator tests
@@ -13,6 +17,19 @@ import play.data.validation.Constraints.Validator;
  */
 public class ReservedWordsValidatorTest {
     private Validator<String> validator = new ReservedWordsValidator();
+    private static FakeApplication application;
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+        application = Helpers.fakeApplication(Helpers.inMemoryDatabase());
+        Helpers.start(application);
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        Helpers.stop(application);
+        application = null;
+    }
 
     @Test
     public void testReserved() {
