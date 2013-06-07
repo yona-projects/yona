@@ -113,9 +113,9 @@ POST    /:user/:project/issue/:number/comments              controllers.IssueApp
 GET     /:user/:project/issue/:number/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
 
 # Label
-GET     /:user/:project/labels                          controllers.IssueLabelApp.labels(user, project)
-POST	/:user/:project/labels					        controllers.IssueLabelApp.newLabel(user, project)
-POST	/:user/:project/label/:id/delete 	            controllers.IssueLabelApp.delete(user, project, id:Long)
+GET     /:user/:project/issue/labels                        controllers.IssueLabelApp.labels(user, project)
+POST	/:user/:project/issue/labels					    controllers.IssueLabelApp.newLabel(user, project)
+POST	/:user/:project/issue/label/:id/delete 	            controllers.IssueLabelApp.delete(user, project, id:Long)
 
 # Git
 GET     /:ownerName/:project/info/refs                  controllers.GitApp.advertise(ownerName:String, project:String, service:String ?= null)
