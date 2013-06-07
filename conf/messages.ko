@@ -300,8 +300,8 @@ project.wrongName = 프로젝트 이름이 올바르지 않습니다.
 project.tags = 태그
 project.license = 라이센스
 project.codeLanguage = 프로그래밍 언어
-project.onmember = 멤버 <strong>{0}명</strong>
-project.onwatching = <strong>{0}개</strong>
+project.onmember = <i class="icon-user icon-middle"></i><strong>{0}</strong>
+project.onwatching = <strong>{0}</strong>
 project.lastUpdate = 마지막 업데이트
 project.createdByMe = 만든 프로젝트
 project.belongsToMe = 프로젝트 멤버
