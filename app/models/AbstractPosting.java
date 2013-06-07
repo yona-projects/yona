@@ -46,6 +46,9 @@ abstract public class AbstractPosting extends Model {
     public String authorLoginId;
     public String authorName;
 
+    @Transient
+    public User author;
+
     @ManyToOne
     public Project project;
 

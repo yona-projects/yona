@@ -234,6 +234,7 @@ post.attachment = 첨부파일
 post.numOfComments = 댓글개수
 post.error.emptyTitle = 글 제목을 입력해주세요
 post.error.emptyBody = 글 내용을 입력해주세요
+post.notice = 공지
 
 #Project
 project.myproject = 내 프로젝트
