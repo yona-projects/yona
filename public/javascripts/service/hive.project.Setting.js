@@ -79,7 +79,7 @@
 		 * 프로젝트 설정 저장 버튼 클릭시
 		 */
 		function _onClickBtnSave(){
-			if(!htVar.rxPrjName.test(htElement.welInputLogo.val())){
+			if(!htVar.rxPrjName.test(htElement.welInputName.val())){
 			    $hive.showAlert(Messages("project.name.alert"));
 				return false;
 			}

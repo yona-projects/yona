@@ -45,7 +45,7 @@
 					<label for="project-name">@Messages("project.name.placeholder")</label>
                 </dt>
                 <dd>
-                    <input type="text" name="name" maxlength="250" value="@project.name">
+                    <input id="project-name" type="text" name="name" maxlength="250" value="@project.name">
                     <!-- @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250") -->
                 </dd>
                 
@@ -53,7 +53,7 @@
                 	<label for="project-desc">@Messages("project.description.placeholder")</label>
                 </dt>
                 <dd>
-                	<textarea name="overview" class="textarea">@project.overview</textarea>
+                    <textarea id="project-desc" name="overview" class="textarea">@project.overview</textarea>
                     <!-- @textarea(projectForm("overview"), 'class->"textarea") -->
                 </dd>
             </dl>
