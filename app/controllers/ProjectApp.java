@@ -153,6 +153,10 @@ public class ProjectApp extends Controller {
     public static Result settingForm(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             return unauthorized(views.html.error.unauthorized.render(project));
         }
@@ -288,6 +292,11 @@ public class ProjectApp extends Controller {
      */
     public static Result deleteForm(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             return unauthorized(views.html.error.unauthorized.render(project));
         }
@@ -309,6 +318,10 @@ public class ProjectApp extends Controller {
      */
     public static Result deleteProject(String loginId, String projectName) throws Exception {
 	Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+
+	if (project == null) {
+            return notFound();
+        }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(loginId, projectName, project.vcs);
@@ -335,6 +348,10 @@ public class ProjectApp extends Controller {
     public static Result members(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             return unauthorized(views.html.error.unauthorized.render(project));
         }
@@ -370,6 +387,10 @@ public class ProjectApp extends Controller {
         User user = User.findByLoginId(form(User.class).bindFromRequest().get().loginId);
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
             return redirect(routes.ProjectApp.members(loginId, projectName));
@@ -399,6 +420,10 @@ public class ProjectApp extends Controller {
     public static Result deleteMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
+        if (project == null) {
+            return notFound();
+        }
+
         if (UserApp.currentUser().id == userId
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
@@ -427,6 +452,10 @@ public class ProjectApp extends Controller {
      */
     public static Result editMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
@@ -539,6 +568,11 @@ public class ProjectApp extends Controller {
      */
     public static Result tags(String owner, String projectName) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden();
         }
@@ -569,6 +603,11 @@ public class ProjectApp extends Controller {
      */
     public static Result tag(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)) {
             return forbidden();
         }
@@ -632,6 +671,11 @@ public class ProjectApp extends Controller {
      */
     public static Result untag(String ownerName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (project == null) {
+            return notFound();
+        }
+
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)) {
             return forbidden();
         }

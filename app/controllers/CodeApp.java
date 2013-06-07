@@ -24,6 +24,9 @@ public class CodeApp extends Controller {
 	public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return unauthorized(views.html.error.unauthorized.render(project));
@@ -90,7 +93,9 @@ public class CodeApp extends Controller {
     }
 
     public static String getURL(Project project) {
-        if (RepositoryService.VCS_GIT.equals(project.vcs)) {
+        if (project == null) {
+            return null;
+        } else if (RepositoryService.VCS_GIT.equals(project.vcs)) {
             return utils.Url.create(Arrays.asList(project.owner, project.name), request().host());
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
             return utils.Url.create(Arrays.asList("svn", project.owner, project.name), request().host());

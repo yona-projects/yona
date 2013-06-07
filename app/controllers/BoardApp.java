@@ -56,6 +56,9 @@ public class BoardApp extends AbstractPostingApp {
      */
     public static Result posts(String userName, String projectName, int pageNum) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -88,6 +91,9 @@ public class BoardApp extends AbstractPostingApp {
      */
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
@@ -109,6 +115,9 @@ public class BoardApp extends AbstractPostingApp {
     public static Result newPost(String userName, String projectName) {
         Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -147,8 +156,11 @@ public class BoardApp extends AbstractPostingApp {
      */
     public static Result post(String userName, String projectName, Long number) {
         Project project = ProjectApp.getProject(userName, projectName);
+        if (project == null) {
+            return notFound();
+        }
+
         Posting post = Posting.findByNumber(project, number);
-        
         if (post == null) {
             return notFound(views.html.error.notfound.render("error.notfound", project, "post"));
         }
@@ -176,7 +188,14 @@ public class BoardApp extends AbstractPostingApp {
      */
     public static Result editPostForm(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        if (project == null) {
+            return notFound();
+        }
+
         Posting posting = Posting.findByNumber(project, number);
+        if (posting == null) {
+            return notFound(views.html.error.notfound.render("error.notfound", project, "post"));
+        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -204,6 +223,9 @@ public class BoardApp extends AbstractPostingApp {
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
+        if (project == null) {
+            return notFound();
+        }
         final Posting post = postForm.get();
         final Posting original = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
@@ -232,6 +254,9 @@ public class BoardApp extends AbstractPostingApp {
      */
     public static Result deletePost(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        if (project == null) {
+            return notFound();
+        }
         Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
 
@@ -255,6 +280,9 @@ public class BoardApp extends AbstractPostingApp {
      */
     public static Result newComment(String owner, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
+        if (project == null) {
+            return notFound();
+        }
         final Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
         Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class)

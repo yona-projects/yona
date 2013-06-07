@@ -125,6 +125,9 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -176,8 +179,11 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result issue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
-        Issue issueInfo = Issue.findByNumber(project, number);
+        if (project == null) {
+            return notFound();
+        }
 
+        Issue issueInfo = Issue.findByNumber(project, number);
         if (issueInfo == null) {
             return notFound(views.html.error.notfound.render("error.notfound", project, "issue"));
         }
@@ -208,6 +214,9 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         return newPostingForm(project, ResourceType.ISSUE_POST,
                 create.render("title.newIssue", new Form<Issue>(Issue.class), project));
@@ -237,6 +246,9 @@ public class IssueApp extends AbstractPostingApp {
         IssueMassUpdate issueMassUpdate = issueMassUpdateForm.get();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         int updatedItems = 0;
         int rejectedByPermission = 0;
@@ -319,6 +331,9 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
             return forbidden(views.html.error.forbidden.render(project));
@@ -360,6 +375,9 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
@@ -393,6 +411,9 @@ public class IssueApp extends AbstractPostingApp {
         setMilestone(issueForm, issue);
 
         final Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
         final Issue originalIssue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
@@ -437,6 +458,9 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
         Issue issue = Issue.findByNumber(project, number);
         Call redirectTo =
             routes.IssueApp.issues(project.owner, project.name, State.OPEN.state(), "html", 1);
@@ -460,6 +484,9 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
         final Issue issue = Issue.findByNumber(project, number);
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)

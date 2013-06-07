@@ -46,6 +46,9 @@ public class IssueLabelApp extends Controller {
         }
 
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden("You have no permission to access the project '" + project + "'.");
@@ -92,6 +95,9 @@ public class IssueLabelApp extends Controller {
         Form<IssueLabel> labelForm = new Form<IssueLabel>(IssueLabel.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound();
+        }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
             return forbidden("You have no permission to add an issue label to the project '" +

@@ -69,6 +69,10 @@ public class SvnApp extends Controller {
         // Check the user has a permission to access this repository.
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
+        if (project == null) {
+            return notFound();
+        }
+
         PlayRepository repository = RepositoryService.getRepository(project);
         if (!AccessControl.isAllowed(currentUser, repository.asResource(),
                 getRequestedOperation(request().method()))) {
