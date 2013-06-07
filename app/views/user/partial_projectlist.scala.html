@@ -48,8 +48,9 @@
                 <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
 		        @if(user.loginId != project.owner && user.loginId == session.get("loginId") && !User.isWatching(project)){
 		        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
-		        }
-                @if(session.get("loginId") != project.owner){
+                }
+                @if(session.get("loginId") != project.owner && !ProjectUser.isMember(User.findByLoginId(session.get("loginId")).id, project.id)){
+
                     @if(User.isWatching(project)){
                         <span data-toggle="tooltip" title="unwatch" data-placement="right">
                             <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn purple small last"><i class="icon-star icon-middle icon-white"></i> unwatch</a>
@@ -73,3 +74,6 @@
         });
     });
 </script>
+@loginUser() = {
+    @User.findByLoginId(session.get("loginId"))
+}
