@@ -73,7 +73,7 @@
 				return false;
 			}
 			
-			if(htVar.rxDateFormat.test(sDueDate) === false){
+			if(sDueDate.length > 0 && htVar.rxDateFormat.test(sDueDate) === false){
 				$hive.showAlert(Messages("milestone.error.duedateFormat"));
 				return false;
 			}
