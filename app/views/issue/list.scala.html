@@ -104,7 +104,7 @@
 	</div>
 	}
 
-    <form id="mass-update-form" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
+    <form id="mass-update-form" class="mass-update-form" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
         <div id="state" class="btn-group" data-name="state">
             <button class="btn dropdown-toggle large" data-toggle="dropdown" disabled>
                 <span class="d-label">@Messages("issue.update.state")</span>
@@ -187,40 +187,56 @@
 	<ol class="issue-list">
 		@for(issue <- currentPage.getList){
 	    <li class="issue">
-            <div class="num"><input type="checkbox" name="checked-issue" data-issue-id="@issue.id"></div>
+            <div><input type="checkbox" name="checked-issue" data-issue-id="@issue.id"></div>
 	        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
-	        <div class="attach-wrap">
-			@if(Attachment.findByContainer(issue.asResource).size > 0){
-	        	<i class="ico ico-clip"></i>
-	        }
-	        </div>
+            <div class="author-avatar-space">
+                <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap img-rounded">
+                    <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" alt="@issue.authorName">
+                </a>
+            </div>
 	        <div class="contents">
-	            <p class="title">
-			<a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
-					@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                        <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
+                <div class="title">
+                    <div style="display: inline">
+                        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
+                    </div>
+                    <div style="display: inline">
+                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        <button class="label issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
                     }
-	            </p>
+                    </div>
+
+                </div>
+
 	            <p class="infos nm">by
                     <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
                     <span class="date">@agoString(issue.ago)</span>
+                    @if(issue.milestone != null) {
+                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
+                            <code>@issue.milestone.title</code>
+                        </a>
+                    }
                 </p>
 	        </div>
 	        <div class="right-panel">
+                <div class="empty-avatar-space">
+                @if(issue.assigneeName != null) {
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded">
+                        <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
+                    </a>
+                }
+                @if(issue.assigneeName == null) {
+                    &nbsp;
+                }
+                </div>
                 <div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
                 <div class="comment-wrap">
+                @if(Attachment.findByContainer(issue.asResource).size > 0){
+                    <i class="ico ico-clip icon-middle"></i>
+                }
+                @if(issue.comments.size()>0){
                     <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
+                }
                 </div>
-                @if(issue.milestone != null) {
-                <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
-                    <code>@issue.milestone.title</code>
-                </a>
-                }
-                @if(issue.assigneeName != null) {
-                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded">
-                    <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
-                </a>
-                }
 	        </div>
 	    </li>
 	    }

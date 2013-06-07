@@ -1405,7 +1405,6 @@
 }
 
 .bubble-wrap {
-    padding: 20px 0 10px;
     overflow: hidden;
     margin-bottom: 20px;
     .border-radius(10px);
@@ -1647,6 +1646,7 @@
 .filter-wrap {
     margin-bottom: 15px;
     overflow: hidden;
+    display: inline;
 
     .filters {
         color:#666;
@@ -1973,49 +1973,6 @@
         }
         .readme-body {
             padding: 25px;
-        }
-    }
-}
-
-.board-list {
-    .board {
-        border-bottom: 1px solid @gray-d4;
-        padding: 15px 20px;
-        &:hover { background:#f7f7f7; }
-
-        > div {
-            display: table-cell;
-            vertical-align: top;
-        }
-        .num { width: 35px; color: #B2B2B2; }
-        .attach-wrap {
-            width: 35px;
-            text-align: center;
-            .ico { margin-top: 5px; }
-        }
-        .contents {
-            width: 590px;
-            padding-right: 90px;
-            .title {
-                margin-bottom: 5px;
-                text-align:justify;
-                a { display:block; }
-            }
-            .infos {
-                line-height: 14px;
-                font-size: 11px;
-                color: #999;
-                .author { color: #696969; }
-            }
-        }
-        .right-panel {
-            width: 90px;
-            .comment-wrap {
-                float: left;
-                margin-top: 7px;
-                .ico { vertical-align: bottom; margin-right: 5px; }
-                .num { color: @blue; }
-            }
         }
     }
 }
@@ -2387,23 +2344,29 @@ div.markdown-preview {
     .border-radius(5px);
 }
 
-.issue-list {
+.issue-list, .board-list{
     margin: 0;
     padding: 0;
     list-style: none;
 
-    .issue {
+    .issue, .board{
         border-bottom: 1px solid @gray-d4;
-        padding: 15px 20px;
+        padding: 10px;
         &:hover { background:#f7f7f7; }
+        input[type="checkbox"] {
+          margin-right: 10px;
+          margin-bottom: 3px;
+        }
 
         > div {
             display: table-cell;
-            vertical-align: top;
+            vertical-align: middle;
         }
         .num {
             width: 35px;
             color: #B2B2B2;
+            vertical-align: middle;
+            font-size: 12px;
         }
         .attach-wrap {
             width: 35px;
@@ -2413,14 +2376,13 @@ div.markdown-preview {
             }
         }
         .contents {
-            width: 590px;
-            padding-right: 40px;
+            width: 720px;
+            padding-right: 20px;
             .title {
                 margin-bottom: 5px;
                 text-align:justify;
+                font-weight: bold;
                 a {
-                    display:block;
-                    display:-webkit-box;
                     overflow:hidden;
                     text-overflow:clip; /*ellipsis;*/
                     -webkit-line-clamp:4;
@@ -2437,10 +2399,19 @@ div.markdown-preview {
                 }
             }
         }
+        .author-avatar-space{
+          width:32px;
+          padding-right: 10px;
+          .img-rounded {
+            .inline-block;
+            width:40px; height:40px;
+          }
+        }
         .right-panel {
-            width: 150px;
+            width: 160px;
+            padding-right: 10px;
             .state {
-                float:left;
+                float:right;
                 margin-top:7px;
                 margin-right:13px;
                 font-weight:bold;
@@ -2450,8 +2421,16 @@ div.markdown-preview {
                     color:@blue;
                 }
              }
+            .avatar-wrap {
+              float: right;
+            }
+            .empty-avatar-space{
+              width:32px;
+              display:inline-block;
+              float:right
+            }
             .comment-wrap {
-                float: left;
+                float: right;
                 margin-top: 7px;
                 margin-right:15px;
 
@@ -3375,4 +3354,8 @@ div.markdown-preview {
         display:inline-block; width:83px;
         text-align:center;
     }
+}
+
+.mass-update-form {
+  margin-bottom: 10px;
 }

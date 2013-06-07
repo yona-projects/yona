@@ -234,6 +234,7 @@ post.attachment = Attachment
 post.numOfComments = Comment Count
 post.error.emptyTitle = Title is required
 post.error.emptyBody = Post with empty body cannot be created
+post.notice = notice
 
 #Project
 project.myproject = My Projects
