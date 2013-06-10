@@ -48,7 +48,7 @@
 			htElement.welBtnAdvance = $(".btn-advanced");		
 			htElement.welPagination = $(htOptions.elPagination || "#pagination");
 
-			htElement.waLabels    = $("button.issue-label[data-color]"); // 목록 > 라벨
+			htElement.waLabels    = $("a.issue-label[data-color]"); // 목록 > 라벨
 
             htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
