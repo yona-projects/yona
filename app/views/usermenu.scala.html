@@ -20,7 +20,7 @@
                     <li class="divider"></li>
                     <li class="disabled"><span><i class="icon icon-star"></i> @Messages("project.watchingproject") (@watchingProjects.size())</span></li>
                     @for(project <- watchingProjects){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span> (@project.owner)</a></li>
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                     }
                 }
             }
@@ -30,14 +30,14 @@
                     <li class="disabled"><span>@Messages("project.createdByMe") (@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</span></li>
                     @for(project <- myProjects){
                         @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span> (@project.owner)</a></li>
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span></a></li>
                         }
                     }
                     <li class="divider"></li>
                     <li class="disabled"><span>@Messages("project.belongsToMe") (@(myProjects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()))</span></li>
                     @for(project <- myProjects){
                         @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span> (@project.owner)</a></li>
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                         }
                     }
                 }

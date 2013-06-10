@@ -2,32 +2,35 @@
 @import utils.TemplateHelper._
 <li class="project">
     <div class="info-wrap">
-        <div class="header">
-            <a href="@routes.UserApp.userInfo(project.owner)" class="avatar-wrap">
-                <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name" width="32" height="32">
+        @if(user.loginId != project.owner){
+        <div class="owner-avatar-wrap">
+            <a href="@routes.UserApp.userInfo(project.owner)">
+                <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name">
             </a>&nbsp;
-            @if(project.owner != user.loginId){
-            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+        </div>
+        }
+        <div style="float:left">
+            <div class="header">
+                <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+                @if(!project.isPublic){ <i class="ico ico-lock"></i> }
+            </div>
+            @if(project.isFork()){
+            <div class="forked label">
+                <i class="icon-random icon-white vmiddle"></i>
+                &nbsp;@Messages("fork.original")
+                <span>/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
+                <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
+            </div>
             }
-            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-            @if(!project.isPublic){ <i class="ico ico-lock"></i> }
-        </div>
-        @if(project.isFork()){
-        <div class="desc label" style="padding:3px 5px; font-size:11px">
-            <i class="icon-random icon-white vmiddle"></i>
-            &nbsp;@Messages("fork.original")
-            <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
-            <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
-        </div>
-        }
-        <div class="desc tag">
-        @for(tag <- project.tags) {
-            <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
-        }
-        </div>
-        <div class="desc">@project.overview</div>
-        <div class="name-tag">
-            <span>@agoString(project.ago)</span> @Messages("project.lastUpdate")
+            <div class="desc tag">
+            @for(tag <- project.tags) {
+                <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
+            }
+            </div>
+            <div class="desc">@project.overview</div>
+            <div class="name-tag">
+            <span>by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> (@agoString(project.ago)</span> @Messages("project.lastUpdate"))
+            </div>
         </div>
     </div>
     <div class="stats-wrap pull-right">
@@ -37,7 +40,7 @@
                 @if(member.loginId != project.owner){
                 <li>
                     <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
-                        <img src="@member.avatarUrl" alt="@member.name" width="32" height="32">
+                        <img src="@member.avatarUrl" alt="@member.name">
                     </a>
                 </li>
                 }
@@ -46,18 +49,18 @@
             <span>
                 @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
                 <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
-		        @if(user.loginId != project.owner && user.loginId == session.get("loginId") ){
+                <br/>
+            @if(user.loginId != project.owner && user.loginId == session.get("loginId") ){
 		        <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black small last leaveProject"><i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")</a>
-                }
-                @if(session.get("loginId") != project.owner && !ProjectUser.isMember(User.findByLoginId(session.get("loginId")).id, project.id)){
-
+            }
+                @if(session.get("loginId") != project.owner ){
                     @if(User.isWatching(project)){
                         <span data-toggle="tooltip" title="unwatch" data-placement="right">
-                            <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn small last"><i class="icon-star icon-middle icon-white"></i> unwatch</a>
+                            <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn small last"><i class="icon-star icon-middle icon-white"></i></a>
                         </span>
                     } else {
                         <span data-toggle="tooltip" title="watch" data-placement="right">
-                            <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn  purple small last "><i class="icon-star-empty icon-middle icon-white"></i> watch</a>
+                            <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn  purple small last "><i class="icon-star-empty icon-middle icon-white"></i></a>
                         </span>
                     }
                 }
