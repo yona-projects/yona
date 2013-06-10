@@ -6,6 +6,7 @@
 @import scala.collection.immutable.Map
 @import models.enumeration._
 @import utils.AccessControl._
+@import scala.collection.mutable.ArrayBuffer
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
@@ -15,6 +16,10 @@
 	} else {
 	    <a href="@urlToList&orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
 	}
+}
+
+@makeLabelLink(project:Project, param:IssueApp.SearchCondition, label:IssueLabel) = {
+    <a href="@urlToList + "&orderBy=" + @param.orderBy + "&filter=" + @param.filter + "&labelIds=" + @label.id" class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 
 @main(Messages(title), project, utils.MenuType.ISSUE){
@@ -35,7 +40,7 @@
                     </div>
 					<input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
 					<input type="hidden" name="state"   value="@param.state">
-					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")"><!--
+					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
 	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
 
@@ -187,7 +192,7 @@
 	<ol class="issue-list">
 		@for(issue <- currentPage.getList){
 	    <li class="issue">
-            <div><input type="checkbox" name="checked-issue" data-issue-id="@issue.id"></div>
+            <div><input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id"></div>
 	        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
             <div class="author-avatar-space">
                 <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap img-rounded">
@@ -195,13 +200,14 @@
                 </a>
             </div>
 	        <div class="contents">
+                <label for="issue-@issue.id">
                 <div class="title">
                     <div style="display: inline">
                         <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
                     </div>
                     <div style="display: inline">
                     @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                        <button class="label issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
+                        @makeLabelLink(project, param, label)
                     }
                     </div>
 
@@ -216,6 +222,7 @@
                         </a>
                     }
                 </p>
+                </label>
 	        </div>
 	        <div class="right-panel">
                 <div class="empty-avatar-space">

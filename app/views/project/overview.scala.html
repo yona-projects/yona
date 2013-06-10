@@ -63,7 +63,7 @@
             <header>
                 <h3>@Messages("project.info")</h3>
                 @if(isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)){
-                <button type="button" class="nbtn small" data-toggle="button" id="tag-editor-toggle">@Messages("button.edit")</button>
+                <button type="button" class="nbtn small white" data-toggle="button" id="tag-editor-toggle">@Messages("button.edit")</button>
                 }
             </header>
             <ul class="infos" id="tags">
@@ -78,7 +78,7 @@
             <header>
                 <h3>@Messages("project.members")</h3>
                 @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
-                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="nbtn small" id="member-add-link">@Messages("button.add")</a>
+                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="nbtn small white" id="member-add-link">@Messages("button.add")</a>
                 }
             </header>
             <div class="member-wrap">
