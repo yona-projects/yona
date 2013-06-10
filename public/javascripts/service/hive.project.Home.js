@@ -20,27 +20,59 @@
 			_initVar(htOpt);
 			_initElement(htOptions);
 			_attachEvent();			
-            _initTags();
+            _initLabels();
 		}
 
         function _initVar(htOptions){
-            htVar.sURLProjectTags = htOptions.sURLProjectTags;
-            htVar.sURLTags = htOptions.sURLTags;
+            htVar.sURLProjectLabels = htOptions.sURLProjectLabels;
+            htVar.sURLLabels = htOptions.sURLLabels;
+            htVar.sURLLabelCategories = htOptions.sURLLabelCategories;
             htVar.nProjectId = htOptions.nProjectId;
 		}
 
 		/**
 		 * initialize element
 		 */
-		function _initElement(htOptions){
+		function _initElement(htOptions) {
+            var welBtnPlus = $('#plus-button-template').tmpl();
+
 			htElement.welRepoURL = $("#repositoryURL");
 
-            // tags
-            htElement.welInputAddTag = $('input[name="newTag"]');
-            htElement.welTags = $('#tags');
-            htElement.welBtnAddTag = $('#addTag');
-            htElement.welTagEditorToggle = $('#tag-editor-toggle');
-            htElement.waTag = $();
+            // project label
+            htElement.welLabelBoard = htOptions.welLabelBoard;
+            htElement.welLabelEditorToggle = htOptions.welLabelEditorToggle;
+
+            htElement.welInputCategory = $('#label-input-template').tmpl();
+            htElement.welSubmitCategory = $('#label-submit-template').tmpl();
+            htElement.welInputCategory.attr('placeholder', Messages('label.addNewCategory'));
+            htElement.welInputCategory.keypress(_onKeyPressNewCategory);
+            htElement.welSubmitCategory.click(_onClickNewCategory);
+
+            htElement.welInputLabel = $('#label-input-template').tmpl();
+            htElement.welSubmitLabel = $('#label-submit-template').tmpl();
+            htElement.welInputLabel.keypress(_onKeyPressNewLabel);
+            htElement.welInputLabel.attr('placeholder', Messages('label.addNewLabel'));
+            htElement.welSubmitLabel.click(_submitLabel);
+
+            htElement.welInputLabelBox = $('<p>')
+                .append(htElement.welInputLabel)
+                .append(htElement.welSubmitLabel);
+
+            htElement.welInputCategoryBox = $('<p>')
+                .append(htElement.welInputCategory)
+                .append(htElement.welSubmitCategory);
+
+            htElement.welBtnPlusLabel = welBtnPlus.clone();
+            htElement.welBtnPlusCategory = welBtnPlus.clone();
+
+            htElement.aLabel = [];
+            htElement.htCategory = {};
+            htElement.aBtnPlusLabel = [];
+
+            htElement.welNewCategory = $('<li>')
+                .append(htElement.welBtnPlusCategory);
+
+            htElement.welLabelBoard.append(htElement.welNewCategory);
 		}
 		
 		/**
@@ -48,26 +80,29 @@
 		 */
 		function _attachEvent(){
 			htElement.welRepoURL.click(_onClickRepoURL);
-            htElement.welInputAddTag.keypress(_onKeyPressNewTag);
-            htElement.welBtnAddTag.click(_submitTag);
-            htElement.welTagEditorToggle.on('click', function() {
+            htElement.welLabelEditorToggle.on('click', function() {
                 if ($(this).hasClass('active')) {
                     // Now inactive
-                    _hideTagEditor();
+                    $(this).removeClass('active');
+                    $(this).text(Messages("button.edit"));
+                    _hideLabelEditor();
                 } else {
                     // Now active
-                    _showTagEditor();
+                    $(this).addClass('active');
+                    $(this).text(Messages("button.done"));
+                    _showLabelEditor();
                 }
             });
-            
-            new hive.ui.Typeahead(htElement.welInputAddTag, {
-            	"sActionURL": htVar.sURLTags,
+
+            new hive.ui.Typeahead(htElement.welInputCategory, {
+                "sActionURL": htVar.sURLLabelCategories,
                 "htData": {
-                    "context": "PROJECT_TAGGING_TYPEAHEAD",
                     "project_id": htVar.nProjectId,
                     "limit": 8
                 }
             });
+
+            htElement.welBtnPlusCategory.click(_onClickPlusCategory);
 		}
 
 		function _onClickRepoURL(){
@@ -75,145 +110,280 @@
 		}
 
         /**
-        * Add a tag, which user types in htElement.welInputAddTag, into #tags div.
+        * When any key is pressed on input box in any Category line.
         *
         * @param {Object} oEvent
         */
-        function _onKeyPressNewTag(oEvent) {
+        function _onKeyPressNewLabel(oEvent) {
             if (oEvent.keyCode == 13) {
-                _submitTag();
-                htElement.welInputAddTag.val("");
+                _submitLabel();
                 return false;
             }
         }
 
-        function _parseTag(sTag) {
-            var sSeparator = ' - ';
-            var aPart =
-                jQuery.map(sTag.split(sSeparator), function(s) { return s.trim(); });
-            var htTag;
-
-            if (aPart.length > 2) {
-                aPart = [aPart.shift(), aPart.join(sSeparator)];
+        /**
+         * When any key is pressed on input box in New Category line.
+         *
+         * @param {Object} oEvent
+         */
+        function _onKeyPressNewCategory(oEvent) {
+            if (oEvent.keyCode == 13) {
+                _onClickNewCategory();
+                return false;
             }
+        }
 
-            if (aPart.length > 1) {
-                htTag = {"category": aPart[0], "name": aPart[1]};
-            } else if (aPart.length == 1) {
-                htTag = {"category": "Tag", "name": aPart[0]};
-            } else {
-                return null;
-            }
-
-            return htTag;
+        /**
+         * Read data to create a label from input box.
+         */
+        function _labelFromInput() {
+            return {
+                "category": htElement.welInputLabel.data('category'),
+                "name": htElement.welInputLabel.val()
+            };
         }
 
         /**
         * Submit new tag to add that.
         */
-        function _submitTag () {
-            var htTag = _parseTag(htElement.welInputAddTag.val());
+        function _submitLabel() {
+            var htLabel = _labelFromInput();
 
-            if (htTag == null) {
+            if (htLabel == null) {
                 return;
             }
 
-		$hive.sendForm({
-			"sURL"   : htVar.sURLProjectTags,
-			"htData" : htTag,
-			"fOnLoad": _appendTags
-		});
+            htElement.welInputLabel.val("");
+
+            $hive.sendForm({
+                "sURL"   : htVar.sURLProjectLabels,
+                "htData" : htLabel,
+                "fOnLoad": _appendLabels
+            });
+        }
+
+        var aRequired = ["Language", "License"];
+
+        function isRequired(sCategory) {
+            return aRequired.indexOf(sCategory) < 0;
         }
 
         /**
         * Get list of tags from the server and show them in #tags div.
         */
-        function _initTags() {
-		$hive.sendForm({
-			"sURL"     : htVar.sURLProjectTags,
-			"htOptForm": {"method":"get"},
-			"fOnLoad"  : function(data) {
-                    _appendTags(data);
-                    _hideTagEditor();
-                }
-		});
+        function _initLabels() {
+            $hive.sendForm({
+                "sURL"     : htVar.sURLProjectLabels,
+                "htOptForm": {"method":"get"},
+                "fOnLoad"  : function(data) {
+                        _appendLabels(data);
+
+                        for (var i = 0; i < aRequired.length; i++) {
+                            var sCategory = aRequired[i];
+                            if (!htElement.htCategory.hasOwnProperty(sCategory)) {
+                                __addCategory(sCategory);
+                            }
+                        }
+
+                        _hideLabelEditor();
+                    }
+            });
         }
 
         /**
-        * Make a tag element by given instance id and name.
+        * Make a tag element by given instance id and name.)
         *
         * @param {String} sInstanceId
         * @param {String} sName
         */
-        function _createTag(sInstanceId, sName) {
+        function _createLabel(sInstanceId, sName) {
             // If someone clicks a delete button, remove the tag which contains
             // the button, and also hide its category in .project-info div if
             // the category becomes to have no tag.
-            var fOnClickDelete = function() {
-		$hive.sendForm({
-			"sURL"   : htVar.sURLProjectTags + '/' + sInstanceId,
-			"htData" : {"_method":"DELETE"},
-			"fOnLoad": function(){
-                        var welCategory = welTag.parent();
-				welTag.remove();
-                        if (welCategory.children('span').length == 0) {
-                            welCategory.remove();
-                        }
-			}
-		});
+            var fOnLoadAfterDeleteLabel = function() {
+                var welCategory = welLabel.parent().parent();
+                var sCategory = welCategory.data('category');
+                welLabel.remove();
+                if (welCategory.children('.label-list').children().length == 0
+                    && isRequired(sCategory)
+                    && htElement.welInputLabel.data('category') != sCategory) {
+                    delete htElement.htCategory[sCategory];
+                    welCategory.remove();
+                }
             };
 
-            var welDeleteButton = $('<a href="javascript:void(0)">&times;</a>').click(fOnClickDelete);
-            var welTag = $('<span class="label">' + sName + '</span>').append(welDeleteButton);
+            var fOnClickDelete = function() {
+                $hive.sendForm({
+                    "sURL"   : htVar.sURLProjectLabels + '/' + sInstanceId,
+                    "htData" : {"_method":"DELETE"},
+                    "fOnLoad": fOnLoadAfterDeleteLabel
+                });
+            };
 
-            welTag.setRemovability = function(bFlag) {
+            var welDeleteButton = $('#label-delete-button-template')
+                .tmpl()
+                .click(fOnClickDelete);
+
+            var welLabel = $('#label-template')
+                .tmpl({'name': sName})
+                .append(welDeleteButton);
+
+            welLabel.setRemovability = function(bFlag) {
                 if (bFlag === true) {
-                    welTag.addClass('label');
+                    welLabel.addClass('label');
                     welDeleteButton.show();
                 } else {
-                    welTag.removeClass('label');
+                    welLabel.removeClass('label');
                     welDeleteButton.hide();
                 }
             }
 
-            htElement.waTag.push(welTag);
+            htElement.aLabel.push(welLabel);
 
-            return welTag;
+            return welLabel;
         }
 
         /**
         * Append the given tags on #tags div to show them.
         *
-        * @param {Object} htTags
+        * @param {Object} htLabels
         */
-        function _appendTags(htTags) {
-            for(var sInstanceId in htTags) {
-                var waChildren, newCategory;
-                var htTag = _parseTag(htTags[sInstanceId]);
+        function _appendLabels(htLabels) {
+            for(var sInstanceId in htLabels) {
+                var waCategory, welCategory;
+                var htLabel = htLabels[sInstanceId];
 
-                waChildren =
-                    htElement.welTags.children("[category=" + htTag.category + "]");
+                waCategory = htElement.welLabelBoard
+                    .children("[data-category=" + htLabel.category + "]");
 
-                if (waChildren.length > 0) {
-                    waChildren.append(_createTag(sInstanceId, htTag.name));
+                if (waCategory.length > 0) {
+                    waCategory
+                        .children(".label-list")
+                        .append(_createLabel(sInstanceId, htLabel.name));
                 } else {
-                    newCategory = $('<li class="info">')
-                        .attr('category', htTag.category)
-                        .append($('<strong>').text(htTag.category + ' : '))
-                        .append(_createTag(sInstanceId, htTag.name));
-                    htElement.welTags.append(newCategory);
+                    __addCategory(htLabel.category)
+                        .children(".label-list")
+                        .append(_createLabel(sInstanceId, htLabel.name));
                 }
             }
         }
 
         /**
-        * Show all delete buttons for all tags if bFlag is true, and hide if
+         * Create a category consists with category name, labels belong
+         * to this and plus button to add a label.
+         *
+         * @param {String} sCategory
+         * @return {Object} The created category
+         */
+        function _createCategory(sCategory) {
+            var welBtnPlusLabel = htElement.welBtnPlusLabel
+                .clone()
+                .data('category', sCategory)
+                .click(_onClickPlusLabel);
+
+            var welCategory = $('#category-template')
+                .tmpl({'category': sCategory})
+                .append(welBtnPlusLabel);
+
+            welCategory.welBtnPlusLabel = welBtnPlusLabel;
+            htElement.aBtnPlusLabel.push(welBtnPlusLabel);
+
+            return welCategory;
+        }
+
+        function __addCategory(sCategory) {
+            welCategory = _createCategory(sCategory);
+            htElement.htCategory[sCategory] = welCategory;
+            htElement.welNewCategory.before(welCategory);
+
+            return welCategory;
+        }
+
+        /**
+         * Add a category just before `htElement.welNewCategory`.
+         */
+        function _onClickNewCategory() {
+            var sCategory = htElement.welInputCategory.val();
+            var welCategory = htElement.htCategory[sCategory];
+
+            if (!welCategory) {
+                welCategory = __addCategory(sCategory);
+            }
+
+            htElement.welInputCategory.val("");
+            welCategory.welBtnPlusLabel.trigger('click');
+            if (!htElement.welInputCategory.is(":focus")) {
+                htElement.welInputCategory.trigger('focus');
+            }
+        }
+
+        /**
+         * When a plus button in the end of the Label Board is clicked..
+         */
+        function _onClickPlusCategory() {
+            htElement.welInputLabelBox.hide();
+            htElement.welInputCategoryBox.show();
+            $(this).before(htElement.welInputCategoryBox);
+            jQuery.map(htElement.aBtnPlusLabel, function(btn) { btn.show(); });
+            htElement.welBtnPlusCategory.hide();
+
+            if (!htElement.welInputCategory.is(":focus")) {
+                htElement.welInputCategory.trigger('focus');
+            }
+        }
+
+        /**
+         * When a plus button in each category is clicked..
+         */
+        function _onClickPlusLabel() {
+            var sCategory, welCategory, nLabel;
+
+            for (sCategory in htElement.htCategory) {
+                if ($(this).data('category') == sCategory) {
+                    continue;
+                }
+
+                welCategory = htElement.htCategory[sCategory];
+
+                nLabel = welCategory.children('.label-list').children().length;
+
+                if (nLabel == 0 && isRequired(sCategory)) {
+                    delete htElement.htCategory[sCategory];
+                    welCategory.remove();
+                }
+            }
+
+            htElement.welInputLabel.data('category', $(this).data('category'));
+
+            new hive.ui.Typeahead(htElement.welInputLabel, {
+                "sActionURL": htVar.sURLLabels,
+                "htData": {
+                    "category":  $(this).data('category'),
+                    "project_id": htVar.nProjectId,
+                    "limit": 8
+                }
+            });
+
+            htElement.welInputCategoryBox.hide();
+            htElement.welInputLabelBox.show();
+            $(this).after(htElement.welInputLabelBox);
+            jQuery.map(htElement.aBtnPlusLabel, function(btn) { btn.show(); });
+            $(this).hide();
+
+            if (!htElement.welInputLabel.is(":focus")) {
+                htElement.welInputLabel.trigger('focus');
+            }
+        }
+
+        /**
+        * Show all delete buttons for all labels if bFlag is true, and hide if
         * bFlag is false.
         *
         * @param {Boolean} bFlag
         */
-        function _setTagsRemovability(bFlag) {
-            jQuery.map(htElement.waTag, function(tag) { tag.setRemovability(bFlag); });
+        function _setLabelsRemovability(bFlag) {
+            jQuery.map(htElement.aLabel,
+                    function(label) { label.setRemovability(bFlag); });
         }
 
         /**
@@ -221,10 +391,19 @@
         *
         * @param {Boolean} bFlag
         */
-        function _hideTagEditor() {
-            _setTagsRemovability(false);
-            htElement.welInputAddTag.addClass('hidden');
-            htElement.welBtnAddTag.addClass('hidden');
+        function _hideLabelEditor() {
+            _setLabelsRemovability(false);
+
+            jQuery.map(htElement.aBtnPlusLabel, function(btn) { btn.hide(); });
+            htElement.welBtnPlusCategory.hide();
+
+            htElement.welInputCategoryBox.hide();
+            htElement.welInputLabelBox.hide();
+
+            htElement.welLabelBoard
+                .css('height', htVar.nLabelBoardHeight);
+            htElement.welLabelBoard.parent()
+                .css('height', htVar.labelBoardParentHeight);
         }
 
         /**
@@ -232,10 +411,22 @@
         *
         * @param {Boolean} bFlag
         */
-        function _showTagEditor() {
-            _setTagsRemovability(true);
-            htElement.welInputAddTag.removeClass('hidden');
-            htElement.welBtnAddTag.removeClass('hidden');
+        function _showLabelEditor() {
+            _setLabelsRemovability(true);
+
+            jQuery.map(htElement.aBtnPlusLabel, function(btn) { btn.show(); });
+            htElement.welBtnPlusCategory.show();
+
+            htElement.welInputCategoryBox.show();
+            htElement.welInputLabelBox.show();
+
+            htVar.nLabelBoardHeight =
+                htElement.welLabelBoard.css('height');
+            htVar.nLabelBoardParentHeight =
+                htElement.welLabelBoard.parent().css('height');
+
+            htElement.welLabelBoard.css('height', 'auto');
+            htElement.welLabelBoard.parent().css('height', 'auto');
         }
 
 		_init(htOptions || {});

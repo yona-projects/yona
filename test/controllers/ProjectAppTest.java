@@ -1,7 +1,7 @@
 package controllers;
 
+import models.Label;
 import models.Project;
-import models.Tag;
 import models.User;
 import org.codehaus.jackson.JsonNode;
 import org.junit.BeforeClass;
@@ -26,7 +26,7 @@ public class ProjectAppTest {
     }
 
     @Test
-    public void tag() {
+    public void label() {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
@@ -37,7 +37,7 @@ public class ProjectAppTest {
 
                 //When
                 Result result = callAction(
-                        controllers.routes.ref.ProjectApp.tag("hobi", "nForge4java"),
+                        controllers.routes.ref.ProjectApp.attachLabel("hobi", "nForge4java"),
                         fakeRequest()
                                 .withFormUrlEncodedBody(data)
                                 .withHeader("Accept", "application/json")
@@ -48,66 +48,72 @@ public class ProjectAppTest {
                 assertThat(status(result)).isEqualTo(CREATED);
                 Iterator<Map.Entry<String, JsonNode>> fields = Json.parse(contentAsString(result)).getFields();
                 Map.Entry<String, JsonNode> field = fields.next();
-                Tag expected = new Tag();
-                expected.id = Long.valueOf(field.getKey());
-                expected.name = field.getValue().asText();
 
-                assertThat(expected.name).isEqualTo("OS - linux");
-                assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").tags.contains(expected)).isTrue();
+                Label expected = new Label(field.getValue().get("category").asText(), field.getValue().get("name").asText());
+                expected.id = Long.valueOf(field.getKey());
+
+                assertThat(expected.category).isEqualTo("OS");
+                assertThat(expected.name).isEqualTo("linux");
+                assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").labels.contains(expected)).isTrue();
             }
         });
     }
 
     @Test
-    public void tags() {
+    public void labels() {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
                 Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
-                Tag tag1 = new Tag("OS", "linux");
-                tag1.save();
-                project.tags.add(tag1);
+                Label label1 = new Label("OS", "hive-linux");
+                label1.save();
+                project.labels.add(label1);
                 project.update();
 
-                // If null is given as the first parameter, "Tag" is chosen as the category.
-                Tag tag2 = new Tag(null, "foo");
-                tag2.save();
-                project.tags.add(tag2);
+                // If null is given as the first parameter, "Label" is chosen as the category.
+                Label label2 = new Label(null, "foo");
+                label2.save();
+                project.labels.add(label2);
                 project.update();
 
                 //When
-
                 Result result = callAction(
-                        controllers.routes.ref.ProjectApp.tags("hobi", "nForge4java"),
+                        controllers.routes.ref.ProjectApp.labels("hobi", "nForge4java"),
                         fakeRequest().withHeader("Accept", "application/json")
                 );
 
                 //Then
                 assertThat(status(result)).isEqualTo(OK);
                 JsonNode json = Json.parse(contentAsString(result));
-                assertThat(json.has(tag1.id.toString())).isTrue();
-                assertThat(json.has(tag2.id.toString())).isTrue();
-                assertThat(json.get(tag1.id.toString()).asText()).isEqualTo("OS - linux");
-                assertThat(json.get(tag2.id.toString()).asText()).isEqualTo("Tag - foo");
+
+                String id1 = label1.id.toString();
+                String id2 = label2.id.toString();
+
+                assertThat(json.has(id1)).isTrue();
+                assertThat(json.has(id2)).isTrue();
+                assertThat(json.get(id1).get("category").asText()).isEqualTo("OS");
+                assertThat(json.get(id1).get("name").asText()).isEqualTo("hive-linux");
+                assertThat(json.get(id2).get("category").asText()).isEqualTo("Label");
+                assertThat(json.get(id2).get("name").asText()).isEqualTo("foo");
             }
         });
     }
 
     @Test
-    public void untag() {
+    public void detachLabel() {
         running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
             public void run() {
                 //Given
                 Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
-                Tag tag1 = new Tag("OS", "linux");
-                tag1.save();
-                project.tags.add(tag1);
+                Label label1 = new Label("OS", "linux");
+                label1.save();
+                project.labels.add(label1);
                 project.update();
-                Long tagId = tag1.id;
+                Long labelId = label1.id;
 
-                assertThat(project.tags.contains(tag1)).isTrue();
+                assertThat(project.labels.contains(label1)).isTrue();
 
                 Map<String,String> data = new HashMap<String,String>();
                 data.put("_method", "DELETE");
@@ -115,7 +121,8 @@ public class ProjectAppTest {
 
                 //When
                 Result result = callAction(
-                        controllers.routes.ref.ProjectApp.untag("hobi", "nForge4java", tagId),
+                        controllers.routes.ref.ProjectApp.detachLabel("hobi", "nForge4java",
+                                labelId),
                         fakeRequest()
                                 .withFormUrlEncodedBody(data)
                                 .withHeader("Accept", "application/json")
@@ -124,7 +131,7 @@ public class ProjectAppTest {
 
                 //Then
                 assertThat(status(result)).isEqualTo(204);
-                assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").tags.contains(tag1)).isFalse();
+                assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").labels.contains(label1)).isFalse();
             }
         });
     }

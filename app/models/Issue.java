@@ -183,17 +183,17 @@ public class Issue extends AbstractPosting {
         String[] labalArr = {"ID", "STATE", "TITLE", "ASSIGNEE", "DATE"};
 
         for (int i = 0; i < labalArr.length; i++) {
-            sheet.addCell(new Label(i, 0, labalArr[i], cf1));
+            sheet.addCell(new jxl.write.Label(i, 0, labalArr[i], cf1));
             sheet.setColumnView(i, 20);
         }
         for (int i = 1; i < issueList.size() + 1; i++) {
             Issue issue = issueList.get(i - 1);
             int colcnt = 0;
-            sheet.addCell(new Label(colcnt++, i, issue.id.toString(), cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.state.toString(), cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.title, cf2));
-            sheet.addCell(new Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
-            sheet.addCell(new Label(colcnt++, i, issue.createdDate.toString(), cf2));
+            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.id.toString(), cf2));
+            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.state.toString(), cf2));
+            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.title, cf2));
+            sheet.addCell(new jxl.write.Label(colcnt++, i, getAssigneeName(issue.assignee), cf2));
+            sheet.addCell(new jxl.write.Label(colcnt++, i, issue.createdDate.toString(), cf2));
         }
         workbook.write();
 

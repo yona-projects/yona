@@ -52,6 +52,14 @@
 			htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
             htVar.htData = htOptions.htData || {};
 		}
+
+        function data(key, value) {
+            if (value !== undefined) {
+                htVar.htData[key] = value;
+            } else {
+                return htVar.htData[key];
+            }
+        }
 		
 		/**
 		 * 엘리먼트 초기화
@@ -60,11 +68,11 @@
 		 */
 		function _initElement(sQuery){
 			htElement.welInput = $(sQuery);
-			htElement.welInput.typeahead({
-                "minLength": 0,
-                "source"   : _onTypeAhead,
-                "items"    : htVar.htData.limit || 8
-            });
+			htElement.welInput.typeahead({ minLength: 0 });
+            htData = htElement.welInput.data('typeahead');
+			htData.minLength = 0;
+			htData.items = htVar.htData.limit || 8;
+			htData.source = _onTypeAhead;
 		}
 		
         /**
@@ -73,8 +81,8 @@
         * For more information, See "source" option at
         * http://twitter.github.io/bootstrap/javascript.html#typeahead
         *
-        * @param {String} sQuery
-        * @param {Function} fProcess
+
+        * @param {Function} frocess
         */
         function _onTypeAhead(sQuery, fProcess) {
             if (sQuery.match(htVar.sLastQuery) && htVar.bIsLastRangeEntire) {

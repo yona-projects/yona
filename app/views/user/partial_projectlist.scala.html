@@ -23,8 +23,8 @@
             </div>
             }
             <div class="desc tag">
-            @for(tag <- project.tags) {
-                <span class="project-label @tag.category.toLowerCase()">@tag.name</span>
+            @for(label <- project.labels) {
+                <span class="project-label @label.category.toLowerCase()">@label.name</span>
             }
             </div>
             <div class="desc">@project.overview</div>

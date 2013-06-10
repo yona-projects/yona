@@ -64,6 +64,8 @@ label.confirm.delete = 라벨을 삭제하면 이슈에 지정한 라벨도 함�
 label.select = 라벨 선택
 label.error.duplicated = 라벨 생성에 실패했습니다.\n이미 동일한 라벨이 존재할지도 모릅니다.
 label.error.creationFailed = 라벨 생성에 실패했습니다.\n서버에 문제가 있거나 올바른 요청이 아닐 수 있습니다.
+label.addNewCategory = 새 분류 추가
+label.addNewLabel = 새 라벨 추가
 
 order.all = 전체
 order.date = 날짜순
@@ -79,6 +81,7 @@ button.confirm = 확인
 button.cancel = 취소
 button.reset = 다시쓰기
 button.edit = 수정
+button.done = 완료
 button.delete = 삭제
 button.list = 목록
 button.selectFile = 파일 선택

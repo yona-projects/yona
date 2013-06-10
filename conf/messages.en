@@ -64,6 +64,8 @@ label.confirm.delete = Are you Sure?
 label.select = Select Label
 label.error.duplicated = Failed to create new label. It might be same label exists already.
 label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid.
+label.addNewCategory = Add new category
+label.addNewLabel = Add new label
 
 order.all = All
 order.date = Date
@@ -79,6 +81,7 @@ button.confirm = Confirm
 button.cancel = Cancel
 button.reset = Reset
 button.edit = Edit
+button.done = Done
 button.delete = Delete
 button.list = list
 button.selectFile = Select File
