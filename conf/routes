@@ -122,7 +122,8 @@ GET     /:ownerName/:project/info/refs                  controllers.GitApp.adver
 POST    /:ownerName/:project/$service<git-upload-pack|git-receive-pack>       controllers.GitApp.serviceRpc(ownerName:String, project:String, service:String)
 
 # Fork & Pull Request
-GET     /:ownerName/:project/fork                       controllers.PullRequestApp.fork(ownerName:String, project:String)
+GET     /:ownerName/:project/newFork                    controllers.PullRequestApp.newFork(ownerName:String, project:String)
+POST    /:ownerName/:project/fork                       controllers.PullRequestApp.fork(ownerName:String, project:String)
 GET     /:ownerName/:project/pullRequests               controllers.PullRequestApp.pullRequests(ownerName, project)
 GET     /:ownerName/:project/closedPullRequests         controllers.PullRequestApp.closedPullRequests(ownerName, project)
 GET     /:ownerName/:project/sentPullRequests           controllers.PullRequestApp.sentPullRequests(ownerName, project)

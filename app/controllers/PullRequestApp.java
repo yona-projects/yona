@@ -1,9 +1,7 @@
 package controllers;
 
-import models.Project;
-import models.ProjectUser;
-import models.PullRequest;
-import models.User;
+import models.*;
+import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -14,8 +12,10 @@ import play.mvc.Results;
 import playRepository.GitCommit;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
+import utils.AccessControl;
 import utils.Constants;
 import utils.JodaDateUtil;
+import views.html.git.fork;
 import views.html.git.create;
 import views.html.git.list;
 import views.html.git.view;
@@ -33,6 +33,34 @@ import java.util.List;
 public class PullRequestApp extends Controller {
 
     /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트를
+     * 복사하여 현재 접속한 사용자의 새 프로젝트로 생성할 수 있다는 안내 메시지와 안내 정보를 보여준다.
+     *
+     * @param userName
+     * @param projectName
+     * @return
+     */
+    public static Result newFork(String userName, String projectName) {
+        Project project = ProjectApp.getProject(userName, projectName);
+        if(project == null ) {
+            return notFound();
+        }
+
+        if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.FORK)) {
+            return forbidden();
+        }
+
+        User currentUser = UserApp.currentUser();
+        Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, project);
+        if(forkedProject != null) {
+            return ok(fork.render("fork", project, forkedProject, false, new Form<>(Project.class)));
+        } else {
+            Project forkProject = Project.copy(project, currentUser);
+            return ok(fork.render("fork", project, forkProject, true, new Form<>(Project.class)));
+        }
+    }
+
+    /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트를 복사하여 현재 접속한 사용자의 새 프로젝트를 생성한다.
      *
      * 해당 프로젝트를 복사한 프로젝트가 이미 존재한다면, 해당 프로젝트로 이동한다.
@@ -43,7 +71,7 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    public static Result fork(String userName, String projectName) throws GitAPIException, IOException {
+    public static Result fork(String userName, String projectName) {
         User currentUser = UserApp.currentUser();
         if(currentUser.isAnonymous()) {
             flash(Constants.WARNING, "user.login.alert");
@@ -69,21 +97,30 @@ public class PullRequestApp extends Controller {
             return redirect(routes.ProjectApp.project(forkedProject.owner, forkedProject.name));
         }
 
+        // 포크 프로젝트 이름 중복 검사
+        Form<Project> forkProjectForm = new Form<>(Project.class).bindFromRequest();
+        if (Project.exists(UserApp.currentUser().loginId, forkProjectForm.field("name").value())) {
+            flash(Constants.WARNING, "project.name.duplicate");
+            forkProjectForm.reject("name");
+            return redirect(routes.PullRequestApp.newFork(originalProject.owner, originalProject.name));
+        }
+
         // 새 프로젝트 생성
-        Project forkProject = new Project();
-        forkProject.name = newProjectName(currentUser.loginId, originalProject.name);
-        forkProject.overview = originalProject.overview;
-        forkProject.vcs = originalProject.vcs;
-        forkProject.owner = currentUser.loginId;
-        forkProject.isPublic = originalProject.isPublic;
+        Project forkProject = Project.copy(originalProject, currentUser);
+        Project projectFromForm = forkProjectForm.get();
+        forkProject.name = projectFromForm.name;
+        forkProject.isPublic = projectFromForm.isPublic;
         originalProject.addFork(forkProject);
 
         // git clone으로 Git 저장소 생성하고 새 프로젝트를 만들고 권한 추가.
-        GitRepository.cloneRepository(originalProject, forkProject);
-        Long projectId = Project.create(forkProject);
-        ProjectUser.assignRole(currentUser.id, projectId, RoleType.MANAGER);
-
-        return redirect(routes.ProjectApp.project(forkProject.owner, forkProject.name));
+        try {
+            GitRepository.cloneRepository(originalProject, forkProject);
+            Long projectId = Project.create(forkProject);
+            ProjectUser.assignRole(currentUser.id, projectId, RoleType.MANAGER);
+            return redirect(routes.ProjectApp.project(forkProject.owner, forkProject.name));
+        } catch (Exception e) {
+            return internalServerError(e.getMessage());
+        }
     }
 
     /**
@@ -382,30 +419,7 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequests(userName, projectName));
     }
 
-    /**
-     * {@code loginId}와 {@code projectName}으로 새 프로젝트 이름을 생성한다.
-     *
-     * 기존에 해당 프로젝트와 동일한 이름을 가진 프로젝트가 있다면 프로젝트 이름 뒤에 -1을 추가한다.
-     * '프로젝트이름-1'과 동일한 프로젝트가 있다면 뒤에 숫자를 계속 증가시킨다.
-     *
-     * @param loginId
-     * @param projectName
-     * @return
-     */
-    private static String newProjectName(String loginId, String projectName) {
-        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        if(project == null) {
-            return projectName;
-        }
 
-        for(int i = 1 ; ; i++) {
-            String newProjectName = projectName + "-" + i;
-            project = Project.findByOwnerAndProjectName(loginId, newProjectName);
-            if(project == null) {
-                return newProjectName;
-            }
-        }
-    }
 
 
     /**

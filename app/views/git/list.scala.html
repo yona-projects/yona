@@ -5,7 +5,7 @@
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
         <div class="pull-right">
-            <a href="@routes.PullRequestApp.fork(project.owner, project.name)" class="nbtn medium">
+            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium">
                 @Messages("fork")
                 <span class="num-badge">@project.forkingProjects.size</span>
             </a>

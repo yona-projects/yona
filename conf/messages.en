@@ -484,7 +484,7 @@ admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
 
 #Attachment
 attach.attachIfYouSave = will be attached when you save
-attach.error = Upload failed by server error 
+attach.error = Upload failed by server error
 attach.drophere = Drop files here or
 attach.clickbutton = click Upload button
 attach.multipleNotYet = Multiple upload does not supported yet
@@ -516,3 +516,7 @@ pullRequest = PullRequest
 pullRequest.menu.overview = Overview
 pullRequest.menu.commit = Commits
 already.existing.fork.alert = Moved to existing fork project
+fork.go = Go
+fork.already.exist = There is already forked the same project.
+fork.help.message.1 = Forking is a great way to contribute to a project even though you don't have write access.
+fork.help.message.2 = After forking a project, you can sent pull requests to contribute your code.

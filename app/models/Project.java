@@ -677,4 +677,40 @@ public class Project extends Model {
             pullRequest.delete();
         }
     }
+
+    /**
+     * {@code loginId}와 {@code projectName}으로 새 프로젝트 이름을 생성한다.
+     *
+     * 기존에 해당 프로젝트와 동일한 이름을 가진 프로젝트가 있다면 프로젝트 이름 뒤에 -1을 추가한다.
+     * '프로젝트이름-1'과 동일한 프로젝트가 있다면 뒤에 숫자를 계속 증가시킨다.
+     *
+     * @param loginId
+     * @param projectName
+     * @return
+     */
+    private static String newProjectName(String loginId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        if(project == null) {
+            return projectName;
+        }
+
+        for(int i = 1 ; ; i++) {
+            String newProjectName = projectName + "-" + i;
+            project = Project.findByOwnerAndProjectName(loginId, newProjectName);
+            if(project == null) {
+                return newProjectName;
+            }
+        }
+    }
+
+    public static Project copy(Project project, User user) {
+        Project copyProject = new Project();
+        copyProject.name = newProjectName(user.loginId, project.name);
+        copyProject.overview = project.overview;
+        copyProject.vcs = project.vcs;
+        copyProject.owner = user.loginId;
+        copyProject.isPublic = project.isPublic;
+        return copyProject;
+    }
+
 }

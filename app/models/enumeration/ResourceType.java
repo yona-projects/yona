@@ -23,7 +23,8 @@ public enum ResourceType {
     ISSUE_COMMENT("issue_comment"),
     NONISSUE_COMMENT("nonissue_comment"),
     TAG("tag"),
-    PROJECT_TAGS("project_tags");
+    PROJECT_TAGS("project_tags"),
+    FORK("fork");
 
     private String resource;
 
