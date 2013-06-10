@@ -653,7 +653,7 @@ public class ProjectApp extends Controller {
                 return ok(toJson(tags));
             }
         } else {
-            // Return 204 No Content if the tag has been attached already.
+            // Return 204 No Content if the tag is already attached.
             return status(Http.Status.NO_CONTENT);
         }
     }
