@@ -1,41 +1,89 @@
 @(projects:List[Project], orderString:String)
 @import utils.TemplateHelper._
+
+@countProjectCreated = @{
+    Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()
+}
+
+@countProjectBelongs(projects:List[Project]) = @{
+    projects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()
+}
+
 @if(projects != null){
-    <p class="my-project-head">@Messages("project.createdByMe") (@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</p>
-    @for(project <- projects){
-        @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
-        <li class="my-project">
-            <div class="project-header">
-                <div class="name-wrap">
-                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-                        <strong>
-                            @project.name
-                            @if(!project.isPublic){
-                            <i class="ico ico-lock"></i>
-                            }
-                        </strong><i class="ico ico-gray-arrow-right"></i>
-                    </a>
-                </div>
-        </li>
-        }
-    }
-    <p class="my-project-head">@Messages("project.belongsToMe") (@(projects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()))</p>
-    @for(project <- projects){
-        @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
-            <li class="my-project">
-                <div class="project-header">
-                    <div class="name-wrap">
-                        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
-                        <strong>
-                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-                            @project.name
-                            @if(!project.isPublic){
-                                <i class="ico ico-lock"></i>
-                            }
-                        </strong><i class="ico ico-gray-arrow-right"></i>
-                    </a>
-                </div>
-            </li>
-        }
-    }
+
+<ul class="nav nav-tabs my-projects-tab">
+	<li class="active">
+	   <a href="#createdProjects" data-toggle="tab">@Messages("project.createdByMe") <span class="num-badge">@countProjectCreated</span></a>
+	</li>
+	<li>
+	   <a href="#belongedProjects" data-toggle="tab">@Messages("project.belongsToMe") <span class="num-badge">@countProjectBelongs(projects)</span></a>
+    </li>
+</ul>
+
+<div class="my-projects">
+    <div class="filters">
+        <span class="ordertype-date">
+            @if(orderString == "createdDate desc"){
+                <a href="@routes.Application.index()?order=createdDate"><strong>@Messages("order.recent")</strong> <i class="icon-chevron-down"></i></a>
+            } else {
+                @if(orderString == "createdDate"){
+                <a href="@routes.Application.index()?order=createdDate desc"><strong>@Messages("order.recent")</strong> <i class="icon-chevron-up"></i></a>
+                } else {
+                <a href="@routes.Application.index()?order=createdDate">@Messages("order.recent")</a>
+                }
+            }
+        </span>
+
+        <span class="delimeter"> | </span>
+        
+        <span class="ordertype-name">
+            @if(orderString == "name desc"){
+                <a href="@routes.Application.index()?order=name"><strong>@Messages("order.name")</strong> <i class="icon-chevron-down"></i></a>
+            } else {
+                @if(orderString == "name"){
+                <a href="@routes.Application.index()?order=name desc"><strong>@Messages("order.name")</strong> <i class="icon-chevron-up"></i></a>
+                } else {
+                <a href="@routes.Application.index()?order=name">@Messages("order.name")</a>
+                }
+            }
+        </span>
+    </div>
+
+    <div class="tab-content">
+	    <ul id="createdProjects" class="unstyled tab-pane active">
+	    @for(project <- projects){
+	        @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
+	        <li class="my-project">
+	            <div class="project-header">
+	                <div class="name-wrap">
+	                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+	                        <strong>@project.name @if(!project.isPublic){ <i class="ico ico-lock"></i> }</strong><!-- 
+	                     --><i class="ico ico-gray-arrow-right"></i>
+	                    </a>
+	                </div>
+	        </li>
+	        }
+	    }
+	    </ul>
+	
+	    <ul id="belongedProjects" class="unstyled tab-pane">
+	    @for(project <- projects){
+	        @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
+	            <li class="my-project">
+	                <div class="project-header">
+	                    <div class="name-wrap">
+	                        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+	                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+	                            <strong>@project.name @if(!project.isPublic){ <i class="ico ico-lock"></i> }</strong><!-- 
+	                         --><i class="ico ico-gray-arrow-right"></i>
+	                        </a>
+	                    </a>
+	                </div>
+	            </li>
+	        }
+	    }
+	    </ul>
+    </div>
+</div>
+
 }
