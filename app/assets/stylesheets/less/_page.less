@@ -1231,29 +1231,56 @@
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
         .info-wrap {
-            width: 650px;
-            float: left;
+            .owner-avatar-wrap {
+                display: inline;
+                float: left;
+                width: 50px;
+                height: 50px;
+                margin-right: 10px;
+                border: 1px solid #DDD9D9;
+                border-radius: 3px !important;
+                position: relative;
+                img {
+                  position: absolute;
+                  top: 0;
+                  bottom: 0;
+                  margin: auto;
+                }
+            }
             .header {
                 font-size: 20px;
                 font-weight: bold;
                 margin-bottom: 5px;
                 .project-name {
-                    color: @gray-99;
+                    color: #686868;
                     &:hover { color:@primary; }
                 }
             }
+            .forked{
+              padding:3px 5px;
+              text-shadow: none;
+              color:lightgray;
+              font-size:11px;
+              margin-left: 10px;
+              a {
+                color: lightgray;
+              }
+            }
             .desc {
-                margin-left:50px;
+                margin-left:10px;
                 white-space:nowrap;
                 overflow: hidden;
                 text-overflow:ellipsis;
+                color: #bababa;
             }
             .name-tag {
                 margin: 0;
-                margin-left:50px;
+                margin-left:10px;
                 font-size: 11px;
                 color: #999;
-                a { color: #696969; }
+                .owner-name-small{
+                  font-size: 12px;
+                }
             }
         }
         .stats-wrap {
@@ -1298,9 +1325,6 @@
     // -- userinfo -- //
     &.user-streams {
         .project {
-            .info-wrap {
-                width: 450px;
-            }
             &:first-of-type {
                 padding-top:5px;
             }
