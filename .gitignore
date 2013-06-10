@@ -22,3 +22,5 @@ bin
 .svn
 nohup.out
 tags
+Thumbs.db
+Thumbs.db\:encryptable

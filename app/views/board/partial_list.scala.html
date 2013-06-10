@@ -9,15 +9,15 @@
     </div>
     <div class="contents">
         <p class="title">
-            @if(post.notice == true){<span class="label label-important">@Messages("post.notice")</span>&nbsp;}<a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.title</a>
+            @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}<a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.title</a>
             @if(Attachment.findByContainer(post.asResource).size > 0){
                 <i class="ico ico-clip icon-middle"></i>
             }
         </p>
         <p class="infos nm">
-					by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!--
-        -->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
-				</p>
+            by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorLoginId</a><!--
+            -->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
+        </p>
     </div>
     <div class="right-panel">
         <div class="comment-wrap">

@@ -55,17 +55,18 @@
 
 	} else {
 
-	@if(milestones.length > 1){
-		<div class="filter-wrap milestone">
+    <div class="milestone-legend">
+        <i class="gray"></i>@Messages("issue.state.open")
+        <i class="blue"></i>@Messages("issue.state.assigned")
+        <i class="orange"></i>@Messages("issue.state.closed")
+    </div>
+    
+    @if(milestones.length > 1){
+    <div class="filter-wrap milestone">
 		<div class="filters">
 			@makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("order.dueDate"))
 			@makeFilterLink("completionRate", param.orderBy, param.orderDir, Messages("order.completionRate"))
 		</div>
-       	<div class="legend">
-       		<i class="gray"></i>@Messages("issue.state.open")
-            <i class="blue"></i>@Messages("issue.state.assigned")
-            <i class="orange"></i>@Messages("issue.state.closed")
-       	</div>
     </div>
     }
 
@@ -91,10 +92,10 @@
                     }
                     <div class="issue-wrap btn-group pull-right">
                         <a href="@makeIssuesLink(milestone.id,"open")" class="btn">
-                            @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
+                            @Messages("issue.state.open") <strong class="num-badge open">@milestone.getNumOpenIssues</strong>
                         </a>
                         <a href="@makeIssuesLink(milestone.id,"closed")" class="btn">
-                            @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
+                            @Messages("issue.state.closed") <strong class="num-badge closed">@milestone.getNumClosedIssues</strong>
                         </a>
                     </div>
                 </div>

@@ -1642,7 +1642,7 @@
 .filter-wrap {
     margin-bottom: 15px;
     overflow: hidden;
-    display: inline;
+    display: block;/*inline;*/
 
     .filters {
         color:#666;
@@ -1657,21 +1657,7 @@
 
     //-- milestone
     &.milestone {
-        margin-top: -8px;
-    }
-    .legend {
-        float:right;
-        color:#999;
-        i {
-           .inline-block;
-           .border-radius(2px);
-           width:7px; height:7px;
-           margin:0 3px;
-           &.orange { background:@orange; }
-           &.blue { background:@blue;     }
-           &.gray { background:#B1B1B1;   }
-        }
-        margin-right:54px; /*10px;*/
+        margin-top: -20px;
     }
 
     //-- board, user
@@ -1682,6 +1668,20 @@
 }
 
 //-- milestone
+.milestone-legend {
+    width:700px; text-align:right;
+    color:#999;
+    i {
+       .inline-block;
+       .border-radius(2px);
+       width:7px; height:7px;
+       margin:0 3px;
+       &.orange { background:@orange; }
+       &.blue { background:@blue2;     }
+       &.gray { background:#B1B1B1;   }
+    }
+}
+
 .milestones {
     list-style: none;
     margin: 0;
@@ -1714,11 +1714,16 @@
                 .title    { font-size:20px; font-weight:bold; }
                 .sp       { margin: 0 5px; color:#E4E4E4; }
                 .due-date { color: #666; /*999;*/ }
+                .num-badge {
+                    &.open { }
+                    &.closed { color:@primary; }
+                }
             }
             .progress-wrap {
                 overflow: hidden;
                 color: #999;
                 font-size: 11px;
+                margin-top:15px;
             }
             .desc {
                 font-size: 11px;
@@ -1754,6 +1759,7 @@
         }
     }
 }
+/*
 .milestone-tabs {
     li a {
         padding-left:34px; padding-right:34px;
@@ -1762,6 +1768,15 @@
         box-shadow:inset 0px 1px 1px #fff;
     }
 }
+*/
+.milestone-desc {
+    background: #efefef;
+    padding: 10px;
+    margin: 15px 0;
+    border-top: 1px solid #ccc;
+    .border-radius(2px);    
+}
+
 
 
 //-- new milestone
@@ -1937,7 +1952,11 @@
         .repo-info;
         padding:0; line-height:30px;
 
-        .repo-url { width:540px; }
+        .repo-url { 
+            width:570px;
+            font-family:Consolas,Tahoma,Verdana !important;
+            background:#f5f5f5;
+        }
     }
 
     .issue-wrap {
@@ -2001,8 +2020,10 @@
         vertical-align: top;
     }
     .board-id {
-        width: 35px;
+        width: 35px; 
+        line-height:16px;
         padding-right: 10px;
+        font-size:14px;
     }
     .title {
         width: 655px;
@@ -2374,12 +2395,21 @@ div.markdown-preview {
         .contents {
             width: 720px;
             padding-right: 20px;
+
+            label {
+                display:block;
+                margin:0;padding:0; 
+            }
             .title {
                 margin-bottom: 5px;
                 text-align:justify;
                 font-weight: bold;
+                
+                .label-notice {
+                    background:@secondary;
+                }
                 a {
-                    overflow:hidden;
+                   overflow:hidden;
                     text-overflow:clip; /*ellipsis;*/
                     -webkit-line-clamp:4;
                     -webkit-box-orient:vertical;
@@ -2504,7 +2534,10 @@ div.markdown-preview {
     .repo-url {
         cursor: text;
         margin: 0;
-        width: 340px; /*357px;*/
+        width: 420px;
+        font-family:Consolas,Tahoma,Verdana !important;
+        background:#f5f5f5;
+        
         .box-shadow(none);
         .border-radius(2px 0 0 2px);
         &:focus {
@@ -2751,7 +2784,9 @@ div.markdown-preview {
         color: @gray-d4;
         overflow-x: auto;
         background-color: rgb(36, 36, 36);
-        border:none; margin:0 !important;
+        border:none; 
+        margin:0 !important;
+        padding:0 !important;
         .border-radius(0px);
         
         .linenum {

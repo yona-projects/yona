@@ -81,7 +81,7 @@
         </ol>
     </div>
 
-    <div class="actrow pull-right" style="margin-top: 15px;">
+    <div class="actrow right-txt" style="padding: 15px 0;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
         <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("button.delete")</a>
         }
