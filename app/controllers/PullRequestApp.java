@@ -167,6 +167,9 @@ public class PullRequestApp extends Controller {
         if(project == null) {
             return badRequestForNullProject(userName, projectName);
         }
+        if(!project.vcs.equals("GIT")) {
+            return badRequest("Now, only git project is allowed this request.");
+        }
         List<PullRequest> pullRequests = PullRequest.findOpendPullRequests(project);
         return ok(list.render(project, pullRequests, "opened"));
     }

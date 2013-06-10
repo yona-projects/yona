@@ -45,14 +45,16 @@
 			<li class="@isActiveMenu(MenuType.BOARD)"><a href="@routes.BoardApp.posts(project.owner, project.name)">@Messages("menu.board")</a></li>
 			<li class="sp-line">|</li>
 			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a></li>
-			<li class="sp-line">|</li>
-            <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
-                @if(project.isFork()){
-                    <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("menu.pullRequest")</a>
-                } else {
-                    <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">@Messages("menu.pullRequest")</a>
-                }
-            </li>
+            @if(project.vcs.equals("GIT")){
+                <li class="sp-line">|</li>
+                <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
+                    @if(project.isFork()){
+                        <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("menu.pullRequest")</a>
+                    } else {
+                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">@Messages("menu.pullRequest")</a>
+                    }
+                </li>
+            }
 			<li class="sp-line">|</li>
             <li class="@isActiveMenu(MenuType.ISSUE)"><a href="@routes.IssueApp.issues(project.owner, project.name,"all")">@Messages("menu.issue")</a></li>
             <li class="sp-line">|</li>
