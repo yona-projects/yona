@@ -483,9 +483,6 @@ tags:
         name:           Public Domain
     - !!models.Tag
         category:       License
-        name:           Apache
-    - !!models.Tag
-        category:       License
         name:           EPL
     - !!models.Tag
         category:       License
