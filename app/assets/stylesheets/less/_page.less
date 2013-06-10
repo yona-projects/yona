@@ -551,8 +551,7 @@
     padding:8px 0px 19px 20px;
 
     .main-stream {
-        width: 700px;
-        /*margin-right: 10px;*/
+        width: 670px;
         float: left;
         .activity-streams {
             margin: 0;
@@ -653,55 +652,41 @@
         }
     }
     .right-aside {
-        width: 230px;
-        /*padding-top:10px;*/
+        width: 260px;
         overflow: hidden;
         margin-top:11px;
 
-        .gray-bubble-wrap {
-            width: 200px;
+        .projects-wrap {
+            width: 230px;
             margin-left: 10px;
             padding: 20px 10px 0;
             padding-top:0px;
-            /*background-color: @gray-f2;*/
             .border-radius(5px);
 
-            .project-count-wrap {
-                background:#4B4949;
-                padding:10px 18px 9px 18px;
-
-                /*padding-left: 18px;*/
-                color:#F3F3F3;
-                font-size: 12px;
-                font-weight:bold;
-                line-height: 30px;
-                i {
-                    vertical-align:middle;
-                    margin:0 3px;
-                    margin-right:5px;
-                    color:#c9c9c9;
-                }
-                .p-num{
-                    .inline-block;
-                    text-align: center;
-                    height: 12px;
-                    min-width: 10px;
-                    line-height: 12px;
-                    padding: 5px 5px;
-                    .border-radius(5px);
-                    background-color: #9F9FA0;/*1F6F7E;*/
-                    color:#fff;
-                    .box-shadow( inset 0 1px 1px rgba(0, 0, 0, .5));
+            .my-projects-tab {
+                margin:0; padding:0;
+                li {
+                    a { 
+                        padding-left:10px;
+                        padding-right:10px;
+                    }
+                    &:last-of-type {
+                        a { margin-right:0; }
+                    }
                 }
             }
 
             .my-projects {
                 border:1px solid #ddd;
-                margin-bottom: 0px;
+                margin:0; border-top:none;
 
-                .project-list-sort{
-                  margin: 5px 0px 5px 80px;
+                .filters {
+                    display:block; 
+                    text-align:right;
+                    padding:5px 10px;
+                    margin:0;
                 }
+                
                 .my-project-head {
                   font-weight: bold;
                   padding: 6px;
