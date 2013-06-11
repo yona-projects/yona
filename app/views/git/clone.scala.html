@@ -1,0 +1,62 @@
+@(title:String, project: Project)
+
+@import utils.TemplateHelper._
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
+
+@main(title, project, utils.MenuType.PULL_REQUEST) {
+<div class="page">
+    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    <div class="content-wrap frm-wrap">
+        <legend>
+            @Messages("forking", project.originalProject.owner, project.originalProject.name, project.owner, project.name)
+        </legend>
+        <p>
+            @Messages("forking.message.1")
+        </p>
+        <p>
+            @Messages("forking.message.2")
+        </p>
+        <div id="spin"></div>
+    </div>
+</div>
+<script type="text/javascript" src="@getJSLink("lib/spin")"></script>
+<script type="text/javascript">
+    $(function(){
+        var opts = {
+            lines: 13, // The number of lines to draw
+            length: 10, // The length of each line
+            width: 5, // The line thickness
+            radius: 10, // The radius of the inner circle
+            corners: 1, // Corner roundness (0..1)
+            rotate: 0, // The rotation offset
+            direction: 1, // 1: clockwise, -1: counterclockwise
+            color: '#000', // #rgb or #rrggbb
+            speed: 1, // Rounds per second
+            trail: 60, // Afterglow percentage
+            shadow: false, // Whether to render a shadow
+            hwaccel: false, // Whether to use hardware acceleration
+            className: 'spinner', // The CSS class to assign to the spinner
+            zIndex: 2e9, // The z-index (defaults to 2000000000)
+            top: 'auto', // Top position relative to parent in px
+            left: 'auto' // Left position relative to parent in px
+        };
+        var target = document.getElementById('spin');
+        var spinner = new Spinner(opts).spin(target);
+
+        setTimeout(function(){
+            var cloneUrl = "@routes.PullRequestApp.doClone(project.originalProject.owner, project.originalProject.name, project.name, project.isPublic)";
+            console.log(cloneUrl);
+            $.post(cloneUrl, function(data){
+                console.log(data);
+                if(data.status === "failed") {
+                    $hive.showAlert('@Messages("fork.failed")', function () {
+                        location.replace(data.url);
+                    });
+                } else {
+                    location.replace(data.url);
+                }
+            });
+        }, 3000);
+    });
+</script>
+}
