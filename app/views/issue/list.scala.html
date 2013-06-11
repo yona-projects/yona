@@ -272,10 +272,6 @@
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
 		};
 
-        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-        htOptLabel.bEditable = true;
-		}
-
 		$hive.loadModule("issue.List", {
 			"elPagination": $("#pagination"),
             "welMassUpdateForm": $('#mass-update-form'),

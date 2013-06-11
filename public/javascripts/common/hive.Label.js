@@ -69,7 +69,7 @@ hive.Label = (function(htOptions){
 	 * initialize element variable
 	 */
 	function _initElement(){
-		htElement.welContainer  = $("fieldset.labels");
+		htElement.welContainer  = $("fieldset.labels").empty();
 		htElement.welForm = $('form#issue-form,form.form-search,form#search');
 		
 		// add label
@@ -180,11 +180,13 @@ hive.Label = (function(htOptions){
 			"labelCSS" : 'active-' + $hive.getContrastColor(oLabel.color)
 		});
 		
-		// 편집모드: 삭제 링크 추가
+		// 편집모드: 라벨 버튼을 항상 active 상태로 유지하고, 삭제 링크를 추가
 		if(htVar.bEditable){ 
+            welBtnLabelId.addClass('active');
 			welBtnLabelId.append(_getDeleteLink(oLabel.id, oLabel.color));
-		}
-		welBtnLabelId.click(_onClickLabel);
+		} else {
+            welBtnLabelId.click(_onClickLabel);
+        }
 		
 		// 이미 같은 카테고리가 있으면 거기에 넣고
 		var welCategory = $('fieldset.labels div[data-category="' + oLabel.category + '"]');
