@@ -526,7 +526,7 @@ public class IssueApp extends AbstractPostingApp {
         Comment comment = IssueComment.find.byId(commentId);
         Project project = comment.asResource().getProject();
         Call redirectTo =
-            routes.IssueApp.issue(project.owner, project.name, comment.getParent().id);
+            routes.IssueApp.issue(project.owner, project.name, issueNumber);
 
         return delete(comment, comment.asResource(), redirectTo);
     }
