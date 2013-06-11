@@ -173,7 +173,7 @@
 			              .append($('<td><a class="filename" href="' + sFilePath + '">' + name + '</a></td>'))
 			              .append($('<td class="message">' + message + '</td>'))
 			              .append($('<td class="date">' + (moment(new Date(date)).fromNow()) + '</td>'))
-			              .append($('<td class="author"><a href="/'+ author+'"><img src="' + avatar + '" alt="avatar" class="img-rounded"></a></td>'));
+			              .append($('<td class="author"><a href="/'+ author+'" class="avatar-wrap"><img src="' + avatar + '"></a></td>'));
 
 					try {
 						return welRow;
