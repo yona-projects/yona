@@ -1,8 +1,6 @@
-# 자바스크립트 모듈 작성 가이드
-
-본 Markdown 문서는 http://markdownlivepreview.com/ 에서 정확한 모습을 확인할 수 있음
-
+자바스크립트 모듈 작성 가이드
 ----
+
 ## 명명 규칙
 
 * NamingGuide.md 참조
@@ -62,9 +60,10 @@
 ## 기타
 
 * HTML 템플릿은 가능한 한 자바스크립트 파일 내에 포함하지 않는다
-* HTML 템플릿은 정적 페이지내에 <script type="text/template"> 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
+* HTML 템플릿은 정적 페이지내에 <script type="text/x-jquery-tmpl"> 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
+* HTML 템플릿 문법($.tmpl)은 https://github.com/BorisMoore/jquery-tmpl 참조
 
->    <script type="text/template" id="tplItem">
+>    <script type="text/x-jquery-tmpl" id="tplItem">
 >        <div>${name} ${email}</div>
 >    </script>
 >
