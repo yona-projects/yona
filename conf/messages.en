@@ -522,3 +522,7 @@ fork.go = Go
 fork.already.exist = There is already forked the same project.
 fork.help.message.1 = Forking is a great way to contribute to a project even though you don't have write access.
 fork.help.message.2 = After forking a project, you can sent pull requests to contribute your code.
+forking = Forking {0} / {1} project into {2} / {3} project
+fork.failed = Failed to fork the project.
+forking.message.1 = Please wait a moment. This process can take long time if the original project has a lot of files and history.
+forking.message.2 = You will be moved to the new project after the process ends.

@@ -125,6 +125,7 @@ POST    /:ownerName/:project/$service<git-upload-pack|git-receive-pack>       co
 # Fork & Pull Request
 GET     /:ownerName/:project/newFork                    controllers.PullRequestApp.newFork(ownerName:String, project:String)
 POST    /:ownerName/:project/fork                       controllers.PullRequestApp.fork(ownerName:String, project:String)
+POST    /:ownerName/:project/clone                      controllers.PullRequestApp.doClone(ownerName:String, project:String, name:String, isPublic:Boolean)
 GET     /:ownerName/:project/pullRequests               controllers.PullRequestApp.pullRequests(ownerName, project)
 GET     /:ownerName/:project/closedPullRequests         controllers.PullRequestApp.closedPullRequests(ownerName, project)
 GET     /:ownerName/:project/sentPullRequests           controllers.PullRequestApp.sentPullRequests(ownerName, project)
