@@ -516,3 +516,7 @@ pullRequest = 코드 보내기
 pullRequest.menu.overview = 개요
 pullRequest.menu.commit = 커밋
 already.existing.fork.alert = 이전에 만들어둔 포크 프로젝트로 이동합니다.
+fork.go = 바로가기
+fork.already.exist = 동일한 원본 프로젝트를 복사한 프로젝트가 있습니다.
+fork.help.message.1 = 원본 프로젝트에 직접 소스 코드를 추가하거나 수정할 수 없더라도, 자기가 원하는 코드를 작성하여 기여하거나 본인만의 프로젝트를 만들 수 있습니다.
+fork.help.message.2 = 프로젝트를 복사한 다음 원하는 코드를 작성하고 코드 보내기 기능으로 원본 프로젝트에 코드를 보낼 수 있습니다.

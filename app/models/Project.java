@@ -666,6 +666,11 @@ public class Project extends Model {
         this.originalProject = null;
     }
 
+    /**
+     * 이 프로젝트에서 보낸 코드 요청 이 프로젝트가 받은 코드 요청을 삭제한다.
+     *
+     * when: 프로젝트를 삭제할 떄 관련 코드 요청을 삭제할 때 사용한다.
+     */
     private void deletePullRequests() {
         List<PullRequest> sentPullRequests = PullRequest.findSentPullRequests(this);
         for(PullRequest pullRequest : sentPullRequests) {
@@ -677,4 +682,51 @@ public class Project extends Model {
             pullRequest.delete();
         }
     }
+
+    /**
+     * {@code loginId}와 {@code projectName}으로 새 프로젝트 이름을 생성한다.
+     *
+     * 기존에 해당 프로젝트와 동일한 이름을 가진 프로젝트가 있다면 프로젝트 이름 뒤에 -1을 추가한다.
+     * '프로젝트이름-1'과 동일한 프로젝트가 있다면 뒤에 숫자를 계속 증가시킨다.
+     *
+     * @param loginId
+     * @param projectName
+     * @return
+     */
+    private static String newProjectName(String loginId, String projectName) {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        if(project == null) {
+            return projectName;
+        }
+
+        for(int i = 1 ; ; i++) {
+            String newProjectName = projectName + "-" + i;
+            project = Project.findByOwnerAndProjectName(loginId, newProjectName);
+            if(project == null) {
+                return newProjectName;
+            }
+        }
+    }
+
+    /**
+     * {@code project}의 {@code user}의 복사본 프로젝트를 만든다.
+     * 이때 프로젝트의 이름은 {@link #newProjectName(String, String)}을 사용한다.
+     *
+     * when: 프로젝트 복사 폼과 복사 폼 처리에서 사용한다.
+     *
+     * @param project
+     * @param user
+     * @return
+     * @see #newProjectName(String, String)
+     */
+    public static Project copy(Project project, User user) {
+        Project copyProject = new Project();
+        copyProject.name = newProjectName(user.loginId, project.name);
+        copyProject.overview = project.overview;
+        copyProject.vcs = project.vcs;
+        copyProject.owner = user.loginId;
+        copyProject.isPublic = project.isPublic;
+        return copyProject;
+    }
+
 }

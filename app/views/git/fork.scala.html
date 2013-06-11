@@ -1,0 +1,69 @@
+@(title:String, project: Project, forkProject: Project, isNew: Boolean, form: Form[Project])
+
+@import utils.TemplateHelper._
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
+
+@main(title, project, utils.MenuType.PULL_REQUEST) {
+<div class="page">
+    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @if(isNew) {
+    <div class="content-wrap frm-wrap">
+        <div class="well" id="helpMessage">
+            <h3>@Messages("fork")?</h3>
+            <p>@Messages("fork.help.message.1")</p>
+            <p>@Messages("fork.help.message.2")</p>
+        </div>
+        <form action="@routes.PullRequestApp.fork(project.owner, project.name)" method="post" class="form-horizontal nm">
+            <fieldset>
+                <legend>
+                    @project.owner / @project.name @Messages("fork")
+                    <span class="pull-right"><button id="helpBtn" class="nbtn small gray">도움말</button></span>
+                </legend>
+                <div class="control-group">
+                    <label class="control-label" for="owner">@Messages("project.owner")</label>
+                    <div class="controls">
+                        <input type="text" name="owner" id="owner" value="@forkProject.owner" disabled>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="name">@Messages("project.name")</label>
+                    <div class="controls">
+                        <input type="text" name="name" id="name" value="@forkProject.name">
+                        <span class="help-inline">@Messages("project.name.alert")</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="isPublic">@Messages("project.shareOption")</label>
+                    <div class="controls">
+                        <input type="checkbox" name="isPublic" id="isPublic" checked="@forkProject.isPublic">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" id="forkBtn" class="nbtn orange medium">@Messages("fork")</button>
+                    <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    } else {
+    <div class="alert alert-error">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h4>/ @project.owner / @project.name -> / @forkProject.owner / @forkProject.name !</h4>
+        <p>@Messages("fork.already.exist")</p>
+    </div>
+    <div class="form-actions">
+        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="nbtn medium orange">@Messages("fork.go")</a>
+        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
+    </div>
+    }
+</div>
+<script type="text/javascript">
+    $(function(){
+        $('#helpMessage').hide();
+        $('#helpBtn').click(function(e){
+            e.preventDefault();
+            $('#helpMessage').toggle();
+        });
+    });
+</script>
+}
