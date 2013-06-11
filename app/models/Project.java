@@ -666,6 +666,11 @@ public class Project extends Model {
         this.originalProject = null;
     }
 
+    /**
+     * 이 프로젝트에서 보낸 코드 요청 이 프로젝트가 받은 코드 요청을 삭제한다.
+     *
+     * when: 프로젝트를 삭제할 떄 관련 코드 요청을 삭제할 때 사용한다.
+     */
     private void deletePullRequests() {
         List<PullRequest> sentPullRequests = PullRequest.findSentPullRequests(this);
         for(PullRequest pullRequest : sentPullRequests) {
@@ -703,6 +708,17 @@ public class Project extends Model {
         }
     }
 
+    /**
+     * {@code project}의 {@code user}의 복사본 프로젝트를 만든다.
+     * 이때 프로젝트의 이름은 {@link #newProjectName(String, String)}을 사용한다.
+     *
+     * when: 프로젝트 복사 폼과 복사 폼 처리에서 사용한다.
+     *
+     * @param project
+     * @param user
+     * @return
+     * @see #newProjectName(String, String)
+     */
     public static Project copy(Project project, User user) {
         Project copyProject = new Project();
         copyProject.name = newProjectName(user.loginId, project.name);
