@@ -8,6 +8,27 @@
 @import org.joda.time.Duration
 @import controllers.CodeApp
 
+@branchItemType(itemType:String) = @{
+    if(itemType == "heads"){
+        "branch"
+    } else {
+        itemType
+    }
+}
+
+@makeBranchItem(project:Project, branch:String) = {
+    @defining(branch.split('/')){ names =>
+        @if(names(0).equals("refs") && names.length == 3){
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"))"><!--
+             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
+             -->@names(2)
+            </a></li>
+        } else {
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@branch</a></li>
+        }
+    }
+}
+
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
@@ -32,27 +53,24 @@
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
 			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
-			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoingid(project)"><!--
+			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)"><!--
              --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
 
-             <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
-				<button class="btn dropdown-toggle large" data-toggle="dropdown">
-					<span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
-					<span class="d-caret"><span class="caret"></span></span>
-				</button>
-			@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-				@if(branches.length > 0) {
-				<ul class="dropdown-menu">
-					@branches.map { branch =>
-						@defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
-						<li><a href="@url">@branch</a></li>
-						}
-					}
-				</ul>
-				}
-			}
-			</div>
+            <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
+                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                    <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
+                    <span class="d-caret"><span class="caret"></span></span>
+                </button>
+                <ul class="dropdown-menu">
+                    @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+	                    @for(branch <- branches){
+	                        @makeBranchItem(project, branch)
+	                    }
+                    }
+                </ul>
+            </div>
 		</div>
+		
 		<hr class="double-sp" />
 
 		<div class="code-browse-wrap">

@@ -39,7 +39,7 @@
     <div class="input-prepend project-hometop-wrap">
     	<div class="vcs-wrap pull-left">
         <span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!--
-    	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoingid(project)">
+    	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
         </div>
         <div class="issue-wrap btn-group pull-right">
             <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
@@ -100,42 +100,15 @@
 
     <ul class="nav nav-tabs">
         <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
+        @if(histories.size > 0) {
         <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</a></li>
+        }
     </ul>
+    
     <div class="tab-content">
-	@if(histories.size > 0) {
-        <div class="tab-pane" id="recent">
-	<div class="content-container">
-		<div class="main-stream" style="width:100%;">
-			<ul class="activity-streams unstyled">
-				@for(history <- histories.iterator()) {
-				<li class="activity-stream">
-					<a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left" style="margin-right:15px;">
-						<img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
-					</a>
-					<div class="activity-desc">
-						<p class="header-text" style="margin-bottom:5px;">
-							@Html(Messages("project.history.item",
-								makeHistoryWho(history),
-								makeHistoryWhat(history),
-								makeHistoryHow(history)
-							))
-						</p>
-						<p class="others" style="padding-left:0;">
-							<span class="date" style="margin-left:0;">@agoString(ago(history.getWhen()))</span>
-						</p>
-					</div>
-				</li>
-				}
-			</ul>
-		</div>
-	</div>
-            </div>
-	}
-        <div class="tab-pane active" id="readme">
-    <div class="bubble-wrap dark-gray readme">
-        @defining(project.readme) { readme =>
-            @if(readme == null) {
+        <div id="readme" class="tab-pane active">
+            <div class="bubble-wrap dark-gray readme">
+            @if(project.readme == null){
                 <p class="default">
                     @Messages("project.readme")
                 </p>
@@ -143,16 +116,44 @@
                 <div class="readme-wrap">
                     <header><i class="ico ico-readme-book"></i><strong>@project.getReadmeFileName</strong></header>
                     <div class="readme-body" markdown="true">
-                        @readme
+                        @project.readme
                     </div>
                 </div>
             }
-        }
-
-	    @markdown()
-    </div>
+            @markdown()
             </div>
         </div>
+
+	    @if(histories.size > 0) {
+        <div id="recent" class="tab-pane">
+            <div class="content-container">
+				<div class="main-stream" style="width:100%;">
+					<ul class="activity-streams unstyled">
+						@for(history <- histories.iterator()) {
+						<li class="activity-stream">
+							<a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left" style="margin-right:15px;">
+								<img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
+							</a>
+							<div class="activity-desc">
+								<p class="header-text" style="margin-bottom:5px;">
+									@Html(Messages("project.history.item",
+										makeHistoryWho(history),
+										makeHistoryWhat(history),
+										makeHistoryHow(history)
+									))
+								</p>
+								<p class="others" style="padding-left:0;">
+									<span class="date" style="margin-left:0;">@agoString(ago(history.getWhen()))</span>
+								</p>
+							</div>
+						</li>
+						}
+					</ul>
+				</div>
+			</div>
+        </div>
+	    }
+    </div>
 </div>
 
 <script type="text/javascript">
