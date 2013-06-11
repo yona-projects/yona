@@ -320,37 +320,45 @@ button.nbtn {
     position: fixed; 
     overflow: hidden;
     right: 0 !important; 
-    bottom: 0 !important;
-    margin: 10px; width:240px;
+    top: 0 !important;
+    margin: 10px; width:340px;
 
     .toast {
+        position:relative;
         display:inline-block;
-        width: 200px; height: 50px; /*line-height: 50px;*/
+        width: 300px; height: 50px;
         margin: 10px; padding: 10px;
-        outline:none; text-align: center; font-weight: bold;
+        outline:none; text-align: center; 
+        font-weight: bold;
         
-        border: 2px solid #3998BD;
-        color: #222; background-color: #76E4FF;
+        border: 2px solid @primary;
+        color: #222; background-color: #fff;
         -webkit-transition-duration: 0.3s;
         
         .opacity(0);
-        .box-shadow(0px 0px 5px rgba(240, 160, 132, 0.6));         
         .border-radius(2px);
+        /*.box-shadow(0px 0px 5px rgba(240, 160, 132, 0.6));*/         
         
         .btn-dismiss {
-            float: right;
-            line-height: 10px;
+            position:absolute;
+            top:5px; right:10px;
+            button { 
+                color:@primary;
+                font-size:15px;
+                font-weight:bold;
+            }
         }
+        
         .v { 
             display:inline-block; 
             width:0px; height:50px; 
             vertical-align:middle;
         }
         .msg { 
+            width:280px; font-size:15px;
             display:inline-block;
             word-wrap: break-word;
             word-break:break-all;
-            /*line-height:16px;*/
             margin: 0;
             vertical-align:middle;
         }
