@@ -99,7 +99,14 @@
 	</ul>
 
 	<!-- issue.label js module appends a label selector here. -->
-	<p class="option-label">@Messages("label.select")</p>
+    <p class="option-label">@Messages("label.select")
+        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+        <a id="manage-label-link" href="javascript:void(0)">
+            <i class="icon-cog"></i>
+        </a>
+		}
+    </p>
+
 	<fieldset class="labels issue-form-labels form-horizontal bubble-wrap gray"></fieldset>
 
 	<div class="actions">
@@ -123,14 +130,11 @@
 			"htActive"     : {@for(label <- issue.labels) { "@label.id":"@label.color", }"":""}
 		};
 
-        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-			htOptLabel.bEditable = true;
-		}
-
 		// hive.issue.Write
 		$hive.loadModule("issue.Write", {
 			"sMode"			 : "edit",
 			"elTextarea"	 : $("#body"),
+            "welBtnManageLabel" : $("#manage-label-link"),
 			"sUploaderAction": "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"     : htOptLabel
 		});

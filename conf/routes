@@ -106,14 +106,14 @@ GET     /:user/:project/issues                          controllers.IssueApp.iss
 GET     /:user/:project/issueform                       controllers.IssueApp.newIssueForm(user, project)
 POST    /:user/:project/issues                          controllers.IssueApp.massUpdate(user, project)
 POST    /:user/:project/issues/latest                   controllers.IssueApp.newIssue(user, project)
-GET     /:user/:project/issue/:number                       controllers.IssueApp.issue(user, project, number:Long)
-GET     /:user/:project/issue/:number/editform              controllers.IssueApp.editIssueForm(user, project, number:Long)
-POST    /:user/:project/issue/:number/edit                  controllers.IssueApp.editIssue(user, project, number:Long)
-GET     /:user/:project/issue/:number/delete                controllers.IssueApp.deleteIssue(user, project, number:Long)
-POST    /:user/:project/issue/:number/comments              controllers.IssueApp.newComment(user, project, number:Long)
-GET     /:user/:project/issue/:number/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
+GET     /:user/:project/issue/$number<[0-9]+>                       controllers.IssueApp.issue(user, project, number:Long)
+GET     /:user/:project/issue/$number<[0-9]+>/editform              controllers.IssueApp.editIssueForm(user, project, number:Long)
+POST    /:user/:project/issue/$number<[0-9]+>/edit                  controllers.IssueApp.editIssue(user, project, number:Long)
+GET     /:user/:project/issue/$number<[0-9]+>/delete                controllers.IssueApp.deleteIssue(user, project, number:Long)
+POST    /:user/:project/issue/$number<[0-9]+>/comments              controllers.IssueApp.newComment(user, project, number:Long)
+GET     /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
 
-# Label
+# Issue Labels
 GET     /:user/:project/issue/labels                        controllers.IssueLabelApp.labels(user, project)
 POST	/:user/:project/issue/labels					    controllers.IssueLabelApp.newLabel(user, project)
 POST	/:user/:project/issue/label/:id/delete 	            controllers.IssueLabelApp.delete(user, project, id:Long)

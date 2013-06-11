@@ -84,7 +84,13 @@
 	</ul>
 
 	<!-- issue.label js module appends a label selector here. -->
-	<p class="option-label">@Messages("label.select")</p>
+    <p class="option-label">@Messages("label.select")
+        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+        <a id="manage-label-link" href="javascript:void(0)">
+            <i class="icon-cog"></i>
+        </a>
+		}
+    </p>
 	<fieldset class="labels issue-form-labels form-horizontal bubble-wrap gray"></fieldset>
 
 	<div class="actions">
@@ -105,10 +111,6 @@
 			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
 		};
-
-        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-			htOptLabel.bEditable = true;
-		}
 
 		$hive.loadModule("issue.Write", {
 			"sMode"			 : "new",
