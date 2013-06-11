@@ -426,7 +426,6 @@ mail.ssl = SSL
 mail.tls = TLS
 mail.authMethod = 인증 방법
 mail.save = 저장
-mail.authMethodPlaceholder = LOGIN 혹은 PLAIN
 mail.notConfigured = 메일러가 설정되지 않았습니다. conf/application.conf에서 다음의 속성을 설정해주세요.
 mail.from = 보내는 메일 주소
 mail.fromPlaceholder = sender@mail.com
