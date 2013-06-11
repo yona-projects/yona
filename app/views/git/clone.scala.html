@@ -45,9 +45,7 @@
 
         setTimeout(function(){
             var cloneUrl = "@routes.PullRequestApp.doClone(project.originalProject.owner, project.originalProject.name, project.name, project.isPublic)";
-            console.log(cloneUrl);
             $.post(cloneUrl, function(data){
-                console.log(data);
                 if(data.status === "failed") {
                     $hive.showAlert('@Messages("fork.failed")', function () {
                         location.replace(data.url);
