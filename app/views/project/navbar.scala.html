@@ -45,8 +45,9 @@
         $('.side-menus li').tooltip();
         $('.watchBtn').click(function(e){
             e.preventDefault();
-            $.post($(this).attr('href'));
-            location.reload();
+            $.post($(this).attr('href'), function(){
+                location.reload();
+            });
         });
     });
 </script>
