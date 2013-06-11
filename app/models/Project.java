@@ -80,7 +80,7 @@ public class Project extends Model {
     private long lastPostingNumber;
 
     @ManyToMany
-    public Set<Tag> tags;
+    public Set<Label> labels;
 
     @ManyToOne
     public Project originalProject;
@@ -386,11 +386,11 @@ public class Project extends Model {
     }
 
     /**
-     * Tags as resource.
+     * Labels as resource.
      *
      * @return the resource
      */
-    public Resource tagsAsResource() {
+    public Resource labelsAsResource() {
         return new Resource() {
 
             @Override
@@ -405,7 +405,7 @@ public class Project extends Model {
 
             @Override
             public ResourceType getType() {
-                return ResourceType.PROJECT_TAGS;
+                return ResourceType.PROJECT_LABELS;
             }
 
         };
@@ -448,41 +448,41 @@ public class Project extends Model {
     }
 
     /**
-     * 프로젝트 태그를 추가하고 성공여부를 반환한다.
+     * 프로젝트 라벨를 추가하고 성공여부를 반환한다.
      *
-     * 태그가 이미 있을경우 false를 반환한다.
-     * 태그가 없으면 추가하고 true를 반환한다.
+     * 라벨가 이미 있을경우 false를 반환한다.
+     * 라벨가 없으면 추가하고 true를 반환한다.
      *
-     * @param tag 신규 태그
-     * @return 이미 태그가 있을 경우 false / 없으면 추가하고 true 반환
+     * @param label 신규 라벨
+     * @return 이미 라벨가 있을 경우 false / 없으면 추가하고 true 반환
      */
-    public Boolean tag(Tag tag) {
-        if (tags.contains(tag)) {
-            // Return false if the tag has been already attached.
+    public Boolean attachLabel(Label label) {
+        if (labels.contains(label)) {
+            // Return false if the label has been already attached.
             return false;
         }
 
-        // Attach new tag.
-        tags.add(tag);
+        // Attach new label.
+        labels.add(label);
         update();
 
         return true;
     }
 
     /**
-     * 태그를 제거한다.
+     * 라벨를 제거한다.
      *
-     * 태그를 참조하고 있는 프로젝트가 없으면 해당 태그를 삭제하고
-     * 참조하는 프로젝트가 있으면 태그 매핑정보를 업데이트한다.
+     * 라벨를 참조하고 있는 프로젝트가 없으면 해당 라벨를 삭제하고
+     * 참조하는 프로젝트가 있으면 라벨 매핑정보를 업데이트한다.
      *
-     * @param tag 삭제할 태그
+     * @param label 삭제할 라벨
      */
-    public void untag(Tag tag) {
-        tag.projects.remove(this);
-        if (tag.projects.size() == 0) {
-            tag.delete();
+    public void detachLabel(Label label) {
+        label.projects.remove(this);
+        if (label.projects.size() == 0) {
+            label.delete();
         } else {
-            tag.update();
+            label.update();
         }
     }
 
@@ -650,9 +650,9 @@ public class Project extends Model {
             assignee.delete();
         }
 
-        for (Tag tag : tags) {
-            tag.delete(this);
-            tag.update();
+        for (Label label : labels) {
+            label.delete(this);
+            label.update();
         }
 
         for(IssueLabel label : IssueLabel.findByProject(this)) {

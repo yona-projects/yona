@@ -22,8 +22,8 @@ public enum ResourceType {
     ATTACHMENT("attachment"),
     ISSUE_COMMENT("issue_comment"),
     NONISSUE_COMMENT("nonissue_comment"),
-    TAG("tag"),
-    PROJECT_TAGS("project_tags"),
+    LABEL("label"),
+    PROJECT_LABELS("project_labels"),
     FORK("fork");
 
     private String resource;

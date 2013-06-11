@@ -68,11 +68,12 @@ GET     /:user/:project/post/:number/editform               controllers.BoardApp
 POST    /:user/:project/post/:number/edit                   controllers.BoardApp.editPost(user, project, number:Long)
 GET     /:user/:project/post/:number/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, number:Long, commentId:Long)
 
-# Tags
-GET    /tags                                            controllers.TagApp.tags(query: String ?= "", context: String ?= "", limit: Integer ?= null)
-GET    /:user/:project/tags                             controllers.ProjectApp.tags(user, project)
-POST   /:user/:project/tags                             controllers.ProjectApp.tag(user, project)
-POST   /:user/:project/tags/:id                         controllers.ProjectApp.untag(user, project, id: Long)
+# Labels
+GET    /labels                                          controllers.LabelApp.labels(query: String ?= "", category: String ?= "", limit: Integer ?= null)
+GET    /categories                                      controllers.LabelApp.categories(query: String ?= "", limit: Integer ?= null)
+GET    /:user/:project/labels                           controllers.ProjectApp.labels(user, project)
+POST   /:user/:project/labels                           controllers.ProjectApp.attachLabel(user, project)
+POST   /:user/:project/labels/:id                       controllers.ProjectApp.detachLabel(user, project, id: Long)
 
 # Projects
 GET     /projectform                                    controllers.ProjectApp.newProjectForm()

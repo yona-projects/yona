@@ -10,10 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import models.resource.Resource;
 import org.apache.commons.io.FileUtils;
@@ -211,6 +208,7 @@ public class Attachment extends Model {
      * @throws IOException
      * @throws NoSuchAlgorithmException
      */
+    @Transient
     public boolean store(File file, String name, Resource container) throws IOException, NoSuchAlgorithmException {
         // Store the file as its SHA1 hash in filesystem, and record its
         // metadata - projectId, containerType, containerId, size and hash - in Database.

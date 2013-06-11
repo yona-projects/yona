@@ -53,7 +53,7 @@
 
     <div class="bubble-wrap dark-gray project-home">
         <div class="inner logo" style="background-image:url('@projectLogoImage');">
-            @if(isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)){
+            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
             <div class="edit">
                 <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="icon-edit icon-white"></i> @Messages("project.setting")</a>
             </div>
@@ -62,22 +62,47 @@
         <div class="inner project-info">
             <header>
                 <h3>@Messages("project.info")</h3>
-                @if(isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)){
-                <button type="button" class="nbtn small white" data-toggle="button" id="tag-editor-toggle">@Messages("button.edit")</button>
+                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
+                <button type="button" class="nbtn small white" data-toggle="button" id="label-editor-toggle">@Messages("button.edit")</button>
                 }
             </header>
-            <ul class="infos" id="tags">
-                <!-- tags are added here by hive.project.Home.js -->
+            <ul class="infos" id="label-board">
+                <!-- labels are added here by hive.project.Home.js -->
             </ul>
-            <ul>
-                <input name="newTag" type="text" class="text hidden" style="margin-bottom:0px;" data-provider="typeahead" autocomplete="off"/>
-                <button id="addTag" type="button" class="nbtn medium hidden">@Messages("button.add")</button>
-            </ul>
+
+            <script id="label-delete-button-template" type="text/x-jquery-tmpl">
+                <a href="javascript:void(0)">&times;</a>
+            </script>
+
+            <script id="label-template" type="text/x-jquery-tmpl">
+                <span class="label">${name}</span>
+            </script>
+
+            <script id="category-template" type="text/x-jquery-tmpl">
+                <li class="info" data-category="${category}">
+                    <strong>${category} : </strong>
+                    <span class="label-list"></span>
+                </li>
+            </script>
+
+            <script id="plus-button-template" type="text/x-jquery-tmpl">
+                <button class="nbtn small white">
+                    <i class="ico ico-plus-blue"></i>
+                </button>
+            </script>
+
+            <script id="label-input-template" type="text/x-jquery-tmpl">
+                <input type="text" autocomplete="off" class="text" style="margin-bottom: 0px;">
+            </script>
+
+            <script id="label-submit-template" type="text/x-jquery-tmpl">
+                <button type="button" class="nbtn medium">@Messages("button.add")</button>
+            </script>
         </div>
         <div class="inner member-info">
             <header>
                 <h3>@Messages("project.members")</h3>
-                @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
+                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
                 <a href="@routes.ProjectApp.members(project.owner, project.name)" class="nbtn small white" id="member-add-link">@Messages("button.add")</a>
                 }
             </header>
@@ -159,8 +184,11 @@
 <script type="text/javascript">
 $(document).ready(function(){
 	$hive.loadModule("project.Home", {
-        "sURLProjectTags": "@routes.ProjectApp.tags(project.owner, project.name)",
-        "sURLTags"       : "@routes.TagApp.tags()",
+        "sURLProjectLabels": "@routes.ProjectApp.labels(project.owner, project.name)",
+        "sURLLabels"       : "@routes.LabelApp.labels()",
+        "sURLLabelCategories": "@routes.LabelApp.categories()",
+        "welLabelBoard": $('#label-board'),
+        "welLabelEditorToggle": $('#label-editor-toggle'),
         "nProjectId"     : @project.id
     });
 });

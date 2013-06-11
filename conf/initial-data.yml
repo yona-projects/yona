@@ -23,467 +23,467 @@ roles:
         name:           member
         active:         true
 
-# Tags
-tags:
-    - !!models.Tag
+# Labels
+labels:
+    - !!models.Label
         category:       OS
         name:           Windows
-    - !!models.Tag
+    - !!models.Label
         category:       OS
         name:           OSX
-    - !!models.Tag
+    - !!models.Label
         category:       OS
         name:           Linux
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ActionScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Ada
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ALGOL 58
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ALGOL 60
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ALGOL 68
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           APL
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           AppleScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           AspectJ
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ASP.NET
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Assembly language
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           AutoLISP / Visual LISP
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual LISP
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           AWK
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           B
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Bash
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           BASIC
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           bc
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           BCPL
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Batch (Windows/Dos)
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Bourne shell
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           BREW
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           C
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           C++
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           C#
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Clipper
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Clojure
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           COBOL
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           CobolScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           CoffeeScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ColdFusion
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Common Lisp
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Component Pascal
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           csh
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Curl
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           D
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Dart
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           dBase
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Delphi
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ECMAScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Eiffel
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Emacs Lisp
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Erlang
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           F
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           F#
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Forth
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Fortran
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           FoxBase
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           FoxPro
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Go
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Go!
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Groovy
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Haskell
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Io
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           J
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Java
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           JavaScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           JScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           JavaFX Script
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ksh
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           LaTeX
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Lisp
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Logo
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Lua
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Machine code
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           make
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Mathematica
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           MATLAB
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Maya
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           MDL
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Microcode
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           ML
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Modula
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Modula-2
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Modula-3
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Object Lisp
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Object Pascal
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Objective-C
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           OCaml
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Opa
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Orc
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Pascal
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Perl
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PHP
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL-11
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/0
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/B
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/C
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/I
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/M
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/P
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PL/SQL
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           POP-11
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PostScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PowerBuilder
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           PowerShell
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Processing.js
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Prolog
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual Prolog
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Python
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           QBasic
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           QuakeC
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           R
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           R++
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           REXX
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Ruby
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Rust
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Scala
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Scheme
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Script.NET
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Sed
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Self
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Simula
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Simulink
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Smalltalk
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Small Basic
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Snowball
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Squeak
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Tcl
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           TeX
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           TEX
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           UNITY
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Unix shell
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           UnrealScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Vala
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           VBA
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           VBScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Verilog
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           VHDL
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual Basic
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual Basic .NET
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Microsoft Visual C++
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual C#
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual DataFlex
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual DialogScript
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual Fortran
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual FoxPro
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual J++
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Visual J#
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           Windows PowerShell
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           XQuery
-    - !!models.Tag
+    - !!models.Label
         category:       Language
         name:           XSLT
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           Apache
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           BSD
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           GPL
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           ISC
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           LGPL
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           MIT
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           MPL v2.0
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           Public Domain
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           EPL
-    - !!models.Tag
+    - !!models.Label
         category:       License
         name:           MPL v1.1

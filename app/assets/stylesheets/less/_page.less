@@ -1873,6 +1873,8 @@
         &.project-info {
             width: 390px; /*350px;*/
             .infos {
+                overflow-y: auto;
+                height: 130px;
                 list-style: none;
                 margin: 0;
                 padding: 10px;
@@ -1887,9 +1889,11 @@
                         padding-bottom: 0;
                         border-bottom: 0 none;
                     }
-                    span:not(.label) {
-                        &:not(:last-child):after {
-                            content: ", ";
+                    .label-list {
+                        span:not(.label) {
+                            &:not(:last-child):after {
+                                content: ", ";
+                            }
                         }
                     }
                 }

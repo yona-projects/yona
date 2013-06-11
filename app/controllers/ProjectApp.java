@@ -566,7 +566,7 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return 프로젝트 태그 JSON 데이터
      */
-    public static Result tags(String owner, String projectName) {
+    public static Result labels(String owner, String projectName) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         if (project == null) {
@@ -581,12 +581,15 @@ public class ProjectApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        Map<Long, String> tags = new HashMap<Long, String>();
-        for (Tag tag: project.tags) {
-            tags.put(tag.id, tag.toString());
+        Map<Long, Map<String, String>> labels = new HashMap<Long, Map<String, String>>();
+        for (Label label: project.labels) {
+            Map<String, String> tagMap = new HashMap<String, String>();
+            tagMap.put("category", label.category);
+            tagMap.put("name", label.name);
+            labels.put(label.id, tagMap);
         }
 
-        return ok(toJson(tags));
+        return ok(toJson(labels));
     }
 
     /**
@@ -601,14 +604,14 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return the result
      */
-    public static Result tag(String ownerName, String projectName) {
+    public static Result attachLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
             return forbidden();
         }
 
@@ -617,43 +620,47 @@ public class ProjectApp extends Controller {
         String category = HttpUtil.getFirstValueFromQuery(data, "category");
         String name = HttpUtil.getFirstValueFromQuery(data, "name");
         if (name == null || name.length() == 0) {
-            // A tag must have its name.
-            return badRequest("Tag name is missing.");
+            // A label must have its name.
+            return badRequest("Label name is missing.");
         }
 
-        Tag tag = Tag.find
+        Label label = Label.find
             .where().eq("category", category).eq("name", name).findUnique();
 
         boolean isCreated = false;
-        if (tag == null) {
-            // Create new tag if there is no tag which has the given name.
-            tag = new Tag(category, name);
-            tag.save();
+        if (label == null) {
+            // Create new label if there is no label which has the given name.
+            label = new Label(category, name);
+            label.save();
             isCreated = true;
         }
 
-        Boolean isAttached = project.tag(tag);
+        Boolean isAttached = project.attachLabel(label);
 
         if (!isCreated && !isAttached) {
             // Something is wrong. This case is not possible.
             play.Logger.warn(
-                    "A tag '" + tag + "' is created but failed to attach to project '"
+                    "A label '" + label + "' is created but failed to attach to project '"
                     + project + "'.");
         }
 
         if (isAttached) {
-            // Return the attached tag. The return type is Map<Long, String>
-            // even if there is only one tag, to unify the return type with
-            // ProjectApp.tags().
-            Map<Long, String> tags = new HashMap<Long, String>();
-            tags.put(tag.id, tag.toString());
+            // Return the attached label. The return type is Map<Long, String>
+            // even if there is only one label, to unify the return type with
+            // ProjectApp.labels().
+            Map<Long, Map<String, String>> labels = new HashMap<Long, Map<String, String>>();
+            Map<String, String> labelMap = new HashMap<String, String>();
+            labelMap.put("category", label.category);
+            labelMap.put("name", label.name);
+            labels.put(label.id, labelMap);
+
             if (isCreated) {
-                return created(toJson(tags));
+                return created(toJson(labels));
             } else {
-                return ok(toJson(tags));
+                return ok(toJson(labels));
             }
         } else {
-            // Return 204 No Content if the tag is already attached.
+            // Return 204 No Content if the label is already attached.
             return status(Http.Status.NO_CONTENT);
         }
     }
@@ -669,14 +676,14 @@ public class ProjectApp extends Controller {
      * @param id the id
      * @return the result
      */
-    public static Result untag(String ownerName, String projectName, Long id) {
+    public static Result detachLabel(String ownerName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
             return notFound();
         }
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.tagsAsResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
             return forbidden();
         }
 
@@ -687,13 +694,13 @@ public class ProjectApp extends Controller {
             return badRequest("_method must be 'delete'.");
         }
 
-        Tag tag = Tag.find.byId(id);
+        Label tag = Label.find.byId(id);
 
         if (tag == null) {
             return notFound();
         }
 
-        project.untag(tag);
+        project.detachLabel(tag);
 
         return status(Http.Status.NO_CONTENT);
     }
