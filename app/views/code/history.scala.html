@@ -33,28 +33,12 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	@defining(
-		if(selectedBranch) {
-			routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
-		} else {
-			routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
-		}
-	){url =>
-    <ul class="nav nav-tabs hive-tabs">
-		<li>
-			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-		</li>
-		<li class="active">
-			<a href="@url">@Messages("code.commits")</a>
-		</li>
-	</ul>
-
     @if(history.size() > 0) {
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
 			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
 			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)"><!--
-             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">@Messages("code.copyUrl")</a>
 
             <div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
                 <button class="btn dropdown-toggle large" data-toggle="dropdown">
@@ -70,18 +54,32 @@
                 </ul>
             </div>
 		</div>
-		
-		<hr class="double-sp" />
 
 		<div class="code-browse-wrap">
-			<div class="commit-wrap" id="history">
+		    @defining(
+		        if(selectedBranch) {
+		            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
+		        } else {
+		            routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
+		        }
+		    ){url =>
+		    <ul class="nav nav-tabs" style="margin-bottom:20px;">
+		        <li>
+		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		        </li>
+		        <li class="active">
+		            <a href="@url">@Messages("code.commits")</a>
+		        </li>
+		    </ul>
+		    
+			<div id="history" class="commit-wrap">
 				<table class="code-table commits">
 					<thead class="thead">
 						<tr>
 							<td class="commit-id"><strong>@@</strong></td>
-							<td class="messages"><strong>COMMIT MESSAGES</strong></td>
-							<td class="date"><strong>COMMIT DATE</strong></td>
-							<td class="author"><strong>AUTHOR</strong></td>
+							<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+							<td class="date"><strong>@Messages("code.commitDate")</strong></td>
+							<td class="author"><strong>@Messages("code.author")</strong></td>
 						</tr>
 					</thead>
 					<tbody class="tbody">

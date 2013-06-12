@@ -416,6 +416,11 @@ code.newer = Newer
 code.older = Older
 code.repoUrl = URL
 code.nohead = Create a new repository on the command line
+code.copyUrl = Copy URL
+code.filename = Filename
+code.commitMsg = Commit Message
+code.commitDate = Commit Date
+code.author = Author
 
 #mail
 mail.password = Password
@@ -530,3 +535,4 @@ forking.message.2 = You will be moved to the new project after the process ends.
 pullRequest.help.message.1 = This is a simple way to contribute your code.
 pullRequest.help.message.2 = Please select your branch that contains your code to send and original project's branch to receive your code, and explain what you have done.
 pullRequest.help.message.3 = The member of the original project can accept your code or reject.
+pullRequest.listEmpty = No request received yet.

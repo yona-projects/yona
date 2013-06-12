@@ -37,9 +37,7 @@
 
             .gnb-menus {
                 float: left;
-                /*overflow: hidden;*/
                 margin: 0px 10px 22px 34px;
-                /*margin: 23px 10px 22px 34px;*/
 
                 .menu {
                     float: left;
@@ -264,21 +262,12 @@
 
 .page-footer-outer {
     width: @base-width - 40;
-    .center-block;
-    /*
-    background-color: @gray-f7;
-    border-top: 1px solid @white;
-    -webkit-border-bottom-right-radius: 10px;
-    -webkit-border-bottom-left-radius: 10px;
-    -moz-border-radius-bottomright: 10px;
-    -moz-border-radius-bottomleft: 10px;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
-    */
     padding: 10px 20px;
     text-align: center;
     position: relative;
     margin-bottom: 30px;
+    .center-block;
+    
     .page-footer {
         line-height: 34px;
     }
@@ -315,64 +304,15 @@
     .inline-block;
 }
 
-/*
-.checkbox {
-    .opacity(0);
-    position: absolute;
-}
-.checkbox + .bg-checkbox {
-    display: inline-block;
-    min-height: 16px;
-    min-width: 16px;
-    color: #999;
-    padding-left: 21px;
-    background-repeat: no-repeat;
-    background-image: url('@{base-image-path}/assets/bg-checkbox.png');
-    background-position: 0 -1px;
-    cursor: pointer;
-    margin-right: 5px;
-    &:hover {
-        color: #757575;
-    }
-}
-.checkbox:checked + .bg-checkbox {
-    background-image: url('@{base-image-path}/assets/bg-checkbox-checked.png');
-}
-*/
-/* checkbox, radio-btn 웹브라우저 기본 컨트롤을 사용하도록 변경 2013-02-15*/
 .checkbox {
     .inline-block;
     vertical-align:top;
     margin:2px !important;
 }
 
-/*
-.radio-btn {
-    .opacity(0);
-    position: absolute;
-}
-.radio-btn + .bg-radiobtn {
-    display: inline-block;
-    color: #999;
-    padding-left: 18px;
-    background-repeat: no-repeat;
-    background-image: url('@{base-image-path}/assets/bg-radiobutton.png');
-    background-position: 0 2px;
-    cursor: pointer;
-    margin-right: 5px;
-    &:hover {
-        color: #757575;
-    }
-}
-.radio-btn:checked + .bg-radiobtn {
-    background-image: url('@{base-image-path}/assets/bg-radiobutton-checked.png');
-}
-*/
 .label-public, .label-private, .label-agreement {
-    /*margin:0px 5px;*/
    .form-label;
 }
-
 
 //----------- index page.
 .center-wrap {
@@ -840,20 +780,8 @@
 
     .btns-row {
         width: 384px;
-        .center-block;
         margin-bottom: 73px;
-        /*.n-btn {
-            &.log-in {
-                width: 187px;
-                vertical-align: top;
-                height: auto;
-                border: 0 none;
-                margin-right: 10px;
-            }
-            &.join {
-                width: 117px;
-            }
-        }*/
+        .center-block;
     }
 }
 
@@ -949,10 +877,6 @@
         .actions {
             text-align: center;
             position: relative;
-            .cancel {
-                /*position: absolute;
-                right: 0;*/
-            }
         }
     }
 }
@@ -964,9 +888,7 @@
         font-weight: normal;
         font-size: 26px;
         float: left;
-        /*&.orange {*/
-            color: @orange;
-        /*}*/
+        color: @orange;
     }
     .bread-crumb {
         float: right;
@@ -978,7 +900,6 @@
     margin-top: 5px;
     margin-bottom: 5px;
     padding: 5px;
-    /*background-color: #ECECEC;*/
     border-bottom:1px solid #ececec;
     
     .stats-wrap {
@@ -989,7 +910,7 @@
             padding: 10px 20px;
             .border-radius(5px);
             height: 31px;
-            width: 268px;/*278px;*//*252px;*/ /*240px;*/
+            width: 268px;
             margin-right: 10px;
             float: left;
             &:last-child {
@@ -1148,27 +1069,12 @@
             }
 
             &.advanced {
-                /*height:210px;
-                border-bottom: 1px solid #D6D6D6;*/
-
                 .srch-advanced {
                     text-align:left;
                     margin-top:14px;
                     display:block;
-                    /*width:600px;*/
-                    /*padding:5px;*/
                     border-top: 1px solid #D6D6D6;
                     background: #F6F6F6;
-                    /*box-shadow: inset 0px 1px #fff;*/
-
-                   /*.issue-label {
-                       border:none;
-                       &.active {
-                            box-shadow: inset 0px 2px 2px rgba(0, 0, 0, 0.25);
-                       }
-                   }*/
-
-                   /*.labels { background:#D7D7D7; }*/
 
                    .custom-label-category:before {
                         content:'|'; margin-right:15px;
@@ -1237,10 +1143,10 @@
                 font-size: 20px;
                 font-weight: bold;
                 margin-bottom: 5px;
-                .project-name {
+                /*.project-name {
                     color: #686868;
                     &:hover { color:@primary; }
-                }
+                }*/
             }
             .forked{
               padding:3px 5px;
@@ -1724,10 +1630,6 @@
                 .title    { font-size:20px; font-weight:bold; }
                 .sp       { margin: 0 5px; color:#E4E4E4; }
                 .due-date { color: #666; /*999;*/ }
-                .num-badge {
-                    &.open { }
-                    &.closed { }
-                }
             }
             .progress-wrap {
                 overflow: hidden;
@@ -1769,16 +1671,6 @@
         }
     }
 }
-/*
-.milestone-tabs {
-    li a {
-        padding-left:34px; padding-right:34px;
-        background:#ececec;
-        border:1px solid #D3D3D3;
-        box-shadow:inset 0px 1px 1px #fff;
-    }
-}
-*/
 .milestone-desc {
     background: #efefef;
     padding: 10px;
@@ -2124,18 +2016,18 @@
                     font-size: 11px;
                     color: #646464;
                     .name {
-                        font-size: 10px;
+                        font-size: 11px;
                     }
                     .date {
-                        font-size: 10px;
-                        color: #BDBDBD;
+                        font-size: 11px;
+                        color: #aaa;
                     }
                 }
                 .attach {
                     color: #4489A4;
                 }
                 .comment-body {
-                    color: #999;
+                    /*color: #999;*/
                 }
             }
             .attach-preview-wrap {
@@ -2502,32 +2394,14 @@ div.markdown-preview {
     }
 }
 
-/* 공통 스타일 hive-tabs로 합쳐서 이동함 */
-/*
-.code-tab {
-    li a {
-        padding-left:64px; padding-right:64px;
-        background:#ececec;
-        border:1px solid #D3D3D3;
-        box-shadow:inset 0px 1px 1px #fff;
-    }
-}
-.plugin-tab {
-    li a {
-        padding-left:14px; padding-right:14px;
-        background:#ececec;
-        border:1px solid #D3D3D3;
-        box-shadow:inset 0px 1px 1px #fff;
-    }
-}
-*/
-
 .repo-wrap {
-    padding:10px;
+    padding:0;
+    background:#fff !important;
     overflow:visible !important;
 }
 .repo-info {
-    padding:19px 20px;
+    padding:0px;
+    text-align:center;
 
     .clone-label {
         color: #4D4D4D;
@@ -2548,7 +2422,7 @@ div.markdown-preview {
     .repo-url {
         cursor: text;
         margin: 0;
-        width: 420px;
+        width: 520px;
         font-family:Consolas,Tahoma,Verdana !important;
         background:#f5f5f5;
         
@@ -2568,7 +2442,7 @@ div.markdown-preview {
         border-left: 0 none;
         vertical-align: top;
         text-decoration: none;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: bold;
         .inline-block;
         .border-radius(0 2px 2px 0);
@@ -2585,6 +2459,8 @@ div.markdown-preview {
     }
 
     .branches {
+        text-align:left;
+        
         .label {
             margin:0; padding:0 5px; margin-right:3px;
 
@@ -2598,20 +2474,31 @@ div.markdown-preview {
 }
 
 .code-browse-wrap {
-    .border-radius(10px);
+    .border-radius-bottom(10px);
     .box-shadow(0 1px 0 rgba(0,0,0, .15));
     overflow: hidden;
-
+    margin-top:20px;
+    
     .code-browse-header {
-        color: @white;
-        background-color: #6c6c6c;
-        line-height: 34px;
-        font-size: 11px;
-        padding: 0 20px;
-
+        float:right;
+        padding:0; padding-right:10px;
+        color:#555;
+        line-height:34px;
+        font-size: 15px;
+        font-weight:bold;
+        
         a { margin:0 5px; }
         a:first-of-type { margin-left:0; }
+        a:last-of-type { color:@primary; }
+        
+        .commitId {
+            font-family:Consolas; 
+            font-size:12px; 
+            font-weight:bold;
+            color:@secondary;
+        }
     }
+    .nav-tabs { margin-bottom:0; }
     .commit-wrap {
         background-color: @white;
     }
@@ -2628,22 +2515,20 @@ div.markdown-preview {
         -webkit-transition-duration:0.1s;
 
         &.directory-wrap {
-            width: 259px;/*196px;*/
-            /*min-width: 196px;
-            max-width: 196px;*/
-            overflow: auto;
             position: relative;
-            padding:5px;
+            overflow: auto;
+            width: 259px;
+            padding:15px 5px;
+            border-left:1px solid #ddd;
         }
         &.sp-wrap {
             display:none;
             border-left: 4px solid #E6E6E6;
         }
         &.file-wrap {
-            width:660px; /* 700px */
-            /*min-width:660px;
-            max-width:660px;*/
+            width:680px;
             overflow-x: auto;
+            border-right:1px solid #ddd;
         }
     }
 
@@ -2692,13 +2577,10 @@ div.markdown-preview {
             padding: 0 15px 0 5px;
         }
         .thead {
-            background-color: #9C9C9C;
+            background-color: #eee;
             line-height: 34px;
-            font-size: 10px;
-            color: @white;
-            .author {
-                text-align: left;
-            }
+            font-size: 12px;
+            border-bottom:1px solid #ccc;
         }
         .tbody {
             font-size: 11px;
@@ -2714,7 +2596,9 @@ div.markdown-preview {
             width: 100px;
             padding-left: 20px;
 
-            font-family:Consolas; font-size:12px; font-weight:bold;
+            font-family:Consolas; 
+            font-size:12px; 
+            font-weight:bold;
 
             a {
                 color:@secondary;
@@ -2978,6 +2862,7 @@ div.markdown-preview {
                 display:block;
                 color: #707070;
                 width: 70px;
+                letter-spacing:-1pt;
             }
 
             &:last-of-type {
@@ -3304,8 +3189,7 @@ div.markdown-preview {
 .error-wrap {
     padding:50px 0px;
     margin:30px 0px;
-    border:1px solid #dcdcdc;
-    border-width:1px 0px;
+    border-bottom:1px solid #dcdcdc;
     text-align:center;
 
     p {
@@ -3403,4 +3287,48 @@ div.markdown-preview {
 
 .mass-update-form {
   margin-bottom: 10px;
+}
+
+.fork-wrap {
+    .project-from {
+        display:inline-block;
+        width:300px; 
+        vertical-align:middle;
+        text-align:center;
+        
+        .title { color:@secondary; }
+    }
+    
+    .arrow {
+        display:inline-block;
+        vertical-align:middle;
+        padding:0 40px;
+    }
+    
+    .project-to {
+        display:inline-block;
+        width:550px;
+        vertical-align:middle;
+        
+        .project-name-wrap {
+            display:block;
+            
+            .title { color:@primary; }
+            .owner { 
+                display:inline-block;
+                font-size:14px;
+                padding-top:5px; margin-right:10px;
+            }
+            .project-name {
+                display:inline-block;
+                vertical-align:top;
+                input { font-size:14px; }
+                .help-block { color:#999; }
+            }
+        }
+        
+        .project-public {
+            line-height:30px;
+        }
+    }
 }

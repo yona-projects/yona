@@ -35,6 +35,8 @@
         </ul>
 
         <div class="row-fluid">
+            @if(pullRequests.length > 0){
+            
             <ul class="issue-list unstyled">
             @for(req <- pullRequests.iterator()) {
                 <li class="issue">
@@ -88,6 +90,15 @@
                 </li>
             }
             </ul>
+            
+            } else {
+            
+		    <div class="error-wrap">
+		        <i class="ico ico-err1"></i>
+		        <p>@Messages("pullRequest.listEmpty")</p>
+		    </div>
+    
+            }
         </div>
     </div>
 }

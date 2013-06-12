@@ -37,14 +37,14 @@
         </ul>
 
         <div class="code-browse-wrap">
-            <div class="commit-wrap" id="history">
+            <div id="history" class="commit-wrap">
                 <table class="code-table commits">
                     <thead class="thead">
                     <tr>
                         <td class="commit-id"><strong>@@</strong></td>
-                        <td class="messages"><strong>COMMIT MESSAGES</strong></td>
-                        <td class="date"><strong>COMMIT DATE</strong></td>
-                        <td class="author"><strong>AUTHOR</strong></td>
+                        <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                        <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                        <td class="author"><strong>@Messages("code.author")</strong></td>
                     </tr>
                     </thead>
                     <tbody class="tbody">
@@ -58,14 +58,18 @@
                         </td>
                         <td class="messages">@commit.getMessage()</td>
                         <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-                        <td class="author @commit.getAuthorEmail">@defining(User.find.where.eq("email",
-                            commit.getAuthorEmail).findUnique) { user => @if(user != null) {
-                            <a href="@routes.UserApp.userInfo(user.loginId)">
-                                <img src="@user.avatarUrl" alt="@user.name" width="34" height="34"/>
+                        <td class="author @commit.getAuthorEmail">
+                        @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
+                            @if(user != null) {
+                            <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
+                                <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
                             </a>
                             } else {
-                            <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail(), 34)">
-                            }}
+                            <div class="avatar-wrap">
+                                <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
+                            </div>
+                            }
+                        }
                         </td>
                     </tr>
                     }

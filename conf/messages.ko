@@ -416,6 +416,11 @@ code.newer = 이전
 code.older = 다음
 code.repoUrl = 저장소 URL
 code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요
+code.copyUrl = 주소 복사
+code.filename = 파일명
+code.commitMsg = 커밋 메시지
+code.commitDate = 커밋한 날짜
+code.author = 작성자
 
 #mail
 mail.password = 비밀번호
@@ -530,3 +535,4 @@ forking.message.2 = 프로젝트 복사를 마치면 자동으로 이동합니�
 pullRequest.help.message.1 = 간단히 말씀드리자면, 원본 프로젝트에 코드를 기여하는 방법입니다.
 pullRequest.help.message.2 = 본인이 보낼 코드가 들어있는 브랜치와 보낸 코드를 받아줄 원본 프로젝트의 브랜치를 지정하고 어떤 코드인지 설명해 주세요.
 pullRequest.help.message.3 = 원본 프로젝트의 멤버가 해당 코드를 확인하고 코드를 받거나 보류할 수 있습니다.
+pullRequest.listEmpty = 아직 받은 코드가 없습니다

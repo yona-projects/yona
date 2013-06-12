@@ -26,20 +26,11 @@
 
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	<ul class="nav nav-tabs">
-		<li class="active">
-			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-		</li>
-		<li>
-			<a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-		</li>
-	</ul>
-
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
 			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
 			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)"><!--
-             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">@Messages("code.copyUrl")</a>
 
 			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
 				<button class="btn dropdown-toggle large" data-toggle="dropdown">
@@ -53,9 +44,19 @@
 				</ul>
 			</div>
 		</div>
-		<hr class="double-sp" />
+
 		<div class="code-browse-wrap">
-			<div id="breadcrumbs" class="code-browse-header">Revision </div>
+			<div id="breadcrumbs" class="code-browse-header"></div>
+			
+		    <ul class="nav nav-tabs">
+		        <li class="active">
+		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		        </li>
+		        <li>
+		            <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+		        </li>
+		    </ul>
+
 			<div class="directory-wrap cell">
 				<div class="directory-header">
 					<strong>FOLDER NAME</strong>
@@ -70,10 +71,10 @@
 				<table class="code-table sources">
 					<thead class="thead">
 						<tr>
-							<td class="filename"><strong>FILENAME</strong></td>
-							<td class="messages"><strong>COMMIT MESSAGES</strong></td>
-							<td class="date"><strong>COMMIT DATE</strong></td>
-							<td class="author"><strong>AUTHOR</strong></td>
+							<td class="filename"><strong>@Messages("code.filename")</strong></td>
+							<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+							<td class="date"><strong>@Messages("code.commitDate")</strong></td>
+							<td class="author"><strong>@Messages("code.author")</strong></td>
 						</tr>
 					</thead>
 					<tbody class="tbody contents"></tbody>
