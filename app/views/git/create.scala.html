@@ -7,17 +7,19 @@
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
     <div class="content-wrap frm-wrap">
-        <div class="well" id="helpMessage">
-            <h3>@Messages(title)?</h3>
-            <p>@Messages("pullRequest.help.message.1")</p>
-            <p>@Messages("pullRequest.help.message.2")</p>
-            <p>@Messages("pullRequest.help.message.3")</p>
-        </div>
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
             <legend>
                 @Messages(title)
-                <span class="pull-right"><button id="helpBtn" class="nbtn small gray">도움말</button></span>
+                <span><button id="helpBtn" class="nbtn small gray">도움말</button></span>
             </legend>
+            <div class="well" id="helpMessage">
+                <p>
+                    <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
+                    @Messages("pullRequest.help.message.1")<br>
+                    @Messages("pullRequest.help.message.2")<br>
+                    @Messages("pullRequest.help.message.3")<br>
+                </p>
+            </div>
             <div class="pull-request-wrap">
 	            <div class="option request-from">
 	                <div class="option-label">@Messages("pullRequest.from"): <strong class="repo">@project.owner/@project.name</strong></div>

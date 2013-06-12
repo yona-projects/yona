@@ -3,11 +3,10 @@
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 
-@main(Messages("title.commitHistory"), project, utils.MenuType.PULL_REQUEST) {
+@main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-
-        <p>
+        <legend>
             @Messages("pullRequest.from")
             <span class="label label-info">
                 <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
@@ -21,7 +20,17 @@
                 <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
             </span>
             <span class="label label-success">@pull.toBranch</span>
-        </p>
+            <span class="pull-right"><button id="helpBtn" class="nbtn small gray">도움말</button></span>
+        </legend>
+        <div class="well" id="helpMessage">
+            <p>
+                <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
+                @Messages("merge.help.1")<br>
+                @Messages("merge.help.2")<br>
+                @Messages("merge.help.3")<br>
+                @Messages("merge.help.4")
+            </p>
+        </div>
 
         <ul class="nav nav-tabs hive-tabs">
             <li class="active">
@@ -76,4 +85,14 @@
     </div>
 
 @views.html.markdown(project)
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#helpMessage').hide();
+        $('#helpBtn').click(function(e){
+            e.preventDefault();
+            $('#helpMessage').toggle();
+        });
+    });
+</script>
 }

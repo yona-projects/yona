@@ -6,9 +6,9 @@
 @main(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-    
+
     @if(isNew) {
-    
+
     <div class="content-wrap frm-wrap">
         <form action="@routes.PullRequestApp.fork(project.owner, project.name)" method="post" class="form-horizontal nm">
             <input type="hidden" name="owner" value="@forkProject.owner" />
@@ -20,8 +20,8 @@
                     </h4>
                 </legend>
                 <div id="helpMessage" class="well">
-                    <h5>@Messages("fork")?</h5>
                     <p>
+                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
                         @Messages("fork.help.message.1")<br>
                         @Messages("fork.help.message.2")
                     </p>
@@ -49,7 +49,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="center-txt" style="margin-top:40px;">
                     <button type="submit" id="forkBtn" class="nbtn orange medium">@Messages("fork")</button>
                     <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
@@ -57,9 +57,9 @@
             </fieldset>
         </form>
     </div>
-    
+
     } else {
-    
+
     <div class="error-wrap">
         <i class="ico ico-err2"></i>
         <p>@Messages("fork.already.exist")</p>

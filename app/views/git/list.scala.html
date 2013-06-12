@@ -1,7 +1,7 @@
 @(project: Project, pullRequests: List[PullRequest], requestType: String)
 @import utils.TemplateHelper._
 
-@main(Messages("title.commitHistory"), project, utils.MenuType.PULL_REQUEST) {
+@main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
         @if(project.hasForks()) {
@@ -104,7 +104,7 @@
 
         <div class="row-fluid">
             @if(pullRequests.length > 0){
-            
+
             <ul class="issue-list unstyled">
             @for(req <- pullRequests.iterator()) {
                 <li class="issue">
@@ -158,14 +158,14 @@
                 </li>
             }
             </ul>
-            
+
             } else {
-            
+
 		    <div class="error-wrap">
 		        <i class="ico ico-err1"></i>
 		        <p>@Messages("pullRequest.listEmpty")</p>
 		    </div>
-    
+
             }
         </div>
     </div>
