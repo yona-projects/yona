@@ -328,6 +328,7 @@ public class UserApp extends Controller {
             }
         }
         if (userForm.error("email") != null) {
+            flash(Constants.WARNING, userForm.error("email").message());
             return badRequest(edit.render(userForm, user));
         }
         user.email = newEmail;
