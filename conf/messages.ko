@@ -306,9 +306,11 @@ project.license = 라이센스
 project.codeLanguage = 프로그래밍 언어
 project.onmember = <i class="icon-user icon-middle"></i><strong>{0}</strong>
 project.onwatching = <strong>{0}</strong>
-project.lastUpdate = 마지막 업데이트
+project.lastUpdate = 마지막 커밋
 project.createdByMe = 만든 프로젝트
 project.belongsToMe = 프로젝트 멤버
+project.created = 생성
+project.codeUpdate = 마지막 코드 업데이트
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
 project.history.item = {0}님이 {1} {2}
@@ -380,16 +382,16 @@ role.sitemanager = 사이트 관리자
 #Time
 time.just = 방금 전
 time.today = 오늘
-time.after = {0} 일 후
-time.before = {0} 일 전
-time.second = {0} 초 전
-time.seconds = {0} 초 전
-time.minute = {0} 분 전
-time.minutes = {0} 분 전
-time.hour = {0} 시간 전
-time.hours = {0} 시간 전
-time.day = {0} 일 전
-time.days = {0} 일 전
+time.after = {0}일 후
+time.before = {0}일 전
+time.second = {0}초 전
+time.seconds = {0}초 전
+time.minute = {0}분 전
+time.minutes = {0}분 전
+time.hour = {0}시간 전
+time.hours = {0}시간 전
+time.day = {0}일 전
+time.days = {0}일 전
 
 #Board
 board.post.empty = 제목과 본문에 빈칸이 있습니다.

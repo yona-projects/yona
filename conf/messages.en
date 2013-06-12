@@ -309,6 +309,8 @@ project.onwatching = <strong>{0}</strong>
 project.lastUpdate = Last Update
 project.createdByMe = Create
 project.belongsToMe = Member of
+project.created = Created
+project.codeUpdate = code update
 
 # project.history.item: {0}=who ,{1}=what ,{2}=how
 project.history.item = {0} {1} {2}
