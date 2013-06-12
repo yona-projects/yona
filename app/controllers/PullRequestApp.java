@@ -140,7 +140,7 @@ public class PullRequestApp extends Controller {
 
         // 새 프로젝트 생성
         Project forkProject = Project.copy(originalProject, currentUser);
-        if(name != null && name.isEmpty()) {
+        if(name != null && !name.isEmpty()) {
             forkProject.name = name;
         }
         if(isPublic != null) {
