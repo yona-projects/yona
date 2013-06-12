@@ -7,6 +7,7 @@ import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
+import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -68,6 +69,7 @@ public class CodeApp extends Controller {
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
+        Logger.debug("branch: " + branch);
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {
