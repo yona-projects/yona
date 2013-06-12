@@ -322,11 +322,15 @@ public class UserApp extends Controller {
         String newEmail = userForm.data().get("email");
         String newName = userForm.data().get("name");
         User user = UserApp.currentUser();
-        if (!StringUtils.equals(user.email, newEmail)) {
-            if (User.isEmailExist(newEmail)) {
+
+        if (StringUtils.isEmpty(newEmail)) {
+            userForm.reject("email", "user.wrongEmail.alert");
+        } else {
+            if (!StringUtils.equals(user.email, newEmail) && User.isEmailExist(newEmail)) {
                 userForm.reject("email", "user.email.duplicate");
             }
         }
+
         if (userForm.error("email") != null) {
             flash(Constants.WARNING, userForm.error("email").message());
             return badRequest(edit.render(userForm, user));
