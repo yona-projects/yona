@@ -48,7 +48,7 @@ public class Issue extends AbstractPosting {
     @ManyToOne
     public Milestone milestone;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     public Set<IssueLabel> labels;
 
     @ManyToOne
