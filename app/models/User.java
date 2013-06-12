@@ -266,7 +266,8 @@ public class User extends Model {
      */
     @Transient
     public Long avatarId(){
-        return Attachment.findByContainer(avatarAsResource()).get(0).id;
+        List<Attachment> attachments = Attachment.findByContainer(avatarAsResource());
+        return attachments.get(attachments.size()-1).id;
     }
 
     /**
