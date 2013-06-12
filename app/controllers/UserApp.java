@@ -328,14 +328,16 @@ public class UserApp extends Controller {
             }
         }
         if (userForm.error("email") != null) {
+            flash(Constants.WARNING, userForm.error("email").message());
             return badRequest(edit.render(userForm, user));
         }
         user.email = newEmail;
         user.name = newName;
-        Attachment.deleteAll(user.avatarAsResource());
-        int attachFiles = Attachment.moveAll(currentUser().asResource(),
-                currentUser().avatarAsResource());
-        if (attachFiles > 0) {
+
+        int attachCount = Attachment.countByContainer(user.asResource());
+        if (attachCount > 0) {
+            Attachment.deleteAll(user.avatarAsResource());
+            Attachment.moveAll(currentUser().asResource(), currentUser().avatarAsResource());
             user.avatarUrl = "/files/" + user.avatarId();
         }
 
