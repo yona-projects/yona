@@ -38,7 +38,6 @@
                     <a href="@routes.UserApp.userInfo(project.owner)">
                         <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name">
                     </a>&nbsp;
-                    <a href="@routes.UserApp.userInfo(project.owner)" class="project-name">@project.owner</a> <span class="project-name">/</span> <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
                     @if(!project.isPublic){ <i class="ico ico-lock"></i> }
                     @for(label <- project.labels) {
                         <span class="project-label @label.category.toLowerCase()">@label.name</span>
