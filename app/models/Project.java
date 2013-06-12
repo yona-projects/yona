@@ -9,6 +9,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
+import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -95,6 +96,7 @@ public class Project extends Model {
      * 사용자에게 관심 프로젝트로 등록된 개수
      */
     public long watchingCount;
+    public Date lastPushedDate;
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -310,6 +312,13 @@ public class Project extends Model {
      */
     public Duration ago() {
         return JodaDateUtil.ago(lastUpdateDate());
+    }
+
+    public Duration lastPushedDateAgo(){
+        if( this.lastPushedDate == null){
+            return null;
+        }
+        return JodaDateUtil.ago(this.lastPushedDate);
     }
 
     /**

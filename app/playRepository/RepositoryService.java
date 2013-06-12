@@ -16,6 +16,7 @@ import org.eclipse.jgit.transport.UploadPack;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
+import play.Logger;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
@@ -24,6 +25,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.io.*;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -344,12 +346,18 @@ public class RepositoryService {
             ReceivePack receivePack = new ReceivePack(repository);
             receivePack.setBiDirectionalPipe(false);
             receivePack.receive(in, byteArrayOutputStream, null);
+            updateLastPushedDate(project);
         }
 
         // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
         byteArrayOutputStream.close();
 
         return byteArrayOutputStream.toByteArray();
+    }
+
+    private static void updateLastPushedDate(Project project) {
+        project.lastPushedDate = new Date();
+        project.save();
     }
 
 }
