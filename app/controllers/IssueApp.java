@@ -26,6 +26,7 @@ import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
+import javax.persistence.Transient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class IssueApp extends AbstractPostingApp {
         public Set<Long> labelIds;
         public String authorLoginId;
         public Long assigneeId;
+
+        @Transient
+        public static SearchCondition emptySearchCondition = new SearchCondition();
 
         public SearchCondition() {
             super();

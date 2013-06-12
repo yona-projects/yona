@@ -1,0 +1,69 @@
+@(project:Project, issueList:Collection[Issue], searchCondition:IssueApp.SearchCondition, pageIndex:Int)
+@import java.util
+
+
+@import utils.TemplateHelper._
+@urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
+@makeLabelLink(project:Project, searchCondition:IssueApp.SearchCondition, label:IssueLabel) = {
+    <a href="@urlToList&orderBy=@searchCondition.orderBy&filter=@searchCondition.filter&labelIds=@label.id" class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+}
+
+<ol class="issue-list">
+@for(issue <- issueList){
+    <li class="issue">
+        <div><input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id"></div>
+        <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
+        <div class="author-avatar-space">
+            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap img-rounded">
+                <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" alt="@issue.authorName">
+            </a>
+        </div>
+        <div class="contents">
+            <label for="issue-@issue.id">
+                <div class="title">
+                    <div style="display: inline">
+                        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
+                    </div>
+                    <div style="display: inline">
+                    @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                        @makeLabelLink(project, searchCondition, label)
+                    }
+                    </div>
+
+                </div>
+
+                <p class="infos nm">by
+                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
+                    <span class="date">@agoString(issue.ago)</span>
+                    @if(issue.milestone != null) {
+                        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
+                            <code>@issue.milestone.title</code>
+                        </a>
+                    }
+                </p>
+            </label>
+        </div>
+        <div class="right-panel">
+            <div class="empty-avatar-space">
+                @if(issue.assigneeName != null) {
+                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded">
+                        <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assigneeName">
+                    </a>
+                }
+                @if(issue.assigneeName == null) {
+                        &nbsp;
+                }
+            </div>
+            <div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
+            <div class="comment-wrap">
+                @if(Attachment.findByContainer(issue.asResource).size > 0){
+                    <i class="ico ico-clip icon-middle"></i>
+                }
+                @if(issue.comments.size()>0){
+                    <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
+                }
+            </div>
+        </div>
+    </li>
+}
+</ol>

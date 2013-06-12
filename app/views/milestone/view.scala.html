@@ -45,40 +45,7 @@
         <h5>
             @Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong>
         </h5>
-        <ol class="issue-list">
-            @for(issue <- milestone.issues){
-            <li class="issue">
-                <div class="num"><a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a></div>
-                <div class="attach-wrap">
-                    @if(Attachment.findByContainer(issue.asResource).size > 0){
-                    <i class="ico ico-clip"></i>
-                    }
-                </div>
-                <div class="contents">
-                    <p class="title">
-                        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
-                        @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                        <button class="issue-label" data-labelId="@label.id" data-color="@label.color">@label.name</button>
-                        }
-                    </p>
-                    <p class="infos nm">by
-                        <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</a>
-                        <span class="date">@agoString(issue.ago)</span>
-                    </p>
-                </div>
-                <div class="right-panel">
-                    <div class="state @issue.state.toString.toLowerCase">@Messages("issue.state." + issue.state.toString.toLowerCase)</div>
-                    <div class="comment-wrap">
-                        <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
-                    </div>
-                    @if(issue.assignee != null) {
-                    <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded pull-right">
-                        <img src="@issue.assignee.user.avatarUrl" width="32" height="32" alt="@issue.assignee.user.name"></a>
-                    }
-                </div>
-            </li>
-            }
-        </ol>
+        @issue.partial_list(project,milestone.issues,IssueApp.SearchCondition.emptySearchCondition,0)
     </div>
 
     <div class="actrow right-txt" style="padding: 15px 0;">
