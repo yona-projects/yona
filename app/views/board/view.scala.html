@@ -69,11 +69,11 @@
 					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
 						<a href="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="pull-right close">&times;</a>
 					}
+                    <div class="comment-body" markdown="true">@comment.contents</div>
 					<p class="commenter">
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
 						<span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
 					</p>
-					<div class="comment-body" markdown="true">@comment.contents</div>
 					<div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
 				</div>
 			</li>

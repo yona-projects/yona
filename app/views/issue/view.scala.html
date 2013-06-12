@@ -113,11 +113,11 @@
 					<a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)">&times;</a>
 					}
 
+                    <div class="comment-body" markdown="true">@comment.contents</div>
 					<p class="commenter">
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
 						<span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
 					</p>
-					<div class="comment-body" markdown="true">@comment.contents</div>
 					<div class="attachments" resourceType="@ResourceType.ISSUE_COMMENT" resourceId="@comment.id"></div>
 				</div>
 			</li>
