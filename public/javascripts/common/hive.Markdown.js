@@ -120,7 +120,7 @@ hive.Markdown = function(htOptions){
                 }
 
                 if (path && text) {
-                    return '<a href="' + path + '">' + text + '</a>';
+                    return sPre + '<a href="' + path + '">' + text + '</a>' + sPost;
                 } else {
                     return sMatch;
                 }
