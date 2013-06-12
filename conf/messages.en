@@ -526,3 +526,6 @@ forking = Forking {0} / {1} project into {2} / {3} project
 fork.failed = Failed to fork the project.
 forking.message.1 = Please wait a moment. This process can take long time if the original project has a lot of files and history.
 forking.message.2 = You will be moved to the new project after the process ends.
+pullRequest.help.message.1 = This is a simple way to contribute your code.
+pullRequest.help.message.2 = Please select your branch that contains your code to send and original project's branch to receive your code, and explain what you have done.
+pullRequest.help.message.3 = The member of the original project can accept your code or reject.
