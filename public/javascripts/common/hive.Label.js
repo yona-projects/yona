@@ -201,6 +201,10 @@ hive.Label = (function(htOptions){
 		welControls.append(welBtnLabelId); // Edit Button
 		welLabel.append(welControls); // Controls
 
+		if(htVar.bEditable){
+			hive.LabelEditor.addCategory(oLabel.category);
+		}
+
 		// add label into category
 		if(htElement.welLabelEditor.length > 0) { 
 			htElement.welLabelEditor.before(welLabel);
@@ -561,9 +565,19 @@ hive.LabelEditor = (function(welContainer, htOptions){
 		aSource.pop(aSource.indexOf(sCategory));
 	}
 
+    /**
+     * 카테고리 자동완성(typeahead) 소스에서 지정한 값을 추가함
+     * @param {String} sCategory 추가할 카테고리 이름
+     */
+    function _addCategoryTypeahead(sCategory) {
+        var aSource = htElement.welCustomLabelCategory.typeahead().data('typeahead').source;
+        aSource.push(sCategory);
+    }
+
 	// 인터페이스 반환
 	return {
 		"appendTo": _init,
-		"removeCategory": _removeCategoryTypeahead
+		"removeCategory": _removeCategoryTypeahead,
+		"addCategory": _addCategoryTypeahead
 	}
 })();
