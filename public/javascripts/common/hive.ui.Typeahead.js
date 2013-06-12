@@ -67,12 +67,16 @@
 		 * @param {String} sQuery
 		 */
 		function _initElement(sQuery){
-			htElement.welInput = $(sQuery);
-			htElement.welInput.typeahead({ minLength: 0 });
-            htData = htElement.welInput.data('typeahead');
-			htData.minLength = 0;
-			htData.items = htVar.htData.limit || 8;
-			htData.source = _onTypeAhead;
+            try {
+                htElement.welInput = $(sQuery);
+                htElement.welInput.typeahead({ minLength: 0 });
+                htData = htElement.welInput.data('typeahead');
+                htData.items = htVar.htData.limit || 8;
+                htData.source = _onTypeAhead;
+                htData.minLength = 0;
+            } catch (err){
+                console.log(err);
+            }
 		}
 		
         /**

@@ -126,6 +126,7 @@ milestone.error.content = Description is required
 milestone.error.duedateFormat = Invalid format of due date (YYYY-MM-DD)
 milestone.close = Close
 milestone.open = Open
+milestone.delete = Delete Milestone
 
 #Issue
 issue.state.unit = issues
@@ -186,7 +187,7 @@ issue.new.result.diagnosisResult.works4me= Works for Me
 issue.author = Author
 issue.assignee = Assignee
 issue.noAssignee = TBA
-issue.delete.window = Delete Issue
+issue.delete = Delete Issue
 issue.comment.delete.window = Delete Issue Comment
 issue.new.selectDefault.milestone = --Select a Milestone--
 issue.new.selectDefault.issueType = --Select a Type of Issue--

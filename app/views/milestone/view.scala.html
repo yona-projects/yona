@@ -45,12 +45,13 @@
         <h5>
             @Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong>
         </h5>
-        @issue.partial_list(project,milestone.issues,IssueApp.SearchCondition.emptySearchCondition,0)
+        @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+        @issue.partial_list(project,milestone.issues,IssueApp.SearchCondition.emptySearchCondition,0,0)
     </div>
 
     <div class="actrow right-txt" style="padding: 15px 0;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-        <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("button.delete")</a>
+        <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("milestone.delete")</a>
         }
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
         <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>

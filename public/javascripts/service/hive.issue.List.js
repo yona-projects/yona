@@ -36,7 +36,7 @@
 			htVar.nTotalPages = htOptions.nTotalPages || 1;
 			htVar.oTypeahead = new hive.ui.Typeahead("input[name=authorLoginId]", {
 				"sActionURL": "/users"
-			});
+			}) || "";
             htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
 		}
 		
