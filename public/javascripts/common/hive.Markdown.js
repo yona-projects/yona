@@ -37,7 +37,7 @@ hive.Markdown = function(htOptions){
             "#(" + sNumberPat + ")|(@)?(" + sShaPat + ")|@(" + sUserPat + ")";
 
         return new RegExp(
-                "(\\S*)(" + sProjectPathPat + ")?(?:" + sTargetPat + ")(\\S*)", "gi");
+                "(\\S*?)(" + sProjectPathPat + ")?(?:" + sTargetPat + ")(\\S*?)", "gi");
     }
 
 	/**
