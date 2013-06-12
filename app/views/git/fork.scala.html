@@ -6,57 +6,77 @@
 @main(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    
     @if(isNew) {
+    
     <div class="content-wrap frm-wrap">
-        <div class="well" id="helpMessage">
-            <h3>@Messages("fork")?</h3>
-            <p>@Messages("fork.help.message.1")</p>
-            <p>@Messages("fork.help.message.2")</p>
-        </div>
         <form action="@routes.PullRequestApp.fork(project.owner, project.name)" method="post" class="form-horizontal nm">
+            <input type="hidden" name="owner" value="@forkProject.owner" />
             <fieldset>
                 <legend>
-                    @project.owner / @project.name @Messages("fork")
-                    <span class="pull-right"><button id="helpBtn" class="nbtn small gray">도움말</button></span>
+                    <h4 style="padding-top:10px;">
+                        @project.owner / @project.name @Messages("fork")
+                        <button id="helpBtn" type="button" class="nbtn small gray">도움말</button>
+                    </h4>
                 </legend>
-                <div class="control-group">
-                    <label class="control-label" for="owner">@Messages("project.owner")</label>
-                    <div class="controls">
-                        <input type="text" name="owner" id="owner" value="@forkProject.owner" disabled>
+                <div id="helpMessage" class="well">
+                    <h5>@Messages("fork")?</h5>
+                    <p>
+                        @Messages("fork.help.message.1")<br>
+                        @Messages("fork.help.message.2")
+                    </p>
+                </div>
+                <div class="fork-wrap">
+                    <div class="project-from">
+                        <strong class="title">원본 프로젝트</strong><br>
+                        <strong>@project.owner / @project.name</strong>
+                    </div>
+                    <div class="arrow">
+                        <i class="icon-arrow-right"></i>
+                    </div>
+                    <div class="project-to">
+                        <div class="project-name-wrap">
+	                        <strong class="title">새 프로젝트</strong><br>
+	                        <strong class="owner">@forkProject.owner / </strong>
+	                        <div class="project-name">
+	                            <input type="text" id="name" name="name" value="@forkProject.name" />
+	                            <span class="help-block">@Messages("project.name.alert")</span>
+	                        </div>
+                        </div>
+                        <div class="project-public">
+                            <input type="checkbox" name="isPublic" id="isPublic" checked="@forkProject.isPublic" class="checkbox">
+                            <label for="isPublic" class="label-public">공개 프로젝트로 생성</label>
+                        </div>
                     </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="name">@Messages("project.name")</label>
-                    <div class="controls">
-                        <input type="text" name="name" id="name" value="@forkProject.name">
-                        <span class="help-inline">@Messages("project.name.alert")</span>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="isPublic">@Messages("project.shareOption")</label>
-                    <div class="controls">
-                        <input type="checkbox" name="isPublic" id="isPublic" checked="@forkProject.isPublic">
-                    </div>
-                </div>
-                <div class="form-actions">
+                
+                <div class="center-txt" style="margin-top:40px;">
                     <button type="submit" id="forkBtn" class="nbtn orange medium">@Messages("fork")</button>
                     <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
                 </div>
             </fieldset>
         </form>
     </div>
+    
     } else {
-    <div class="alert alert-error">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <h4>/ @project.owner / @project.name -> / @forkProject.owner / @forkProject.name !</h4>
+    
+    <div class="error-wrap">
+        <i class="ico ico-err2"></i>
         <p>@Messages("fork.already.exist")</p>
+        <p>
+	        <strong class="vmiddle">@project.owner / @project.name</strong>
+	        <i class="icon-arrow-right vmiddle"></i>
+	        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="vmiddle primary-txt">@forkProject.owner / @forkProject.name</strong>
+        </p>
     </div>
-    <div class="form-actions">
+
+    <div class="center-txt">
         <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="nbtn medium orange">@Messages("fork.go")</a>
         <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
     </div>
     }
 </div>
+
 <script type="text/javascript">
     $(function(){
         $('#helpMessage').hide();

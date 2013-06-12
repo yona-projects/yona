@@ -3,52 +3,67 @@
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 
+@branchItemType(itemType:String) = @{
+    if(itemType == "heads"){
+        "branch"
+    } else {
+        itemType
+    }
+}
+
+@makeBranchItem(project:Project, branch:String) = {
+    @defining(branch.split('/')){ names =>
+        @if(names(0).equals("refs") && names.length == 3){
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"))"><!--
+             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
+             -->@names(2)
+            </a></li>
+        } else {
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@branch</a></li>
+        }
+    }
+}
+
 @main(Messages("code.commits") + " @" + commitId, project, utils.MenuType.CODE) {
 
 <div class="page">
 
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	<ul class="nav nav-tabs">
-		<li>
-			<a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-		</li>
-		<li class="active">
-			<a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-		</li>
-	</ul>
-
 	<div class="bubble-wrap dark-gray repo-wrap">
 		<div class="inner-bubble repo-info">
 			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
 			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
-             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">COPY TO CLIPBOARD</a>
+             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">@Messages("code.copyUrl")</a>
 
 			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
 				<button class="btn dropdown-toggle large" data-toggle="dropdown">
 					<span class="d-label"></span>
 					<span class="d-caret"><span class="caret"></span></span>
 				</button>
+				<ul class="dropdown-menu">
 				@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-					@if(branches.length > 0) {
-					<ul class="dropdown-menu">
-						@branches.map { branch =>
-							@defining(routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))) { url =>
-							<li><a href="@url">@branch</a></li>
-							}
-						}
-					</ul>
-					}
-				}
+                    @for(branch <- branches){
+                        @makeBranchItem(project, branch)
+                    }
+                }
+                </ul>
 			</div>
 		</div>
-		<hr class="double-sp" />
 
 		<div class="code-browse-wrap">
-			<div class="code-browse-header">
-				@Messages("code.commits")
-				<strong class="commitId">@@@commitId</strong>
-			</div>
+            <div class="code-browse-header">
+                <strong class="commitId">@@@commitId</strong>
+            </div>
+		    <ul class="nav nav-tabs" style="margin-bottom:20px;">
+		        <li>
+		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		        </li>
+		        <li class="active">
+		            <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+		        </li>
+		    </ul>
+
 			<div id="commit">
 		    	<pre class="diff"><code>@patch</code></pre>
 			</div>
