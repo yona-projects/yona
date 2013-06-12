@@ -37,7 +37,7 @@
                     <span class="date">@agoString(issue.ago)</span>
                     @if(issue.milestone != null) {
                         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
-                            <code>@issue.milestone.title</code>
+                            <code class="milestone-title">@issue.milestone.title</code>
                         </a>
                     }
                 </p>
