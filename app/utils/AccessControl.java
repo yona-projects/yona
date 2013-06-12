@@ -87,7 +87,7 @@ public class AccessControl {
         // Temporary attachments are allowed only for the user who uploads them.
         if (resource.getType() == ResourceType.ATTACHMENT
                 && resource.getContainer().getType() == ResourceType.USER) {
-            return user.id == resource.getContainer().getId();
+            return user.id.equals(resource.getContainer().getId());
         }
 
         if (operation == Operation.READ) {
@@ -104,7 +104,7 @@ public class AccessControl {
         switch(resource.getType()){
         case USER:
         case USER_AVATAR:
-            return user.id == resource.getId();
+            return user.id.equals(resource.getId());
         case PROJECT:
             return ProjectUser.isManager(user.id, resource.getId());
         default:
@@ -219,7 +219,7 @@ public class AccessControl {
         case ISSUE_COMMENT:
         case NONISSUE_COMMENT:
         case BOARD_POST:
-            return resource.getAuthorId() == user.id;
+            return resource.getAuthorId().equals(user.id);
         default:
             return false;
         }
