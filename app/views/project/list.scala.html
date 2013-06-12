@@ -54,7 +54,11 @@
                     <div class="desc">
                     @project.overview
                     </div>
-                    <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> (@agoString(project.ago))</p>
+                    <p class="name-tag">by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
+                        <!--
+                        (@agoString(project.ago))
+                        -->
+                    </p>
                 </div>
             </div>
             <div class="stats-wrap pull-right">

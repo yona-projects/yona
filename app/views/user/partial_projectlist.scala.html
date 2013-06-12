@@ -29,7 +29,11 @@
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-            <span>by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> (@agoString(project.ago)</span> @Messages("project.lastUpdate"))
+            <span>by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
+                <!--
+                (@agoString(project.ago)
+                -->
+            </span> @Messages("project.lastUpdate"))
             </div>
         </div>
     </div>
