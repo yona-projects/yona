@@ -40,19 +40,19 @@
 				<p>
 					@**<!-- author  -->**@
 					@Messages("issue.author")
-					<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" @if(issue.assigneeName != null){ class="gray-txt" }>
+					<a href="@routes.UserApp.userInfo(issue.authorLoginId)" @if(issue.assigneeName != null){ class="gray-txt" }>
 						<strong>@Option(issue.authorLoginId).orElse(Option(Messages("issue.noAuthor"))).get</strong>
 					</a>
 					&nbsp;&middot;&nbsp;
 
 					@**<!-- assignee  -->**@
 					@Messages("issue.assignee")
-					@if(issue.assigneeName == null){ 
-					<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)#options} else {#}" class="gray-txt">
+					@if(issue.assigneeName == null){
+					<a href="#" class="gray-txt">
 						<strong>@Messages("issue.noAssignee")</strong>
 					</a>
 					} else {
-					<a href="@routes.IssueApp.issues(project.owner, project.name, "open")&assigneeId=@issue.assignee.user.id">
+					<a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)">
 						<strong>@issue.assigneeName</strong>
 					</a>
 					}
@@ -69,7 +69,7 @@
 					@if(issue.milestone != null) {
 						<a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)"><strong class="num">@issue.milestone.title</strong></a>
 					} else {
-						<a href="@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)#options} else {#}" class="gray-txt"><strong>@Messages("none")</strong></a>
+						<a href="#" class="gray-txt"><strong>@Messages("none")</strong></a>
 					}
 				</p>
 			</div>
