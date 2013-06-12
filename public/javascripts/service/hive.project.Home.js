@@ -417,9 +417,6 @@
             jQuery.map(htElement.aBtnPlusLabel, function(btn) { btn.show(); });
             htElement.welBtnPlusCategory.show();
 
-            htElement.welInputCategoryBox.show();
-            htElement.welInputLabelBox.show();
-
             htVar.nLabelBoardHeight =
                 htElement.welLabelBoard.css('height');
             htVar.nLabelBoardParentHeight =
