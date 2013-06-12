@@ -83,6 +83,7 @@
             }
         </div>
 
+        @if(project.hasForks() || project.isFork()) {
         <ul class="nav nav-tabs hive-tabs">
             @if(project.hasForks()){
                 <li @if(requestType.equals("opened")){class="active"}>
@@ -101,6 +102,7 @@
                 </li>
             }
         </ul>
+        }
 
         <div class="row-fluid">
             @if(pullRequests.length > 0){
