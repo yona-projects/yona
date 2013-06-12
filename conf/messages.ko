@@ -536,3 +536,4 @@ pullRequest.help.message.1 = 간단히 말씀드리자면, 원본 프로젝트�
 pullRequest.help.message.2 = 본인이 보낼 코드가 들어있는 브랜치와 보낸 코드를 받아줄 원본 프로젝트의 브랜치를 지정하고 어떤 코드인지 설명해 주세요.
 pullRequest.help.message.3 = 원본 프로젝트의 멤버가 해당 코드를 확인하고 코드를 받거나 보류할 수 있습니다.
 pullRequest.listEmpty = 아직 받은 코드가 없습니다
+forks = 복사본

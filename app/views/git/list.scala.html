@@ -1,17 +1,85 @@
 @(project: Project, pullRequests: List[PullRequest], requestType: String)
+@import utils.TemplateHelper._
 
 @main(Messages("title.commitHistory"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+        @if(project.hasForks()) {
+        <div id="forks">
+            <ul class="all-projects">
+                @for(fork <- project.forkingProjects) {
+                <li class="project">
+                    <div class="info-wrap">
+                        <div class="owner-avatar-wrap">
+                            <a href="@routes.UserApp.userInfo(fork.owner)">
+                                <img src="@User.findByLoginId(fork.owner).avatarUrl" alt="@User.findByLoginId(fork.owner).name">
+                            </a>&nbsp;
+                            @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
+                            @for(label <- fork.labels) {
+                            <span class="project-label @label.category.toLowerCase()">@label.name</span>
+                            }
+                        </div>
+                        <div style="float:left">
+                            <div class="header">
+                                <a href="@routes.ProjectApp.project(fork.owner, fork.name)" class="black">@fork.name</a>
+                                @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
+                                @for(label <- fork.labels) {
+                                <span class="project-label @label.category.toLowerCase()">@label.name</span>
+                                }
+                            </div>
+                            <div class="desc">
+                                @project.overview
+                            </div>
+                            <p class="name-tag">by <a href="@routes.UserApp.userInfo(fork.owner)" class="owner-name-small">@fork.owner</a>
+                                <!--
+                                (@agoString(project.ago))
+                                -->
+                            </p>
+                        </div>
+                    </div>
+                    <div class="stats-wrap pull-right">
+                        @if(fork.isPublic){
+                        <div class="members">
+                            <ul class="unstyled">
+                                @for(member <- User.findUsersByProject(project.id)){
+                                @if(member.loginId != fork.owner){
+                                <li>
+                                    <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
+                                        <img src="@member.avatarUrl" alt="@member.name">
+                                    </a>
+                                </li>
+                                }
+                                }
+                            </ul>
+                            <p>
+                                @Html(Messages("project.onmember", User.findUsersByProject(fork.id).length))
+                                <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", fork.watchingCount))
+                            </p>
+                        </div>
+                        }
+                    </div>
+                </li>
+                }
+            </ul>
+        </div>
+        }
 
         <div class="pull-right">
-            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium">
+            @if(project.hasForks()) {
+            <button id="forksBtn" class="nbtn medium gray">
+                <i class="icon-random icon-white"></i>
+                @Messages("forks") <span class="num-badge">@project.forkingProjects.size</span>
+            </button>
+            }
+            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium orange">
+                <i class="icon-inbox icon-white"></i>
                 @Messages("fork")
-                <span class="num-badge">@project.forkingProjects.size</span>
             </a>
-
             @if(project.isFork) {
-            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange">@Messages("pullRequest")</a>
+            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange">
+                <i class="icon-share icon-white"></i>
+                @Messages("pullRequest")
+            </a>
             }
         </div>
 
@@ -101,4 +169,16 @@
             }
         </div>
     </div>
+
+<script type="text/javascript">
+    $(function(){
+        $(document).ready(function() {
+            $('#forks').hide();
+            $('#forksBtn').click(function(e){
+                e.preventDefault();
+                $('#forks').toggle();
+            });
+        });
+    });
+</script>
 }
