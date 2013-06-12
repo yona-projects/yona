@@ -5,6 +5,7 @@ import models.resource.Resource;
 import models.support.*;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import play.Logger;
 import play.data.format.*;
 import play.data.validation.*;
 import play.db.ebean.*;
@@ -71,6 +72,16 @@ public class Milestone extends Model {
     	return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
     }
 
+    public List<Issue> sortedByStateOfIssue(){
+        List <Issue>sortedIssues = new ArrayList<Issue>(this.issues);
+        Collections.sort(sortedIssues, new Comparator<Issue>() {
+            @Override
+            public int compare(Issue a, Issue b) {
+                return -a.state.toString().compareTo(b.state.toString());
+            }
+        });
+        return sortedIssues;
+    }
     public int getNumTotalIssues() {
         return issues.size();
     }
