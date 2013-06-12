@@ -78,22 +78,29 @@
 		}
 
 		@if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
-		<li class="option">
+		<li id="milestoneOption" class="option">
              <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
-             <div class="option-desc">
-				<div id="milestoneId" class="btn-group" data-name="milestoneId">
-					<button class="btn dropdown-toggle large" data-toggle="dropdown">
-						<span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
-						<span class="d-caret"><span class="caret"></span></span>
-					</button>
-					<ul class="dropdown-menu">
-					    <li data-value="" @if(issue.milestone == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("none")</a></li>
-						@Milestone.options(project.id).map{ v =>
-						<li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
-						}
-					</ul>
-				</div>
-             </div>
+            @defining(Milestone.options(project.id)) { milestones =>
+                @if(milestones.isEmpty()) {
+                    <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
+                    <i class="icon-refresh" style="cursor: pointer" onclick="javascript:reloadMilestone();"></i>
+                } else {
+                    <div class="option-desc">
+                        <div id="milestoneId" class="btn-group" data-name="milestoneId">
+                            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                <span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li data-value="" @if(issue.milestone == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("none")</a></li>
+                                @milestones.map{ v =>
+                                <li data-value="@v._1" @if(issue.milestone != null && issue.milestone.id.toString() == v._1){data-selected="true" class="active"}><a href="javascript:void(0)">@v._2</a></li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            }
 		</li>
 		}
 	</ul>
@@ -139,6 +146,15 @@
 			"htOptLabel"     : htOptLabel
 		});
 	});
+
+    function reloadMilestone() {
+        $.get("@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)", function(data){
+            var context = data.replace("<!DOCTYPE html>", "").trim();
+            var milestoneOptionDiv = $("#milestoneOption", context);
+            $("#milestoneOption").html(milestoneOptionDiv.html());
+            new hive.ui.Dropdown({"elContainer":"#milestoneId"});
+        });
+    };
 </script>
 
 }
