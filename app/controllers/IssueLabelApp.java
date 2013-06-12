@@ -78,7 +78,7 @@ public class IssueLabelApp extends Controller {
      * 만들어진 이슈라벨을 추가한다.
      *
      * 그러나 그 프로젝트에 카테고리, 이름, 색상이 모두 같은 이슈라벨이 있다면 추가하지 않고 본문 없이
-     * {@code 200 OK}로 응답한다.
+     * {@code 204 No Content}로 응답한다.
      *
      * 새로 이슈라벨을 추가한 경우, 그 이슈라벨의 {@link IssueLabel#id}, {@link IssueLabel#name},
      * {@link IssueLabel#color}, {@link IssueLabel#category} 필드를 {@code application/json} 형식으로
@@ -108,7 +108,7 @@ public class IssueLabelApp extends Controller {
         label.project = project;
 
         if (label.exists()) {
-            return ok();
+            return noContent();
         } else {
             label.save();
 
