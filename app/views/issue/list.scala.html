@@ -104,88 +104,8 @@
 		</div>
 	</div>
 	}
-
-    <form id="mass-update-form" class="mass-update-form" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
-        <div id="state" class="btn-group" data-name="state">
-            <button class="btn dropdown-toggle large" data-toggle="dropdown" disabled>
-                <span class="d-label">@Messages("issue.update.state")</span>
-                <span class="d-caret"><span class="caret"></span></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li data-value="@State.OPEN.name"><a href="javascript:void(0)">@Messages("issue.state.open")</a></li>
-                <li data-value="@State.CLOSED.name"><a href="javascript:void(0)">@Messages("issue.state.closed")</a></li>
-            </ul>
-        </div>
-
-        <div id="assignee" class="btn-group" data-name="assignee.id">
-            <button class="btn dropdown-toggle large" data-toggle="dropdown" disabled>
-                <span class="d-label">@Messages("issue.update.assignee")</span>
-                <span class="d-caret"><span class="caret"></span></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
-                @for(member <- project.members()) {
-                <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
-                }
-            </ul>
-        </div>
-
-        <div id="milestone" class="btn-group" data-name="milestone.id">
-            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
-                <span class="d-label">@Messages("issue.update.milestone")</span>
-                <span class="d-caret"><span class="caret"></span></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li data-value="-1"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
-                @for(milestone <- Milestone.findByProjectId(project.id)) {
-                <li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
-                }
-            </ul>
-        </div>
-
-        <div id="attaching-label" class="btn-group" data-name="attachingLabel.id">
-            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
-                <span class="d-label">@Messages("issue.update.attachLabel")</span>
-                <span class="d-caret"><span class="caret"></span></span>
-            </button>
-            <ul class="dropdown-menu">
-                @for(label <- IssueLabel.findByProject(project)) {
-                <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
-                }
-            </ul>
-        </div>
-
-        <div id="detaching-label" class="btn-group" data-name="detachingLabel.id">
-            <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
-                <span class="d-label">@Messages("issue.update.detachLabel")</span>
-                <span class="d-caret"><span class="caret"></span></span>
-            </button>
-            <ul class="dropdown-menu">
-                @for(label <- IssueLabel.findByProject(project)) {
-                <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
-                }
-            </ul>
-        </div>
-
-		<button href="#deleteConfirm" data-toggle="modal" class="nbtn medium black" disabled>@Messages("button.delete")</button>
-
-        @** Confirm to delete post **@
-        <div id="deleteConfirm" class="modal hide fade">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">×</button>
-                <h3>@Messages("issue.delete.window")</h3>
-            </div>
-            <div class="modal-body">
-                <p>@Messages("post.delete.confirm")</p>
-            </div>
-            <div class="modal-footer">
-                <a id="delete" class="btn btn-danger med">@Messages("button.yes")</a>
-                <a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
-            </div>
-        </div>
-
-    </form>
-    @partial_list(project, currentPage.getList, param, currentPage.getPageIndex)
+    @partial_massupdate(project, param)
+    @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
 } else {
 	<div class="error-wrap">
 		<i class="ico ico-err1"></i>
@@ -202,29 +122,5 @@
 		<!-- pagination.js will fill here. -->
 	</div>
 </div>
-
-<script type="text/javascript">
-	$(document).ready(function(){
-		var htOptLabel = {
-			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-		};
-
-		$hive.loadModule("issue.List", {
-			"elPagination": $("#pagination"),
-            "welMassUpdateForm": $('#mass-update-form'),
-            "welMassUpdateButtons": $('#mass-update-form button'),
-			"welState": $("#state"),
-			"welMilestone": $("#milestone"),
-			"welAssignee": $("#assignee"),
-			"welAttachingLabel": $("#attaching-label"),
-			"welDetachingLabel": $("#detaching-label"),
-			"welDeleteButton": $("#delete"),
-            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
-			"nTotalPages" : @currentPage.getTotalPageCount,
-			"htOptLabel"  : htOptLabel
-		});
-	});
-</script>
 </div>
 }

@@ -126,6 +126,7 @@ milestone.error.content = 마일스톤 내용을 입력해주세요
 milestone.error.duedateFormat = 완료일 형식이 잘못되었습니다. YYYY-MM-DD 형식으로 입력해주세요.
 milestone.close = 완료로 변경
 milestone.open = 진행중으로 변경
+milestone.delete = 마일스톤 삭제
 
 #Issue
 issue.state.unit = 이슈
@@ -186,7 +187,7 @@ issue.new.result.diagnosisResult.works4me= 잘동작함
 issue.author = 등록자
 issue.assignee = 담당자
 issue.noAssignee = 없음
-issue.delete.window = 이슈 삭제
+issue.delete = 이슈 삭제
 issue.comment.delete.window = 이슈 댓글 삭제
 issue.new.selectDefault.milestone = --마일스톤 선택--
 issue.new.selectDefault.issueType = --유형 선택--

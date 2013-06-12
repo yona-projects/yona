@@ -3,6 +3,7 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 
+import play.Logger;
 import play.data.DynamicForm;
 import play.mvc.Http;
 import views.html.issue.edit;
@@ -313,8 +314,7 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(views.html.error.forbidden.render(project));
         }
 
-        return redirect(
-                routes.IssueApp.issues(ownerName, projectName, "all", "html", 1));
+        return redirect(request().getHeader("Referer"));
     }
 
     /**
