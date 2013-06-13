@@ -224,7 +224,7 @@ public class SVNRepository implements PlayRepository {
         String[] paths = {"/"};
 
         // Determine revisions
-        long startRevision = repository.getLatestRevision();
+        long startRevision = repository.getLatestRevision() - page * limit;
         long endRevision = startRevision - limit;
         if (endRevision < 1) {
             endRevision = 1;
