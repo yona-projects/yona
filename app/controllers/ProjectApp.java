@@ -41,7 +41,7 @@ import static com.avaje.ebean.Expr.contains;
  */
 public class ProjectApp extends Controller {
 
-	private static final int LOGO_FILE_LIMIT_SIZE = 1048576;
+	private static final int LOGO_FILE_LIMIT_SIZE = 1024*1000*5; //5M
 
 	/** 프로젝트 로고로 사용할 수 있는 이미지 확장자 */
     public static final String[] LOGO_TYPE = {"jpg", "jpeg", "png", "gif", "bmp"};
