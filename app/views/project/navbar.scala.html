@@ -43,11 +43,6 @@
 <script type="text/javascript">
     $(function(){
         $('.side-menus li').tooltip();
-        $('.watchBtn').click(function(e){
-            e.preventDefault();
-            $.post($(this).attr('href'), function(){
-                location.reload();
-            });
-        });
+        $hive.loadModule('project.Watch');
     });
 </script>

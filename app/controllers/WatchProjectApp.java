@@ -3,6 +3,7 @@ package controllers;
 import models.Project;
 import models.User;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
 
@@ -26,7 +27,7 @@ public class WatchProjectApp extends Controller {
         user.addWatching(project);
         user.update();
 
-        return redirect(routes.ProjectApp.project(userName, projectName));
+        return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }
 
     public static Result unwatch(String userName, String projectName) {
@@ -44,7 +45,7 @@ public class WatchProjectApp extends Controller {
         user.removeWatching(project);
         user.update();
 
-        return redirect(routes.ProjectApp.project(userName, projectName));
+        return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }
 
     private static Result badProject(String userName, String projectName) {

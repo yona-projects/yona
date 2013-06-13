@@ -70,16 +70,6 @@
         </div>
     </div>
 </li>
-<script type="text/javascript">
-    $(function(){
-        $('.watchBtn').click(function(e){
-            e.preventDefault();
-            $.post($(this).attr('href'), function(){
-                location.reload();
-            });
-        });
-    });
-</script>
 @loginUser() = {
     @User.findByLoginId(session.get("loginId"))
 }
