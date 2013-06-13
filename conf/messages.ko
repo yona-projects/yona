@@ -131,7 +131,7 @@ milestone.form.dueDate = 완료일을 선택하세요
 milestone.error.title = 마일스톤 제목을 입력해주세요
 milestone.error.content = 마일스톤 내용을 입력해주세요
 milestone.error.duedateFormat = 완료일 형식이 잘못되었습니다. YYYY-MM-DD 형식으로 입력해주세요.
-milestone.close = 완료로 변경
+milestone.close = 마일스톤 종료
 milestone.open = 진행중으로 변경
 milestone.delete = 마일스톤 삭제
 
