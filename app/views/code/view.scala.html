@@ -3,6 +3,8 @@
 @branchItemType(itemType:String) = @{
 	if(itemType == "heads"){
 		"branch"
+    } else if(itemType == "tags") {
+        "tag"
 	} else {
 		itemType
 	}
@@ -10,11 +12,13 @@
 
 @makeBranchItem(branch:String) = {
 	@defining(branch.split('/')){ names =>
-		@if(names(0).equals("refs") && names.length == 3){
-			<li data-value="@branch"><a href="#"><!--
-			 --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
-			 -->@names(2)
-			</a></li>
+		@if(names(0).equals("refs")){
+			<li data-value="@branch">
+                <a href="#">
+                    <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
+                    @branch.replace("refs/" + names(1) + "/", "")
+			    </a>
+            </li>
 		} else {
 			<li data-value="@branch"><a href="#">@branch</a></li>
 		}
@@ -47,7 +51,7 @@
 
 		<div class="code-browse-wrap">
 			<div id="breadcrumbs" class="code-browse-header"></div>
-			
+
 		    <ul class="nav nav-tabs">
 		        <li class="active">
 		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
