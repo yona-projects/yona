@@ -69,7 +69,6 @@ public class CodeApp extends Controller {
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
-        Logger.debug("branch: " + branch);
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {
