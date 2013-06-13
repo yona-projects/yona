@@ -61,12 +61,12 @@
             }
         }
 		
-		/**
-		 * 엘리먼트 초기화
-		 * Initialize element
-		 * @param {String} sQuery
-		 */
-		function _initElement(sQuery){
+        /**
+         * 엘리먼트 초기화
+         * Initialize element
+         * @param {String} sQuery
+         */
+        function _initElement(sQuery){
             try {
                 htElement.welInput = $(sQuery);
                 htElement.welInput.typeahead({ minLength: 0 });
@@ -75,10 +75,12 @@
                 htData.source = _onTypeAhead;
                 htData.minLength = 0;
             } catch (err){
-                console.log(err);
+                if(typeof console == "object") {
+                    console.log(err);        	                        
+        	}
             }
-		}
-		
+        }
+
         /**
         * Data source for loginId typeahead while adding new member.
         *
