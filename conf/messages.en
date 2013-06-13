@@ -28,6 +28,9 @@ title.help = HELP
 title.search = SEARCH
 title.resetPassword = Reset Password
 title.newPullRequest = Pull Request
+title.keymap = Keyboard shortcuts
+title.boardList = Post List
+title.boardDetail = Post View
 
 hive.name = HIVE
 hive.title = Collaborative Software Development Platform
@@ -101,6 +104,10 @@ button.back = Back
 button.upload = Upload
 button.user.makeAccountUnlock.true = Unlock
 button.user.makeAccountUnlock.false = Lock
+button.prevPage = Previous Page
+button.nextPage = Next Page
+button.submitForm = Submit Form
+button.selectAll = Select All 
 
 checkbox.commented = Comment
 checkbox.fileAttached = File Attached
@@ -321,6 +328,8 @@ project.history.type.pullrequest = sent some code
 project.history.recent = Recent History
 
 #Site
+site = Site
+site.search = Site Search
 site.sidebar = Site Management
 site.sidebar.setting = Site Setting
 site.sidebar.userList = Users

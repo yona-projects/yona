@@ -28,6 +28,9 @@ title.help = 도움말
 title.search = 검색
 title.resetPassword = 비밀번호 재설정
 title.newPullRequest = 코드 보내기
+title.keymap = 단축키 안내
+title.boardList = 게시판
+title.boardDetail = 글 읽기
 
 hive.name = HIVE
 hive.title = 협업개발 플랫폼
@@ -101,6 +104,10 @@ button.back = 돌아가기
 button.upload = 파일 올리기
 button.user.makeAccountUnlock.true = 잠김해제
 button.user.makeAccountUnlock.false = 계정잠그기
+button.prevPage = 이전 페이지
+button.nextPage = 다음 페이지
+button.submitForm = 폼 전송
+button.selectAll = 전체 선택 
 
 checkbox.commented = 댓글
 checkbox.fileAttached = 첨부파일
@@ -321,6 +328,8 @@ project.history.type.pullrequest = 새 코드를 보냈습니다.
 project.history.recent = 프로젝트 최근 이력
 
 #Site
+site = 사이트
+site.search = 사이트 검색
 site.sidebar = 사이트 관리
 site.sidebar.setting = 설정
 site.sidebar.userList = 사용자

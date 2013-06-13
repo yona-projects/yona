@@ -1,0 +1,90 @@
+@(section:String, project:Project)
+
+<div class="pull-right" style="padding:10px;">
+    <a href="#helpKeys" data-toggle="modal" class="bold">
+        <i class="icon-info-sign"></i> @Messages("title.keymap")
+    </a>
+    
+    <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
+        <div class="row-fluid">
+            <div class="span4">
+                <h5>@Messages("projects")</h5>
+	            <span class="nbtn small black">O</span>
+	            <span class="help-inline">@Messages("menu.home")</span><br>
+
+                <span class="nbtn small black">B</span>
+                <span class="help-inline">@Messages("menu.board")</span><br>
+
+	            <span class="nbtn small black">I</span>
+	            <span class="help-inline">@Messages("menu.issue")</span><br>
+
+	            <span class="nbtn small black">K</span>
+	            <span class="help-inline">@Messages("menu.code")</span><br>
+
+	            <span class="nbtn small black">M</span>
+	            <span class="help-inline">@Messages("project.milestone")</span><br>
+
+                @if(project.vcs.equals("GIT")){
+                <span class="nbtn small black">P</span>
+                <span class="help-inline">@Messages("menu.pullRequest")</span><br>
+                }
+
+                @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+	            <span class="nbtn small black">Q</span>
+                <span class="help-inline">@Messages("project.setting")</span><br>
+                }
+            </div>
+            
+            <div class="span4">
+	            <h5>@Messages("title." + section)</h5>
+	            
+	            @if(section.indexOf("board") > -1){
+                <span class="nbtn small black">N</span>
+                <span class="help-inline">@Messages("board.write")</span><br>
+                }
+                
+                @if(section.indexOf("issue") > -1){
+                <span class="nbtn small black">N</span>
+                <span class="help-inline">@Messages("issue.menu.new")</span><br>
+                }
+
+                @if(section.indexOf("Detail") > - 1){
+                <span class="nbtn small black">L</span>
+                <span class="help-inline">@Messages("button.list")</span><br>
+
+	            <span class="nbtn small black">E</span>
+	            <span class="help-inline">@Messages("button.edit")</span><br>
+	            }
+	           
+	            @if(section.indexOf("List") > -1){
+	            <span class="nbtn small black">A</span>
+	            <span class="help-inline">@Messages("button.prevPage")</span><br>
+	
+	            <span class="nbtn small black">S</span>
+	            <span class="help-inline">@Messages("button.nextPage")</span><br>
+	            }
+	            
+                @if(section == "issueList"){
+                <span class="nbtn small black">CTRL</span>+ <span class="nbtn small black">A</span>
+                <span class="help-inline">@Messages("button.selectAll")</span><br>
+                }
+            </div>
+
+            <div class="span4">
+	            <h5>@Messages("site")</h5>
+	            <span class="nbtn small black">W</span>
+	            <span class="help-inline">@Messages("userinfo.profile")</span><br>
+	            
+                <span class="nbtn small black">ALT</span>+ <span class="nbtn small black">S</span>
+                <span class="help-inline">@Messages("site.search")</span><br>
+
+	            <span class="nbtn small black">CTRL</span>+ <span class="nbtn small black">ENTER</span>
+	            <span class="help-inline">@Messages("button.submitForm")</span><br>
+            </div>
+        </div>
+        
+        <p class="actrow">
+            <button type="button" class="nbtn medium orange" data-dismiss="modal">@Messages("button.confirm")</button>
+        </p>
+    </div>
+</div>
