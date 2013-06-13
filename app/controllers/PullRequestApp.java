@@ -8,6 +8,10 @@ import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Repository;
+import play.Logger;
 import play.data.Form;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -22,6 +26,7 @@ import views.html.git.*;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -311,7 +316,7 @@ public class PullRequestApp extends Controller {
      * @return
      */
     public static Result pullRequest(String userName, String projectName, long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        final PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
@@ -319,12 +324,35 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        boolean isSafe = false;
+        final boolean[] isSafe = {false};
+        final List<GitCommit> commits = new ArrayList<>();
         if(pullRequest.isOpen()) {
-            isSafe = GitRepository.isSafeToMerge(pullRequest);
+            GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
+                public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
+                    Repository clonedRepository = cloneAndFetch.getRepository();
+
+                    // merge할 커밋 확인.(merge하기 전에 확인해야 한다.)
+                    List<GitCommit> commitList = GitRepository.diffCommits(clonedRepository,
+                            cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
+                    for(GitCommit commit : commitList) {
+                        commits.add(commit);
+                    }
+
+                    // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
+                    GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
+
+                    // 코드를 보낸 브랜치의 코드를 merge 한다.
+                    MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
+
+                    // merge 결과 확인
+                    isSafe[0] = mergeResult.getMergeStatus().isSuccessful();
+
+                    GitRepository.deleteMergingDirectory(pullRequest);
+                }
+            });
         }
 
-        return ok(view.render(project, pullRequest, isSafe));
+        return ok(view.render(project, pullRequest, isSafe[0], commits));
     }
 
     /**

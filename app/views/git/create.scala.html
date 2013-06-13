@@ -10,7 +10,7 @@
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
             <legend>
                 @Messages(title)
-                <span><button id="helpBtn" class="nbtn small gray">도움말</button></span>
+                <span><button id="helpBtn" class="nbtn small gray">@Messages("title.help")</button></span>
             </legend>
             <div class="well" id="helpMessage">
                 <p>

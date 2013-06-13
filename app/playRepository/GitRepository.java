@@ -572,9 +572,17 @@ public class GitRepository implements PlayRepository {
 
                     // 풀리퀘스트 완료
                     pullRequest.state = State.CLOSED;
+
+                    deleteMergingDirectory(pullRequest);
                 }
             }
         });
+    }
+
+    public static void deleteMergingDirectory(PullRequest pullRequest) {
+        Project toProject = pullRequest.toProject;
+        String directoryForMerging = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
+        FileUtil.rm_rf(new File(directoryForMerging));
     }
 
     /**
@@ -625,7 +633,7 @@ public class GitRepository implements PlayRepository {
      * @param pullRequest
      * @return
      */
-    public static boolean isSafeToMerge(PullRequest pullRequest) {
+    public static boolean isSafeToMerge(final PullRequest pullRequest) {
         final MergeResult[] mergeResult = {null};
 
         cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
@@ -638,6 +646,8 @@ public class GitRepository implements PlayRepository {
 
                 // 코드를 보낸 브랜치의 코드를 merge 한다.
                 mergeResult[0] = merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
+
+                deleteMergingDirectory(pullRequest);
             }
         });
 
@@ -676,37 +686,48 @@ public class GitRepository implements PlayRepository {
      * @param pullRequest
      * @return
      */
-    public static List<GitCommit> getPullingCommits(PullRequest pullRequest) {
+    public static List<GitCommit> getPullingCommits(final PullRequest pullRequest) {
         final List<GitCommit> commits = new ArrayList<>();
 
         cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
             @Override
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                Repository clonedRepository = cloneAndFetch.getRepository();
-                String destFromBranchName = cloneAndFetch.getDestFromBranchName();
-                String destToBranchName = cloneAndFetch.getDestToBranchName();
+                List<GitCommit> commitList = diffCommits(cloneAndFetch.getRepository(),
+                        cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
 
-                RevWalk walk = null;
-                try {
-                    walk = new RevWalk(clonedRepository);
-                    ObjectId from = clonedRepository.resolve(destFromBranchName);
-                    ObjectId to = clonedRepository.resolve(destToBranchName);
-
-                    walk.markStart(walk.parseCommit(from));
-                    walk.markUninteresting(walk.parseCommit(to));
-
-                    Iterator<RevCommit> iterator = walk.iterator();
-                    while (iterator.hasNext()) {
-                        RevCommit commit = iterator.next();
-                        commits.add(new GitCommit(commit));
-                    }
-                } finally {
-                    walk.release();
+                for(GitCommit commit : commitList) {
+                    commits.add(commit);
                 }
+
+                deleteMergingDirectory(pullRequest);
             }
         });
 
         return commits;
+    }
+
+    public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+        List<GitCommit> commits = new ArrayList<>();
+
+        RevWalk walk = null;
+        try {
+            walk = new RevWalk(repository);
+            ObjectId from = repository.resolve(fromBranch);
+            ObjectId to = repository.resolve(toBranch);
+
+            walk.markStart(walk.parseCommit(from));
+            walk.markUninteresting(walk.parseCommit(to));
+
+            Iterator<RevCommit> iterator = walk.iterator();
+            while (iterator.hasNext()) {
+                RevCommit commit = iterator.next();
+                commits.add(new GitCommit(commit));
+            }
+
+            return commits;
+        } finally {
+            walk.release();
+        }
     }
 
     /**
@@ -840,7 +861,7 @@ public class GitRepository implements PlayRepository {
     /**
      * Clone과 Fetch 이후 작업에 필요한 정보를 담을 객체로 사용한다.
      */
-    private static class CloneAndFetch {
+    public static class CloneAndFetch {
 
         /**
          * 코드 받을 저장소의 코드를 non-bare 모드로 clone 받은 Git 저장소
@@ -857,15 +878,15 @@ public class GitRepository implements PlayRepository {
          */
         private String destFromBranchName;
 
-        private Repository getRepository() {
+        public Repository getRepository() {
             return repository;
         }
 
-        private String getDestToBranchName() {
+        public String getDestToBranchName() {
             return destToBranchName;
         }
 
-        private String getDestFromBranchName() {
+        public String getDestFromBranchName() {
             return destFromBranchName;
         }
 
@@ -881,7 +902,7 @@ public class GitRepository implements PlayRepository {
      *
      * @see #cloneAndFetch(models.PullRequest, playRepository.GitRepository.AfterCloneAndFetchOperation)
      */
-    private interface AfterCloneAndFetchOperation {
+    public static interface AfterCloneAndFetchOperation {
         public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException;
     }
 
