@@ -56,7 +56,7 @@
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
         <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
             @if(milestone.state == State.OPEN) {
-                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium orange">@Messages("milestone.close")</a>
+                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium green">@Messages("milestone.close")</a>
             }
             @if(milestone.state == State.CLOSED) {
                 <a href="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium orange">@Messages("milestone.open")</a>

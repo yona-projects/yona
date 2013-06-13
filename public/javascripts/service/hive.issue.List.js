@@ -69,7 +69,7 @@
 		function _attachEvent(){
 			htElement.welBtnAdvance.click(_onClickBtnAdvance);
             htElement.welDeleteButton.click(_onClickBtnDelete);
-			
+
 			// massUpdate dropdowns 
             htVar.oState.onChange(_onChangeUpdateField);
             htVar.oMilestone.onChange(_onChangeUpdateField);
@@ -79,7 +79,7 @@
 
             // massUpdate checkboxes
             htElement.waCheckboxes.change(_onCheckIssue);            
-            hive.ShortcutKey.attach("CTRL+A", function(htInfo){ 
+            hive.ShortcutKey.attach("CTRL+A", function(htInfo){
                 htElement.waCheckboxes.attr("checked", true);
                 htInfo.weEvt.preventDefault();
                 _onCheckIssue();
