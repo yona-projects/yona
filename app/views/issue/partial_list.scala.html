@@ -1,9 +1,9 @@
 @(project:Project, issueList:Collection[Issue], searchCondition:IssueApp.SearchCondition, pageIndex:Int, totalPageCount:Int)
 @import java.util
-
-
 @import utils.TemplateHelper._
+
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
+
 @makeLabelLink(project:Project, searchCondition:IssueApp.SearchCondition, label:IssueLabel) = {
     <a href="@urlToList&orderBy=@searchCondition.orderBy&filter=@searchCondition.filter&labelIds=@label.id" class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
@@ -67,26 +67,27 @@
     </li>
 }
 </ol>
+
 <script type="text/javascript">
     $(document).ready(function(){
-    var htOptLabel = {
-    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-    };
-
-    $hive.loadModule("issue.List", {
-    "elPagination": $("#pagination"),
-    "welMassUpdateForm": $('#mass-update-form'),
-    "welMassUpdateButtons": $('#mass-update-form button'),
-    "welState": $("#state"),
-    "welMilestone": $("#milestone"),
-    "welAssignee": $("#assignee"),
-    "welAttachingLabel": $("#attaching-label"),
-    "welDetachingLabel": $("#detaching-label"),
-    "welDeleteButton": $("#delete"),
-    "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
-    "nTotalPages" : @totalPageCount,
-    "htOptLabel"  : htOptLabel
-    });
+	    var htOptLabel = {
+		    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
+		    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
+	    };
+	
+	    $hive.loadModule("issue.List", {
+		    "elPagination": $("#pagination"),
+		    "welMassUpdateForm": $('#mass-update-form'),
+		    "welMassUpdateButtons": $('#mass-update-form button'),
+		    "welState": $("#state"),
+		    "welMilestone": $("#milestone"),
+		    "welAssignee": $("#assignee"),
+		    "welAttachingLabel": $("#attaching-label"),
+		    "welDetachingLabel": $("#detaching-label"),
+		    "welDeleteButton": $("#delete"),
+		    "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
+		    "nTotalPages" : @totalPageCount,
+		    "htOptLabel"  : htOptLabel
+	    });
     });
 </script>

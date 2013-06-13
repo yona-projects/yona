@@ -34,10 +34,17 @@
 		 */
 		function _initVar(htOptions){
 			htVar.nTotalPages = htOptions.nTotalPages || 1;
-			htVar.oTypeahead = new hive.ui.Typeahead("input[name=authorLoginId]", {
+            htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
+
+            htVar.oTypeahead = new hive.ui.Typeahead("input[name=authorLoginId]", {
 				"sActionURL": "/users"
 			}) || "";
-            htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
+            
+            htVar.oState     = new hive.ui.Dropdown({"elContainer": htOptions.welState});
+            htVar.oAssignee  = new hive.ui.Dropdown({"elContainer": htOptions.welAssignee});
+            htVar.oMilestone = new hive.ui.Dropdown({"elContainer": htOptions.welMilestone});
+            htVar.oAttachingLabel = new hive.ui.Dropdown({"elContainer": htOptions.welAttachingLabel});
+            htVar.oDetachingLabel = new hive.ui.Dropdown({"elContainer": htOptions.welDetachingLabel});            
 		}
 		
 		/**
@@ -52,28 +59,8 @@
 
             htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
-
-            htElement.oState = new hive.ui.Dropdown({
-                "elContainer": htOptions.welState
-            });
-
-            htElement.oMilestone = new hive.ui.Dropdown({
-                "elContainer": htOptions.welMilestone
-            });
-
-            htElement.oAssignee = new hive.ui.Dropdown({
-                "elContainer": htOptions.welAssignee
-            });
-
-            htElement.oAttachingLabel = new hive.ui.Dropdown({
-                "elContainer": htOptions.welAttachingLabel
-            });
-
-            htElement.oDetachingLabel = new hive.ui.Dropdown({
-                "elContainer": htOptions.welDetachingLabel
-            });
-
             htElement.welDeleteButton = htOptions.welDeleteButton;
+            htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
 		}
 		
 		/**
@@ -81,13 +68,23 @@
 		 */
 		function _attachEvent(){
 			htElement.welBtnAdvance.click(_onClickBtnAdvance);
-            htElement.oState.onChange(_onChangeUpdateField);
-            htElement.oMilestone.onChange(_onChangeUpdateField);
-            htElement.oAssignee.onChange(_onChangeUpdateField);
-            htElement.oAttachingLabel.onChange(_onChangeUpdateField);
-            htElement.oDetachingLabel.onChange(_onChangeUpdateField);
-            $(htVar.sIssueCheckBoxesSelector).change(_onCheckIssue);
             htElement.welDeleteButton.click(_onClickBtnDelete);
+			
+			// massUpdate dropdowns 
+            htVar.oState.onChange(_onChangeUpdateField);
+            htVar.oMilestone.onChange(_onChangeUpdateField);
+            htVar.oAssignee.onChange(_onChangeUpdateField);
+            htVar.oAttachingLabel.onChange(_onChangeUpdateField);
+            htVar.oDetachingLabel.onChange(_onChangeUpdateField);
+
+            // massUpdate checkboxes
+            htElement.waCheckboxes.change(_onCheckIssue);            
+            hive.ShortcutKey.attach("CTRL+A", function(htInfo){ 
+                htElement.waCheckboxes.attr("checked", true);
+                htInfo.weEvt.preventDefault();
+                _onCheckIssue();
+                return false; 
+            });
 		}
 
         /**

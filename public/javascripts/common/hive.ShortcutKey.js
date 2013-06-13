@@ -1,5 +1,5 @@
 /**
- * @(#)hive.Shortcut 2013.03.21
+ * @(#)hive.ShortcutKey 2013.03.21
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -56,14 +56,16 @@ hive.ShortcutKey = (function(htOptions){
 		var sKeyInput = _getKeyString(weEvt);
 		var aHandlers = htHandlers[sKeyInput] || [];
 		
-		_runEventHandler(aHandlers, weEvt);
+		_runEventHandler(aHandlers, weEvt, sKeyInput);
 	}
 	
-	function _runEventHandler(aHandlers, weEvt){
+	function _runEventHandler(aHandlers, weEvt, sKeyInput){
 		var htInfo = {
-			"weEvt"    : weEvt,
-			"welTarget": $(weEvt.target),
-			"sTagName" : weEvt.target.tagName
+			"weEvt"     : weEvt,
+			"welTarget" : $(weEvt.target),
+			"sTagName"  : weEvt.target.tagName,
+			"sKeyInput" : sKeyInput,
+			"bFormInput": (weEvt.target.tagName == "INPUT" || weEvt.target.tagName == "TEXTAREA")
 		};
 		
 		try {
@@ -174,6 +176,24 @@ hive.ShortcutKey = (function(htOptions){
 	}
 	
 	/**
+	 * set keyMap link
+	 * @param {Hash Table} htKeyMap
+	 * @example 
+	 * setKeymapLink({
+	 *    "N": "http://www.naver.com"
+	 * });
+	 */
+	function setKeymapLink(htKeyMap){
+	    for(var sKey in htKeyMap){
+	        attachHandler(sKey, function(htInfo){
+	            if(!htInfo.bFormInput){
+	                document.location.href = htKeyMap[htInfo.sKeyInput];
+	            }
+	        });
+	    }
+	}
+	
+	/**
 	 * destroy this
 	 */
 	function destroy(){
@@ -187,13 +207,7 @@ hive.ShortcutKey = (function(htOptions){
 	return {
 		"attach": attachHandler,
 		"detach": detachHandler,
-		"getHandlers": getHandlers
+		"getHandlers": getHandlers,
+		"setKeymapLink": setKeymapLink
 	};
 })();
-
-// Set CTRL+ENTER as submit form on INPUT/TEXTAREA 
-hive.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
-	if(htInfo.sTagName == "INPUT" || htInfo.sTagName == "TEXTAREA"){
-		$(htInfo.welTarget.parents("form").get(0)).submit();
-	}
-});

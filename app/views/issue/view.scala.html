@@ -94,7 +94,9 @@
 		<a href="#deleteConfirm" data-toggle="modal" class="nbtn medium black">@Messages("button.delete")</a>
 		}
 
-		<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium last">@Messages("button.list")</a>
+		<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium">@Messages("button.list")</a>
+		
+		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium last">@Messages("issue.menu.new")</a>
 	</div>
 
 	@** Comment **@
@@ -151,6 +153,8 @@
 	}
 	</div>
 	@** // Comment **@
+	
+    @help.keymap("issueDetail", project)
 </div>
 
 <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
@@ -202,6 +206,16 @@
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"    : htOptLabel
 		});
+		
+	    // hive.ShortcutKey
+        hive.ShortcutKey.setKeymapLink({
+            "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
+            "L": "@routes.IssueApp.issues(project.owner, project.name,"open")"
+            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+           ,"E": "@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"
+            }
+        });
 	});
 </script>
+
 }

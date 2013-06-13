@@ -42,7 +42,7 @@
 <script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.FileDownloader")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.Shortcut")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ShortcutKey")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Dropdown")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Typeahead")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Dialog")"></script>
@@ -54,11 +54,6 @@
 		// tooltip
 		$(".n-tooltip").tooltip();	
 		
-		// n-alert
-		$(".n-alert").click(function(){ 
-			$(this).hide(); 
-		});
-		
     	// jquery.placeholder plugin initiator
         $('input, textarea').placeholder();
 
@@ -66,9 +61,6 @@
     	// with bootstrap if it can (temporary before redesign)
         $(".bg-side-menu").tooltip({placement: 'left', title: '설정'});
     
-     	// show on developing message
-        $(".underConstruction").tooltip({placement: 'left', title: 'Sorry! Under construction...'});
-     	
      	// hive.Dropdown
      	var sActivation;
         $(".btn-group[data-name]").each(function(i, el){
@@ -77,5 +69,18 @@
         		(new hive.ui.Dropdown({"elContainer":el}));
         	}
         });
+        
+        // hive.ShortcutKey
+        // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
+        hive.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
+            if(htInfo.bFormInput){
+                $(htInfo.welTarget.parents("form").get(0)).submit();
+            }
+        });
+        @if(session != null){
+        hive.ShortcutKey.setKeymapLink({
+            "W": "@routes.UserApp.userInfo(session.get("loginId"))"
+        });
+        }
 	});
 </script>
