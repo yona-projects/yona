@@ -10,6 +10,8 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
+@getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", pageIndex + 1)}
+
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
 	@if(orderBy.equals(fieldName)) {
 		<a href="@urlToList&orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
@@ -123,5 +125,18 @@
 		<!-- pagination.js will fill here. -->
 	</div>
 </div>
-</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        hive.ShortcutKey.setKeymapLink({
+           "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
+           @if(currentPage.getPageIndex > 0){
+          ,"A": "@getPageListUrl(currentPage.getPageIndex - 1)"
+           }
+           @if(currentPage.getTotalPageCount > 1 && (currentPage.getPageIndex + 1 != currentPage.getTotalPageCount)){
+          ,"S": "@getPageListUrl(currentPage.getPageIndex + 1)"
+           }
+        });
+    });
+</script>
 }

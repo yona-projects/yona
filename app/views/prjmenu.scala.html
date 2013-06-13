@@ -12,6 +12,7 @@
 @makeSubMenu(call:Call, name:String) = {
 	<li class="@isActiveSubMenu(call)"><a href="@call">@name</a></li>
 }
+
 @isActiveSubMenu(calls: Call*) = @{
     var menuState = ""
     for(call <- calls) {
@@ -20,6 +21,14 @@
         }
     }
     menuState
+}
+
+@getPullRequestURL(project:Project) = @{
+    if(project.isFork()){
+        routes.PullRequestApp.sentPullRequests(project.owner, project.name)
+    } else {
+        routes.PullRequestApp.pullRequests(project.owner, project.name)
+    }
 }
 
 <div class="label inline-block" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
@@ -48,11 +57,7 @@
             @if(project.vcs.equals("GIT")){
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
-                    @if(project.isFork()){
-                        <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("menu.pullRequest")</a>
-                    } else {
-                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">@Messages("menu.pullRequest")</a>
-                    }
+                    <a href="@getPullRequestURL(project)">@Messages("menu.pullRequest")</a>
                 </li>
             }
 			<li class="sp-line">|</li>
@@ -80,6 +85,7 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
+    // 현재 메뉴 활성상태 표시
 	try {
 		var welLink;
 
@@ -92,5 +98,22 @@ $(document).ready(function(){
 			}
 		});
 	}catch(e){}
+
+	// 프로젝트 전역 단축키: hive.ShortcutKey
+    var htKeyMap = {
+        "O": "@routes.ProjectApp.project(project.owner, project.name)",
+        "B": "@routes.BoardApp.posts(project.owner, project.name)",
+        "K": "@routes.CodeApp.codeBrowser(project.owner, project.name)",
+        "I": "@routes.IssueApp.issues(project.owner, project.name,"all")",
+        "M": "@routes.MilestoneApp.milestones(project.owner, project.name)"
+    @if(project.vcs.equals("GIT")){
+       ,"P": "@getPullRequestURL(project)"
+    }
+    @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+       ,"Q": "@routes.ProjectApp.settingForm(project.owner, project.name)"
+    }
+    };
+
+    hive.ShortcutKey.setKeymapLink(htKeyMap);
 });
 </script>

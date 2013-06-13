@@ -6,6 +6,8 @@
 
 @urlToList = {@routes.BoardApp.posts(project.owner, project.name, page.getPageIndex + 1)}
 
+@getPageListUrl(pageIndex:Integer) = {@routes.BoardApp.posts(project.owner, project.name, pageIndex + 1)}
+
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
 	@if(orderBy.equals(fieldName)) {
 		<a href="@urlToList?orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
@@ -79,6 +81,16 @@
 		$hive.loadModule("board.List", {
 			"elPagination": $('#pagination'),
 			"nTotalPages" : @page.getTotalPageCount
+		});
+		
+		hive.ShortcutKey.setKeymapLink({
+		   "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
+		   @if(page.getPageIndex > 0){
+           ,"A": "@getPageListUrl(page.getPageIndex - 1)"
+		   }
+		   @if(page.getTotalPageCount > 1 && (page.getPageIndex + 1 != page.getTotalPageCount)){
+		   ,"S": "@getPageListUrl(page.getPageIndex + 1)"
+		   }
 		});
 	});
 </script>

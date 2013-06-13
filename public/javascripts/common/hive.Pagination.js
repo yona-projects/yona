@@ -22,7 +22,7 @@ hive.Pagination = (function(window, document) {
 	 */
 	function getQuery(url){
 		var parser = document.createElement('a');
-			parser.href = url;
+			parser.href = url.replace('&amp;', '&');
 			
 		return parser.search;
 	}

@@ -129,4 +129,12 @@
     </ul>
 
     }
+    
+<script type="text/javascript">
+    $(document).ready(function() {
+        hive.ShortcutKey.setKeymapLink({
+           "N": "@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)"
+        });
+    });
+</script>    
 }
