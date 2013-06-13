@@ -26,6 +26,7 @@
 	          <input type="hidden" name="orderDir" value="@param.orderDir">
 	          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
 	         --><button type="submit" class="btn search-btn underConstruction">@Messages("post.menu.search")</button>
+            <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium margin-left-20">@Messages("post.write")</a>
             @if(page.getTotalRowCount > 1){
                 <div class="filter-wrap board">
                     <div class="filters">
@@ -66,7 +67,6 @@
   }
 
 	<div class="write-btn-wrap">
-		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium">@Messages("post.write")</a>
 	</div>
 
 	<div id="pagination">
