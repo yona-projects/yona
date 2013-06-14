@@ -139,7 +139,7 @@ hive.ShortcutKey = (function(htOptions){
 			aKeys.push("ALT");
 		}
 
-		if(weEvt.ctrlKey){
+		if(weEvt.ctrlKey || weEvt.metaKey){
 			aKeys.push("CTRL");
 		}
 		
