@@ -77,7 +77,7 @@
                 $(htInfo.welTarget.parents("form").get(0)).submit();
             }
         });
-        @if(session != null){
+        @if(session.contains("loginId")){
         hive.ShortcutKey.setKeymapLink({
             "P": "@routes.UserApp.userInfo(session.get("loginId"))"
         });
