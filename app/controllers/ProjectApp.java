@@ -102,7 +102,7 @@ public class ProjectApp extends Controller {
         project.fixInvalidForkData();
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.error.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -158,7 +158,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.error.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -298,7 +298,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.error.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -347,15 +347,15 @@ public class ProjectApp extends Controller {
      */
     public static Result members(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        
+
         if (project == null) {
             return notFound();
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return unauthorized(views.html.error.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render(project));
         }
-        
+
         return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
