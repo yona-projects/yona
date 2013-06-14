@@ -110,6 +110,7 @@ public class AccessLogger {
         String time = (startTimeMillis != null) ?
                 ((System.currentTimeMillis() - startTimeMillis) + "ms") : "-";
 
+        String uri = request.uri();
         String entry = String.format("%s - %s [%s] \"%s %s %s\" %d - %s %s %s",
                 request.remoteAddress(), orHyphen(username),
                 format.format(new Date()), request.method(), request.uri(),
@@ -118,6 +119,6 @@ public class AccessLogger {
                 quotedOrHyphen(request.getHeader("User-Agent")),
                 time);
 
-        play.Logger.of("access").info(entry);
+        play.Logger.of("access." + uri).info(entry);
     }
 }
