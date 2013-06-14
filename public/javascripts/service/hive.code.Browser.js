@@ -233,11 +233,16 @@
                 }
                 return false;
             });
+            welBtnResize.mouseup(function () {
+                $(window).unbind("mousemove", _resizeList);
+                return false;
+            });
             $(".directory-wrap").mouseup(function(){
 				$(window).unbind("mousemove", _resizeList);
 				return false;
 			});
 			$(window).click(function(){ // for IE
+                console.log('click');
 				$(window).unbind("mousemove", _resizeList);
 			});
 
@@ -249,6 +254,7 @@
 					waWrapFile.width(930 - welWrapDirectory.width());
 				} else {
                     draggable = false;
+                    $(window).unbind("mousemove", _resizeList);
 					welWrapDirectory.hide();
 					waWrapFile.width(930);
 				}
