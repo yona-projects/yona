@@ -18,13 +18,14 @@
 		});
 
 		$(document).ready(function(){
-            $('#copyURL').zclip({
-                path: '/assets/javascripts/lib/jquery/ZeroClipboard.swf',
-                copy: function() {
-                    return $("#repositoryURL").attr('value');
-                }
-            });
+      $('#copyURL').zclip({
+          path: '/assets/javascripts/lib/jquery/ZeroClipboard.swf',
+          copy: function() {
+              return $("#repositoryURL").attr('value');
+          }
+      });
 
+      
 			$(window).bind('hashchange', function(e){
 //				_updateDynaTree();
 

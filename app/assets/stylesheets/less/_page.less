@@ -1429,14 +1429,21 @@
 }
 
 .project-menu {
-    border:1px solid #e7e7e7;
+  
     margin-bottom: 15px;
 
     ul { margin:0 !important; }
     li { line-height:40px; padding:0; .inline-block; }
 
     .project-menu-wrap {
+        border:1px solid #e7e7e7;
         position:relative; height:40px; padding:0px 0px;
+
+        &.affix {
+            top:0;
+            z-index:100;
+            position:fixed;
+        }
     }
 
     .main {
@@ -1459,7 +1466,7 @@
     }
 
     .sub {
-        border-top:1px solid #d4d5d7; z-index:100;
+        border-top:1px solid #d4d5d7; z-index:99;
         background:#fff;
 
         ul {
@@ -1480,6 +1487,7 @@
         padding:0; margin:0;
     }
 }
+
 .user-role {
     .inline-block;
     border-radius:3px 3px 0px 0px;
@@ -1488,6 +1496,7 @@
     i { vertical-align:bottom; }
 }
 .main-menu-only {
+
     border-bottom:1px solid #d4d5d7;
 }
 
