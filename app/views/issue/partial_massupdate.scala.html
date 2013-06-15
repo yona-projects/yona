@@ -7,8 +7,8 @@
             <span class="d-caret"><span class="caret"></span></span>
         </button>
         <ul class="dropdown-menu">
-            <li data-value="@State.OPEN.name"><a href="javascript:void(0)">@Messages("issue.state.open")</a></li>
-            <li data-value="@State.CLOSED.name"><a href="javascript:void(0)">@Messages("issue.state.closed")</a></li>
+            <li data-value="@State.OPEN.name"><a>@Messages("issue.state.open")</a></li>
+            <li data-value="@State.CLOSED.name"><a>@Messages("issue.state.closed")</a></li>
         </ul>
     </div>
 
@@ -18,9 +18,9 @@
             <span class="d-caret"><span class="caret"></span></span>
         </button>
         <ul class="dropdown-menu">
-            <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
+            <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
             @for(member <- project.members()) {
-                <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
+                <li data-value="@member.user.id"><a>@member.user.name (@member.user.loginId)</a></li>
             }
         </ul>
     </div>
@@ -31,9 +31,9 @@
             <span class="d-caret"><span class="caret"></span></span>
         </button>
         <ul class="dropdown-menu">
-            <li data-value="-1"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
+            <li data-value="-1"><a>@Messages("noMilestone")</a></li>
             @for(milestone <- Milestone.findByProjectId(project.id)) {
-                <li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
+                <li data-value="@milestone.id"><a>@milestone.title</a></li>
             }
         </ul>
     </div>
@@ -45,7 +45,7 @@
         </button>
         <ul class="dropdown-menu">
         @for(label <- IssueLabel.findByProject(project)) {
-            <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
+            <li data-value="@label.id"><a>@label</a></li>
         }
         </ul>
     </div>
@@ -57,12 +57,12 @@
         </button>
         <ul class="dropdown-menu">
         @for(label <- IssueLabel.findByProject(project)) {
-            <li data-value="@label.id"><a href="javascript:void(0)">@label</a></li>
+            <li data-value="@label.id"><a>@label</a></li>
         }
         </ul>
     </div>
 
-    <button href="#deleteConfirm" data-toggle="modal" class="nbtn medium black" disabled="true">@Messages("issue.delete")</button>
+    <button href="#deleteConfirm" data-toggle="modal" class="nbtn medium black" disabled>@Messages("issue.delete")</button>
 
     @** Confirm to delete post **@
     <div id="deleteConfirm" class="modal hide fade">
@@ -75,7 +75,7 @@
         </div>
         <div class="modal-footer">
             <a id="delete" class="btn btn-danger med">@Messages("button.yes")</a>
-            <a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
+            <a class="btn med" data-dismiss="modal">@Messages("button.no")</a>
         </div>
     </div>
 
