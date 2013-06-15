@@ -25,7 +25,7 @@
           }
       });
 
-      
+
 			$(window).bind('hashchange', function(e){
 //				_updateDynaTree();
 
@@ -82,16 +82,10 @@
 		            $("#fileList").hide();
 		            $("#fileView").show();
 
-                    function isImageFile(pathName){
-                        var lastDotPostion = pathName.lastIndexOf(".");
-                        var fileExtName = pathName.substring(lastDotPostion+1);
-                        var imageFileExtNames = ['jpg', 'png', 'gif','tif', 'bmp', 'ico', 'jpeg'];
-                        if( $.inArray(fileExtName, imageFileExtNames) !== -1 ){
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
+                function isImageFile(pathName){
+                	var imgCheck = /\.(jpg|png|gif|tif|bmp|ico|jpeg)$/i;
+									return imgCheck.test(pathName);
+                }
 		        }
 
 		        function handleFolder(data){

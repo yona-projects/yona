@@ -297,6 +297,37 @@ $hive = hive.Common = (function(){
 	};
 })();
 
+// IE 9 이하 버전 관련 호환성 유지를 위한 prototype 확장.
+Object.keys = Object.keys || (function() {
+	return function (obj) {
+		var keyNamss = [];
+
+		for(var keyName in Obj) {
+			keyNamss.push(keyName);
+		}
+		return keyNamss;
+	};
+})();
+
+function ascending(a,b) {
+	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+function descending(a,b) {
+	return b < a ? -1 : b > a ? 1 : 0;
+}
+
+function lacending(a,b) {
+	a = a.toLowerCase();
+	b = b.toLowerCase();
+	return ascending(a,b);
+}
+
+function ldescending(a,b) {
+	a = a.toLowerCase();
+	b = b.toLowerCase();
+	return descending(a,b);
+}
 
 var nforge = {
 	"namespace": function(sName){
