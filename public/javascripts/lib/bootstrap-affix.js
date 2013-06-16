@@ -61,7 +61,7 @@
 
     this.affixed = affix
     this.unpin = affix == 'bottom' ? position.top - scrollTop : null
-    console.log(width);
+
     this.$element.removeClass(reset).addClass('affix' + (affix ? '-' + affix : '')).css({'width':width+'px'});
   }
 
