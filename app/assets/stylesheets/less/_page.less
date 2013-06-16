@@ -2516,6 +2516,25 @@ div.markdown-preview {
         .border-radius(0px);
     }
 
+
+    .code-viewer-wrap {
+        width:100%;
+        .code-tree {
+            display:table-cell;
+            width:259px;
+            overflow-x : auto;
+            float:left;
+            border-left:1px solid #ddd;   
+        }   
+
+        .code-viewer {
+            display:table-cell;
+            float:right;
+            width:680px;
+            border-right:1px solid #ddd;
+        }
+    }
+
     .cell {
         display: table-cell;
         background-color: @white;
@@ -2525,18 +2544,18 @@ div.markdown-preview {
         &.directory-wrap {
             position: relative;
             overflow: auto;
-            width: 259px;
+            width: 100%;
             padding:15px 5px;
-            border-left:1px solid #ddd;
+            
         }
         &.sp-wrap {
             display:none;
             border-left: 4px solid #E6E6E6;
         }
         &.file-wrap {
-            width:680px;
+            width:100%;
             overflow-x: auto;
-            border-right:1px solid #ddd;
+            
         }
     }
 

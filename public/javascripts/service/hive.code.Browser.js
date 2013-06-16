@@ -39,13 +39,19 @@
 	      	success : function(data, textStatus, jqXHR){
 	        	updateBreadcrumbs(path);
 	        	switch(data.type){
-	          case "file" :
-	              handleFile(data);
-	            break;
-	          case "folder" :
+		          case "file" :
+		              handleFile(data);
+		            break;
+		          case "folder" :
 	              handleFolder(data);
-	            break;
+	            	break;
 	        	}
+	        	var treeheight = $('.code-tree').height(),
+	        			codeheight = $('code-viewer').height();
+	        			btnheight = (treeheight > codeheight) ? treeheight : codeheight;
+	        	
+	        	$(".btnResize").height(btnheight);
+
 	      	},
 	      	error : function(){
 	        	$("#codeError").show();
@@ -121,7 +127,6 @@
 
 	          	upPath = (upPath=='/') ? '' : upPath;
 	    				sFilePath = "#" + upPath;
-	          	console.log(sFilePath);
 	           	tablerow = makeTableRow('..', sFilePath, 'none');
 	            aTmp.push(tablerow);
 	            
@@ -235,26 +240,18 @@
 			var waWrapFile = $(".file-wrap"); // fileList, fileView
 	    var draggable = true;
 
-	    welBtnResize.mousedown(function () {
-	      if(draggable) {
-	        $(window).bind("mousemove", _resizeList);
-	      }
-	      return false;
+	    $(".btnResize").on('drag',function( event ){
+	    	_resizeList(event);
 	    });
-	    
-	    welBtnResize.mouseup(function () {
-	      $(window).unbind("mousemove", _resizeList);
-	      return false;
-	    });
-	    
+	    /*
 	    $(".directory-wrap").mouseup(function(){
-				$(window).unbind("mousemove", _resizeList);
+				$(window).off("mousemove", _resizeList);
 				return false;
 			});
-			
+			*/
 			$(window).click(function(){ // for IE
 	      console.log('click');
-				$(window).unbind("mousemove", _resizeList);
+				$(window).off("mousemove", _resizeList);
 			});
 
 			// 더블클릭하면 디렉토리 목록 숨김
@@ -272,10 +269,16 @@
 			});
 
 			function _resizeList(weEvt){
+				
+				var directory = $('.code-tree').position();
+				$('.code-tree').width(Math.round(weEvt.clientX) - directory.left);		
+				$('.code-viewer').width($('.code-viewer-wrap').width() - $('.code-tree').width()-2);
+				/*
 				var nWidth = weEvt.clientX - nFolderListX;
 				$(".directory-wrap").width(nWidth);
 	              $(".directories").width(nWidth);
 				$(".file-wrap").width(930 - nWidth);
+				*/
 			}
 		}
 
