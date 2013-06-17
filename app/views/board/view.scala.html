@@ -44,7 +44,7 @@
 	</div>
 	<div class="board-footer board-actrow nbtn-group">
 		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-		<a href="#deleteConfirm" class="nbtn medium black" data-toggle="modal">@Messages("button.delete")</a>
+		<a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
 		}
 
 		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
@@ -53,7 +53,7 @@
 
 		<a href="@routes.BoardApp.posts(project.owner, project.name)" class="nbtn medium">@Messages("button.list")</a>
 		
-		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium last">@Messages("post.write")</a>
+		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium black last">@Messages("post.write")</a>
 	</div>
 
 	@** Comment **@

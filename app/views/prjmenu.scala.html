@@ -31,20 +31,23 @@
     }
 }
 
-<div class="label inline-block" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
-    <i class="icon-eye-open icon-white"></i>
-    @Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))
-</div>
-
-
-@if(project.isFork()){
-<div class="label inline-block pull-right" style="border-radius:3px 3px 0px 0px; padding:5px 10px; font-size:11px">
-    <i class="icon-random icon-white" style="vertical-align:bottom;"></i>
-    &nbsp;@Messages("fork.original")
-    <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
-    <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
-</div>
-}
+<div class="project-menu">
+    <div class="actrow">
+        @if(project.isFork()){
+        <div class="label forked-from">
+            <i class="icon-random icon-white"></i>
+            &nbsp;@Messages("fork.original")
+            <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
+            <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
+        </div>
+        }
+        
+        @if(User.isWatching(project)){
+        <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium orange watchBtn"><i class="icon-star icon-white" style="vertical-align:bottom;"></i></a>
+        } else {
+        <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium watchBtn"><i class="icon-star-empty icon-white" style="vertical-align:bottom;"></i></a>
+        }
+    </div>
 
 <div class="project-menu @menuCSS" >
 	<div class="project-menu-wrap main" data-spy="affix">
@@ -85,20 +88,6 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-    // 현재 메뉴 활성상태 표시
-	try {
-		var welLink;
-
-		$(".project-menu-wrap a").each(function(n, el){
-			welLink = $(el);
-
-			if(welLink.attr("href").split("?")[0] == document.location.pathname){
-				$(".project-menu-wrap li").removeClass("highlight");
-				welLink.parent().addClass("highlight");
-			}
-		});
-	}catch(e){}
-
 	// 프로젝트 전역 단축키: hive.ShortcutKey
     var htKeyMap = {
         "H": "@routes.ProjectApp.project(project.owner, project.name)",
@@ -115,5 +104,6 @@ $(document).ready(function(){
     };
 
     hive.ShortcutKey.setKeymapLink(htKeyMap);
+    $hive.loadModule("project.Watch");
 });
 </script>

@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <div class="bubble-wrap dark-gray project-home">
+    <div class="bubble-wrap gray project-home">
         <div class="inner logo" style="background-image:url('@projectLogoImage');">
             @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
             <div class="edit">
@@ -132,7 +132,7 @@
     
     <div class="tab-content">
         <div id="readme" class="tab-pane active">
-            <div class="bubble-wrap dark-gray readme">
+            <div class="bubble-wrap gray readme">
             @if(project.readme == null){
                 <p class="default">
                     @Messages("project.readme")

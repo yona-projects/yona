@@ -5,7 +5,7 @@
 
 @memberRole(userRole: String) = {
     @for(role <- roles){
-       	<li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)">@role.name</a></li>
+       	<li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages("role." + role.name)</a></li>
     }
 }
 
@@ -13,52 +13,53 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
 
-	<div class="bubble-wrap dark-gray wp">
-		<div class="inner-bubble">
-			<form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
-				<input type="text" class="text uname" id="loginId" name="loginId" 
-	                   data-provider="typeahead" autocomplete="off"
-					   placeholder="@Messages("project.members.addMember")"
-					   pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!-- 
-	         --><button type="submit" class="nbtn medium white"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
-			</form>
-		</div>
+	<div class="inner-bubble">
+		<form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
+			<input type="text" class="text uname" id="loginId" name="loginId" 
+                   data-provider="typeahead" autocomplete="off"
+				   placeholder="@Messages("project.members.addMember")"
+				   pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!-- 
+         --><button type="submit" class="nbtn medium white"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
+		</form>
+	</div>
 	
+	<div class="bubble-wrap gray" style="overflow:visible">
 		<ul class="members project">
 			@for(member <- members){
 	            @if( member.user != null){
 	
 			<li class="member">
-				<a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap mid img-rounded pull-left"><!-- 
-				 --><img class="media-object" src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64"></a>
+				<a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap large pull-left">
+				    <img class="media-object" src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64">
+	               </a>
 				<div class="m-body">
 					<div class="td">
 						<p>
 							<a href="@routes.UserApp.userInfo(member.user.loginId)">
-								<strong class="uname">@member.user.loginId</strong>
+								<strong class="uname">@member.user.name</strong>
 							</a>
 						</p>
-						<p class="name">(@member.user.name)</p>
+						<p class="name">(@member.user.loginId)</p>
 					</div>
 					<div class="td">
 						@if(!project.isOwner(member.user)) {
 						
 						<div class="btn-group" data-name="roleof-@member.user.loginId">
 							<button class="btn dropdown-toggle large" data-toggle="dropdown">
-								<span class="d-label">@member.role.name</span>
+								<span class="d-label">@Messages("role." + member.role.name)</span>
 								<span class="d-caret"><span class="caret"></span></span>
 							</button>
 							<ul class="dropdown-menu">@memberRole(member.role.name)</ul>
 						</div>
 						
 						<p class="btns">
-							<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn medium"><!-- 
+							<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn small"><!-- 
 							 --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a> 
-							<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn medium orange"><!-- 
+							<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn small orange"><!-- 
 							 --><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
 						</p>
 	                    } else {
-	                    	<p style="height:65px;">@member.role.name</p>
+	                    	<p style="height:55px;">@Messages("role." + member.role.name)</p>
 	                    }
 					</div>
 				</div>
@@ -67,21 +68,20 @@
 				}
 	        }
 		</ul>
+	</div>
 		
-		<div id="alertDeletion" class="modal hide">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">×</button>
-				<h3>@Messages("project.member.delete")</h3>
-			</div>
-			<div class="modal-body">
-				<p>@Messages("project.member.deleteConfirm")</p>
-			</div>
-			<div class="modal-footer">
-				<a href="#" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</a>
-				<a href="#" class="nbtn medium orange">@Messages("button.yes")</a>
-			</div>
+	<div id="alertDeletion" class="modal hide">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal">×</button>
+			<h3>@Messages("project.member.delete")</h3>
 		</div>
-		
+		<div class="modal-body">
+			<p>@Messages("project.member.deleteConfirm")</p>
+		</div>
+		<div class="modal-footer">
+			<a href="#" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</a>
+			<a href="#" class="nbtn medium orange">@Messages("button.yes")</a>
+		</div>
 	</div>
 </div>
 

@@ -1,12 +1,17 @@
+@(project:Project)
+
 <div class="gnb-menus right">
-    @if(session.contains("loginId")){
+@if(session.contains("loginId")){
+    @if(project != null){
+    <div class="member-role">@Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))</div>
+    }
     <div class="usermenu btn-group">
         <button class="btn dropdown-toggle large" data-toggle="dropdown">
             <div class="d-label">
-							<span class="avatar-wrap smaller">
-								<img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="20" height="20">
-							</span>
-                <span class="text">@session.get("loginId")</span>
+                <span class="avatar-wrap smaller">
+                    <img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="20" height="20">
+                </span>
+                <span class="text">@User.findByLoginId(session.get("loginId")).name</span>
             </div>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
@@ -44,7 +49,7 @@
             }
         </ul>
     </div>
-    } else {
+} else {
     <div class="usermenu lnk-group">
         <a href="@routes.UserApp.loginForm()">
 				        <span class="avatar-wrap smaller">
@@ -54,12 +59,12 @@
         </a>
         <a href="@routes.UserApp.signupForm()">@Messages("title.signup")</a>
     </div>
-    }
+}
 
     <div class="search-bar">
         <form action="@routes.ProjectApp.projects()" class="form-searchbar">
             <input type="text" class="text" name="filter" autocomplete="off" accesskey="S"><!--
-                     --><button type="submit" class="ico ico-search"></button>
+         --><button type="submit" class="ico ico-search"></button>
         </form>
     </div>
 </div>

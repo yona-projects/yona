@@ -13,36 +13,6 @@
 	 	--> <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
 		</h1>
 
-        @usermenu()
+        @usermenu(project)
 	</div>
 </div>
-
-
-<div class="side-menu-wrap">
-    <ul class="side-menus unstyled bg">
-		<!--
-        <li class="side-menu"><a href="@routes.StatisticsApp.statistics(project.owner, project.name)"><i class="ico ico-statistics"></i></a></li>
-        -->
-        @if(ProjectUser.isAllowedToSettings(session.get("loginId"), project)) {
-        <li class="side-menu" data-toggle="tooltip" title="settings" data-placement="right">
-            <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="ico ico-setting"></i></a>
-        </li>
-        }
-        @if(User.isWatching(project)){
-        <li class="side-menu" data-toggle="tooltip" title="unwatch" data-placement="right">
-            <a class="watchBtn" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)"><i class="icon-star icon-white" style="vertical-align:bottom;"></i></a>
-        </li>
-        } else {
-        <li class="side-menu" data-toggle="tooltip" title="watch" data-placement="right">
-            <a class="watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)"><i class="icon-star-empty icon-white" style="vertical-align:bottom;"></i></a>
-        </li>
-        }
-    </ul>
-</div>
-
-<script type="text/javascript">
-    $(function(){
-        $('.side-menus li').tooltip();
-        $hive.loadModule('project.Watch');
-    });
-</script>

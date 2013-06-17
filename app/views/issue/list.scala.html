@@ -41,7 +41,6 @@
 					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
 	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
-                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange margin-left-20">@Messages("issue.menu.new")</a>
 
 					<div id="advanced-search-form" class="srch-advanced form-horizontal">
 						<fieldset class="properties">
@@ -93,6 +92,9 @@
 					</div>
 				</form>
 				<!--  -->
+				<div class="actrow">
+				    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange">@Messages("issue.menu.new")</a>
+                </div>
 			</div>
 		</div>
 	</div>

@@ -127,6 +127,16 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
       background-color: @green;
       &:hover { background-color: darken(@green, 10%); color: #00ddff; }
     }
+    
+    &.red {
+        background-color:#e45642;
+        &:hover { background-color: darken(#e45642, 10%); color: #fff; }
+    }
+    
+    &.mint {
+        background-color:#83d6df;
+        &:hover { background-color: darken(#83d6df, 10%); color: #fff; }
+    }
 
     &.black {
         background-color: #222;
@@ -248,7 +258,7 @@ button.nbtn {
     border:1px solid @search-bar-border-color;
 
     .border-radius(2px);
-    .box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));
+    /*.box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));*/
 
     .text {
         width: 128px; /*height: 13px;*/
