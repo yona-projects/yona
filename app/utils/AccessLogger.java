@@ -1,5 +1,7 @@
 package utils;
 
+import controllers.UserApp;
+import models.User;
 import play.api.mvc.PlainResult;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -17,7 +19,7 @@ public class AccessLogger {
      * @return {@code value}가 null이면 {@code "-"}, 그렇지 않다면 {@code value}와 같은 문자열
      */
     static private String orHyphen(String value) {
-        if (value == null) {
+        if (value == null || value.isEmpty()) {
             return "-";
         } else {
             return value;
@@ -44,8 +46,12 @@ public class AccessLogger {
      * when: 매 HTTP 요청이 있을 때 마다 수행되는 {@link Global#onRequest(play.mvc.Http.Request,
      * java.lang.reflect.Method)}에서, 요청의 처리가 완료되면 이 메소드가 호출되도록 한다.
      *
-     * 로그 포맷은 다음의 예와 같이 Apache HTTP Server의 Combined Log Format을 따르나, log entry의 끝에
-     * 요청이 처리되는데 걸린 시간이 추가된다는 점만이 다르다.
+     * 로그 포맷은 다음의 예와 같이 Apache HTTP Server의 Combined Log Format을 따르나 다음의 두 가지가
+     * 다르다.
+     *
+     * 1. 세 번째 필드에는 현재 사용자의 아이디가 온다. 이 값은 HTTP 인증(Basic Authentication 등)을 통해
+     * 얻은 것이 아닐 수도 있다.
+     * 2. log entry의 끝에 요청이 처리되는데 걸린 시간이 추가된다.
      *
      * 127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200 - "http://www
      * .example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)" 70ms
@@ -65,7 +71,7 @@ public class AccessLogger {
 
         int status = ((PlainResult) result.getWrappedResult()).header().status();
 
-        log(request, request.username(), status, startTimeMillis);
+        log(request, UserApp.currentUser().loginId, status, startTimeMillis);
     }
 
     /**
