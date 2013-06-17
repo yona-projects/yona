@@ -36,7 +36,6 @@
 		function _initVar(htOptions){
 			htVar.sMode = htOptions.sMode || "new";
       htVar.sIssueFormURL = htOptions.sIssueFormURL;
-      htVar.sMilestoneRefresh = htOptions.sMilestoneRefresh;
 			htVar.sUploaderAction = htOptions.sUploaderAction;
 			htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.text() : "");
             htVar.htOptLabel = htOptions.htOptLabel || {};
@@ -47,11 +46,12 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welUploader = $(htOptions.elUploader || "#upload");
+      htElement.welIssueOptions = $(htOptions.elIssueOptions || "#options");
 			htElement.welTextarea = $(htOptions.elTextarea || "#body");
 			htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
 			htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
-
-			htElement.welTplFileItem = $('#tplAttachedFile');			
+      htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
+			htElement.welTplFileItem = $('#tplAttachedFile');
 		}
 			
 		/**
@@ -59,9 +59,8 @@
 		 */
 		function _attachEvent(){
 			$("form").submit(_onSubmitForm);
-            htElement.welBtnManageLabel.click(_clickBtnManageLabel);
-      $("body").on("click", htVar.sMilestoneRefresh, _reloadMilestone);
-      $(htVar.sMilestoneRefresh).click(_reloadMilestone);
+      htElement.welBtnManageLabel.click(_clickBtnManageLabel);
+      htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
 		}
 
         function _clickBtnManageLabel() {
@@ -69,7 +68,7 @@
             _initLabel(htVar.htOptLabel);
         }
 
-        function _reloadMilestone() {
+        function _onReloadMilestone() {
           $.get(htVar.sIssueFormURL, function(data){
             var context = data.replace("<!DOCTYPE html>", "").trim();
             var milestoneOptionDiv = $("#milestoneOption", context);
