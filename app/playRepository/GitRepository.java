@@ -33,10 +33,7 @@ import utils.FileUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Git 저장소
@@ -218,23 +215,24 @@ public class GitRepository implements PlayRepository {
         TreeWalk treeWalk = new TreeWalk(repository);
         treeWalk.addTree(revTree);
 
-        try {
-            PathFilter pathFilter = PathFilter.create(path);
-            treeWalk.setFilter(pathFilter);
-            while (treeWalk.next()) {
-                if (pathFilter.isDone(treeWalk)) {
-                    break;
-                } else if (treeWalk.isSubtree()) {
-                    treeWalk.enterSubtree();
-                }
+        if (path.isEmpty()) {
+            treeWalk.enterSubtree();
+            return treeAsJson(path, treeWalk, headCommit);
+        }
+
+        PathFilter pathFilter = PathFilter.create(path);
+        treeWalk.setFilter(pathFilter);
+        while (treeWalk.next()) {
+            if (pathFilter.isDone(treeWalk)) {
+                break;
+            } else if (treeWalk.isSubtree()) {
+                treeWalk.enterSubtree();
             }
-        } catch (IllegalArgumentException e) {
-            return treeAsJson(treeWalk, headCommit);
         }
 
         if (treeWalk.isSubtree()) {
             treeWalk.enterSubtree();
-            return treeAsJson(treeWalk, headCommit);
+            return treeAsJson(path, treeWalk, headCommit);
         } else {
             return fileAsJson(treeWalk, headCommit);
         }
@@ -295,28 +293,81 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-log.html">git log until</a>
      */
-    private ObjectNode treeAsJson(TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
+    private ObjectNode treeAsJson(String basePath, TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
         Git git = new Git(repository);
         ObjectNode result = Json.newObject();
         result.put("type", "folder");
 
         ObjectNode listData = Json.newObject();
 
-        while (treeWalk.next()) {
-            RevCommit commit = git.log()
-                .add(untilCommitId)
-                .addPath(treeWalk.getPathString())
-                .call()
-                .iterator()
-                .next();
-            ObjectNode data = Json.newObject();
-            data.put("type", treeWalk.isSubtree() ? "folder" : "file");
-            data.put("msg", commit.getShortMessage());
-            setAvatar(data, commit.getAuthorIdent().getEmailAddress());
-            data.put("createdDate", commit.getCommitTime() * 1000l);
-            data.put("author", commit.getAuthorIdent().getName());
-            listData.put(treeWalk.getNameString(), data);
+        LogCommand logCommand = git.log().add(untilCommitId);
+
+        if (!basePath.isEmpty()) {
+            logCommand.addPath(basePath);
         }
+
+        Set<String> paths = new HashSet<>();
+        Map<String, String> modes = new HashMap<>();
+
+        while (treeWalk.next()) {
+            paths.add(treeWalk.getNameString());
+            modes.put(treeWalk.getNameString(), treeWalk.isSubtree() ? "folder" : "file");
+        }
+
+        Iterator<RevCommit> iterator = logCommand.call().iterator();
+
+        while (iterator.hasNext()) {
+            RevCommit curr = iterator.next();
+
+            TreeWalk tw;
+            if (basePath.isEmpty()) {
+                tw = new TreeWalk(repository);
+                tw.addTree(curr.getTree());
+            } else {
+                tw = TreeWalk.forPath(repository, basePath, curr.getTree());
+                tw.enterSubtree();
+            }
+            Map<String, ObjectId> objects = new HashMap<String, ObjectId>();
+            while(tw.next()) {
+                if (paths.contains(tw.getNameString())) {
+                    objects.put(tw.getNameString(), tw.getObjectId(0));
+                }
+            }
+
+            // Remove objects not changed.
+            for(RevCommit parent : curr.getParents()) {
+                TreeWalk tw2;
+                if (basePath.isEmpty()) {
+                    tw2 = new TreeWalk(repository);
+                    tw2.addTree(parent.getTree());
+                } else {
+                    tw2 = TreeWalk.forPath(repository, basePath, parent.getTree());
+                    tw2.enterSubtree();
+                }
+
+                while(tw2.next()) {
+                    if (tw2.getObjectId(0).equals(objects.get(tw2.getNameString()))) {
+                        objects.remove(tw2.getNameString());
+                    }
+                }
+            }
+
+            for (String path : objects.keySet()) {
+                ObjectNode data = Json.newObject();
+                data.put("type", modes.get(path).toString());
+                data.put("msg", curr.getShortMessage());
+                setAvatar(data, curr.getAuthorIdent().getEmailAddress());
+                data.put("createdDate", curr.getCommitTime() * 1000l);
+                data.put("author", curr.getAuthorIdent().getName());
+                listData.put(path, data);
+                paths.remove(path);
+            }
+
+            if (paths.isEmpty()) {
+                break;
+            }
+        }
+
         result.put("data", listData);
         return result;
     }
