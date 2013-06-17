@@ -314,6 +314,7 @@ public class GitRepository implements PlayRepository {
             data.put("msg", commit.getShortMessage());
             setAvatar(data, commit.getAuthorIdent().getEmailAddress());
             data.put("createdDate", commit.getCommitTime() * 1000l);
+            data.put("author", commit.getAuthorIdent().getName());
             listData.put(treeWalk.getNameString(), data);
         }
         result.put("data", listData);
