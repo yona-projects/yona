@@ -32,23 +32,6 @@
                 }
             </div>
 
-            <div class="user-status">
-                <p>
-                    <span class="num">@user.myProjects(null).length</span>
-                    <span class="labels">@Messages("userinfo.myProjects")</span>
-                </p>
-                <p>
-                    <span class="num">@watching_count(user.loginId)</span>
-                    <span class="labels">@Messages("userinfo.starredProjects")</span>
-                </p>
-                
-                @if(user != null && session != null && user.loginId == session.get("loginId")){
-                <a href="@routes.ProjectApp.newProjectForm()" class="nbtn orange large">
-                    <i class="ico ico-pencil"></i> @Messages("title.newProject")
-                </a>
-                }
-            </div>
-            
             <hr />
             <div class="user-since">
                 <strong>@Messages("userinfo.since")</strong>
@@ -57,22 +40,6 @@
         </div>
 
         <div class="user-stream-box">
-            @** TODO: 검색기능 (미구현 상태이므로 주석처리합니다)
-            <!-- 
-            <div class="user-stream-wrap">
-                <div class="header-wrap" style="margin-top: 0;">
-                    <div class="search-wrap user-setting">
-                        <div class="inner">
-                            <form action="" method="get">
-                                <input name="query" class="text" type="text" placeholder=""><!-- 
-                                 --<button type="submit" class="btn search-btn">@Messages("title.search")</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            -->
-            **@
             <ul class="nav nav-tabs">
                 <li class="active"><a href="#createdByMe" data-toggle="tab">@Messages("project.createdByMe")
                     <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span></a></li>
@@ -81,6 +48,13 @@
             @if(user.loginId == session.get("loginId")){
                 <li><a href="#watching" data-toggle="tab">@Messages("project.watchingproject") <span class="num-badge">@watching_count(session.get("loginId"))</span></a></li>
             }
+                <li class="pull-right">
+                @if(user != null && session != null && user.loginId == session.get("loginId")){
+                    <a href="@routes.ProjectApp.newProjectForm()" class="nbtn medium orange pull-right no-border">
+                        <i class="ico ico-pencil"></i> @Messages("title.newProject")
+                    </a>
+                }
+                </li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="createdByMe">
