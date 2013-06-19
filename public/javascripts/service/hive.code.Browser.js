@@ -13,198 +13,211 @@
 	oNS.container[oNS.name] = function(htOptions){
 
 		var project_name = htOptions.sProjectName;
+		
 		var oBranch = new hive.ui.Dropdown({
-			"elContainer": $("#branches")
+			"elContainer" : $("#branches")
 		});
 
 		$(document).ready(function(){
-            $('#copyURL').zclip({
-                path: '/assets/javascripts/lib/jquery/ZeroClipboard.swf',
-                copy: function() {
-                    return $("#repositoryURL").attr('value');
-                }
-            });
+      $('#copyURL').zclip({
+          path: '/assets/javascripts/lib/jquery/ZeroClipboard.swf',
+          copy: function() {
+            return $("#repositoryURL").attr('value');
+          }
+      });
 
-			$(window).bind('hashchange', function(e){
-//				_updateDynaTree();
+			$(window).bind('hashchange', function(e) {
+				//_updateDynaTree();
+	    	//대기 표시 한다.
+	    	//여기서 요청을 보내고
 
-		        //대기 표시 한다.
-		        //여기서 요청을 보내고
-		        var path = getHash().replace(/^#/, "");
-		        var branch = getBranch();
+	    	var path = getHash().replace(/^#/, "");
+	    	var branch = getBranch();
 
-		        $.ajax("code/" + branch + "/!" + path, {
-		          datatype : "json",
-		          success : function(data, textStatus, jqXHR){
-		            updateBreadcrumbs(path);
-		            switch(data.type){
-		              case "file" :
-		                  handleFile(data);
-		                break;
-		              case "folder" :
-		                  handleFolder(data);
-		                break;
-		            }
-		          },
-		          error : function(){
-		            $("#codeError").show();
-		          }
-		        });
+	    	$.ajax("code/" + branch + "/!" + path, {
+	      	datatype : "json",
+	      	success : function(data, textStatus, jqXHR){
+	        	updateBreadcrumbs(path);
+	        	switch(data.type){
+		          case "file" :
+		              handleFile(data);
+		            break;
+		          case "folder" :
+	              handleFolder(data);
+	            	break;
+	        	}
+	        	var treeheight = $('.code-tree').height(),
+	        			codeheight = $('code-viewer').height();
+	        			btnheight = (treeheight > codeheight) ? treeheight : codeheight;
+	        	
+	        	$(".btnResize").height(btnheight);
 
-		        function handleFile(data){
-		            //파일을 표시한다.
-		            $("#commiter").text(data.author);
-		            if(data.hasOwnProperty("msg")){
-		            	$("#commitMessage").text(data.msg);
-		            }
-		            if(data.hasOwnProperty("revisionNo")){
-		            	$("#revisionNo").text("Revision#: " + data.revisionNo);
-		            }
-		            $("#commitDate").text(moment(new Date(data.createdDate)).fromNow());
-                    if( isImageFile(path)) {
-                        $("pre").html("<img src='./image" + path + "'>");
-                    } else {
-                        $("#lineCode").text(data.data);
-                        $("#lineCode").highlight();
-                        
-                        // show line number
-                        var sHTML = $("#lineCode").html();
-                        var aLines = sHTML.split("\n");
-                        var nLength = aLines.length;
-                        for(var i = 0; i < nLength; i++){
-                            aLines[i] = '<span class="linenum">' + (i+1) + '</span>' + aLines[i];
-                        }
-                        $("#lineCode").html('<ol class="unstyled"><li>' + aLines.join('</li><li>') + '</li></ol>');
-                        // -- 
-                    }
-		            $("#rawCode").attr("href", "rawcode"+path);
-		            $("#fileList").hide();
-		            $("#fileView").show();
+	      	},
+	      	error : function(){
+	        	$("#codeError").show();
+	      	}
+	    	});
 
-                    function isImageFile(pathName){
-                        var lastDotPostion = pathName.lastIndexOf(".");
-                        var fileExtName = pathName.substring(lastDotPostion+1);
-                        var imageFileExtNames = ['jpg', 'png', 'gif','tif', 'bmp', 'ico', 'jpeg'];
-                        if( $.inArray(fileExtName, imageFileExtNames) !== -1 ){
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-		        }
+	      function handleFile(data){
 
-		        function handleFolder(data){
-		        	data.data = sortData(data.data);
+	        //파일을 표시한다.
+	        var author = data.author || '',
+	        		msg = data.msg || '',
+	        		revisionNo = data.revisionNo || '';  
 
-		            //폴더내용을 리스팅 한다.
-		            $("#commiter").text(data.author);
-		            if(data.hasOwnProperty("msg")){
-		            	$("#commitMessage").text(data.msg);
-		            }
-		            if(data.hasOwnProperty("revisionNo")){
-		            	$("#revisionNo").text("Revision #: " + data.revisionNo);
-		            }
-		            $("#commitDate").text(data.date);
-		            $(".contents").children().remove();
+	        $("#commiter").text(author);
+	        $("#commitMessage").text(msg);
+	        $("#revisionNo").text("Revision#: " + revisionNo);
+	        $("#commitDate").text(moment(new Date(data.createdDate)).fromNow());
+	        
+	        if( isImageFile(path)) {
+	          $("pre").html("<img src='./image" + path + "'>");
+	        } else {
+	          $("#lineCode").text(data.data);
+	          $("#lineCode").highlight();
+	            
+            // show line number
+            var sHTML = $("#lineCode").html();
+            var aLines = sHTML.split("\n");
+            var nLength = aLines.length;
+            for(var i = 0; i < nLength; i++){
+                aLines[i] = '<span class="linenum">' + (i+1) + '</span>' + aLines[i];
+            }
+            $("#lineCode").html('<ol class="unstyled"><li>' + aLines.join('</li><li>') + '</li></ol>');
+	            // -- 
+	        }
+        
+	        $("#rawCode").attr("href", "rawcode"+path);
+	        $("#fileList").hide();
+	        $("#fileView").show();
 
-		            var aTmp = [];
-		            var info, tablerow;
+	        function isImageFile(pathName){
+	        	//대소문자 구분없이 정의된 확장자명으로 끝나는지를 검사하여 반환
+	        	var imgCheck = /\.(jpg|png|gif|tif|bmp|ico|jpeg)$/i;
+						return imgCheck.test(pathName);
+	        }
+	      }
 
-		            for(var name in data.data){
-		            	info = data.data[name];
-				tablerow = makeTableRow(name, info.msg, info.createdDate, info.author, info.avatar);
-		              	aTmp.push(tablerow);
-		            }
-		            $(".contents").append(aTmp);
-		            aTmp = null;
+	      function handleFolder(data){
+	    		
+	      	data.data = sortData(data.data);
+	    			
+	          var author = data.author || '',
+	        			msg = data.msg || '',
+	        			revisionNo = data.revisionNo || '',
+	        			aTmp = [],
+	          		info, 
+	          		tablerow,
+	          		type,
+	          		sFilePath;  
 
-		            $("#fileList").show();
-		            $("#fileView").hide();
-		        }
+
+	          // 디렉토리 트리에서 발생한 이벤트를 파일 리스트에 반영하는 영역.
+	        	$("#commiter").text(author);
+	       		$("#commitMessage").text(msg);
+	        	$("#revisionNo").text("Revision#: " + revisionNo);
+	          $("#commitDate").text(data.date);
+	          $(".contents").children().remove();
+						
+
+	          if(path.length > 1) {
+	          	
+	          	var pathArray = path.split('/'),
+	          			upPath = pathArray.slice(0,pathArray.length-1).join("/");
+
+	          	upPath = (upPath=='/') ? '' : upPath;
+	    				sFilePath = "#" + upPath;
+	           	tablerow = makeTableRow('..', sFilePath, 'none');
+	            aTmp.push(tablerow);
+	            
+						} 
+
+	          for(var name in data.data){
+							sFilePath = "#" + (path !== "/" ? path : "") + "/" +name;
+						 	info = data.data[name],
+	          	type = data.data[name].type;
+							tablerow = makeTableRow(name, sFilePath, type, info.msg, info.createdDate, info.author, info.avatar);
+	            	aTmp.push(tablerow);
+	          }
+	          $(".contents").append(aTmp);
+	          aTmp = null;
+
+	          $("#fileList").show();
+	          $("#fileView").hide();
+	      }
 
 				function sortData(target){
-				    result = [];
+				  var rs = [],
+				  		htResult = {};
+				  
+				  // Object.key 확장과 정렬함수 정의하여 간소화				
+				  Object.keys(target).sort(lacending).forEach(function(key){
+				  	target[key].name = key;
+				  	rs.push(target[key]);
+				  });
 
-				    /** case-insensitive sort **/
-				    var aTmp = [];
-				    for(var key in target){
-				    	aTmp.push(key);
-				    }
-				    aTmp.sort(function(a,b){
-				    	if(a.toLowerCase() < b.toLowerCase()) { return -1; }
-				    	if(a.toLowerCase() > b.toLowerCase()) { return 1; }
-				    	return 0;
-				    });
+				 	rs = _.sortBy(rs, function(elm){
+				    return -(elm.type === "folder");
+				  });
 
-				    var ht = {};
-				    aTmp.forEach(function(sKey){
-				    	ht[sKey] = target[sKey];
-				    });
-				    /** **/
+				 	rs.forEach(function(o){
+				    htResult[o.name] = o;
+				  });
 
-				    _.each(ht, function(value, key, list){
-				    	ht[key].name = key;
-				        result.push(ht[key]);
-				    });
-
-				    result = _.sortBy(result, function(elm){
-				        return -(elm.type === "folder");
-				    });
-
-				    var htResult = {};
-				    result.forEach(function(o){
-				    	htResult[o.name] = o;
-				    });
-
-				    try {
-				    	return htResult;
-				    } finally {
-				    	aTmp = ht = null;
-				    }
+			    try {
+			    	return htResult;
+			    } finally {
+			    	rs = null;
+			    }
 				}
 
-				function makeTableRow(name, message, date, author, avatar){
-					if (message.length > 70){
+				function makeTableRow(name, path, type, message, date, author, avatar){
+					author = author || '',
+					date = (typeof date !=='undefined') ? (moment(new Date(date)).fromNow()) : '',
+					avatar = (typeof avatar !== 'undefined') ? '<a href="/'+ author+'" class="avatar-wrap"><img src="' + avatar + '"></a>' : '',
+					message = message || '',
+					fileClass= (name=='..') ? 'filename updir' : 'filename' ;
+
+					if (message.length > 70 && typeof message.length === 'undefined'){
 						message = message.substr(0, 70) + "...";
 					}
-
-					var sFilePath = "#" + (path !== "/" ? path : "") + "/" +name;
+				
 					var welRow = $("<tr>")
-			              .append($('<td><a class="filename" href="' + sFilePath + '">' + name + '</a></td>'))
-			              .append($('<td class="message">' + message + '</td>'))
-			              .append($('<td class="date">' + (moment(new Date(date)).fromNow()) + '</td>'))
-			              .append($('<td class="author"><a href="/'+ author+'" class="avatar-wrap"><img src="' + avatar + '"></a></td>'));
+							.append($('<td><a class="'+fileClass+'" href="' + path + '"><i class="ico ico-'+type+'"></i>' + name + '</a></td>'))
+							.append($('<td class="message">' + message + '</td>'))
+							.append($('<td class="date">' + date + '</td>'))
+			        .append($('<td class="author">'+avatar+'</td>'));
 
 					try {
 						return welRow;
 					} finally {
 						welRow = sFilePath = null;
 					}
-		        }
+		    }
 
-		        function updateBreadcrumbs(path){
-		        	var $breadcrumbs = $("#breadcrumbs");
-		        	$($breadcrumbs).html('<a href="#/">'+project_name+'</a>');
+        function updateBreadcrumbs(path){
+        	var $breadcrumbs = $("#breadcrumbs");
+        	$($breadcrumbs).html('<a href="#/">'+project_name+'</a>');
 
-		        	var names = path.split("/");
-		        	var str = "#";
-		        	var name;
+        	var names = path.split("/");
+        	var str = "#";
+        	var name;
 
-		        	for(var i = 1; i < names.length; i++){
-			            name = names[i];
-			            str += "/" + name;
-			            $breadcrumbs.append("/");
-			            $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
-		        	}
-		        }
-		      }); // end-of-document_ready
+        	for(var i = 1; i < names.length; i++){
+            name = names[i];
+            str += "/" + name;
+            $breadcrumbs.append("/");
+            $("<a>").text(name).attr("href", str).appendTo($breadcrumbs);
+        	}
+        }
+      }); // end-of-document_ready
 
-			  if (oBranch.getValue() == "") {
-				  oBranch.selectByValue("HEAD");
-			  }
+		  if (oBranch.getValue() == "") {
+			  oBranch.selectByValue("HEAD");
+		  }
 
-		      $(window).trigger('hashchange');
-		      _updateDynaTree();
+		  $(window).trigger('hashchange');
+		   _updateDynaTree();
 		});
 
 		function getHash() {
@@ -225,46 +238,47 @@
 			var welBtnResize = $(".btnResize");
 			var welWrapDirectory = $(".directory-wrap");
 			var waWrapFile = $(".file-wrap"); // fileList, fileView
-            var draggable = true;
+	    var draggable = true;
 
-            welBtnResize.mousedown(function () {
-                if(draggable) {
-                	$(window).bind("mousemove", _resizeList);
-                }
-                return false;
-            });
-            welBtnResize.mouseup(function () {
-                $(window).unbind("mousemove", _resizeList);
-                return false;
-            });
-            $(".directory-wrap").mouseup(function(){
-				$(window).unbind("mousemove", _resizeList);
+	    $(".btnResize").on('drag',function( event ){
+	    	_resizeList(event);
+	    });
+	    /*
+	    $(".directory-wrap").mouseup(function(){
+				$(window).off("mousemove", _resizeList);
 				return false;
 			});
+			*/
 			$(window).click(function(){ // for IE
-                console.log('click');
-				$(window).unbind("mousemove", _resizeList);
+	      console.log('click');
+				$(window).off("mousemove", _resizeList);
 			});
 
 			// 더블클릭하면 디렉토리 목록 숨김
 			welBtnResize.dblclick(function(){
 				if(welWrapDirectory.css("display") == "none"){
-                    draggable = true;
+	        draggable = true;
 					welWrapDirectory.show();
 					waWrapFile.width(930 - welWrapDirectory.width());
 				} else {
-                    draggable = false;
-                    $(window).unbind("mousemove", _resizeList);
+	        draggable = false;
+	        $(window).unbind("mousemove", _resizeList);
 					welWrapDirectory.hide();
 					waWrapFile.width(930);
 				}
 			});
 
 			function _resizeList(weEvt){
+				
+				var directory = $('.code-tree').position();
+				$('.code-tree').width(Math.round(weEvt.clientX) - directory.left);		
+				$('.code-viewer').width($('.code-viewer-wrap').width() - $('.code-tree').width()-2);
+				/*
 				var nWidth = weEvt.clientX - nFolderListX;
 				$(".directory-wrap").width(nWidth);
-                $(".directories").width(nWidth);
+	              $(".directories").width(nWidth);
 				$(".file-wrap").width(930 - nWidth);
+				*/
 			}
 		}
 
@@ -305,67 +319,57 @@
 		//     assert.deepEqual(result, expected);
 		// });
 
-		var result = [];
-
 		function adaptorForDynatree(target){
-		    result = [];
 
-		    /** case-insensitive sort **/
-		    var aTmp = [];
-		    for(var key in target){
-		    	aTmp.push(key);
-		    }
-		    aTmp.sort(function(a,b){
-		    	if(a.toLowerCase() < b.toLowerCase()) { return -1; }
-		    	if(a.toLowerCase() > b.toLowerCase()) { return 1; }
-		    	return 0;
-		    });
-		    var ht = {};
-		    aTmp.forEach(function(sKey){
-		    	ht[sKey] = target[sKey];
-		    });
-		    /** **/
+			var rs = [],
+					ht = {},
+			  	htResult = {};
+			  
+		  // Object.key 확장과 정렬함수 정의하여 간소화				
+		  Object.keys(target).sort(lacending).forEach(function(key){
+		  	ht[key]=target[key];
+		  });
 
-		    _.each(ht, function(value, key, list){
-		        if(value.type === "folder") {
-		            result.push({ title: key, isFolder: true, isLazy: true});
-		        } else {
-		            result.push({ title: key});
-		        }
-		    });
+	    _.each(ht, function(value, key, list){
+	        if(value.type === "folder") {
+	            rs.push({ title: key, isFolder: true, isLazy: true});
+	        } else {
+	            rs.push({ title: key});
+	        }
+	    });
 
-		    return _.sortBy(result, function(elm){
-		        return -elm.hasOwnProperty("isFolder");
-		    });
+	    return _.sortBy(rs, function(elm){
+	        return -elm.hasOwnProperty("isFolder");
+	    });
 		}
 
 		function findTreeNode(path){
-		    var root = $("#folderList").dynatree("getRoot");
-		    var nodes = path.split("/");  // "a/b/c" => a, b, c
-		    var currentNode = root;
-		    var searchTarget;
+	    var root = $("#folderList").dynatree("getRoot");
+	    var nodes = path.split("/");  // "a/b/c" => a, b, c
+	    var currentNode = root;
+	    var searchTarget;
 
-		    for(var idx in nodes){
-		        searchTarget = currentNode.getChildren();
-		        for( var jdx in  searchTarget){
-		            if ( searchTarget[jdx].data.title === nodes[idx] ) {
-		                currentNode = searchTarget[jdx];
-		                currentNode.expand();
-		                break;
-		            }
-		        }
-		    }
+	    for(var idx in nodes){
+	      searchTarget = currentNode.getChildren();
+	      for( var jdx in  searchTarget){
+	        if ( searchTarget[jdx].data.title === nodes[idx] ) {
+	          currentNode = searchTarget[jdx];
+	          currentNode.expand();
+	          break;
+	        }
+	      }
+	    }
 		}
 
 		// Traverse the path of selected tree item
 		function getTreePath(node){
-		    var path = "";
-		    if( node.getParent() && node.getParent().data.title !== null ){
-		        path = getTreePath(node.getParent()) + "/" + node.data.title;
-		    } else {
-		        path = node.data.title;
-		    }
-		    return path;
+	    var path = "";
+	    if( node.getParent() && node.getParent().data.title !== null ){
+	      path = getTreePath(node.getParent()) + "/" + node.data.title;
+	    } else {
+	      path = node.data.title;
+	    }
+	    return path;
 		}
 
 		// initial path loading
@@ -373,33 +377,33 @@
 		var treeSelectorId = "#folderList";
 
 		$(function(){
-		    var path = getHash().replace(/^#/, "");
-		    var branch = getBranch();
-		    rootPath = "code/" + branch + "/!/";
-		    $.ajax({
-		        url: rootPath,
-		        success: function(result, textStatus){
-		            treeInit(adaptorForDynatree(result.data));
-		            findTreeNode(path.substr(1));  // path.substr(1) "/a/b/c" => "a/b/c"
-		        }
-		    });
+	    var path = getHash().replace(/^#/, "");
+	    var branch = getBranch();
+	    rootPath = "code/" + branch + "/!/";
+	    $.ajax({
+	      url: rootPath,
+	      success: function(result, textStatus){
+	        treeInit(adaptorForDynatree(result.data));
+	        findTreeNode(path.substr(1));  // path.substr(1) "/a/b/c" => "a/b/c"
+	      }
+	    });
 		});
 
 		function _updateDynaTree(){
-		    var path = getHash(true);
-		    var branch = getBranch();
-		    rootPath = "code/" + branch + "/!/";
+	    var path = getHash(true);
+	    var branch = getBranch();
+	    rootPath = "code/" + branch + "/!/";
 
-		    $.ajax({
-		        "url": rootPath,
-		        "success": function(result){
-		        	var oRoot = $(treeSelectorId).dynatree("getRoot");
-		        	if(!(oRoot instanceof jQuery)){
-			        	oRoot.removeChildren(true);
-			        	oRoot.addChild(adaptorForDynatree(result.data));
-		        	}
-		        }
-		    });
+	    $.ajax({
+	      "url": rootPath,
+	      "success": function(result){
+	      	var oRoot = $(treeSelectorId).dynatree("getRoot");
+	      	if(!(oRoot instanceof jQuery)){
+	        	oRoot.removeChildren(true);
+	        	oRoot.addChild(adaptorForDynatree(result.data));
+	      	}
+	      }
+	    });
 		}
 
 		// DynaTree Init function
@@ -407,44 +411,44 @@
 
 		function treeInit(initData){
 			$(treeSelectorId).dynatree({
-		        "debugLevel": 0,
-		        "title"		: "/",
-		        "isLazy"	: true,
-		        "autoFocus"	: false,
-		        "children"	: initData,
-		        "fx"		: {"height": "toggle", "duration": 200},
-		        "onLazyRead": _onLazyRead,
-		        "onActivate": function(node) {
-		            // A DynaTreeNode object is passed to the activation handler
-		            // Note: we also get this event, if persistence is on, and the page is reloaded.
-		            window.location = "#/" + getTreePath(node);
-		        }
-		    });
+	      "debugLevel": 0,
+	      "title"		: "/",
+	      "isLazy"	: true,
+	      "autoFocus"	: false,
+	      "children"	: initData,
+	      "fx"		: {"height": "toggle", "duration": 200},
+	      "onLazyRead": _onLazyRead,
+	      "onActivate": function(node) {
+	        // A DynaTreeNode object is passed to the activation handler
+	        // Note: we also get this event, if persistence is on, and the page is reloaded.
+	        window.location = "#/" + getTreePath(node);
+	      }
+	    });
 		}
 
 		function _onLazyRead(node){
-            $.ajax({
-                "url": rootPath + getTreePath(node),
-                "success": function(result, textStatus) {
-                    // Called after nodes have been created and the waiting icon was removed.
-                    // 'this' is the options for this Ajax request
-                    if(result){
-                        node.setLazyNodeStatus(DTNodeStatus_Ok);
-                        node.addChild(adaptorForDynatree(result.data));
-                    }else{
-                        // Server returned an error condition: set node status accordingly
-                        node.setLazyNodeStatus(DTNodeStatus_Error, {
-                            tooltip: "Loading failed",
-                            info: result
-                        });
-                    }
-                },
-                "error": function(node, XMLHttpRequest, textStatus, errorThrown) {
-                    // Called on error, after error icon was created.
-                    console.log(node);
-                },
-                "cache": false // Append random '_' argument to url to prevent caching.
-            });
+	    $.ajax({
+		    "url": rootPath + getTreePath(node),
+		    "success": function(result, textStatus) {
+		      // Called after nodes have been created and the waiting icon was removed.
+		      // 'this' is the options for this Ajax request
+		      if(result){
+		        node.setLazyNodeStatus(DTNodeStatus_Ok);
+		        node.addChild(adaptorForDynatree(result.data));
+		      }else{
+		        // Server returned an error condition: set node status accordingly
+		        node.setLazyNodeStatus(DTNodeStatus_Error, {
+		          tooltip: "Loading failed",
+		          info: result
+		        });
+		      }
+		    },
+		    "error": function(node, XMLHttpRequest, textStatus, errorThrown) {
+		      // Called on error, after error icon was created.
+		      console.log(node);
+		    },
+		   	"cache": false // Append random '_' argument to url to prevent caching.
+			});
 		}
 	};
 })("hive.code.Browser");

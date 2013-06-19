@@ -46,8 +46,8 @@
 </div>
 }
 
-<div class="project-menu @menuCSS">
-	<div class="project-menu-wrap main">
+<div class="project-menu @menuCSS" >
+	<div class="project-menu-wrap main" data-spy="affix">
 		<ul class="unstyled">
 			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
 			<li class="sp-line">|</li>

@@ -34,6 +34,8 @@
 <script type="text/javascript" src="@getJSLink("lib/jquery/jquery.placeholder.min")"></script>
 <script type="text/javascript" src="@getJSLink("lib/bootstrap")"></script>
 <script type="text/javascript" src="@getJSLink("lib/bootstrap-better-typeahead")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap-scrollspy")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap-affix")"></script>
 <script type="text/javascript" src="@getJSLink("lib/rgbcolor")"></script>
 <script type="text/javascript" src="@getJSLink("lib/humanize")"></script>
 <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
@@ -70,6 +72,14 @@
         	}
         });
         
+        // menu affix 컴포넌트 적용
+        
+        $('.project-menu').height($(".project-menu-wrap").height());
+
+        $('.project-menu-wrap').affix({
+            offset: $('.project-menu-wrap').position()
+        });    
+
         // hive.ShortcutKey
         // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
         hive.ShortcutKey.attach("CTRL+ENTER", function(htInfo){

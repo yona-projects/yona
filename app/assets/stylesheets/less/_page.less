@@ -1430,14 +1430,21 @@
 }
 
 .project-menu {
-    border:1px solid #e7e7e7;
+  
     margin-bottom: 15px;
 
     ul { margin:0 !important; }
     li { line-height:40px; padding:0; .inline-block; }
 
     .project-menu-wrap {
+        border:1px solid #e7e7e7;
         position:relative; height:40px; padding:0px 0px;
+
+        &.affix {
+            top:0;
+            z-index:100;
+            position:fixed;
+        }
     }
 
     .main {
@@ -1460,7 +1467,7 @@
     }
 
     .sub {
-        border-top:1px solid #d4d5d7; z-index:100;
+        border-top:1px solid #d4d5d7; z-index:99;
         background:#fff;
 
         ul {
@@ -1481,6 +1488,7 @@
         padding:0; margin:0;
     }
 }
+
 .user-role {
     .inline-block;
     border-radius:3px 3px 0px 0px;
@@ -1489,6 +1497,7 @@
     i { vertical-align:bottom; }
 }
 .main-menu-only {
+
     border-bottom:1px solid #d4d5d7;
 }
 
@@ -2508,6 +2517,25 @@ div.markdown-preview {
         .border-radius(0px);
     }
 
+
+    .code-viewer-wrap {
+        width:100%;
+        .code-tree {
+            display:table-cell;
+            width:259px;
+            overflow-x : auto;
+            float:left;
+            border-left:1px solid #ddd;   
+        }   
+
+        .code-viewer {
+            display:table-cell;
+            float:right;
+            width:680px;
+            border-right:1px solid #ddd;
+        }
+    }
+
     .cell {
         display: table-cell;
         background-color: @white;
@@ -2517,18 +2545,18 @@ div.markdown-preview {
         &.directory-wrap {
             position: relative;
             overflow: auto;
-            width: 259px;
+            width: 100%;
             padding:15px 5px;
-            border-left:1px solid #ddd;
+            
         }
         &.sp-wrap {
             display:none;
             border-left: 4px solid #E6E6E6;
         }
         &.file-wrap {
-            width:680px;
+            width:100%;
             overflow-x: auto;
-            border-right:1px solid #ddd;
+            
         }
     }
 
@@ -2583,7 +2611,7 @@ div.markdown-preview {
             border-bottom:1px solid #ccc;
         }
         .tbody {
-            font-size: 11px;
+            font-size: 12px;
             color: #666;
             td {
                 line-height: 50px;
@@ -2613,6 +2641,9 @@ div.markdown-preview {
             max-width: 150px;
             .text-overflow;
         }
+
+        .updir { font-weight:bold; }
+
         .messages {
             /*.text-overflow;*/
            pre { background:none; border:none; margin:0; }
