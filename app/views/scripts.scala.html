@@ -73,13 +73,18 @@
         });
         
         // menu affix 컴포넌트 적용
-        
-        $('.project-menu').height($(".project-menu-wrap").height());
+        /*
+        var nMenuHeight = 0;
+        $(".project-menu-wrap").each(function(i,v){
+            nMenuHeight += $(v).height();
+        });
+        $('.project-menu').height(nMenuHeight);
 
         $('.project-menu-wrap').affix({
             offset: $('.project-menu-wrap').position()
-        });    
-
+        });
+        */
+        
         // hive.ShortcutKey
         // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
         hive.ShortcutKey.attach("CTRL+ENTER", function(htInfo){

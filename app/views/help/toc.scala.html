@@ -2,17 +2,18 @@
 
 @home(Messages(title), utils.MenuType.HELP) {
 <div class="page">
+        <!-- 
         <div class="header-wrap">
             <div class="search-wrap help">
                 <div class="inner">
                     <form action="/project/search" method="get">
-                        <span class="labels">FAQ</span><!-- 
-                         --><input name="query" class="text" type="text"><!-- 
-                         --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
+                        <span class="labels">FAQ</span><input name="query" class="text" type="text"><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
                     </form>
                 </div>
             </div>
         </div>
+         -->
+         
         <ul class="qas">
             <li class="qa">
                 <div class="question-wrap">
@@ -45,23 +46,23 @@
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
                     <div class="answer" style="width:100%">
-                        <p>상단의 New Project를 클릭하신후 필요한 정보를 입력하시면 됩니다.</p>
+                        <p>상단의 "새 프로젝트 시작"을 클릭하신후 필요한 정보를 입력하시면 됩니다.</p>
                         <p>
-                            공개설정에서 공개를 택하게 되면 해당 프로젝트의 맴버가 아닌
-                            사용자들도 해당 프로젝트를 둘러볼수 있게 되며 맴버가 아니라면
-                            code 저장소를 익명으로 접근하여 소스코드를 받아 갈 수는 있지만
-                            소스코드를 수정하지는 못합니다. 공개설정에서 비 공개를 택하게 되면
-                            해당 프로젝트의 맴버가 아닌 사용자들은 단지 설명과 
+                            공개설정에서 공개를 택하게 되면 해당 프로젝트의 멤버가 아닌
+                            사용자들도 해당 프로젝트를 둘러 볼 수 있게 되며 멤버가 아니라면
+                            코드 저장소를 익명으로 접근하여 소스코드를 받아 갈 수는 있지만
+                            소스코드를 수정하지는 못합니다. 공개설정에서 비공개를 선택하면
+                            해당 프로젝트의 멤버가 아닌 사용자들은 단지 설명과 
                             이름만을 볼수 있습니다.
                         </p>
                         <p>
-                            코드 저장소 방식은 현재 Git과 Subvision을 지원합니다.
-                            Subvision과 Git은 전세계적으로 코드관리 시스템으로 널리 쓰이고 있으며
+                            코드 저장소 방식은 현재 Git과 Subversion을 지원합니다.
+                            Subversion과 Git은 전 세계적으로 널리 쓰이고 있으며
                             충분한 신뢰성과 성능을 가지고 있습니다.
                         </p>
                         <p>
-                            위의 내용을 다 작성하셨다면 이용약관옆의 물음표를 눌러 약관을 살펴보시고 동의함을 눌러주시면 됩니다.
-                            마지막으로 save버튼을 누르면 새로운 프로젝트를 생성하실수 있습니다.
+                            위의 내용을 다 작성하셨다면 "프로젝트 생성" 버튼을 누르면 
+                            새로운 프로젝트를 생성하실수 있습니다.
                         </p>
                     </div>
                 </div>
@@ -76,10 +77,8 @@
                     <i class="ico ico-a"></i>
                     <div class="answer" style="width:100%">
                         <a href="/">메인화면</a>
-                        우측 하단에 다음과 같이 참여하고 있는 프로젝트의 목록을 볼수 있습니다. 자물쇠가 있는 것은 비공개
-                        프로젝트이며 자물쇠가 없는 것은 공개 프로젝트 입니다. 괄호 안은 프로젝트를 만든사람을 나타내며 괄호 앞은
-                        프로젝트의 제목을 나타냅니다.
-                        <!-- <p><img src="/assets/help/myProjects.png"/></p> -->
+                        우측 하단에 다음과 같이 참여하고 있는 프로젝트의 목록을 볼수 있습니다. 
+                        자물쇠가 있는 것은 비공개 프로젝트이며 자물쇠가 없는 것은 공개 프로젝트 입니다.
                         혹은 자신의 <a href="/info">정보 페이지</a>에서도 확인하실수 있습니다.
                     </div>
                 </div>
@@ -93,8 +92,8 @@
                 <div class="answer-wrap">
                     <i class="ico ico-a"></i>
                     <div class="answer" style="width:100%">
-                        혹은 자신의 <a href="/info">정보 페이지</a>에서 참여하고 있는 프로젝트 목록을 볼수있고
-                        탈퇴도 할수 있습니다. 자신이 프로젝트의 유일한 관리자라면 해당 프로젝트에서 탈퇴를 할수 없습니다.
+                        자신의 <a href="/info">정보 페이지</a>에서 참여하고 있는 프로젝트 목록을 볼 수있고
+                        탈퇴도 할수 있습니다. 자신이 프로젝트의 유일한 관리자라면 해당 프로젝트에서 탈퇴를 할 수 없습니다.
                     </div>
                 </div>
             </li>
@@ -109,7 +108,7 @@
                     <div class="answer" style="width:100%">
                         게시판에서는 다음과 같은 기능이 가능합니다.
                         <ul>
-                            <li>게시물 상세 조회: 사용자는 게시물의 내용을 볼 수 있다.</li>
+                            <li>게시물 읽기: 사용자는 게시물의 내용을 볼 수 있다.</li>
                             <li>게시물 댓글 등록: 로그인 유저는 게시물에 댓글을 남길 수 있다.</li>
                             <li>게시물 댓글 조회: 사용자는 게시물의 댓글을 볼 수 있다.</li>
                             <li>게시물 댓글 삭제: 로그인 유저는 자신이 남긴 댓글을 삭제할 수 있다.</li>

@@ -18,7 +18,7 @@ dd { margin-left:0; }
 .gnb-logo { display:inline-block !important; }
 .gnb-outer { text-align:center; }
 .subtitle { font-size:24px; font-weight:bold; height:55px; line-height:55px; vertical-align:bottom; }
-.css { display:none;font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
+.css { font-family: Consolas; color: #222; background: #C9EBB5; padding: 3px; border-radius: 3px; border: 1px solid #4CB848; }
 </style>
 </head>
 <body>
@@ -32,35 +32,38 @@ dd { margin-left:0; }
 	<div class="page">
 		<h3>Buttons</h5>
 		<div>
-			<p class="css">.nbtn</p>
+			<pre>.nbtn</pre>
 			<p>
 				<a href="#" class="nbtn medium">Default Button</a><!--
 			 --><button type="button" class="nbtn medium orange">Primary Button</button><!--
-			 --><a href="#" class="nbtn medium black">Cancel Button</a><!--
-			 --><a href="#" class="nbtn medium white">Action Button</a>
+			 --><a href="#" class="nbtn medium black">Secondary Button</a><!--
+             --><button href="#" class="nbtn medium red">Delete Button</button>
+             </p>
+             <p> 
+			    <a href="#" class="nbtn medium white">Action Button</a><!-- 
+			 --><button href="#" class="nbtn medium green">Action Button</button><!-- 
+			 --><a href="#" class="nbtn medium blue">Action Button</a><!-- 
+			 --><button href="#" class="nbtn medium mint">Action Button</button>
 			</p>
-			<p>
-				<button type="button" class="nbtn medium">Default Button</button><!--
-			 --><a href="#" class="nbtn medium orange">Primary Button</a><!--
-			 --><button type="button" class="nbtn medium black">Cancel Button</button><!--
-			 --><button type="button" class="nbtn medium white">Action Button</button>
-			</p>
-
-			<p class="css">.btn-wrap > .fake-file-wrap</p>
+<xmp class="css"><a href="#" class="nbtn medium">Default Button</a>
+<button type="button" class="nbtn medium orange">Primary Button</button>
+<a href="#" class="nbtn medium black">Secondary Button</a>
+<button href="#" class="nbtn medium red">Delete Button</button>
+</xmp>
+<hr/>
 			<div class="btn-wrap">
 				<div class="nbtn medium white fake-file-wrap">
 					<i class="ico ico-plus-blue"></i>Upload
 				    <input type="file" class="file" name="filePath" accept="image/*">
 				</div>
 			</div>
-
-			<p class="css">.btn-wrap > .fake-file-wrap</p>
-			<div class="btn-wrap">
-				<div class="nbtn medium white fake-file-wrap">
-					<i class="ico ico-plus-blue"></i>파일 올리기<!--
-				--> <input type="file" class="file" name="filePath" accept="image/*">
-				</div>
-			</div>
+<xmp class="css"><div class="btn-wrap">
+    <div class="nbtn medium white fake-file-wrap">
+        <i class="ico ico-plus-blue"></i>Upload
+        <input type="file" class="file" name="filePath" accept="image/*">
+    </div>
+</div>
+</xmp>
 
 			<p>&nbsp;</p>
 			<p>
@@ -77,83 +80,122 @@ dd { margin-left:0; }
 
 		<h3>Select</h5>
 		<div>
-			<p class="css">.dropdown-toggle</p>
+			<pre>.dropdown-toggle</pre>
 
 			<!-- ui.dropdown -->
-			<div class="btn-group" data-name="assigneeId">
-				<button class="btn dropdown-toggle small" data-toggle="dropdown">
-					<span class="d-label">전체</span>
-					<span class="d-caret"><span class="caret"></span></span>
-				</button>
-				<ul class="dropdown-menu">
-					<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-					<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-				</ul>
-			</div>
+			<dl>
+				<dt>
+				    <span class="css">.small</span>
+                </dt>
+				<dd>
+					<div class="btn-group" data-name="assigneeId">
+						<button class="btn dropdown-toggle small" data-toggle="dropdown">
+							<span class="d-label">전체</span>
+							<span class="d-caret"><span class="caret"></span></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+							<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+						</ul>
+					</div>
+				</dd>
+			</dl>
 			<!-- // ui.dropdown -->
 
 			<!-- ui.dropdown -->
-			<div class="btn-group" data-name="assigneeId">
-				<button class="btn dropdown-toggle medium" data-toggle="dropdown">
-					<span class="d-label">전체</span>
-					<span class="d-caret"><span class="caret"></span></span>
-				</button>
-				<ul class="dropdown-menu">
-					<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-					<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-				</ul>
-			</div>
+            <dl>
+                <dt>
+                    <span class="css">.medium</span>
+                </dt>
+                <dd>
+                    <div class="btn-group" data-name="assigneeId">
+                        <button class="btn dropdown-toggle medium" data-toggle="dropdown">
+                            <span class="d-label">전체</span>
+                            <span class="d-caret"><span class="caret"></span></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+                            <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+                        </ul>
+                    </div>
+                </dd>
+            </dl>
 			<!-- // ui.dropdown -->
 
 			<!-- ui.dropdown -->
-			<div class="btn-group" data-name="assigneeId">
-				<button class="btn dropdown-toggle large" data-toggle="dropdown">
-					<span class="d-label">전체</span>
-					<span class="d-caret"><span class="caret"></span></span>
-				</button>
-				<ul class="dropdown-menu">
-					<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
-					<li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
-				</ul>
-			</div>
+            <dl>
+                <dt>
+                    <span class="css">.large</span>
+                </dt>
+                <dd>
+                    <div class="btn-group" data-name="assigneeId">
+                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                            <span class="d-label">전체</span>
+                            <span class="d-caret"><span class="caret"></span></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+                            <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+                        </ul>
+                    </div>
+                </dd>
+            </dl>
 			<!-- // ui.dropdown -->
-
+<xmp class="css"><div class="btn-group" data-name="assigneeId">
+	<button class="btn dropdown-toggle large" data-toggle="dropdown">
+	    <span class="d-label">전체</span>
+	    <span class="d-caret"><span class="caret"></span></span>
+	</button>
+	<ul class="dropdown-menu">
+	    <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">전체</a></li>
+	    <li data-value="0"><a href="javascript:void(0)">담당자 없음</a></li>
+	</ul>
+</div>
+</xmp>
 		</div>
 		<!-- // select -->
 		<hr/>
-		<h3>Form</h3>
+		<h3>Search Form</h3>
 		<div>
-			<p class="css">.form-search</p>
+			<pre>.form-search</pre>
 			<form class="form-search">
 				<input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
 			 --><button type="button" class="btn">검색</button>
 			</form>
-
-			<p class="css">.form-searchbar</p>
+<xmp class="css"><form class="form-search">
+    <input type="text" class="text" name="filter" placeholder="현재 프로젝트에서 검색"><!--
+ --><button type="button" class="btn">검색</button>
+</form></xmp>
+<hr/>
+			<pre>.form-searchbar</pre>
 			<form class="form-searchbar">
 				<input type="text" class="text" name="filter"><!--
 			 --><button type="button" class="ico ico-search"></button>
 			</form>
+<xmp class="css"><form class="form-searchbar">
+    <input type="text" class="text" name="filter"><!--
+ --><button type="button" class="ico ico-search"></button>
+</form></xmp>
 		</div>
 		<hr/>
 		<!-- // input -->
 		<h3>Labels</h3>
 		<div>
-			<p class="css">.issue-label</p>
+			<pre>.issue-label</pre>
 			<p>
 				<button class="issue-label">Clean</button>
 				<button class="issue-label">Fresh</button>
 				<button class="issue-label">Modern</button>
 				<button class="issue-label">Unique</button>
 			</p>
-			<p class="css">.issue-label .active</p>
+			<pre>.issue-label .active</pre>
 			<p>
 				<button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
 				<button class="issue-label active" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
 				<button class="issue-label active" style="background-color:#ffcc33; color:#fff;">Modern<span class="delete">&times;</span></button>
 				<button class="issue-label active" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
 			</p>
-			<p class="css">.issue-label .active .editable</p>
+			<pre>.issue-label .active .editable</pre>
 			<p>
 				<button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
 				<button class="issue-label active editable" style="background-color:#ff9933; color:#fff;">Fresh<span class="delete">&times;</span></button>
@@ -161,11 +203,14 @@ dd { margin-left:0; }
 				<button class="issue-label active editable" style="background-color:#22b4b9; color:#fff;">Unique<span class="delete">&times;</span></button>
 			</p>
 		</div>
+		<xmp class="css"><button class="issue-label">Clean</button>
+<button class="issue-label active" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button>
+<button class="issue-label active editable" style="background-color:#da5454; color:#fff;">Clean<span class="delete">&times;</span></button></xmp>
 		<!-- // labels -->
 		<hr/>
 		<h3>Avatar</h3>
 		<div>
-			<p class="css">.avatar-wrap</p>
+			<pre>.avatar-wrap</pre>
 			<dl>
 				<dt>
 					<span class="css">.small</span>
@@ -210,8 +255,9 @@ dd { margin-left:0; }
 		<!-- //avatar -->
 		<hr/>
 		<h3>Tabs</h3>
+		<pre>.nav .nav-tabs</pre>
 		<div>
-			<ul class="nav nav-tabs hive-tabs">
+			<ul class="nav nav-tabs">
 				<li class="active">
 					<a href="#">파일</a>
 				</li>

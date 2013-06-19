@@ -91,21 +91,21 @@
         }
 
 		@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-		<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium orange">@Messages("button.edit")</a>
+		<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
 		}
 
 		<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium">@Messages("button.list")</a>
-
-		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium black last">@Messages("issue.menu.new")</a>
+		
+		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
 	</div>
 
 	@** Comment **@
 	<div class="board-comment-wrap">
 		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 
-	@if(issue.comments.size > 0) {
+	    @if(issue.comments.size > 0) {
 		<ul class="comments">
-		@for(comment <- issue.comments){
+		    @for(comment <- issue.comments){
 			<li class="comment">
 				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
 		        	<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
@@ -114,44 +114,20 @@
 					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
 					<a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)">&times;</a>
 					}
-
                     <div class="comment-body" markdown="true">@comment.contents</div>
-					<p class="commenter">
-						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-						<span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
-					</p>
+                    <p class="commenter">
+                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                        <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
+                    </p>
 					<div class="attachments" resourceType="@ResourceType.ISSUE_COMMENT" resourceId="@comment.id"></div>
 				</div>
 			</li>
-		}
+            }
 		</ul>
-	}
+	    }
 
-    @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, models.enumeration.ResourceType.BOARD_POST)){
-		@form(routes.IssueApp.newComment(project.owner, project.name, issue.getNumber), 'id -> "comment-form", 'enctype -> "multipart/form-data"){
-		<div class="write-comment-box">
-			<div class="write-comment-wrap">
-				<textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
-				<button class="comment-btn">@Messages("button.comment.new")</button>
-			</div>
-
-	        @** fileUploader **@
-	        @if(!UserApp.currentUser.isAnonymous) {
-	            @fileUploader(ResourceType.ISSUE_COMMENT, null)
-	        }
-	        @** end of fileUploader **@
-		</div>
-		}
-		@** end of form **@
-	} else {
-		<div class="write-comment-box">
-			<div class="write-comment-wrap">
-				<textarea class="text comment disabled" disabled="disabled">@Messages("auth.unauthorized.comment")</textarea>
-				<button class="comment-btn disabled">@Messages("button.comment.new")</button>
-			</div>
-		</div>
-	}
-	</div>
+        @views.html.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
+    </div>
 	@** // Comment **@
 
     @help.keymap("issueDetail", project)

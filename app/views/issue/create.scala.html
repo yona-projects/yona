@@ -47,9 +47,9 @@
 						<span class="d-caret"><span class="caret"></span></span>
 					</button>
 					<ul class="dropdown-menu">
-						@ProjectUser.options(project.id).map{ v =>
-						<li data-value="@v._1"><a>@v._2</a></li>
-						}
+					@for(member <- project.members()) {
+                        <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
+                    }
 					</ul>
 				</div>
              </div>

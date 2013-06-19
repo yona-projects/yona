@@ -1,0 +1,36 @@
+@(project:Project, resourceType:ResourceType, action:String)
+
+@import models.enumeration.ResourceType
+@import utils.AccessControl._
+
+@if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, resourceType)){
+
+    <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
+        <div class="write-comment-box">
+            <div class="write-comment-wrap">
+                <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
+                <div class="right-txt">
+                    <button class="nbtn medium orange">@Messages("button.comment.new")</button>
+                </div>
+            </div>
+
+            @** fileUploader **@
+            @if(!UserApp.currentUser.isAnonymous) {
+                @fileUploader(resourceType, null)
+            }
+            @** end of fileUploader **@
+        </div>
+    </form>
+
+} else {
+
+    <div class="write-comment-box">
+        <div class="write-comment-wrap">
+            <textarea class="text comment disabled" disabled="disabled">@Messages("auth.unauthorized.comment")</textarea>
+            <div class="right-txt">
+                <button class="nbtn medium disabled" disabled="disabled">@Messages("button.comment.new")</button>
+            </div>
+        </div>
+    </div>
+
+}

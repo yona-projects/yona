@@ -114,7 +114,7 @@
                         	<img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
                         </a>
                         <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
-                        	<strong>@member.loginId (@member.name)</strong>
+                        	<strong>@member.name (@member.loginId)</strong>
                         </a>
                     </li>
                     }
@@ -149,7 +149,7 @@
 
 	    @if(histories.size > 0) {
         <div id="recent" class="tab-pane">
-            <div class="content-container">
+            <div class="content-container" style="margin:0;">
 				<div class="main-stream" style="width:100%;">
 					<ul class="activity-streams unstyled">
 						@for(history <- histories.iterator()) {

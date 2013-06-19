@@ -1,6 +1,9 @@
 @(title: String, milestones: List[models.Milestone], project: Project, param: MilestoneApp.MilestoneCondition)
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
+@import models.enumeration.ResourceType
+@import models.enumeration.Operation
+@import utils.AccessControl._
 
 @urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
 
@@ -29,9 +32,11 @@
 	@prjmenu(project, utils.MenuType.MILESTONE, "")
 
     <div class="tab-wrap">
+        @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
         <div class="pull-right btns">
             <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="nbtn medium orange">@Messages("milestone.menu.new")</a>
         </div>
+        }
 
         <ul class="nav nav-tabs">
             <li class="@if(param.state.equals("all")){active}">

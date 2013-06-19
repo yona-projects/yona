@@ -240,11 +240,25 @@
 			var waWrapFile = $(".file-wrap"); // fileList, fileView
 
     	    var draggable = true;
+            var welBrowseWrap = $(".code-browse-wrap");
     
     	    welBtnResize.on('drag',function(weEvt){
     	    	_resizeList(weEvt);
     	    });
     	    /*
+            var draggable = true;
+            
+            welBtnResize.mousedown(function () {
+                if(draggable) {
+                	$(window).bind("mousemove", _resizeList);
+                }
+                return false;
+            });
+            welBtnResize.mouseup(function () {
+                $(window).unbind("mousemove", _resizeList);
+                return false;
+            });
+
             $(".directory-wrap").mouseup(function(){
 				$(window).off("mousemove", _resizeList);
 				return false;
@@ -260,26 +274,34 @@
 				if(welWrapDirectory.css("display") == "none"){
 				    draggable = true;
 					welWrapDirectory.show();
-					waWrapFile.width(nWrapWidth - welWrapDirectory.width());
+					waWrapFile.width(welBrowseWrap.width() - welWrapDirectory.width() - 20);
 				} else {
         	        draggable = false;
-        	        $(window).unbind("mousemove", _resizeList);
+        	        $(window).off("mousemove", _resizeList);
 					welWrapDirectory.hide();
-					waWrapFile.width(nWrapWidth + 20);
+					waWrapFile.width(welBrowseWrap.width() + 20);
 				}
 			});
 
 			function _resizeList(weEvt){
 				var directory = $('.code-tree').position();
 				$('.code-tree').width(Math.round(weEvt.clientX) - directory.left);		
-				$('.code-viewer').width($('.code-viewer-wrap').width() - $('.code-tree').width()-2);
+				$('.code-viewer').width($('.code-viewer-wrap').width() - $('.code-tree').width()-20);
 				/*
 				var nWidth = weEvt.clientX - nFolderListX;
                 $(".directory-wrap").width(nWidth - 10);
                 $(".directories").width(nWidth - 10);
-                $(".file-wrap").width(nWrapWidth - nWidth);
+                $(".file-wrap").width(welBrowseWrap.width() - nWidth - 10);
                 */
 			}
+			
+			$(window).on("resize", function(){
+			    var welTree = $(".code-tree");
+			    var welView = $('.code-viewer');
+			    var welWrap = $('.code-viewer-wrap');
+			    var nGap = (welTree.width() > 0) ? welTree.width() + 3 : 0;
+			    welView.width(welWrap.width() - nGap);
+			});
 		}
 
 		_initResizeList();

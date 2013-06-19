@@ -31,7 +31,7 @@
     }
 }
 
-<div class="project-menu">
+<div class="project-menu"><!--  data-spy="affix"> -->
     <div class="actrow">
         @if(project.isFork()){
         <div class="label forked-from">
@@ -49,8 +49,7 @@
         }
     </div>
 
-<div class="project-menu @menuCSS" >
-	<div class="project-menu-wrap main" data-spy="affix">
+	<div class="project-menu-wrap main">
 		<ul class="unstyled">
 			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
 			<li class="sp-line">|</li>
@@ -74,16 +73,16 @@
 		</ul>
 	</div>
 
-@** 프로젝트 설정 서브메뉴 **@
-@if(menuType.equals(MenuType.PROJECT_SETTING)){
-	<div class="project-menu-wrap sub">
-		<ul class="unstyled on-admin">
-			@makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"))
-			@makeSubMenu(routes.ProjectApp.members(project.owner, project.name), 	  Messages("project.member"))
-			@makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"))
-		</ul>
-	</div>
-}
+	@** 프로젝트 설정 서브메뉴 **@
+	@if(menuType.equals(MenuType.PROJECT_SETTING)){
+		<div class="project-menu-wrap sub">
+			<ul class="unstyled on-admin">
+				@makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"))
+				@makeSubMenu(routes.ProjectApp.members(project.owner, project.name), 	  Messages("project.member"))
+				@makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"))
+			</ul>
+		</div>
+	}
 </div>
 
 <script type="text/javascript">

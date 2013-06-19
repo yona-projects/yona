@@ -35,7 +35,8 @@
             htElement.welInputPassword  = $('#password');
             htElement.welInputRetypedPassword = $('#retypedPassword');
 
-            htElement.welForm = $("form[name=passwordReset]");
+            htElement.welFormBasic = $("#frmBasic");
+            htElement.welFormPswd = $("#frmPassword");
 
             htElement.welAvatarWrap = $("#avatarWrap");
             htElement.welAvatarImage = htElement.welAvatarWrap.find("img");
@@ -162,9 +163,10 @@
 
             // 꽉 차면 보이지 않게 하고 다시 0으로 되돌림
             if(nPercent === 100){
-                htElement.welAvatarUploaded.show();
+//                htElement.welAvatarUploaded.show();
                 htElement.welAvatarProgress.css("opacity", 0);
                 setTimeout(function(){
+                    htElement.welFormBasic.submit();
                     _setAvatarProgressBar(0);
                 }, 1000);
             }
@@ -211,7 +213,7 @@
 
             var welTarget;
             aErrors.forEach(function(htError){
-                welTarget = htElement.welForm.find("input[name=" + htError.name + "]");
+                welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
                 if(welTarget){
                     showErrorMessage(welTarget, htError.message);
                 }
@@ -224,7 +226,7 @@
          */
         function _clearTooltips(){
             try {
-                htElement.welForm.find("input").each(function(i, v){
+                htElement.welFormPswd.find("input").each(function(i, v){
                     $(v).tooltip("destroy");
                 });
             } catch(e){}

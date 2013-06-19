@@ -40,7 +40,7 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welUploader = $("#upload");
-			htElement.welTextarea = $("#contents");
+			htElement.welTextarea = $("#comment-editor");
 			
 			htElement.welAttachments = $(".attachments");			
 		}
