@@ -22,6 +22,7 @@
 		function _init(htOptions){
 			_initVar(htOptions || {});
 			_initElement(htOptions || {});
+            _attachEvent();
 
 			_initFileUploader();
 			_initFileDownloader();
@@ -33,6 +34,8 @@
 		function _initVar(htOptions){
 			htVar.sTplFileItem = $('#tplAttachedFile').text();
 			htVar.sAction = htOptions.sAction;
+            htVar.sWatchUrl = htOptions.sWatchUrl;
+            htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
 		}
 		
 		/**
@@ -43,7 +46,23 @@
 			htElement.welTextarea = $("#contents");
 			
 			htElement.welAttachments = $(".attachments");			
+            htElement.welBtnWatch = $('#watch-button');
 		}
+
+        /**
+         * attach event handler
+         */
+        function _attachEvent(){
+            htElement.welBtnWatch.click(function(weEvt) {
+                var bWatched = $(weEvt.target).hasClass('active');
+
+                if (!bWatched) {
+                    $hive.sendForm({ "sURL" : htVar.sWatchUrl });
+                } else {
+                    $hive.sendForm({ "sURL" : htVar.sUnwatchUrl });
+                }
+            });
+        }
 
 		/**
 		 * initialize fileUploader
