@@ -12,7 +12,7 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @getTitle(issue:Issue, project:Project) = {
-	#@issue.getNumber @issue.title (@project.name)
+	#@issue.getNumber @issue.title
 	@** Messages(title) **@
 }
 
@@ -95,7 +95,7 @@
 		}
 
 		<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium">@Messages("button.list")</a>
-		
+
 		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium last">@Messages("issue.menu.new")</a>
 	</div>
 
@@ -153,7 +153,7 @@
 	}
 	</div>
 	@** // Comment **@
-	
+
     @help.keymap("issueDetail", project)
 </div>
 
@@ -206,7 +206,7 @@
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"    : htOptLabel
 		});
-		
+
 	    // hive.ShortcutKey
         hive.ShortcutKey.setKeymapLink({
             "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
