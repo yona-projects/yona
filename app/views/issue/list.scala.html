@@ -60,10 +60,10 @@
                                             <span class="d-caret"><span class="caret"></span></span>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("order.all")</a></li>
-                                            <li data-value="@User.anonymous.id"><a href="javascript:void(0)">@Messages("noAssignee")</a></li>
+                                            <li data-value="" data-selected="true" class="active"><a>@Messages("order.all")</a></li>
+                                            <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
                                             @for(assignee <- project.assignees) {
-                                            <li data-value="@assignee.user.id"><a href="javascript:void(0)">@assignee.user.name (@assignee.user.loginId)</a></li>
+                                            <li data-value="@assignee.user.id"><a>@assignee.user.name (@assignee.user.loginId)</a></li>
                                             }
                                         </ul>
                                     </div>
@@ -78,10 +78,10 @@
 											<span class="d-caret"><span class="caret"></span></span>
 										</button>
 										<ul class="dropdown-menu">
-											<li data-value="" data-selected="true" class="active"><a href="javascript:void(0)">@Messages("milestone.state.all")</a></li>
-											<li data-value="0"><a href="javascript:void(0)">@Messages("noMilestone")</a></li>
+											<li data-value="" data-selected="true" class="active"><a>@Messages("milestone.state.all")</a></li>
+											<li data-value="0"><a>@Messages("noMilestone")</a></li>
 											@for(milestone <- Milestone.findByProjectId(project.id)) {
-											<li data-value="@milestone.id"><a href="javascript:void(0)">@milestone.title</a></li>
+											<li data-value="@milestone.id"><a>@milestone.title</a></li>
 											}
 										</ul>
 									</div>

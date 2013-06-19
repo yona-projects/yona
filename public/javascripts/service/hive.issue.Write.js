@@ -35,6 +35,7 @@
 		 */
 		function _initVar(htOptions){
 			htVar.sMode = htOptions.sMode || "new";
+      htVar.sIssueFormURL = htOptions.sIssueFormURL;
 			htVar.sUploaderAction = htOptions.sUploaderAction;
 			htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.text() : "");
             htVar.htOptLabel = htOptions.htOptLabel || {};
@@ -45,11 +46,12 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welUploader = $(htOptions.elUploader || "#upload");
+      htElement.welIssueOptions = $(htOptions.elIssueOptions || "#options");
 			htElement.welTextarea = $(htOptions.elTextarea || "#body");
 			htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
 			htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
-
-			htElement.welTplFileItem = $('#tplAttachedFile');			
+      htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
+			htElement.welTplFileItem = $('#tplAttachedFile');
 		}
 			
 		/**
@@ -57,12 +59,22 @@
 		 */
 		function _attachEvent(){
 			$("form").submit(_onSubmitForm);
-            htElement.welBtnManageLabel.click(_clickBtnManageLabel);
+      htElement.welBtnManageLabel.click(_clickBtnManageLabel);
+      htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
 		}
 
         function _clickBtnManageLabel() {
             htVar.htOptLabel.bEditable = !htVar.htOptLabel.bEditable;
             _initLabel(htVar.htOptLabel);
+        }
+
+        function _onReloadMilestone() {
+          $.get(htVar.sIssueFormURL, function(data){
+            var context = data.replace("<!DOCTYPE html>", "").trim();
+            var milestoneOptionDiv = $("#milestoneOption", context);
+            $("#milestoneOption").html(milestoneOptionDiv.html());
+            new hive.ui.Dropdown({"elContainer":"#milestoneId"});
+          });
         }
 		
 		/**

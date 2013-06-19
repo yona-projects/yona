@@ -48,7 +48,7 @@
 					</button>
 					<ul class="dropdown-menu">
 						@ProjectUser.options(project.id).map{ v =>
-						<li data-value="@v._1"><a href="javascript:void(0)">@v._2</a></li>
+						<li data-value="@v._1"><a>@v._2</a></li>
 						}
 					</ul>
 				</div>
@@ -62,7 +62,7 @@
                 @defining(Milestone.options(project.id)) { milestones =>
                     @if(milestones.isEmpty()) {
                         <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
-                        <i class="icon-refresh" style="cursor: pointer" onclick="javascript:reloadMilestone();"></i>
+                        <i class="icon-refresh"></i>
                     } else {
                         <div class="option-desc">
                             <div id="milestoneId" class="btn-group" data-name="milestoneId">
@@ -72,7 +72,7 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     @milestones.map{ v =>
-                                    <li data-value="@v._1"><a href="javascript:void(0)">@v._2</a></li>
+                                    <li data-value="@v._1"><a>@v._2</a></li>
                                     }
                                 </ul>
                             </div>
@@ -86,7 +86,7 @@
 	<!-- issue.label js module appends a label selector here. -->
     <p class="option-label">@Messages("label.select")
         @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-        <a id="manage-label-link" href="javascript:void(0)">
+        <a id="manage-label-link">
             <i class="icon-cog"></i>
         </a>
 		}
@@ -115,6 +115,8 @@
 		$hive.loadModule("issue.Write", {
 			"sMode"			 : "new",
 			"elTextarea"	 : $("#body"),
+            "elMilestoneRefresh": $("#milestoneOption .icon-refresh"),
+            "sIssueFormURL"  : "@routes.IssueApp.newIssueForm(project.owner, project.name)",
 			"sUploaderAction": "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"     : htOptLabel
 		});
@@ -122,13 +124,5 @@
 		$("#title").focus();
 	});
 
-    function reloadMilestone() {
-        $.get("@routes.IssueApp.newIssueForm(project.owner, project.name)", function(data){
-            var context = data.replace("<!DOCTYPE html>", "").trim();
-            var milestoneOptionDiv = $("#milestoneOption", context);
-            $("#milestoneOption").html(milestoneOptionDiv.html());
-            new hive.ui.Dropdown({"elContainer":"#milestoneId"});
-        });
-    };
 </script>
 }

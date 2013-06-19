@@ -21,14 +21,14 @@
         <div class="contents">
             <label for="issue-@issue.id">
                 <div class="title">
-                    <div style="display: inline">
+                    <span>
                         <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.title</a>
-                    </div>
-                    <div style="display: inline">
+                    </span>
+                    <span>
                     @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
                         @makeLabelLink(project, searchCondition, label)
                     }
-                    </div>
+                    </span>
 
                 </div>
 
