@@ -6,7 +6,6 @@ GET     /navitest                                       controllers.Application.
 
 # Home page
 GET     /                                               controllers.Application.index()
-
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                                   controllers.Assets.at(path="/public", file)
 GET     /messages.js                                    controllers.Application.jsMessages()
@@ -80,7 +79,6 @@ GET     /projectform                                    controllers.ProjectApp.n
 POST    /projects                                       controllers.ProjectApp.newProject()
 GET     /projects                                       controllers.ProjectApp.projects(filter:String ?= "", state: String ?= "all", pageNum: Int ?= 1)
 GET     /:user/:project                                 controllers.ProjectApp.project(user, project)
-GET     /:user/:project/                                controllers.ProjectApp.project(user, project)
 GET     /:user/:project/settingform                     controllers.ProjectApp.settingForm(user, project)
 POST    /:user/:project/setting                         controllers.ProjectApp.settingProject(user, project)
 GET     /:user/:project/deleteform                      controllers.ProjectApp.deleteForm(user, project)
@@ -177,8 +175,10 @@ GET     /help                                           controllers.HelpApp.help
 # Statistics
 GET     /:user/:project/statistics                      controllers.StatisticsApp.statistics(user, project)
 GET     /:user                                          controllers.UserApp.userInfo(user)
-GET     /:user/                                         controllers.UserApp.userInfo(user)
 
 # Watching Projects
 POST    /:user/:project/watch                           controllers.WatchProjectApp.watch(user, project)
 POST    /:user/:project/unwatch                         controllers.WatchProjectApp.unwatch(user, project)
+
+# remove trailing slash
+GET     /*paths                                         controllers.Application.RemoveTrailer(paths)
