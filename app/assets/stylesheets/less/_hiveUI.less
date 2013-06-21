@@ -26,6 +26,18 @@ input[type="week"], input[type="number"], input[type="email"], input[type="url"]
 input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     .box-shadow(none);
     .border-radius(2px);
+    
+    &:focus {
+        .box-shadow(none);
+        border-color:@primary;        
+    }
+}
+
+/** popover **/
+.popover {
+    line-height:1;
+    .border-radius(2px);
+    .box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
 }
 
 /** hive.ui.Dropdown **/
@@ -34,28 +46,34 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     padding:0; padding-left:12px;
     .border-radius(2px);
 
+    &.small  .d-label { width: 29px;  }
+    &.medium .d-label { width: 58px;  }
+    &.large  .d-label { width: 116px; }
+    &.auto   .d-label { width: inherit; }
+
     .d-label {
         float:left; margin:0;
         padding:4px 0; padding-right:9px;
         width:116px; overflow:hidden;
         .inline-block;
     }
-    &.small  .d-label { width: 29px;  }
-    &.medium .d-label { width: 58px;  }
-    &.large  .d-label { width: 116px; }
-    &.auto   .d-label { width: inherit; }
-
     .d-caret {
         float:right; margin:0;
         padding:4px 9px;
-        border-left:1px solid #d9d9d9;
+        border-left:1px solid rgba(0,0,0,0.1);
+        
+        .caret {
+            border-top-color:@secondary;
+        }        
     }
 }
 .btn-group.open .btn.dropdown-toggle {
-    background:darken(@white, 10%);
+    background:darken(@white, 5%);
 }
-.btn .caret {
-    border-top-color:@blue;
+.dropdown-menu {
+    border:1px solid rgba(0,0,0,0.2);
+    .box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
+    .border-radius(2px);
 }
 .dropdown-menu li {
     margin-bottom:1px;
@@ -63,13 +81,13 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 .dropdown-menu li>a:hover,.dropdown-menu li>a:focus,.dropdown-submenu:hover>a {
     color:#fff;
     cursor:pointer;
-    background:@darkgray !important;
+    background:@secondary !important;
     filter:none; /* for IE */
     /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/
 }
 .dropdown-menu .active > a, .dropdown-menu .active > a:hover {
     color:#fff;
-    background:@darkgray !important;
+    background:@secondary !important;
     filter:none; /* for IE */
     /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/    
 }
@@ -109,8 +127,8 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.last { margin-right:0; }
 
     &.blue {
-        background-color: @blue; /*#56B5D9*/
-        &:hover { background-color: darken(@blue, 10%); }
+        background-color: @blue2; /*#56B5D9*/
+        &:hover { background-color: darken(@blue2, 10%); color: #00ddff; }
     }
 
     &.orange {
@@ -126,6 +144,16 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.green {
       background-color: @green;
       &:hover { background-color: darken(@green, 10%); color: #00ddff; }
+    }
+    
+    &.red {
+        background-color:#e45642;
+        &:hover { background-color: darken(#e45642, 10%); color: #fff; }
+    }
+    
+    &.mint {
+        background-color:#83d6df;
+        &:hover { background-color: darken(#83d6df, 10%); color: #fff; }
     }
 
     &.black {
@@ -248,7 +276,7 @@ button.nbtn {
     border:1px solid @search-bar-border-color;
 
     .border-radius(2px);
-    .box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));
+    /*.box-shadow(inset 0px 2px 3px rgba(0,0,0,0.12));*/
 
     .text {
         width: 128px; /*height: 13px;*/
@@ -281,10 +309,11 @@ button.nbtn {
     border: 1px solid #ccc;
     .border-radius(3px) !important;
 
-    &.mini    { width:12px; height:12px;   }
-    &.smaller { width:20px; height:20px;   }
+    &.mini    { width:12px; height:12px; line-height:12px; }
+    &.smaller { width:20px; height:20px; line-height:20px; }
     &.small   { width:24px; height:24px;   }
     &.medium  { width:32px; height:32px;   }
+    &.mlarge  { width:40px; height:40px;   }
     &.large   { width:64px; height:64px;   }
     &.xlarge  { width:128px; height:128px; }
 }

@@ -23,21 +23,15 @@
 	<div class="header-wrap">
 	    <div class="search-wrap board">
 	      <div class="inner">
-	        <form method="get" id="option_form">
+	        <form id="option_form" method="get">
 	          <input type="hidden" name="orderBy"  value="@param.orderBy">
 	          <input type="hidden" name="orderDir" value="@param.orderDir">
 	          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
 	         --><button type="submit" class="btn search-btn underConstruction">@Messages("post.menu.search")</button>
-            <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium margin-left-20">@Messages("post.write")</a>
-            @if(page.getTotalRowCount > 1){
-                <div class="filter-wrap board">
-                    <div class="filters">
-                        @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-                        @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
-                    </div>
-                </div>
-            }
-	      </form>
+	        </form>
+	        <div class="actrow"> 
+                <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium">@Messages("post.write")</a>
+            </div>
 	    </div>
 	  </div>
 	</div>
@@ -50,6 +44,15 @@
 	</div>
 
 	} else {
+
+    @if(page.getTotalRowCount > 1){
+        <div class="filter-wrap board">
+            <div class="filters">
+                @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
+                @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
+            </div>
+        </div>
+    }
 
 	@if(notices != null && notices.size > 0) {
     <div class="notice-wrap bubble-wrap gray">

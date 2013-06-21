@@ -1,12 +1,11 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param:IssueApp.SearchCondition, project:Project)
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 @import utils.TemplateHelper._
-@import scala.collection.immutable.Map
-@import models.enumeration._
 @import utils.AccessControl._
+@import scala.collection.immutable.Map
 @import scala.collection.mutable.ArrayBuffer
+@import models.enumeration._
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
@@ -41,7 +40,6 @@
 					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
 	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
-                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange margin-left-20">@Messages("issue.menu.new")</a>
 
 					<div id="advanced-search-form" class="srch-advanced form-horizontal">
 						<fieldset class="properties">
@@ -93,6 +91,9 @@
 					</div>
 				</form>
 				<!--  -->
+				<div class="actrow">
+				    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange">@Messages("issue.menu.new")</a>
+                </div>
 			</div>
 		</div>
 	</div>
@@ -107,8 +108,10 @@
 		</div>
 	</div>
 	}
-
-    @partial_massupdate(project, param)
+    
+    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+        @partial_massupdate(project, param)
+    }
     @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
 } else {
 	<div class="error-wrap">

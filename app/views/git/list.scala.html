@@ -67,11 +67,11 @@
         <div class="pull-right">
             @if(project.hasForks()) {
             <button id="forksBtn" class="nbtn medium gray">
-                <i class="icon-random icon-white"></i>
+                <i class="icon-retweet icon-white"></i>
                 @Messages("forks") <span class="num-badge">@project.forkingProjects.size</span>
             </button>
             }
-            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium orange">
+            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium blue">
                 <i class="icon-inbox icon-white"></i>
                 @Messages("fork")
             </a>

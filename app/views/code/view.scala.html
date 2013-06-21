@@ -31,82 +31,74 @@
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
 	<div class="bubble-wrap dark-gray repo-wrap">
-		<div class="inner-bubble repo-info">
-			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!--
-			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)"><!--
-             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">@Messages("code.copyUrl")</a>
+        <div class="code-browse-wrap">
 
-			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
-				<button class="btn dropdown-toggle large" data-toggle="dropdown">
-					<span class="d-label"></span>
-					<span class="d-caret"><span class="caret"></span></span>
-				</button>
-				<ul class="dropdown-menu">
-					@for(branch <- branches){
-						@makeBranchItem(branch)
-					}
-				</ul>
-			</div>
-		</div>
+	        <div id="breadcrumbs" class="code-browse-header"></div>
 
-		<div class="code-browse-wrap">
-
-
-			
-			<div id="breadcrumbs" class="code-browse-header"></div>
-
-	    <ul class="nav nav-tabs">
-	        <li class="active">
-	            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-	        </li>
-	        <li>
-	            <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-	        </li>
-	    </ul>
-	    <div class="code-viewer-wrap">
-	     	<div class="code-tree">
-	    		<div class="directory-header">
-						<strong>FOLDER NAME</strong>
-					</div>
-					<div id="folderList" class="directories"></div>
-	    	</div>
-	    	
-	    	<div class="code-viewer">
-	    		<div class="btnResize cell">|||</div>
-					<div class="sp-wrap cell"></div>
-	    		@** 파일 목록 **@
-					<div id="fileList" class="file-wrap cell">
-						<table class="code-table sources">
-							<thead class="thead">
-								<tr>
-									<td class="filename"><strong>@Messages("code.filename")</strong></td>
-									<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-									<td class="date"><strong>@Messages("code.commitDate")</strong></td>
-									<td class="author"><strong>@Messages("code.author")</strong></td>
-								</tr>
-							</thead>
-							<tbody class="tbody contents"></tbody>
-						</table>
-					</div>
-					@** // **@
-					@** 파일 보기 **@
-					<div id="fileView" class="file-wrap cell" style="display:none;">
-						<div class="file-header nm">
-							<div id="fileInfo" class="file-info">
-								<span id="commiter" class="commiter"></span> |
-								<span id="commitDate" class="commitDate"></span> |
-								<span id="revisionNo" class="revision"></span> |
-								<span id="commitMessage" calss="commitMsg"></span>
-							</div>
-							<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
+	        <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+	            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+	                <span class="d-label"></span>
+	                <span class="d-caret"><span class="caret"></span></span>
+	            </button>
+	            <ul class="dropdown-menu">
+	                @for(branch <- branches){
+	                    @makeBranchItem(branch)
+	                }
+	            </ul>
+	        </div>
+	
+		    <ul class="nav nav-tabs">
+		        <li class="active">
+		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		        </li>
+		        <li>
+		            <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+		        </li>
+		    </ul>
+		    <div class="code-viewer-wrap">
+		     	<div class="code-tree">
+		    		<div class="directory-header">
+							<strong>FOLDER NAME</strong>
 						</div>
-		          <div id="showImage"></div>
-		          <pre id="lineCode" class="code-wrap"></pre>
-					</div>
-					@** // **@
-	    	</div>
-
-	    </div>	
+						<div id="folderList" class="directories"></div>
+		    	</div>
+		    	
+		    	<div class="code-viewer">
+		    		<div class="btnResize cell">|||</div>
+						<div class="sp-wrap cell"></div>
+		    		@** 파일 목록 **@
+						<div id="fileList" class="file-wrap cell">
+							<table class="code-table sources">
+								<thead class="thead">
+									<tr>
+										<td class="filename"><strong>@Messages("code.filename")</strong></td>
+										<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+										<td class="date"><strong>@Messages("code.commitDate")</strong></td>
+										<td class="author"><strong>@Messages("code.author")</strong></td>
+									</tr>
+								</thead>
+								<tbody class="tbody contents"></tbody>
+							</table>
+						</div>
+						@** // **@
+						@** 파일 보기 **@
+						<div id="fileView" class="file-wrap cell" style="display:none;">
+							<div class="file-header nm">
+								<div id="fileInfo" class="file-info">
+									<span id="commiter" class="commiter"></span> |
+									<span id="commitDate" class="commitDate"></span> |
+									<span id="revisionNo" class="revision"></span> |
+									<span id="commitMessage" calss="commitMsg"></span>
+								</div>
+								<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
+							</div>
+			          <div id="showImage"></div>
+			          <pre id="lineCode" class="code-wrap"></pre>
+						</div>
+						@** // **@
+		    	</div>
+	
+		    </div>	
 
 	    <!--
 			<div class="directory-wrap cell">
