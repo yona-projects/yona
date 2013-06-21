@@ -30,6 +30,15 @@ public class Application extends Controller {
         return ok(index.render(null, null));
     }
 
+    public static Result RemoveTrailer(String paths){
+        String path = request().path();
+        if( path.charAt(path.length()-1) == '/' ) {
+            path = path.substring(0, path.length() - 1);
+        }
+        Logger.debug("trailing slash removed and redirected: " + request().path() + " to " + path );
+        return redirect(path);
+    }
+
     public static Result init() {
         makeUploadFolder();
         makeTestRepository();
