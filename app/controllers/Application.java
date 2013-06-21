@@ -7,6 +7,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 //import views.html.code.codeNavi;
+import views.html.error.notfound_default;
 import views.html.index;
 
 import java.io.File;
@@ -34,8 +35,11 @@ public class Application extends Controller {
         String path = request().path();
         if( path.charAt(path.length()-1) == '/' ) {
             path = path.substring(0, path.length() - 1);
+        } else {
+            Logger.error("Unexpected url call : " + request().path());
+            return notFound(notfound_default.render("error.notfound", path));
         }
-        Logger.debug("trailing slash removed and redirected: " + request().path() + " to " + path );
+        Logger.debug("Trailing slash removed and redirected: " + request().path() + " to " + path );
         return redirect(path);
     }
 
