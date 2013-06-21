@@ -1,0 +1,22 @@
+@(title:String, target:String)
+
+@getMessage(target:String) = @{
+    if(target){
+        Messages("error.notfound") + " : " + target
+    } else {
+        Messages("error.notfound")
+    }
+}
+
+@home(title, utils.MenuType.SITE_HOME) {
+<div class="page">
+
+    <div class="error-wrap">
+        <i class="ico-404"></i>
+        <p>@getMessage(target)</p>
+        
+        <a href="@routes.Application.index()" class="nbtn medium">@Messages("menu.home")</a>
+    </div>
+    
+</div>
+}
