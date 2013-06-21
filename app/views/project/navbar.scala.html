@@ -12,7 +12,14 @@
 			<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /</span><!--
 	 	--> <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
 		</h1>
+		
+        @if(project.isFork()){
+        <div class="forked">
+            <i id="forkedFrom" class="icon-retweet icon-white vmiddle" data-content="@Messages("fork.original") <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'><strong>@project.originalProject.owner / @project.originalProject.name</strong></a>"></i>
+        </div>
+        }
 
         @usermenu(project)
 	</div>
 </div>
+

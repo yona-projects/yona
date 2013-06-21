@@ -22,7 +22,7 @@
 			_attachEvent();			
             _initLabels();
             
-            _resizeProjectInfo();
+//            _resizeProjectInfo();
 		}
 
         function _initVar(htOptions){
@@ -76,10 +76,12 @@
 
             htElement.welLabelBoard.append(htElement.welNewCategory);
             
+            /*
             htElement.welHome = $(".project-home");
             htElement.welHomeLogo = htElement.welHome.find(".logo");
             htElement.welHomeInfo = htElement.welHome.find(".project-info");
-            htElement.welHomeMember = htElement.welHome.find(".member-info");            
+            htElement.welHomeMember = htElement.welHome.find(".member-info");
+            */            
 		}
 		
 		/**
@@ -111,12 +113,14 @@
 
             htElement.welBtnPlusCategory.click(_onClickPlusCategory);
 
-            $(window).bind("resize", _resizeProjectInfo);
+            //$(window).bind("resize", _resizeProjectInfo);
 		}
 		
+		/*
 		function _resizeProjectInfo(){
 		    htElement.welHomeInfo.width(htElement.welHome.width() - (htElement.welHomeLogo.width() + htElement.welHomeMember.width() + 21));
 		}
+		*/
 
 		function _onClickRepoURL(){
 			htElement.welRepoURL.select();

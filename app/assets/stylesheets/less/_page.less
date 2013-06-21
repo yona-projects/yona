@@ -120,9 +120,9 @@
                         }
                         
                         .dropdown-menu {
-                            border:1px solid #ededed;
+                            /*border:1px solid #ededed;
                             .box-shadow(0 2px 2px rgba(0,0,0,0.1));
-                            .border-radius(2px);
+                            .border-radius(2px);*/
                             
                             .divider { 
                                 background-color:transparent;
@@ -219,7 +219,17 @@
                 line-height:56px; /*color:#fff;*/ font-weight:normal;
                 a { vertical-align:top; }
             }
-
+            
+            .forked {
+                line-height:56px; 
+                i { margin-left:10px; }
+                
+                .popover {
+                    color:#111;
+                    line-height:1;
+                }
+            }
+            
             .gnb-menus {
                 margin: 15px 10px 17px 34px;
 
@@ -521,7 +531,8 @@
 }
 
 .content-container {
-    width:940px; margin:0 auto;
+    /*width:940px;*/ 
+    margin:0 auto;
     overflow: hidden;
     padding:8px 0px 19px 20px;
 
@@ -1489,8 +1500,25 @@
 
     .actrow {
         position:absolute; 
-        top:5px; right:0;
+        top:10px; right:0;
         z-index: 777;
+        
+        /* 저장소 URL 표시용 popover */
+        .popover {
+            .clone-label { 
+                display:inline-block;
+                background:#5dbbe0; color:#fff;
+                text-shadow: -1px -1px rgba(0, 0, 0, 0.3);
+                padding:5px 15px; margin-bottom:10px;
+                .border-radius(2px); 
+            }
+            .repo-wrap { 
+                width:250px;
+                
+                .repo-url { width:160px; margin:0; }
+                .copy-url { font-size:11px; font-weight:bold; margin:0; }
+            }
+        }
     }
     
     .main {
@@ -1643,7 +1671,8 @@
     //-- board, user
     &.board, &.user-setting {
         margin: 15px 0 10px;
-        padding-right: 20px;
+        /*padding-right: 20px;*/
+       padding-right:3px;
     }
 }
 
@@ -1794,13 +1823,21 @@
 
 //-- project home
 .project-home {
+    width:260px;
     padding: 10px;
     font-size: 0;
 
+    .issue-wrap {
+        margin-bottom:15px;
+        a.btn { width:105px; }
+    }
+    
     .inner {
         height: 188px;
         background-color: @white;
-        margin-right: 10px;
+        /*margin-right: 10px;*/
+        margin-bottom:10px;
+        
         font-size: 12px;
         overflow: hidden;
         vertical-align: top;
@@ -1810,7 +1847,7 @@
         .border-radius(10px);
 
         &.member-info {
-            width: 270px; /*230px;*/
+            width: 260px; /*230px;*/
             margin-right: 0;
         }
 
@@ -1832,7 +1869,9 @@
         }
 
         &.project-info {
-            width: 53.3%;/*390px; /*350px;*/
+            /*width: 53.3%;/*390px; /*350px;*/
+            width:260px;
+            
             .infos {
                 overflow-y: auto;
                 height: 130px;
@@ -1947,6 +1986,8 @@
     .default {
         padding:20px;
         text-align:center;
+        min-height:540px;
+        .v { display:inline-block; width:0; height:500px; vertical-align:middle; }
     }
     .readme-wrap {
         .border-radius(10px);
@@ -2341,6 +2382,74 @@ div.markdown-preview {
     .border-radius(5px);
 }
 
+.issue-item  {
+    padding:5px 0;
+    border-bottom:1px solid #ddd;
+    
+    label { 
+        display:block; 
+    }
+    
+    .num {
+        width:60px; margin-top:10px;
+        vertical-align: middle;
+        a { 
+            display:inline-block; width:30px;
+            text-align:right; color:#b2b2b2;
+            &:hover { color:@primary; font-weight:bold; } 
+        }
+    }
+
+    .avatar-wrap {
+        margin-right:10px; 
+    }
+       
+    .title {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow:ellipsis;
+        -webkit-line-clamp:4;
+        -webkit-box-orient:vertical;
+    }
+
+    .infos {
+        color:#999;
+        font-size:11px;
+        
+        .date { margin-left:10px; }
+        .comment-wrap {
+            display:inline-block;
+            margin-left:10px; 
+            .num { color: @secondary; font-weight:bold; }
+            .ico { vertical-align: bottom; margin-right: 5px; }
+        }
+    }
+    
+    .title-link { font-size:13px; font-weight:bold; }
+    
+    .info-wrap {
+        margin-top: 11px;
+        margin-right:25px;
+        .ico { vertical-align: bottom; margin-right: 5px; }
+    }
+    
+    .state {
+        margin-top:12px;
+        margin-right:25px;
+        
+        font-weight:bold;
+        color:#bbb;
+
+        &.open { color:@secondary; }
+    }
+    
+    .empty-avatar-space {
+        width:32px;
+        margin-right:5px;
+        margin-top:5px;
+    }
+}
+
 .issue-list, .board-list{
     margin: 0;
     padding: 0;
@@ -2474,7 +2583,8 @@ div.markdown-preview {
 }
 .repo-info {
     padding:0px;
-    text-align:left;/*center;*/
+    /*text-align:left;/*center;*/
+   text-align:right; padding-right:4px;
 
     .clone-label {
         color: #4D4D4D;
@@ -2554,7 +2664,7 @@ div.markdown-preview {
     margin-top:20px;
 
     .code-browse-header {
-        float:right;
+        /*float:right;*/
         padding:0; padding-right:10px;
         color:#555;
         line-height:34px;

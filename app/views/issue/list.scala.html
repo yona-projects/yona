@@ -1,12 +1,11 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param:IssueApp.SearchCondition, project:Project)
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 @import utils.TemplateHelper._
-@import scala.collection.immutable.Map
-@import models.enumeration._
 @import utils.AccessControl._
+@import scala.collection.immutable.Map
 @import scala.collection.mutable.ArrayBuffer
+@import models.enumeration._
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
@@ -109,8 +108,10 @@
 		</div>
 	</div>
 	}
-
-    @partial_massupdate(project, param)
+    
+    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+        @partial_massupdate(project, param)
+    }
     @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
 } else {
 	<div class="error-wrap">

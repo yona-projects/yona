@@ -17,7 +17,7 @@
             </div>
             @if(project.isFork()){
             <div class="forked label">
-                <i class="icon-random icon-white vmiddle"></i>
+                <i class="icon-retweet icon-white vmiddle"></i>
                 &nbsp;@Messages("fork.original")
                 <span>/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
                 <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>

@@ -1,9 +1,9 @@
 @(project:Project, menuType:utils.MenuType, menuCSS:String)
 
 @import utils._
-@import models.enumeration.ResourceType;
 @import utils.TemplateHelper._
 @import utils.AccessControl._
+@import models.enumeration.ResourceType;
 
 @isActiveMenu(m_type:MenuType) = @{
     if (m_type == menuType) {"active"}
@@ -33,19 +33,12 @@
 
 <div class="project-menu"><!--  data-spy="affix"> -->
     <div class="actrow">
-        @if(project.isFork()){
-        <div class="label forked-from">
-            <i class="icon-random icon-white"></i>
-            &nbsp;@Messages("fork.original")
-            <span class="gray">/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
-            <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
-        </div>
-        }
+        <button id="btnClone" type="button" class="nbtn medium"><i class="icon-download-alt icon-white vmiddle"></i> Clone</button>
         
         @if(User.isWatching(project)){
-        <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium orange watchBtn"><i class="icon-star icon-white" style="vertical-align:bottom;"></i></a>
+        <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue"><i class="icon-eye-close icon-white"></i> Unwatch</a>
         } else {
-        <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium watchBtn"><i class="icon-star-empty icon-white" style="vertical-align:bottom;"></i></a>
+        <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white"><i class="icon-eye-open"></i> Watch</a>
         }
     </div>
 
@@ -85,6 +78,14 @@
 	}
 </div>
 
+<script id="tplRepoURL" type="text/x-jquery-tmpl">
+    <strong class="clone-label @project.vcs">@project.vcs</strong>
+    <p class="repo-wrap">
+        <input type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
+        <button type="button" class="btn copy-url">@Messages("code.copyUrl")</button>
+    </p>
+</script>
+
 <script type="text/javascript">
 $(document).ready(function(){
 	// 프로젝트 전역 단축키: hive.ShortcutKey
@@ -101,8 +102,10 @@ $(document).ready(function(){
        ,"Q": "@routes.ProjectApp.settingForm(project.owner, project.name)"
     }
     };
-
-    hive.ShortcutKey.setKeymapLink(htKeyMap);
-    $hive.loadModule("project.Watch");
+ 
+    $hive.loadModule("project.Global", {
+        "htKeyMap": htKeyMap,
+        "sRepoURL": "@CodeApp.getURLWithLoginId(project)"
+    });
 });
 </script>

@@ -36,146 +36,147 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
 
-    <div class="input-prepend project-hometop-wrap">
-    	<div class="vcs-wrap pull-left">
-        <span class="clone-label"><strong class="@project.vcs">@project.vcs</strong></span><!--
-    	 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
+    <div class="row-fluid">
+        <div class="span9">
+	        <ul class="nav nav-tabs">
+	            <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
+	            @if(histories.size > 0) {
+	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</a></li>
+	            }
+	        </ul>
+	        
+	        <div class="tab-content">
+	            <div id="readme" class="tab-pane active">
+	                <div class="bubble-wrap gray readme">
+	                @if(project.readme == null){
+	                    <p class="default">
+	                       <span class="v"></span>
+	                       <span>@Messages("project.readme")</span>
+	                    </p>
+	                } else {
+	                    <div class="readme-wrap">
+	                        <header><i class="ico ico-readme-book"></i><strong>@project.getReadmeFileName</strong></header>
+	                        <div class="readme-body" markdown="true">@project.readme</div>
+	                    </div>
+	                }
+	                @markdown(project)
+	                </div>
+	            </div>
+	    
+	            @if(histories.size > 0) {
+	            <div id="recent" class="tab-pane">
+	                <div class="content-container" style="margin:0;">
+	                    <div class="main-stream" style="width:100%;">
+	                        <ul class="activity-streams unstyled">
+	                            @for(history <- histories.iterator()) {
+	                            <li class="activity-stream">
+	                                <a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left" style="margin-right:15px;">
+	                                    <img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
+	                                </a>
+	                                <div class="activity-desc">
+	                                    <p class="header-text" style="margin-bottom:5px;">
+	                                        @Html(Messages("project.history.item",
+	                                            makeHistoryWho(history),
+	                                            makeHistoryWhat(history),
+	                                            makeHistoryHow(history)
+	                                        ))
+	                                    </p>
+	                                    <p class="others" style="padding-left:0;">
+	                                        <span class="date" style="margin-left:0;">@agoString(ago(history.getWhen()))</span>
+	                                    </p>
+	                                </div>
+	                            </li>
+	                            }
+	                        </ul>
+	                    </div>
+	                </div>
+	            </div>
+	            }
+	        </div>
         </div>
-        <div class="issue-wrap btn-group pull-right">
-            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
-                @Messages("issue.state.open") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.OPEN)</strong>
-            </a>
-            <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
-                @Messages("issue.state.closed") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.CLOSED)</strong>
-            </a>
-        </div>
-    </div>
+        
+        <div class="span3">
+		    <div class="bubble-wrap gray project-home" style="width:260px;">
+		        <div class="issue-wrap btn-group pull-right">
+		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
+		                @Messages("issue.state.open") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.OPEN)</strong>
+		            </a>
+		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
+		                @Messages("issue.state.closed") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.CLOSED)</strong>
+		            </a>
+		        </div>
 
-    <div class="bubble-wrap gray project-home">
-        <div class="inner logo" style="background-image:url('@projectLogoImage');">
-            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
-            <div class="edit">
-                <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="icon-edit icon-white"></i> @Messages("project.setting")</a>
-            </div>
-            }
-        </div>
-        <div class="inner project-info">
-            <header>
-                <h3>@Messages("project.info")</h3>
-                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
-                <button type="button" class="nbtn small white" data-toggle="button" id="label-editor-toggle">@Messages("button.edit")</button>
-                }
-            </header>
-            <ul class="infos" id="label-board">
-                <!-- labels are added here by hive.project.Home.js -->
-            </ul>
-
-            <script id="label-delete-button-template" type="text/x-jquery-tmpl">
+		        <div class="inner logo" style="background-image:url('@projectLogoImage');">
+		            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
+		            <div class="edit">
+		                <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="icon-edit icon-white"></i> @Messages("project.setting")</a>
+		            </div>
+		            }
+		        </div>
+		        <div class="inner project-info">
+		            <header>
+		                <h3>@Messages("project.info")</h3>
+		                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
+		                <button type="button" class="nbtn small white" data-toggle="button" id="label-editor-toggle">@Messages("button.edit")</button>
+		                }
+		            </header>
+		            <ul class="infos" id="label-board">
+		                <!-- labels are added here by hive.project.Home.js -->
+		            </ul>
+		
+		            <script id="label-delete-button-template" type="text/x-jquery-tmpl">
                 <a href="javascript:void(0)">&times;</a>
             </script>
-
-            <script id="label-template" type="text/x-jquery-tmpl">
+		
+		            <script id="label-template" type="text/x-jquery-tmpl">
                 <span class="label">${name}</span>
             </script>
-
-            <script id="category-template" type="text/x-jquery-tmpl">
+		
+		            <script id="category-template" type="text/x-jquery-tmpl">
                 <li class="info" data-category="${category}">
                     <strong>${category} : </strong>
                     <span class="label-list"></span>
                 </li>
             </script>
-
-            <script id="plus-button-template" type="text/x-jquery-tmpl">
+		
+		            <script id="plus-button-template" type="text/x-jquery-tmpl">
                 <button class="nbtn small white">
                     <i class="ico ico-plus-blue"></i>
                 </button>
             </script>
-
-            <script id="label-input-template" type="text/x-jquery-tmpl">
+		
+		            <script id="label-input-template" type="text/x-jquery-tmpl">
                 <input type="text" autocomplete="off" class="text" style="margin-bottom: 0px;">
             </script>
-
-            <script id="label-submit-template" type="text/x-jquery-tmpl">
+		
+		            <script id="label-submit-template" type="text/x-jquery-tmpl">
                 <button type="button" class="nbtn medium">@Messages("button.add")</button>
             </script>
+		        </div>
+		        <div class="inner member-info">
+		            <header>
+		                <h3>@Messages("project.members")</h3>
+		                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
+		                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="nbtn small white" id="member-add-link">@Messages("button.add")</a>
+		                }
+		            </header>
+		            <div class="member-wrap">
+		                <ul class="project-members">
+		                    @for(member <- User.findUsersByProject(project.id)){
+		                    <li class="member">
+		                        <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap img-rounded pull-left small">
+		                            <img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
+		                        </a>
+		                        <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
+		                            <strong>@member.name (@member.loginId)</strong>
+		                        </a>
+		                    </li>
+		                    }
+		                </ul>
+		            </div>
+		        </div>
+		    </div>
         </div>
-        <div class="inner member-info">
-            <header>
-                <h3>@Messages("project.members")</h3>
-                @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
-                <a href="@routes.ProjectApp.members(project.owner, project.name)" class="nbtn small white" id="member-add-link">@Messages("button.add")</a>
-                }
-            </header>
-            <div class="member-wrap">
-                <ul class="project-members">
-                    @for(member <- User.findUsersByProject(project.id)){
-                    <li class="member">
-                    	<a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap img-rounded pull-left small">
-                        	<img src="@member.avatarUrl" alt="@member.loginId" width="24" height="24">
-                        </a>
-                        <a href="@routes.UserApp.userInfo(member.loginId)" class="name">
-                        	<strong>@member.name (@member.loginId)</strong>
-                        </a>
-                    </li>
-                    }
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <ul class="nav nav-tabs">
-        <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
-        @if(histories.size > 0) {
-        <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</a></li>
-        }
-    </ul>
-    
-    <div class="tab-content">
-        <div id="readme" class="tab-pane active">
-            <div class="bubble-wrap gray readme">
-            @if(project.readme == null){
-                <p class="default">
-                    @Messages("project.readme")
-                </p>
-            } else {
-                <div class="readme-wrap">
-                    <header><i class="ico ico-readme-book"></i><strong>@project.getReadmeFileName</strong></header>
-                    <div class="readme-body" markdown="true">@project.readme</div>
-                </div>
-            }
-            @markdown(project)
-            </div>
-        </div>
-
-	    @if(histories.size > 0) {
-        <div id="recent" class="tab-pane">
-            <div class="content-container" style="margin:0;">
-				<div class="main-stream" style="width:100%;">
-					<ul class="activity-streams unstyled">
-						@for(history <- histories.iterator()) {
-						<li class="activity-stream">
-							<a href="@userPageUrlOnHistory(history)" class="avatar-wrap pull-left" style="margin-right:15px;">
-								<img src="@userAvatarUrlOnHistory(history)" width="32" height="32">
-							</a>
-							<div class="activity-desc">
-								<p class="header-text" style="margin-bottom:5px;">
-									@Html(Messages("project.history.item",
-										makeHistoryWho(history),
-										makeHistoryWhat(history),
-										makeHistoryHow(history)
-									))
-								</p>
-								<p class="others" style="padding-left:0;">
-									<span class="date" style="margin-left:0;">@agoString(ago(history.getWhen()))</span>
-								</p>
-							</div>
-						</li>
-						}
-					</ul>
-				</div>
-			</div>
-        </div>
-	    }
     </div>
 </div>
 
