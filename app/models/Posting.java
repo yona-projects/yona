@@ -105,7 +105,24 @@ public class Posting extends AbstractPosting {
         return comments;
     }
 
+    /**
+     * {@code project}에 있는 {@code number}에 해당하는 글번호를 가진 게시물을 조회한다.
+     *
+     * @param project
+     * @param number
+     * @return
+     */
     public static Posting findByNumber(Project project, Long number) {
         return AbstractPosting.findByNumber(finder, project, number);
+    }
+
+    /**
+     * {@code project}에 있는 글 개수를 조회한다.
+     *
+     * @param project
+     * @return
+     */
+    public static int countPostings(Project project) {
+        return finder.where().eq("project", project).findRowCount();
     }
 }
