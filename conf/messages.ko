@@ -318,6 +318,7 @@ project.createdByMe = 만든 프로젝트
 project.belongsToMe = 프로젝트 멤버
 project.created = 생성
 project.codeUpdate = 마지막 코드 업데이트
+project.watch = 지켜보기
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
 project.history.item = {0}님이 {1} {2}

@@ -33,12 +33,12 @@
 
 <div class="project-menu"><!--  data-spy="affix"> -->
     <div class="actrow">
-        <button id="btnClone" type="button" class="nbtn medium"><i class="icon-download-alt icon-white vmiddle"></i> Clone</button>
+        <button id="btnClone" type="button" class="nbtn medium"><i class="icon-download-alt icon-white vmiddle"></i> @Messages("code.repoUrl")</button>
         
         @if(User.isWatching(project)){
-        <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue"><i class="icon-eye-close icon-white"></i> Unwatch</a>
+        <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last"><i class="icon-eye-close icon-white"></i> @Messages("project.watch")</a>
         } else {
-        <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white"><i class="icon-eye-open"></i> Watch</a>
+        <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white last"><i class="icon-eye-open"></i> @Messages("project.watch")</a>
         }
     </div>
 

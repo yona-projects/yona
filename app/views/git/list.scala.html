@@ -71,12 +71,12 @@
                 @Messages("forks") <span class="num-badge">@project.forkingProjects.size</span>
             </button>
             }
-            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium blue">
+            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium blue @if(!project.isFork) { last }">
                 <i class="icon-inbox icon-white"></i>
                 @Messages("fork")
             </a>
             @if(project.isFork) {
-            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange">
+            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange last">
                 <i class="icon-share icon-white"></i>
                 @Messages("pullRequest")
             </a>

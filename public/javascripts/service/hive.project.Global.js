@@ -26,6 +26,7 @@
             _attachEvent();
             
             _initShortcutKey(htOptions.htKeyMap);
+            _initAffix();
         }
 
         /**
@@ -57,8 +58,7 @@
             
             // 내용은 data-content 속성으로 scala 파일 내에 있음.
             htElement.welForkedFrom.popover({
-                "html"   : true,
-                "trigger": "hover"
+                "html"   : true
             });
             
             htElement.welBtnClone.popover({
@@ -112,6 +112,19 @@
                     $(this).select(); 
                 });
             }
+        }
+        
+        /**
+         * 프로젝트 메뉴 영역에 bootstrap-affix 적용
+         */
+        function _initAffix(){
+            $(".project-menu").affix({
+                "offset": $(".project-menu").offset()
+            });
+            
+            $(window).resize(function(){
+                $(".project-menu").width($(".page").width());
+            });
         }
         
         _init(htOptions || {});

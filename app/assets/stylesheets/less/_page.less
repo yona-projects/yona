@@ -108,7 +108,7 @@
                             background:transparent;
 
                             .d-label {
-                                width:120px;
+                                width:145px;
                                 span.text { margin-left:5px; }
                                 .avatar-wrap img { vertical-align: top; }
                             }
@@ -222,7 +222,7 @@
             
             .forked {
                 line-height:56px; 
-                i { margin-left:10px; }
+                i { margin-left:10px; cursor:pointer; }
                 
                 .popover {
                     color:#111;
@@ -235,6 +235,8 @@
 
                 &.right {
                     margin-top:9px;
+                    margin-right:0px;
+                    
                     .dropdown-toggle {
                        /*border:1px solid #aaabac;*/
                         border-bottom:1px solid rgba(0,0,0,0.5);
@@ -2658,10 +2660,10 @@ div.markdown-preview {
 }
 
 .code-browse-wrap {
-    .border-radius-bottom(10px);
+    /*.border-radius-bottom(10px);
     .box-shadow(0 1px 0 rgba(0,0,0, .15));
     overflow: hidden;
-    margin-top:20px;
+    margin:20px 0;*/
 
     .code-browse-header {
         /*float:right;*/
@@ -2675,21 +2677,26 @@ div.markdown-preview {
         a:first-of-type { margin-left:0; }
         a:last-of-type { color:@primary; }
 
+    }
+
+    .nav-tabs { 
+        margin-bottom:0;
+
+        /** code/diff.scala.html **/
         .commitId {
             font-family:Consolas;
             font-size:12px;
             font-weight:bold;
             color:@secondary;
+            display:block; padding:8px;
         }
     }
-    .nav-tabs { margin-bottom:0; }
     .commit-wrap {
         background-color: @white;
     }
 
     .diff {
-        border-bottom:none;
-        .border-radius(0px);
+        .border-radius(2px);
     }
 
 
@@ -3597,4 +3604,9 @@ code.milestone-title{
 
         .btnResize { display:none; }
     }    
+}
+
+.affix {
+    position: fixed !important;
+    top: 0; background: #fff; z-index:980;
 }

@@ -30,47 +30,40 @@
 
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	<div class="bubble-wrap dark-gray repo-wrap">
-		<div class="inner-bubble repo-info">
-			<span class="clone-label"><strong class="@project.vcs">@project.vcs</strong>@Messages("code.repoUrl")</span><!-- 
-			 --><input id="repositoryURL" type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURL(project.owner, project.name)"><!-- 
-             --><a id="copyURL" href="#!/copy-url" class="copy-btn btn">@Messages("code.copyUrl")</a>
-
-			<div id="branches" class="btn-group branches" data-name="branch" data-activate="manual">
-				<button class="btn dropdown-toggle large" data-toggle="dropdown">
-					<span class="d-label"></span>
-					<span class="d-caret"><span class="caret"></span></span>
-				</button>
-				<ul class="dropdown-menu">
-				@defining(RepositoryService.getRepository(project).getBranches()) { branches =>
-                    @for(branch <- branches){
-                        @makeBranchItem(project, branch)
-                    }
+	<div class="code-browse-wrap">
+        <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                <span class="d-label"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+            @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+                @for(branch <- branches){
+                    @makeBranchItem(project, branch)
                 }
-                </ul>
-			</div>
-		</div>
-
-		<div class="code-browse-wrap">
-            <div class="code-browse-header">
+            }
+            </ul>
+        </div>
+           
+	    <ul class="nav nav-tabs" style="margin-bottom:20px;">
+	        <li>
+                <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+	        </li>
+	        <li class="active">
+                <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+	        </li>
+	        <li>
                 <strong class="commitId">@@@commitId</strong>
-            </div>
-		    <ul class="nav nav-tabs" style="margin-bottom:20px;">
-		        <li>
-		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-		        </li>
-		        <li class="active">
-		            <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-		        </li>
-		    </ul>
+	        </li>
+	    </ul>
 
-			<div id="commit">
-		    	<pre class="diff"><code>@patch</code></pre>
-			</div>
+		<div id="commit">
+	    	<pre class="diff"><code>@patch</code></pre>
 		</div>
 	</div>
 	
 	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
+	
 </div>
 
 <link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/monokai.css" />
