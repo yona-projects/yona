@@ -135,7 +135,7 @@ public class UserTest extends ModelTest<User> {
     public void watchingProject() {
         // Given
         Project project = Project.find.byId(1l);
-        User user = new User();
+        User user = User.findByLoginId("doortts");
         assertThat(project.watchingCount).isEqualTo(0);
         assertThat(user.getWatchingProjects().size()).isEqualTo(0);
 
