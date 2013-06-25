@@ -2,6 +2,7 @@ package models;
 
 import com.avaje.ebean.Page;
 import controllers.SearchApp;
+import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import org.joda.time.Duration;
@@ -9,12 +10,16 @@ import play.Logger;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.*;
+import utils.AccessControl;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import javax.xml.stream.util.XMLEventConsumer;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.avaje.ebean.Expr.contains;
 
@@ -58,6 +63,10 @@ abstract public class AbstractPosting extends Model {
     // This field is only for ordering. This field should be persistent because
     // Ebean does NOT sort entities by transient field.
     public int numOfComments;
+
+    abstract protected Set<User> getExplicitWatchers();
+
+    abstract protected Set<User> getExplicitUnwatchers();
 
     /**
      * {@link Comment} 개수를 반환한다.
@@ -206,6 +215,78 @@ abstract public class AbstractPosting extends Model {
      */
     public void updateProperties() {
         // default implementation for convenience
-    };
+    }
 
+    /**
+     * 지켜보고 있는 모든 사용자들을 얻는다.
+     *
+     * when: 알림 메일을 발송할 때, 지켜보기 버튼을 그릴 때
+     *
+     * @return 이 이슈를 지켜보고 있는 모든 사용자들의 집합
+     * @see {@link #getWatchers()}
+     * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
+     */
+    @Transient
+    public Set<User> getWatchers() {
+        return getWatchers(new HashSet<User>());
+    }
+
+    /**
+     * 지켜보고 있는 모든 사용자들을 얻는다.
+     *
+     * @param baseWatchers 지켜보고 있는 사용자들이 더 있다면 이 파라메터를 통해 넘겨받는다. e.g. 이슈 담당자
+     * @return
+     * @see {@link #getWatchers()}
+     * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
+     */
+    @Transient
+    public Set<User> getWatchers(Set<User> baseWatchers) {
+        Set<User> actualWatchers = new HashSet<>();
+
+        actualWatchers.addAll(baseWatchers);
+
+        actualWatchers.add(User.find.byId(authorId));
+        for (Comment c : getComments()) {
+            User user = User.find.byId(c.authorId);
+            if (user != null) {
+                actualWatchers.add(user);
+            }
+        }
+
+        actualWatchers.addAll(getExplicitWatchers());
+        actualWatchers.removeAll(getExplicitUnwatchers());
+
+        Set<User> allowedWatchers = new HashSet<>();
+        for (User watcher : actualWatchers) {
+            if (AccessControl.isAllowed(watcher, asResource(), Operation.READ)) {
+                allowedWatchers.add(watcher);
+            }
+        }
+
+        return allowedWatchers;
+    }
+
+    /**
+     * {@code user}가 명시적으로 이 게시물을 지켜보는 것으로 설정한다.
+     *
+     * @param user
+     */
+    @Transactional
+    public void watch(User user) {
+        getExplicitWatchers().add(user);
+        getExplicitUnwatchers().remove(user);
+        update();
+    }
+
+    /**
+     * {@code user}가 명시적으로 이 게시물을 무시하는 것(지켜보지 않는 것)으로 설정한다.
+     *
+     * @param user
+     */
+    @Transactional
+    public void unwatch(User user) {
+        getExplicitUnwatchers().add(user);
+        getExplicitWatchers().remove(user);
+        update();
+    }
 }

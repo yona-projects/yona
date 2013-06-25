@@ -66,6 +66,8 @@ GET     /:user/:project/post/:number/delete                 controllers.BoardApp
 GET     /:user/:project/post/:number/editform               controllers.BoardApp.editPostForm(user, project, number:Long)
 POST    /:user/:project/post/:number/edit                   controllers.BoardApp.editPost(user, project, number:Long)
 GET     /:user/:project/post/:number/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, number:Long, commentId:Long)
+POST    /:user/:project/post/:number/watch         controllers.BoardApp.watch(user, project, number:Long)
+POST    /:user/:project/post/:number/unwatch       controllers.BoardApp.unwatch(user, project, number:Long)
 
 # Labels
 GET    /labels                                          controllers.LabelApp.labels(query: String ?= "", category: String ?= "", limit: Integer ?= null)
@@ -111,6 +113,8 @@ POST    /:user/:project/issue/$number<[0-9]+>/edit                  controllers.
 GET     /:user/:project/issue/$number<[0-9]+>/delete                controllers.IssueApp.deleteIssue(user, project, number:Long)
 POST    /:user/:project/issue/$number<[0-9]+>/comments              controllers.IssueApp.newComment(user, project, number:Long)
 GET     /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
+POST    /:user/:project/issue/$number<[0-9]+>/watch         controllers.IssueApp.watch(user, project, number:Long)
+POST    /:user/:project/issue/$number<[0-9]+>/unwatch       controllers.IssueApp.unwatch(user, project, number:Long)
 
 # Issue Labels
 GET     /:user/:project/issue/labels                        controllers.IssueLabelApp.labels(user, project)

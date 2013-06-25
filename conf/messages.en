@@ -552,3 +552,6 @@ merge.help.1 = You can see commiits and check details about received code.
 merge.help.2 = If a member of the original project accept the code, it will be merged into.
 merge.help.3 = If the code is not safe to merge, you can't accept it.
 merge.help.4 = You can reject or delete the code request.
+
+# Notifcation
+notification.watch = Watch

@@ -240,4 +240,43 @@ public class IssueAppTest {
         // Then
         assertThat(status(result)).describedAs("Member can post an issue.").isEqualTo(SEE_OTHER);
     }
+
+    @Test
+    public void watchDefault() {
+        issue.refresh();
+        assertThat(issue.getWatchers().contains(author))
+            .describedAs("The author watches the issue by default.").isTrue();
+    }
+
+    @Test
+    public void watch() {
+        // When
+        Result result = callAction(
+                controllers.routes.ref.IssueApp.watch("hobi", "nForge4java", issue.getNumber()),
+                fakeRequest()
+                        .withSession(UserApp.SESSION_USERID, nonmember.id.toString())
+        );
+
+        // Then
+        issue.refresh();
+        assertThat(status(result)).isEqualTo(OK);
+        assertThat(issue.getWatchers().contains(nonmember))
+            .describedAs("A user becomes a watcher if the user explictly choose to watch the issue.").isTrue();
+    }
+
+    @Test
+    public void unwatch() {
+        // When
+        Result result = callAction(
+                controllers.routes.ref.IssueApp.unwatch("hobi", "nForge4java", issue.getNumber()),
+                fakeRequest()
+                        .withSession(UserApp.SESSION_USERID, author.id.toString())
+        );
+
+        // Then
+        issue.refresh();
+        assertThat(status(result)).isEqualTo(OK);
+        assertThat(issue.getWatchers().contains(author))
+            .describedAs("A user becomes a unwatcher if the user explictly choose not to watch the issue.").isFalse();
+    }
 }
