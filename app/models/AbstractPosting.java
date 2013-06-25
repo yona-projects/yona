@@ -274,6 +274,12 @@ abstract public class AbstractPosting extends Model {
             }
         }
 
+        List<User> watchers = project.watchers;
+        for(User user : watchers) {
+            Logger.info("watcher: " + user.name);
+        }
+        actualWatchers.addAll(watchers);
+
         actualWatchers.addAll(getExplicitWatchers());
         actualWatchers.removeAll(getExplicitUnwatchers());
 

@@ -97,6 +97,13 @@ public class Project extends Model {
     @ManyToMany(mappedBy = "enrolledProjects")
     public List<User> enrolledUsers;
 
+    @ManyToMany
+    @JoinTable(name = "user_watching_project",
+            joinColumns= @JoinColumn(name="project_id"),
+            inverseJoinColumns= @JoinColumn(name="user_id")
+    )
+    public List<User> watchers;
+
     /**
      * 신규 프로젝트를 생성한다.
      *
