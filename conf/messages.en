@@ -556,3 +556,12 @@ merge.help.4 = You can reject or delete the code request.
 
 # Notifcation
 notification.watch = Watch
+
+# Reset secret
+secret.welcome = Welcome!
+secret.welcome = This form is to reset the Secret key. Submitting seed generates random Secret key based the seed. Feel free to submit long and complex value. You don't need to remember it.
+secret.warning = The Secret key MUST be secret. If a bad guy knows the secret, he can login as any user of your site!
+
+# Restart server
+restart.welcome = Welcome!
+restart.notice = The server needs to be restarted.

@@ -75,4 +75,9 @@ public class Application extends Controller {
     public static Result UIKit(){
         return ok(views.html.UIKit.render());
     }
+
+    public static Result fake() {
+        // Do not call this.
+        return badRequest();
+    }
 }
