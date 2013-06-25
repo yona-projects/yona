@@ -73,7 +73,11 @@
                 </a>
             </li>
             <li class="sp-line">|</li>
-			<li class="@isActiveMenu(MenuType.MILESTONE)"><a href="@routes.MilestoneApp.milestones(project.owner, project.name)">@Messages("project.milestone")</a></li>
+			<li class="@isActiveMenu(MenuType.MILESTONE)">
+                <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
+                    @Messages("project.milestone") <span class="counter">@Milestone.countOpened(project)</span>
+                </a>
+            </li>
 		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
 			<li class="sp-line">|</li>
 			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
