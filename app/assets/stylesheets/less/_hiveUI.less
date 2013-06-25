@@ -124,8 +124,9 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         background-color: darken(#707070, 10%);
         text-decoration: none;
     }
-    &.last { margin-right:0; }
-
+    &.last  { margin-right:0; }
+    &.active { .box-shadow(inset 1px 1px 2px rgba(0, 0, 0, 0.3)); }
+    
     &.blue {
         background-color: @blue2; /*#56B5D9*/
         &:hover { background-color: darken(@blue2, 10%); color: #00ddff; }
@@ -178,10 +179,20 @@ button.nbtn {
     &.medium { padding:4px 20px; height:30px; line-height:1; }
     &.large  { padding:8px 30px; height:36px; line-height:1; font-size:15px; }
 }
-.nbtn-group:last-child {
-    margin-right:0px;
+.nbtn-group {
+    .nbtn {
+        .border-radius(0px);
+        margin:0;
+    }
+    &:first-child {
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+    }
+    &:last-child {
+        border-top-right-radius: 2px;
+        border-bottom-right-radius:2px;
+    }
 }
-
 /* fileUpload button **/
 .fake-file-wrap {
     position: relative; display:block; clear:both;
@@ -221,19 +232,20 @@ button.nbtn {
     }
 }
 
-/** project label **/
+/** project label */
 .project-label {
     border:none; padding:1px 5px; display:inline-block;
     font-size:11px; font-weight:bold;
     color:#fff; white-space:nowrap; vertical-align:middle;
-    background:#d9d9d9;
+    background:#aaa;/*d9d9d9;*/
     
     .border-radius(2px);
-    .box-shadow(inset 0px -2px 2px rgba(255,255,255,0.4));
+    /*.box-shadow(inset 0px -2px 2px rgba(255,255,255,0.4));*/
     
-    &.language { background:#ffc48c; }
-    &.license  { background:#ff9f80; }
+    /*&.language { background:#ffc48c; }
+    &.license  { background:#ff9f80; }*/
 }
+/* */
 
 /** input **/
 /* 검색버튼 스타일 */
@@ -411,8 +423,20 @@ button.nbtn {
 /** etc **/
 .num-badge {
     display: inline-block;
+    color:@secondary; 
+    font-weight:bold;
+    padding: 0px 5px;
+    margin-left: 5px;    
+    margin-bottom:-1px;
+    vertical-align: middle;
+    font-family: Tahoma;
+    text-shadow: none;
+}
+.num-noti {
+    display: inline-block;
     background: @primary;
-    color:#fff; font-weight:bold;
+    color:#fff; 
+    font-weight:bold;
     border:1px solid #eee;
     padding: 0px 5px;
     margin-left: 5px;    

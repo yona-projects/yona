@@ -38,7 +38,7 @@
 
     <div class="row-fluid">
         <div class="span9">
-	        <ul class="nav nav-tabs">
+	        <ul id="homeTabs" class="nav nav-tabs">
 	            <li class="active"><a href="#readme" data-toggle="tab">README</a></li>
 	            @if(histories.size > 0) {
 	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</a></li>
@@ -97,11 +97,11 @@
         
         <div class="span3">
 		    <div class="bubble-wrap gray project-home" style="width:260px;">
-		        <div class="issue-wrap btn-group pull-right">
-		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="btn">
+		        <div class="issue-wrap center-txt">
+		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="nbtn medium white">
 		                @Messages("issue.state.open") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.OPEN)</strong>
 		            </a>
-		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="btn">
+		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="nbtn medium white last">
 		                @Messages("issue.state.closed") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.CLOSED)</strong>
 		            </a>
 		        </div>

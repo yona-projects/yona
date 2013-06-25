@@ -49,6 +49,7 @@
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Typeahead")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Dialog")"></script>
 <script type="text/javascript" src="@getJSLink("common/hive.ui.Toast")"></script>
+<script type="text/javascript" src="@getJSLink("common/hive.ui.Tabs")"></script>
 <script type="text/javascript">
 	$hive.setScriptPath("@getJSPath()");
 	
@@ -59,10 +60,6 @@
     	// jquery.placeholder plugin initiator
         $('input[type=text], textarea').placeholder();
 
-    	// show setting menu tooltips 
-    	// with bootstrap if it can (temporary before redesign)
-        $(".bg-side-menu").tooltip({placement: 'left', title: '설정'});
-    
      	// hive.Dropdown
      	var sActivation;
         $(".btn-group[data-name]").each(function(i, el){
@@ -71,19 +68,6 @@
         		(new hive.ui.Dropdown({"elContainer":el}));
         	}
         });
-        
-        // menu affix 컴포넌트 적용
-        /*
-        var nMenuHeight = 0;
-        $(".project-menu-wrap").each(function(i,v){
-            nMenuHeight += $(v).height();
-        });
-        $('.project-menu').height(nMenuHeight);
-
-        $('.project-menu-wrap').affix({
-            offset: $('.project-menu-wrap').position()
-        });
-        */
         
         // hive.ShortcutKey
         // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
