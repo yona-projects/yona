@@ -152,4 +152,11 @@ public class PullRequest extends Model {
                 .getList();
     }
 
+    public static int countOpenedPullRequests(Project project) {
+        return finder.where()
+                .eq("toProject", project)
+                .eq("state", State.OPEN)
+                .findRowCount();
+    }
+
 }

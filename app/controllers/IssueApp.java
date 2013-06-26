@@ -27,6 +27,8 @@ import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
+import static play.data.Form.form;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
@@ -561,4 +564,20 @@ public class IssueApp extends AbstractPostingApp {
             }
         }
     }
+
+    public static Result watch(String ownerName, String projectName, Long issueNumber) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Issue issue = Issue.findByNumber(project, issueNumber);
+
+        return AbstractPostingApp.watch(issue);
+    }
+
+    public static Result unwatch(String ownerName, String projectName, Long issueNumber) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Issue issue = Issue.findByNumber(project, issueNumber);
+
+        return AbstractPostingApp.unwatch(issue);
+    }
+
+
 }

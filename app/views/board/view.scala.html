@@ -62,7 +62,7 @@
 
 	    <ul class="comments">
 	    @for(comment <-post.comments){
-			<li class="comment">
+			<li class="comment" id="comment-@comment.id">
 				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
 					<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
 				</a>
@@ -71,10 +71,10 @@
 						<a href="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="pull-right close">&times;</a>
 					}
                     <div class="comment-body" markdown="true">@comment.contents</div>
-                    <p class="commenter">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-                        <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
-                    </p>
+					<p class="commenter">
+						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                        <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
+					</p>
 					<div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
 				</div>
 			</li>
@@ -85,6 +85,12 @@
 	</div>
 	
 	@help.keymap("boardDetail", project)
+
+    <button type="button" class="btn small white
+        @if(post.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
+        data-toggle="button" id="watch-button">
+        @Messages("notification.watch")
+    </button>
 </div>
 
 <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
@@ -113,7 +119,9 @@
 <script type="text/javascript">
 	$(document).ready(function(){
 		$hive.loadModule("board.View", {
-			"sAction": "@routes.AttachmentApp.uploadFile"
+			"sAction": "@routes.AttachmentApp.uploadFile",
+            "sWatchUrl"     : "@routes.BoardApp.watch(project.owner, project.name, post.getNumber)",
+            "sUnwatchUrl"   : "@routes.BoardApp.unwatch(project.owner, project.name, post.getNumber)"
 		});
 		
         // hive.ShortcutKey

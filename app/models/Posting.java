@@ -105,7 +105,46 @@ public class Posting extends AbstractPosting {
         return comments;
     }
 
+    /**
+     * {@code project}에 있는 {@code number}에 해당하는 글번호를 가진 게시물을 조회한다.
+     *
+     * @param project
+     * @param number
+     * @return
+     */
     public static Posting findByNumber(Project project, Long number) {
         return AbstractPosting.findByNumber(finder, project, number);
+    }
+
+    /**
+     * {@code project}에 있는 글 개수를 조회한다.
+     *
+     * @param project
+     * @return
+     */
+    public static int countPostings(Project project) {
+        return finder.where().eq("project", project).findRowCount();
+    }
+
+    /**
+     * 명시적으로 이 게시물을 지켜보고 있는 사용자들
+     */
+    @ManyToMany
+    @JoinTable(name="POSTING_EXPLICIT_WATCHER")
+    private Set<User> explicitWatchers;
+
+    /**
+     * 명시적으로 이 게시물을 무시하는(지켜보지 않는) 사용자들
+     */
+    @ManyToMany
+    @JoinTable(name="POSTING_EXPLICIT_UNWATCHER")
+    private Set<User> explicitUnwatchers;
+
+    protected Set<User> getExplicitWatchers() {
+        return explicitWatchers;
+    }
+
+    protected Set<User> getExplicitUnwatchers() {
+        return explicitUnwatchers;
     }
 }

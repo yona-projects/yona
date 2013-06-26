@@ -216,7 +216,6 @@ public class GitRepository implements PlayRepository {
         treeWalk.addTree(revTree);
 
         if (path.isEmpty()) {
-            treeWalk.enterSubtree();
             return treeAsJson(path, treeWalk, headCommit);
         }
 

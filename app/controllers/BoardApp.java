@@ -19,8 +19,11 @@ import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Result;
 
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
 
@@ -324,4 +327,20 @@ public class BoardApp extends AbstractPostingApp {
 
         return delete(comment, comment.asResource(), redirectTo);
     }
+
+    public static Result watch(String ownerName, String projectName, Long postingNumber) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Posting posting = Posting.findByNumber(project, postingNumber);
+
+        return AbstractPostingApp.watch(posting);
+    }
+
+    public static Result unwatch(String ownerName, String projectName, Long postingNumber) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Posting posting = Posting.findByNumber(project, postingNumber);
+
+        return AbstractPostingApp.unwatch(posting);
+    }
+
+
 }

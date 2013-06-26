@@ -264,4 +264,11 @@ public class Milestone extends Model {
         return this.id.equals(NULL_MILESTONE_ID);
     }
 
+    public static int countOpened(Project project) {
+        return find.where()
+                .eq("project", project)
+                .eq("state", State.OPEN)
+                .findRowCount();
+    }
+
 }

@@ -3,7 +3,7 @@
  *
  * Override bootstrap::
  * 기본 글자 크기 12px로 설정
- * (bootstrap 2.3.1 : 14px, 
+ * (bootstrap 2.3.1 : 14px,
  *  bootstrap 2.2.1 : 12px)
  */
 body { font-size:12px; }
@@ -20,9 +20,9 @@ input[type="email"], input[type="url"], input[type="search"], input[type="tel"],
 
 /* box-shadow, border-radius */
 form { margin:0 0 2px; }
-textarea, input[type="text"], input[type="password"], input[type="datetime"], 
-input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], 
-input[type="week"], input[type="number"], input[type="email"], input[type="url"], 
+textarea, input[type="text"], input[type="password"], input[type="datetime"],
+input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"],
+input[type="week"], input[type="number"], input[type="email"], input[type="url"],
 input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     .box-shadow(none);
     .border-radius(2px);
@@ -89,7 +89,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     color:#fff;
     background:@secondary !important;
     filter:none; /* for IE */
-    /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/    
+    /*.linear-gradient(@darkgray, darken(@darkgray, 10%));*/
 }
 .dropdown-menu .disabled span {
     padding-left:10px;
@@ -112,7 +112,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     border:0; padding:0;
     margin-right:5px;
     white-space:nowrap;
-    
+
     .border-radius(2px);
     .box-shadow(0 1px 2px rgba(0, 0, 0, .25));
     .inline-block;
@@ -161,7 +161,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         background-color: #222;
         &:hover { background-color : #000;  }
     }
-    
+
     &.white {
         color: #222;
         background-color: @white;
@@ -203,7 +203,7 @@ button.nbtn {
     }
 
     .file {
-        position: absolute; z-index:2; cursor:pointer; 
+        position: absolute; z-index:2; cursor:pointer;
         top:0; left: 5px; /*-15px;*/ width:100px;
         .opacity(0);
     }
@@ -260,7 +260,7 @@ button.nbtn {
     font-size  : 11px;
     .border-radius(0 2px 2px 0);
 
-    &:hover { color:@link-hover-color; }    
+    &:hover { color:@link-hover-color; }
 }
 /** 화면 중앙의 프로젝트 내 검색 폼 **/
 .form-search {
@@ -295,7 +295,7 @@ button.nbtn {
         margin: 0; margin-right:3px;
         padding:4px 0px;
         border: 0 none;
-        
+
         font-size: 14px; /* 11px */
         color: @search-input-color;
         background-color: transparent;
@@ -365,16 +365,16 @@ button.nbtn {
     .message {
         .msg {
             text-align:center;
-            font-weight:bold; font-size:18px; 
+            font-weight:bold; font-size:18px;
             margin-bottom:20px; line-height:1.5em;
         }
     }
 }
 
 .hiveToasts {
-    position: fixed; 
+    position: fixed;
     overflow: hidden;
-    right: 0 !important; 
+    right: 0 !important;
     top: 0 !important;
     margin: 10px; width:340px;
 
@@ -383,33 +383,33 @@ button.nbtn {
         display:inline-block;
         width: 300px; height: 50px;
         margin: 10px; padding: 10px;
-        outline:none; text-align: center; 
+        outline:none; text-align: center;
         font-weight: bold;
-        
+
         border: 2px solid @primary;
         color: #222; background-color: #fff;
         -webkit-transition-duration: 0.3s;
-        
+
         .opacity(0);
         .border-radius(2px);
-        /*.box-shadow(0px 0px 5px rgba(240, 160, 132, 0.6));*/         
-        
+        /*.box-shadow(0px 0px 5px rgba(240, 160, 132, 0.6));*/
+
         .btn-dismiss {
             position:absolute;
             top:5px; right:10px;
-            button { 
+            button {
                 color:@primary;
                 font-size:15px;
                 font-weight:bold;
             }
         }
-        
-        .v { 
-            display:inline-block; 
-            width:0px; height:50px; 
+
+        .v {
+            display:inline-block;
+            width:0px; height:50px;
             vertical-align:middle;
         }
-        .msg { 
+        .msg {
             width:280px; font-size:15px;
             display:inline-block;
             word-wrap: break-word;
@@ -439,9 +439,21 @@ button.nbtn {
     font-weight:bold;
     border:1px solid #eee;
     padding: 0px 5px;
-    margin-left: 5px;    
+    margin-left: 5px;
     vertical-align: middle;
     font-family: Tahoma;
     text-shadow: none;
     .border-radius(2px);
+}
+
+.counter {
+    top: 8px;
+    right: 0;
+    padding: 2px 5px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #999;
+    background: #eee;
+    border-radius: 2px;
+    box-shadow: inset 0 -1px 0 #e3e3e3;
 }

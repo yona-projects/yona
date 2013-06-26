@@ -1,5 +1,10 @@
 package controllers;
 
+import info.schleichardt.play2.mailplugin.Mailer;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.HtmlEmail;
+import play.Logger;
 import play.db.ebean.Model;
 
 import models.resource.Resource;
@@ -10,16 +15,16 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
 import play.data.Form;
-import play.mvc.Call;
-import play.mvc.Content;
+import play.libs.Akka;
+import play.mvc.*;
 import utils.AccessControl;
 
-import play.mvc.Controller;
-import play.mvc.Result;
 import utils.Callback;
 import utils.Constants;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * {@link BoardApp}과 {@link IssueApp}에서 공통으로 사용하는 기능을 담고 있는 컨트롤러 클래스
@@ -55,15 +60,15 @@ public class AbstractPostingApp extends Controller {
      *
      * @param comment
      * @param commentForm
-     * @param redirectTo
+     * @param toView
      * @param containerUpdater
      * @return
      * @throws IOException
      */
-    public static Result newComment(Comment comment, Form<? extends Comment> commentForm, Call redirectTo, Callback containerUpdater) throws IOException {
+    public static Result newComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Callback containerUpdater) throws IOException {
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "board.comment.empty");
-            return redirect(redirectTo);
+            return redirect(toView);
         }
 
         comment.setAuthor(UserApp.currentUser());
@@ -73,7 +78,71 @@ public class AbstractPostingApp extends Controller {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
-        return redirect(redirectTo);
+        try {
+            sendNotification(comment, toView.absoluteURL(request()));
+        } catch (Exception e) {
+            Logger.warn("Failed to send a notification: " + ExceptionUtils.getStackTrace(e));
+        }
+
+        return redirect(toView);
+    }
+
+    /**
+     * 어떤 게시물에 댓글이 달렸을 때, 그 게시물을 지켜보는 사용자들에게 알림 메일을 발송한다.
+     *
+     * @param comment
+     * @param urlToView
+     * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
+     */
+    private static void sendNotification(Comment comment, String urlToView) {
+        User sender = UserApp.currentUser();
+        AbstractPosting parent = comment.getParent();
+
+        Set<User> receivers = parent.getWatchers();
+        receivers.remove(User.find.byId(comment.authorId));
+
+        String subject = String.format(
+                "Re: [%s] %s (#%d)",
+                parent.project.name, parent.title, parent.getNumber());
+        String urlToComment = urlToView + "#comment-" + comment.id;
+        String htmlMessage = String.format(
+                "<pre>%s</pre><hr><a href=\"%s\">%s</a>",
+                comment.contents, urlToComment, "View it on HIVE");
+        String plainMessage = String.format(
+                "%s\n\n--\nView it on %s",
+                comment.contents, urlToComment);
+
+        final HtmlEmail email = new HtmlEmail();
+
+        try {
+            email.setFrom(sender.email, sender.name);
+            for (User receiver : receivers) {
+                email.addTo(receiver.email, receiver.name);
+            }
+            email.setSubject(subject);
+            email.setHtmlMsg(htmlMessage);
+            email.setTextMsg(plainMessage);
+            email.setCharset("utf-8");
+        } catch (Exception e) {
+            Logger.warn("Failed to send a notification: "
+                    + email + "\n" + ExceptionUtils.getStackTrace(e));
+        }
+
+        Callable<Object> sendingMail = new Callable<Object>() {
+            private Set<User> watchers;
+
+            public Object call() throws EmailException {
+                try {
+                    Mailer.send(email);
+                } catch (Exception e) {
+                    Logger.warn("Failed to send a notification: "
+                            + email + "\n" + ExceptionUtils.getStackTrace(e));
+                }
+                return null;
+            }
+        };
+
+        Akka.future(sendingMail);
     }
 
     /**
@@ -151,4 +220,43 @@ public class AbstractPostingApp extends Controller {
         return ok(content);
     }
 
+    /**
+     * 현재 사용자가 게시물을 명시적으로 지켜보는 것으로 설정한다.
+     *
+     * @param target
+     * @return
+     */
+    public static Result watch(AbstractPosting target) {
+        User user = UserApp.currentUser();
+
+        if (!AccessControl.isAllowed(user, target.asResource(), Operation.READ)) {
+            return forbidden("You have no permission to do that.");
+        }
+
+        if (user.isAnonymous()) {
+            return forbidden("Anonymous cannot watch it.");
+        }
+
+        target.watch(user);
+
+        return ok();
+    }
+
+    /**
+     * 현재 사용자가 게시물을 명시적으로 무시하는(지켜보지 않는) 것으로 설정한다.
+     *
+     * @param target
+     * @return
+     */
+    public static Result unwatch(AbstractPosting target) {
+        User user = UserApp.currentUser();
+
+        if (user.isAnonymous()) {
+            return forbidden("Anonymous cannot unwatch it.");
+        }
+
+        target.unwatch(user);
+
+        return ok();
+    }
 }

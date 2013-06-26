@@ -105,8 +105,8 @@
 
 	    @if(issue.comments.size > 0) {
 		<ul class="comments">
-		    @for(comment <- issue.comments){
-			<li class="comment">
+		@for(comment <- issue.comments){
+			<li class="comment" id="comment-@comment.id">
 				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
 		        	<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
 	        	</a>
@@ -115,10 +115,10 @@
 					<a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)">&times;</a>
 					}
                     <div class="comment-body" markdown="true">@comment.contents</div>
-                    <p class="commenter">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-                        <span class="date"> @utils.TemplateHelper.agoString(comment.ago())</span>
-                    </p>
+					<p class="commenter">
+						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                        <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
+					</p>
 					<div class="attachments" resourceType="@ResourceType.ISSUE_COMMENT" resourceId="@comment.id"></div>
 				</div>
 			</li>
@@ -131,6 +131,12 @@
 	@** // Comment **@
 
     @help.keymap("issueDetail", project)
+
+    <button type="button" class="btn small white
+        @if(issue.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
+        data-toggle="button" id="watch-button">
+        @Messages("notification.watch")
+    </button>
 </div>
 
 <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
@@ -180,7 +186,9 @@
 		// hive.issue.View
 		$hive.loadModule("issue.View", {
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
-			"htOptLabel"    : htOptLabel
+			"htOptLabel"    : htOptLabel,
+            "sWatchUrl"     : "@routes.IssueApp.watch(project.owner, project.name, issue.getNumber)",
+            "sUnwatchUrl"   : "@routes.IssueApp.unwatch(project.owner, project.name, issue.getNumber)"
 		});
 
 	    // hive.ShortcutKey
