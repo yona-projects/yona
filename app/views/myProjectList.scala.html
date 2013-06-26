@@ -9,9 +9,19 @@
     projects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()
 }
 
+@urlToList = {@routes.Application.index()}
+
+@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
+    @if(orderBy.equals(fieldName)) {
+        <a href="@urlToList?order=@fieldName%20@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
+    } else {
+        <a href="@urlToList?order=@fieldName%20asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
+    }
+}
+
 @if(projects != null){
 
-<ul class="nav nav-tabs my-projects-tab">
+<ul id="myProjectsTab" class="nav nav-tabs my-projects-tab">
 	<li class="active">
 	   <a href="#createdProjects" data-toggle="tab">@Messages("project.createdByMe") <span class="num-badge">@countProjectCreated</span></a>
 	</li>
@@ -21,32 +31,18 @@
 </ul>
 
 <div class="my-projects">
-    <div class="filters">
-        <span class="ordertype-date">
-            @if(orderString == "createdDate desc"){
-                <a href="@routes.Application.index()?order=createdDate"><strong>@Messages("order.recent")</strong> <i class="icon-chevron-down"></i></a>
+    <div class="filter-wrap">
+        <div class="filters">
+            @if(orderString){
+	            @defining(orderString.split(" ")){ order =>
+	                @makeFilterLink("createdDate", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("order.recent"))
+	                @makeFilterLink("name", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("order.name"))
+	            }
             } else {
-                @if(orderString == "createdDate"){
-                <a href="@routes.Application.index()?order=createdDate desc"><strong>@Messages("order.recent")</strong> <i class="icon-chevron-up"></i></a>
-                } else {
-                <a href="@routes.Application.index()?order=createdDate">@Messages("order.recent")</a>
-                }
+                @makeFilterLink("createdDate", "", "asc", Messages("order.recent"))
+                @makeFilterLink("name", "", "asc", Messages("order.name"))
             }
-        </span>
-
-        <span class="delimeter"> | </span>
-        
-        <span class="ordertype-name">
-            @if(orderString == "name desc"){
-                <a href="@routes.Application.index()?order=name"><strong>@Messages("order.name")</strong> <i class="icon-chevron-down"></i></a>
-            } else {
-                @if(orderString == "name"){
-                <a href="@routes.Application.index()?order=name desc"><strong>@Messages("order.name")</strong> <i class="icon-chevron-up"></i></a>
-                } else {
-                <a href="@routes.Application.index()?order=name">@Messages("order.name")</a>
-                }
-            }
-        </span>
+        </div>
     </div>
 
     <div class="tab-content">

@@ -30,120 +30,70 @@
 
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	<div class="bubble-wrap dark-gray repo-wrap">
-        <div class="code-browse-wrap">
+    <div class="code-browse-wrap">
+        <div id="breadcrumbs" class="code-browse-header"></div>
+        <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                <span class="d-label"></span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+            @for(branch <- branches){
+               @makeBranchItem(branch)
+            }
+            </ul>
+        </div>
 
-	        <div id="breadcrumbs" class="code-browse-header"></div>
-
-	        <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
-	            <button class="btn dropdown-toggle large" data-toggle="dropdown">
-	                <span class="d-label"></span>
-	                <span class="d-caret"><span class="caret"></span></span>
-	            </button>
-	            <ul class="dropdown-menu">
-	                @for(branch <- branches){
-	                    @makeBranchItem(branch)
-	                }
-	            </ul>
-	        </div>
+        <ul class="nav nav-tabs">
+	        <li class="active"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a></li>
+	        <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+        </ul>
+        
+        <div class="code-viewer-wrap">
+            <div class="code-tree">
+                <!-- codeBrowser.js will fills here (dynaTree) -->
+                <div id="folderList" class="directories"></div>
+            </div>
 	
-		    <ul class="nav nav-tabs">
-		        <li class="active">
-		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-		        </li>
-		        <li>
-		            <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-		        </li>
-		    </ul>
-		    <div class="code-viewer-wrap">
-		     	<div class="code-tree">
-		    		<div class="directory-header">
-							<strong>FOLDER NAME</strong>
+            <div class="code-viewer">
+                <div class="btnResize cell">|||</div>
+                <div class="sp-wrap cell"></div>
+                
+                @** 파일 목록 **@
+                <div id="fileList" class="file-wrap cell">
+                    <table class="code-table sources">
+                        <thead class="thead">
+                        <tr>
+                            <td class="filename"><strong>@Messages("code.filename")</strong></td>
+                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                            <td class="author"><strong>@Messages("code.author")</strong></td>
+                        </tr>
+                        </thead>
+                        <tbody class="tbody contents"></tbody>
+                    </table>
+                </div>
+                @** // **@
+                
+                @** 파일 보기 **@
+                <div id="fileView" class="file-wrap cell" style="display:none;">
+                    <div class="file-header nm">
+						<div id="fileInfo" class="file-info">
+							<span id="commiter" class="commiter"></span> |
+							<span id="commitDate" class="commitDate"></span> |
+							<span id="revisionNo" class="revision"></span> |
+							<span id="commitMessage" calss="commitMsg"></span>
 						</div>
-						<div id="folderList" class="directories"></div>
-		    	</div>
-		    	
-		    	<div class="code-viewer">
-		    		<div class="btnResize cell">|||</div>
-						<div class="sp-wrap cell"></div>
-		    		@** 파일 목록 **@
-						<div id="fileList" class="file-wrap cell">
-							<table class="code-table sources">
-								<thead class="thead">
-									<tr>
-										<td class="filename"><strong>@Messages("code.filename")</strong></td>
-										<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-										<td class="date"><strong>@Messages("code.commitDate")</strong></td>
-										<td class="author"><strong>@Messages("code.author")</strong></td>
-									</tr>
-								</thead>
-								<tbody class="tbody contents"></tbody>
-							</table>
-						</div>
-						@** // **@
-						@** 파일 보기 **@
-						<div id="fileView" class="file-wrap cell" style="display:none;">
-							<div class="file-header nm">
-								<div id="fileInfo" class="file-info">
-									<span id="commiter" class="commiter"></span> |
-									<span id="commitDate" class="commitDate"></span> |
-									<span id="revisionNo" class="revision"></span> |
-									<span id="commitMessage" calss="commitMsg"></span>
-								</div>
-								<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
-							</div>
-			          <div id="showImage"></div>
-			          <pre id="lineCode" class="code-wrap"></pre>
-						</div>
-						@** // **@
-		    	</div>
-	
-		    </div>	
-
-	    <!--
-			<div class="directory-wrap cell">
-				<div class="directory-header">
-					<strong>FOLDER NAME</strong>
+						<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
+					 </div>
+	                 <div id="showImage"></div>
+	                 <pre id="lineCode" class="code-wrap"></pre>
 				</div>
-				<div id="folderList" class="directories"></div>
-			</div>
-			<div class="btnResize cell">|||</div>
-			<div class="sp-wrap cell"></div>
+				@** // **@
+    	   </div>
+        </div>
+    </div>
 
-			@** 파일 목록 **@
-			<div id="fileList" class="file-wrap cell">
-				<table class="code-table sources">
-					<thead class="thead">
-						<tr>
-							<td class="filename"><strong>@Messages("code.filename")</strong></td>
-							<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-							<td class="date"><strong>@Messages("code.commitDate")</strong></td>
-							<td class="author"><strong>@Messages("code.author")</strong></td>
-						</tr>
-					</thead>
-					<tbody class="tbody contents"></tbody>
-				</table>
-			</div>
-			@** // **@
-
-			@** 파일 보기 **@
-			<div id="fileView" class="file-wrap cell" style="display:none;">
-				<div class="file-header nm">
-					<div id="fileInfo" class="file-info">
-						<span id="commiter" class="commiter"></span> |
-						<span id="commitDate" class="commitDate"></span> |
-						<span id="revisionNo" class="revision"></span> |
-						<span id="commitMessage" calss="commitMsg"></span>
-					</div>
-					<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
-				</div>
-				<div id="showImage"></div>
-				<pre id="lineCode" class="code-wrap"></pre>
-			</div>
-			@** // **@
-		-->
-		</div>
-	</div>
 </div>
 
 @** fileList item template **@
@@ -161,6 +111,7 @@
 </tr>
 </script>
 @** // **@
+
 <link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/monokai.css" />
 <link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
 
@@ -173,8 +124,6 @@
 <script type="text/javascript" src="/assets/javascripts/lib/hljs/languages/allinone.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.min.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
-
-<!-- <script type="text/javascript" src="/assets/javascripts/service/hive.CodeBrowser.js"></script> -->
 <script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
@@ -183,4 +132,5 @@
 		});
 	});
 </script>
+
 }

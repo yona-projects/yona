@@ -1,6 +1,7 @@
 @(user:User)
 
 @import utils.TemplateHelper._
+
 @projectLogoImage(project:Project) = @{
     defining(Attachment.findByContainer(project.asResource)) { files =>
         if(files.size > 0){
@@ -9,6 +10,13 @@
             routes.Assets.at("images/bg-default-project.jpg")
         }
     }
+}
+
+@watching_count(loginId: String) = {
+    @User.findByLoginId(loginId).getWatchingProjects().size()
+}
+@belongsToMe_count() = {
+    @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())
 }
 
 @home(user.loginId, utils.MenuType.USER) {
@@ -40,31 +48,46 @@
         </div>
 
         <div class="user-stream-box">
-            <ul class="nav nav-tabs">
-                <li class="active"><a href="#createdByMe" data-toggle="tab">@Messages("project.createdByMe")
-                    <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span></a></li>
-                <li><a href="#belongsToMe" data-toggle="tab">@Messages("project.belongsToMe")
-                    <span class="num-badge">@belongsToMe_count()</span></a></li>
-            @if(user.loginId == session.get("loginId")){
-                <li><a href="#watching" data-toggle="tab">@Messages("project.watchingproject") <span class="num-badge">@watching_count(session.get("loginId"))</span></a></li>
+            @if(user != null && session != null && user.loginId == session.get("loginId")){
+            <div class="pull-right">
+                <a href="@routes.ProjectApp.newProjectForm()" class="nbtn medium orange last">
+                    <i class="ico ico-pencil"></i> @Messages("title.newProject")
+                </a>
+            </div>
             }
-                <li class="pull-right">
-                @if(user != null && session != null && user.loginId == session.get("loginId")){
-                    <a href="@routes.ProjectApp.newProjectForm()" class="nbtn medium orange pull-right no-border">
-                        <i class="ico ico-pencil"></i> @Messages("title.newProject")
+            
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#createdByMe" data-toggle="tab">
+                        @Messages("project.createdByMe")
+                        <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span>
                     </a>
-                }
                 </li>
+                <li>
+                    <a href="#belongsToMe" data-toggle="tab">
+                        @Messages("project.belongsToMe")
+                        <span class="num-badge">@belongsToMe_count()</span>
+                    </a>
+                </li>
+                @if(user.loginId == session.get("loginId")){
+                <li>
+                    <a href="#watching" data-toggle="tab">
+                        @Messages("project.watchingproject")
+                        <span class="num-badge">@watching_count(session.get("loginId"))</span>
+                    </a>
+                </li>
+                }
             </ul>
+            
             <div class="tab-content">
-                <div class="tab-pane active" id="createdByMe">
+                <div id="createdByMe" class="tab-pane active">
                     <ul class="user-streams all-projects">
                         @for(project <- Project.findProjectsCreatedByUser(user.loginId, "name")){
                            @partial_projectlist(project, user)
                         }
                     </ul>
                 </div>
-                <div class="tab-pane" id="belongsToMe">
+                <div id="belongsToMe" class="tab-pane">
                     <ul class="user-streams all-projects">
                     @for(project <- user.myProjects("name")){
                         @if(!project.isOwner(user)){
@@ -73,8 +96,9 @@
                     }
                     </ul>
                 </div>
-            @if(user.loginId == session.get("loginId")){
-                <div class="tab-pane" id="watching">
+                
+                @if(user.loginId == session.get("loginId")){
+                <div id="watching" class="tab-pane">
                     <ul class="user-streams all-projects">
                 @defining(User.findByLoginId(session.get("loginId")).getWatchingProjects()){ watchingProjects =>
                     @if(watchingProjects.length > 0) {
@@ -101,14 +125,7 @@ $(document).ready(function(){
             return false;
         }
     });
-    $hive.loadModule("project.Watch");
+    $hive.loadModule("project.Global");
 });
 </script>
-}
-
-@watching_count(loginId: String) = {
-    @User.findByLoginId(loginId).getWatchingProjects().size()
-}
-@belongsToMe_count() = {
-    @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())
 }

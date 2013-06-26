@@ -2,117 +2,57 @@
 @import utils.TemplateHelper._
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
-    <div class="page">
-        @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+
+<div class="page">
+    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    
+    <div class="pull-right">
+        <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium @if(!project.isFork){orange last}">
+            <i class="icon-inbox icon-white"></i>
+            @Messages("fork")
+        </a>
+        
+        @if(project.isFork){
+        <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange last">
+            <i class="icon-share icon-white"></i>
+            @Messages("pullRequest")
+        </a>
+        }
+    </div>
+
+    @if(project.hasForks() || project.isFork()) {
+    <ul id="pullRequestsTab" class="nav nav-tabs">
+        @if(project.hasForks()){
+            <li @if(requestType.equals("opened")){class="active"}>
+                <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">@Messages("pullRequest.opened.code")</a>
+            </li>
+            <li @if(requestType.equals("closed")){class="active"}>
+                <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">@Messages("pullRequest.accepted.code")</a>
+            </li>
+            <li @if(requestType.equals("rejected")){class="active"}>
+                <a href="@routes.PullRequestApp.rejectedPullRequests(project.owner, project.name)">@Messages("pullRequest.rejected.code")</a>
+            </li>
+        }
+        @if(project.isFork()){
+            <li @if(requestType.equals("sent")){class="active"}>
+                <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("pullRequest.sent.code")</a>
+            </li>
+        }
         @if(project.hasForks()) {
-        <div id="forks">
-            <ul class="all-projects">
-                @for(fork <- project.forkingProjects) {
-                <li class="project">
-                    <div class="info-wrap">
-                        <div class="owner-avatar-wrap">
-                            <a href="@routes.UserApp.userInfo(fork.owner)">
-                                <img src="@User.findByLoginId(fork.owner).avatarUrl" alt="@User.findByLoginId(fork.owner).name">
-                            </a>&nbsp;
-                            @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
-                            @for(label <- fork.labels) {
-                            <span class="project-label @label.category.toLowerCase()">@label.name</span>
-                            }
-                        </div>
-                        <div style="float:left">
-                            <div class="header">
-                                <a href="@routes.ProjectApp.project(fork.owner, fork.name)" class="black">@fork.name</a>
-                                @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
-                                @for(label <- fork.labels) {
-                                <span class="project-label @label.category.toLowerCase()">@label.name</span>
-                                }
-                            </div>
-                            <div class="desc">
-                                @project.overview
-                            </div>
-                            <p class="name-tag">by <a href="@routes.UserApp.userInfo(fork.owner)" class="owner-name-small">@fork.owner</a>
-                                <!--
-                                (@agoString(project.ago))
-                                -->
-                            </p>
-                        </div>
-                    </div>
-                    <div class="stats-wrap pull-right">
-                        @if(fork.isPublic){
-                        <div class="members">
-                            <ul class="unstyled">
-                                @for(member <- User.findUsersByProject(project.id)){
-                                @if(member.loginId != fork.owner){
-                                <li>
-                                    <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
-                                        <img src="@member.avatarUrl" alt="@member.name">
-                                    </a>
-                                </li>
-                                }
-                                }
-                            </ul>
-                            <p>
-                                @Html(Messages("project.onmember", User.findUsersByProject(fork.id).length))
-                                <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", fork.watchingCount))
-                            </p>
-                        </div>
-                        }
-                    </div>
-                </li>
-                }
-            </ul>
-        </div>
+            <li>
+                <a href="#forks" data-toggle="tab">@Messages("forks") <span class="num-badge">@project.forkingProjects.size</span></a>
+            </li>
         }
+    </ul>
+    }
 
-        <div class="pull-right">
-            @if(project.hasForks()) {
-            <button id="forksBtn" class="nbtn medium gray">
-                <i class="icon-retweet icon-white"></i>
-                @Messages("forks") <span class="num-badge">@project.forkingProjects.size</span>
-            </button>
-            }
-            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium blue">
-                <i class="icon-inbox icon-white"></i>
-                @Messages("fork")
-            </a>
-            @if(project.isFork) {
-            <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange">
-                <i class="icon-share icon-white"></i>
-                @Messages("pullRequest")
-            </a>
-            }
-        </div>
-
-        @if(project.hasForks() || project.isFork()) {
-        <ul class="nav nav-tabs hive-tabs">
-            @if(project.hasForks()){
-                <li @if(requestType.equals("opened")){class="active"}>
-                    <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">@Messages("pullRequest.opened.code")</a>
-                </li>
-                <li @if(requestType.equals("closed")){class="active"}>
-                    <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">@Messages("pullRequest.accepted.code")</a>
-                </li>
-                <li @if(requestType.equals("rejected")){class="active"}>
-                    <a href="@routes.PullRequestApp.rejectedPullRequests(project.owner, project.name)">@Messages("pullRequest.rejected.code")</a>
-                </li>
-            }
-            @if(project.isFork()){
-                <li @if(requestType.equals("sent")){class="active"}>
-                    <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">@Messages("pullRequest.sent.code")</a>
-                </li>
-            }
-        </ul>
-        }
-
-        <div class="row-fluid">
+    <div class="tab-content">
+        <div id="list" class="row-fluid tab-pane active">
             @if(pullRequests.length > 0){
-
             <ul class="issue-list unstyled">
             @for(req <- pullRequests.iterator()) {
                 <li class="issue">
-                    <div class="num">
-                        @req.id
-                    </div>
+                    <div class="num">@req.id</div>
                     <div class="contents">
                         <p class="title">
                             <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, req.id)">@req.title</a>
@@ -125,11 +65,13 @@
                             &nbsp; and merged by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
                             &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
                             }
+                            
                             @if(req.state == models.enumeration.State.REJECTED) {
                             &nbsp; and rejected by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
                             &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
                             }
                         </p>
+                        
                         <p>
                             @Messages("pullRequest.from")
                             <span class="label label-info">
@@ -148,11 +90,15 @@
                     </div>
                     <div class="right-panel">
                         <div class="state @req.state.toString.toLowerCase">@Messages("issue.state." + req.state.toString.toLowerCase)</div>
+                        
                         @if(req.receiver != null) {
-                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap img-rounded pull-right">
-                            <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name"></a>
+                            <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap pull-right">
+                                <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
+                            </a>
                         }
+                        
                         <i class="icon-arrow-right pull-right"></i>
+                        
                         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap pull-right">
                             <img src="@req.contributor.avatarUrl" alt="@req.contributor.name" width="32" height="32">
                         </a>
@@ -160,27 +106,72 @@
                 </li>
             }
             </ul>
-
             } else {
-
-		    <div class="error-wrap">
-		        <i class="ico ico-err1"></i>
-		        <p>@Messages("pullRequest.listEmpty")</p>
-		    </div>
-
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("pullRequest.listEmpty")</p>
+            </div>
             }
         </div>
+     
+	    @** 복사본 목록 **@
+	    @if(project.hasForks()) {
+	    <div id="forks" class="tab-pane">
+	        <ul class="all-projects">
+	            @for(fork <- project.forkingProjects) {
+	            <li class="project">
+	                <div class="info-wrap">
+	                    <div class="owner-avatar-wrap">
+	                        <a href="@routes.UserApp.userInfo(fork.owner)">
+	                            <img src="@User.findByLoginId(fork.owner).avatarUrl" alt="@User.findByLoginId(fork.owner).name">
+	                        </a>&nbsp;
+	                        @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
+	                        @for(label <- fork.labels) {
+	                        <span class="project-label @label.category.toLowerCase()">@label.name</span>
+	                        }
+	                    </div>
+	                    <div style="float:left">
+	                        <div class="header">
+	                            <a href="@routes.ProjectApp.project(fork.owner, fork.name)" class="black">@fork.name</a>
+	                            @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
+	                            @for(label <- fork.labels) {
+	                            <span class="project-label @label.category.toLowerCase()">@label.name</span>
+	                            }
+	                        </div>
+	                        <div class="desc">
+	                            @project.overview
+	                        </div>
+	                        <p class="name-tag">by <a href="@routes.UserApp.userInfo(fork.owner)" class="owner-name-small">@fork.owner</a></p>
+	                    </div>
+	                </div>
+	                <div class="stats-wrap pull-right">
+	                    @if(fork.isPublic){
+	                    <div class="members">
+	                        <ul class="unstyled">
+	                            @for(member <- User.findUsersByProject(project.id)){
+	                            @if(member.loginId != fork.owner){
+	                            <li>
+	                                <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
+	                                    <img src="@member.avatarUrl" alt="@member.name">
+	                                </a>
+	                            </li>
+	                            }
+	                            }
+	                        </ul>
+	                        <p>
+	                            @Html(Messages("project.onmember", User.findUsersByProject(fork.id).length))
+	                            <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", fork.watchingCount))
+	                        </p>
+	                    </div>
+	                    }
+	                </div>
+	            </li>
+	            }
+	        </ul>
+	     </div>
+	     }
+	     @** // **@
     </div>
+</div>
 
-<script type="text/javascript">
-    $(function(){
-        $(document).ready(function() {
-            $('#forks').hide();
-            $('#forksBtn').click(function(e){
-                e.preventDefault();
-                $('#forks').toggle();
-            });
-        });
-    });
-</script>
 }
