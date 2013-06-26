@@ -102,6 +102,9 @@ public class AbstractPostingApp extends Controller {
         receivers.remove(User.find.byId(comment.authorId));
         receivers.remove(User.anonymous);
         receivers.remove(UserApp.currentUser());
+        if(receivers.isEmpty()) {
+            return;
+        }
 
         String subject = String.format(
                 "Re: [%s] %s (#%d)",
