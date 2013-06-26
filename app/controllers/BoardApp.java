@@ -1,6 +1,8 @@
 
 package controllers;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+import play.Logger;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
@@ -133,7 +135,7 @@ public class BoardApp extends AbstractPostingApp {
             return badRequest(create.render(postForm.errors().toString(), postForm, project, isAllowedToNotice));
         }
 
-        Posting post = postForm.get();
+        final Posting post = postForm.get();
         post.createdDate = JodaDateUtil.now();
         post.setAuthor(UserApp.currentUser());
         post.project = project;
@@ -143,7 +145,40 @@ public class BoardApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), post.asResource());
 
-        return redirect(routes.BoardApp.post(project.owner, project.name, post.getNumber()));
+        Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
+
+        final String urlToView = toPost.absoluteURL(request());
+
+        Notification noti = new Notification() {
+            public String getTitle() {
+                return String.format(
+                        "[%s] %s (#%d)",
+                        post.project.name, post.title, post.getNumber());
+            }
+
+            public String getHtmlMessage() {
+                return String.format(
+                        "<pre>%s</pre><hr><a href=\"%s\">%s</a>",
+                        post.body, urlToView, "View it on HIVE");
+            }
+
+            public String getPlainMessage() {
+                return String.format(
+                        "%s\n\n--\nView it on %s",
+                        post.body, urlToView);
+            }
+
+            public Set<User> getReceivers() {
+                Set<User> receivers = post.getWatchers();
+                receivers.remove(User.find.byId(post.authorId));
+
+                return receivers;
+            }
+        };
+
+        sendNotification(noti);
+
+        return redirect(toPost);
     }
 
     /**
