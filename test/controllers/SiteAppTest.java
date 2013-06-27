@@ -25,24 +25,13 @@ public class SiteAppTest {
         );
     }
 
-    private Map<String, String> inmemoryWithCustomConfig(String additionalKey, String value) {
-        Map<String, String> dbHelper = Helpers.inMemoryDatabase();
-        Map<String, String> fakeConf = new HashMap<String, String>();
-        for(String key: dbHelper.keySet()) {
-            fakeConf.put(key, dbHelper.get(key));
-        }
-        fakeConf.put(additionalKey, value);
-        return fakeConf;
-    }
-
     @Before
     public void before() {
-        Map<String, String> config = inmemoryWithCustomConfig("signup.require.confirm", "true");
+        Map<String, String> config = new HashMap<>(Helpers.inMemoryDatabase());
+        config.put("signup.require.confirm", "true");
+        config.put("application.secret", "foo");
         app = Helpers.fakeApplication(config);
         Helpers.start(app);
-
-        admin = User.findByLoginId("admin");
-        notAdmin = User.findByLoginId("doortts");
     }
 
     @After

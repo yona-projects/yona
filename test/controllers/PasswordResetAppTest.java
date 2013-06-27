@@ -21,7 +21,10 @@ public class PasswordResetAppTest {
 
     @Test
     public void testRequestResetPassword_validLoginIdAndEmailAddress() {
-        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+        Map<String, String> config = new HashMap<>(Helpers.inMemoryDatabase());
+        config.put("application.secret", "foo");
+
+        running(fakeApplication(config), new Runnable() {
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<String,String>();
