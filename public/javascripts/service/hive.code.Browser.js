@@ -122,7 +122,10 @@
                 oEditor.clearSelection();
                 
                 _setEditorMode(path);
-                _resizeEditor();
+                
+                setTimeout(function(){
+                    _resizeEditor();
+                }, 0);
             }
         
             $("#rawCode").attr("href", "rawcode"+path);
@@ -161,7 +164,7 @@
          * handleFile 에서 파일 내용이 바뀔 때 마다 호출함
          */
         function _resizeEditor(){
-            var nLineHeight = 15; // oEditor.renderer.lineHeight 
+            var nLineHeight = oEditor.renderer.lineHeight 
             var newHeight = (oSession.getScreenLength() * nLineHeight) + oEditor.renderer.scrollBar.getWidth();
             $("#showCode").height(newHeight);
             oEditor.resize();

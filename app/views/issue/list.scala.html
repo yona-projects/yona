@@ -23,7 +23,6 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 	<div class="header-wrap">
-
 		<div class="search-wrap projects">
 			<div class="inner">
 				<form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
@@ -39,7 +38,7 @@
 					<input type="hidden" name="state"   value="@param.state">
 					<input type="text"   name="filter"  class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
 					 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button>
-	                <a href="#search" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
+	                <a href="#" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
 
 					<div id="advanced-search-form" class="srch-advanced form-horizontal">
 						<fieldset class="properties">
