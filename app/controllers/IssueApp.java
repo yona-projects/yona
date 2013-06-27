@@ -141,10 +141,13 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(views.html.error.forbidden.render(project));
         }
 
-        Form<SearchCondition> issueParamForm = new Form<SearchCondition>(SearchCondition.class);
+        Form<SearchCondition> issueParamForm = new Form<>(SearchCondition.class);
         SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
         searchCondition.state = state;
+        if(searchCondition.orderBy.equals("id")) {
+            searchCondition.orderBy = "createdDate";
+        }
 
         String[] labelIds = request().queryString().get("labelIds");
         if (labelIds != null) {
