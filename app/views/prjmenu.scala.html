@@ -32,53 +32,55 @@
 }
 
 <div class="project-menu"><!--  data-spy="affix"> -->
-    <div class="actrow">
-        <button id="btnClone" type="button" class="nbtn medium"><i class="icon-download-alt icon-white vmiddle"></i> @Messages("code.repoUrl")</button>
+    <div class="project-menu-wrap">
+        <div class="project-menu-container main">
+            <div class="actrow">
+                <button id="btnClone" type="button" class="nbtn medium"><i class="icon-download-alt icon-white vmiddle"></i> @Messages("code.repoUrl")</button>
 
-        @if(User.isWatching(project)){
-        <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue active last"><i class="icon-eye-close icon-white"></i> @Messages("project.watch")</a>
-        }
-        @if(!User.isWatching(project) && project.isPublic) {
-        <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium mint last"><i class="icon-eye-open icon-white"></i> @Messages("project.watch")</a>
-        }
-    </div>
+                @if(User.isWatching(project)){
+                <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue active last"><i class="icon-eye-close icon-white"></i> @Messages("project.watch")</a>
+                }
+                @if(!User.isWatching(project) && project.isPublic) {
+                <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium mint last"><i class="icon-eye-open icon-white"></i> @Messages("project.watch")</a>
+                }
+            </div>
 
-	<div class="project-menu-wrap main">
-		<ul class="unstyled">
-			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
-			<li class="sp-line">|</li>
-			<li class="@isActiveMenu(MenuType.BOARD)">
-                <a href="@routes.BoardApp.posts(project.owner, project.name)">
-                    @Messages("menu.board") <span class="counter">@Posting.countPostings(project)</span>
-                </a>
-            </li>
-			<li class="sp-line">|</li>
-			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a></li>
-            @if(project.vcs.equals("GIT")){
-                <li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
-                    <a href="@getPullRequestURL(project)">
-                        @Messages("menu.pullRequest") <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
+    		<ul class="unstyled">
+    			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
+    			<li class="sp-line">|</li>
+    			<li class="@isActiveMenu(MenuType.BOARD)">
+                    <a href="@routes.BoardApp.posts(project.owner, project.name)">
+                        @Messages("menu.board") <span class="counter">@Posting.countPostings(project)</span>
                     </a>
                 </li>
-            }
-			<li class="sp-line">|</li>
-            <li class="@isActiveMenu(MenuType.ISSUE)">
-                <a href="@routes.IssueApp.issues(project.owner, project.name, "all")">
-                    @Messages("menu.issue") <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
-                </a>
-            </li>
-            <li class="sp-line">|</li>
-			<li class="@isActiveMenu(MenuType.MILESTONE)">
-                <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
-                    @Messages("project.milestone") <span class="counter">@Milestone.countOpened(project)</span>
-                </a>
-            </li>
-		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
-			<li class="sp-line">|</li>
-			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
-		}
-		</ul>
+    			<li class="sp-line">|</li>
+    			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a></li>
+                @if(project.vcs.equals("GIT")){
+                    <li class="sp-line">|</li>
+                    <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
+                        <a href="@getPullRequestURL(project)">
+                            @Messages("menu.pullRequest") <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
+                        </a>
+                    </li>
+                }
+    			<li class="sp-line">|</li>
+                <li class="@isActiveMenu(MenuType.ISSUE)">
+                    <a href="@routes.IssueApp.issues(project.owner, project.name, "all")">
+                        @Messages("menu.issue") <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
+                    </a>
+                </li>
+                <li class="sp-line">|</li>
+    			<li class="@isActiveMenu(MenuType.MILESTONE)">
+                    <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
+                        @Messages("project.milestone") <span class="counter">@Milestone.countOpened(project)</span>
+                    </a>
+                </li>
+    		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+    			<li class="sp-line">|</li>
+    			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
+    		}
+    		</ul>
+        </div>
 	</div>
 
 	@** 프로젝트 설정 서브메뉴 **@

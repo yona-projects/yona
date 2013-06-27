@@ -1406,93 +1406,100 @@
 }
 
 .project-menu {
-    position:relative; 
+
     padding-bottom: 10px; 
     margin-bottom:10px;
-
     ul { margin:0 !important; }
     li { /*line-height:40px;*/ padding:0; .inline-block; }
-
+    width:100%;
+    
     .project-menu-wrap {
-        position:relative;
-
+        width:100%;
         &.affix {
             top:0;
             z-index:100;
             position:fixed;
             background:#fff;
+            border:1px solid #d4d4d4;
+            border-top:none;
         }
-    }
 
-    .actrow {
-        position:absolute; 
-        top:10px; right:0;
-        z-index: 777;
-        
-        /* 저장소 URL 표시용 popover */
-        .popover {
-            width:430px;
-            max-width:500px;
-            left:-100% !important;
-            
-            .arrow { left:64% }
-            
-            .clone-label { 
-                display:inline-block;
-                background:#5dbbe0; color:#fff;
-                text-shadow: -1px -1px rgba(0, 0, 0, 0.3);
-                padding:5px 15px; vertical-align:middle;
-                .border-radius(2px); 
+        .project-menu-container {
+            position:relative;
+           
+
+            &.main {
+                text-align:left;
+                ul > li a {
+                    padding:15px 35px; display:block;
+                    font-weight:bold; /*color:#777;*/
+                    -webkit-transition-duration:0.3s;
+                    &:hover { color:@primary; text-decoration:underline; }
+                }
+
+               .active {
+                   border-bottom:2px solid @primary;
+                   color:@primary;
+                   /*
+                   background-color:@primary;
+                   .box-shadow(inset 2px 2px 2px rgba(0,0,0,0.15));
+                   .border-radius(5%);
+                   a { color:#fff; }
+                   */
+               }
             }
-            .repo-wrap { 
-                display:inline-block; margin:0;
-                .repo-url { width:260px; margin:0; }
-                .copy-url { font-size:11px; font-weight:bold; margin:0; }
+
+            .sub {
+                height:40px; line-height:40px;       
+
+                ul {
+                    position:absolute;
+                    &.on-home  { left:10px;  }
+                    &.on-board { left:95px; }
+                    &.on-code  { left:180px; }
+                    &.on-issue { left:380px; }
+                    &.on-admin { left:650px; }
+                }
+
+                a { font-weight:bold; color:#959595; padding:0 25px; font-size:12px; }
+                .active a { color:@primary !important; }
+            }
+            .sp-line {
+                width:1px; color:#d7d8d9;
+                padding:0; margin:0;
+                /*display:none;*/
+            }
+
+
+            .actrow {
+                position:absolute; 
+                top:10px; right:0;
+                z-index: 777;
+               
+                /* 저장소 URL 표시용 popover */
+                .popover {
+                    width:430px;
+                    max-width:500px;
+                    left:-100% !important;
+                    
+                    .arrow { left:64% }
+                    
+                    .clone-label { 
+                        display:inline-block;
+                        background:#5dbbe0; color:#fff;
+                        text-shadow: -1px -1px rgba(0, 0, 0, 0.3);
+                        padding:5px 15px; vertical-align:middle;
+                        .border-radius(2px); 
+                    }
+                    .repo-wrap { 
+                        display:inline-block; margin:0;
+                        .repo-url { width:260px; margin:0; }
+                        .copy-url { font-size:11px; font-weight:bold; margin:0; }
+                    }
+                }
             }
         }
-    }
-    
-    .main {
-        text-align:left;
-        a {
-            position:relative; padding:15px 35px; display:block;
-            font-weight:bold; /*color:#777;*/
-            -webkit-transition-duration:0.3s;
-            &:hover { color:@primary; text-decoration:underline; }
-        }
-
-       .active {
-           border-bottom:2px solid @primary;
-           color:@primary;
-           /*
-           background-color:@primary;
-           .box-shadow(inset 2px 2px 2px rgba(0,0,0,0.15));
-           .border-radius(5%);
-           a { color:#fff; }
-           */
-       }
-    }
-
-    .sub {
-        height:40px; line-height:40px;       
-
-        ul {
-            position:absolute;
-            &.on-home  { left:10px;  }
-            &.on-board { left:95px; }
-            &.on-code  { left:180px; }
-            &.on-issue { left:380px; }
-            &.on-admin { left:650px; }
-        }
-
-        a { font-weight:bold; color:#959595; padding:0 25px; font-size:12px; }
-        .active a { color:@primary !important; }
-    }
-    .sp-line {
-        width:1px; color:#d7d8d9;
-        padding:0; margin:0;
-        /*display:none;*/
-    }
+    }    
 }
 
 .user-role {
@@ -3570,9 +3577,4 @@ code.milestone-title{
 
         .btnResize { display:none; }
     }    
-}
-
-.affix {
-    position: fixed !important;
-    top: 0; background: #fff; z-index:980;
 }
