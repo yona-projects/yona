@@ -2631,19 +2631,23 @@ div.markdown-preview {
 
     .code-viewer-wrap {
         width:100%;
+        overflow:auto;
+        zoom:1;
+        border:1px solid #ddd;    
+        border-top:none;
         .code-tree {
             display:table-cell;
             width:20%;/*259px;*/
             overflow-x : auto;
             float:left;
-            border-left:1px solid #ddd;   
+            height:100%;   
         }   
 
         .code-viewer {
             display:table-cell;
             float:right;
             width:79%;/*680px;*/
-            border-right:1px solid #ddd;
+            height:100%;
         }
     }
 
