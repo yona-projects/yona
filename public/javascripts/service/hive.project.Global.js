@@ -44,7 +44,7 @@
         function _initElement() {
             htElement.welContainer = $(".project-menu");
             
-            htElement.welBtnWatch = $("#btnWatch");
+            htElement.welBtnWatch =  $(".watchBtn, #btnWatch");
             htElement.welBtnClone = $("#btnClone");
             htElement.welForkedFrom = $("#forkedFrom");
         }

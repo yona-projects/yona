@@ -37,7 +37,8 @@
 
         @if(User.isWatching(project)){
         <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue active last"><i class="icon-eye-close icon-white"></i> @Messages("project.watch")</a>
-        } else {
+        }
+        @if(!User.isWatching(project) && project.isPublic) {
         <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium mint last"><i class="icon-eye-open icon-white"></i> @Messages("project.watch")</a>
         }
     </div>

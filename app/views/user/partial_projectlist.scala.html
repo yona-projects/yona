@@ -58,11 +58,12 @@
                 @if(session.get("loginId") != project.owner ){
                     @if(User.isWatching(project)){
                         <span data-toggle="tooltip" title="unwatch" data-placement="right">
-                            <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn small last"><i class="icon-star icon-middle icon-white"></i></a>
+                            <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn small last"><i class="icon-star icon-middle icon-white"></i></a>
                         </span>
-                    } else {
+                    }
+                    @if(!User.isWatching(project) && project.isPublic) {
                         <span data-toggle="tooltip" title="watch" data-placement="right">
-                            <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn  purple small last "><i class="icon-star-empty icon-middle icon-white"></i></a>
+                            <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn  purple small last "><i class="icon-star-empty icon-middle icon-white"></i></a>
                         </span>
                     }
                 }
