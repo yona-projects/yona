@@ -60,7 +60,7 @@
                 <div class="sp-wrap cell"></div>
                 
                 @** 파일 목록 **@
-                <div id="fileList" class="file-wrap cell">
+                <div id="fileList" class="file-wrap cell" style="display:none;">
                     <table class="code-table sources">
                         <thead class="thead">
                         <tr>
@@ -79,15 +79,17 @@
                 <div id="fileView" class="file-wrap cell" style="display:none;">
                     <div class="file-header nm">
 						<div id="fileInfo" class="file-info">
-							<span id="commiter" class="commiter"></span> |
-							<span id="commitDate" class="commitDate"></span> |
-							<span id="revisionNo" class="revision"></span> |
+							<span id="commiter" class="commiter"></span>
+							<span id="commitDate" class="commitDate"></span>
+							<span id="revisionNo" class="revision"></span>
 							<span id="commitMessage" calss="commitMsg"></span>
 						</div>
-						<a id="rawCode" class="btn-transparent btn-raw"><i class="ico ico-raw"></i>raw</a>
+						<a id="rawCode" class="nbtn medium pull-right">
+                            <i class="icon-download-alt icon-white vmiddle"></i> Raw
+                        </a>
 					 </div>
-	                 <div id="showImage"></div>
-	                 <pre id="lineCode" class="code-wrap"></pre>
+	                 <div id="showImage" class="image-wrap"></div>
+	                 <pre id="showCode" class="code-wrap"></pre>
 				</div>
 				@** // **@
     	   </div>
@@ -112,19 +114,16 @@
 </script>
 @** // **@
 
-<link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/monokai.css" />
 <link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
 
 <script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery-ui.custom.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.cookie.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.dynatree.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.event.drag-2.2.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.jquery.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/hljs/languages/allinone.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.min.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
+<script type="text/javascript" src="/assets/javascripts/lib/ace/ace.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
 		$hive.loadModule("code.Browser", {

@@ -2744,18 +2744,25 @@ div.markdown-preview {
             }
         }
         .filename {
-            padding-left: 20px;
-            width: 100px;
-            max-width: 150px;
+            padding-left: 10px;
+            max-width: 200px;
             .text-overflow;
+            display:block;
         }
 
         .updir { font-weight:bold; }
 
         .messages {
-            /*.text-overflow;*/
+           /* commit History */
            pre { background:none; border:none; margin:0; }
+            
+           /* fileList */
+           span { 
+               display:block; max-width:260px;
+               .text-overflow; 
+           } 
         }
+        
         .author {
             width: 40px;
             text-align: right;
@@ -2769,17 +2776,19 @@ div.markdown-preview {
     .file-header {
         margin-top: 10px;
         line-height: 34px;
-        background-color: #D7D7D7;
-        color: #767676;
+        background-color: #eee;/*D7D7D7;*/
+        border-bottom:1px solid #ccc;
+        /*color: #767676;*/
         font-size: 11px;
         padding-left: 15px;
         overflow: hidden;
 
         .file-info {
             float: left;
-            .text-overflow;
             max-width: 590px;
-            &.path {
+            .text-overflow;
+            
+            /*&.path {
                 color: #666;
                 .num {
                     color: #4D4D4D;
@@ -2793,10 +2802,27 @@ div.markdown-preview {
                         background-color: #FFA86A;
                     }
                 }
-            }
+            }*/
+           span {
+                padding-right:5px;
+                margin-right:5px;
+                border-right:1px solid #ccc;
+                
+                &:last-of-type {
+                    padding-right:0;
+                    margin-right:0;
+                    border-right:none;
+                }
+                &:empty {
+                    display:none;
+                }
+           }
+           .commitMsg { font-weight:bold; }
         }
 
-        .btn-raw {
+        .nbtn { margin:2px; }
+        
+        /*.btn-raw {
             float: right;
             padding: 0 30px;
             line-height: 34px;
@@ -2814,19 +2840,19 @@ div.markdown-preview {
                 margin-right: 5px;
 
             }
-        }
+        }*/
     }
 
     .code-wrap {
-        color: @gray-d4;
+        /*color: @gray-d4;
         overflow-x: auto;
         font-size: 11px;
-        background-color: rgb(36, 36, 36);
+        background-color: rgb(36, 36, 36);*/
         border:none;
         margin:0 !important;
         padding:0 !important;
         .border-radius(0px);
-
+        /*
         .linenum {
             display:inline-block;
             width:40px; background:#555; color:#fff;
@@ -2836,6 +2862,13 @@ div.markdown-preview {
             -moz-user-select: none;
             user-select: none;
         }
+        */
+       .ace_scrollbar { display:none; }
+       .ace_scroller { right:0 !important; }
+    }
+    
+    .image-wrap {
+        padding:10px;
     }
 
     .btnResize {
