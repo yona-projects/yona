@@ -402,9 +402,12 @@
     		});
     
     		function _resizeList(weEvt){
-    			var directory = $('.code-tree').position();
-    			$('.code-tree').width(Math.round(weEvt.clientX) - directory.left);		
-    			$('.code-viewer').width($('.code-viewer-wrap').width() - $('.code-tree').width()-20);
+    			var htDirectoryOffset = $('.code-tree').position(),
+                    nCodeViewerWidth = $('.code-viewer-wrap').width(),
+                    nCodeTreeWidth = (weEvt.clientX > htDirectoryOffset.left) ? Math.round(weEvt.clientX - htDirectoryOffset.left) : 0;        
+
+                $('.code-tree').width(nCodeTreeWidth);		
+    			$('.code-viewer').width(nCodeViewerWidth - nCodeTreeWidth -2);
     			/*
     			var nWidth = weEvt.clientX - nFolderListX;
                 $(".directory-wrap").width(nWidth - 10);
