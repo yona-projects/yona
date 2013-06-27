@@ -3,9 +3,13 @@ package controllers;
 import static org.fest.assertions.Assertions.*;
 import static play.test.Helpers.*;
 
+import java.util.HashMap;
+
 import models.Project;
 import models.User;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,18 +25,19 @@ import play.test.FakeRequest;
  * @author kjkmadness
  */
 public class WatchProjectAppTest {
-    private static FakeApplication application;
+    private static FakeApplication app;
 
-    @BeforeClass
-    public static void setUpBeforeClass() {
-        application = fakeApplication(inMemoryDatabase());
-        start(application);
+    @Before
+    public void before() {
+        HashMap<String, String> config = new HashMap<>(inMemoryDatabase());
+        config.put("application.secret", "foo");
+        app = fakeApplication(config);
+        start(app);
     }
 
-    @AfterClass
-    public static void tearDownAfterClass() {
-        stop(application);
-        application = null;
+    @After
+    public void after() {
+        stop(app);
     }
 
     @Test

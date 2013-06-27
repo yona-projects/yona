@@ -35,7 +35,10 @@ public class IssueAppTest {
 
     @Before
     public void before() {
-        app = Helpers.fakeApplication(Helpers.inMemoryDatabase());
+        Map<String, String> config = new HashMap<>(Helpers.inMemoryDatabase());
+        config.put("application.secret", "foo");
+
+        app = Helpers.fakeApplication(config);
         Helpers.start(app);
 
         Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");

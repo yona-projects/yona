@@ -5,9 +5,6 @@ import org.junit.*;
 
 import java.util.*;
 
-import play.Configuration;
-import play.GlobalSettings;
-import play.i18n.Messages;
 import play.mvc.*;
 import play.test.Helpers;
 import utils.JodaDateUtil;
@@ -16,6 +13,13 @@ import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
 public class UserAppTest {
+    private Map<String, String> getTestConfig() {
+        Map<String, String> config = new HashMap<>(inMemoryDatabase());
+        config.put("application.secret", "foo");
+
+        return config;
+    }
+
     @BeforeClass
     public static void beforeClass() {
         callAction(
@@ -25,7 +29,7 @@ public class UserAppTest {
 
     @Test
     public void findById_doesntExist() {
-        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+        running(fakeApplication(getTestConfig()), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -48,7 +52,7 @@ public class UserAppTest {
 
     @Test
     public void findById_alreadyExist() {
-        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+        running(fakeApplication(getTestConfig()), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -71,7 +75,7 @@ public class UserAppTest {
 
     @Test
     public void isEmailExist() {
-        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+        running(fakeApplication(getTestConfig()), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -89,9 +93,10 @@ public class UserAppTest {
 
     @Test
     public void login_notComfirmedUser() {
-        Map<String, String> fakeConf = inmemoryWithCustomConfig("signup.require.confirm", "true");
+        Map<String, String> config = getTestConfig();
+        config.put("signup.require.confirm", "true");
 
-        running(fakeApplication(fakeConf), new Runnable() {
+        running(fakeApplication(config), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -120,20 +125,12 @@ public class UserAppTest {
         });
     }
 
-    private Map<String, String> inmemoryWithCustomConfig(String additionalKey, String value) {
-        Map<String, String> dbHelper = Helpers.inMemoryDatabase();
-        Map<String, String> fakeConf = new HashMap<String, String>();
-        for(String key: dbHelper.keySet()) {
-            fakeConf.put(key, dbHelper.get(key));
-        }
-        fakeConf.put(additionalKey, value);
-        return fakeConf;
-    }
-
     @Test
     public void newUser_confirmSignUpMode() {
-        Map<String, String> map = inmemoryWithCustomConfig("signup.require.confirm", "true");
-        running(fakeApplication(map), new Runnable() {
+        Map<String, String> config = getTestConfig();
+        config.put("signup.require.confirm", "true");
+
+        running(fakeApplication(config), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -158,7 +155,7 @@ public class UserAppTest {
 
     @Test
     public void findById_reserved() {
-        running(fakeApplication(Helpers.inMemoryDatabase()), new Runnable() {
+        running(fakeApplication(getTestConfig()), new Runnable() {
             @Override
             public void run() {
                 //Given
