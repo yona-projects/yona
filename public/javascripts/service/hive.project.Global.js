@@ -118,13 +118,18 @@
          * 프로젝트 메뉴 영역에 bootstrap-affix 적용
          */
         function _initAffix(){
-            $(".project-menu").affix({
-                "offset": $(".project-menu").offset()
-            });
+            
+            $(".project-menu").height($(".project-menu-wrap").height());
+            
+            $(".project-menu-wrap").affix({
+                "offset": $(".project-menu-wrap").offset()
+            }).width($(".page").width());
+
             
             $(window).resize(function(){
-                $(".project-menu").width($(".page").width());
+                $(".project-menu-wrap").width($(".page").width());
             });
+              
         }
         
         _init(htOptions || {});
