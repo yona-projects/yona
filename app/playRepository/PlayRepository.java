@@ -77,6 +77,8 @@ public interface PlayRepository {
      */
     public abstract List<Commit> getHistory(int pageNum, int pageSize, String untilRev) throws IOException, GitAPIException, SVNException;
 
+    public abstract Commit getCommit(String rev) throws IOException, SVNException;
+
     /**
      * 브랜치 목록 조회
      *
