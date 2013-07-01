@@ -42,7 +42,8 @@
          * initialize element variables
          */
         function _initElement() {
-            htElement.welContainer = $(".project-menu");
+            htElement.welProjectMenu = $(".project-menu");
+            htElement.welProjectMenuWrap = $(".project-menu-wrap");
             
             htElement.welBtnWatch =  $(".watchBtn, #btnWatch");
             htElement.welBtnClone = $("#btnClone");
@@ -97,7 +98,8 @@
             
             // popover 영역은 표시할 때마다 새로 생성하므로
             // 이벤트 처리를 다시 해야 함
-            var welPopover = htElement.welContainer.find(".popover");
+            var welPopover = htElement.welProjectMenu.find(".popover");
+            
             if(welPopover.length > 0){
                 // 주소 복사 버튼
                 welPopover.find(".copy-url").zclip({
@@ -118,18 +120,11 @@
          * 프로젝트 메뉴 영역에 bootstrap-affix 적용
          */
         function _initAffix(){
+            htElement.welProjectMenu.height(htElement.welProjectMenuWrap.height());
             
-            $(".project-menu").height($(".project-menu-wrap").height());
-            
-            $(".project-menu-wrap").affix({
-                "offset": $(".project-menu-wrap").offset()
-            });//.width($(".page").width());
-
-            
-            /*$(window).resize(function(){
-                $(".project-menu-wrap").width($(".page").width());
-            });*/
-              
+            htElement.welProjectMenuWrap.affix({
+                "offset": htElement.welProjectMenuWrap.offset()
+            });
         }
         
         _init(htOptions || {});
