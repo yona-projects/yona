@@ -123,12 +123,12 @@
             
             $(".project-menu-wrap").affix({
                 "offset": $(".project-menu-wrap").offset()
-            }).width($(".page").width());
+            });//.width($(".page").width());
 
             
-            $(window).resize(function(){
+            /*$(window).resize(function(){
                 $(".project-menu-wrap").width($(".page").width());
-            });
+            });*/
               
         }
         

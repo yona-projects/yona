@@ -1420,33 +1420,33 @@
             z-index:100;
             position:fixed;
             background:#fff;
-            border:1px solid #d4d4d4;
-            border-top:none;
+            /*border:1px solid #d4d4d4;
+            border-top:none;*/
+            border-bottom:1px solid #eee;
+            left:0; right:0;
+            
+            .project-menu-container { width:95%; margin:0 auto; }
         }
 
         .project-menu-container {
             position:relative;
-           
 
             &.main {
                 text-align:left;
-                ul > li a {
-                    padding:15px 35px; display:block;
-                    font-weight:bold; /*color:#777;*/
-                    -webkit-transition-duration:0.3s;
-                    &:hover { color:@primary; text-decoration:underline; }
-                }
+                
+                ul > li {
+                    a {
+                        padding:15px 35px; display:block;
+                        font-weight:bold; /*color:#777;*/
+                        -webkit-transition-duration:0.3s;
+                        &:hover { color:@primary; text-decoration:underline; }
+                    }
 
-               .active {
-                   border-bottom:2px solid @primary;
-                   color:@primary;
-                   /*
-                   background-color:@primary;
-                   .box-shadow(inset 2px 2px 2px rgba(0,0,0,0.15));
-                   .border-radius(5%);
-                   a { color:#fff; }
-                   */
-               }
+                    &.active {
+                        border-bottom:2px solid @primary;
+                        color:@primary;
+                    }
+                }
             }
 
             .sub {
@@ -1464,12 +1464,12 @@
                 a { font-weight:bold; color:#959595; padding:0 25px; font-size:12px; }
                 .active a { color:@primary !important; }
             }
+            
             .sp-line {
                 width:1px; color:#d7d8d9;
                 padding:0; margin:0;
                 /*display:none;*/
             }
-
 
             .actrow {
                 position:absolute; 
