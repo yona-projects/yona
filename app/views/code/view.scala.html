@@ -50,6 +50,7 @@
         </ul>
         
         <div class="code-viewer-wrap">
+            <div id="spin" style="position: absolute; top:50%; left:50%"></div>
             <div class="code-tree">
                 <!-- codeBrowser.js will fills here (dynaTree) -->
                 <div id="folderList" class="directories"></div>
@@ -60,7 +61,7 @@
                 <div class="sp-wrap cell"></div>
                 
                 @** 파일 목록 **@
-                <div id="fileList" class="file-wrap cell" style="display:none;">
+                <div id="fileList" class="file-wrap cell">
                     <table class="code-table sources">
                         <thead class="thead">
                         <tr>
@@ -124,6 +125,8 @@
 <script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/ace/ace.js"></script>
+<script type="text/javascript" src="/assets/javascripts/lib/spin.js")"></script>
+
 <script type="text/javascript">
 	$(document).ready(function(){
 		$hive.loadModule("code.Browser", {
