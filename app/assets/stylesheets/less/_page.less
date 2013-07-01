@@ -2514,8 +2514,44 @@ div.markdown-preview {
         background-color: @white;
     }
 
-    .diff {
-        .border-radius(2px);
+    #commit {
+        font-family: "monospace";
+        table {
+            border: 1px solid #d8d8d8;
+            width: 100%;
+        }
+        td {
+            border-width: 0px 1px;
+            border-color: #e5e5e5;
+            border-style: solid;
+        }
+        td.linenum {
+            text-align: right;
+            color: rgba(0, 0, 0, 0.3);
+        }
+        span {
+            white-space: pre;
+        }
+        span.add {
+            background-color: #aaffaa;
+        }
+        span.remove {
+            background-color: #ffaaaa;
+        }
+        tr.add {
+            background-color: #eeffcc;
+        }
+        tr.remove {
+            background-color: #fdd;
+        }
+        tr.file {
+            background-color: #D7D7D7;
+            font-weight: bold;
+        }
+        tr.range {
+            color: #999;
+            background-color: #f8f8ff;
+        }
     }
 
     .code-viewer-wrap {

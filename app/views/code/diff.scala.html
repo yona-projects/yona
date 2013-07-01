@@ -2,6 +2,7 @@
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
+@import utils.TemplateHelper._
 
 @branchItemType(itemType:String) = @{
     if(itemType == "heads"){
@@ -57,24 +58,16 @@
 	        </li>
 	    </ul>
 
-		<div id="commit">
-	    	<pre class="diff"><code>@patch</code></pre>
-		</div>
+		<div id="commit" style="display: none">@patch</div>
 	</div>
 	
 	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
 	
 </div>
-
-<link rel="stylesheet" type="text/css" href="/assets/stylesheets/hljsstyles/monokai.css" />
-
-<script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/hljs/hljs.jquery.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/hljs/languages/allinone.js"></script>
+<script type="text/javascript" src="@getJSLink("lib/diff")"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
-		$("code").highlight('diff');
+		$hive.loadModule("code.Diff");
 	});
 </script>
-
 }
