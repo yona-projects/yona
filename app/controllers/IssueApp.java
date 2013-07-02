@@ -278,15 +278,25 @@ public class IssueApp extends AbstractPostingApp {
                 continue;
             }
 
+            boolean assigneeChanged = false;
+            User oldAssignee = null;
             if (issueMassUpdate.assignee != null) {
-                if (issueMassUpdate.assignee.isAnonymous()) {
-                    issue.assignee = null;
-                } else {
-                    issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                if(issue.assignee != null) {
+                    oldAssignee = issue.assignee.user;
                 }
+                Assignee newAssignee = null;
+                if (issueMassUpdate.assignee.isAnonymous()) {
+                    newAssignee = null;
+                } else {
+                    newAssignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                }
+                assigneeChanged = isAssigneeChanged(issue.assignee, newAssignee);
+                issue.assignee = newAssignee;
             }
 
-            if (issueMassUpdate.state != null) {
+            boolean stateChanged = false;
+            if ((issueMassUpdate.state != null) && (issue.state != issueMassUpdate.state)) {
+                stateChanged = true;
                 issue.state = issueMassUpdate.state;
             }
 
@@ -308,6 +318,15 @@ public class IssueApp extends AbstractPostingApp {
 
             issue.update();
             updatedItems++;
+
+            Issue updatedIssue = Issue.finder.byId(issue.id);
+            String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).absoluteURL(request());
+            if(assigneeChanged) {
+                sendAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
+            }
+            if(stateChanged) {
+                sendStateChangedNotification(updatedIssue, urlToView);
+            }
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
@@ -422,23 +441,11 @@ public class IssueApp extends AbstractPostingApp {
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
 
-        final Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound();
         }
         final Issue originalIssue = Issue.findByNumber(project, number);
-
-        boolean stateChanged = false;
-
-        boolean assigneeChanged =
-                ((issue.assignee != null && originalIssue.assignee != null) && (issue.assignee.id
-                        != originalIssue.assignee.id))
-                || ((issue.assignee != originalIssue.assignee) && (issue.assignee == null ||
-                        originalIssue.assignee == null));
-
-        if(issue.state != originalIssue.state) {
-            stateChanged = true;
-        }
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
 
@@ -454,48 +461,60 @@ public class IssueApp extends AbstractPostingApp {
 
         Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
 
-        if(assigneeChanged) {
+        if(isAssigneeChanged(originalIssue.assignee, issue.assignee)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-
-            Set<User> receivers = updatedIssue.getWatchers();
-            Assignee assignee = originalIssue.assignee;
-            if(assignee != null) {
-                receivers.add(assignee.user);
+            User oldAssignee = null;
+            if(originalIssue.assignee != null) {
+                oldAssignee = originalIssue.assignee.user;
             }
-
-            String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
-
-            String message;
-            if (updatedIssue.assignee == null) {
-                message = "Unassigned";
-            } else {
-                User newAssignee = User.find.byId(updatedIssue.assignee.user.id);
-                message = "Assigned to " + newAssignee.loginId;
-            }
-
-            sendNotification(NotificationFactory.create(receivers, title, message,
-                    redirectTo.absoluteURL(request())));
+            sendAssigneeChangedNotification(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
         }
 
-        if(stateChanged) {
+        if(issue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-
-            Set<User> receivers = updatedIssue.getWatchers();
-
-            String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
-
-            String message;
-            if(updatedIssue.state == State.CLOSED) {
-                message = "Closed";
-            } else {
-                message = "Re-opened";
-            }
-
-            sendNotification(NotificationFactory.create(receivers, title, message,
-                    redirectTo.absoluteURL(request())));
+            sendStateChangedNotification(updatedIssue, redirectTo.absoluteURL(request()));
         }
 
         return result;
+    }
+
+    private static boolean isAssigneeChanged(Assignee oldAssignee, Assignee newAssignee) {
+        return ((newAssignee != null && oldAssignee != null) && (newAssignee.id != oldAssignee.id))
+        || ((newAssignee != oldAssignee) && (newAssignee == null || oldAssignee == null));
+    }
+
+    private static void sendStateChangedNotification(Issue updatedIssue, String urlToView) {
+        Set<User> receivers = updatedIssue.getWatchers();
+
+        String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+
+        String message;
+        if(updatedIssue.state == State.CLOSED) {
+            message = "Closed";
+        } else {
+            message = "Re-opened";
+        }
+
+        sendNotification(NotificationFactory.create(receivers, title, message, urlToView));
+    }
+
+    private static void sendAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
+        Set<User> receivers = updatedIssue.getWatchers();
+        if(oldAssignee != null) {
+            receivers.add(oldAssignee);
+        }
+
+        String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+
+        String message;
+        if (updatedIssue.assignee == null) {
+            message = "Unassigned";
+        } else {
+            User newAssignee = User.find.byId(updatedIssue.assignee.user.id);
+            message = "Assigned to " + newAssignee.loginId;
+        }
+
+        sendNotification(NotificationFactory.create(receivers, title, message, urlToView));
     }
 
 
