@@ -3,7 +3,6 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 
-import org.apache.commons.lang.StringUtils;
 import play.mvc.Http;
 import views.html.issue.edit;
 import views.html.issue.view;
@@ -26,10 +25,7 @@ import com.avaje.ebean.ExpressionList;
 
 import javax.persistence.Transient;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
 import static play.data.Form.form;
@@ -384,8 +380,10 @@ public class IssueApp extends AbstractPostingApp {
         final Call issueCall = routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber());
 
         String title = String.format("[%s] %s (#%d)", newIssue.project.name, newIssue.title, newIssue.getNumber());
+        Set<User> watchers = newIssue.getWatchers();
+        watchers.addAll(getMentionedUsers(newIssue.body));
         Notification noti = NotificationFactory
-                .create(newIssue.getWatchers(), title, newIssue.body, issueCall.absoluteURL(request()));
+                .create(watchers, title, newIssue.body, issueCall.absoluteURL(request()));
 
         sendNotification(noti);
 

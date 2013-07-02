@@ -22,6 +22,7 @@ import play.mvc.Result;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
 
@@ -142,7 +143,11 @@ public class BoardApp extends AbstractPostingApp {
         Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
 
         String title = String.format("[%s] %s (#%d)", post.project.name, post.title, post.getNumber());
-        Notification noti = NotificationFactory.create(post.getWatchers(), title, post.body, toPost.absoluteURL(request()));
+
+        Set<User> watchers = post.getWatchers();
+        watchers.addAll(getMentionedUsers(post.body));
+        Notification noti = NotificationFactory.create(watchers, title, post.body,
+                toPost.absoluteURL(request()));
 
         sendNotification(noti);
 

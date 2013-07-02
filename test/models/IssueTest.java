@@ -4,11 +4,14 @@ import static org.fest.assertions.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 import org.junit.Before;
 
 import com.avaje.ebean.Page;
+import play.Logger;
 import play.data.validation.Validation;
 
 public class IssueTest extends ModelTest<Issue> {
@@ -101,5 +104,16 @@ public class IssueTest extends ModelTest<Issue> {
 
         issue = Issue.finder.byId(issue.id); // 데이터가 refresh가 안되서 다시 읽어옴.
         assertThat(issue.getWatchers().contains(nonmember)).describedAs("after unwatch").isFalse();
+    }
+
+    @Test
+    public void getMentionedUsers() {
+        String body = "hello @admin hihi @keesun";
+        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
+
+        matcher.find();
+        assertThat(matcher.group()).isEqualTo("@admin");
+        matcher.find();
+        assertThat(matcher.group()).isEqualTo("@keesun");
     }
 }

@@ -24,14 +24,27 @@ import utils.Config;
 import utils.Constants;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link BoardApp}과 {@link IssueApp}에서 공통으로 사용하는 기능을 담고 있는 컨트롤러 클래스
  */
 public class AbstractPostingApp extends Controller {
     public static final int ITEMS_PER_PAGE = 15;
+
+    protected static Set<User> getMentionedUsers(String body) {
+        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
+        Set<User> users = new HashSet<>();
+        while(matcher.find()) {
+            users.add(User.findByLoginId(matcher.group().substring(1)));
+        }
+        users.remove(User.anonymous);
+        return users;
+    }
 
     /**
      * 검색 조건
@@ -128,7 +141,10 @@ public class AbstractPostingApp extends Controller {
 
         AbstractPosting post = comment.getParent();
         String title = String.format("Re: [%s] %s (#%d)", post.project.name, post.title, post.getNumber());
-        Notification noti = NotificationFactory.create(post.getWatchers(), title, comment.contents, toView.absoluteURL(request()));
+        Set<User> watchers = post.getWatchers();
+        watchers.addAll(getMentionedUsers(comment.contents));
+        Notification noti = NotificationFactory.create(watchers, title, comment.contents,
+                toView.absoluteURL(request()));
         sendNotification(noti);
 
         return redirect(toView);
