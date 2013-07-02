@@ -2613,10 +2613,10 @@ div.markdown-preview {
             border-bottom:1px solid #ccc;
         }
         .tbody {
-            font-size: 12px;
+            font-size: 10pt;
             color: #666;
             td {
-                line-height: 50px;
+                line-height: 30px;
             }
             tr {
                 border-bottom: 1px solid #E6E6E6;
@@ -2642,6 +2642,15 @@ div.markdown-preview {
             max-width: 200px;
             .text-overflow;
             display:block;
+            color:#000;
+            
+            span.dynatree-icon { 
+                margin-right:5px;
+                margin-bottom:1px;
+            }
+            &.updir { 
+                span.dynatree-icon { display:none; }
+            }
         }
 
         .updir { font-weight:bold; }
