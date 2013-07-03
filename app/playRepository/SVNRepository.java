@@ -245,6 +245,20 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
+    public Commit getCommit(String revNumber) throws IOException, SVNException {
+        long rev = Integer.parseInt(revNumber);
+        String[] paths = {"/"};
+        SVNURL svnURL = SVNURL.fromFile(new File(getRepoPrefix() + ownerName + "/" + projectName));
+        org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);
+
+        for(Object entry : repository.log(paths, null, rev, rev, false, false)) {
+            return new SvnCommit((SVNLogEntry) entry);
+        }
+
+        return null;
+    }
+
+    @Override
     public List<String> getBranches() {
         ArrayList<String> branches = new ArrayList<>();
         branches.add(SVNRevision.HEAD.getName());

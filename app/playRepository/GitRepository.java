@@ -482,6 +482,17 @@ public class GitRepository implements PlayRepository {
         return result;
     }
 
+    @Override
+    public Commit getCommit(String rev) throws IOException {
+        ObjectId commitId = repository.resolve(rev);
+
+        if (commitId == null) {
+            return null;
+        }
+
+        return new GitCommit(new RevWalk(repository).parseCommit(commitId));
+    }
+
     /**
      * Git 저장소의 모든 브랜치 이름을 반환한다.
      * @return

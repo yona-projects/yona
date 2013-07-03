@@ -138,12 +138,13 @@ public class CodeHistoryApp extends Controller {
         }
 
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
 
         if (patch == null) {
             return notFound();
         }
 
-        return ok(diff.render(project, commitId, patch));
+        return ok(diff.render(project, commit, patch));
     }
 
 }
