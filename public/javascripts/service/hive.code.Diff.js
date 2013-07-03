@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://hive.dev.naver.com/license
  */
 
@@ -11,9 +11,9 @@
 
 	var oNS = $hive.createNamespace(ns);
 	oNS.container[oNS.name] = function(htOptions){
-	
+
 		var htElement = {};
-		
+
 		/**
 		 * initialize
 		 */
@@ -24,7 +24,7 @@
             htElement.welDiff.append(_renderDiff(sDiff));
             htElement.welDiff.show();
 		}
-	
+
 		/**
 		 * initialize element
 		 */
@@ -202,8 +202,8 @@
                         break;
                     case '@@':
 						aMatch = aLine[i].match(rxHunkHeader);
-                        aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) { 
-							return parseInt(sVal, 10); 
+                        aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
+							return parseInt(sVal, 10);
 						}) : null;
                         if (aHunkRange == null || aHunkRange.length < 4) {
                             if (console instanceof Object) {
@@ -243,8 +243,8 @@
 
             return welTable;
         }
-		
+
 		_init(htOptions || {});
 	};
-	
+
 })("hive.code.Diff");
