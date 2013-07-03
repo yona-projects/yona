@@ -338,11 +338,17 @@ public class UserApp extends Controller {
         user.email = newEmail;
         user.name = newName;
 
-        int attachCount = Attachment.countByContainer(user.asResource());
-        if (attachCount > 0) {
-            Attachment.deleteAll(user.avatarAsResource());
-            Attachment.moveAll(currentUser().asResource(), currentUser().avatarAsResource());
-            user.avatarUrl = "/files/" + user.avatarId();
+        try {
+            Long avatarId = Long.valueOf(userForm.data().get("avatarId"));
+            if (avatarId != null) {
+                Attachment attachment = Attachment.find.byId(avatarId);
+                String primary = attachment.mimeType.split("/")[0].toLowerCase();
+                if (primary.equals("image")) {
+                    attachment.moveTo(currentUser().avatarAsResource());
+                    user.avatarUrl = routes.AttachmentApp.getFile(attachment.id).url();
+                }
+            }
+        } catch (NumberFormatException e) {
         }
 
         user.update();
