@@ -136,6 +136,9 @@ public class User extends Model {
     )
     public List<Project> enrolledProjects;
 
+    @ManyToMany(mappedBy = "receivers")
+    public Set<NotificationEvent> notificationEvents;
+
     public User(){}
 
     public User(Long id){

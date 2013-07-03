@@ -1,37 +1,33 @@
 import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import com.typesafe.config.ConfigFactory;
-import models.Issue;
-import models.Posting;
-import models.Project;
-import models.User;
+import controllers.AbstractPostingApp;
+import models.*;
 
 import com.avaje.ebean.Ebean;
 
 import controllers.routes;
+import org.joda.time.DateTime;
 import play.Application;
 import play.GlobalSettings;
 import play.Configuration;
 import play.api.mvc.Handler;
-import play.i18n.Messages;
+import play.libs.Akka;
 import play.libs.Yaml;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
 
+import scala.concurrent.duration.Duration;
 import utils.AccessLogger;
 
 import play.data.DynamicForm;
@@ -61,6 +57,53 @@ public class Global extends GlobalSettings {
         if (app.isTest()) {
             insertTestData();
         }
+
+        scheduleNotificationByMail();
+    }
+
+    private void scheduleNotificationByMail() {
+        final Long MAIL_NOTIFICATION_INITDELAY_IN_MILLIS = Configuration.root()
+                .getMilliseconds("application.notification.bymail.initdelay", 5000L);
+        final Long MAIL_NOTIFICATION_INTERVAL_IN_MILLIS = Configuration.root()
+                .getMilliseconds("application.notification.bymail.interval", 60000L);
+        final int MAIL_NOTIFICATION_DELAY_IN_MILLIS = Configuration.root()
+                .getMilliseconds("application.notification.bymail.delay", 180000L).intValue();
+
+        Akka.system().scheduler().schedule(
+            Duration.create(MAIL_NOTIFICATION_INITDELAY_IN_MILLIS, TimeUnit.MILLISECONDS),
+            Duration.create(MAIL_NOTIFICATION_INTERVAL_IN_MILLIS, TimeUnit.MILLISECONDS),
+            new Runnable() {
+                public void run() {
+                    try {
+                        sendMail();
+                    } catch (Exception e) {
+                        play.Logger.warn(e.getMessage());
+                    }
+                }
+
+                private void sendMail() {
+                    Date sinceDate = DateTime.now().minusMillis
+                            (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
+                    List<NotificationMail> mails = NotificationMail.find.where()
+                                    .lt("notificationEvent.created", sinceDate)
+                                    .orderBy("notificationEvent.created ASC").findList();
+
+                    for (NotificationMail mail: mails) {
+                        if (mail.notificationEvent.resourceExists()) {
+                            AbstractPostingApp.sendNotification(
+                                    AbstractPostingApp.NotificationFactory.create(
+                                            mail.notificationEvent.receivers,
+                                            mail.notificationEvent.title,
+                                            mail.notificationEvent.message,
+                                            mail.notificationEvent.urlToView
+                                    ));
+                        }
+                        mail.delete();
+                    }
+                }
+            },
+            Akka.system().dispatcher()
+        );
     }
 
     private void validateSecret() {

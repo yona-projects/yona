@@ -1,6 +1,7 @@
 package controllers;
 
 import info.schleichardt.play2.mailplugin.Mailer;
+import models.enumeration.NotificationType;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
@@ -24,6 +25,7 @@ import utils.Config;
 import utils.Constants;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -88,8 +90,9 @@ public class AbstractPostingApp extends Controller {
         }
     }
 
-    protected static class NotificationFactory {
-        public static Notification create(final Set<User> receivers, final String title, final String message, final String urlToView) {
+    public static class NotificationFactory {
+        public static Notification create(final Set<User> receivers, final String title,
+                                          final String message, final String urlToView) {
             return new AbstractNotification() {
                 public String getTitle() {
                     return title;
@@ -111,7 +114,6 @@ public class AbstractPostingApp extends Controller {
             };
         }
     }
-
 
     /**
      * 새 댓글 저장 핸들러
@@ -142,10 +144,20 @@ public class AbstractPostingApp extends Controller {
         AbstractPosting post = comment.getParent();
         String title = String.format("Re: [%s] %s (#%d)", post.project.name, post.title, post.getNumber());
         Set<User> watchers = post.getWatchers();
-        watchers.addAll(getMentionedUsers(comment.contents));
-        Notification noti = NotificationFactory.create(watchers, title, comment.contents,
-                toView.absoluteURL(request()));
-        sendNotification(noti);
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.message = comment.contents;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = toView.absoluteURL(request());
+        notiEvent.resourceId = comment.id;
+        notiEvent.resourceType = comment.asResource().getType();
+        notiEvent.type = NotificationType.NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = comment.contents;
+        notiEvent.save();
 
         return redirect(toView);
     }
@@ -156,17 +168,15 @@ public class AbstractPostingApp extends Controller {
      * @param noti
      * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
      */
-    protected static void sendNotification(Notification noti) {
+    public static void sendNotification(Notification noti) {
         final HtmlEmail email = new HtmlEmail();
 
         try {
-            User sender = UserApp.currentUser();
-            email.setFrom(sender.email, sender.name);
             play.Configuration config = play.Configuration.root();
+            email.setFrom(config.getString("smtp.user") + "@" + config.getString("smtp" + ".domain"));
             email.addTo(config.getString("smtp.user") + "@" + config.getString("smtp.domain"));
             Set<User> receivers = noti.getReceivers();
             receivers.remove(User.anonymous);
-            receivers.remove(UserApp.currentUser());
             if(receivers.isEmpty()) {
                 return;
             }
@@ -177,24 +187,14 @@ public class AbstractPostingApp extends Controller {
             email.setHtmlMsg(noti.getHtmlMessage());
             email.setTextMsg(noti.getPlainMessage());
             email.setCharset("utf-8");
+            Mailer.send(email);
+            String escapedTitle = email.getSubject().replace("\"", "\\\"");
+            String logEntry = String.format("\"%s\" %s", escapedTitle, email.getBccAddresses());
+            play.Logger.of("mail").info(logEntry);
         } catch (Exception e) {
             Logger.warn("Failed to send a notification: "
                     + email + "\n" + ExceptionUtils.getStackTrace(e));
         }
-
-        Callable<Object> sendingMail = new Callable<Object>() {
-            public Object call() throws EmailException {
-                try {
-                    Mailer.send(email);
-                } catch (Exception e) {
-                    Logger.warn("Failed to send a notification: "
-                            + email + "\n" + ExceptionUtils.getStackTrace(e));
-                }
-                return null;
-            }
-        };
-
-        Akka.future(sendingMail);
     }
 
     /**

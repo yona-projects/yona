@@ -16,6 +16,13 @@
         </encoder>
     </appender>
 
+    <appender name="MAIL_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${application.home}/logs/mail.log</file>
+        <encoder>
+            <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="ROOT_LOG_FILE" class="ch.qos.logback.core.FileAppender">
         <file>${application.home}/logs/root.log</file>
         <encoder>
@@ -44,6 +51,10 @@
 
     <logger name="access" level="DEBUG">
         <appender-ref ref="ACCESS_LOG_FILE" />
+    </logger>
+
+    <logger name="mail" level="DEBUG">
+        <appender-ref ref="MAIL_LOG_FILE" />
     </logger>
 
 </configuration>
