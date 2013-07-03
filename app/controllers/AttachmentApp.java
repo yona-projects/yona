@@ -103,7 +103,7 @@ public class AttachmentApp extends Controller {
             return created(responseBody);
         } else {
             // If the attachment already exists, return 200 OK.
-            // Why not 204? -- Because 204 doesn't allow that response has body,
+            // Why not 204? Because 204 doesn't allow response to have a body,
             // so we cannot tell what is same with the file you try to add.
             return ok(responseBody);
         }
