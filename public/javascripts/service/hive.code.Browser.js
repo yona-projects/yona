@@ -93,15 +93,20 @@
             htElement.welCodeViewerWrap = $(".code-viewer-wrap");
             htElement.welBtnResize = $(".btnResize");
             
+            htElement.welBreadCrumbs = $("#breadcrumbs");
             htElement.welCommiter = $("#commiter");
             htElement.welCommitMsg = $("#commitMessage");
             htElement.welCommitRev = $("#revisionNo");
             htElement.welCommitDate = $("#commitDate");
             
             htElement.welShowImage = $("#showImage");
-            htElement.welShowCode = $("#showCode");
+            htElement.welShowCode  = $("#showCode");
+            htElement.welShowFile  = $("#showFile");
             
-            htElement.welBreadCrumbs = $("#breadcrumbs");
+            htElement.welShowImageSrc = htElement.welShowImage.find("img");
+            htElement.welShowFileName = htElement.welShowFile.find(".filename");
+            htElement.welShowFileSize = htElement.welShowFile.find(".filesize");
+            htElement.welShowFileHref = htElement.welShowFile.find(".filehref");
             
             htElement.welFileList = $("#fileList");
             htElement.welFileView = $("#fileView");
@@ -145,7 +150,6 @@
 		 * @param {Event} e
 		 */
 		function _onHashChange(e){
-            
             var sPath = getHash().replace(htVar.rxGetHash, "");
             var sBranch = getBranch();
 
@@ -236,42 +240,102 @@
         /**
          * 파일 내용 표시
          * _onHashChange 에서 호출
-         * @param {String} path
-         * @param {Hash Table} data
+         * @param {String} sPath
+         * @param {Hash Table} htData
          */
-        function handleFile(path, data){
-            var author = data.author || '';
-            var msg = data.msg || '';
-            var revisionNo = data.revisionNo || '';  
-
+        function handleFile(sPath, htData){
             // 커밋 정보 업데이트
-            htElement.welCommiter.text(author);
-            htElement.welCommitMsg.text(msg);
-            htElement.welCommitRev.text((revisionNo != '') ? "Revision#: " + revisionNo : '');
-            htElement.welCommitDate.text(moment(new Date(data.createdDate)).fromNow());
+            htElement.welCommiter.text(htData.author || '');
+            htElement.welCommitMsg.text(htData.msg || '');
+            htElement.welCommitRev.text((htData.revisionNo && htData.revisionNo != '') ? "Revision#: " + htData.revisionNo : '');
+            htElement.welCommitDate.text(moment(new Date(htData.createdDate)).fromNow());
             
-            // 이미지와 텍스트 구분해서 표시
-            if(_isImageFile(path)) {
-                htElement.welShowImage.html("<img src='./image" + path + "'>");
-                htElement.welShowImage.show();
-                htElement.welShowCode.hide();
+            // 파일 종류에 따라 구분
+            if(_isImageFile(sPath)){
+                _showImage(sPath);
+            } else if(_getEditorModeByPath(sPath)){
+                _showCode(htData.data, _getEditorModeByPath(sPath));
             } else {
-                htElement.welShowImage.hide();
-                htElement.welShowCode.show();
-
-                if(!htVar.oEditor){
-                    htVar.oEditor = _getEditor("showCode");
-                }
-                _setEditorModeByPath(path);
-                htVar.oEditor.setValue(data.data, -1);
-                setTimeout(_resizeEditor, 50);
+                _showFile(sPath, htData);
             }
-        
+
             htElement.welFileList.hide();
             htElement.welFileView.show();
-            htElement.welBtnRawCode.attr("href", "rawcode"+ path);
+            htElement.welBtnRawCode.attr("href", "rawcode"+ sPath);
         }
 
+        /**
+         * 지정한 경로의 이미지 표시
+         * handleFile 에서 호출한다
+         * @param {String} sPath
+         */
+        function _showImage(sPath){
+            htElement.welShowImage.show();
+            htElement.welShowCode.hide();
+            htElement.welShowFile.hide();
+
+            htElement.welBtnRawCode.show();
+            htElement.welBtnFullScreen.show();
+            
+            htElement.welShowImageSrc.attr("src", "./image" + sPath);
+        }
+        
+        /**
+         * 코드를 에디터를 이용해 표시한다
+         * handleFile 에서 호출
+         * @param {String} sCode
+         * @param {String} sMode
+         */
+        function _showCode(sCode, sMode){
+            htElement.welShowCode.show();
+            htElement.welShowImage.hide();
+            htElement.welShowFile.hide();
+
+            if(!htVar.oEditor){
+                htVar.oEditor = _getEditor("showCode");
+            }
+
+            htElement.welBtnRawCode.show();
+            htElement.welBtnFullScreen.show();
+
+            htVar.oSession.setMode("ace/mode/" + sMode);
+            htVar.oEditor.setValue(sCode, -1);
+            
+            setTimeout(_resizeEditor, 50);
+        }
+        
+        /**
+         * 파일 정보를 표시한다
+         * handleFile 에서 호출
+         * @param {String} sPath
+         * @param {Hash Table} htData
+         */
+        function _showFile(sPath, htData){
+            htElement.welShowFile.show();
+            htElement.welShowCode.hide();
+            htElement.welShowImage.hide();
+
+            htElement.welBtnRawCode.hide();
+            htElement.welBtnFullScreen.hide();
+
+            htElement.welShowFileSize.html(humanize.filesize(htData.data.length));
+            htElement.welShowFileName.html(basename(sPath));
+            htElement.welShowFileHref.attr("href", "rawcode" + sPath);
+        }
+        
+        /**
+         * aceEditor 높이를 내용에 맞게 키우는 함수
+         * handleFile 에서 파일 내용이 바뀔 때 마다 호출함
+         */
+        function _resizeEditor(){
+            var nLineHeight = htVar.oEditor.renderer.lineHeight;
+            nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
+
+            var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
+            htElement.welShowCode.height(newHeight);
+            htVar.oEditor.resize();
+        }
+      
         /**
          * 대소문자 구분없이 정의된 확장자명으로 끝나는지를 검사하여 반환
          * @param {String} sPathName
@@ -302,33 +366,19 @@
         }
 
         /**
-         * 파일명을 기준으로 에디터 모드를 결정해주는 함수
-         * handleFile 에서 파일 내용이 바뀔 때 마다 호출함  
+         * 파일명을 기준으로 사용가능한 aceEditor mode 반환
          * @param {String} sPath
+         * @return {String}
          */
-        function _setEditorModeByPath(sPath){
+        function _getEditorModeByPath(sPath){
             var sExt = getExt(basename(sPath));
-            var sMode = ext2mode(sExt);
-            
-            htVar.oSession.setMode("ace/mode/" + sMode);
+            return ext2mode(sExt);
         }
         
         /**
-         * aceEditor 높이를 내용에 맞게 키우는 함수
-         * handleFile 에서 파일 내용이 바뀔 때 마다 호출함
-         */
-        function _resizeEditor(){
-            var nLineHeight = htVar.oEditor.renderer.lineHeight;
-            nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
-
-            var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
-            htElement.welShowCode.height(newHeight);
-            htVar.oEditor.resize();
-        }
-      
-        /**
          * 확장자를 aceEditor mode 로 변환
          * @param {String} sExt
+         * @return {Variant} 지원 가능한 형식이면 해당 모드의 문자열(String), 그 이외에는 false(Boolean)
          */
         function ext2mode(sExt){
             sExt = sExt.toLowerCase();
@@ -374,7 +424,7 @@
                 }
             }
             
-            return "txt";
+            return false;
         }
         
         /**

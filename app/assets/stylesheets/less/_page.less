@@ -2723,8 +2723,18 @@ div.markdown-preview {
     
     .image-wrap {
         padding:10px;
+        
+        img { max-width:100%; }
     }
 
+    .file-wrap {
+        p { 
+            margin: 100px 0; text-align:center;
+            .filename { display:block; font-size:20px; }
+            .filesize { display:block; font-size:13px; margin-bottom:20px; color:#999; }
+        }
+    }
+    
     .btnResize {
         width:10px; cursor:e-resize;
         height: 99.9%;
