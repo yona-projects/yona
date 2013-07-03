@@ -20,9 +20,9 @@
 		function _init(htOptions){
 			_initElement(htOptions);
             sDiff = htElement.welDiff.text();
-            htElement.text("");
-            htElement.append(_renderDiff(sDiff));
-            htElement.show();
+            htElement.welDiff.text("");
+            htElement.welDiff.append(_renderDiff(sDiff));
+            htElement.welDiff.show();
 		}
 	
 		/**
@@ -36,10 +36,10 @@
          * welTable에 새 row를 추가한다.
          *
          * @param {Object} welTable
-         * @param {String] sClass
-         * @param {Number] nLineA
-         * @param {Number] nLineB
-         * @param {Object|String] vContent
+         * @param {String} sClass
+         * @param {Number} nLineA
+         * @param {Number} nLineB
+         * @param {Object|String} vContent
          */
         function _appendLine(welTable, sClass, nLineA, nLineB, vContent) {
             var welTr = $('<tr>').addClass(sClass);
@@ -63,7 +63,7 @@
          * 삭제된 라인과 추가된 라인이 정확히 1줄씩인 경우임을 가정한다.
          *
          * @param {Object} welTable
-         * @param {Object] htDiff
+         * @param {Object} htDiff
          */
         function _appendChangedLinesWithWordHighlight(welTable, htDiff) {
             var aDiff = JsDiff.diffWords(
@@ -97,7 +97,7 @@
          * 단어 단위 하이라이팅을 적용하지 않는다.
          *
          * @param {Object} welTable
-         * @param {Object] htDiff
+         * @param {Object} htDiff
          */
         function _appendChangedLinesWithoutWordHighlight(welTable, htDiff) {
             for (var i = 0; i < htDiff.aRemoved.length; i++) {
@@ -118,7 +118,7 @@
          * 1줄이라면 단어 단위 하이라이팅을 적용한다.
          *
          * @param {Object} welTable
-         * @param {Object] htDiff
+         * @param {Object} htDiff
          */
         function _appendChangedLines(welTable, htDiff) {
             if (htDiff.aRemoved.length == 1 && htDiff.aAdded.length == 1) {
@@ -132,7 +132,7 @@
          * diff에서 얻은 특정 파일의 header를 welTable에 새 row로 추가한다.
          *
          * @param {Object} welTable
-         * @param {Object] sHunkHeader
+         * @param {Object} sHunkHeader
          */
         function _appendFileHeader(welTable, sFileHeader) {
             _appendLine(welTable, "file", "", "", sFileHeader);
@@ -142,7 +142,7 @@
          * diff에서 얻은 특정 hunk의 header를 welTable에 새 row로 추가한다.
          *
          * @param {Object} welTable
-         * @param {Object] sHunkHeader
+         * @param {Object} sHunkHeader
          */
         function _appendHunkHeader(welTable, sHunkHeader) {
             _appendLine(welTable, "range", "...", "...", sHunkHeader);
@@ -165,7 +165,7 @@
                 aAdded: [],
                 nLineA: 0,
                 nLineB: 0,
-            }
+            };
             var rxHunkHeader = /@@\s+-(\d+),(\d+)\s+\+(\d+),(\d+)\s+@@/;
             var bAddedOrRemoved;
             var aHunkRange;
@@ -201,8 +201,10 @@
                         _appendFileHeader(welTable, aLine[i].substr(5));
                         break;
                     case '@@':
-                        aHunkRange = jQuery.map(aLine[i].match(rxHunkHeader),
-                                function(sVal) { return parseInt(sVal); });
+						aMatch = aLine[i].match(rxHunkHeader);
+                        aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) { 
+							return parseInt(sVal, 10); 
+						}) : null;
                         if (aHunkRange == null || aHunkRange.length < 4) {
                             if (console instanceof Object) {
                                 console.warn("Failed to parse hunk header");
