@@ -436,6 +436,8 @@ code.filename = 파일명
 code.commitMsg = 커밋 메시지
 code.commitDate = 커밋한 날짜
 code.author = 작성자
+code.openCommentBox = 댓글창 열기
+code.closeCommentBox = 댓글창 닫기
 
 #mail
 mail.password = 비밀번호

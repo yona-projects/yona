@@ -2552,6 +2552,57 @@ div.markdown-preview {
             color: #999;
             background-color: #f8f8ff;
         }
+        .icon-comment {
+            visibility: hidden;
+            opacity: 0.6;
+        }
+    }
+
+    ul.comments {
+        border: 1px solid black;
+        margin: 0px;
+    }
+
+    #commit + ul.comments {
+        margin-top: 15px;
+    }
+
+    .write-comment-box {
+        background-color: #f5f5f5;
+    }
+
+    .comment {
+        padding: 20px;
+        border-bottom:1px solid #efefef;
+        list-style: none;
+
+        .media-body {
+            padding-left: 17px;
+            .commenter {
+                line-height: 1.3;
+                font-size: 12px; font-weight:bold;
+                /*color: #646464;*/
+                .name {
+                    font-size: 11px;
+                }
+                .date {
+                    font-size: 11px;
+                    color: #aaa;
+                }
+            }
+            .attach {
+                color: #4489A4;
+            }
+
+            .comment-body {
+                /*color: #333;*/
+                a { font-weight:bold; border-bottom:1px dotted; }
+            }
+        }
+
+        .attach-preview-wrap {
+            margin-top: 10px;
+        }
     }
 
     .code-viewer-wrap {

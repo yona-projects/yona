@@ -1,9 +1,10 @@
-@(project: Project, commit:playRepository.Commit, patch: String)
+@(project: Project, commit:playRepository.Commit, patch: String, comments:List[CodeComment])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil._
+@import utils.AccessControl._
 
 @branchItemType(itemType:String) = @{
     if(itemType == "heads"){
@@ -86,15 +87,60 @@
         | <span>@agoString(ago(commit.getAuthorDate))</span>
         </p>
 		<div id="commit" style="display: none">@patch</div>
+
+        @if(comments.size > 0) {
+        <ul class="comments" style="display: none">
+        @for(comment <- comments){
+            <li class="comment" id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line">
+                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
+                    <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                </a>
+                <div class="media-body">
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                    <a class="pull-right close" href="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)">&times;</a>
+                    }
+                    <div class="comment-body" markdown="true">@comment.contents</div>
+                    <p class="commenter">
+                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                        <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
+                    </p>
+                    <div class="attachments" resourceType="@ResourceType.CODE_COMMENT" resourceId="@comment.id"></div>
+                </div>
+            </li>
+            }
+        </ul>
+        }
+
+        @views.html.commentForm(project, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
 	</div>
 	
 	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
 	
 </div>
+
+@markdown(project)
+
+<script type="text/x-jquery-tmpl" id="comment-icon-template">
+    <i class="icon-comment"></i>
+</script>
+<script type="text/x-jquery-tmpl" id="linenum-column-template">
+    <td class="linenum"></td>
+</script>
+<script type="text/x-jquery-tmpl" id="comment-button-template">
+    <button class="nbtn medium"></button>
+</script>
 <script type="text/javascript" src="@getJSLink("lib/diff")"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
-		$hive.loadModule("code.Diff");
+        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.CODE_COMMENT)){
+        var bCommentable = true;
+        } else {
+        var bCommentable = false;
+        }
+        $hive.loadModule("code.Diff", {
+            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
+            "bCommentable": bCommentable
+        });
 	});
 </script>
 }
