@@ -120,12 +120,15 @@
          * @param {Object} welTable
          * @param {Object} htDiff
          */
-        function _appendChangedLines(welTable, htDiff) {
+        function _flushChangedLines(welTable, htDiff) {
             if (htDiff.aRemoved.length == 1 && htDiff.aAdded.length == 1) {
                 _appendChangedLinesWithWordHighlight(welTable, htDiff);
             } else {
                 _appendChangedLinesWithoutWordHighlight(welTable, htDiff);
             }
+
+            htDiff.aRemoved = [];
+            htDiff.aAdded = [];
         }
 
         /**
@@ -187,6 +190,7 @@
                         htDiff.aRemoved.push(aLine[i]);
                         break;
                     case ' ':
+                        _flushChangedLines(welTable, htDiff);
                         _appendLine(welTable, "", htDiff.nLineA++,
                                 htDiff.nLineB++, aLine[i]);
                         break;
@@ -198,6 +202,7 @@
                     case '++':
                         break;
                     case '--':
+                        _flushChangedLines(welTable, htDiff);
                         _appendFileHeader(welTable, aLine[i].substr(5));
                         break;
                     case '@@':
@@ -214,6 +219,7 @@
                             nLastLineA = htDiff.nLineA + aHunkRange[2] - 1;
                             htDiff.nLineB = aHunkRange[3];
                             nLastLineB = htDiff.nLineB + aHunkRange[4] - 1;
+                            _flushChangedLines(welTable, htDiff);
                             _appendHunkHeader(welTable, aLine[i]);
                             bInHunk = true;
                         }
@@ -221,12 +227,6 @@
                     default:
                         break;
                     }
-                }
-
-                if (!bAddedOrRemoved) {
-                    _appendChangedLines(welTable, htDiff);
-                    htDiff.aRemoved = [];
-                    htDiff.aAdded = [];
                 }
 
                 if (htDiff.nLineA > nLastLineA || htDiff.nLineB > nLastLineB) {
