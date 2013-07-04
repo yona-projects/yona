@@ -102,6 +102,7 @@ button.detail = Detail
 button.apply = Apply
 button.back = Back
 button.upload = Upload
+button.download = Download
 button.user.makeAccountUnlock.true = Unlock
 button.user.makeAccountUnlock.false = Lock
 button.prevPage = Previous Page

@@ -281,38 +281,41 @@ $hive = hive.Common = (function(){
 		return sText.split("\n").join("<br>");		
 	}
 	
+	/**
+	 * Simple template processor
+	 * @param {String} sTemplate Template String
+	 * @param {Hash Table} htData Data Object.
+	 * @return {String}
+	 * @example 
+	 * processTpl("My name is ${name}", {name: 'John Doe'}); 
+	 * // returns "My name is John Doe"
+	 *  
+	 * processTpl("1st item of Array is '${0}'", ['a','b','c']); 
+	 * // returns "1st item of Array is 'a'"
+	 */
+	function processTpl(sTemplate, htData) {
+        htVar.rxTemplate = htVar.rxTemplate || /\${([^{}]*)}/g;
+
+        return sTemplate.replace(htVar.rxTemplate, function(a, b) {
+            return (typeof htData[b] == "undefined") ? "" : htData[b];
+        });
+    }
+	
 	/* public Interface */
 	return {
-		"setScriptPath"   : setScriptPath,
-		"createNamespace" : createNamespace,
-		"loadModule"      : loadModule,
-		"loadScript"      : loadScript,
-		"stopEvent"       : stopEvent,
-		"getContrastColor": getContrastColor,
-		"sendForm"        : sendForm,
-		"getTrim"         : getTrim,
-		"showAlert"       : showAlert,
-		"notify"		  : notify,
-		"nl2br"			  : nl2br
+        "setScriptPath"   : setScriptPath,
+        "createNamespace" : createNamespace,
+        "getContrastColor": getContrastColor,
+        "loadModule": loadModule,
+        "loadScript": loadScript,
+        "stopEvent" : stopEvent,
+        "sendForm"  : sendForm,
+        "getTrim"   : getTrim,
+        "showAlert" : showAlert,
+        "alert"     : showAlert,
+        "notify"    : notify,
+        "nl2br"     : nl2br,
+        "tmpl"      : processTpl
 	};
 })();
 
-/*
-var nforge = {
-	"namespace": function(sName){
-		var oNS = $hive.createNamespace("nforge." + sName);
-		oNS.container[oNS.name] = {};
-	},
-	
-	"require": function(sModuleName, htOptions){
-		if(sModuleName instanceof Array) {
-			sModuleName.forEach(function(sName){
-				$hive.loadModule(sName, htOptions);
-			});
-			return;
-		}
-		
-		$hive.loadModule(sModuleName, htOptions);
-	}
-};
-*/

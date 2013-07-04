@@ -102,6 +102,7 @@ button.detail = 자세히
 button.apply = 적용
 button.back = 돌아가기
 button.upload = 파일 올리기
+button.download = 파일 받기
 button.user.makeAccountUnlock.true = 잠김해제
 button.user.makeAccountUnlock.false = 계정잠그기
 button.prevPage = 이전 페이지

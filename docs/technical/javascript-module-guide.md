@@ -64,9 +64,14 @@
 * HTML 템플릿은 되도록 자바스크립트 파일 내에 포함하지 않는다
 * HTML 템플릿은 정적 페이지내에 <script type="text/x-jquery-tmpl"> 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
 * HTML 템플릿 문법($.tmpl)은 https://github.com/BorisMoore/jquery-tmpl 참조
+* 단순하게 문자열 치환 기능만을 사용할 때는 $.tmpl 대신 $hive.tmpl 함수를 사용한다
 
 >    <script type="text/x-jquery-tmpl" id="tplItem">
 >        <div>${name} ${email}</div>
 >    </script>
 >
 >    var sTpl = document.getElementById("tplItem").text;
+>    var htData = {"name": "John Doe", "email":"foo@bar.com"};
+>
+>    var welDiv = $.tmpl(sTpl, htData); // returns wrapped element
+>    var sHTML = $hive.tmpl(sTpl, htData); // returns plain string
