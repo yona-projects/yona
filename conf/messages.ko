@@ -382,6 +382,7 @@ user.notExists.name = 존재하지 않는 사용자입니다.
 user.locked = 잠긴 사용자 계정입니다.
 user.isLocked = 잠김여부
 user.signup.requested = HIVE 가입이 요청되었습니다. 사이트 관리자가 검토/승인 후 사용가능합니다. 감사합니다.
+user.avatar.onlyImage = 이미지 파일만 올리실 수 있습니다.
 
 #Role
 role.manager = 관리자

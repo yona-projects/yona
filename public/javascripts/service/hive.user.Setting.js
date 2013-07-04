@@ -120,8 +120,12 @@
          * 일반적으로 서버 연결에 실패했을 때 이 상황이 발생한다.
          * ajaxForm 의 error 이벤트 핸들러.
          */
-        function _onErrorAvatarUpload(){
-            $hive.showAlert("아바타 이미지를 업로드 할 수 없었습니다.\n관리자에게 문의해주세요");
+        function _onErrorAvatarUpload(sMessage){
+            if (sMessage) {
+                $hive.showAlert(sMessage);
+            } else {
+                $hive.showAlert("아바타 이미지를 업로드 할 수 없었습니다.\n관리자에게 문의해주세요");
+            }
             _setAvatarProgressBar(0);
         }
 
@@ -148,7 +152,16 @@
                 return false;
             }
 
+            if(htData.mimeType.split("/")[0].toLowerCase() != 'image') {
+                _onErrorAvatarUpload(Messages("user.avatar.onlyImage"));
+                return false;
+            }
+
             htElement.welAvatarImage.attr("src", htData.url);
+            htElement.welFormBasic.append($("<input>").attr({
+                "type": "hidden",
+                "name": "avatarId",
+                "value": htData.id}));
             _setAvatarProgressBar(100);
         }
 

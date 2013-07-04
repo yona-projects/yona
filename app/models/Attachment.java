@@ -130,16 +130,26 @@ public class Attachment extends Model {
     public static int moveAll(Resource from, Resource to) {
         List<Attachment> attachments = Attachment.findByContainer(from);
         for (Attachment attachment : attachments) {
-            if(to.getProject() != null) {
-                attachment.projectId = to.getProject().id;
-            } else {
-                attachment.projectId = null;
-            }
-            attachment.containerType = to.getType();
-            attachment.containerId = to.getId();
-            attachment.save();
+            attachment.moveTo(to);
         }
         return attachments.size();
+    }
+
+    /**
+     * 이 첨부 파일을 {@code to}로 옮긴다.
+     *
+     * @param to 첨부 파일이 새로 옮겨질 리소스
+     * @return
+     */
+    public void moveTo(Resource to) {
+        if(to.getProject() != null) {
+            projectId = to.getProject().id;
+        } else {
+            projectId = null;
+        }
+        containerType = to.getType();
+        containerId = to.getId();
+        update();
     }
 
     /**
