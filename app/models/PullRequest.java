@@ -131,6 +131,13 @@ public class PullRequest extends Model {
                 .findList();
     }
 
+    public static List<PullRequest> findAcceptedPullRequests(Project project) {
+        return finder.where()
+                .eq("fromProject", project)
+                .eq("state", State.CLOSED)
+                .findList();
+    }
+
     public static List<PullRequest> findRejectedPullRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)

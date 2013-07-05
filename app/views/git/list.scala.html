@@ -65,18 +65,21 @@
                 <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
                     <i class="icon-large icon-check-empty"></i>
                     @Messages("pullRequest.opened.code")
+                    ( @PullRequest.findOpendPullRequests(project).size )
                 </a>
             </li>
             <li @if(requestType.equals("closed")){class="active"}>
                 <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">
                     <i class="icon-large icon-check"></i>
                     @Messages("pullRequest.accepted.code")
+                    ( @PullRequest.findClosedPullRequests(project).size )
                 </a>
             </li>
             <li @if(requestType.equals("rejected")){class="active"}>
                 <a href="@routes.PullRequestApp.rejectedPullRequests(project.owner, project.name)">
                     <i class="icon-large icon-stop"></i>
                     @Messages("pullRequest.rejected.code")
+                    ( @PullRequest.findRejectedPullRequests(project).size )
                 </a>
             </li>
         }
@@ -85,6 +88,7 @@
                 <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
                     <i class="icon-large icon-share"></i>
                     @Messages("pullRequest.sent.code")
+                    ( @PullRequest.findAcceptedPullRequests(project).size / @PullRequest.findSentPullRequests(project).size )
                 </a>
             </li>
         }
