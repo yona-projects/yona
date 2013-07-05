@@ -6,15 +6,49 @@
 }
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+<style>
+    .count-label {
+        float: left;
+        margin: 0;
+        padding: 4px 0;
+        padding-right: 9px;
+        overflow: hidden;
+        display: inline-block;
+    }
 
+    .btn-group {
+        margin-right: 5px;
+    }
+
+    .btn-group .nbtn {
+        margin-right: 0px;
+    }
+</style>
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="pull-right">
-        <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium @if(!project.isFork){orange last}">
-            <i class="icon-code-fork icon-large"></i>
-            @Messages("fork")
-        </a>
+        <div class="btn-group">
+            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium @if(!project.isFork){orange last}">
+                <i class="icon-code-fork icon-large"></i>
+                @Messages("fork")
+            </a>
+            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                <div class="count-label">
+                    <span class="text"><i class="icon-copy"></i> @project.forkingProjects.size()</span>
+                </div>
+            </button>
+            <ul class="dropdown-menu">
+                <li class="disabled"><span><i class="icon icon-copy"></i>@Messages("forks") (@project.forkingProjects.size)</span></li>
+                @for(fork <- project.forkingProjects) {
+                    <li>
+                        <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
+                            <span class="gray">@fork.owner / </span><span class="bold">@fork.name</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
 
         @if(project.isFork){
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange last">
@@ -54,11 +88,6 @@
                 </a>
             </li>
         }
-        @if(project.hasForks()) {
-            <li>
-                <a href="#forks" data-toggle="tab">@Messages("forks") <span class="counter">@project.forkingProjects.size</span></a>
-            </li>
-        }
     </ul>
     }
 
@@ -66,7 +95,6 @@
         <div id="list" class="row-fluid tab-pane active">
             @partial_list(project, pullRequests)
         </div>
-        @partial_forklist(project)
     </div>
 </div>
 <script type="text/javascript">
