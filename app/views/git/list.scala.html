@@ -1,7 +1,12 @@
 @(project: Project, pullRequests: List[PullRequest], requestType: String)
 @import utils.TemplateHelper._
 
+@branchName(branch:String) = @{
+    branch.replace("refs/heads/", "")
+}
+
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+
 
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
@@ -73,19 +78,23 @@
                         </p>
 
                         <p>
-                            @Messages("pullRequest.from")
-                            <span class="label label-info">
-                                <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
-                                <a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>
+                            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                                <code>
+                                    <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
+                                    <a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a> :
+                                    @branchName(req.fromBranch)
+                                </code>
                             </span>
-                            <span class="label label-success">@req.fromBranch</span>
-
-                            @Messages("pullRequest.to")
-                            <span class="label label-info">
-                                <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a> /
-                                <a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>
+                            <span style="margin-left: 3px;">
+                                <i class="icon-long-arrow-right icon-large"></i>
                             </span>
-                            <span class="label label-success">@req.toBranch</span>
+                            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                                <code>
+                                    <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a> /
+                                    <a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a> :
+                                    @branchName(req.toBranch)
+                                </code>
+                            </span>
                         </p>
                     </div>
                     <div class="right-panel">
@@ -173,5 +182,11 @@
 	     @** // **@
     </div>
 </div>
-
+<script type="text/javascript">
+    $(function(){
+        $('span[data-toggle="tooltip"]').tooltip({
+            placement : "bottom"
+        });
+    });
+</script>
 }
