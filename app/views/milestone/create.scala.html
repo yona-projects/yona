@@ -17,12 +17,12 @@
             		<dd>
 						<input type="text" name="title" id="title" class="text" placeholder="">
 					</dd>
-					
+
 					<dt>
 		                <label for="contents">@Messages("milestone.form.content")</label>
 		            </dt>
 		            <dd>
-						<textarea class="textarea" id="contents" name="contents"></textarea>
+                        <textarea id="contents" name="contents" class="textarea" markdown="true"></textarea>
 					</dd>
             	</dl>
 
@@ -31,7 +31,7 @@
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium">@Messages("button.cancel")</a>
                 </div>
             </div>
-            
+
             <div class="inner right bubble-wrap gray">
                 <p>@Messages("milestone.form.state")</p>
                 <div>
@@ -50,6 +50,8 @@
         </form>
     </div>
 </div>
+
+@markdown(project)
 
 <link rel="stylesheet" type="text/css" href="@getCSSLink("pikaday")" />
 <script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>

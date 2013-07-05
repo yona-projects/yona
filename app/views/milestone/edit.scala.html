@@ -20,23 +20,23 @@
 						<input type="text" name="@name" id="@id" class="text" value="@value">
 					}
 				</dd>
-		
+
 				<dt>
 					<label for="contents">@Messages("milestone.form.content")</label>
 				</dt>
 				<dd>
 					@helper.input(form("contents")){(id, name, value, args) =>
-					<textarea class="textarea" id="@id" name="@name">@value</textarea>
+					<textarea class="textarea" id="@id" name="@name" markdown="true">@value</textarea>
 					}
 				</dd>
 			</dl>
-	
+
 			<div class="actions">
 				<button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
 				<a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium">@Messages("button.cancel")</a>
 			</div>
 		</div>
-	
+
 		<div class="inner right bubble-wrap gray">
 			<p>@Messages("milestone.form.state")</p>
 			<div>
@@ -55,6 +55,8 @@
 		</form>
 	</div>
 </div>
+
+@markdown(project)
 
 <link rel="stylesheet" type="text/css" href="@getCSSLink("pikaday")" />
 <script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>

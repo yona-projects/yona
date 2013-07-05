@@ -38,7 +38,7 @@
     </div>
 
     <div class="milestone-desc">
-        @milestone.contents
+        <div markdown="true">@milestone.contents</div>
     </div>
 
     <div class="issues">
@@ -67,4 +67,7 @@
 
 
 </div>
+
+@markdown(project)
+
 }
