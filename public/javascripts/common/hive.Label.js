@@ -224,6 +224,9 @@ hive.Label = (function(htOptions){
 		var sCSSTarget = '.labels .issue-label.active[data-labelId="' + oLabel.id + '"]';
 		document.styleSheets[0].addRule(sCSSTarget, 'background-color: ' + oLabel.color);
 		document.styleSheets[0].addRule(sCSSTarget, 'color: ' + $hive.getContrastColor(oLabel.color));
+		
+		sCSSTarget = '.labels .issue-label[data-labelId="' + oLabel.id + '"]';
+		document.styleSheets[0].addRule(sCSSTarget, 'border-left: 3px solid ' + oLabel.color);
 	}
 
 	/**
@@ -282,7 +285,7 @@ hive.Label = (function(htOptions){
 			});	
 		};
 		
-		var welLinkDelete = $('<a class="del-link">&times;</a>');
+		var welLinkDelete = $('<a class="delete">&times;</a>');
 		    welLinkDelete.click(fOnClick);
 
 		return welLinkDelete;
@@ -343,17 +346,24 @@ hive.LabelEditor = (function(welContainer, htOptions){
 		htVar.sURLPost = htOptions.sURLPost;
 		htVar.fOnCreate = htOptions.fOnCreate || function(){};
 
-		htVar.aColors = htOptions.aColors || ['#999999','#da5454','#ff9933','#ffcc33','#99ca3c','#22b4b9','#4d68b1','#9966cc','#ffffff'];
+		htVar.aColors = htOptions.aColors || ['#999999','#da5454','#f86ca0','#ff9e9d','#ff9933','#ffcc33','#f8c86c','#99ca3c','#22b4b9','#4d68b1','#6ca6f8','#3fb8af','#9966cc','#ffffff'];
 		htVar.sTplEditor = htOptions.sTplEditor || '<div class="control-group label-editor">\
-		<label id="custom-label-label" class="control-label">${labelNew}</label>\
+		<strong class="control-label">${labelNew}</strong>\
 		<div id="custom-label" class="controls">\
-			<input id="custom-label-color" type="text" class="input-small" placeholder="${labelCustomColor}">\
-			<input id="custom-label-category" type="text" class="input-small" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
-			<input id="custom-label-name" type="text" class="input-small" placeholder="${labelName}" autocomplete="off">\
-			<button id="custom-label-submit" type="button" class="btn-transparent nbtn medium black" style="vertical-align:top;">${labelAdd}</button>\
-		</div>\
-		</div>';
-		htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label nbtn small" style="background-color:${color}">&nbsp;';		
+            <div class="colors"><input type="text" name="labelColor" class="input-small labelColor" placeholder="${labelCustomColor}"></div>\
+            <div class="row-fluid">\
+                <div class="span6">\
+        			<input type="text" name="labelCategory" class="input-small labelInput" data-provider="typeahead" autocomplete="off" placeholder="${labelCategory}">\
+                </div>\
+                <div class="span6">\
+        			<input type="text" name="labelName" class="input-small labelInput" placeholder="${labelName}" autocomplete="off">\
+                </div>\
+            </div>\
+            <div class="row-fluid">\
+                <div class="span12"><button type="button" class="nbtn medium black labelSubmit">${labelAdd}</button></div>\
+            </div>\
+		</div></div>';
+		htVar.sTplBtnColor = htOptions.sTplBtnColor || '<button type="button" class="issue-label issueColor nbtn small" style="background-color:${color}">';		
 	}
 	
 	/**
@@ -362,18 +372,25 @@ hive.LabelEditor = (function(welContainer, htOptions){
 	 * @param {Wrapped Element} welContainer 컨테이너 엘리먼트
 	 */
 	function _initElement(welContainer){
+	    // htVar.sTplEditor 를 이용해 만들어진 라벨 에디터를 대상 영역에 붙이고
 		htElement.welContainer = $(welContainer);
 		htElement.welEditor = _getLabelEditor();
 		htElement.welContainer.append(htElement.welEditor);
+
+        // 세부 항목의 엘리먼트 레퍼런스 변수 설정
+        htElement.welWrap = $("#custom-label");
+        htElement.welColors = htElement.welWrap.find("div.colors");
+        _makeColorTable(); // 색상표 생성
+        
+		htElement.waBtnCustomColor = htElement.welWrap.find("button.issueColor");
+        htElement.waCustomLabelInput = htElement.welWrap.find("input"); // color, name, category
 		
-		htElement.waBtnCustomColor = $("#custom-label button.issue-label");
-		htElement.welBtnCustomLabelSubmit  = $('#custom-label-submit');
-		
-		htElement.welCustomLabelName =  $('#custom-label-name');
-		htElement.welCustomLabelInput = $('#custom-label input'); // color, name, category
-		htElement.welCustomLabelColor = $('#custom-label-color'); 
-		htElement.welCustomLabelCategory = $('#custom-label-category');
-		htElement.welCustomLabelCategory.typeahead();
+        htElement.welCustomLabelColor = htElement.welWrap.find("input[name=labelColor]"); // $('#custom-label-color'); 
+		htElement.welCustomLabelName =  htElement.welWrap.find("input[name=labelName]");  // $('#custom-label-name');
+        htElement.welCustomLabelCategory = htElement.welWrap.find("input[name=labelCategory]"); // $('#custom-label-category');
+        htElement.welCustomLabelCategory.typeahead();
+
+        htElement.welBtnCustomLabelSubmit  = htElement.welWrap.find("button.labelSubmit"); //$('#custom-label-submit');
 	}
 	
 	/**
@@ -384,10 +401,10 @@ hive.LabelEditor = (function(welContainer, htOptions){
 		htElement.waBtnCustomColor.click(_onClickBtnCustomColor);
 		htElement.welBtnCustomLabelSubmit.click(_onClickBtnSubmitCustom);
 		
-		htElement.welCustomLabelInput.keypress(_onKeypressInputCustom);
-		htElement.welCustomLabelInput.keyup(_onKeyupInputCustom);
+		htElement.waCustomLabelInput.keypress(_onKeypressInputCustom);
+		htElement.waCustomLabelInput.keyup(_onKeyupInputCustom);
 		htElement.welCustomLabelColor.keyup(_onKeyupInputColorCustom);		
-	}	
+	}
 	
 	/**
 	 * Get label Editor
@@ -404,20 +421,18 @@ hive.LabelEditor = (function(welContainer, htOptions){
 			"labelCustomColor": Messages("label.customColor")
 		});
 		
-		// generate color buttons
-		var welControls = welEditor.find(".controls");
-		if(welControls && htVar.aColors.length > 0){
-			var aColorBtns = [];
-			htVar.aColors.forEach(function(sColor){
-				aColorBtns.push($.tmpl(htVar.sTplBtnColor, {"color": sColor}));
-			});
-			welControls.prepend(aColorBtns);
-			welControls = aColorBtns = null;
-		}
-
 		return welEditor;
 	}
-		
+
+    function _makeColorTable(){
+        var aColorBtns = [];
+        htVar.aColors.forEach(function(sColor){
+            aColorBtns.push($.tmpl(htVar.sTplBtnColor, {"color": sColor}));
+        });
+        htElement.welColors.prepend(aColorBtns);
+        aColorBtns = null;
+    }
+    
 	/**
 	 * 새 라벨 추가 버튼 클릭시 이벤트 핸들러
 	 */
@@ -500,7 +515,7 @@ hive.LabelEditor = (function(welContainer, htOptions){
 		// Fill the color input area with the hexadecimal value of
 		// the selected color.
 		htElement.welCustomLabelColor.val(new RGBColor(sColor).toHex());
-
+        htElement.welCustomLabelColor.css("border-color", sColor);
 		_updateSelectedColor(sColor);
 
 		// Focus to the category input area.
@@ -517,6 +532,7 @@ hive.LabelEditor = (function(welContainer, htOptions){
 		
 		if (oColor.ok) {
 			_updateSelectedColor(sColor);
+			htElement.welCustomLabelColor.css("border-color", sColor);
 		}
 		
 		oColor = null;
@@ -538,10 +554,10 @@ hive.LabelEditor = (function(welContainer, htOptions){
 
 		// Change also place holder's
 		// TODO: 이 부분도 나중에 정리할 것. #custom-label-name 고정되어 있음
-		var aSelectors = ['#custom-label-name:-moz-placeholder', 
-		                 '#custom-label-name:-ms-input-placeholder', 
-		                 '#custom-label-name::-webkit-input-placeholder'];
-		
+		var aSelectors = ['#custom-label input[name=labelName]:-moz-placeholder', 
+		                 '#custom-label input[name=labelName]:-ms-input-placeholder', 
+		                 '#custom-label input[name=labelName]::-webkit-input-placeholder'];
+
 		var elStyle = document.styleSheets[0];
 		var sStyleColor = 'color:' + sFgColor + ' !important';
 		var sStyleOpacity = 'opacity: 0.8';

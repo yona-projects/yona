@@ -753,8 +753,9 @@
         }
         .options {
             background-color: #F7F7F7;
-            .border-radius(10px);
             margin-bottom: 20px;
+            .border-radius(10px);
+            
             .option {
                 padding: 15px 20px;
                 border-bottom: 1px solid #E9E9E9;
@@ -788,6 +789,7 @@
                 width:182px;
             }
         }
+        
         .actions {
             text-align: center;
             position: relative;
@@ -2156,22 +2158,37 @@ div.markdown-preview {
         margin:3px 0px 1px 0px;
 
         label {
-            /*color:#959595;*/ font-weight:bold;
+            font-weight:bold;
             margin-right:5px;
         }
-        .n-alert .n-inner { font-weight:normal !important; }
     }
+}
+
+.issue-option {
+       width:100%;
+       margin-bottom:16px !important;
+       
+       dt { margin-bottom:5px; }
+       dd {
+           .btn-group { width:100%; }
+       }
+}
+.label-editor {
+    padding-top:10px;
+    border-top:1px solid #ddd;
 }
 .content-wrap {
     .text {
         width: 99%; /*946px;/*866px;*/
+    }
+    textarea.text {
         resize:vertical;
     }
     .title {
         margin-bottom: 15px;
     }
     .content {
-        height:177px; /*320px;*/
+        height:190px; /*320px;*/
         background-color: #F9F9F9;
     }
     .actions {
@@ -2179,33 +2196,38 @@ div.markdown-preview {
         text-align: center;
         position: relative;
     }
-
-    .issue-options {
-        margin-bottom:45px;
-        .option {
-            width:250px;
-            .inline-block;
-            /*.option-label { color:#959595; font-weight:bold; margin-bottom:5px; }*/
-            .d-label { width:200px; }
-        }
+    .actrow {
+        margin-top:20px;
     }
 
-    .option-label { color:#959595; font-weight:bold; margin-bottom:5px; }
-
     .issue-form-labels {
-        &.form-horizontal {
-            .control-label {
-                width:100px; padding-top:0; line-height:30px;
+        /*.control-label {
+            width:100px; padding-top:0; line-height:30px;
+        }*/
+        .controls {
+            margin:0;
+            
+            /*margin-left:120px; line-height:30px;*/
+            .colors {
+                .labelColor {
+                    border-left:22px solid;
+                    width:120px; padding:2px; text-align:center;
+                    margin-top:10px; margin-left:5px;
+                    .box-shadow(inset 0 1px 2px rgba(0,0,0,0.15));
+                }
             }
-            .controls {
-                margin-left:120px; line-height:30px;
+            .labelInput {
+                width:90%;
+            }
+            .labelSubmit {
+                width:100%;
             }
         }
     }
 }
 .content-footer {
-    padding: 20px;
-    background-color: #F5F5F5;
+    padding: 10px;
+    background-color: #f7f7f7;
     .border-radius(5px);
 }
 
