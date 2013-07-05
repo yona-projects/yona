@@ -13,10 +13,7 @@ import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
-import playRepository.Commit;
-import playRepository.GitRepository;
-import playRepository.PlayRepository;
-import playRepository.RepositoryService;
+import playRepository.*;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
@@ -361,6 +358,19 @@ public class Project extends Model {
 
         if (repo.isFile(baseFileName.toLowerCase())) {
             return baseFileName.toLowerCase();
+        }
+
+        // SVN은 /trunk/readme.md 까지 찾아본다.
+        if(repo instanceof SVNRepository) {
+            baseFileName = "/trunk/" + baseFileName;
+            if(repo.isFile(baseFileName)) {
+                return baseFileName;
+            }
+
+            baseFileName = baseFileName.toLowerCase();
+            if(repo.isFile(baseFileName)) {
+                return baseFileName;
+            }
         }
 
         return null;

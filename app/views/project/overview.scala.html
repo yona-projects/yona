@@ -44,14 +44,18 @@
 	            <li><a href="#recent" data-toggle="tab">@Messages("project.history.recent") (@if(histories.size > 0) {@agoString(ago(histories.get(0).getWhen))})</a></li>
 	            }
 	        </ul>
-	        
+
 	        <div class="tab-content">
 	            <div id="readme" class="tab-pane active">
 	                <div class="bubble-wrap gray readme">
 	                @if(project.readme == null){
 	                    <p class="default">
 	                       <span class="v"></span>
-	                       <span>@Messages("project.readme")</span>
+                            @if(project.vcs.equals("GIT")) {
+                                <span>@Messages("project.readme")</span>
+                            } else {
+                                <span>@Messages("project.svn.readme")</span>
+                            }
 	                    </p>
 	                } else {
 	                    <div class="readme-wrap">
@@ -62,7 +66,7 @@
 	                @markdown(project)
 	                </div>
 	            </div>
-	    
+
 	            @if(histories.size > 0) {
 	            <div id="recent" class="tab-pane">
 	                <div class="content-container" style="margin:0;">
@@ -94,7 +98,7 @@
 	            }
 	        </div>
         </div>
-        
+
         <div class="span3">
 		    <div class="bubble-wrap gray project-home" style="width:260px;">
 		        <div class="issue-wrap center-txt">
@@ -123,32 +127,32 @@
 		            <ul class="infos" id="label-board">
 		                <!-- labels are added here by hive.project.Home.js -->
 		            </ul>
-		
+
 		            <script id="label-delete-button-template" type="text/x-jquery-tmpl">
                 <a href="javascript:void(0)">&times;</a>
             </script>
-		
+
 		            <script id="label-template" type="text/x-jquery-tmpl">
                 <span class="label">${name}</span>
             </script>
-		
+
 		            <script id="category-template" type="text/x-jquery-tmpl">
                 <li class="info" data-category="${category}">
                     <strong>${category} : </strong>
                     <span class="label-list"></span>
                 </li>
             </script>
-		
+
 		            <script id="plus-button-template" type="text/x-jquery-tmpl">
                 <button class="nbtn small white">
                     <i class="ico ico-plus-blue"></i>
                 </button>
             </script>
-		
+
 		            <script id="label-input-template" type="text/x-jquery-tmpl">
                 <input type="text" autocomplete="off" class="text" style="margin-bottom: 0px;">
             </script>
-		
+
 		            <script id="label-submit-template" type="text/x-jquery-tmpl">
                 <button type="button" class="nbtn medium">@Messages("button.add")</button>
             </script>
