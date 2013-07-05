@@ -3,7 +3,10 @@
 <div class="gnb-menus right">
 @if(session.contains("loginId")){
     @if(project != null){
-    <div class="member-role">@Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))</div>
+    <div class="member-role">
+        <i class="icon-user icon-large"></i>
+        @Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))
+    </div>
     }
     <div class="usermenu btn-group">
         <button class="btn dropdown-toggle large" data-toggle="dropdown">
@@ -23,7 +26,7 @@
             @defining(User.findByLoginId(session.get("loginId")).getWatchingProjects()){ watchingProjects =>
                 @if(watchingProjects.length > 0) {
                     <li class="divider"></li>
-                    <li class="disabled"><span><i class="icon icon-star"></i> @Messages("project.watchingproject") (@watchingProjects.size())</span></li>
+                    <li class="disabled"><span><i class="icon-eye-open"></i> @Messages("project.watchingproject") (@watchingProjects.size())</span></li>
                     @for(project <- watchingProjects){
                         <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                     }

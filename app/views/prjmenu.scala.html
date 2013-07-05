@@ -35,30 +35,45 @@
     <div class="project-menu-wrap">
         <div class="project-menu-container main">
             <div class="actrow">
-                <button id="btnClone" type="button" class="nbtn medium"><i class="icon-hdd icon-white vmiddle"></i> @Messages("code.repoUrl")</button>
-
+                <button id="btnClone" type="button" class="nbtn medium">
+                    <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
+                </button>
                 @if(User.isWatching(project)){
-                <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue active last"><i class="icon-eye-close icon-white vmiddle"></i> @Messages("project.watch")</a>
+                <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue active last">
+                    <i class="icon-eye-open icon-large vmiddle"></i> @Messages("project.watch")
+                </a>
                 }
                 @if(!User.isWatching(project) && project.isPublic) {
-                <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium mint last"><i class="icon-eye-open icon-white vmiddle"></i> @Messages("project.watch")</a>
+                <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium mint last">
+                    <i class="icon-eye-close icon-large vmiddle"></i> @Messages("project.watch")
+                </a>
                 }
             </div>
 
     		<ul class="unstyled">
-    			<li class="@isActiveMenu(MenuType.PROJECT_HOME)"><a href="@routes.ProjectApp.project(project.owner, project.name)">@Messages("title.projectHome")</a></li>
+			<li class="@isActiveMenu(MenuType.PROJECT_HOME)">
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)">
+                        <i class="icon-large icon-home"></i>
+                        @Messages("title.projectHome")
+                    </a>
+                </li>
     			<li class="sp-line">|</li>
     			<li class="@isActiveMenu(MenuType.BOARD)">
                     <a href="@routes.BoardApp.posts(project.owner, project.name)">
+                        <i class="icon-large icon-bullhorn"></i>
                         @Messages("menu.board") <span class="counter">@Posting.countPostings(project)</span>
                     </a>
                 </li>
     			<li class="sp-line">|</li>
-    			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("menu.code")</a></li>
+			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
+                    <i class="icon-large icon-code"></i>
+                    @Messages("menu.code")</a>
+                </li>
                 @if(project.vcs.equals("GIT")){
                     <li class="sp-line">|</li>
                     <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                         <a href="@getPullRequestURL(project)">
+                            <i class="icon-large icon-code-fork"></i>
                             @Messages("menu.pullRequest") <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
                         </a>
                     </li>
@@ -66,12 +81,14 @@
     			<li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.ISSUE)">
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "all")">
+                        <i class="icon-large icon-list-ul"></i>
                         @Messages("menu.issue") <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
                     </a>
                 </li>
                 <li class="sp-line">|</li>
     			<li class="@isActiveMenu(MenuType.MILESTONE)">
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
+                        <i class="icon-large icon-tasks"></i>
                         @Messages("project.milestone") <span class="counter">@Milestone.countOpened(project)</span>
                     </a>
                 </li>
@@ -119,7 +136,7 @@ $(document).ready(function(){
        ,"Q": "@routes.ProjectApp.settingForm(project.owner, project.name)"
     }
     };
- 
+
     $hive.loadModule("project.Global", {
         "htKeyMap": htKeyMap,
         "sRepoURL": "@CodeApp.getURLWithLoginId(project)"
