@@ -5,13 +5,13 @@
 
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-    
+
     <div class="pull-right">
         <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium @if(!project.isFork){orange last}">
             <i class="icon-inbox icon-white"></i>
             @Messages("fork")
         </a>
-        
+
         @if(project.isFork){
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange last">
             <i class="icon-share icon-white"></i>
@@ -40,7 +40,7 @@
         }
         @if(project.hasForks()) {
             <li>
-                <a href="#forks" data-toggle="tab">@Messages("forks") <span class="num-badge">@project.forkingProjects.size</span></a>
+                <a href="#forks" data-toggle="tab">@Messages("forks") <span class="counter">@project.forkingProjects.size</span></a>
             </li>
         }
     </ul>
@@ -65,13 +65,13 @@
                             &nbsp; and merged by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
                             &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
                             }
-                            
+
                             @if(req.state == models.enumeration.State.REJECTED) {
                             &nbsp; and rejected by <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="author">@req.receiver.loginId</a>
                             &nbsp;<span class="date">@utils.TemplateHelper.agoString(req.receivedAgo())</span>
                             }
                         </p>
-                        
+
                         <p>
                             @Messages("pullRequest.from")
                             <span class="label label-info">
@@ -90,15 +90,15 @@
                     </div>
                     <div class="right-panel">
                         <div class="state @req.state.toString.toLowerCase">@Messages("issue.state." + req.state.toString.toLowerCase)</div>
-                        
+
                         @if(req.receiver != null) {
                             <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap pull-right">
                                 <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
                             </a>
                         }
-                        
+
                         <i class="icon-arrow-right pull-right"></i>
-                        
+
                         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap pull-right">
                             <img src="@req.contributor.avatarUrl" alt="@req.contributor.name" width="32" height="32">
                         </a>
@@ -113,7 +113,7 @@
             </div>
             }
         </div>
-     
+
 	    @** 복사본 목록 **@
 	    @if(project.hasForks()) {
 	    <div id="forks" class="tab-pane">
