@@ -222,6 +222,7 @@ public class AccessControl {
         case ISSUE_COMMENT:
         case NONISSUE_COMMENT:
         case BOARD_POST:
+        case CODE_COMMENT:
             return resource.getAuthorId().equals(user.id);
         default:
             return false;

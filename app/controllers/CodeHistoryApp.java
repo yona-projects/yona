@@ -1,17 +1,23 @@
 package controllers;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.ServletException;
 
+import com.avaje.ebean.ExpressionList;
+import models.Attachment;
+import models.CodeComment;
 import models.Project;
 import models.enumeration.Operation;
 
+import models.enumeration.ResourceType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 
+import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.Commit;
@@ -22,6 +28,9 @@ import utils.HttpUtil;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.diff;
+import views.html.error.forbidden;
+import views.html.error.notfound;
+import views.html.error.notfound_default;
 
 public class CodeHistoryApp extends Controller {
 
@@ -144,7 +153,63 @@ public class CodeHistoryApp extends Controller {
             return notFound();
         }
 
-        return ok(diff.render(project, commit, patch));
+        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+                commitId).eq("project.id", project.id).findList();
+
+        return ok(diff.render(project, commit, patch, comments));
     }
 
+    public static Result newComment(String ownerName, String projectName, String commitId)
+            throws IOException, ServletException, SVNException {
+        Form<CodeComment> codeCommentForm = new Form<CodeComment>(CodeComment.class)
+                .bindFromRequest();
+
+        if (codeCommentForm.hasErrors()) {
+            return badRequest(codeCommentForm.errors().toString());
+        }
+
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        if (project == null) {
+            return notFound(notfound_default.render("error.notfound", request().path()));
+        }
+
+        if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
+            return notFound(notfound.render("error.notfound", project, request().path()));
+        }
+
+        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project,
+                ResourceType.CODE_COMMENT)) {
+            return forbidden(forbidden.render(project));
+        }
+
+        CodeComment codeComment = codeCommentForm.get();
+        codeComment.project = project;
+        codeComment.commitId = commitId;
+        codeComment.createdDate = new Date();
+        codeComment.setAuthor(UserApp.currentUser());
+        codeComment.save();
+
+        Attachment.moveAll(UserApp.currentUser().asResource(), codeComment.asResource());
+
+        return redirect(routes.CodeHistoryApp.show(project.owner, project.name, commitId));
+    }
+
+    public static Result deleteComment(String ownerName, String projectName, String commitId,
+                                       Long id) {
+        CodeComment codeComment = CodeComment.find.byId(id);
+
+        if (codeComment == null) {
+            return notFound(notfound_default.render("error.notfound", request().path()));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), codeComment.asResource(),
+                Operation.DELETE)) {
+            return forbidden(forbidden.render(codeComment.project));
+        }
+
+        codeComment.delete();
+
+        return redirect(routes.CodeHistoryApp.show(ownerName, projectName, commitId));
+    }
 }

@@ -436,6 +436,9 @@ code.filename = Filename
 code.commitMsg = Commit Message
 code.commitDate = Commit Date
 code.author = Author
+code.openCommentBox = Open Comment Box
+code.closeCommentBox = Close Comment Box
+
 
 #mail
 mail.password = Password
