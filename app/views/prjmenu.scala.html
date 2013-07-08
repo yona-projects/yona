@@ -30,6 +30,29 @@
         routes.PullRequestApp.pullRequests(project.owner, project.name)
     }
 }
+<style>
+    .count-label {
+        float: left;
+        margin: 0;
+        padding: 4px 0;
+        padding-right: 9px;
+        overflow: hidden;
+        display: inline-block;
+    }
+    .btn-group .nbtn {
+        margin-right: 0px;
+    }
+    .dropdown-menu {
+        padding: 20px 35px;
+    }
+    .dropdown-menu ul {
+        margin: 0px;
+        padding: 5px;
+    }
+    .dropdown-menu li {
+        display: list-item;
+    }
+</style>
 
 <div class="project-menu"><!--  data-spy="affix"> -->
     <div class="project-menu-wrap">
@@ -38,16 +61,54 @@
                 <button id="btnClone" type="button" class="nbtn medium">
                     <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
                 </button>
-                @if(User.isWatching(project)){
-                <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue active last">
-                    <i class="icon-eye-open icon-large vmiddle"></i> @Messages("project.watch")
-                </a>
-                }
-                @if(!User.isWatching(project) && project.isPublic) {
-                <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium mint last">
-                    <i class="icon-eye-close icon-large vmiddle"></i> @Messages("project.watch")
-                </a>
-                }
+
+                <div class="btn-group">
+                    @if(User.isWatching(project)){
+                    <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue watchBtn">
+                        <i class="icon-eye-open icon-large"></i>
+                    </a>
+                    } else {
+                    <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium watchBtn">
+                        <i class="icon-eye-open icon-large"></i>
+                    </a>
+                    }
+                    <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                        <div class="count-label">
+                            <span class="caret"></span>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu pull-right">
+                        @if(User.isWatching(project)){
+                        <div>
+                            <h3>@Messages("you.are.watching", project.name)</h3>
+                            <p>@Messages("notification.help")</p>
+                            <ul class="icons-ul">
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new")</li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new.comment")</li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue") </li>
+                            </ul>
+                        </div>
+                        <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium mint watchBtn">
+                            <i class="icon-eye-close icon-large"></i> 그만 @Messages("project.watch")
+                        </a>
+                        }
+                        @if(!User.isWatching(project) && project.isPublic) {
+                        <div>
+                            <h3>@Messages("you.are.not.watching", project.name)</h3>
+                            <p>@Messages("notification.will.help")</p>
+                            <ul class="icons-ul">
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new")</li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new.comment")</li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue") </li>
+                            </ul>
+                        </div>
+                        <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium blue watchBtn">
+                            <i class="icon-eye-open icon-large"></i> @Messages("project.watch")
+                        </a>
+                        }
+                    </div>
+                </div>
+
             </div>
 
     		<ul class="unstyled">

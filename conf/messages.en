@@ -559,10 +559,17 @@ merge.help.4 = You can reject or delete the code request.
 
 # Notifcation
 notification.watch = Watch
+you.are.watching = You are watching {0} project.
+you.are.not.watching = You are not watching {0} project.
+notification.help = You are receiving next notifications.
+notification.will.help = You can receive next notifications.
+notification.help.new = New issue and posts
+notification.help.new.comment = New comments
+notification.help.update.issue= Update issue's state or assignee.
 
 # Reset secret
 secret.welcome = Welcome!
-secret.welcome = This form is to reset the Secret key. Submitting seed generates random Secret key based the seed. Feel free to submit long and complex value. You don't need to remember it.
+secret.notice = This form is to reset the Secret key. Submitting seed generates random Secret key based the seed. Feel free to submit long and complex value. You don't need to remember it.
 secret.warning = The Secret key MUST be secret. If a bad guy knows the secret, he can login as any user of your site!
 
 # Restart server

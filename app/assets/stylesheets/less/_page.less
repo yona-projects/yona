@@ -99,7 +99,7 @@
 
                     /** 로그인한 사용자의 프로젝트 Role **/
                     .member-role { display:inline-block; margin-right:5px; }
-                    
+
                     /** 로그인한 사용자의 dropdown 메뉴 **/
                     .usermenu {
                         margin:0; display:inline-block; vertical-align:middle;
@@ -118,9 +118,9 @@
                                 .caret { border-top-color:@primary; }
                             }
                         }
-                        
+
                         .dropdown-menu {
-                            .divider { 
+                            .divider {
                                 background-color:transparent;
                                 border-bottom:1px solid rgba(0,0,0,0.1);
                             }
@@ -203,27 +203,27 @@
                 line-height:56px; /*color:#fff;*/ font-weight:normal;
                 a { vertical-align:top; }
             }
-            
+
             .forked {
-                line-height:56px; 
+                line-height:56px;
                 i { margin-left:10px; cursor:pointer; }
-                
+
                 .popover {
                     color:#111;
                     line-height:1;
                 }
             }
-            
+
             .gnb-menus {
                 margin: 15px 10px 17px 34px;
 
                 &.right {
                     margin-top:9px;
                     margin-right:0px;
-                    
+
                     .dropdown-toggle {
                         border-bottom:1px solid rgba(0,0,0,0.5);
-                        
+
                        .d-label {
                            text-shadow:none;
                            font-weight:bold; color:#fff;
@@ -258,12 +258,12 @@
     height: 375px;
     text-align: center;
     width: @base-width;
-    
+
     .intros {
         padding: 25px 0 0;
         font-size: 0;
         margin: 0;
-        
+
         .intro {
             width: 200px;
             padding: 0 15px;
@@ -325,8 +325,8 @@
     vertical-align:middle;
     padding:7px 10px;
     font-size:11px;
-    
-    i { vertical-align:text-bottom; }    
+
+    i { vertical-align:text-bottom; }
 }
 
 //----------- index page.
@@ -414,7 +414,7 @@
 .fn-intro-wrap {
     text-align: center;
     width: 100%;/*@base-width;*/
-   
+
     .intros {
         padding: 16px 10px;
         padding-bottom:15px;
@@ -465,13 +465,13 @@
     .main-stream {
         .activity-streams {
             margin: 0;
-            
+
             .activity-stream {
                 padding: 1px 0;
-                
+
                 &:first-of-type { padding-top:10px; }
                 &:last-child    { border-bottom: 0 none; }
-                
+
                 .user-thumb-wrap {
                     float: left;
                     margin-right: 25px;
@@ -496,7 +496,7 @@
                         color: #888;
                         font-size: 11px;
                         margin-bottom: 10px;
-                        
+
                         .commit-logs {
                             .commit-log {
                                 overflow: hidden;
@@ -532,7 +532,7 @@
                     .others {
                         line-height: 16px;
                         padding-left: 3px;
-                        
+
                         .num {
                             font-size: 12px;
                             color: #5dbbe0;/*#4489A4;*/
@@ -569,7 +569,7 @@
                 margin:0; padding:10px;
                 overflow:visible;
             }
-            
+
             .my-project {
                 position:relative;
                 padding-left: 15px;
@@ -608,7 +608,7 @@
                 padding-top:1px;
             }
         }
-        
+
         .contributors {
             overflow: hidden;
             .contributor {
@@ -933,7 +933,7 @@
             form  { margin:0 auto; /*text-align:center;*/ }
 
             .actrow { position:absolute; right:0px; top:0; }
-            
+
             .text {
                 width: 360px;
                 /*margin: 5px 0 0;*/
@@ -961,7 +961,7 @@
                    color:@orange;
                 }
             }
-            
+
             .btn-advanced {
                 color:#707070;
                 font-weight:bold;
@@ -974,7 +974,7 @@
                     .ico-arrow-down-blue;
                 }
             }
-            
+
             .srch-advanced {
                 display:none;
             }
@@ -1334,12 +1334,12 @@
 
 .project-menu {
 
-    padding-bottom: 10px; 
+    padding-bottom: 10px;
     margin-bottom:10px;
     ul { margin:0 !important; }
     li { /*line-height:40px;*/ padding:0; .inline-block; }
     width:100%;
-    
+
     .project-menu-wrap {
         width:100%;
         &.affix {
@@ -1349,7 +1349,7 @@
             background:#fff;
             border-bottom:1px solid #eee;
             left:0; right:0;
-            
+
             .project-menu-container { width:95%; margin:0 auto; }
         }
 
@@ -1358,10 +1358,10 @@
 
             &.main {
                 text-align:left;
-                
+
                 ul > li {
                     a {
-                        padding:15px 35px; display:block;
+                        padding:15px 25px; display:block;
                         font-weight:bold;
                         -webkit-transition-duration:0.3s;
                         &:hover { color:@primary; text-decoration:underline; }
@@ -1375,7 +1375,7 @@
             }
 
             .sub {
-                height:40px; line-height:40px;       
+                height:40px; line-height:40px;
 
                 ul {
                     position:absolute;
@@ -1389,33 +1389,33 @@
                 a { font-weight:bold; color:#959595; padding:0 25px; font-size:12px; }
                 .active a { color:@primary !important; }
             }
-            
+
             .sp-line {
                 width:1px; color:#d7d8d9;
                 padding:0; margin:0;
             }
 
             .actrow {
-                position:absolute; 
+                position:absolute;
                 top:10px; right:0;
                 z-index: 777;
-               
+
                 /* 저장소 URL 표시용 popover */
                 .popover {
                     width:430px;
                     max-width:500px;
                     left:-100% !important;
-                    
+
                     .arrow { left:64% }
-                    
-                    .clone-label { 
+
+                    .clone-label {
                         display:inline-block;
                         background:#5dbbe0; color:#fff;
                         text-shadow: -1px -1px rgba(0, 0, 0, 0.3);
                         padding:5px 15px; vertical-align:middle;
-                        .border-radius(2px); 
+                        .border-radius(2px);
                     }
-                    .repo-wrap { 
+                    .repo-wrap {
                         display:inline-block; margin:0;
                         .repo-url { width:260px; margin:0; }
                         .copy-url { font-size:11px; font-weight:bold; margin:0; }
@@ -1423,7 +1423,7 @@
                 }
             }
         }
-    }    
+    }
 }
 
 .user-role {
@@ -1450,7 +1450,7 @@
     margin: 0;
     list-style: none;
     padding:10px;
-    
+
     .member {
         display:inline-block;
         width:370px; /*415px, 375px;*/
@@ -1631,7 +1631,7 @@
                 width: 74%;
                 display:inline-block;
                 vertical-align:top;
-                
+
                 .text , .textarea {
                     width:100%;
                 }
@@ -1679,13 +1679,13 @@
         margin-bottom:15px;
         a.btn { width:105px; }
     }
-    
+
     .inner {
         height: 188px;
         background-color: @white;
         /*margin-right: 10px;*/
         margin-bottom:10px;
-        
+
         font-size: 12px;
         overflow: hidden;
         vertical-align: top;
@@ -1719,7 +1719,7 @@
         &.project-info {
             /*width: 53.3%;/*390px; /*350px;*/
             width:260px;
-            
+
             .infos {
                 overflow-y: auto;
                 height: 130px;
@@ -1968,7 +1968,7 @@
         .comment {
             padding: 20px;
             border-bottom:1px solid #efefef;
-            
+
             .media-body {
                 padding-left: 17px;
                 .commenter {
@@ -2212,25 +2212,25 @@ div.markdown-preview {
 .issue-item  {
     padding:5px 0;
     border-bottom:1px solid #ddd;
-    
-    label { 
-        display:block; 
+
+    label {
+        display:block;
     }
-    
+
     .num {
         width:60px; margin-top:10px;
         vertical-align: middle;
-        a { 
+        a {
             display:inline-block; width:30px;
             text-align:right; color:#b2b2b2;
-            &:hover { color:@primary; font-weight:bold; } 
+            &:hover { color:@primary; font-weight:bold; }
         }
     }
 
     .avatar-wrap {
-        margin-right:10px; 
+        margin-right:10px;
     }
-       
+
     .title {
         overflow: hidden;
         white-space: nowrap;
@@ -2242,34 +2242,34 @@ div.markdown-preview {
     .infos {
         color:#999;
         font-size:11px;
-        
+
         .date { margin-left:10px; }
         .comment-wrap {
             display:inline-block;
-            margin-left:10px; 
+            margin-left:10px;
             .num { color: @secondary; font-weight:bold; }
             .ico { vertical-align: bottom; margin-right: 5px; }
         }
     }
-    
+
     .title-link { font-size:13px; font-weight:bold; }
-    
+
     .info-wrap {
         margin-top: 11px;
         margin-right:25px;
         .ico { vertical-align: bottom; margin-right: 5px; }
     }
-    
+
     .state {
         margin-top:12px;
         margin-right:25px;
-        
+
         font-weight:bold;
         color:#bbb;
 
         &.open { color:@secondary; }
     }
-    
+
     .empty-avatar-space {
         width:32px;
         margin-right:5px;
@@ -2498,7 +2498,7 @@ div.markdown-preview {
         a:last-of-type { color:@primary; }
     }
 
-    .nav-tabs { 
+    .nav-tabs {
         margin-bottom:0;
 
         /** code/diff.scala.html **/
@@ -2558,15 +2558,15 @@ div.markdown-preview {
         width:100%;
         overflow:auto;
         zoom:1;
-        border:1px solid #ddd;    
+        border:1px solid #ddd;
         border-top:none;
         .code-tree {
             display:table-cell;
             width:20%;/*259px;*/
             overflow-x : auto;
             float:left;
-            height:100%;   
-        }   
+            height:100%;
+        }
 
         .code-viewer {
             display:table-cell;
@@ -2585,7 +2585,7 @@ div.markdown-preview {
             position: relative;
             overflow: auto;
             width: 100%;/*20%, 260px;*/
-            padding:15px 5px;            
+            padding:15px 5px;
         }
         &.sp-wrap {
             display:none;
@@ -2594,7 +2594,7 @@ div.markdown-preview {
         &.file-wrap {
             width:100%; /*80%, 916px;*/
             overflow-x: auto;
-            
+
         }
     }
 
@@ -2679,12 +2679,12 @@ div.markdown-preview {
             .text-overflow;
             display:block;
             color:#000;
-            
-            span.dynatree-icon { 
+
+            span.dynatree-icon {
                 margin-right:5px;
                 margin-bottom:1px;
             }
-            &.updir { 
+            &.updir {
                 span.dynatree-icon { display:none; }
             }
         }
@@ -2694,14 +2694,14 @@ div.markdown-preview {
         .messages {
            /* commit History */
            pre { background:none; border:none; margin:0; }
-            
+
            /* fileList */
-           span { 
+           span {
                display:block; max-width:260px;
-               .text-overflow; 
-           } 
+               .text-overflow;
+           }
         }
-        
+
         .author {
             width: 40px;
             text-align: right;
@@ -2731,7 +2731,7 @@ div.markdown-preview {
                 padding-right:5px;
                 margin-right:5px;
                 border-right:1px solid #ccc;
-                
+
                 &:last-of-type {
                     padding-right:0;
                     margin-right:0;
@@ -2756,21 +2756,21 @@ div.markdown-preview {
        .ace_scrollbar { display:none; }
        .ace_scroller  { right:0 !important; }
     }
-    
+
     .image-wrap {
         padding:10px;
-        
+
         img { max-width:100%; }
     }
 
     .file-wrap {
-        p { 
+        p {
             margin: 100px 0; text-align:center;
             .filename { display:block; font-size:20px; }
             .filesize { display:block; font-size:13px; margin-bottom:20px; color:#999; }
         }
     }
-    
+
     .btnResize {
         width:10px; cursor:e-resize;
         height: 99.9%;
@@ -3412,11 +3412,11 @@ code.milestone-title{
   font-size:10px;
 }
 
-// -- keymap 
+// -- keymap
 .keymap-help {
-    padding:20px;    
+    padding:20px;
     line-height:30px;
-    
+
     .nbtn {
         min-width:20px;
     }
@@ -3428,16 +3428,16 @@ code.milestone-title{
 
 // responsive
 @media all and (max-width:620px){
-    .prj .gnb-inner .gnb-menu-wrap .gnb-menus { 
+    .prj .gnb-inner .gnb-menu-wrap .gnb-menus {
         margin:0;
-        
-        &.right { 
+
+        &.right {
             position: relative; float: none;
             display: block; clear: both;
             padding-bottom:15px; text-align:right;
         }
     }
-    
+
     .code-browse-wrap {
         .code-viewer-wrap {
             .code-tree {
@@ -3461,5 +3461,5 @@ code.milestone-title{
         }
 
         .btnResize { display:none; }
-    }    
+    }
 }

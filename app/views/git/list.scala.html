@@ -35,11 +35,12 @@
             </a>
             <button class="btn dropdown-toggle large" data-toggle="dropdown">
                 <div class="count-label">
-                    <span class="text"><i class="icon-copy"></i> @project.forkingProjects.size()</span>
+                    <span class="text">@project.forkingProjects.size()</span>
+                    <span class="caret"></span>
                 </div>
             </button>
-            <ul class="dropdown-menu">
-                <li class="disabled"><span><i class="icon icon-copy"></i>@Messages("forks") (@project.forkingProjects.size)</span></li>
+            <ul class="dropdown-menu pull-right">
+                <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
                 @for(fork <- project.forkingProjects) {
                     <li>
                         <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
