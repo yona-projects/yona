@@ -59,6 +59,8 @@ public class AccessControl {
                 switch(resourceType){
                 case ISSUE_POST:
                 case BOARD_POST:
+                case ISSUE_COMMENT:
+                case NONISSUE_COMMENT:
                 case FORK:
                     return true;
                 default:
