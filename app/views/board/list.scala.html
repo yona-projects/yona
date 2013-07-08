@@ -26,8 +26,8 @@
 	        <form id="option_form" method="get">
 	          <input type="hidden" name="orderBy"  value="@param.orderBy">
 	          <input type="hidden" name="orderDir" value="@param.orderDir">
-	          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter"><!--
-	         --><button type="submit" class="btn search-btn underConstruction">@Messages("post.menu.search")</button>
+	          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
+	          <button type="submit" class="nbtn medium">@Messages("post.menu.search")</button>
 	        </form>
 	        <div class="actrow"> 
                 <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn orange medium last">@Messages("post.write")</a>

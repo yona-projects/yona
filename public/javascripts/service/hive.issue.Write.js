@@ -35,7 +35,7 @@
 		 */
 		function _initVar(htOptions){
 			htVar.sMode = htOptions.sMode || "new";
-      htVar.sIssueFormURL = htOptions.sIssueFormURL;
+            htVar.sIssueFormURL = htOptions.sIssueFormURL;
 			htVar.sUploaderAction = htOptions.sUploaderAction;
 			htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.text() : "");
             htVar.htOptLabel = htOptions.htOptLabel || {};
@@ -46,11 +46,11 @@
 		 */
 		function _initElement(htOptions){
 			htElement.welUploader = $(htOptions.elUploader || "#upload");
-      htElement.welIssueOptions = $(htOptions.elIssueOptions || "#options");
+            htElement.welIssueOptions = $(htOptions.elIssueOptions || "#options");
 			htElement.welTextarea = $(htOptions.elTextarea || "#body");
 			htElement.welInputTitle = $(htOptions.elInputTitle || "#title");
 			htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
-      htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
+            htElement.welMilestoneRefresh = $(htOptions.elMilestoneRefresh || ".icon-refresh");
 			htElement.welTplFileItem = $('#tplAttachedFile');
 		}
 			
@@ -59,8 +59,8 @@
 		 */
 		function _attachEvent(){
 			$("form").submit(_onSubmitForm);
-      htElement.welBtnManageLabel.click(_clickBtnManageLabel);
-      htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
+            htElement.welBtnManageLabel.click(_clickBtnManageLabel);
+            htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
 		}
 
         function _clickBtnManageLabel() {

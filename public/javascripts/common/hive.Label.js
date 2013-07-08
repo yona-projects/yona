@@ -68,9 +68,9 @@ hive.Label = (function(htOptions){
 	 * 엘리먼트 초기화
 	 * initialize element variable
 	 */
-	function _initElement(){
-		htElement.welContainer  = $("fieldset.labels").empty();
-		htElement.welForm = $('form#issue-form,form.form-search,form#search');
+	function _initElement(htOptions){
+		htElement.welContainer  = $(htOptions.welContainer || "fieldset.labels").empty();
+		htElement.welForm = $(htOptions.welForm || 'form#issue-form,form.form-search,form#search');
 		
 		// add label
 		htElement.welLabels = $('.labels'); 
