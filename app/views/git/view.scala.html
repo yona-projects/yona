@@ -3,24 +3,36 @@
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
 
+@branchName(branch:String) = @{
+    branch.replace("refs/heads/", "")
+}
+
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
         <legend>
-            @Messages("pullRequest.from")
-            <span class="label label-info">
-                <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
-                <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>
+            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                <code>
+                    <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
+                    <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a> :
+                    @branchName(pull.fromBranch)
+                </code>
             </span>
-            <span class="label label-success">@pull.fromBranch</span>
-
-            @Messages("pullRequest.to")
-            <span class="label label-info">
-                <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
-                <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
+            <span style="margin-left: 3px;">
+                <i class="icon-long-arrow-right"></i>
             </span>
-            <span class="label label-success">@pull.toBranch</span>
-            <span class="pull-right"><button id="helpBtn" class="nbtn small gray">@Messages("title.help")</button></span>
+            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                <code>
+                    <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
+                    <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a> :
+                    @branchName(pull.toBranch)
+                </code>
+            </span>
+            <span class="pull-right">
+                <button id="helpBtn" class="nbtn small gray">
+                <i class="icon-question-sign icon-large"></i> @Messages("title.help")
+                </button>
+            </span>
         </legend>
         <div class="well" id="helpMessage">
             <p>
@@ -43,8 +55,8 @@
         <div class="tab-content">
             <div id="info" class="tab-pane active">
                 @** Pull Request Info **@
-                <div class="board-header">
-                    <div class="board-id div">@pull.id</div>
+                <div class="board-header issue">
+                    <div class="board-id div"><strong class="secondary-txt">@pull.id</strong></div>
                     <h1 class="title div">@pull.title</h1>
                     <div class="date div">@utils.TemplateHelper.agoString(pull.createdAgo())</div>
                     <div class="div">
@@ -137,6 +149,10 @@
         $('#helpBtn').click(function(e){
             e.preventDefault();
             $('#helpMessage').toggle();
+        });
+
+        $('span[data-toggle="tooltip"]').tooltip({
+            placement : "bottom"
         });
     });
 </script>
