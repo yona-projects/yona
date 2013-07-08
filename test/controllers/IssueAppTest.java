@@ -105,6 +105,20 @@ public class IssueAppTest {
         );
     }
 
+    private Result commentBy(User user) {
+        //Given
+        Map<String,String> data = new HashMap<String,String>();
+        data.put("contents", "world");
+
+        //When
+        return callAction(
+                controllers.routes.ref.IssueApp.newComment("hobi", "nForge4java", issue.getNumber()),
+                fakeRequest()
+                        .withFormUrlEncodedBody(data)
+                        .withSession(UserApp.SESSION_USERID, user.getId().toString())
+        );
+    }
+
     @Test
     public void editByNonmember() {
         // When
@@ -242,6 +256,51 @@ public class IssueAppTest {
 
         // Then
         assertThat(status(result)).describedAs("Member can post an issue.").isEqualTo(SEE_OTHER);
+    }
+
+    @Test
+    public void commentByAnonymous() {
+        // When
+        Result result = commentBy(anonymous);
+
+        // Then
+        assertThat(status(result)).describedAs("Anonymous can't comment for an issue.").isEqualTo(FORBIDDEN);
+    }
+
+    @Test
+    public void commentByNonmember() {
+        // When
+        Result result = commentBy(nonmember);
+
+        // Then
+        assertThat(status(result)).describedAs("Nonmember can comment for an issue of public project.").isEqualTo(SEE_OTHER);
+    }
+
+    @Test
+    public void commentByAdmin() {
+        // When
+        Result result = commentBy(admin);
+
+        // Then
+        assertThat(status(result)).describedAs("Site Admin can comment for an issue.").isEqualTo(SEE_OTHER);
+    }
+
+    @Test
+    public void commentByManager() {
+        // When
+        Result result = commentBy(manager);
+
+        // Then
+        assertThat(status(result)).describedAs("Project Manager can comment for an issue.").isEqualTo(SEE_OTHER);
+    }
+
+    @Test
+    public void commentByMember() {
+        // When
+        Result result = commentBy(member);
+
+        // Then
+        assertThat(status(result)).describedAs("Member can comment for an issue.").isEqualTo(SEE_OTHER);
     }
 
     @Test
