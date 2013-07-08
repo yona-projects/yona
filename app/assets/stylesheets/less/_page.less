@@ -881,7 +881,7 @@
     
     .inner {
         position:relative;
-        padding: 10px; /*10px 20px 10px 40px;*/
+        padding: 20px; /*10px 20px 10px 40px;*/
 
         input { margin:0; }
         form  { margin:0 auto; /*text-align:center;*/ }
@@ -2511,9 +2511,9 @@ div.markdown-preview {
     }
 
     #commit {
-        font-family: "monospace";
+        font-family: "monospace", Consolas, Tahoma;
         table {
-            border: 1px solid #d8d8d8;
+            border: 1px solid #eee;
             width: 100%;
         }
         td {
@@ -2541,7 +2541,7 @@ div.markdown-preview {
             background-color: #fdd;
         }
         tr.file {
-            background-color: #D7D7D7;
+            background-color: #ededed;
             font-weight: bold;
         }
         tr.range {
@@ -3462,4 +3462,17 @@ code.milestone-title{
 
         .btnResize { display:none; }
     }
+}
+
+// temporary
+.pop-watch {
+    .content { padding: 10px 25px; }
+    .brow { text-align:center; padding:10px 0; }
+    
+    ul {
+        margin: 0px;
+        padding: 5px;
+        li { display: list-item; }
+    }
+    h5 { text-rendering:auto; }
 }

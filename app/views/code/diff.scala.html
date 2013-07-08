@@ -59,31 +59,31 @@
 	        </li>
 	    </ul>
 
-        <pre>@commit.getMessage</pre>
-        <p>
-        @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
-        case (user: User, _, _) if !user.isAnonymous => {
-        <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
-            <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-        </a>
-        <span>@commit.getAuthor.name</span>
-        }
-        case (_, email, name) if email != null => {
-        <span class="avatar-wrap">
-            <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 32)">
-        </span>
-        @if(name != null) {
-        <span>@name</span>
-        }
-        }
-        case (_, _, name) if name != null => {
-        <span>@name</span>
-        }
-        case (_, _, _) => {
-        <span>@User.anonymous.name</span>
-        }
-        }
-        | <span>@agoString(ago(commit.getAuthorDate))</span>
+        <pre class="pull-right">@commit.getMessage</pre>
+        <p class="pull-left">
+            @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+            case (user: User, _, _) if !user.isAnonymous => {
+            <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+            </a> 
+            <span>@commit.getAuthor.name</span>
+            }
+            case (_, email, name) if email != null => {
+            <span class="avatar-wrap">
+                <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 32)">
+            </span>
+            @if(name != null) {
+            <span>@name</span>
+            }
+            }
+            case (_, _, name) if name != null => {
+            <span>@name</span>
+            }
+            case (_, _, _) => {
+            <span>@User.anonymous.name</span>
+            }
+            }
+            | <span>@agoString(ago(commit.getAuthorDate))</span>
         </p>
 		<div id="commit" style="display: none">@patch</div>
 	</div>
