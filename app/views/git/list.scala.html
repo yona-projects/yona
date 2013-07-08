@@ -1,43 +1,19 @@
 @(project: Project, pullRequests: List[PullRequest], requestType: String)
-@import utils.TemplateHelper._
-
-@branchName(branch:String) = @{
-    branch.replace("refs/heads/", "")
-}
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
-<style>
-    .count-label {
-        float: left;
-        margin: 0;
-        padding: 4px 0;
-        padding-right: 9px;
-        overflow: hidden;
-        display: inline-block;
-    }
-
-    .btn-group {
-        margin-right: 5px;
-    }
-
-    .btn-group .nbtn {
-        margin-right: 0px;
-    }
-</style>
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="pull-right">
-        <div class="btn-group">
-            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium @if(!project.isFork){orange last}">
+        <div class="btn-group @if(project.isFork){margin-right-5}">
+            <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium orange last margin-right-i2">
                 <i class="icon-code-fork icon-large"></i>
                 @Messages("fork")
             </a>
-            <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                <div class="count-label">
-                    <span class="text">@project.forkingProjects.size()</span>
-                    <span class="caret"></span>
-                </div>
+
+            <button class="btn dropdown-toggle small" data-toggle="dropdown">
+                <span class="d-label">@project.forkingProjects.size()</span>
+                <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu pull-right">
                 <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
@@ -64,32 +40,28 @@
         @if(project.hasForks()){
             <li @if(requestType.equals("opened")){class="active"}>
                 <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
-                    <i class="icon-large icon-check-empty"></i>
                     @Messages("pullRequest.opened.code")
-                    ( @PullRequest.findOpendPullRequests(project).size )
+                    <span class="num-badge">@PullRequest.findOpendPullRequests(project).size</span>
                 </a>
             </li>
             <li @if(requestType.equals("closed")){class="active"}>
                 <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">
-                    <i class="icon-large icon-check"></i>
                     @Messages("pullRequest.accepted.code")
-                    ( @PullRequest.findClosedPullRequests(project).size )
+                    <span class="num-badge">@PullRequest.findClosedPullRequests(project).size</span>
                 </a>
             </li>
             <li @if(requestType.equals("rejected")){class="active"}>
                 <a href="@routes.PullRequestApp.rejectedPullRequests(project.owner, project.name)">
-                    <i class="icon-large icon-stop"></i>
                     @Messages("pullRequest.rejected.code")
-                    ( @PullRequest.findRejectedPullRequests(project).size )
+                    <span class="num-badge">@PullRequest.findRejectedPullRequests(project).size</span>
                 </a>
             </li>
         }
         @if(project.isFork()){
             <li @if(requestType.equals("sent")){class="active"}>
                 <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
-                    <i class="icon-large icon-share"></i>
                     @Messages("pullRequest.sent.code")
-                    ( @PullRequest.findAcceptedPullRequests(project).size / @PullRequest.findSentPullRequests(project).size )
+                    <span class="num-badge">@PullRequest.findAcceptedPullRequests(project).size / @PullRequest.findSentPullRequests(project).size</span>
                 </a>
             </li>
         }

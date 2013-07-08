@@ -6,7 +6,6 @@ body {
    background      : @base-background;
    background-color: @base-background-color;  
    font-family: @base-font-family;
-   text-rendering: auto;
 }
 input, button, select, textarea { font-family: @base-font-family !important; }
 
@@ -106,40 +105,7 @@ a {
 .bgblue   { background:@blue; /*#56B5D9;*/ }
 .bgorange { background:@orange; }
 .vmiddle  { vertical-align:middle !important; }
-
-/** alert **/
-/*
-.n-alert {
-    display:none;
-    overflow: hidden;
-    
-    .n-inner {
-        cursor:pointer;
-        
-        float: left;
-        font-size: 11px;
-        border: 1px solid #FAC7AB;
-        color: @orange;
-        background-color: #FFF0E8;
-        padding: 0 7px;
-        line-height: 25px;
-        .border-radius(2px);
-    }
-    margin-bottom: 5px;
-}
-*/
-/*
-.mandatory-text-wrap {
-    overflow:hidden; position:relative;
-}
-.mandatory-text-flag {
-    position:absolute;
-    right:-7px; top:-7px; 
-    width:14px; height:14px; 
-    background:#f00;
-    -webkit-transform:rotate(45deg);
-}
-*/
+.vtop     { vertical-align:top    !important; }
 
 /** form elements **/
 .radio-btn {
@@ -152,28 +118,33 @@ a {
 }
 
 .text-right {
-  text-align: right;
-  padding-right: 20px;
+    text-align: right;
+    padding-right: 20px;
 }
 
 .icon-middle{
-  vertical-align: bottom;
-  margin-bottom: 3px;
+    vertical-align: bottom;
+    margin-bottom: 3px;
 }
 
 .bold{
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .small-font{
-  font-size: 10px;
-  font-weight: normal;
+    font-size: 10px;
+    font-weight: normal;
 }
 
 .margin-left-20{
-  margin-left: 20px;
+    margin-left: 20px;
 }
-
+.margin-right-5 {
+    margin-right:5px;
+}
+.margin-right-i2 {
+    margin-right:-2px !important;
+}
 .no-border{
-  border: 0px solid #000 !important;
+    border: none !important;
 }
