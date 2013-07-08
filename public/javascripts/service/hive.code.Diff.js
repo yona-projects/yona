@@ -216,9 +216,9 @@
                             }
                         } else {
                             htDiff.nLineA = aHunkRange[1];
-                            nLastLineA = htDiff.nLineA + aHunkRange[2] - 1;
+                            nLastLineA = htDiff.nLineA + aHunkRange[2];
                             htDiff.nLineB = aHunkRange[3];
-                            nLastLineB = htDiff.nLineB + aHunkRange[4] - 1;
+                            nLastLineB = htDiff.nLineB + aHunkRange[4];
                             _flushChangedLines(welTable, htDiff);
                             _appendHunkHeader(welTable, aLine[i]);
                             bInHunk = true;
@@ -240,6 +240,8 @@
                     bInHunk = false;
                 }
             }
+
+            _flushChangedLines(welTable, htDiff);
 
             return welTable;
         }
