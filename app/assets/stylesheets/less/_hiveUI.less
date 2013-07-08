@@ -49,7 +49,10 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.small  .d-label { width: 29px;  }
     &.medium .d-label { width: 58px;  }
     &.large  .d-label { width: 116px; }
-    &.auto   .d-label { width: inherit; }
+    &.auto   {
+        width:100%;
+        .d-label { width: initial; }
+    }
 
     .d-label {
         float:left; margin:0;
@@ -71,6 +74,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     background:darken(@white, 5%);
 }
 .dropdown-menu {
+    padding:0; width:inherit;
     border:1px solid rgba(0,0,0,0.2);
     .box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
     .border-radius(2px);
@@ -211,19 +215,22 @@ button.nbtn {
 
 /** issue label **/
 .issue-label {
-    border:none; padding:2px 4px; margin-right:5px;
+    background:#f7f7f7;
+    border:1px solid rgba(0,0,0,0.1);/*none;*/
+    padding:2px 4px; margin-right:5px;
     font-size:11px; font-weight:bold;
-    .box-shadow(inset 0px -1px 1px rgba(0,0,0,0.3));
+    /*.box-shadow(inset 0px -1px 1px rgba(0,0,0,0.3));*/
     -webkit-transition-duration:0.25s;
     &:last-of-type { margin:0; }
 
     .delete {
-        display:none;
+        display:inline;/*none;*/
         margin-left:8px; padding:8px 4px;
+        font-size:20px; vertical-align:middle;
         -webkit-transition-duration:inherit;
         &:hover { background:rgba(0,0,0,.2); }
     }
-    &.editable .delete { display:inline; }
+    /*&.editable .delete { display:inline; }*/
 
     &.active {
         .border-radius(2px);
@@ -430,7 +437,7 @@ button.nbtn {
     padding: 0px 5px;
     margin-left: 5px;    
     margin-bottom:-1px;
-    vertical-align: middle;
+    vertical-align: top;
     font-family: Tahoma;
     text-shadow: none;
 }

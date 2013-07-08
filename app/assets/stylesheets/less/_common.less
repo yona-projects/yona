@@ -27,18 +27,22 @@ a {
 
 /** pagination **/
 .page-navigation-wrap {
+    width:100%;
     text-align: center;
+    margin-top: 20px;
+    
     .page-nums {
         margin: 0;
         padding: 0;
         list-style: none;
-        .inline-block;
         font-size: 0;
+        .inline-block;
+        
         .page-num {
             .inline-block;
             padding: 0 10px;
             font-size: 12px;
-            color: #8E9094;
+            color: #8e9094;
             .current {
                 color: @orange; /*#4489A4;*/
                 font-weight: bold;
@@ -104,62 +108,9 @@ a {
 .bgwhite  { background:#fff; }
 .bgblue   { background:@blue; /*#56B5D9;*/ }
 .bgorange { background:@orange; }
+.bggray   { background:#f5f5f5; }
 .vmiddle  { vertical-align:middle !important; }
-
-/** issue label **/
-.issue-label {
-    /*.border-radius(3px);*/
-    border:none; padding:2px 4px; /*3px 10px;*/
-    font-size:11px; font-weight:bold;
-    box-shadow: inset 0px -1px 1px rgba(0,0,0,0.3);
-    margin-right:5px; -webkit-transition-duration:0.25s;
-    &:last-of-type { margin:0; }
-    
-    .del-link {
-        margin-left:8px; padding:8px 4px;
-        -webkit-transition-duration:inherit;
-        &:hover { background:rgba(0,0,0,.2); }
-    }
-    
-    &.active {
-        .border-radius(2px);
-        &.active-white   { color:#fff; }
-        &.active-dimgray { color:#696969; }
-    }
-}
-
-/** alert **/
-.n-alert {
-    display:none;
-    overflow: hidden;
-    
-    .n-inner {
-        cursor:pointer;
-        
-        float: left;
-        font-size: 11px;
-        border: 1px solid #FAC7AB;
-        /*border: 1px solid #93C0C8;*/
-        color: @orange; /*#4092A1;*/
-        background-color: #FFF0E8; /*#E8f6f9;*/
-        padding: 0 7px;
-        line-height: 25px;
-        .border-radius(2px);
-    }
-    margin-bottom: 5px;
-}
-/*
-.mandatory-text-wrap {
-    overflow:hidden; position:relative;
-}
-.mandatory-text-flag {
-    position:absolute;
-    right:-7px; top:-7px; 
-    width:14px; height:14px; 
-    background:#f00;
-    -webkit-transform:rotate(45deg);
-}
-*/
+.vtop     { vertical-align:top    !important; }
 
 /** form elements **/
 .radio-btn {
@@ -172,28 +123,33 @@ a {
 }
 
 .text-right {
-  text-align: right;
-  padding-right: 20px;
+    text-align: right;
+    padding-right: 20px;
 }
 
 .icon-middle{
-  vertical-align: bottom;
-  margin-bottom: 3px;
+    vertical-align: bottom;
+    margin-bottom: 3px;
 }
 
 .bold{
-  font-weight: bold;
+    font-weight: bold;
 }
 
 .small-font{
-  font-size: 10px;
-  font-weight: normal;
+    font-size: 10px;
+    font-weight: normal;
 }
 
 .margin-left-20{
-  margin-left: 20px;
+    margin-left: 20px;
 }
-
+.margin-right-5 {
+    margin-right:5px;
+}
+.margin-right-i2 {
+    margin-right:-2px !important;
+}
 .no-border{
-  border: 0px solid #000 !important;
+    border: none !important;
 }

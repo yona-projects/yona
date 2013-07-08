@@ -2,7 +2,7 @@
 
 <form id="mass-update-form" class="mass-update-form" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
     <div id="state" class="btn-group" data-name="state">
-        <button class="btn dropdown-toggle large" data-toggle="dropdown" disabled>
+        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
             <span class="d-label">@Messages("issue.update.state")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
@@ -13,7 +13,7 @@
     </div>
 
     <div id="assignee" class="btn-group" data-name="assignee.id">
-        <button class="btn dropdown-toggle large" data-toggle="dropdown" disabled>
+        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
             <span class="d-label">@Messages("issue.update.assignee")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
@@ -26,7 +26,7 @@
     </div>
 
     <div id="milestone" class="btn-group" data-name="milestone.id">
-        <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
             <span class="d-label">@Messages("issue.update.milestone")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
@@ -39,7 +39,7 @@
     </div>
 
     <div id="attaching-label" class="btn-group" data-name="attachingLabel.id">
-        <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
             <span class="d-label">@Messages("issue.update.attachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
@@ -51,7 +51,7 @@
     </div>
 
     <div id="detaching-label" class="btn-group" data-name="detachingLabel.id">
-        <button class="btn dropdown-toggle" data-toggle="dropdown" disabled>
+        <button class="btn dropdown-toggle medium" data-toggle="dropdown" disabled="disabled">
             <span class="d-label">@Messages("issue.update.detachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>

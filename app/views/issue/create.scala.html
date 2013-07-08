@@ -1,11 +1,9 @@
 @(title:String, issueForm:Form[Issue], project:Project)
-
 @import helper._
 @import scala.collection.mutable.Map
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
-@import controllers.UserApp;
 @import models.enumeration.ResourceType
 @import models.enumeration.Operation
+@import controllers.UserApp;
 @import utils.AccessControl._
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
@@ -15,58 +13,58 @@
 	<div class="content-wrap frm-wrap">
 
 	@form(action = routes.IssueApp.newIssue(project.owner, project.name), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
-    <dl>
-		<dt>
-			<label for="title">@Messages("post.new.title")</label>
-    	</dt>
-    	<dd>
-    		<input type="text" id="title" name="title" value="" class="text title" maxlength="250" tabindex="1">
-    	</dd>
-    	<dd>
-			<textarea id="body" name="body" markdown="true" class="text content" tabindex="2"></textarea>
-		</dd>
-    </dl>
+    <div class="row-fluid">
+        <div class="span9">            
+            <dl>
+        		<dt>
+        			<label for="title">@Messages("post.new.title")</label>
+            	</dt>
+            	<dd>
+            		<input type="text" id="title" name="title" value="" class="text title" maxlength="250" tabindex="1">
+            	</dd>
+            	<dd>
+        			<textarea id="body" name="body" markdown="true" class="text content" tabindex="2"></textarea>
+        		</dd>
+            </dl>
+        
+            @** fileUploader **@
+            @if(!UserApp.currentUser.isAnonymous) {
+                @fileUploader(ResourceType.ISSUE_POST, null)
+            }
+            @** end of fileUploader **@
+        </div>
 
-    @** fileUploader **@
-    @if(!UserApp.currentUser.isAnonymous) {
-        @fileUploader(ResourceType.ISSUE_POST, null)
-    }
-    @** end of fileUploader **@
+		<div class="span3">
+    		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
+    		<dl class="issue-option">
+                 <dt>@Messages("issue.new.detailInfo.assignee")</dt>
+                 <dd>
+                 	<div id="assignee" class="btn-group" data-name="assignee.user.id">
+    					<button class="btn dropdown-toggle auto" data-toggle="dropdown">
+    						<span class="d-label">@Messages("issue.new.selectDefault.assignee")</span>
+    						<span class="d-caret"><span class="caret"></span></span>
+    					</button>
+    					<ul class="dropdown-menu">
+    					@for(member <- project.members()) {
+                            <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
+                        }
+    					</ul>
+    				</div>
+                 </dd>
+    		</dl>
+    		}
 
-	<br>
-
-	<!-- issue options -->
-	<ul id="options" class="options unstyled issue-options">
-		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
-		<li class="option">
-             <div class="option-label">@Messages("issue.new.detailInfo.assignee")</div>
-             <div class="option-desc">
-             	<div id="assignee" class="btn-group" data-name="assignee.user.id">
-					<button class="btn dropdown-toggle large" data-toggle="dropdown">
-						<span class="d-label">@Messages("issue.new.selectDefault.assignee")</span>
-						<span class="d-caret"><span class="caret"></span></span>
-					</button>
-					<ul class="dropdown-menu">
-					@for(member <- project.members()) {
-                        <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
-                    }
-					</ul>
-				</div>
-             </div>
-		</li>
-		}
-
-		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
-            <li id="milestoneOption" class="option">
-                <div class="option-label">@Messages("issue.new.detailInfo.milestone")</div>
-                @defining(Milestone.options(project.id)) { milestones =>
-                    @if(milestones.isEmpty()) {
-                        <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
-                        <i class="icon-refresh"></i>
-                    } else {
-                        <div class="option-desc">
+    		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+                <dl id="milestoneOption" class="issue-option">
+                    <dt>@Messages("issue.new.detailInfo.milestone")</dt>
+                    <dd>
+                    @defining(Milestone.options(project.id)) { milestones =>
+                        @if(milestones.isEmpty()) {
+                            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
+                            <i class="icon-refresh"></i>
+                        } else {
                             <div id="milestoneId" class="btn-group" data-name="milestoneId">
-                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                     <span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
@@ -76,28 +74,32 @@
                                     }
                                 </ul>
                             </div>
-                        </div>
+                        }
                     }
-                }
-            </li>
-		}
-	</ul>
+                    </dd>
+                </dl>
+    		}
 
-	<!-- issue.label js module appends a label selector here. -->
-    <p class="option-label">@Messages("label.select")
-        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-        <a id="manage-label-link">
-            <i class="icon-cog"></i>
-        </a>
-		}
-    </p>
-	<fieldset class="labels issue-form-labels form-horizontal bubble-wrap gray"></fieldset>
+            <dl id="labels" class="issue-option">
+                <dt>
+                    @Messages("label.select")
+                    @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+                    <button id="manage-label-link" type="button" class="btn-transparent"><i class="icon-cog"></i></button>
+                    }
+                </dt>
+                <dd>
+                    <fieldset class="labels issue-form-labels"></fieldset>
+                </dd>
+            </dl>
+        </div>
+    </div>
 
-	<div class="actions">
-	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
-	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+    <div class="row-fluid">
+    	<div class="span9 right-txt actrow">
+    	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
+    	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+    	</div>
 	</div>
-	@** <!-- @routes.IssueApp.issues(project.owner, project.name, "all") --> **@
 
 	} @** end of form **@
 	</div>
