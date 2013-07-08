@@ -199,9 +199,9 @@
                     }
                 } else {
                     switch (aLine[i].substr(0, 2)) {
-                    case '++':
-                        break;
                     case '--':
+                        break;
+                    case '++':
                         _flushChangedLines(welTable, htDiff);
                         _appendFileHeader(welTable, aLine[i].substr(5));
                         break;
