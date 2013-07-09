@@ -307,6 +307,11 @@ public class BoardApp extends AbstractPostingApp {
             return badRequest(commentForm.errors().toString());
         }
 
+        if (!AccessControl.isProjectResourceCreatable(
+                    UserApp.currentUser(), project, ResourceType.NONISSUE_COMMENT)) {
+            return forbidden(views.html.error.forbidden.render(project));
+        }
+
         final PostingComment comment = commentForm.get();
 
         return newComment(comment, commentForm, redirectTo, new Callback() {
