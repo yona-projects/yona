@@ -29,7 +29,7 @@
 	}
 }
 @makeHistoryWho(history:History)  = {<a href="@userPageUrlOnHistory(history)" class="actor">@history.getWho()</a>}
-@makeHistoryHow(history:History)  = {<a href="@history.getUrl()"><strong class="whereis"><code>@history.getShortTitle()</code> @history.getHow()</strong></a> }
+@makeHistoryHow(history:History)  = {<a href="@history.getUrl()"><span class="whereis"><code>@history.getShortTitle()</code> @history.getHow()</span></a> }
 @makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat())}
 
 @main(message, project, utils.MenuType.PROJECT_HOME) {

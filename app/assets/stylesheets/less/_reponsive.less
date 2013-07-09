@@ -1,0 +1,37 @@
+// responsive
+@media all and (max-width:620px){
+    .prj .gnb-inner .gnb-menu-wrap .gnb-menus {
+        margin:0;
+
+        &.right {
+            position: relative; float: none;
+            display: block; clear: both;
+            padding-bottom:15px; text-align:right;
+        }
+    }
+
+    .code-browse-wrap {
+        .code-viewer-wrap {
+            .code-tree {
+                display:none;
+                width:0px;
+            }
+            .code-viewer {
+                display:block;
+                width:100%;
+            }
+        }
+
+        .cell {
+            &.directory-wrap {
+                display:none;
+                width:0px;
+            }
+            &.file-wrap {
+                width:100%; display:block;
+            }
+        }
+
+        .btnResize { display:none; }
+    }
+}

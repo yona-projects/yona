@@ -60,20 +60,20 @@
 
 	} else {
 
-    <div class="milestone-legend">
-        <i class="gray"></i>@Messages("issue.state.open")
-        <i class="blue"></i>@Messages("issue.state.assigned")
-        <i class="orange"></i>@Messages("issue.state.closed")
-    </div>
-    
-    @if(milestones.length > 1){
     <div class="filter-wrap milestone">
+        <div class="milestone-legend pull-left">
+            <i class="gray"></i>@Messages("issue.state.open")
+            <i class="blue"></i>@Messages("issue.state.assigned")
+            <i class="orange"></i>@Messages("issue.state.closed")
+        </div>
+
+        @if(milestones.length > 1){
 		<div class="filters">
 			@makeFilterLink("dueDate", param.orderBy, param.orderDir, Messages("order.dueDate"))
 			@makeFilterLink("completionRate", param.orderBy, param.orderDir, Messages("order.completionRate"))
 		</div>
+		}
     </div>
-    }
 
     <ul class="milestones">
         @for(milestone <- milestones){

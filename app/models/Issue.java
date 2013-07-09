@@ -150,6 +150,42 @@ public class Issue extends AbstractPosting {
     }
 
     /**
+     * {@code projectId} 프로젝트에
+     * {@link State} 상태 이면서
+     * {@link Assignee}가 담당자인 이슈 개수를 반환한다.
+     *
+     * @param projectId
+     * @param state
+     * @param assigneeId
+     * @return
+     */
+    public static int countIssuesByAssigneeId(Long projectId, State state, Long assigneeId) {
+        if (state == State.ALL){
+            return finder.where().eq("project.id", projectId).eq("assignee.user.id", assigneeId).findRowCount();
+        } else {
+            return finder.where().eq("project.id", projectId).eq("state", state).eq("assignee.user.id", assigneeId).findRowCount();
+        }
+    }
+
+    /**
+     * {@code projectId} 프로젝트에
+     * {@link State} 상태 이면서
+     * {@link authorId}가 작성자인 이슈 개수를 반환한다.
+     *
+     * @param projectId
+     * @param state
+     * @param authorId
+     * @return
+     */
+    public static int countIssuesByAuthorId(Long projectId, State state, Long authorId) {
+        if (state == state.ALL){
+            return finder.where().eq("project.id", projectId).eq("authorId", authorId).findRowCount();
+        } else {
+            return finder.where().eq("project.id", projectId).eq("state", state).eq("authorId", authorId).findRowCount();
+        }
+    }
+
+    /**
      * Generate a Microsoft Excel file in byte array from the given issue list,
      * using JXL.
      *

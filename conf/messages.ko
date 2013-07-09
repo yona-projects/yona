@@ -208,7 +208,7 @@ issue.new.selectDefault.importance = --중요도 선택--
 issue.new.selectDefault.diagnosisResult = --진단결과 선택--
 issue.comment.delete.confirm = 해당 이슈의 댓글을 삭제하시겠습니까?
 issue.committer.edit = 이슈수정
-issue.advancedSearch = 고급검색
+issue.advancedSearch = 상세검색
 issue.downloadAsExcel = 엑셀파일로 다운받기
 issue.search = 검색
 issue.error.emptyTitle = 이슈 제목을 입력해주세요
@@ -222,6 +222,9 @@ issue.update.assignee = 담당자 변경
 issue.update.milestone = 마일스톤 변경
 issue.update.attachLabel = 라벨 추가
 issue.update.detachLabel = 라벨 제거
+issue.list.all = 전체 이슈
+issue.list.assignedToMe = 나에게 할당된 이슈
+issue.list.authoredByMe = 내가 작성한 이슈
 
 #Post
 post.new = 새글
