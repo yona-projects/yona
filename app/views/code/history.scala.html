@@ -86,6 +86,11 @@
 								</a>
 							</td>
 							<td class="messages">
+                                @defining(CodeComment.find.where().eq("commitId", commit.getId).findRowCount){ commentCount =>
+                                @if(commentCount > 0) {
+                                <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @commentCount</span>
+                                }
+                                }
                                 <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
 							        <pre>@commit.getMessage()</pre>
                                 </a>
