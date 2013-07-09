@@ -50,6 +50,10 @@ public class CodeComment extends Model {
         createdDate = new Date();
     }
 
+    public static int count(String commitId) {
+        return CodeComment.find.where().eq("commitId", commitId).findRowCount();
+    }
+
     @Transient
     public void setAuthor(User user) {
         authorId = user.id;
