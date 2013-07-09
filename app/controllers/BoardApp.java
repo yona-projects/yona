@@ -5,6 +5,7 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
 import models.*;
+import models.enumeration.NotificationType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
@@ -21,6 +22,7 @@ import play.mvc.Call;
 import play.mvc.Result;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -143,13 +145,22 @@ public class BoardApp extends AbstractPostingApp {
         Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
 
         String title = String.format("[%s] %s (#%d)", post.project.name, post.title, post.getNumber());
-
         Set<User> watchers = post.getWatchers();
         watchers.addAll(getMentionedUsers(post.body));
-        Notification noti = NotificationFactory.create(watchers, title, post.body,
-                toPost.absoluteURL(request()));
+        watchers.remove(post.getAuthor());
 
-        sendNotification(noti);
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.message = post.body;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = toPost.absoluteURL(request());
+        notiEvent.resourceId = post.id;
+        notiEvent.resourceType = post.asResource().getType();
+        notiEvent.type = NotificationType.NEW_POSTING;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = post.body;
+        notiEvent.save();
 
         return redirect(toPost);
     }

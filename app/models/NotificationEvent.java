@@ -6,6 +6,7 @@ import play.db.ebean.Model;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -55,17 +56,42 @@ public class NotificationEvent extends Model {
         Finder<Long, ? extends Model> finder = null;
 
         switch(resourceType) {
+            case ISSUE_POST:
+                finder = Issue.finder;
+                break;
+            case ISSUE_ASSIGNEE:
+                finder = Assignee.finder;
+                break;
             case ISSUE_COMMENT:
                 finder = IssueComment.find;
                 break;
             case NONISSUE_COMMENT:
-                finder = IssueComment.find;
+                finder = PostingComment.find;
                 break;
-            case ISSUE_POST:
-                finder = Issue.finder;
+            case LABEL:
+                finder = Label.find;
+                break;
+            case BOARD_POST:
+                finder = Posting.finder;
+                break;
+            case USER:
+                finder = User.find;
+                break;
+            case PROJECT:
+                finder = Project.find;
+                break;
+            case ATTACHMENT:
+                finder = Attachment.find;
+                break;
+            case MILESTONE:
+                finder = Milestone.find;
                 break;
             default:
-                play.Logger.warn("Unknown resource type " + resourceType);
+                if (EnumSet.allOf(ResourceType.class).contains(resourceType)) {
+                    play.Logger.warn("Unsupported resource type " + resourceType);
+                } else {
+                    play.Logger.warn("Unknown resource type " + resourceType);
+                }
         }
 
         return finder.byId(resourceId) != null;
