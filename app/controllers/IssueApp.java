@@ -382,10 +382,20 @@ public class IssueApp extends AbstractPostingApp {
         String title = String.format("[%s] %s (#%d)", newIssue.project.name, newIssue.title, newIssue.getNumber());
         Set<User> watchers = newIssue.getWatchers();
         watchers.addAll(getMentionedUsers(newIssue.body));
-        Notification noti = NotificationFactory
-                .create(watchers, title, newIssue.body, issueCall.absoluteURL(request()));
+        watchers.remove(newIssue.getAuthor());
 
-        sendNotification(noti);
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.message = newIssue.body;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = issueCall.absoluteURL(request());
+        notiEvent.resourceId = newIssue.id;
+        notiEvent.resourceType = newIssue.asResource().getType();
+        notiEvent.type = NotificationType.NEW_ISSUE;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = newIssue.body;
+        notiEvent.save();
 
         return redirect(issueCall);
     }

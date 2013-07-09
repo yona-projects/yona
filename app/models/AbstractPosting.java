@@ -213,6 +213,11 @@ abstract public class AbstractPosting extends Model {
         authorName = user.name;
     }
 
+    @Transient
+    public User getAuthor() {
+        return User.find.byId(authorId);
+    }
+
     /**
      * 이슈나 글에 달려있는 댓글을 반환한다.
      *
