@@ -26,7 +26,7 @@ public enum ResourceType {
     PROJECT_LABELS("project_labels"),
     FORK("fork"),
     CODE_COMMENT("code_comment"),
-    Pull_REQUEST("pull_request"),
+    PULL_REQUEST("pull_request"),
     SIMPLE_COMMENT("simple_comment");
 
     private String resource;

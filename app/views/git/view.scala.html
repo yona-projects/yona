@@ -165,7 +165,7 @@
                 }
             </ul>
             }
-            <form id="comment-form" action="@routes.SimpleCommentApp.newComment(ResourceType.Pull_REQUEST.resource() + "_" + pull.id)" method="post" enctype="multipart/form-data">
+            <form id="comment-form" action="@routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id)" method="post" enctype="multipart/form-data">
             <div class="write-comment-box">
                 <div class="write-comment-wrap">
                     <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>

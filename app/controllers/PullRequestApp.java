@@ -8,7 +8,6 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import play.Logger;
 import play.data.Form;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -350,7 +349,7 @@ public class PullRequestApp extends Controller {
         }
 
         List<SimpleComment> comments = SimpleComment
-                .findByResourceKey(ResourceType.Pull_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
+                .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
         return ok(view.render(project, pullRequest, isSafe[0], commits, comments));
     }
 
