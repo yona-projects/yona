@@ -175,7 +175,7 @@ public class User extends Model {
      * @return
      */
     public static User findByLoginId(String loginId) {
-        User user = find.where().eq("loginId", loginId).findUnique();
+        User user = find.where().ieq("loginId", loginId).findUnique();
         if(  user == null ) {
             return anonymous;
         } else {
@@ -207,7 +207,7 @@ public class User extends Model {
      * @return 사용자 존재여부
      */
     public static boolean isLoginIdExist(String loginId) {
-        int findRowCount = find.where().eq("loginId", loginId).findRowCount();
+        int findRowCount = find.where().ieq("loginId", loginId).findRowCount();
         return (findRowCount != 0);
     }
 
