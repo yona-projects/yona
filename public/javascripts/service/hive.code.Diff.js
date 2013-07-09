@@ -529,9 +529,10 @@
                     }
                 }
 
-                if (htDiff.nLineA >= nLastLineA
-                        && htDiff.nLineB >= nLastLineB) {
+                if (htDiff.nLineA + htDiff.aRemoved.length >= nLastLineA
+                        && htDiff.nLineB + htDiff.aAdded.length >= nLastLineB) {
                     bInHunk = false;
+                    _flushChangedLines(welTable, htDiff);
                 }
             }
 
