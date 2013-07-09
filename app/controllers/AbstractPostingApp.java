@@ -20,6 +20,7 @@ import play.mvc.*;
 import utils.AccessControl;
 
 import utils.Callback;
+import utils.Config;
 import utils.Constants;
 
 import java.io.IOException;
@@ -115,7 +116,7 @@ public class AbstractPostingApp extends Controller {
         final HtmlEmail email = new HtmlEmail();
 
         try {
-            email.setFrom(sender.email, sender.name);
+            email.setFrom(Config.getEmailFromSmtp());
             for (User receiver : receivers) {
                 email.addTo(receiver.email, receiver.name);
             }
@@ -129,8 +130,6 @@ public class AbstractPostingApp extends Controller {
         }
 
         Callable<Object> sendingMail = new Callable<Object>() {
-            private Set<User> watchers;
-
             public Object call() throws EmailException {
                 try {
                     Mailer.send(email);

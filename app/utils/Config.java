@@ -1,6 +1,8 @@
 
 package utils;
 
+import play.Configuration;
+
 public class Config {
 
     public static String getHostport(String defaultValue) {
@@ -41,4 +43,14 @@ public class Config {
         }
     }
 
+    public static String getEmailFromSmtp() {
+        Configuration config = Configuration.root();
+        String user = config.getString("smtp.user");
+
+        if (user.contains("@")) {
+            return user;
+        } else {
+            return user + "@" + config.getString("smtp.domain");
+        }
+    }
 }
