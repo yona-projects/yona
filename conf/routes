@@ -59,6 +59,9 @@ GET     /files/:id/?                                    controllers.AttachmentAp
 POST    /files/:id/?                            		controllers.AttachmentApp.deleteFile(id: Long)
 POST    /files/:id                            			controllers.AttachmentApp.deleteFile(id: Long)
 
+# Simple Comments
+POST    /comment/:resourceKey                           controllers.SimpleCommentApp.newComment(resourceKey)
+
 # Boards
 GET     /:user/:project/posts                           controllers.BoardApp.posts(user, project, pageNum: Int ?= 1)
 GET     /:user/:project/postform                        controllers.BoardApp.newPostForm(user, project)

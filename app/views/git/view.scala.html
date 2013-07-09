@@ -1,7 +1,9 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit])
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment])
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
+@import utils.AccessControl._
+@import models.enumeration
 
 @branchName(branch:String) = @{
     branch.replace("refs/heads/", "")
@@ -139,6 +141,41 @@
             }
         </div>
 
+        <div class="board-comment-wrap">
+            <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@comments.size</strong></div>
+            @if(comments.size > 0) {
+            <ul class="comments">
+                @for(comment <- comments){
+                <li class="comment" id="comment-@comment.id">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                    <div class="media-body">
+                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                        <a class="pull-right close" href="#">&times;</a>
+                        }
+                        <div class="comment-body" markdown="true">@comment.contents</div>
+                        <p class="commenter">
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                            <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
+                        </p>
+                        <div class="attachments" resourceType="@ResourceType.ISSUE_COMMENT" resourceId="@comment.id"></div>
+                    </div>
+                </li>
+                }
+            </ul>
+            }
+            <form id="comment-form" action="@routes.SimpleCommentApp.newComment(ResourceType.Pull_REQUEST.resource() + "_" + pull.id)" method="post" enctype="multipart/form-data">
+            <div class="write-comment-box">
+                <div class="write-comment-wrap">
+                    <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
+                    <div class="right-txt">
+                        <button class="nbtn medium orange">@Messages("button.comment.new")</button>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
     </div>
 
 @views.html.markdown(project)
