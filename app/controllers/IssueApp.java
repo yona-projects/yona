@@ -506,6 +506,11 @@ public class IssueApp extends AbstractPostingApp {
             return badRequest(commentForm.errors().toString());
         }
 
+        if (!AccessControl.isProjectResourceCreatable(
+                    UserApp.currentUser(), project, ResourceType.ISSUE_COMMENT)) {
+            return forbidden(views.html.error.forbidden.render(project));
+        }
+
         final IssueComment comment = commentForm.get();
 
         return newComment(comment, commentForm, redirectTo, new Callback() {
