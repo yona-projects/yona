@@ -12,6 +12,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 
+import com.typesafe.config.ConfigFactory;
 import models.Issue;
 import models.Posting;
 import models.Project;
@@ -22,6 +23,7 @@ import com.avaje.ebean.Ebean;
 import controllers.routes;
 import play.Application;
 import play.GlobalSettings;
+import play.Configuration;
 import play.api.mvc.Handler;
 import play.i18n.Messages;
 import play.libs.Yaml;
@@ -43,6 +45,12 @@ public class Global extends GlobalSettings {
     private boolean isSecretConfigured = false;
 
     private boolean shouldRestart = false;
+
+    @Override
+    public Configuration onLoadConfig(play.Configuration config, File path, ClassLoader classloader) {
+        Configuration customConfig = new Configuration(ConfigFactory.load("application.user.conf").withFallback(ConfigFactory.load("application.conf")));
+        return customConfig;
+    }
 
     public void beforeStart(Application app) {
         validateSecret();
