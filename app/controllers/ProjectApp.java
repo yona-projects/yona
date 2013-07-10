@@ -424,7 +424,7 @@ public class ProjectApp extends Controller {
             return notFound();
         }
 
-        if (UserApp.currentUser().id == userId
+        if (UserApp.currentUser().id.equals(userId)
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
                 return forbidden(Messages.get("project.member.ownerCannotLeave"));

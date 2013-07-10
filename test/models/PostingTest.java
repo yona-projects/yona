@@ -107,7 +107,7 @@ public class PostingTest extends ModelTest<Posting> {
         Long currentUserId_hobi = 2l;
         Long postId = 1l;
         // When
-        boolean result = Posting.finder.byId(postId).asResource().getAuthorId() == currentUserId_hobi;
+        boolean result = Posting.finder.byId(postId).asResource().getAuthorId().equals(currentUserId_hobi);
         // Then
         assertThat(result).isEqualTo(true);
     }
