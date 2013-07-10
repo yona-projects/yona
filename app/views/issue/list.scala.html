@@ -57,20 +57,20 @@
     <div class="row-fluid">
         <div class="span9">
         @if(currentPage.getList().size() > 0){
-            @if(currentPage.getList().size() > 1){
         	<div class="filter-wrap board">
                 @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                     @partial_massupdate(project, param)
                 }
                 
+                @if(currentPage.getList().size() > 1){
         		<div class="filters pull-right">
         			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
         			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
         			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
         		</div>
+        		}
         	</div>
-        	}
-            
+
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
             
             <div id="pagination"><!-- pagination.js will fill here. --></div>          
