@@ -157,7 +157,7 @@ public class IssueLabelApp extends Controller {
         IssueLabel label = IssueLabel.finder.byId(id);
 
         if (label == null) {
-            return notFound("The label #" + label.id + " is not found.");
+            return notFound("The label #" + id + " is not found.");
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), label.asResource(), Operation.DELETE)) {
