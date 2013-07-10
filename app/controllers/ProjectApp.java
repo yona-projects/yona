@@ -479,7 +479,7 @@ public class ProjectApp extends Controller {
      * 프로젝트 목록의 {@code owner}와 {@code name}을 조합하여 새로운 목록을 만들고 JSON 형태로 반환한다.<br />
      * <br />
      * 2. 프로젝트 목록 페이지 이동<br />
-     * 프로젝트 목록을 최근 생성일 기준으로 정렬하여 페이지(사이즈 : {@link Project#PROJECT_COUNT_PER_PAGE}) 단위로 가져오고<br />
+     * 프로젝트 목록을 최근 생성일 기준으로 정렬하여 페이지(사이즈 : {@link #PROJECT_COUNT_PER_PAGE}) 단위로 가져오고<br />
      * 조회 조건은 프로젝트명 또는 프로젝트관리자({@code query}), 공개 여부({@code state}) 이다.<br />
      *
      * @param query the query
@@ -533,7 +533,7 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트 정보를 JSON으로 가져온다.
      *
-     * 프로젝트명 또는 관리자 아이디에 {@code query} 가 포함되는 프로젝트 목록을 {@link MAX_FETCH_PROJECTS} 만큼 가져오고
+     * 프로젝트명 또는 관리자 아이디에 {@code query} 가 포함되는 프로젝트 목록을 {@link #MAX_FETCH_PROJECTS} 만큼 가져오고
      * JSON으로 변환하여 반환한다.
      *
      * @param query 검색질의(프로젝트명 또는 관리자)
