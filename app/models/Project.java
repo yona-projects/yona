@@ -145,7 +145,7 @@ public class Project extends Model {
      * @return 프로젝트
      */
     public static Project findByOwnerAndProjectName(String loginId, String projectName) {
-        return find.where().eq("owner", loginId).eq("name", projectName)
+        return find.where().ieq("owner", loginId).ieq("name", projectName)
                 .findUnique();
     }
 
@@ -155,12 +155,12 @@ public class Project extends Model {
      * {@code loginId} 와 {@code projectName} 으로 프로젝트 카운트를 가져오고 존재 여부를 반환한다.
      *
      * @param loginId 로그인 아이디
-     * @param projectName 프로젝트 이름
+     * @param projectName 프로젝트 이름 (대소문자를 구분하지 않음)
      * @return 프로젝트가 존재하면 true, 존재하지 않으면 false
      */
     public static boolean exists(String loginId, String projectName) {
-        int findRowCount = find.where().eq("owner", loginId)
-                .eq("name", projectName).findRowCount();
+        int findRowCount = find.where().ieq("owner", loginId)
+                .ieq("name", projectName).findRowCount();
         return (findRowCount != 0) ? true : false;
     }
 
@@ -176,8 +176,8 @@ public class Project extends Model {
      */
     public static boolean projectNameChangeable(Long id, String userName,
                                                 String projectName) {
-        int findRowCount = find.where().eq("name", projectName)
-                .eq("owner", userName).ne("id", id).findRowCount();
+        int findRowCount = find.where().ieq("name", projectName)
+                .ieq("owner", userName).ne("id", id).findRowCount();
         return (findRowCount == 0) ? true : false;
     }
 
