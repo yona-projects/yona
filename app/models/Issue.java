@@ -196,8 +196,8 @@ public class Issue extends AbstractPosting {
      * @throws Exception
      */
     public static byte[] excelFrom(List<Issue> issueList) throws WriteException, IOException {
-        WritableWorkbook workbook = null;
-        WritableSheet sheet = null;
+        WritableWorkbook workbook;
+        WritableSheet sheet;
 
         WritableFont wf1 = new WritableFont(WritableFont.TIMES, 13, WritableFont.BOLD, false,
                 UnderlineStyle.SINGLE, Colour.BLUE_GREY, ScriptStyle.NORMAL_SCRIPT);

@@ -96,7 +96,6 @@ public class AbstractPostingApp extends Controller {
      * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
      */
     private static void sendNotification(Comment comment, String urlToView) {
-        User sender = UserApp.currentUser();
         AbstractPosting parent = comment.getParent();
 
         Set<User> receivers = parent.getWatchers();

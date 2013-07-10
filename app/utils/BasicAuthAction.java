@@ -83,8 +83,7 @@ public class BasicAuthAction extends Action<Object> {
 
     @Override
     public Result call(Context context) throws Throwable {
-        User user = null;
-
+        User user;
         try {
             user = authenticate(context.request());
         } catch (MalformedCredentialsException error) {
