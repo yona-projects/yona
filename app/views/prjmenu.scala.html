@@ -125,7 +125,7 @@
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.ISSUE)">
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="menu-item">
-                    <i class="icon-large icon-list-ul"></i>
+                    <i class="icon-large icon-exclamation-sign"></i>
                     <span class="menu-title hidden">@Messages("menu.issue")</span>
                     <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
                     </a>
@@ -133,7 +133,7 @@
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.MILESTONE)">
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="menu-item">
-                        <i class="icon-large icon-tasks"></i>
+                        <i class="icon-large icon-pushpin"></i>
                         <span class="menu-title hidden">@Messages("project.milestone")</span>
                         <span class="counter">@Milestone.countOpened(project)</span>
                     </a>
