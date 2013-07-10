@@ -16,11 +16,11 @@
 	        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
 	        <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id" class="checkbox">
 	        }
-	        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">@issue.getNumber</a>
+	        <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)">#@issue.getNumber</a>
 	    </div>
-        <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge pull-left">
+        @**<!--<a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge pull-left">
             <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" alt="@issue.authorName">
-        </a>
+        </a>-->**@
         <label for="issue-@issue.id">
             <div class="title">
                 <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title-link">@issue.title</a>

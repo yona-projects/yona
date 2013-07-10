@@ -60,7 +60,7 @@
 	        </li>
 	    </ul>
 
-        <pre class="pull-right">@commit.getMessage</pre>
+        <pre class="pull-right commitMsg">@commit.getMessage</pre>
         <p class="pull-left">
             @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
             case (user: User, _, _) if !user.isAnonymous => {

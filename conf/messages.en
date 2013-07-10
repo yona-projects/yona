@@ -222,6 +222,9 @@ issue.update.assignee = Update assignee
 issue.update.milestone = Update milestone
 issue.update.attachLabel = Attach label
 issue.update.detachLabel = Detach label
+issue.list.all = All Issues
+issue.list.assignedToMe = Assigned to me
+issue.list.authoredByMe = Created by me
 
 #Post
 post.new = New

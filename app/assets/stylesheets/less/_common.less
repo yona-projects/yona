@@ -3,11 +3,13 @@ html, body {
 }
 
 body {
-   background      : @base-background;
+   background: @base-background;
    background-color: @base-background-color;  
    font-family: @base-font-family;
+   text-rendering: auto !important;
 }
 input, button, select, textarea { font-family: @base-font-family !important; }
+h1,h2,h3,h4,h5,h6 { text-rendering:auto !important; }
 
 a {
     color: inherit;

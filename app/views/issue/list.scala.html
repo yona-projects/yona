@@ -9,6 +9,10 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
+@urlAssignedToMe = {@urlToList&assigneeId=@User.findByLoginId(session.get("loginId")).id}
+
+@urlAuthoredByMe = {@urlToList&authorLoginId=@session.get("loginId")}
+
 @getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", pageIndex + 1)}
 
 @makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
@@ -18,6 +22,18 @@
 	    <a href="@urlToList&orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
 	}
 }
+
+@countIssuesByState(state:State) = @{
+    if(param.assigneeId != null){
+        Issue.countIssuesByAssigneeId(project.id, state, UserApp.currentUser().id)
+    } else if(param.authorLoginId != null){
+        Issue.countIssuesByAuthorId(project.id, state, UserApp.currentUser().id)
+    } else {
+        Issue.countIssues(project.id, state)
+    }
+}
+
+@getTabLinkByState(state:State) = {@routes.IssueApp.issues(project.owner, project.name, state.state)@if(param.assigneeId != null){&assigneeId=@param.assigneeId}@if(param.authorLoginId != null){&authorLoginId=@param.authorLoginId}}
 
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
@@ -30,21 +46,24 @@
 	<ul class="nav nav-tabs nm">
     @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
         <li @if(param.state == state.state) { class="active" }>
-            <a href="@routes.IssueApp.issues(project.owner, project.name, state.state)">
+            <a href="@getTabLinkByState(state)">
                 @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@Issue.countIssues(project.id, state)</span>
+                <span class="num-badge">@countIssuesByState(state)</span>
             </a>
         </li>
     }
     </ul>
 
-@if(currentPage.getList().size() > 0){
-	@if(currentPage.getList().size() > 1){
-
     <div class="row-fluid">
         <div class="span9">
-        	<div class="filter-wrap board pull-right">
-        		<div class="filters">
+        @if(currentPage.getList().size() > 0){
+            @if(currentPage.getList().size() > 1){
+        	<div class="filter-wrap board">
+                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    @partial_massupdate(project, param)
+                }
+                
+        		<div class="filters pull-right">
         			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
         			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
         			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
@@ -52,18 +71,27 @@
         	</div>
         	}
             
-            @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                @partial_massupdate(project, param)
-            }
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
             
-            <div id="pagination">
-                <!-- pagination.js will fill here. -->
-            </div>            
+            <div id="pagination"><!-- pagination.js will fill here. --></div>          
+        } else {
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("issue.is.empty")</p>
+            </div>
+        }
         </div>
+        
         <div class="span3 search-wrap">
-            
             <div class="inner bggray">
+                <ul class="unstyled preset-list">
+                    <li @if(param.assigneeId == null && param.authorLoginId == null){ class="active"}><a href="@urlToList">@Messages("issue.list.all") <strong class="num-badge pull-right">@Issue.countIssues(project.id, State.ALL)</strong></a></li>
+                    @if(UserApp.currentUser().id != -1l){
+                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}><a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe") <strong class="num-badge pull-right">@Issue.countIssuesByAssigneeId(project.id, State.ALL, User.findByLoginId(session.get("loginId")).id)</strong></a></li>
+                    }
+                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}><a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe") <strong class="num-badge pull-right">@Issue.countIssuesByAuthorId(project.id, State.ALL, User.findByLoginId(session.get("loginId")).id)</strong></a></li>
+                </ul>
+
                 <form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
                     <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
                     <input type="hidden" name="state"   value="@param.state">
@@ -77,8 +105,8 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <a href="#" class="btn-advanced"><i class="ico"></i>@Messages("issue.advancedSearch")</a>
+                    <div class="row-fluid right-txt">
+                        <button type="button" class="btn-advanced btn-transparent"><i class="icon-plus"></i>@Messages("issue.advancedSearch")</button>
                     </div>
 
                     <div id="advanced-search-form" class="srch-advanced">
@@ -123,8 +151,8 @@
                             </dd>
                         </dl>
                     </div>
-                    
-                    <dl id="labels" class="issue-option">
+
+                    <dl id="labels" class="issue-option labels-wrap">
                         <dt>
                             @Messages("label.select")
                             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
@@ -141,16 +169,8 @@
                     <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="nbtn white" style="width:100%; padding:6px 0"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
                 </p>
             </div>
-            
         </div>
     </div>
-
-} else {
-	<div class="error-wrap">
-		<i class="ico ico-err1"></i>
-		<p>@Messages("issue.is.empty")</p>
-	</div>
-}
 
     @help.keymap("issueList", project)
 </div>
