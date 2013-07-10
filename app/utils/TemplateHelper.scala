@@ -60,7 +60,7 @@ object TemplateHelper {
   }
 
   def urlToPicture(email: String, size: Int = 34) = {
-    "http://www.gravatar.com/avatar/" + MessageDigest.getInstance("MD5").digest(email.toLowerCase.getBytes).map("%02x".format(_)).mkString + "?s=" + size + "?d=http%3A%2F%2Fs22.postimg.org%2Fpsuszks4d%2Fdefault_avatar_34.png"
+    "http://www.gravatar.com/avatar/" + MessageDigest.getInstance("MD5").digest(email.toLowerCase.getBytes("UTF-8")).map("%02x".format(_)).mkString + "?s=" + size + "?d=http%3A%2F%2Fs22.postimg.org%2Fpsuszks4d%2Fdefault_avatar_34.png"
   }
 
   def simpleForm(elements: helper.FieldElements) = {

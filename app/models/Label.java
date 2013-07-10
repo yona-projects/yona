@@ -19,7 +19,7 @@ public class Label extends Model {
      *
      */
     private static final long serialVersionUID = -35487506476718498L;
-    public static Finder<Long, Label> find = new Finder<Long, Label>(Long.class, Label.class);
+    public static final Finder<Long, Label> find = new Finder<>(Long.class, Label.class);
 
     @Id
     public Long id;

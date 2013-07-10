@@ -318,41 +318,49 @@ public class RepositoryService {
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-upload-pack.html">git-upload-pack</a>
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-receive-pack.html">git-receive-pack</a>
      */
-    public static byte[] gitRpc(Project project, String service, Request request, Response response) throws IOException {
+    public static byte[] gitRpc(Project project, String service, Request request, Response response) {
         response.setContentType("application/x-" + service + "-result");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         // FIXME 스트림으로..
         RawBuffer raw = request.body().asRaw();
         byte[] buf = raw.asBytes();
-        InputStream in;
+        InputStream in = null;
 
-        // If the content size is bigger than memoryThreshold,
-        // which is defined as 100 * 1024 in play.api.mvc.BodyParsers trait,
-        // the content is stored as a file.
-        if (buf != null) {
-            in = new ByteArrayInputStream(buf);
-        } else {
-            in = new FileInputStream(raw.asFile());
+        try {
+            // If the content size is bigger than memoryThreshold,
+            // which is defined as 100 * 1024 in play.api.mvc.BodyParsers trait,
+            // the content is stored as a file.
+            if (buf != null) {
+                in = new ByteArrayInputStream(buf);
+            } else {
+                in = new FileInputStream(raw.asFile());
+            }
+
+            Repository repository = GitRepository.createGitRepository(project);
+
+            if (service.equals("git-upload-pack")) {
+                UploadPack uploadPack = new UploadPack(repository);
+                uploadPack.setBiDirectionalPipe(false);
+                uploadPack.upload(in, byteArrayOutputStream, null);
+            } else if (service.equals("git-receive-pack")) {
+                ReceivePack receivePack = new ReceivePack(repository);
+                receivePack.setBiDirectionalPipe(false);
+                receivePack.receive(in, byteArrayOutputStream, null);
+                updateLastPushedDate(project);
+            }
+
+            // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+            byteArrayOutputStream.close();
+
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(in != null) {
+                try { in.close(); } catch (IOException e) { throw new RuntimeException(e); }
+            }
         }
-
-        Repository repository = GitRepository.createGitRepository(project);
-
-        if (service.equals("git-upload-pack")) {
-            UploadPack uploadPack = new UploadPack(repository);
-            uploadPack.setBiDirectionalPipe(false);
-            uploadPack.upload(in, byteArrayOutputStream, null);
-        } else if (service.equals("git-receive-pack")) {
-            ReceivePack receivePack = new ReceivePack(repository);
-            receivePack.setBiDirectionalPipe(false);
-            receivePack.receive(in, byteArrayOutputStream, null);
-            updateLastPushedDate(project);
-        }
-
-        // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
-        byteArrayOutputStream.close();
-
-        return byteArrayOutputStream.toByteArray();
     }
 
     private static void updateLastPushedDate(Project project) {

@@ -34,8 +34,7 @@ import com.avaje.ebean.Page;
 @Entity
 public class User extends Model {
     private static final long serialVersionUID = 1L;
-    public static Model.Finder<Long, User> find = new Finder<Long, User>(Long.class,
-            User.class);
+    public static final Model.Finder<Long, User> find = new Finder<>(Long.class, User.class);
 
     /**
      * 한 페이지에 보여줄 사용자 개수.
@@ -51,7 +50,7 @@ public class User extends Model {
     public static final String LOGIN_ID_PATTERN = "[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*";
 
     //TODO anonymous를 사용하는 것이아니라 향후 NullUser 패턴으로 usages들을 교체해야 함
-    public static User anonymous = new NullUser();
+    public static final User anonymous = new NullUser();
 
     /**
      * PK
@@ -286,7 +285,7 @@ public class User extends Model {
      * @return
      */
     public boolean isAnonymous() {
-        return this.id == anonymous.id;
+        return this.id.equals(anonymous.id);
     }
 
     /**

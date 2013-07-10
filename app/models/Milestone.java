@@ -21,10 +21,9 @@ import java.util.*;
 public class Milestone extends Model {
 
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, Milestone> find = new Finder<Long, Milestone>(
-            Long.class, Milestone.class);
+    public static final Finder<Long, Milestone> find = new Finder<>(Long.class, Milestone.class);
 
-    public static String DEFAULT_SORTER = "dueDate";
+    public static final String DEFAULT_SORTER = "dueDate";
 
     public static final Long NULL_MILESTONE_ID = -1l;
 
@@ -87,7 +86,7 @@ public class Milestone extends Model {
     }
 
     public int getCompletionRate() {
-        return new Double(((double) getNumClosedIssues() / (double) getNumTotalIssues()) * 100).intValue();
+        return (int) (((double) getNumClosedIssues() / (double) getNumTotalIssues()) * 100);
     }
 
     public static Milestone findById(Long id) {

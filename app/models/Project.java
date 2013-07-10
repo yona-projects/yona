@@ -27,7 +27,7 @@ import java.util.*;
 @Entity
 public class Project extends Model {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, Project> find = new Finder<Long, Project>(Long.class, Project.class);
+    public static final Finder <Long, Project> find = new Finder<>(Long.class, Project.class);
 
     @Id
     public Long id;
@@ -257,11 +257,11 @@ public class Project extends Model {
      * @return 프로젝트 카운트
      */
     public static int countByState(String state) {
-        if (state == "all") {
+        if (state.equals("all")) {
             return find.findRowCount();
-        } else if (state == "public") {
+        } else if (state.equals("public")) {
             return find.where().eq("isPublic", true).findRowCount();
-        } else if (state == "private") {
+        } else if (state.equals("private")) {
             return find.where().eq("isPublic", false).findRowCount();
         } else {
             return 0;
@@ -327,7 +327,7 @@ public class Project extends Model {
     public String readme() {
         try {
             return new String(RepositoryService.getRepository(this).getRawFile
-                    (getReadmeFileName()));
+                    (getReadmeFileName()), "UTF-8");
         } catch (Exception e) {
             return null;
         }

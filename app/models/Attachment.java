@@ -26,8 +26,7 @@ import scalax.file.NotDirectoryException;
 @Entity
 public class Attachment extends Model {
     private static final long serialVersionUID = 7856282252495067924L;
-    public static Finder<Long, Attachment> find = new Finder<Long, Attachment>(Long.class,
-            Attachment.class);
+    public static final Finder<Long, Attachment> find = new Finder<>(Long.class, Attachment.class);
     private static String uploadDirectory = "uploads";
     @Id
     public Long id;

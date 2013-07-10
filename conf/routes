@@ -193,4 +193,4 @@ POST    /:user/:project/watch                           controllers.WatchProject
 POST    /:user/:project/unwatch                         controllers.WatchProjectApp.unwatch(user, project)
 
 # remove trailing slash
-GET     /*paths                                         controllers.Application.RemoveTrailer(paths)
+GET     /*paths                                         controllers.Application.removeTrailer(paths)

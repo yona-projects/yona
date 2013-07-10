@@ -37,7 +37,7 @@ public class Issue extends AbstractPosting {
      */
     private static final long serialVersionUID = -2409072006294045262L;
 
-    public static Finder<Long, Issue> finder = new Finder<Long, Issue>(Long.class, Issue.class);
+    public static final Finder<Long, Issue> finder = new Finder<>(Long.class, Issue.class);
 
     public static final String DEFAULT_SORTER = "createdDate";
     public static final String TO_BE_ASSIGNED = "TBA";

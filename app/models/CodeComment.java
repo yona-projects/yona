@@ -22,8 +22,7 @@ import java.util.Date;
  */
 @Entity
 public class CodeComment extends Model {
-    public static Finder<Long, CodeComment> find
-            = new Finder<Long, CodeComment>(Long.class, CodeComment.class);
+    public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 
     @Id
     public Long id;

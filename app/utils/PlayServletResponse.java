@@ -13,7 +13,7 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *  
+ *
  *  getCharsetFromContentType()
  */
 
@@ -29,17 +29,17 @@ import java.io.*;
 import java.util.*;
 
 public class PlayServletResponse implements HttpServletResponse {
-    
+
     private Response response;
     private String characterEncoding;
     private int status;
     private ByteArrayOutputStream bos = new ByteArrayOutputStream();
     private PrintWriter pw = new PrintWriter(bos);
-    
+
     public PlayServletResponse(Response response) {
         this.response = response;
     }
-    
+
     public ByteArrayOutputStream getBuffer(){
         return bos;
     }
@@ -59,10 +59,10 @@ public class PlayServletResponse implements HttpServletResponse {
         if (characterEncoding != null) {
             return characterEncoding;
         }
-        
+
         return getCharsetFromContentType(getContentType());
     }
-    
+
 
     @Override
     public String getContentType() {
@@ -82,7 +82,7 @@ public class PlayServletResponse implements HttpServletResponse {
             public void write(int b) throws IOException {
                 bos.write(b);
             }
-            
+
         };
     }
 
@@ -147,7 +147,7 @@ public class PlayServletResponse implements HttpServletResponse {
     public void addHeader(String name, String value) {
         String head = this.response.getHeaders().get(name);
         String newValue;
-        if(head == null || head == "") {
+        if(head == null || head.trim().isEmpty()) {
             newValue = value;
         } else {
             newValue = head + "," + value;
@@ -200,7 +200,7 @@ public class PlayServletResponse implements HttpServletResponse {
                 return  response.getHeaders().get(h);
             }
         }
-        
+
         return null;
     }
 
@@ -273,7 +273,7 @@ public class PlayServletResponse implements HttpServletResponse {
     public void setStatus(int status, String msg) {
         throw new UnsupportedOperationException();
     }
-    
+
     /**
      * Parse the character encoding from the specified content type header.
      * If the content type is null, or there is no explicit character encoding,
@@ -303,5 +303,5 @@ public class PlayServletResponse implements HttpServletResponse {
         return (encoding.trim());
 
     }
-    
+
 }

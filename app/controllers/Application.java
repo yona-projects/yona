@@ -31,7 +31,7 @@ public class Application extends Controller {
         return ok(index.render(null, null));
     }
 
-    public static Result RemoveTrailer(String paths){
+    public static Result removeTrailer(String paths){
         String path = request().path();
         if( path.charAt(path.length()-1) == '/' ) {
             path = path.substring(0, path.length() - 1);

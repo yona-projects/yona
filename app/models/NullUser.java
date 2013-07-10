@@ -1,42 +1,29 @@
 package models;
 
-import com.avaje.ebean.Page;
 import controllers.UserApp;
-import models.enumeration.Direction;
-import models.enumeration.Matching;
 import models.enumeration.ResourceType;
-import models.enumeration.RoleType;
 import models.resource.Resource;
-import models.support.FinderTemplate;
-import models.support.OrderParams;
-import models.support.SearchParams;
-import play.data.format.Formats;
-import play.data.validation.Constraints.Email;
-import play.data.validation.Constraints.Pattern;
-import play.data.validation.Constraints.Required;
-import play.db.ebean.Model;
 import play.i18n.Messages;
-import utils.JodaDateUtil;
 
-import javax.persistence.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class NullUser extends User {
     private static final long serialVersionUID = -1L;
-    public Long id = -1l;
-    public String name = Messages.get("user.notExists.name");
 
-    public String loginId = "";
-    public String password;
-    public String passwordSalt;
-    public String email = "";
-
-    public Date createdDate = new Date();
-    public String avatarUrl = UserApp.DEFAULT_AVATAR_URL;
+    public NullUser(){
+        this.id = -1l;
+        this.name = Messages.get("user.notExists.name");
+        this.loginId = "";
+        this.loginId = "";
+        this.email = "";
+        this.createdDate = new Date();
+        this.avatarUrl = UserApp.DEFAULT_AVATAR_URL;
+    }
 
     public List<Project> myProjects(){
-        return new ArrayList<Project>();
+        return new ArrayList<>();
     }
 
     public boolean isAnonymous() {

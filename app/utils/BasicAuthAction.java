@@ -97,10 +97,8 @@ public class BasicAuthAction extends Action<Object> {
             return unauthorized(context.response());
         }
 
-        if (user != null) {
-            context.session().put(UserApp.SESSION_USERID, String.valueOf(user.id));
-            context.session().put(UserApp.SESSION_USERNAME, user.name);
-        }
+        context.session().put(UserApp.SESSION_USERID, String.valueOf(user.id));
+        context.session().put(UserApp.SESSION_USERNAME, user.name);
 
         return delegate.call(context);
     }

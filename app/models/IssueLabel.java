@@ -22,7 +22,7 @@ public class IssueLabel extends Model {
      *
      */
     private static final long serialVersionUID = -35487506476718498L;
-    public static Finder<Long, IssueLabel> finder = new Finder<Long, IssueLabel>(Long.class, IssueLabel.class);
+    public static final Finder<Long, IssueLabel> finder = new Finder<>(Long.class, IssueLabel.class);
 
     @Id
     public Long id;

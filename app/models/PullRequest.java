@@ -19,7 +19,7 @@ public class PullRequest extends Model {
 
     private static final long serialVersionUID = 1L;
 
-    public static Finder<Long, PullRequest> finder = new Finder<Long, PullRequest>(Long.class, PullRequest.class);
+    public static final Finder<Long, PullRequest> finder = new Finder<>(Long.class, PullRequest.class);
 
     @Id
     public Long id;

@@ -19,8 +19,7 @@ public class SiteAdmin extends Model {
     @OneToOne
     public User admin;
 
-    public static Model.Finder<Long, SiteAdmin> find = new Finder<Long, SiteAdmin>(Long.class,
-            SiteAdmin.class);
+    public static final Model.Finder<Long, SiteAdmin> find = new Finder<>(Long.class, SiteAdmin.class);
 
     public static boolean exists(User user) {
         return user != null && find.where().eq("admin.id", user.id).findRowCount() > 0;

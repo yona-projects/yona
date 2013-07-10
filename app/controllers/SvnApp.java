@@ -1,33 +1,23 @@
 package controllers;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
-import javax.servlet.ServletException;
-
 import models.Project;
 import models.User;
 import models.enumeration.Operation;
-
-import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 import org.tmatesoft.svn.core.internal.server.dav.handlers.DAVHandlerFactory;
 import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
-
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.With;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
-import utils.AccessControl;
-import utils.BasicAuthAction;
-import utils.PlayServletContext;
-import utils.PlayServletRequest;
-import utils.PlayServletResponse;
-import utils.PlayServletSession;
+import utils.*;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 public class SvnApp extends Controller {
-    static DAVServlet davServlet;
 
     @With(BasicAuthAction.class)
     @BodyParser.Of(value = BodyParser.Raw.class, maxLength = Integer.MAX_VALUE)

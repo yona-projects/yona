@@ -267,7 +267,7 @@ public class GitRepository implements PlayRepository {
         result.put("commitMessage", commit.getShortMessage());
         result.put("commiter", commit.getAuthorIdent().getName());
         result.put("commitDate", commitTime);
-        String str = new String(repository.open(treeWalk.getObjectId(0)).getBytes());
+        String str = new String(repository.open(treeWalk.getObjectId(0)).getBytes(), "UTF-8");
         result.put("data", str);
         return result;
     }
@@ -788,7 +788,9 @@ public class GitRepository implements PlayRepository {
 
             return commits;
         } finally {
-            walk.release();
+            if(walk != null) {
+                walk.release();
+            }
         }
     }
 

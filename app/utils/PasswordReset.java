@@ -13,11 +13,11 @@ public class PasswordReset {
     /**
      *  {@code HashMap<loginId, hashString>}
      */
-    public static Map<String, String> resetHashMap = new HashMap<>();
+    public static final Map<String, String> resetHashMap = new HashMap<>();
     /**
      * {@code HashMap<hashString, millisecond>}
      */
-    public static Map<String, Long> resetHashTimetable = new HashMap<>();
+    public static final Map<String, Long> resetHashTimetable = new HashMap<>();
     /**
      * hashCode expire time limit, 1 hour
      */

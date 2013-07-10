@@ -19,7 +19,7 @@ import java.util.List;
 public class SimpleComment extends Model {
 
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, SimpleComment> find = new Finder<>(Long.class, SimpleComment.class);
+    public static final Finder<Long, SimpleComment> find = new Finder<>(Long.class, SimpleComment.class);
 
     @Id
     public Long id;

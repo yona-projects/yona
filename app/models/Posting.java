@@ -21,7 +21,7 @@ import static com.avaje.ebean.Expr.eq;
 public class Posting extends AbstractPosting {
     private static final long serialVersionUID = 5287703642071155249L;
 
-    public static Finder<Long, Posting> finder = new Finder<Long, Posting>(Long.class, Posting.class);
+    public static final Finder<Long, Posting> finder = new Finder<>(Long.class, Posting.class);
 
     public boolean notice;
 

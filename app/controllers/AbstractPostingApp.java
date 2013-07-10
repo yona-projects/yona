@@ -111,7 +111,7 @@ public class AbstractPostingApp extends Controller {
                 "<pre>%s</pre><hr><a href=\"%s\">%s</a>",
                 comment.contents, urlToComment, "View it on HIVE");
         String plainMessage = String.format(
-                "%s\n\n--\nView it on %s",
+                "%s%n%n--%nView it on %s",
                 comment.contents, urlToComment);
 
         final HtmlEmail email = new HtmlEmail();
