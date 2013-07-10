@@ -91,50 +91,61 @@
             </div>
 
     		<ul class="unstyled">
-			<li class="@isActiveMenu(MenuType.PROJECT_HOME)">
-                    <a href="@routes.ProjectApp.project(project.owner, project.name)">
+                <li class="@isActiveMenu(MenuType.PROJECT_HOME)">
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-home"></i>
-                        @Messages("title.projectHome")
-                    </a>
-                </li>
-    			<li class="sp-line">|</li>
-    			<li class="@isActiveMenu(MenuType.BOARD)">
-                    <a href="@routes.BoardApp.posts(project.owner, project.name)">
-                        <i class="icon-large icon-bullhorn"></i>
-                        @Messages("menu.board") <span class="counter">@Posting.countPostings(project)</span>
-                    </a>
-                </li>
-    			<li class="sp-line">|</li>
-			<li class="@isActiveMenu(MenuType.CODE)"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
-                    <i class="icon-large icon-code"></i>
-                    @Messages("menu.code")</a>
-                </li>
-                @if(project.vcs.equals("GIT")){
-                    <li class="sp-line">|</li>
-                    <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
-                        <a href="@getPullRequestURL(project)">
-                            <i class="icon-large icon-code-fork"></i>
-                            @Messages("menu.pullRequest") <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
-                        </a>
-                    </li>
-                }
-    			<li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.ISSUE)">
-                    <a href="@routes.IssueApp.issues(project.owner, project.name, "all")">
-                        <i class="icon-large icon-list-ul"></i>
-                        @Messages("menu.issue") <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
+                        <span class="menu-title hidden">@Messages("title.projectHome")</span>
                     </a>
                 </li>
                 <li class="sp-line">|</li>
-    			<li class="@isActiveMenu(MenuType.MILESTONE)">
-                    <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
+                <li class="@isActiveMenu(MenuType.BOARD)">
+                    <a href="@routes.BoardApp.posts(project.owner, project.name)" class="menu-item">
+                        <i class="icon-large icon-bullhorn"></i>
+                        <span class="menu-title hidden">@Messages("menu.board")</span>
+                        <span class="counter">@Posting.countPostings(project)</span>
+                    </a>
+                </li>
+                <li class="sp-line">|</li>
+                <li class="@isActiveMenu(MenuType.CODE)">
+                    <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="menu-item">
+                        <i class="icon-large icon-code"></i>
+                        <span class="menu-title hidden">@Messages("menu.code")</span>
+                    </a>
+                </li>
+                @if(project.vcs.equals("GIT")){
+                <li class="sp-line">|</li>
+                <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
+                    <a href="@getPullRequestURL(project)" data-toggle="tooltip" class="menu-item">
+                        <i class="icon-large icon-code-fork"></i>
+                        <span class="menu-title hidden">@Messages("menu.pullRequest")</span>
+                        <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
+                    </a>
+                </li>
+                }
+                <li class="sp-line">|</li>
+                <li class="@isActiveMenu(MenuType.ISSUE)">
+                    <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="menu-item">
+                    <i class="icon-large icon-list-ul"></i>
+                    <span class="menu-title hidden">@Messages("menu.issue")</span>
+                    <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
+                    </a>
+                </li>
+                <li class="sp-line">|</li>
+                <li class="@isActiveMenu(MenuType.MILESTONE)">
+                    <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-tasks"></i>
-                        @Messages("project.milestone") <span class="counter">@Milestone.countOpened(project)</span>
+                        <span class="menu-title hidden">@Messages("project.milestone")</span>
+                        <span class="counter">@Milestone.countOpened(project)</span>
                     </a>
                 </li>
     		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
     			<li class="sp-line">|</li>
-    			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)"><a href="@routes.ProjectApp.settingForm(project.owner, project.name)">@Messages("menu.admin")</a></li>
+    			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)">
+                    <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" class="menu-item">
+                        <i class="icon-large icon-cogs"></i>
+                        <span class="menu-title hidden">@Messages("menu.admin")</span>
+                    </a>
+                </li>
     		}
     		</ul>
         </div>
@@ -180,6 +191,15 @@ $(document).ready(function(){
     $hive.loadModule("project.Global", {
         "htKeyMap": htKeyMap,
         "sRepoURL": "@CodeApp.getURLWithLoginId(project)"
+    });
+
+    $('.menu-title').hide();
+    $('.menu-title').removeClass('hidden');
+
+    $(".menu-item").mouseenter(function(){
+        $(this).children('.menu-title').show();
+    }).mouseleave(function(){
+        $(this).children('.menu-title').hide();
     });
 });
 </script>
