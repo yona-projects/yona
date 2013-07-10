@@ -7,6 +7,7 @@ import play.db.ebean.Model;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -51,8 +52,6 @@ public class NotificationEvent extends Model {
     public NotificationMail notificationMail;
 
     public boolean resourceExists() {
-        //To change body of created methods use File | Settings | File Templates.
-
         Finder<Long, ? extends Model> finder = null;
 
         switch(resourceType) {

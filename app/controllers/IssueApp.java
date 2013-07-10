@@ -318,7 +318,7 @@ public class IssueApp extends AbstractPostingApp {
             Issue updatedIssue = Issue.finder.byId(issue.id);
             String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).absoluteURL(request());
             if(assigneeChanged) {
-                sendAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
+                addAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
             }
             if(stateChanged) {
                 sendStateChangedNotification(updatedIssue, urlToView);
@@ -475,7 +475,7 @@ public class IssueApp extends AbstractPostingApp {
             if(originalIssue.assignee != null) {
                 oldAssignee = originalIssue.assignee.user;
             }
-            sendAssigneeChangedNotification(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
+            addAssigneeChangedNotification(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
         }
 
         if(issue.state != originalIssue.state) {
@@ -506,23 +506,32 @@ public class IssueApp extends AbstractPostingApp {
         sendNotification(NotificationFactory.create(receivers, title, message, urlToView));
     }
 
-    private static void sendAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
+    private static void addAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
+        NotificationEvent notiEvent = new NotificationEvent();
+
         Set<User> receivers = updatedIssue.getWatchers();
         if(oldAssignee != null) {
+            notiEvent.oldValue = oldAssignee.loginId;
             receivers.add(oldAssignee);
         }
 
-        String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+        notiEvent.title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
 
-        String message;
         if (updatedIssue.assignee == null) {
-            message = "Unassigned";
+            notiEvent.message = "Unassigned";
         } else {
             User newAssignee = User.find.byId(updatedIssue.assignee.user.id);
-            message = "Assigned to " + newAssignee.loginId;
+            notiEvent.message = "Assigned to " + newAssignee.loginId;
+            notiEvent.newValue = newAssignee.loginId;
         }
 
-        sendNotification(NotificationFactory.create(receivers, title, message, urlToView));
+        notiEvent.created = new Date();
+        notiEvent.receivers = receivers;
+        notiEvent.urlToView = urlToView;
+        notiEvent.resourceId = updatedIssue.id;
+        notiEvent.resourceType = updatedIssue.asResource().getType();
+        notiEvent.type = NotificationType.ISSUE_ASSIGNEE_CHANGED;
+        notiEvent.save();
     }
 
 

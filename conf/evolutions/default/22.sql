@@ -12,7 +12,6 @@ create table notification_event (
   old_value                 varchar(255),
   new_value                 varchar(255),
   constraint ck_notification_event_resource_type check (resource_type in ('ISSUE_POST','ISSUE_ASSIGNEE','ISSUE_STATE','ISSUE_CATEGORY','ISSUE_MILESTONE','ISSUE_LABEL','BOARD_POST','BOARD_CATEGORY','BOARD_NOTICE','CODE','MILESTONE','WIKI_PAGE','PROJECT_SETTING','SITE_SETTING','USER','USER_AVATAR','PROJECT','ATTACHMENT','ISSUE_COMMENT','NONISSUE_COMMENT','LABEL','PROJECT_LABELS','FORK')),
-  constraint ck_notification_event_type check (type in ('NEW_COMMENT', 'NEW_ISSUE')),
   constraint pk_notification_event primary key (id));
 
 create table notification_event_n4user (
