@@ -358,7 +358,7 @@ public class RepositoryService {
             throw new RuntimeException(e);
         } finally {
             if(in != null) {
-                try { in.close(); } catch (IOException e) { throw new RuntimeException(e); }
+                try { in.close(); } catch (IOException e) { Logger.error("failed in.close"); }
             }
         }
     }
