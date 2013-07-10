@@ -120,8 +120,7 @@
          * 프로젝트 메뉴 영역에 bootstrap-affix 적용
          */
         function _initAffix(){
-            var nGap = (htElement.welProjectMenuWrap.length > 1) ? 40 : 0;
-            htElement.welProjectMenu.height(htElement.welProjectMenuWrap.height() + nGap);
+            htElement.welProjectMenu.height(htElement.welProjectMenuWrap.height());
             
             htElement.welProjectMenuWrap.affix({
                 "offset": htElement.welProjectMenuWrap.offset()

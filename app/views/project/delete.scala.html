@@ -6,7 +6,8 @@
 @main(message, project, utils.MenuType.PROJECT_SETTING) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
-
+    @partial_settingmenu(project)
+    
     <div class="bubble-wrap gray wp">
         <div class="cu-label">@Messages("project.delete")</div>
         <div class="cu-desc">

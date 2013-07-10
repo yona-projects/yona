@@ -9,20 +9,6 @@
     if (m_type == menuType) {"active"}
 }
 
-@makeSubMenu(call:Call, name:String) = {
-	<li class="@isActiveSubMenu(call)"><a href="@call">@name</a></li>
-}
-
-@isActiveSubMenu(calls: Call*) = @{
-    var menuState = ""
-    for(call <- calls) {
-        if(call.toString().equals(request().path().toString())) {
-            menuState = "active"
-        }
-    }
-    menuState
-}
-
 @getPullRequestURL(project:Project) = @{
     if(project.isFork()){
         routes.PullRequestApp.sentPullRequests(project.owner, project.name)
@@ -94,22 +80,24 @@
                 <li class="@isActiveMenu(MenuType.PROJECT_HOME)">
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-home"></i>
-                        <span class="menu-title hidden">@Messages("title.projectHome")</span>
+                        <span class="menu-title">@Messages("title.projectHome")</span>
                     </a>
                 </li>
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.BOARD)">
                     <a href="@routes.BoardApp.posts(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-bullhorn"></i>
-                        <span class="menu-title hidden">@Messages("menu.board")</span>
+                        <span class="menu-title">@Messages("menu.board")</span>
+                        @if(Posting.countPostings(project) > 0){
                         <span class="counter">@Posting.countPostings(project)</span>
+                        }
                     </a>
                 </li>
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.CODE)">
                     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-code"></i>
-                        <span class="menu-title hidden">@Messages("menu.code")</span>
+                        <span class="menu-title">@Messages("menu.code")</span>
                     </a>
                 </li>
                 @if(project.vcs.equals("GIT")){
@@ -117,25 +105,31 @@
                 <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
                     <a href="@getPullRequestURL(project)" data-toggle="tooltip" class="menu-item">
                         <i class="icon-large icon-code-fork"></i>
-                        <span class="menu-title hidden">@Messages("menu.pullRequest")</span>
+                        <span class="menu-title">@Messages("menu.pullRequest")</span>
+                        @if(PullRequest.countOpenedPullRequests(project) > 0){ 
                         <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
+                        }
                     </a>
                 </li>
                 }
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.ISSUE)">
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="menu-item">
-                    <i class="icon-large icon-exclamation-sign"></i>
-                    <span class="menu-title hidden">@Messages("menu.issue")</span>
-                    <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
+                        <i class="icon-large icon-exclamation-sign"></i>
+                        <span class="menu-title">@Messages("menu.issue")</span>
+                        @if(Issue.countIssues(project.id, State.OPEN) > 0){
+                        <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
+                        }
                     </a>
                 </li>
                 <li class="sp-line">|</li>
                 <li class="@isActiveMenu(MenuType.MILESTONE)">
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-pushpin"></i>
-                        <span class="menu-title hidden">@Messages("project.milestone")</span>
+                        <span class="menu-title">@Messages("project.milestone")</span>
+                        @if(Milestone.countOpened(project) > 0){
                         <span class="counter">@Milestone.countOpened(project)</span>
+                        }
                     </a>
                 </li>
     		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
@@ -143,24 +137,13 @@
     			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)">
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-cogs"></i>
-                        <span class="menu-title hidden">@Messages("menu.admin")</span>
+                        <span class="menu-title">@Messages("menu.admin")</span>
                     </a>
                 </li>
     		}
     		</ul>
         </div>
 	</div>
-
-	@** 프로젝트 설정 서브메뉴 **@
-	@if(menuType.equals(MenuType.PROJECT_SETTING)){
-		<div class="project-menu-wrap sub">
-			<ul class="unstyled on-admin">
-				@makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"))
-				@makeSubMenu(routes.ProjectApp.members(project.owner, project.name), 	  Messages("project.member"))
-				@makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"))
-			</ul>
-		</div>
-	}
 </div>
 
 <script id="tplRepoURL" type="text/x-jquery-tmpl">
@@ -191,15 +174,6 @@ $(document).ready(function(){
     $hive.loadModule("project.Global", {
         "htKeyMap": htKeyMap,
         "sRepoURL": "@CodeApp.getURLWithLoginId(project)"
-    });
-
-    $('.menu-title').hide();
-    $('.menu-title').removeClass('hidden');
-
-    $(".menu-item").mouseenter(function(){
-        $(this).children('.menu-title').show();
-    }).mouseleave(function(){
-        $(this).children('.menu-title').hide();
     });
 });
 </script>

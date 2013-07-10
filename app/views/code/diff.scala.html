@@ -60,33 +60,36 @@
 	        </li>
 	    </ul>
 
-        <pre class="pull-right commitMsg">@commit.getMessage</pre>
-        <p class="pull-left">
+        <p class="commitInfo">
             @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
             case (user: User, _, _) if !user.isAnonymous => {
-            <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
-                <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-            </a> 
-            <span>@commit.getAuthor.name</span>
+                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                </a> 
+                <strong>@commit.getAuthor.name</strong>
             }
             case (_, email, name) if email != null => {
-            <span class="avatar-wrap">
-                <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 32)">
-            </span>
-            @if(name != null) {
-            <span>@name</span>
-            }
+                <span class="avatar-wrap">
+                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
+                </span>
+                @if(name != null) {
+                <strong>@name</strong>
+                }
             }
             case (_, _, name) if name != null => {
-            <span>@name</span>
+                <strong>@name</strong>
             }
             case (_, _, _) => {
-            <span>@User.anonymous.name</span>
+                <strong>@User.anonymous.name</strong>
             }
             }
-            | <span>@agoString(ago(commit.getAuthorDate))</span>
+            <span class="ago">@agoString(ago(commit.getAuthorDate))</span>
         </p>
-		<div id="commit" style="display: none">@patch</div>
+        <pre class="commitMsg">@commit.getMessage</pre>
+
+        <div class="diff-wrap">
+		  <div id="commit" class="diff-body">@patch</div>
+        </div>
 
         @if(comments.size > 0) {
         <ul class="comments" style="display: none">
