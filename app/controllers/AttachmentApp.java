@@ -88,7 +88,7 @@ public class AttachmentApp extends Controller {
         // The response SHOULD include an entity containing a list of resource
         // characteristics and location(s) from which the user or user agent can
         // choose the one most appropriate. -- RFC 2616, 10.2.2. 201 Created
-        Map<String, String> fileInfo = new HashMap<String, String>();
+        Map<String, String> fileInfo = new HashMap<>();
         fileInfo.put("id", attach.id.toString());
         fileInfo.put("mimeType", attach.mimeType);
         fileInfo.put("name", attach.name);
@@ -217,7 +217,7 @@ public class AttachmentApp extends Controller {
      * @return 메타데이터를 맵으로
      */
     private static Map<String, String> extractFileMetaDataFromAttachementAsMap(Attachment attach) {
-        Map<String, String> metadata = new HashMap<String, String>();
+        Map<String, String> metadata = new HashMap<>();
 
         metadata.put("id", attach.id.toString());
         metadata.put("mimeType", attach.mimeType);
@@ -243,10 +243,10 @@ public class AttachmentApp extends Controller {
      */
     public static Result getFileList() {
         Map<String, List<Map<String, String>>> files =
-                new HashMap<String, List<Map<String, String>>>();
+                new HashMap<>();
 
         // Get files from the user's area.
-        List<Map<String, String>> userFiles = new ArrayList<Map<String, String>>();
+        List<Map<String, String>> userFiles = new ArrayList<>();
         for (Attachment attach : Attachment.findByContainer(UserApp.currentUser().asResource())) {
             userFiles.add(extractFileMetaDataFromAttachementAsMap(attach));
         }
@@ -258,7 +258,7 @@ public class AttachmentApp extends Controller {
         String containerId = HttpUtil.getFirstValueFromQuery(query, "containerId");
 
         if (containerType != null && containerId != null) {
-            List<Map<String, String>> attachments = new ArrayList<Map<String, String>>();
+            List<Map<String, String>> attachments = new ArrayList<>();
             for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf(containerType),
                     Long.parseLong(containerId))) {
                 if (!AccessControl.isAllowed(UserApp.currentUser(),

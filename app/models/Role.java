@@ -17,7 +17,7 @@ import play.db.ebean.Model;
 @Entity
 public class Role extends Model {
     private static final long serialVersionUID = 1L;
-    private static Finder<Long, Role> find = new Finder<Long, Role>(Long.class,
+    private static Finder<Long, Role> find = new Finder<>(Long.class,
             Role.class);
 
     @Id

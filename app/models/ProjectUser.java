@@ -22,7 +22,7 @@ public class ProjectUser extends Model {
 
     private static final long serialVersionUID = 1L;
 
-    private static Finder<Long, ProjectUser> find = new Finder<Long, ProjectUser>(Long.class, ProjectUser.class);
+    private static Finder<Long, ProjectUser> find = new Finder<>(Long.class, ProjectUser.class);
 
     @Id
     public Long id;
@@ -196,7 +196,7 @@ public class ProjectUser extends Model {
      * @see {@link User#findUsersByProject(Long)}
      */
     public static Map<String, String> options(Long projectId) {
-        LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> options = new LinkedHashMap<>();
         for (User user : User.findUsersByProject(projectId)) {
             options.put(user.id.toString(), user.loginId);
         }

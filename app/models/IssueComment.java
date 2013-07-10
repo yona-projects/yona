@@ -11,7 +11,7 @@ import javax.persistence.*;
 @Entity
 public class IssueComment extends Comment {
     private static final long serialVersionUID = 1L;
-    public static Finder<Long, IssueComment> find = new Finder<Long, IssueComment>(Long.class, IssueComment.class);
+    public static Finder<Long, IssueComment> find = new Finder<>(Long.class, IssueComment.class);
 
     @ManyToOne
     public Issue issue;

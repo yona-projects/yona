@@ -27,7 +27,7 @@ public class PasswordResetAppTest {
         running(fakeApplication(config), new Runnable() {
             public void run() {
                 //Given
-                Map<String,String> data = new HashMap<String,String>();
+                Map<String,String> data = new HashMap<>();
                 data.put("loginId", "doortts");
                 data.put("emailAddress", "doortts@gmail.com");
 

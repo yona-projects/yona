@@ -48,7 +48,7 @@ public class RepositoryService {
      * @return
      */
     public static Map<String, String> vcsTypes() {
-        HashMap<String, String> map = new HashMap<String, String>();
+        HashMap<String, String> map = new HashMap<>();
         map.put(VCS_GIT, "project.new.vcsType.git");
         map.put(VCS_SUBVERSION, "project.new.vcsType.subversion");
         return map;

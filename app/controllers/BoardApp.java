@@ -69,7 +69,7 @@ public class BoardApp extends AbstractPostingApp {
             return forbidden(views.html.error.forbidden.render(project));
         }
 
-        Form<SearchCondition> postParamForm = new Form<SearchCondition>(SearchCondition.class);
+        Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
         SearchCondition searchCondition = postParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
         if(searchCondition.orderBy.equals("id")) {
@@ -103,7 +103,7 @@ public class BoardApp extends AbstractPostingApp {
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
         return newPostingForm(project, ResourceType.BOARD_POST,
-                create.render("board.post.new", new Form<Posting>(Posting.class), project, isAllowedToNotice));
+                create.render("board.post.new", new Form<>(Posting.class), project, isAllowedToNotice));
     }
 
     /**
@@ -118,7 +118,7 @@ public class BoardApp extends AbstractPostingApp {
      * @return
      */
     public static Result newPost(String userName, String projectName) {
-        Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
+        Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
             return notFound();
@@ -184,7 +184,7 @@ public class BoardApp extends AbstractPostingApp {
             return ok(json);
         }
 
-        Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class);
+        Form<PostingComment> commentForm = new Form<>(PostingComment.class);
         return ok(view.render(post, commentForm, project));
     }
 
@@ -216,7 +216,7 @@ public class BoardApp extends AbstractPostingApp {
             return forbidden(views.html.error.forbidden.render(project));
         }
 
-        Form<Posting> editForm = new Form<Posting>(Posting.class).fill(posting);
+        Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
         return ok(edit.render("board.post.modify", editForm, number, project, isAllowedToNotice));
@@ -236,7 +236,7 @@ public class BoardApp extends AbstractPostingApp {
      * @see controllers.AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form, play.mvc.Call, utils.Callback)
      */
     public static Result editPost(String userName, String projectName, Long number) {
-        Form<Posting> postForm = new Form<Posting>(Posting.class).bindFromRequest();
+        Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
             return notFound();
@@ -300,7 +300,7 @@ public class BoardApp extends AbstractPostingApp {
         }
         final Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
-        Form<PostingComment> commentForm = new Form<PostingComment>(PostingComment.class)
+        Form<PostingComment> commentForm = new Form<>(PostingComment.class)
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {

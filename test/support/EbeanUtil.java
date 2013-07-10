@@ -9,7 +9,7 @@ public class EbeanUtil<T> {
 
 
     public EbeanUtil(Class<T> type) {
-        find = new Model.Finder<Long, T>(Long.class, type);
+        find = new Model.Finder<>(Long.class, type);
     }
 
     public void flush(T model) {

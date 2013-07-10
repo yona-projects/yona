@@ -19,7 +19,7 @@ import static play.libs.F.*;
 
 /**
  * Reserved words Validator
- * 
+ *
  * @author kjkmadnesss
  */
 public class ReservedWordsValidator extends Validator<String> {
@@ -27,7 +27,7 @@ public class ReservedWordsValidator extends Validator<String> {
     public static final Set<String> RESERVED_WORDS;
 
     static {
-        RESERVED_WORDS = new HashSet<String>();
+        RESERVED_WORDS = new HashSet<>();
         List<Tuple3<String, String, String>> list = Scala.asJava(Play.current().routes().get().documentation());
         Pattern pattern = Pattern.compile("^/(" + User.LOGIN_ID_PATTERN + ")/?");
         for (Tuple3<String, String, String> tuple : list) {
@@ -40,7 +40,7 @@ public class ReservedWordsValidator extends Validator<String> {
 
     /**
      * get error message key
-     * 
+     *
      * @return errorMessageKey
      * @see play.data.validation.Constraints.Validator#getErrorMessageKey()
      */
@@ -51,7 +51,7 @@ public class ReservedWordsValidator extends Validator<String> {
 
     /**
      * check the input string is valid or not
-     * 
+     *
      * @param string input string
      * @return true if the input string is not a reserved word; false otherwise
      * @see play.data.validation.Constraints.Validator#isValid(java.lang.Object)
@@ -63,7 +63,7 @@ public class ReservedWordsValidator extends Validator<String> {
 
     /**
      * check the input string is a reserved word or not
-     * 
+     *
      * @param string input string
      * @return true if the input string is a reserved word; false otherwise
      */

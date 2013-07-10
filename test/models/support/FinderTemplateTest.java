@@ -14,7 +14,7 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class FinderTemplateTest extends ModelTest<Milestone> {
 
-    private static Model.Finder<Long, Milestone> find = new Model.Finder<Long, Milestone>(
+    private static Model.Finder<Long, Milestone> find = new Model.Finder<>(
             Long.class, Milestone.class);
 
     @Test

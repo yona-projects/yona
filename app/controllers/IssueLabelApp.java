@@ -54,9 +54,9 @@ public class IssueLabelApp extends Controller {
             return forbidden("You have no permission to access the project '" + project + "'.");
         }
 
-        List<Map<String, String>> labels = new ArrayList<Map<String, String>>();
+        List<Map<String, String>> labels = new ArrayList<>();
         for (IssueLabel label : IssueLabel.findByProject(project)) {
-            Map<String, String> labelPropertyMap = new HashMap<String, String>();
+            Map<String, String> labelPropertyMap = new HashMap<>();
             labelPropertyMap.put("id", "" + label.id);
             labelPropertyMap.put("category", label.category);
             labelPropertyMap.put("color", label.color);
@@ -92,7 +92,7 @@ public class IssueLabelApp extends Controller {
      * @return 이슈라벨을 추가해달라는 요청에 대한 응답
      */
      public static Result newLabel(String ownerName, String projectName) {
-        Form<IssueLabel> labelForm = new Form<IssueLabel>(IssueLabel.class).bindFromRequest();
+        Form<IssueLabel> labelForm = new Form<>(IssueLabel.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
@@ -118,7 +118,7 @@ public class IssueLabelApp extends Controller {
 
             response().setHeader("Content-Type", "application/json");
 
-            Map<String, String> labelPropertyMap = new HashMap<String, String>();
+            Map<String, String> labelPropertyMap = new HashMap<>();
             labelPropertyMap.put("id", "" + label.id);
             labelPropertyMap.put("name", label.name);
             labelPropertyMap.put("color", label.color);
@@ -146,7 +146,7 @@ public class IssueLabelApp extends Controller {
      * @param id 삭제할 이슈라벨의 아이디
      * @return 이슈라벨을 삭제해달라는 요청에 대한 응답
      */
-    public static Result delete(String ownerName, String projectName, Long id) {
+     public static Result delete(String ownerName, String projectName, Long id) {
         // _method must be 'delete'
         DynamicForm bindedForm = form().bindFromRequest();
         if (!bindedForm.get("_method").toLowerCase()

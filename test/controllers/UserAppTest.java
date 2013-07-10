@@ -33,7 +33,7 @@ public class UserAppTest {
             @Override
             public void run() {
                 //Given
-                Map<String,String> data = new HashMap<String,String>();
+                Map<String,String> data = new HashMap<>();
                 data.put("loginId", "nekure");
 
                 //When
@@ -56,7 +56,7 @@ public class UserAppTest {
             @Override
             public void run() {
                 //Given
-                Map<String,String> data = new HashMap<String,String>();
+                Map<String,String> data = new HashMap<>();
                 data.put("loginId", "hobi");
 
                 //When
@@ -109,7 +109,7 @@ public class UserAppTest {
                 user.isLocked = true;
                 user.save();
 
-                Map<String, String> data = new HashMap<String,String>();
+                Map<String, String> data = new HashMap<>();
                 data.put("loginId", user.loginId);
                 data.put("password", user.password);
 
@@ -135,7 +135,7 @@ public class UserAppTest {
             public void run() {
                 //Given
                 final String loginId = "somefakeuserid";
-                Map<String, String> data = new HashMap<String,String>();
+                Map<String, String> data = new HashMap<>();
                 data.put("loginId", loginId);
                 data.put("password", "somefakepassword");
                 data.put("email", "fakeuser@fake.com");
@@ -159,7 +159,7 @@ public class UserAppTest {
             @Override
             public void run() {
                 //Given
-                Map<String,String> data = new HashMap<String,String>();
+                Map<String,String> data = new HashMap<>();
                 data.put("loginId", "messages.js");
 
                 //When

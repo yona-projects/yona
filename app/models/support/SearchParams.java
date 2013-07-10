@@ -9,7 +9,7 @@ public class SearchParams {
     private List<SearchParam> searchParams;
 
     public SearchParams() {
-        this.searchParams = new ArrayList<SearchParam>();
+        this.searchParams = new ArrayList<>();
     }
 
     public SearchParams add(String field, Object value, Matching matching) {

@@ -56,7 +56,7 @@ public class LabelApp extends Controller {
             response().setHeader("Content-Range", "items " + limit + "/" + total);
         }
 
-        ArrayList<String> labels = new ArrayList<String>();
+        ArrayList<String> labels = new ArrayList<>();
 
         for (Label label: el.findList()) {
             labels.add(label.name);
@@ -102,7 +102,7 @@ public class LabelApp extends Controller {
             response().setHeader("Content-Range", "items " + limit + "/" + cnt);
         }
 
-        List<String> categories = new ArrayList<String>();
+        List<String> categories = new ArrayList<>();
         for (SqlRow row: sqlQuery.findList()) {
             categories.add(row.getString("category"));
         }

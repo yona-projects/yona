@@ -71,7 +71,7 @@ public class IssueAppTest {
 
     private Result postBy(User user) {
         //Given
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         data.put("title", "hello");
         data.put("body", "world");
 
@@ -85,7 +85,7 @@ public class IssueAppTest {
     }
 
     private Result editBy(User user) {
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         data.put("title", "bye");
         data.put("body", "universe");
 
@@ -107,7 +107,7 @@ public class IssueAppTest {
 
     private Result commentBy(User user) {
         //Given
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         data.put("contents", "world");
 
         //When

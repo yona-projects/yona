@@ -18,17 +18,17 @@ import static org.fest.assertions.Assertions.assertThat;
 public class UrlTest {
     protected static FakeApplication app;
     private Map<String, String> additionalConfiguration;
-    
+
     @Before
     public void before() {
-        additionalConfiguration = new HashMap<String, String>(Helpers.inMemoryDatabase());
+        additionalConfiguration = new HashMap<>(Helpers.inMemoryDatabase());
         additionalConfiguration.put("application.scheme", "http");
         additionalConfiguration.put("application.hostname", "localhost");
         additionalConfiguration.put("application.port", "9999");
         app = Helpers.fakeApplication(additionalConfiguration);
         Helpers.start(app);
     }
-    
+
     @After
     public void after() {
         Helpers.stop(app);
@@ -38,7 +38,7 @@ public class UrlTest {
     public void create() {
         String actual = Url.create(Arrays.asList("path", "to", "somewhere"));
         String expected = "http://localhost:9999/path/to/somewhere";
-        
+
         assertThat(actual).isEqualTo(expected);
     }
 }

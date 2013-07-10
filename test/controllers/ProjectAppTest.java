@@ -46,7 +46,7 @@ public class ProjectAppTest {
     @Test
     public void label() {
         //Given
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         data.put("category", "OS");
         data.put("name", "linux");
         User admin = User.findByLoginId("admin");
@@ -123,7 +123,7 @@ public class ProjectAppTest {
 
         assertThat(project.labels.contains(label1)).isTrue();
 
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         data.put("_method", "DELETE");
         User admin = User.findByLoginId("admin");
 

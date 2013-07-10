@@ -540,7 +540,7 @@ public class ProjectApp extends Controller {
      * @return JSON 형태의 프로젝트 목록
      */
     private static Result getProjectsToJSON(String query) {
-        List<String> projectNames = new ArrayList<String>();
+        List<String> projectNames = new ArrayList<>();
         ExpressionList<Project> el = Project.find.where().or(contains("name", query), contains("owner", query));
         int total = el.findRowCount();
         if (total > MAX_FETCH_PROJECTS) {
@@ -581,9 +581,9 @@ public class ProjectApp extends Controller {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
 
-        Map<Long, Map<String, String>> labels = new HashMap<Long, Map<String, String>>();
+        Map<Long, Map<String, String>> labels = new HashMap<>();
         for (Label label: project.labels) {
-            Map<String, String> tagMap = new HashMap<String, String>();
+            Map<String, String> tagMap = new HashMap<>();
             tagMap.put("category", label.category);
             tagMap.put("name", label.name);
             labels.put(label.id, tagMap);
@@ -648,8 +648,8 @@ public class ProjectApp extends Controller {
             // Return the attached label. The return type is Map<Long, String>
             // even if there is only one label, to unify the return type with
             // ProjectApp.labels().
-            Map<Long, Map<String, String>> labels = new HashMap<Long, Map<String, String>>();
-            Map<String, String> labelMap = new HashMap<String, String>();
+            Map<Long, Map<String, String>> labels = new HashMap<>();
+            Map<String, String> labelMap = new HashMap<>();
             labelMap.put("category", label.category);
             labelMap.put("name", label.name);
             labels.put(label.id, labelMap);

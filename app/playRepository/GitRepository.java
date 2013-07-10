@@ -326,7 +326,7 @@ public class GitRepository implements PlayRepository {
                 tw = TreeWalk.forPath(repository, basePath, curr.getTree());
                 tw.enterSubtree();
             }
-            Map<String, ObjectId> objects = new HashMap<String, ObjectId>();
+            Map<String, ObjectId> objects = new HashMap<>();
             while(tw.next()) {
                 if (paths.contains(tw.getNameString())) {
                     objects.put(tw.getNameString(), tw.getObjectId(0));

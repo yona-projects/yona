@@ -161,7 +161,7 @@ public class CodeHistoryApp extends Controller {
 
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
-        Form<CodeComment> codeCommentForm = new Form<CodeComment>(CodeComment.class)
+        Form<CodeComment> codeCommentForm = new Form<>(CodeComment.class)
                 .bindFromRequest();
 
         if (codeCommentForm.hasErrors()) {

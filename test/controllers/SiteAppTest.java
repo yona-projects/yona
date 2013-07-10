@@ -42,7 +42,7 @@ public class SiteAppTest {
     @Test @Ignore   //FixMe I don't know how to make a assert
     public void testToggleUserAccountLock() {
         //Given
-        Map<String,String> data = new HashMap<String,String>();
+        Map<String,String> data = new HashMap<>();
         final String loginId= "doortts";
         data.put("loginId", loginId);
 

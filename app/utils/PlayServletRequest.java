@@ -46,7 +46,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     private String characterEncoding;
     private final Request request;
-    Map<String, Object> attributes = new HashMap<String, Object>();
+    Map<String, Object> attributes = new HashMap<>();
     private final HttpSession httpSession;
 
     public PlayServletRequest(Request request, HttpSession httpSession, String pathInfo) {
@@ -164,7 +164,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public Enumeration<Locale> getLocales() {
-        List<Locale> locales = new ArrayList<Locale>();
+        List<Locale> locales = new ArrayList<>();
         for (Lang lang : request.acceptLanguages()) {
             locales.add(lang.toLocale());
         }

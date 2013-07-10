@@ -73,7 +73,7 @@ public class IssueApp extends AbstractPostingApp {
                 if (!user.isAnonymous()) {
                     el.eq("authorId", user.id);
                 } else {
-                    List<Long> ids = new ArrayList<Long>();
+                    List<Long> ids = new ArrayList<>();
                     for (User u : User.find.where().icontains("loginId", authorLoginId).findList()) {
                         ids.add(u.id);
                     }
@@ -207,8 +207,8 @@ public class IssueApp extends AbstractPostingApp {
             label.refresh();
         }
 
-        Form<Comment> commentForm = new Form<Comment>(Comment.class);
-        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(Issue.findByNumber(project, number));
+        Form<Comment> commentForm = new Form<>(Comment.class);
+        Form<Issue> editForm = new Form<>(Issue.class).fill(Issue.findByNumber(project, number));
 
         return ok(view.render("title.issueDetail", issueInfo, editForm, commentForm, project));
     }
@@ -230,7 +230,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         return newPostingForm(project, ResourceType.ISSUE_POST,
-                create.render("title.newIssue", new Form<Issue>(Issue.class), project));
+                create.render("title.newIssue", new Form<>(Issue.class), project));
     }
 
     /**
@@ -250,7 +250,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result massUpdate(String ownerName, String projectName) throws IOException {
         Form<IssueMassUpdate> issueMassUpdateForm
-                = new Form<IssueMassUpdate>(IssueMassUpdate.class).bindFromRequest();
+                = new Form<>(IssueMassUpdate.class).bindFromRequest();
         if (issueMassUpdateForm.hasErrors()) {
             return badRequest(issueMassUpdateForm.errorsAsJson());
         }
@@ -339,7 +339,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     public static Result newIssue(String ownerName, String projectName) throws IOException {
-        Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
+        Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound();
@@ -394,7 +394,7 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(views.html.error.forbidden.render(project));
         }
 
-        Form<Issue> editForm = new Form<Issue>(Issue.class).fill(issue);
+        Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
 
         return ok(edit.render("title.editIssue", editForm, issue, project));
     }
@@ -416,7 +416,7 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#editPosting(AbstractPosting, AbstractPosting, Form, Call, Callback)}
      */
     public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
-        Form<Issue> issueForm = new Form<Issue>(Issue.class).bindFromRequest();
+        Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
 
@@ -499,7 +499,7 @@ public class IssueApp extends AbstractPostingApp {
         }
         final Issue issue = Issue.findByNumber(project, number);
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
-        Form<IssueComment> commentForm = new Form<IssueComment>(IssueComment.class)
+        Form<IssueComment> commentForm = new Form<>(IssueComment.class)
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {

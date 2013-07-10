@@ -30,7 +30,7 @@ public class TestEbeanPlugin extends Plugin {
 
     // --
 
-    private final Map<String, EbeanServer> servers = new HashMap<String, EbeanServer>();
+    private final Map<String, EbeanServer> servers = new HashMap<>();
 
     /**
      * Reads the configuration file and initialises required Ebean servers.
@@ -58,11 +58,11 @@ public class TestEbeanPlugin extends Plugin {
                 }
 
                 String[] toLoad = ebeanConfig.getString(key).split(",");
-                Set<String> classes = new HashSet<String>();
+                Set<String> classes = new HashSet<>();
                 for (String load : toLoad) {
                     load = load.trim();
                     if (load.endsWith(".*")) {
-                    	
+
 //                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length() - 2), javax.persistence.Entity.class));
 //                        classes.addAll(application.getTypesAnnotatedWith(load.substring(0, load.length() - 2), javax.persistence.Embeddable.class));
                     } else {

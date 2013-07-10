@@ -88,14 +88,14 @@ public final class FastHttpDateFormat {
      * Formatter cache.
      */
     protected static final ConcurrentHashMap<Long, String> formatCache =
-        new ConcurrentHashMap<Long, String>(CACHE_SIZE);
+        new ConcurrentHashMap<>(CACHE_SIZE);
 
 
     /**
      * Parser cache.
      */
     protected static final ConcurrentHashMap<String, Long> parseCache =
-        new ConcurrentHashMap<String, Long>(CACHE_SIZE);
+        new ConcurrentHashMap<>(CACHE_SIZE);
 
 
     // --------------------------------------------------------- Public Methods

@@ -72,7 +72,7 @@ public class Milestone extends Model {
     }
 
     public List<Issue> sortedByStateOfIssue(){
-        List <Issue>sortedIssues = new ArrayList<Issue>(this.issues);
+        List <Issue>sortedIssues = new ArrayList<>(this.issues);
         Collections.sort(sortedIssues, new Comparator<Issue>() {
             @Override
             public int compare(Issue a, Issue b) {
@@ -206,7 +206,7 @@ public class Milestone extends Model {
      * @return
      */
     public static Map<String, String> options(Long projectId) {
-        LinkedHashMap<String, String> options = new LinkedHashMap<String, String>();
+        LinkedHashMap<String, String> options = new LinkedHashMap<>();
         for (Milestone milestone : findMilestones(projectId, State.ALL, "title", Direction.ASC)) {
             options.put(milestone.id.toString(), milestone.title);
         }

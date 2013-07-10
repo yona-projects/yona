@@ -232,11 +232,11 @@ public class SVNRepository implements PlayRepository {
 
         // No log to return.
         if (startRevision < endRevision) {
-            return new ArrayList<Commit>();
+            return new ArrayList<>();
         }
 
         // Get the logs
-        List<Commit> result = new ArrayList<Commit>();
+        List<Commit> result = new ArrayList<>();
         for(Object entry : repository.log(paths, null, startRevision, endRevision, false, false)) {
             result.add(new SvnCommit((SVNLogEntry) entry));
         }

@@ -60,7 +60,7 @@ public class UserApp extends Controller {
             response().setHeader("Content-Range", "items " + MAX_FETCH_USERS + "/" + total);
         }
 
-        List<String> loginIds = new ArrayList<String>();
+        List<String> loginIds = new ArrayList<>();
         for (User user: el.findList()) {
             loginIds.add(user.loginId);
         }
@@ -229,7 +229,7 @@ public class UserApp extends Controller {
         User user = userForm.get();
 
         if(!isValidPassword(currentUser, user.oldPassword)) {
-            Form<User> currentUserForm = new Form<User>(User.class);
+            Form<User> currentUserForm = new Form<>(User.class);
             currentUserForm = currentUserForm.fill(currentUser);
 
             flash(Constants.WARNING, "user.wrongPassword.alert");
@@ -307,7 +307,7 @@ public class UserApp extends Controller {
      */
     public static Result editUserInfoForm() {
         User user = UserApp.currentUser();
-        Form<User> userForm = new Form<User>(User.class);
+        Form<User> userForm = new Form<>(User.class);
         userForm = userForm.fill(user);
         return ok(edit.render(userForm, user));
     }
@@ -318,7 +318,7 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result editUserInfo() {
-        Form<User> userForm = new Form<User>(User.class).bindFromRequest("name", "email");
+        Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");
         String newEmail = userForm.data().get("email");
         String newName = userForm.data().get("name");
         User user = UserApp.currentUser();

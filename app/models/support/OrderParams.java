@@ -10,7 +10,7 @@ public class OrderParams {
     private List<OrderParam> orderParams;
 
     public OrderParams() {
-        this.orderParams = new ArrayList<OrderParam>();
+        this.orderParams = new ArrayList<>();
     }
 
     public OrderParams add(String field, Direction direction) {
