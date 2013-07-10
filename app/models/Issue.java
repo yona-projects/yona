@@ -233,8 +233,7 @@ public class Issue extends AbstractPosting {
         workbook.write();
 
         try {
-            if (workbook != null)
-                workbook.close();
+            workbook.close();
         } catch (WriteException e) {
             e.printStackTrace();
         } catch (IOException e) {
