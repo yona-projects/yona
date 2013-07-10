@@ -2224,7 +2224,8 @@ div.markdown-preview {
         vertical-align: middle;
         a {
             display:inline-block; width:30px;
-            text-align:right; color:#b2b2b2;
+            text-align:center; /*color:#b2b2b2;*/
+            font-weight:bold; color:@secondary;
             &:hover { color:@primary; font-weight:bold; }
         }
     }
@@ -2243,7 +2244,7 @@ div.markdown-preview {
 
     .infos {
         color:#999;
-        font-size:11px;
+        font-size:11px; line-height:13px;
 
         .date { margin-left:10px; }
         .comment-wrap {
