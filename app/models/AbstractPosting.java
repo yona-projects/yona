@@ -106,9 +106,7 @@ abstract public class AbstractPosting extends Model {
             number = increaseNumber();
         }
         numOfComments = computeNumOfComments();
-        Logger.debug(String.format(">> new posting: before== #:%s by %s, %s, %s", number, authorLoginId, title, new Date() ));
         super.save();
-        Logger.debug(String.format(">> new posting: after == #:%s, id:%s", number, id ));
     }
 
     /**
