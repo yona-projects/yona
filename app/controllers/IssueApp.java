@@ -291,8 +291,10 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             boolean stateChanged = false;
+            State oldState = null;
             if ((issueMassUpdate.state != null) && (issue.state != issueMassUpdate.state)) {
                 stateChanged = true;
+                oldState = issue.state;
                 issue.state = issueMassUpdate.state;
             }
 
@@ -321,7 +323,7 @@ public class IssueApp extends AbstractPostingApp {
                 addAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
             }
             if(stateChanged) {
-                sendStateChangedNotification(updatedIssue, urlToView);
+                sendStateChangedNotification(oldState, updatedIssue, urlToView);
             }
         }
 
@@ -480,7 +482,9 @@ public class IssueApp extends AbstractPostingApp {
 
         if(issue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            sendStateChangedNotification(updatedIssue, redirectTo.absoluteURL(request()));
+            sendStateChangedNotification(issue.state, updatedIssue,
+                    redirectTo.absoluteURL(request()
+            ));
         }
 
         return result;
@@ -491,19 +495,30 @@ public class IssueApp extends AbstractPostingApp {
         || ((newAssignee != oldAssignee) && (newAssignee == null || oldAssignee == null));
     }
 
-    private static void sendStateChangedNotification(Issue updatedIssue, String urlToView) {
-        Set<User> receivers = updatedIssue.getWatchers();
+    private static void sendStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
+        NotificationEvent notiEvent = new NotificationEvent();
 
-        String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = updatedIssue.state.state();
 
-        String message;
+        notiEvent.receivers = updatedIssue.getWatchers();
+        notiEvent.receivers.remove(UserApp.currentUser());
+
+        notiEvent.title = String.format("[%s] %s (#%d)", updatedIssue.project.name,
+                updatedIssue.title, updatedIssue.getNumber());
+
         if(updatedIssue.state == State.CLOSED) {
-            message = "Closed";
+            notiEvent.message = "Closed";
         } else {
-            message = "Re-opened";
+            notiEvent.message = "Re-opened";
         }
 
-        sendNotification(NotificationFactory.create(receivers, title, message, urlToView));
+        notiEvent.created = new Date();
+        notiEvent.urlToView = urlToView;
+        notiEvent.resourceId = updatedIssue.id;
+        notiEvent.resourceType = updatedIssue.asResource().getType();
+        notiEvent.type = NotificationType.ISSUE_ASSIGNEE_CHANGED;
+        notiEvent.save();
     }
 
     private static void addAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
@@ -514,6 +529,7 @@ public class IssueApp extends AbstractPostingApp {
             notiEvent.oldValue = oldAssignee.loginId;
             receivers.add(oldAssignee);
         }
+        receivers.remove(UserApp.currentUser());
 
         notiEvent.title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
 
