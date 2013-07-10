@@ -183,7 +183,7 @@ public class Attachment extends Model {
             formatter.close();
             dis.close();
             throw new NotDirectoryException(
-                    "'" + file.getAbsolutePath().toString() + "' is not a directory.");
+                    "'" + file.getAbsolutePath() + "' is not a directory.");
         }
         File attachedFile = new File(uploadDirectory, formatter.toString());
         boolean isMoved = file.renameTo(attachedFile);

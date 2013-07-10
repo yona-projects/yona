@@ -353,7 +353,7 @@ public class GitRepository implements PlayRepository {
 
             for (String path : objects.keySet()) {
                 ObjectNode data = Json.newObject();
-                data.put("type", modes.get(path).toString());
+                data.put("type", modes.get(path);
                 data.put("msg", curr.getShortMessage());
                 setAvatar(data, curr.getAuthorIdent().getEmailAddress());
                 data.put("createdDate", curr.getCommitTime() * 1000l);
