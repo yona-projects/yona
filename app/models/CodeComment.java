@@ -22,6 +22,7 @@ import java.util.Date;
  */
 @Entity
 public class CodeComment extends Model {
+    private static final long serialVersionUID = 1L;
     public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 
     @Id
