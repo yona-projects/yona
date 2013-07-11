@@ -137,7 +137,8 @@ public class User extends Model {
     public List<Project> enrolledProjects;
 
     @ManyToMany(mappedBy = "receivers")
-    public Set<NotificationEvent> notificationEvents;
+    @OrderBy("id DESC")
+    public List<NotificationEvent> notificationEvents;
 
     public User(){}
 

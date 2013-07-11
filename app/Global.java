@@ -94,7 +94,7 @@ public class Global extends GlobalSettings {
                                     AbstractPostingApp.NotificationFactory.create(
                                             mail.notificationEvent.receivers,
                                             mail.notificationEvent.title,
-                                            mail.notificationEvent.message,
+                                            mail.notificationEvent.getMessage(),
                                             mail.notificationEvent.urlToView
                                     ));
                         }

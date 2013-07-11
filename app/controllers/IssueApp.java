@@ -389,7 +389,7 @@ public class IssueApp extends AbstractPostingApp {
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
         notiEvent.title = title;
-        notiEvent.message = newIssue.body;
+        notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = issueCall.absoluteURL(request());
         notiEvent.resourceId = newIssue.id;
@@ -504,20 +504,16 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.receivers = updatedIssue.getWatchers();
         notiEvent.receivers.remove(UserApp.currentUser());
 
-        notiEvent.title = String.format("[%s] %s (#%d)", updatedIssue.project.name,
-                updatedIssue.title, updatedIssue.getNumber());
+        notiEvent.senderId = UserApp.currentUser().id;
 
-        if(updatedIssue.state == State.CLOSED) {
-            notiEvent.message = "Closed";
-        } else {
-            notiEvent.message = "Re-opened";
-        }
+        notiEvent.title = String.format("Re: [%s] %s (#%d)", updatedIssue.project.name,
+                updatedIssue.title, updatedIssue.getNumber());
 
         notiEvent.created = new Date();
         notiEvent.urlToView = urlToView;
         notiEvent.resourceId = updatedIssue.id;
         notiEvent.resourceType = updatedIssue.asResource().getType();
-        notiEvent.type = NotificationType.ISSUE_ASSIGNEE_CHANGED;
+        notiEvent.type = NotificationType.ISSUE_STATE_CHANGED;
         notiEvent.save();
     }
 
@@ -531,17 +527,14 @@ public class IssueApp extends AbstractPostingApp {
         }
         receivers.remove(UserApp.currentUser());
 
-        notiEvent.title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+        notiEvent.title = String.format("Re: [%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
 
-        if (updatedIssue.assignee == null) {
-            notiEvent.message = "Unassigned";
-        } else {
-            User newAssignee = User.find.byId(updatedIssue.assignee.user.id);
-            notiEvent.message = "Assigned to " + newAssignee.loginId;
-            notiEvent.newValue = newAssignee.loginId;
+        if (updatedIssue.assignee != null) {
+            notiEvent.newValue = User.find.byId(updatedIssue.assignee.user.id).loginId;
         }
 
         notiEvent.created = new Date();
+        notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = receivers;
         notiEvent.urlToView = urlToView;
         notiEvent.resourceId = updatedIssue.id;

@@ -149,7 +149,7 @@ public class AbstractPostingApp extends Controller {
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
         notiEvent.title = title;
-        notiEvent.message = comment.contents;
+        notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toView.absoluteURL(request());
         notiEvent.resourceId = comment.id;

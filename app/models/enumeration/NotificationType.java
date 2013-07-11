@@ -8,5 +8,5 @@ package models.enumeration;
  * To change this template use File | Settings | File Templates.
  */
 public enum NotificationType {
-    NEW_ISSUE, NEW_POSTING, ISSUE_ASSIGNEE_CHANGED, NEW_COMMENT
+    NEW_ISSUE, NEW_POSTING, ISSUE_ASSIGNEE_CHANGED, ISSUE_STATE_CHANGED, NEW_COMMENT
 }

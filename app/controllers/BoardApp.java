@@ -152,7 +152,7 @@ public class BoardApp extends AbstractPostingApp {
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
         notiEvent.title = title;
-        notiEvent.message = post.body;
+        notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toPost.absoluteURL(request());
         notiEvent.resourceId = post.id;
