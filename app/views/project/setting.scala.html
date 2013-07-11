@@ -16,7 +16,8 @@
 @main(message, project, utils.MenuType.PROJECT_SETTING) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
-
+    @partial_settingmenu(project)
+    
 	<form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
     <div class="bubble-wrap gray">
         <input type="hidden" name="id" value="@projectForm("id").value.toLong">

@@ -404,7 +404,7 @@
                 "latex": ["dtx", "tex"],
                 "less": ["less"],
                 "makefile": ["mk", "emakrfile", "emakerfile"],
-                "markdown": ["md"],
+                "markdown": ["md", "readme"],
                 "php": ["php","php3","php4","php5","php6","phps","inc"],
                 "python": ["py"],
                 "ruby": ["rb", "ruby"],
@@ -412,10 +412,10 @@
                 "svg": ["svg"],
                 "scala": ["scala"],
                 "sql": ["sql"],
-                "text": ["txt"],
+                "text": ["txt", "gitignore", "sbt"],
                 "vbscript": ["vbs"],
                 "xml": ["xml"],
-                "yaml": ["yaml"] 
+                "yaml": ["yaml", "yml"] 
             };
             
             for(var sMode in htVar.htExtMap){

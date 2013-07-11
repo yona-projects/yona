@@ -433,7 +433,7 @@
             }
 
             htElement.welCommentTr = $("<tr>")
-                .append(welTd.append(htElement.welEmptyCommentForm));
+                .append(welTd.append(htElement.welEmptyCommentForm.width(htElement.welDiff.width())));
 
             welCommentTr = htElement.welCommentTr;
             welCommentTr.find('[name=path]').attr('value', welTr.data('path'));

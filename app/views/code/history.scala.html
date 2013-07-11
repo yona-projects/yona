@@ -82,7 +82,6 @@
 							<td class="commit-id">
 								<a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
 									@commit.getShortId()
-									<i class="ico ico-gray-arrow-right"></i>
 								</a>
 							</td>
 							<td class="messages">
@@ -91,28 +90,35 @@
                                 <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                 }
                                 }
+                                
+                                @defining(commit.getMessage()){ commitMsg =>
                                 <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
-							        <pre>@commit.getMessage()</pre>
+						            <strong>@commitMsg.split("\n")(0)</strong>
                                 </a>
+                                @if(commitMsg.split("\n").length > 1){ 
+                                <button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>
+                                <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre> 
+                                }
+                                }
 							</td>
 							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
-                                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
-                                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-                                </a>
+                                    <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                                        <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                                    </a>
                                 }
                                 case (_, email, _) if email != null => {
-                                <span class="avatar-wrap">
-                                    <img class="user-picture" src="@urlToPicture(commit.getAuthorEmail, 32)">
-                                </span>
+                                    <span class="avatar-wrap">
+                                        <img src="@urlToPicture(commit.getAuthorEmail, 32)">
+                                    </span>
                                 }
                                 case (_, _, name) if name != null => {
-                                <span>@commit.getAuthorName</span>
+                                    <span>@commit.getAuthorName</span>
                                 }
                                 case (_, _, _) => {
-                                <span>@User.anonymous.name</span>
+                                    <span>@User.anonymous.name</span>
                                 }
                                 }
 							</td>
@@ -123,21 +129,26 @@
 			</div>
 		</div>
 
-		@if(page > 0) {
-        <ul class="pager">
-			<li><a href="@url?page=@(page - 1)">@Messages("code.newer")</a></li>
-        </ul>
-        }
+        <div class="actrow margin-top-20">
+            @if(page > 0) {
+            <a href="@url?page=@(page - 1)" class="nbtn medium pull-left">@Messages("code.newer")</a>
+            }
 
-        @if(history.get(history.size() - 1).getParentCount() > 0) {
-        <ul class="pager">
-			<li><a href="@url?page=@(page + 1)">@Messages("code.older")</a></li>
-        </ul>
-        }
-      </div>
+            @if(history.get(history.size() - 1).getParentCount() > 0) {
+            <a href="@url?page=@(page + 1)" class="nbtn medium pull-right">@Messages("code.older")</a>
+            }
+        </div>
+        
     } @** end of if(history.size) **@
 
   } @** end of defining url **@
 </div>
 
+<script type="text/javascript">
+$(document).ready(function(){
+   $("button.more").click(function(){
+       $(this).next("pre").toggleClass("hidden");
+   });
+});
+</script>
 }
