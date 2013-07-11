@@ -95,11 +95,11 @@
                         <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
                         <span class="date">(@milestone.until)</span>
                     }
-                    <div class="issue-wrap btn-group pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")" class="btn">
+                    <div class="issue-wrap nbtn-group pull-right">
+                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn medium">
                             @Messages("issue.state.open") <strong class="num-badge open">@milestone.getNumOpenIssues</strong>
                         </a>
-                        <a href="@makeIssuesLink(milestone.id,"closed")" class="btn">
+                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn medium">
                             @Messages("issue.state.closed") <strong class="num-badge closed">@milestone.getNumClosedIssues</strong>
                         </a>
                     </div>
@@ -117,7 +117,7 @@
 					<div class="progress-label">
 						@** 0% 일 수도 있어서 최소한의 텍스트 영역 확보 **@
 						<div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
-							<a href="@makeIssuesLink(milestone.id,"closed")">@Messages("milestone.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+							<a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
 						</div>
 						<div class="pull-right">
 							<a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>

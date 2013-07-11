@@ -917,15 +917,9 @@
 
         &.advanced {
             .srch-advanced {
-                text-align:left;
-                margin-top:10px;
-                display:block;
+                display:block; text-align:left;
+                margin:10px 0 20px;
                 border-top: 1px solid #D6D6D6;
-
-               /*.custom-label-category:before {
-                    content:'|'; margin-right:15px;
-                    color:#c1c1c1;
-               }*/
             }
             .btn-advanced {
                 i { .ico-arrow-up-blue; }
@@ -933,7 +927,11 @@
         }
         
         .labels-wrap { border-top:1px solid #ddd; padding-top:10px; }
-        
+        .milestone-info {
+            padding-bottom:20px;
+            margin-bottom:20px;
+            border-bottom:1px solid #ddd;
+        }
         .preset-list {
             padding-bottom:20px;
             margin-bottom:20px;
@@ -1528,6 +1526,30 @@
     }
 }
 
+.milestone-info {
+    margin-bottom:20px;
+    
+    .meta-info {
+        margin:5px;
+        .title    { font-size:12px; font-weight:bold; }
+        .sp       { margin: 0 5px; color:#E4E4E4; }
+        .due-date { color: #666; /*999;*/ }
+    }
+    .progress-wrap {
+        overflow: hidden;
+        color: #999;
+        font-size: 11px;
+    }
+    .desc {
+        font-size: 11px;
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #EBEBEB;
+        border-top:1px solid #D3D3D3;
+        .border-radius(2px);
+    }
+}
+
 .milestones {
     list-style: none;
     margin: 0;
@@ -1660,7 +1682,7 @@
 .project-home {
     width:260px;
     padding: 10px;
-    font-size: 0;
+    /*font-size: 0;*/
 
     .issue-wrap {
         margin-bottom:15px;
@@ -1890,6 +1912,7 @@
     }
     &.issue {
         .title { width:80%;/*650px;*/ }
+        /*
         .badge {
             font-size:11px;
             text-shadow:none;
@@ -1898,7 +1921,17 @@
         .badge-issue-open {
             background-color:@secondary;
         }
+        */
     }
+}
+
+.badge {
+    font-size:11px;
+    text-shadow:none;
+    .border-radius(2px);
+}
+.badge-issue-open {
+    background-color:@secondary;
 }
 
 .board-body {
