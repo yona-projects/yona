@@ -192,5 +192,9 @@ GET     /:user                                          controllers.UserApp.user
 POST    /:user/:project/watch                           controllers.WatchProjectApp.watch(user, project)
 POST    /:user/:project/unwatch                         controllers.WatchProjectApp.unwatch(user, project)
 
+# Enrolling Projects
+POST    /:user/:project/enroll                          controllers.EnrollProjectApp.enroll(user, project)
+POST    /:user/:project/cancel/enroll                   controllers.EnrollProjectApp.cancelEnroll(user, project)
+
 # remove trailing slash
 GET     /*paths                                         controllers.Application.removeTrailer(paths)

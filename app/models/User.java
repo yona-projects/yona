@@ -125,6 +125,16 @@ public class User extends Model {
     )
     public List<Project> watchingProjects;
 
+    /**
+     * 멤버 등록 요청한 프로젝트
+     */
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "user_enrolled_project",
+            joinColumns= @JoinColumn(name="user_id"),
+            inverseJoinColumns= @JoinColumn(name="project_id")
+    )
+    public List<Project> enrolledProjects;
+
     public User(){}
 
     public User(Long id){
@@ -361,6 +371,13 @@ public class User extends Model {
         return this.watchingProjects;
     }
 
+    public List<Project> getEnrolledProjects(){
+        if(this.enrolledProjects == null) {
+            this.enrolledProjects = new ArrayList<>();
+        }
+        return this.enrolledProjects;
+    }
+
     public void addWatching(Project project) {
         getWatchingProjects().add(project);
         project.upWatcingCount();
@@ -380,5 +397,24 @@ public class User extends Model {
         }
         return user.getWatchingProjects().contains(project);
     }
+
+    public void enroll(Project project) {
+        getEnrolledProjects().add(project);
+        this.update();
+    }
+
+    public void cancleEnroll(Project project) {
+        getEnrolledProjects().remove(project);
+        this.update();
+    }
+
+    public static boolean enrolled(Project project) {
+        User user = UserApp.currentUser();
+        if(user.isAnonymous()) {
+            return false;
+        }
+        return user.getEnrolledProjects().contains(project);
+    }
+
 
 }

@@ -356,6 +356,8 @@ public class ProjectApp extends Controller {
             return forbidden(views.html.error.forbidden.render(project));
         }
 
+        project.cleanEnrolledUsers();
+
         return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));

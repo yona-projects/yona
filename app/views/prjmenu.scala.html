@@ -74,6 +74,46 @@
                     </div>
                 </div>
 
+                @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
+                <div class="btn-group">
+                    @if(User.enrolled(project)){
+                    <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium blue last enrollBtn">
+                        <i class="icon-user icon-large"></i>
+                    </a>
+                    } else {
+                    <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn">
+                        <i class="icon-user icon-large"></i> @Messages("member.enrollment.request")
+                    </a>
+                    }
+                    <button class="btn dropdown-toggle small" data-toggle="dropdown" style="padding:0">
+                        <div class="d-caret"><span class="caret"></span></div>
+                    </button>
+                    <div class="dropdown-menu pull-right pop-watch">
+                        @if(User.enrolled(project)){
+                        <div class="content">
+                            <h5>@Messages("you.want.to.be.a.member", project.name)</h5>
+                            <p>@Messages("member.enrollment.help")</p>
+                        </div>
+                        <div class="brow">
+                            <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium mint enrollBtn">
+                                <i class="icon-user icon-large"></i> @Messages("cancel.enrollment")
+                            </a>
+                        </div>
+
+                        } else {
+                        <div class="content">
+                            <h5>@Messages("you.may.want.to.be.a.member", project.name)</h5>
+                            <p>@Messages("member.enrollment.will.help")</p>
+                        </div>
+                        <div class="brow">
+                            <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium blue enrollBtn">
+                                <i class="icon-user icon-large"></i> @Messages("new.enrollment")
+                            </a>
+                        </div>
+                        }
+                    </div>
+                </div>
+                }
             </div>
 
     		<ul class="unstyled">
@@ -163,12 +203,12 @@ $(document).ready(function(){
         "C": "@routes.CodeApp.codeBrowser(project.owner, project.name)",
         "I": "@routes.IssueApp.issues(project.owner, project.name,"all")",
         "M": "@routes.MilestoneApp.milestones(project.owner, project.name)"
-    @if(project.vcs.equals("GIT")){
-       ,"F": "@getPullRequestURL(project)"
-    }
-    @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
-       ,"Q": "@routes.ProjectApp.settingForm(project.owner, project.name)"
-    }
+        @if(project.vcs.equals("GIT")){
+           ,"F": "@getPullRequestURL(project)"
+        }
+        @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+           ,"Q": "@routes.ProjectApp.settingForm(project.owner, project.name)"
+        }
     };
 
     $hive.loadModule("project.Global", {

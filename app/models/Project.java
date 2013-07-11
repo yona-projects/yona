@@ -95,6 +95,9 @@ public class Project extends Model {
     public long watchingCount;
     public Date lastPushedDate;
 
+    @ManyToMany(mappedBy = "enrolledProjects")
+    public List<User> enrolledUsers;
+
     /**
      * 신규 프로젝트를 생성한다.
      *
@@ -636,6 +639,22 @@ public class Project extends Model {
                 originalProject = null;
                 super.update();
             }
+        }
+    }
+
+    @Transactional
+    public void cleanEnrolledUsers() {
+        List<User> enrolledUsers = this.enrolledUsers;
+        List<User> acceptedUsers = new ArrayList<>();
+        List<ProjectUser> members = this.members();
+        for(ProjectUser projectUser : members) {
+            User user = projectUser.user;
+            if(enrolledUsers.contains(user)) {
+                acceptedUsers.add(user);
+            }
+        }
+        for(User user : acceptedUsers) {
+            user.cancleEnroll(this);
         }
     }
 
