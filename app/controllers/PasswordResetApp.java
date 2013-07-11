@@ -93,7 +93,7 @@ public class PasswordResetApp extends Controller {
                  .setMsg(Messages.get("admin.resetPasswordEmail.mailcontents") + "\n\n" + resetPasswordUrl)
                  .setCharset("utf-8");
 
-            Mailer.send(email);
+            Logger.debug(Mailer.send(email));
             return true;
         } catch (EmailException e) {
             e.printStackTrace();
