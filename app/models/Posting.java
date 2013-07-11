@@ -47,6 +47,10 @@ public class Posting extends AbstractPosting {
         return project.increaseLastPostingNumber();
     }
 
+    protected void fixLastNumber() {
+        project.fixLastPostingNumber();
+    }
+
     /**
      * @return
      * @see models.AbstractPosting#computeNumOfComments()

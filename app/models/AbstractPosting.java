@@ -90,12 +90,18 @@ abstract public class AbstractPosting extends Model {
      */
     protected abstract Long increaseNumber();
 
+    protected abstract void fixLastNumber();
+
     public Long getNumber() {
         return number;
     }
 
     /**
      * 저장할 때 번호가 설정되어 있지 않다면 번호를 저장하고 댓글 개수를 설정한다.
+     *
+     * 종종 번호 계산의 근거가 되는 {@link Project#lastIssueNumber} 혹은
+     * {@link Project#lastPostingNumber}의 값이 잘못되어서(0으로 리셋되는 경우가 있다)
+     * {@link PersistenceException}이 발생하곤 한다. 이런 경우에는 값을 바로잡고 다시 저장한다.
      *
      * @see #increaseNumber()
      * @see #computeNumOfComments()
@@ -106,7 +112,24 @@ abstract public class AbstractPosting extends Model {
             number = increaseNumber();
         }
         numOfComments = computeNumOfComments();
-        super.save();
+
+        try {
+            super.save();
+        } catch (PersistenceException e) {
+            Long oldNumber = number;
+            fixLastNumber();
+            number = increaseNumber();
+            // What causes this PersistenceException?
+            if (oldNumber != number) {
+                // caused by invalid number.
+                play.Logger.warn(String.format("%s/%s: Invalid last number %d is fixed to %d",
+                        asResource().getProject(), asResource().getType(), oldNumber, number));
+                super.save();
+            } else {
+                // caused by the other reason.
+                throw e;
+            }
+        }
     }
 
     /**

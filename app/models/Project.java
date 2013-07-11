@@ -390,6 +390,10 @@ public class Project extends Model {
         return lastIssueNumber;
     }
 
+    public void fixLastIssueNumber() {
+        lastIssueNumber = Issue.finder.where().eq("project.id", id).order().desc("number").findList().get(0).number;
+    }
+
     /**
      * 마지막 게시글번호를 증가시킨다.
      *
@@ -402,6 +406,10 @@ public class Project extends Model {
         lastPostingNumber++;
         update();
         return lastPostingNumber;
+    }
+
+    public void fixLastPostingNumber() {
+        lastPostingNumber = Posting.finder.where().eq("project.id", id).order().desc("number").findList().get(0).number;
     }
 
     /**
