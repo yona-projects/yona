@@ -582,3 +582,12 @@ secret.warning = The Secret key MUST be secret. If a bad guy knows the secret, h
 # Restart server
 restart.welcome = Welcome!
 restart.notice = The server needs to be restarted.
+
+# Project member enrollments
+member.enrollment.request = Member enrollment requests
+you.want.to.be.a.member = You want to be a member of {0} project.
+you.may.want.to.be.a.member = You may want to be a member of {0} project.
+member.enrollment.help = You can be a member if the members of this project accept this request.
+member.enrollment.will.help = Members of this project can check your enrollment request.
+new.enrollment = New enrollment.
+cancel.enrollment = Cancel enrollment.

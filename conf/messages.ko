@@ -581,3 +581,12 @@ secret.warning = 사이트 비밀값은 사이트 관리자외의 누구도 알�
 # Restart server
 restart.welcome = 환영합니다!
 restart.notice = 서버를 재시작해야합니다.
+
+# Project member enrollments
+member.enrollment.request = 멤버 등록 요청
+you.want.to.be.a.member = {0} 프로젝트 멤버로 등록 요청했습니다.
+you.may.want.to.be.a.member = {0} 프로젝트 멤버로 등록 요청을 할 수 있습니다.
+member.enrollment.help = 프로젝트 관리자나 멤버가 승인하면 프로젝트 멤버로 등록됩니다.
+member.enrollment.will.help = 프로젝트에 멤버 등록 요청을 보내면 프로젝트 관리자나 멤버가 확인할 수 있습니다.
+new.enrollment = 멤버 등록 요청하기
+cancel.enrollment = 멤버 등록 요청 취소하기

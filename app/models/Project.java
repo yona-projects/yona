@@ -9,7 +9,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
-import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -94,6 +93,9 @@ public class Project extends Model {
      */
     public long watchingCount;
     public Date lastPushedDate;
+
+    @ManyToMany(mappedBy = "enrolledProjects")
+    public List<User> enrolledUsers;
 
     /**
      * 신규 프로젝트를 생성한다.
@@ -636,6 +638,29 @@ public class Project extends Model {
                 originalProject = null;
                 super.update();
             }
+        }
+    }
+
+    /**
+     * 프로젝트 멤버 등록 요청중에서 이미 프로젝트 멤버로 등록된 유저의 요청은 삭제한다.
+     *
+     * when: 프로젝트 멤버 설정 화면을 보여줄 때 실행합니다.
+     *
+     * @see controllers.ProjectApp#members(String, String)
+     */
+    @Transactional
+    public void cleanEnrolledUsers() {
+        List<User> enrolledUsers = this.enrolledUsers;
+        List<User> acceptedUsers = new ArrayList<>();
+        List<ProjectUser> members = this.members();
+        for(ProjectUser projectUser : members) {
+            User user = projectUser.user;
+            if(enrolledUsers.contains(user)) {
+                acceptedUsers.add(user);
+            }
+        }
+        for(User user : acceptedUsers) {
+            user.cancelEnroll(this);
         }
     }
 

@@ -1,7 +1,7 @@
 @(message: String, members: List[ProjectUser], project:Project, roles: List[Role])
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) } 
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @memberRole(userRole: String) = {
     @for(role <- roles){
@@ -16,19 +16,19 @@
     
 	<div class="inner-bubble">
 		<form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
-			<input type="text" class="text uname" id="loginId" name="loginId" 
+			<input type="text" class="text uname" id="loginId" name="loginId"
                    data-provider="typeahead" autocomplete="off"
 				   placeholder="@Messages("project.members.addMember")"
-				   pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!-- 
+				   pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!--
          --><button type="submit" class="nbtn medium white"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
 		</form>
 	</div>
-	
+
 	<div class="bubble-wrap gray" style="overflow:visible">
 		<ul class="members project">
 			@for(member <- members){
 	            @if( member.user != null){
-	
+
 			<li class="member">
 				<a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap large pull-left">
 				    <img class="media-object" src="@User.findByLoginId(member.user.loginId).avatarUrl" width="64" height="64">
@@ -44,7 +44,7 @@
 					</div>
 					<div class="td">
 						@if(!project.isOwner(member.user)) {
-						
+
 						<div class="btn-group" data-name="roleof-@member.user.loginId">
 							<button class="btn dropdown-toggle large" data-toggle="dropdown">
 								<span class="d-label">@Messages("role." + member.role.name)</span>
@@ -52,11 +52,11 @@
 							</button>
 							<ul class="dropdown-menu">@memberRole(member.role.name)</ul>
 						</div>
-						
+
 						<p class="btns">
-							<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn small"><!-- 
-							 --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a> 
-							<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn small orange"><!-- 
+							<a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn small"><!--
+							 --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a>
+							<a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn small orange"><!--
 							 --><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
 						</p>
 	                    } else {
@@ -65,12 +65,12 @@
 					</div>
 				</div>
 			</li>
-			 
+
 				}
 	        }
 		</ul>
 	</div>
-		
+
 	<div id="alertDeletion" class="modal hide">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal">×</button>
@@ -81,9 +81,31 @@
 		</div>
 		<div class="modal-footer">
 			<a href="#" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</a>
-			<a href="#" class="nbtn medium orange">@Messages("button.yes")</a>
+			<a href="#" class="nbtn medium orange" data-dismiss="modal" id="deleteBtn">@Messages("button.yes")</a>
 		</div>
 	</div>
+
+    @if(project.enrolledUsers.size > 0) {
+    <legend>
+        <h3>@Messages("member.enrollment.request") (@project.enrolledUsers.size)</h3>
+    </legend>
+    <div class="row-fluid">
+        @for(user <- project.enrolledUsers) {
+        <div class="span2">
+            <div class="pull-left" style="margin-right: 10px;">
+                <a href="@routes.UserApp.userInfo(user.loginId)">
+                    <img src="@user.avatarUrl" height="65" width="65" class="img-circle"/>
+                </a>
+            </div>
+            <div class="pull-left" style="width: 60px;">
+                <span><a href=""@routes.UserApp.userInfo(user.loginId)"><strong>@user.name</strong></a></span>
+                <span>(@user.loginId)</span>
+                <button class="nbtn small blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="icon-plus"></i> @Messages("button.add")</button>
+            </div>
+        </div>
+        }
+    </div>
+    }
 </div>
 
 <script type="text/javascript">
