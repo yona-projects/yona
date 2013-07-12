@@ -100,16 +100,7 @@
         </div>
 
         <div class="span3">
-		    <div class="bubble-wrap gray project-home" style="width:260px;">
-		        <div class="issue-wrap center-txt">
-		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.OPEN.state)" class="nbtn medium white">
-		                @Messages("issue.state.open") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.OPEN)</strong>
-		            </a>
-		            <a href="@routes.IssueApp.issues(project.owner, project.name, State.CLOSED.state)" class="nbtn medium white last">
-		                @Messages("issue.state.closed") @Messages("menu.issue") <strong class="num-badge">@Issue.countIssues(project.id, State.CLOSED)</strong>
-		            </a>
-		        </div>
-
+		    <div class="bubble-wrap gray project-home" style="width:260px;">		        
 		        <div class="inner logo" style="background-image:url('@projectLogoImage');">
 		            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
 		            <div class="edit">
@@ -117,6 +108,13 @@
 		            </div>
 		            }
 		        </div>
+
+                @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
+                    @if(milestones.length > 0){
+                        @views.html.milestone.partial_status(milestones(0), project)
+                    }
+                }
+
 		        <div class="inner project-info">
 		            <header>
 		                <h3>@Messages("project.info")</h3>

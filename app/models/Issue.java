@@ -1,6 +1,8 @@
 package models;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
+
 import jxl.*;
 import jxl.format.*;
 import jxl.format.Colour;
@@ -154,41 +156,35 @@ public class Issue extends AbstractPosting {
     }
 
     /**
-     * {@code projectId} 프로젝트에
-     * {@link State} 상태 이면서
-     * {@link Assignee}가 담당자인 이슈 개수를 반환한다.
+     * {@code projectId} 프로젝트에서 인자 조건에 따른 이슈 개수를 반환한다.
      *
      * @param projectId
      * @param state
      * @param assigneeId
-     * @return
-     */
-    public static int countIssuesByAssigneeId(Long projectId, State state, Long assigneeId) {
-        if (state == State.ALL){
-            return finder.where().eq("project.id", projectId).eq("assignee.user.id", assigneeId).findRowCount();
-        } else {
-            return finder.where().eq("project.id", projectId).eq("state", state).eq("assignee.user.id", assigneeId).findRowCount();
-        }
-    }
-
-    /**
-     * {@code projectId} 프로젝트에
-     * {@link State} 상태 이면서
-     * {@link authorId}가 작성자인 이슈 개수를 반환한다.
-     *
-     * @param projectId
-     * @param state
      * @param authorId
+     * @param milestoneId
      * @return
      */
-    public static int countIssuesByAuthorId(Long projectId, State state, Long authorId) {
-        if (state == state.ALL){
-            return finder.where().eq("project.id", projectId).eq("authorId", authorId).findRowCount();
-        } else {
-            return finder.where().eq("project.id", projectId).eq("state", state).eq("authorId", authorId).findRowCount();
+    public static int countIssuesBy(Long projectId, State state, Long assigneeId, Long authorId, Long milestoneId) {
+        ExpressionList<Issue> exl = finder.where();
+        exl = exl.eq("project.id", projectId);
+        
+        if (state != State.ALL){
+            exl = exl.eq("state", state);
         }
+        if (assigneeId != null && assigneeId >= 0){
+            exl = exl.eq("assignee.user.id", assigneeId);
+        }
+        if (authorId != null && authorId >= 0){
+            exl = exl.eq("authorId", authorId);
+        }
+        if (milestoneId != null && milestoneId >= 0){
+            exl = exl.eq("milestone.id", milestoneId);
+        }
+        
+        return exl.findRowCount();
     }
-
+    
     /**
      * Generate a Microsoft Excel file in byte array from the given issue list,
      * using JXL.

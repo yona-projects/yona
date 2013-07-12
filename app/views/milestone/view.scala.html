@@ -21,16 +21,16 @@
             <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
             <span class="date">(@milestone.until)</span>
             }
-            <span class="badge badge-issue-@milestone.state.state.toLowerCase">@Messages("milestone.state." + milestone.state.state)</span>
+            <span class="badge badge-issue-@milestone.state.state.toLowerCase margin-left-5">@Messages("milestone.state." + milestone.state.state)</span>
         </small>
     </h3>
 
     <div class="progress">
-        <div class="bar bar-success" style="width: @milestone.getCompletionRate%;"></div>
+        <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
     </div>
     <div class="progress-label clearfix">
         <div class="pull-left">
-            <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("milestone.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+            <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
         </div>
         <div class="pull-right">
             <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
@@ -42,25 +42,25 @@
     </div>
 
     <div class="issues">
-        <h5>
-            @Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong>
-        </h5>
+        <h5 class="margin-bottom-20">@Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong></h5>
+        
         @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
         @issue.partial_list(project,milestone.sortedByStateOfIssue(),IssueApp.SearchCondition.emptySearchCondition,0,0)
     </div>
 
     <div class="actrow right-txt" style="padding: 15px 0;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-        <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("milestone.delete")</a>
+        <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium red pull-left">@Messages("milestone.delete")</a>
         }
+        
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
-        <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
             @if(milestone.state == State.OPEN) {
-                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium green">@Messages("milestone.close")</a>
+                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium blue">@Messages("milestone.close")</a>
             }
             @if(milestone.state == State.CLOSED) {
-                <a href="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium orange">@Messages("milestone.open")</a>
+                <a href="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium white">@Messages("milestone.open")</a>
             }
+            <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
         }
         <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium orange">@Messages("button.list")</a>
     </div>

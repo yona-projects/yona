@@ -9,9 +9,9 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
-@urlAssignedToMe = {@urlToList&assigneeId=@User.findByLoginId(session.get("loginId")).id}
+@urlAssignedToMe = {@urlToList&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
 
-@urlAuthoredByMe = {@urlToList&authorLoginId=@session.get("loginId")}
+@urlAuthoredByMe = {@urlToList&authorLoginId=@session.get("loginId")&milestoneId=@param.milestoneId}
 
 @getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", pageIndex + 1)}
 
@@ -23,22 +23,12 @@
 	}
 }
 
-@countIssuesByState(state:State) = @{
-    if(param.assigneeId != null){
-        Issue.countIssuesByAssigneeId(project.id, state, UserApp.currentUser().id)
-    } else if(param.authorLoginId != null){
-        Issue.countIssuesByAuthorId(project.id, state, UserApp.currentUser().id)
-    } else {
-        Issue.countIssues(project.id, state)
-    }
-}
-
-@getTabLinkByState(state:State) = {@routes.IssueApp.issues(project.owner, project.name, state.state)@if(param.assigneeId != null){&assigneeId=@param.assigneeId}@if(param.authorLoginId != null){&authorLoginId=@param.authorLoginId}}
+@getTabLinkByState(state:State) = {@routes.IssueApp.issues(project.owner, project.name, state.state)@if(param.assigneeId != null){&assigneeId=@param.assigneeId}@if(param.authorLoginId != null){&authorLoginId=@param.authorLoginId}@if(param.milestoneId != null){&milestoneId=@param.milestoneId}}
 
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
-	
+
 	<div class="pull-right">
         <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
     </div>
@@ -48,7 +38,7 @@
         <li @if(param.state == state.state) { class="active" }>
             <a href="@getTabLinkByState(state)">
                 @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@countIssuesByState(state)</span>
+                <span class="num-badge">@Issue.countIssuesBy(project.id, state, param.assigneeId, User.findByLoginId(param.authorLoginId).id, param.milestoneId)</span>
             </a>
         </li>
     }
@@ -83,14 +73,22 @@
         </div>
         
         <div class="span3 search-wrap">
-            <div class="inner bggray">
+            <div class="inner bggray @if(param.authorLoginId != null || param.assigneeId != null || param.milestoneId != null){ advanced }">
                 <ul class="unstyled preset-list">
-                    <li @if(param.assigneeId == null && param.authorLoginId == null){ class="active"}><a href="@urlToList">@Messages("issue.list.all") <strong class="num-badge pull-right">@Issue.countIssues(project.id, State.ALL)</strong></a></li>
+                    <li @if(param.assigneeId == null && param.authorLoginId == null){ class="active"}><a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all") <strong class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, null, null, param.milestoneId)</strong></a></li>
                     @if(UserApp.currentUser().id != -1l){
-                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}><a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe") <strong class="num-badge pull-right">@Issue.countIssuesByAssigneeId(project.id, State.ALL, User.findByLoginId(session.get("loginId")).id)</strong></a></li>
+                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}><a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe") <strong class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, UserApp.currentUser().id, null, param.milestoneId)</strong></a></li>
                     }
-                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}><a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe") <strong class="num-badge pull-right">@Issue.countIssuesByAuthorId(project.id, State.ALL, User.findByLoginId(session.get("loginId")).id)</strong></a></li>
+                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}><a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe") <strong class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, null, UserApp.currentUser().id, param.milestoneId)</strong></a></li>
                 </ul>
+
+                @if(param.milestoneId != null){
+                    @defining(Milestone.findById(param.milestoneId)){ milestone =>
+                        @if(milestone != null){
+                            @views.html.milestone.partial_status(milestone, project)
+                        }
+                    }
+                }
 
                 <form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
                     <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
@@ -112,7 +110,7 @@
                     <div id="advanced-search-form" class="srch-advanced">
                         <dl class="issue-option">
                             <dt>@Messages("author")</dt>
-                            <dd><input type="text" name="authorLoginId" class="input-medium"></dd>
+                            <dd><input type="text" name="authorLoginId" class="input-medium" value="@param.authorLoginId"></dd>
                         </dl>
                         <dl class="issue-option">
                             <dt>@Messages("assignee")</dt>
@@ -123,10 +121,10 @@
                                         <span class="d-caret"><span class="caret"></span></span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li data-value="" data-selected="true" class="active"><a>@Messages("order.all")</a></li>
+                                        <li data-value=""><a>@Messages("order.all")</a></li>
                                         <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
                                         @for(assignee <- project.assignees) {
-                                        <li data-value="@assignee.user.id"><a>@assignee.user.name (@assignee.user.loginId)</a></li>
+                                        <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}><a>@assignee.user.name (@assignee.user.loginId)</a></li>
                                         }
                                     </ul>
                                 </div>                                
@@ -141,10 +139,10 @@
                                         <span class="d-caret"><span class="caret"></span></span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li data-value="" data-selected="true" class="active"><a>@Messages("milestone.state.all")</a></li>
+                                        <li data-value=""><a>@Messages("milestone.state.all")</a></li>
                                         <li data-value="0"><a>@Messages("noMilestone")</a></li>
                                         @for(milestone <- Milestone.findByProjectId(project.id)) {
-                                        <li data-value="@milestone.id"><a>@milestone.title</a></li>
+                                        <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
                                         }
                                     </ul>
                                 </div>                                

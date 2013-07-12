@@ -1,0 +1,38 @@
+@(milestone: models.Milestone, project: Project)
+@import scala.collection.immutable._
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+
+@urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
+
+@makeIssuesLink(mId: Long, _state: String) = @{
+    buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),
+        Map("milestone"->mId.toString)
+    )
+}
+
+<div class="milestone-info">
+    <div class="meta-info">
+        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
+        @if(milestone.dueDate != null) {
+            <span class="sp">|</span>
+            <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+            <span class="date">(@milestone.until)</span>
+        }
+    </div>
+
+    <div class="progress-wrap">
+        <div class="progress">
+            <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
+        </div>
+        <div class="progress-label">
+            @**<!-- 0% 일 수도 있어서 최소한의 텍스트 영역 확보 -->**@
+            <div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
+                <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+            </div>
+            <div class="pull-right">
+                <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+            </div>
+        </div>
+    </div>
+</div>
