@@ -93,7 +93,7 @@
                                 
                                 @defining(commit.getMessage()){ commitMsg =>
                                 <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
-						            <strong>@commitMsg.split("\n")(0)</strong>
+						            @commitMsg.split("\n")(0)
                                 </a>
                                 @if(commitMsg.split("\n").length > 1){ 
                                 <button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>

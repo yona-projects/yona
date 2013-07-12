@@ -2430,6 +2430,9 @@ div.markdown-preview {
         }
     }
 }
+.board-list .board {
+    .contents .title a { display:block; }
+}
 
 //---- code browse
 .code-browse {
@@ -2540,15 +2543,6 @@ div.markdown-preview {
 
     .nav-tabs {
         margin-bottom:0;
-
-        /** code/diff.scala.html **/
-        .commitId {
-            font-family:Consolas;
-            font-size:12px;
-            font-weight:bold;
-            color:@secondary;
-            display:block; padding:8px;
-        }
     }
     
     /** history **/
@@ -2588,6 +2582,11 @@ div.markdown-preview {
     }
     
     /** diff **/
+    /** code/diff.scala.html **/
+    .commitId {
+        color:#999;
+        margin-top:5px;
+    }
     .commitMsg {
         font-family:@base-font-family;
         font-size:12px;

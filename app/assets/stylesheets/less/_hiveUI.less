@@ -104,9 +104,16 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 .icon-refresh {
   cursor: pointer;
 }
+.btn.disabled, .btn[disabled] {
+    opacity:0.35;
+    filter:alpha(opacity=35);
+    .caret { border-top-color:#aaa; }
+}
 .nbtn:disabled{
-  background-color: #dadada !important;
-  color:gray;
+    background-color: #dadada !important;
+    color:gray;
+    opacity:0.35;
+    filter:alpha(opacity=35);
 }
 .nbtn {
     text-align :center;
