@@ -19,9 +19,6 @@ import static play.data.Form.form;
 
 public class PasswordResetApp extends Controller {
 
-    public static final String LOCAL_HOST_IP = "127.0.0.1";
-    public static final String DEV_MODE_PORT = "9000";
-
     /**
      * 패스워드 재설정 메일 발송 페이지로 이동
      *
@@ -93,7 +90,7 @@ public class PasswordResetApp extends Controller {
                  .setMsg(Messages.get("admin.resetPasswordEmail.mailcontents") + "\n\n" + resetPasswordUrl)
                  .setCharset("utf-8");
 
-            Logger.debug(Mailer.send(email));
+            Logger.debug("password reset mail send: " +Mailer.send(email));
             return true;
         } catch (EmailException e) {
             e.printStackTrace();
@@ -112,12 +109,9 @@ public class PasswordResetApp extends Controller {
     private static String getResetPasswordUrl(String hashString) {
         Configuration config = play.Play.application().configuration();
         String hostname = config.getString("application.hostname");
-        String port = config.getString("application.port");
+        if(hostname == null) hostname = request().host();
 
-        if(hostname == null) hostname = LOCAL_HOST_IP;
-        if(port == null) port = DEV_MODE_PORT;
-
-        return "http://" + hostname + ":" + port + "/resetPassword?s=" + hashString;
+        return "http://" + hostname + "/resetPassword?s=" + hashString;
     }
 
     /**
