@@ -404,7 +404,7 @@
                 "latex": ["dtx", "tex"],
                 "less": ["less"],
                 "makefile": ["mk", "emakrfile", "emakerfile"],
-                "markdown": ["md", "readme"],
+                "markdown": ["md", "readme", "license"],
                 "php": ["php","php3","php4","php5","php6","phps","inc"],
                 "python": ["py"],
                 "ruby": ["rb", "ruby"],

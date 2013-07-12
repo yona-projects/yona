@@ -25,7 +25,7 @@
                     <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
                 </button>
 
-                <div class="btn-group">
+                <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last watchBtn">
                         <i class="icon-eye-open icon-large"></i>

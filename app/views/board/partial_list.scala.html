@@ -9,7 +9,10 @@
     </div>
     <div class="contents">
         <p class="title">
-            @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}<a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.title</a>
+            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
+                @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
+                @post.title
+            </a>
             @if(Attachment.findByContainer(post.asResource).size > 0){
                 <i class="ico ico-clip icon-middle"></i>
             }

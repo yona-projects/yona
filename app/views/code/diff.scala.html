@@ -55,9 +55,6 @@
 	        <li class="active">
                 <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
 	        </li>
-	        <li>
-                <strong class="commitId">@@@commit.getId</strong>
-	        </li>
 	    </ul>
 
         <p class="commitInfo">
@@ -84,6 +81,7 @@
             }
             }
             <span class="ago">@agoString(ago(commit.getAuthorDate))</span>
+            <strong class="commitId pull-right">@@@commit.getId</strong>
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
 
