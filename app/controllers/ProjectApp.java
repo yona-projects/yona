@@ -396,7 +396,7 @@ public class ProjectApp extends Controller {
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
             return redirect(routes.ProjectApp.members(loginId, projectName));
-        } else if (user == null) {
+        } else if (user.isAnonymous()) {
             flash(Constants.WARNING, "project.member.notExist");
             return redirect(routes.ProjectApp.members(loginId, projectName));
         } else if (!ProjectUser.isMember(user.id, project.id)){
