@@ -9,7 +9,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
-import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -654,7 +653,7 @@ public class Project extends Model {
             }
         }
         for(User user : acceptedUsers) {
-            user.cancleEnroll(this);
+            user.cancelEnroll(this);
         }
     }
 

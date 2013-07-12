@@ -403,7 +403,7 @@ public class User extends Model {
         this.update();
     }
 
-    public void cancleEnroll(Project project) {
+    public void cancelEnroll(Project project) {
         getEnrolledProjects().remove(project);
         this.update();
     }
