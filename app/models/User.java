@@ -398,16 +398,32 @@ public class User extends Model {
         return user.getWatchingProjects().contains(project);
     }
 
+    /**
+     * {@code project}에 멤버 등록 요청을 추가한다.
+     *
+     * @param project
+     */
     public void enroll(Project project) {
         getEnrolledProjects().add(project);
         this.update();
     }
 
+    /**
+     * {@code project}에 보낸 멤버 등록 요청을 삭제한다.
+     *
+     * @param project
+     */
     public void cancelEnroll(Project project) {
         getEnrolledProjects().remove(project);
         this.update();
     }
 
+    /**
+     * 현재 사용자가 {@code project}에 멤버 등록 요청을 보냈는지 확인한다.
+     *
+     * @param project
+     * @return
+     */
     public static boolean enrolled(Project project) {
         User user = UserApp.currentUser();
         if(user.isAnonymous()) {

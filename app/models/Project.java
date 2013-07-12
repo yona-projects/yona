@@ -641,6 +641,13 @@ public class Project extends Model {
         }
     }
 
+    /**
+     * 프로젝트 멤버 등록 요청중에서 이미 프로젝트 멤버로 등록된 유저의 요청은 삭제한다.
+     *
+     * when: 프로젝트 멤버 설정 화면을 보여줄 때 실행합니다.
+     *
+     * @see controllers.ProjectApp#members(String, String)
+     */
     @Transactional
     public void cleanEnrolledUsers() {
         List<User> enrolledUsers = this.enrolledUsers;
