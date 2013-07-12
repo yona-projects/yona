@@ -262,28 +262,26 @@ public class ProjectUser extends Model {
      * @return 소문자로 변환된 역할명
      */
     public static String roleOf(String loginId, Project project) {
-        RoleType roleType = RoleType.ANONYMOUS;
-        if(loginId == null) {
-            return roleType.getLowerCasedName();
-        }
-
         User user = User.findByLoginId(loginId);
         if(user == null) {
-            return roleType.getLowerCasedName();
+            return RoleType.ANONYMOUS.getLowerCasedName();
         }
 
         if(user.isSiteManager()) {
             return RoleType.SITEMANAGER.getLowerCasedName();
-        } else if(!user.isAnonymous()) {
+        }
+
+        if(user.isAnonymous()) {
+           return RoleType.ANONYMOUS.getLowerCasedName();
+        } else {
             Role role = Role.findRoleByIds(user.id, project.id);
-            // manager or member
-            if(role != null) {
-                return role.name.toLowerCase();
-            } else {
+            if(role == null) {
                 return RoleType.GUEST.getLowerCasedName();
+            } else {
+                // manager or member
+                return role.name.toLowerCase();
             }
         }
-        return roleType.getLowerCasedName();
     }
 
     /**
