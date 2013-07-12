@@ -3,6 +3,8 @@ package playRepository;
 import models.Project;
 import models.PullRequest;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.lib.*;
@@ -67,7 +69,7 @@ public class GitRepositoryTest {
         assertThat(file.exists()).isTrue();
 
         // cleanup
-        rm_rf(new File(GitRepository.getRepoPrefix() + userName + "/" + projectName + ".git"));
+        repo.close();
     }
 
     @Test
@@ -222,6 +224,9 @@ public class GitRepositoryTest {
         assertThat(readmeFileInClone).isEqualTo("hello 1");
         String readmeFileInOrigin = new String(getRawFile(originRepository, readmeFileName));
         assertThat(readmeFileInOrigin).isEqualTo("hello 1");
+        
+        cloneRepository.close();
+        originRepository.close();
     }
 
 
@@ -318,6 +323,7 @@ public class GitRepositoryTest {
         BufferedWriter out = new BufferedWriter(new FileWriter(testFilePath));
         out.write(content);
         out.flush();
+        out.close();
 
         Git git = new Git(repository);
         git.add().addFilepattern(fileName).call();
@@ -353,8 +359,10 @@ public class GitRepositoryTest {
         // Given
         Project original = createProject("keesun", "test");
         PullRequest pullRequest = createPullRequest(original);
-        new GitRepository(original).create();
+        GitRepository gitRepository = new GitRepository(original);
+        gitRepository.create();
         Repository repository = GitRepository.buildCloneRepository(pullRequest);
+
         // master에 commit 1 추가
         newCommit(original, repository, "readme.md", "hello 1", "commit 1");
         // new-branch 생성
@@ -370,14 +378,16 @@ public class GitRepositoryTest {
         String fileName = "hello.md";
         String content = "hello 2";
         newCommit(original, repository, fileName, content, "commit 2");
+        
         // master 로 이동
-        GitRepository.checkout(repository, "master");
-
+        GitRepository.checkout(repository, "master");    
         // When
         GitRepository.merge(repository, branchName);
-
         // Then
         assertThat(new String(getRawFile(repository, fileName))).isEqualTo(content);
+        
+        gitRepository.close();
+        repository.close();
     }
 
     @Test
@@ -401,6 +411,8 @@ public class GitRepositoryTest {
                 .setGitDir(new File(GitRepository.getGitDirectory(original)))
                 .build();
         assertThat(new String(getRawFile(originalRepo, fileName))).isEqualTo(content);
+        
+        originalRepo.close();
     }
 
 
@@ -426,6 +438,7 @@ public class GitRepositoryTest {
                 rm_rf(list[i]);
             }
         }
+        System.gc();
         file.delete();
     }
 
@@ -438,5 +451,4 @@ public class GitRepositoryTest {
             return repository.open(treeWalk.getObjectId(0)).getBytes();
         }
     }
-
 }

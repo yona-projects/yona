@@ -842,7 +842,7 @@ public class GitRepository implements PlayRepository {
         Repository cloneRepository = null;
         try {
             cloneRepository = buildCloneRepository(pullRequest);
-
+            
             String srcToBranchName = pullRequest.toBranch;
             String destToBranchName = srcToBranchName + "-to";
             String srcFromBranchName = pullRequest.fromBranch;
@@ -851,7 +851,7 @@ public class GitRepository implements PlayRepository {
             // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
             deleteBranch(cloneRepository, destToBranchName);
             deleteBranch(cloneRepository, destFromBranchName);
-
+            
             // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
             fetch(cloneRepository, pullRequest.toProject, srcToBranchName, destToBranchName);
             // 코드를 보내는 브랜치에 해당하는 코드를 fetch 한다.
@@ -859,6 +859,7 @@ public class GitRepository implements PlayRepository {
 
             CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
             operation.invoke(cloneAndFetch);
+            
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
         } catch (IOException e) {
@@ -866,6 +867,7 @@ public class GitRepository implements PlayRepository {
         } finally {
             if(cloneRepository != null) {
                 cloneRepository.close();
+                FileUtil.rm_rf(cloneRepository.getDirectory());
             }
         }
     }
@@ -888,8 +890,9 @@ public class GitRepository implements PlayRepository {
         FileUtil.rm_rf(new File(directory));
 
         // 코드 받을 쪽 프로젝트를 clone 한다.
-        cloneRepository(pullRequest.toProject, directory);
-        return buildRepository(directory);
+        Git git = cloneRepository(pullRequest.toProject, directory);
+
+        return git.getRepository();
     }
 
     /**
@@ -901,25 +904,11 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      * @throws IOException
      */
-    private static void cloneRepository(Project project, String workingTreePath) throws GitAPIException, IOException {
-        Git.cloneRepository()
+    private static Git cloneRepository(Project project, String workingTreePath) throws GitAPIException, IOException {
+        return Git.cloneRepository()
                 .setURI(GitRepository.getGitDirectoryURL(project))
                 .setDirectory(new File(workingTreePath))
                 .call();
-    }
-
-    /**
-     * {@code workingTreePath}를 기준으로 {@link Repository}를 생성한다.
-     *
-     * @param workingTreePath 워킹트리 경로
-     * @return
-     * @throws IOException
-     */
-    private static Repository buildRepository(String workingTreePath) throws IOException {
-        return new RepositoryBuilder()
-                .setWorkTree(new File(workingTreePath))
-                .setGitDir(new File(workingTreePath + "/.git"))
-                .build();
     }
 
     /**
@@ -968,6 +957,11 @@ public class GitRepository implements PlayRepository {
      */
     public static interface AfterCloneAndFetchOperation {
         public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException;
+    }
+
+    public void close() {
+        repository.close();
+        delete();
     }
 
 }
