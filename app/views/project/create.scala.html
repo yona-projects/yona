@@ -37,7 +37,7 @@
                             <span class="note">@Messages("project.private.notice")</span>
                         </div>
                     </li>
-                    <li class="option">
+                    <li id="vcs_dropdown" class="option">
                         <div class="option-label">@Messages("project.vcs")</div>
                         <div class="option-desc">
 							<div class="btn-group" data-name="vcs">
@@ -51,6 +51,8 @@
                                     }
 								</ul>
 							</div>
+							
+							<span id="svn" class="note" style="display:none;">@Messages("project.svn.warning")</span>
                         </div>
                     </li>
                     

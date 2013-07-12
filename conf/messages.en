@@ -311,6 +311,7 @@ project.new.vcsType.git = Git
 project.new.vcsType.subversion = Subversion
 project.readme = You can see README.md here if you add it into the code repository's root directory.
 project.svn.readme = You can see README.md here if you add it into the code repository's root directory or /trunk directory.
+project.svn.warning = Subversion can not be used to pull request
 project.searchPlaceholder = search at current project
 project.wrongName = Project name is wrong
 project.tags = Tags
