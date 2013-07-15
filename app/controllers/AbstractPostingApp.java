@@ -206,6 +206,9 @@ public class AbstractPostingApp extends Controller {
      *
      * when: 게시물이나 이슈를 수정할 떄 사용한다.
      *
+     * 게시물이나 이슈가 수정될 때 {@code noti} 객체가 null이 아니면 알림을 발송한다.
+     *
+     *
      * @param original
      * @param posting
      * @param postingForm

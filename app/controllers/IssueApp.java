@@ -9,8 +9,6 @@ import views.html.issue.edit;
 import views.html.issue.view;
 import views.html.issue.list;
 import views.html.issue.create;
-import views.html.error.notfound;
-import views.html.error.forbidden;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -26,11 +24,8 @@ import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -420,7 +415,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      * @throws IOException
-     * @see {@link AbstractPostingApp#editPosting(AbstractPosting, AbstractPosting, Form, Call, Callback)}
+     * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
     public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
@@ -432,6 +427,18 @@ public class IssueApp extends AbstractPostingApp {
             return notFound();
         }
         final Issue originalIssue = Issue.findByNumber(project, number);
+
+        boolean stateChanged = false;
+
+        boolean assigneeChanged =
+                ((issue.assignee != null && originalIssue.assignee != null) && (issue.assignee.id
+                        != originalIssue.assignee.id))
+                || ((issue.assignee != originalIssue.assignee) && (issue.assignee == null ||
+                        originalIssue.assignee == null));
+
+        if(issue.state != originalIssue.state) {
+            stateChanged = true;
+        }
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
 
@@ -445,8 +452,52 @@ public class IssueApp extends AbstractPostingApp {
             }
         };
 
-        return editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
+        Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
+
+        if(assigneeChanged) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+
+            Set<User> receivers = updatedIssue.getWatchers();
+            Assignee assignee = originalIssue.assignee;
+            if(assignee != null) {
+                receivers.add(assignee.user);
+            }
+
+            String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+
+            String message;
+            if (updatedIssue.assignee == null) {
+                message = "Unassigned";
+            } else {
+                User newAssignee = User.find.byId(updatedIssue.assignee.user.id);
+                message = "Assigned to " + newAssignee.loginId;
+            }
+
+            sendNotification(NotificationFactory.create(receivers, title, message,
+                    redirectTo.absoluteURL(request())));
+        }
+
+        if(stateChanged) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+
+            Set<User> receivers = updatedIssue.getWatchers();
+
+            String title = String.format("[%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+
+            String message;
+            if(updatedIssue.state == State.CLOSED) {
+                message = "Closed";
+            } else {
+                message = "Re-opened";
+            }
+
+            sendNotification(NotificationFactory.create(receivers, title, message,
+                    redirectTo.absoluteURL(request())));
+        }
+
+        return result;
     }
+
 
     /*
      * form 에서 전달받은 마일스톤ID를 이용해서 이슈객체에 마일스톤 객체를 set한다

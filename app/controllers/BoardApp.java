@@ -1,8 +1,6 @@
 
 package controllers;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-import play.Logger;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
@@ -13,7 +11,6 @@ import models.enumeration.ResourceType;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 import views.html.board.*;
-import views.html.error.*;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -23,11 +20,8 @@ import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Result;
 
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
 
@@ -242,7 +236,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param projectName 프로젝트 이름
      * @param number 게시물number
      * @return
-     * @see controllers.AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form, play.mvc.Call, utils.Callback)
+     * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form
      */
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
