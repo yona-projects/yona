@@ -68,70 +68,28 @@ hive.Markdown = function(htOptions){
 	 * @return {String}
 	 */
 	function _renderMarkdown(sText) {
-        var converter, sHTML;
+    		
+		var options = {
+		  gfm: true,
+		  tables: true,
+		  breaks: false,
+		  pedantic: false,
+		  sanitize: true,
+		  smartLists: true,
+		  langPrefix: '',
+		  highlight: function(code, lang) {
+		    if (lang === 'js') {
+		      return highlighter.javascript(code);
+		    }
+		    return code;
+		  }
+		};
+		
+		var lexer = new marked.Lexer(options);
+		var tokens = lexer.lex(sText);
+		var sHTML = marked.parser(tokens);
 
-		sText = sText.replace(htVar.rxCodeBlock, function(match, p1, p2) {
-			try {
-				return '<pre><code class="' + p1 + '">' + hljs(p2, p1).value + '</code></pre>';
-			} catch (e) {
-				return '<pre><code>' + hljs(p2).value + '</code></pre>';
-			}
-		});
-
-        converter = Markdown.getSanitizingConverter();
-
-        converter.hooks.chain("postBlockGamut", function(sText, runBlockGamut) {
-            var makeLink = function(sMatch, sPre, sProject, sNum, sAt, sSha, sUser, sPost) {
-                var path, text;
-
-                if (sPost) {
-                    return sMatch;
-                }
-
-                if (sPre.substr(0, 4).toLowerCase() == 'http') {
-                    return sMatch;
-                }
-
-                if (sSha && sProject && sAt) {
-                    // owner/sProject@2022d330c5858eae9ca9cb5acb9e6a5060563b2c
-                    path = '/' + sProject + '/commit/' + sSha;
-                    text = sProject + '/' + sSha;
-                } else if (sSha && !sAt) {
-                    // 2022d330c5858eae9ca9cb5acb9e6a5060563b2c
-                    path = htVar.sProjectUrl + '/commit/' + sSha;
-                    text = sSha;
-                } else if (sSha && sAt) {
-                    // @abc1234
-                    // This is a link for sUser even if it looks like a 160bit sSha.
-                    path = '/' + sSha;
-                    text = '@' + sSha;
-                } else if (sNum && sProject) {
-                    // owner/sProject#1234
-                    path = '/' + sProject + '/issue/' + sNum;
-                    text = sProject + '/' + sNum;
-                } else if (sNum) {
-                    // #1234
-                    path = htVar.sProjectUrl + '/issue/' + sNum;
-                    text ='#' + sNum;
-                } else if (sUser) {
-                    // @foo
-                    path = '/' + sUser;
-                    text = '@' + sUser;
-                }
-
-                if (path && text) {
-                    return sPre + '<a href="' + path + '">' + text + '</a>' + sPost;
-                } else {
-                    return sMatch;
-                }
-            }
-
-            return sText.replace(htVar.rxLink, makeLink);
-        });
-
-        sHTML = converter.makeHtml(sText);
-
-        return sHTML;
+		return sHTML;
 	}
 
 	/**
@@ -170,7 +128,7 @@ hive.Markdown = function(htOptions){
 	function _setViewer(welTarget) {
 		welTarget.html(_renderMarkdown(welTarget.text())).show();
 	}
-
+	
 	/**
 	 * enableMarkdown
 	 * same as nforge.markdown.enable
