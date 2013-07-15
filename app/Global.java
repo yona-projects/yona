@@ -61,6 +61,12 @@ public class Global extends GlobalSettings {
         scheduleNotificationByMail();
     }
 
+    /**
+     * 알림 메일 발송에 대한 스케쥴을 등록한다.
+     *
+     * 애플리케이션이 시작되고 {@code application.notification.bymail.initdelay}가 경과한 후 부터,
+     * {@code application.notification.bymail.interval} 만큼의 시간이 지날 때 마다 알림 메일 발송 작업이 수행된다.
+     */
     private void scheduleNotificationByMail() {
         final Long MAIL_NOTIFICATION_INITDELAY_IN_MILLIS = Configuration.root()
                 .getMilliseconds("application.notification.bymail.initdelay", 5000L);
@@ -81,6 +87,16 @@ public class Global extends GlobalSettings {
                     }
                 }
 
+                /**
+                 * 알림 메일을 발송한다.
+                 *
+                 * 등록된지 {@code application.notification.bymail.delay} 이상이 경과한 알림에 대한
+                 * 메일들을 모두 가져온 뒤, 알림의 바탕이 되는 resource가 여전히 존재하고 있다면 알림 메일을
+                 * 발송한다. 예를 들어, 댓글 등록에 대한 알림이 있다면, 그 댓글이 현재도 존재해야만 알림을
+                 * 발송한다.
+                 *
+                 * 가져온 메일들은 발송 여부와 상관없이 모두 지운다.
+                 */
                 private void sendMail() {
                     Date sinceDate = DateTime.now().minusMillis
                             (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
