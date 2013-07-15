@@ -44,6 +44,7 @@
 			htElement.welInputVCS = $("#vcs"); // input type="hidden"
 			htElement.welBtnVCSSelected = $("#vcs_msg"); // <button data-toggle="dropdown">
 			htElement.aVCSItems = $("#vcs_dropdown li a");
+			htElement.svnWarning = $("#svn");
 		}
 		
 		/**
@@ -56,9 +57,15 @@
 		function _onSelectVCSItem(){
 			var sText = $(this).text();
 			var sValue = $(this).attr("data-value");
-			
+
 			htElement.welInputVCS.val(sValue);
 			htElement.welBtnVCSSelected.text(sText);
+
+			if(sText == "Subversion") {
+			    htElement.svnWarning.show();
+			} else {
+			    htElement.svnWarning.hide();
+			}
 		}
 		
 		/**
