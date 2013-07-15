@@ -95,8 +95,8 @@ public class ProjectApp extends Controller {
     public static Result project(String loginId, String projectName) throws IOException, ServletException, SVNException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
-        if(project == null) {
-            return notFound();
+        if (project == null) {
+            return notFound(views.html.error.notfound_default.render("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'"));
         }
 
         project.fixInvalidForkData();
