@@ -40,7 +40,12 @@ public class SvnCommit implements Commit {
 
     @Override
     public String getShortMessage() {
-        return entry.getMessage().split("\n")[0];
+        String message = entry.getMessage();
+        if(message != null && !message.trim().isEmpty() && message.contains("\n")) {
+            return message.split("\n")[0];
+        } else {
+            return message;
+        }
     }
 
     @Override
