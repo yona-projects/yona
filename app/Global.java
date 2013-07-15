@@ -31,6 +31,7 @@ import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import utils.AccessLogger;
 
@@ -195,18 +196,25 @@ public class Global extends GlobalSettings {
     @Override
     public Result onHandlerNotFound(RequestHeader request) {
         AccessLogger.log(request, null, Http.Status.NOT_FOUND);
-        return super.onHandlerNotFound(request);
+        return Results.notFound(views.html.error.notfound_default.render(request.path()));
     }
 
     @Override
     public Result onError(RequestHeader request, Throwable t) {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
-        return super.onError(request, t);
+        
+        String mode = play.Configuration.root().getString("%prod.application.mode");
+        if ("prod".equals(mode)) {
+            return Results.internalServerError(views.html.error.nodisplay_default.render(null));        
+        } else {
+            return super.onError(request,  t);
+        }   
     }
 
     @Override
     public Result onBadRequest(RequestHeader request, String error) {
         AccessLogger.log(request, null, Http.Status.BAD_REQUEST);
-        return super.onBadRequest(request, error);
+        return Results.badRequest(views.html.error.badrequest_default.render(null));
     }
+
 }

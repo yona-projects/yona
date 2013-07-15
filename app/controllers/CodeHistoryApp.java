@@ -171,7 +171,7 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound(notfound_default.render("error.notfound", request().path()));
+            return notFound(notfound_default.render(request().path()));
         }
 
         if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
@@ -200,7 +200,7 @@ public class CodeHistoryApp extends Controller {
         CodeComment codeComment = CodeComment.find.byId(id);
 
         if (codeComment == null) {
-            return notFound(notfound_default.render("error.notfound", request().path()));
+            return notFound(notfound_default.render(request().path()));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), codeComment.asResource(),

@@ -1,23 +1,14 @@
 @(target:String)
 
-@getMessage(target:String) = @{
-    if(target){
-        Messages("error.notfound") + " : " + target
-    } else {
-        Messages("error.notfound")
-    }
-}
-
-@home(Messages("error.notfound"), utils.MenuType.SITE_HOME) {
+@home(Messages("error.badrequest"), utils.MenuType.SITE_HOME) {
 <div class="page">
 
     <div class="error-wrap">
         <i class="ico-404"></i>
-        <p>@Messages("error.notfound")</p>
+        <p>@Messages("error.badrequest")</p>
 		@if(target != null){
 		<p>@Messages(target)</p>
 		}       
-       
         <a href="@routes.Application.index()" class="nbtn medium">@Messages("menu.home")</a>
     </div>
     

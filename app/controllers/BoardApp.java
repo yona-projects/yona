@@ -62,7 +62,7 @@ public class BoardApp extends AbstractPostingApp {
     public static Result posts(String userName, String projectName, int pageNum) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render(null));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -124,7 +124,7 @@ public class BoardApp extends AbstractPostingApp {
             return notFound();
         }
 
-        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
+        if (AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
             return forbidden(views.html.error.forbidden.render(project));
         }
 

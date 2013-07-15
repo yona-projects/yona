@@ -526,6 +526,8 @@ error.notfound.post = Post not found
 error.notfound.issue = Issue not found
 error.forbidden = You need access Control!
 error.unauthorized = Login required
+error.badrequest = The request cannot be fulfilled due to bad syntax
+error.nodisplay = Service is not available
 
 # Fork & PullRequest
 pullRequest.is.safe = This pull request can be merged safely.

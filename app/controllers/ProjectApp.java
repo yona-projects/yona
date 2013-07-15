@@ -96,7 +96,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if(project == null) {
-            return notFound("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'");
+            return notFound();
         }
 
         project.fixInvalidForkData();

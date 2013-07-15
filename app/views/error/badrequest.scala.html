@@ -1,0 +1,18 @@
+@(target:String, project: Project) 
+
+@main(Messages("error.badrequest"), project, utils.MenuType.NONE) {
+<div class="page">
+
+	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
+
+	<div class="error-wrap">
+			<i class="ico ico-err2"></i>
+			<p>@Messages("error.badrequest")</p>
+			@if(target != null){
+			<p>@Messages(target)</p>
+			}
+		</div>  
+    <div>
+</div>
+
+}
