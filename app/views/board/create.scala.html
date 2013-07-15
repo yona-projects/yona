@@ -15,11 +15,12 @@
 				<label for="title">@Messages("post.new.title")</label>
 			</dt>
 			<dd>
-				<input type="text" id="title" name="title" class="text title" maxlength="250" tabindex="1" />
+				<input type="text" id="title" name="title" class="zen-mode text title" maxlength="250" tabindex="1" />
 			</dd>
 
-			<dd>
-				<textarea id="body" name="body" class="text content" markdown="true" tabindex="2"></textarea>
+            <dd style="position: relative;">
+                <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
+				<textarea id="body" name="body" class="zen-mode text content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
 			</dd>
 
 			@if(isAllowedToNotice){
@@ -56,6 +57,7 @@ $(document).ready(function(){
 	});
 	
 	$("#title").focus();
+    $('.zen-mode').zenForm({theme: 'light'});
 });
 </script>
 }
