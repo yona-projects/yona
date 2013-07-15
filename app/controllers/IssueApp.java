@@ -3,8 +3,7 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 
-import play.Logger;
-import play.data.DynamicForm;
+import org.apache.commons.lang.StringUtils;
 import play.mvc.Http;
 import views.html.issue.edit;
 import views.html.issue.view;
@@ -353,7 +352,7 @@ public class IssueApp extends AbstractPostingApp {
             return badRequest(create.render(issueForm.errors().toString(), issueForm, project));
         }
 
-        Issue newIssue = issueForm.get();
+        final Issue newIssue = issueForm.get();
         newIssue.createdDate = JodaDateUtil.now();
         newIssue.setAuthor(UserApp.currentUser());
         newIssue.project = project;
@@ -368,7 +367,15 @@ public class IssueApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), newIssue.asResource());
 
-        return redirect(routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber()));
+        final Call issueCall = routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber());
+
+        String title = String.format("[%s] %s (#%d)", newIssue.project.name, newIssue.title, newIssue.getNumber());
+        Notification noti = NotificationFactory
+                .create(newIssue.getWatchers(), title, newIssue.body, issueCall.absoluteURL(request()));
+
+        sendNotification(noti);
+
+        return redirect(issueCall);
     }
 
     /**
