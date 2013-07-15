@@ -28,13 +28,7 @@
 		 */
 		function _initVar(htOptions){
 			htVar.sFormName = htOptions.sFormName || "newproject";
-			
-			/*
-			htVar.htErrMsgs = {
-				"name"  : Messages("project.name.alert"),
-				"accept": Messages("project.new.agreement.alert")					
-			};
-			*/
+
 		}
 		
 		/**
@@ -69,8 +63,7 @@
 			// name : name of input element
 			// rules: rules to apply to the input element.
 			var htRuleName   = {"name":"name",   "rules":"required|alpha_dash"}; // project name
-			var htRuleAccept = {"name":"accept", "rules":"required"}; // accept agreement
-			var aRules = [htRuleName];//, htRuleAccept];
+			var aRules = [htRuleName];
 			
 			htVar.oValidator = new FormValidator(htVar.sFormName, aRules, _onFormValidate);
 		}
@@ -81,7 +74,8 @@
 		 */
 		function _onFormValidate(aErrors){
 			if(aErrors.length > 0){
-				$('div.n-alert[data-errType="' + aErrors[0].name + '"]').show();
+			    $('span.warning').hide();
+			    $('span.msg').show();
 			}
 		}
 		
