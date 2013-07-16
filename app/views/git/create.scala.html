@@ -10,19 +10,32 @@
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
             <legend>
                 @Messages(title)
-                <span><button id="helpBtn" class="nbtn small gray">@Messages("title.help")</button></span>
+                <span class="pull-right">
+                    <button id="helpBtn" class="nbtn small gray">
+                        <i class="icon-question-sign icon-large"></i> @Messages("title.help")
+                    </button>
+                </span>
             </legend>
-            <div class="well" id="helpMessage">
-                <p>
-                    <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
-                    @Messages("pullRequest.help.message.1")<br>
-                    @Messages("pullRequest.help.message.2")<br>
-                    @Messages("pullRequest.help.message.3")<br>
-                </p>
+            <div class="well" id="helpMessage" style="margin-bottom: 10px;">
+                <div class="row-fluid">
+                    <div class="pull-left">
+                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
+                    </div>
+                    <div class="pull-left help-messages">
+                        <p class="lead">@Messages("pullRequest.help.message.1")</p>
+                        <p>@Messages("pullRequest.help.message.2")</p>
+                        <p>@Messages("pullRequest.help.message.3")</p>
+                    </div>
+                </div>
             </div>
             <div class="pull-request-wrap">
 	            <div class="option request-from">
-	                <div class="option-label">@Messages("pullRequest.from"): <strong class="repo">@project.owner/@project.name</strong></div>
+	                <div class="option-label">@Messages("pullRequest.from")
+                        <code>
+                            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+                            <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a> :
+                        </code>
+                    </div>
 	                <div class="option-desc">
 	                    <div class="btn-group" data-name="fromBranch">
 	                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
@@ -41,11 +54,13 @@
 	            </div>
 
                 <div class="arrow">
-	               <i class="icon-arrow-right"></i>
+	               <i class="icon-long-arrow-right"></i>
                 </div>
 
 	            <div class="option request-to">
-	                <div class="option-label">@Messages("pullRequest.to"): <strong class="repo">@project.originalProject.owner/@project.originalProject.name</strong></div>
+	                <div class="option-label">@Messages("pullRequest.to"):
+                        <code>@project.originalProject.owner / @project.originalProject.name</code>
+                    </div>
 	                <div class="option-desc">
 	                    <div class="btn-group" data-name="toBranch">
 	                        <button class="btn dropdown-toggle large" data-toggle="dropdown">

@@ -16,43 +16,51 @@
                 <legend>
                     <h4 style="padding-top:10px;">
                         @project.owner / @project.name @Messages("fork")
-                        <button id="helpBtn" type="button" class="nbtn small gray">@Messages("title.help")</button>
+                        <span class="pull-right">
+                            <button id="helpBtn" class="nbtn small gray">
+                                <i class="icon-question-sign icon-large"></i> @Messages("title.help")
+                            </button>
+                        </span>
                     </h4>
                 </legend>
                 <div id="helpMessage" class="well">
-                    <p>
-                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
-                        @Messages("fork.help.message.1")<br>
-                        @Messages("fork.help.message.2")
-                    </p>
-                </div>
-                <div class="fork-wrap">
-                    <div class="project-from">
-                        <strong class="title">원본 프로젝트</strong><br>
-                        <strong>@project.owner / @project.name</strong>
-                    </div>
-                    <div class="arrow">
-                        <i class="icon-arrow-right"></i>
-                    </div>
-                    <div class="project-to">
-                        <div class="project-name-wrap">
-	                        <strong class="title">새 프로젝트</strong><br>
-	                        <strong class="owner">@forkProject.owner / </strong>
-	                        <div class="project-name">
-	                            <input type="text" id="name" name="name" value="@forkProject.name" />
-	                            <span class="help-block">@Messages("project.name.alert")</span>
-	                        </div>
+                    <div class="row-fluid">
+                        <div class="pull-left">
+                            <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/fork.jpg")"><br>
                         </div>
-                        <div class="project-public">
-                            <input type="checkbox" name="isPublic" id="isPublic" checked="@forkProject.isPublic" class="checkbox">
-                            <label for="isPublic" class="label-public">공개 프로젝트로 생성</label>
+                        <div class="pull-left help-messages">
+                            <p class="lead">@Messages("fork.help.title")</p>
+                            <p>@Messages("fork.help.message.1")</p>
+                            <p>@Messages("fork.help.message.2")</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="center-txt" style="margin-top:40px;">
-                    <button type="submit" id="forkBtn" class="nbtn orange medium">@Messages("fork")</button>
-                    <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
+                <div class="control-group">
+                    <label class="control-label" for="inputOwner">@Messages("project.owner")</label>
+                    <div class="controls">
+                        <input type="text" id="inputOwner" disabled value="@forkProject.owner" />
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputName">@Messages("project.name")</label>
+                    <div class="controls">
+                        <input type="text" id="inputName" name="name" value="@forkProject.name" />
+                        <span class="help-inline">@Messages("project.name.alert")</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="inputPublic">@Messages("project.shareOption")</label>
+                    <div class="controls">
+                        <input type="checkbox" id="inputPublic" name="isPublic" checked="@forkProject.isPublic" class="checkbox">
+                        <span class="help-inline">@Messages("project.private.notice")</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button type="submit" class="nbtn orange medium">@Messages("fork")</button>
+                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
+                    </div>
                 </div>
             </fieldset>
         </form>

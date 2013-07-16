@@ -37,13 +37,17 @@
             </span>
         </legend>
         <div class="well" id="helpMessage">
-            <p>
-                <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
-                @Messages("merge.help.1")<br>
-                @Messages("merge.help.2")<br>
-                @Messages("merge.help.3")<br>
-                @Messages("merge.help.4")
-            </p>
+            <div class="row-fluid">
+                <div class="pull-left">
+                    <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
+                </div>
+                <div class="pull-left help-messages">
+                    <p class="lead">@Messages("merge.help.1")</p>
+                    <p>@Messages("merge.help.2")</p>
+                    <p>@Messages("merge.help.3")</p>
+                    <p>@Messages("merge.help.4")</p>
+                </div>
+            </div>
         </div>
 
         <ul class="nav nav-tabs hive-tabs">

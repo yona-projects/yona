@@ -444,7 +444,6 @@ code.author = Author
 code.openCommentBox = Open Comment Box
 code.closeCommentBox = Close Comment Box
 
-
 #mail
 mail.password = Password
 mail.passwordPlaceholder = This will be stored as a plain text in the server.
@@ -549,6 +548,7 @@ pullRequest.menu.commit = Commits
 already.existing.fork.alert = Moved to existing fork project
 fork.go = Go
 fork.already.exist = There is already forked the same project.
+fork.help.title = Forking this project's repository.
 fork.help.message.1 = Forking is a great way to contribute to a project even though you don't have write access.
 fork.help.message.2 = After forking a project, you can sent pull requests to contribute your code.
 forking = Forking {0} / {1} project into {2} / {3} project
