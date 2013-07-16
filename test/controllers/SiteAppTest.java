@@ -27,7 +27,7 @@ public class SiteAppTest {
 
     @Before
     public void before() {
-        Map<String, String> config = new HashMap<>(Helpers.inMemoryDatabase());
+        Map<String, String> config = support.Config.makeTestConfig();
         config.put("signup.require.confirm", "true");
         config.put("application.secret", "foo");
         app = Helpers.fakeApplication(config);

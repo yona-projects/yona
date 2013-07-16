@@ -3,7 +3,6 @@ package controllers;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import play.mvc.Result;
-import play.test.Helpers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +20,8 @@ public class PasswordResetAppTest {
 
     @Test
     public void testRequestResetPassword_validLoginIdAndEmailAddress() {
-        Map<String, String> config = new HashMap<>(Helpers.inMemoryDatabase());
-        config.put("application.secret", "foo");
+        Map<String, String> config = support.Config.makeTestConfig();
+        config.put("application.langs", "ko");
 
         running(fakeApplication(config), new Runnable() {
             public void run() {

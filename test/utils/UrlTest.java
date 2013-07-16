@@ -3,7 +3,6 @@ package utils;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.After;
@@ -21,7 +20,7 @@ public class UrlTest {
 
     @Before
     public void before() {
-        additionalConfiguration = new HashMap<>(Helpers.inMemoryDatabase());
+        additionalConfiguration = support.Config.makeTestConfig();
         additionalConfiguration.put("application.scheme", "http");
         additionalConfiguration.put("application.hostname", "localhost");
         additionalConfiguration.put("application.port", "9999");

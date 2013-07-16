@@ -6,7 +6,6 @@ import org.junit.*;
 import java.util.*;
 
 import play.mvc.*;
-import play.test.Helpers;
 import utils.JodaDateUtil;
 
 import static play.test.Helpers.*;
@@ -14,7 +13,7 @@ import static org.fest.assertions.Assertions.*;
 
 public class UserAppTest {
     private Map<String, String> getTestConfig() {
-        Map<String, String> config = new HashMap<>(inMemoryDatabase());
+        Map<String, String> config = support.Config.makeTestConfig();
         config.put("application.secret", "foo");
 
         return config;

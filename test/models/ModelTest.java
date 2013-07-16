@@ -27,7 +27,7 @@ public class ModelTest<T> {
 //    @BeforeClass
     @Before
     public void startApp() {
-        app = Helpers.fakeApplication(Helpers.inMemoryDatabase()); 
+        app = Helpers.fakeApplication(support.Config.makeTestConfig());
         Helpers.start(app);
     }
 

@@ -3,7 +3,7 @@ package controllers;
 import static org.fest.assertions.Assertions.*;
 import static play.test.Helpers.*;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import models.Project;
 import models.User;
@@ -29,7 +29,7 @@ public class WatchProjectAppTest {
 
     @Before
     public void before() {
-        HashMap<String, String> config = new HashMap<>(inMemoryDatabase());
+        Map<String, String> config = support.Config.makeTestConfig();
         config.put("application.secret", "foo");
         app = fakeApplication(config);
         start(app);

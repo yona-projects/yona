@@ -2,13 +2,28 @@ package utils;
 
 import models.*;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+
+import play.test.Helpers;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 import models.enumeration.Operation;
 
 public class AccessControlTest extends ModelTest<Role>{
+    @Before
+    public void before() {
+        app = Helpers.fakeApplication(support.Config.makeTestConfig());
+        Helpers.start(app);
+    }
+
+    @After
+    public void after() {
+        Helpers.stop(app);
+    }
+
     @Test
     public void isAllowed_siteAdmin() {
         // Given

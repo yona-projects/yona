@@ -2,11 +2,28 @@ package utils;
 
 import java.util.HashMap;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+
+import play.test.FakeApplication;
+import play.test.Helpers;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 public class HttpUtilTest {
+    private FakeApplication app;
+
+    @Before
+    public void before() {
+        app = Helpers.fakeApplication(support.Config.makeTestConfig());
+        Helpers.start(app);
+    }
+
+    @After
+    public void after() {
+        Helpers.stop(app);
+    }
 
     @Test
     public void getFirstValueFromQuery() {
