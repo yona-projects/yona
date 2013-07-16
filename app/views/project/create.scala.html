@@ -9,9 +9,12 @@
             	<dl>
             		<dt>
             			<div class="n-alert" data-errType="name">
-		                    <div class="n-inner orange">
-		                        <span class="msg">@Messages("project.wrongName")</span>
-		                        <a href="#!/close" class="ico btn-delete"></a>
+
+		                    <div class="orange-txt">
+		            			@if(flash.get("warning") != null) {
+		            			<span class="warning">@Messages(flash.get("warning"))</span>
+		            			}		                    	
+		                        <span class="msg wrongName" style="display:none;">@Messages("project.wrongName")</span>
 		                    </div>
 		                </div>
             			<label for="project-name">@Messages("project.name.placeholder")</label>
