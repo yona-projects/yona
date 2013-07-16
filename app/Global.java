@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -7,6 +8,7 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import models.*;
 
@@ -31,23 +33,44 @@ import views.html.restart;
 import static play.data.Form.form;
 
 public class Global extends GlobalSettings {
+    public static final String APPLICATION_CONF_DEFAULT = "application.conf.default";
+    public static final String APPLICATION_CONF = "application.conf";
+    public static final String CONFIG_DIRNAME = "conf";
     private final String DEFAULT_SECRET = "VA2v:_I=h9>?FYOH:@ZhW]01P<mWZAKlQ>kk>Bo`mdCiA>pDw64FcBuZdDh<47Ew";
 
-    private boolean isSecretConfigured = false;
-
-    private boolean shouldRestart = false;
+    private boolean isRestartRequired = false;
+    private boolean isValidationRequired = false;
 
     @Override
     public Configuration onLoadConfig(play.Configuration config, File path, ClassLoader classloader) {
-        Configuration customConfig = new Configuration(ConfigFactory.load("application.user.conf").withFallback(ConfigFactory.load("application.conf")));
-        return customConfig;
-    }
+        String basePath = path.getAbsolutePath();
+        Path pathToDefaultConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF_DEFAULT);
+        Path pathToConfig = Paths.get(basePath, CONFIG_DIRNAME, APPLICATION_CONF);
+        File configFile = pathToConfig.toFile();
 
-    public void beforeStart(Application app) {
-        validateSecret();
+        if (!configFile.exists()) {
+            try {
+                Files.copy(pathToDefaultConfig, pathToConfig);
+            } catch (IOException e) {
+                play.Logger.error("Failed to initialize configuration", e);
+                return null;
+            }
+            Config parsedConfig = ConfigFactory.parseFileAnySyntax(configFile);
+            return new Configuration(ConfigFactory.load(classloader, parsedConfig));
+        } else {
+            if (!configFile.isFile()) {
+                play.Logger.error(
+                        "Failed to initialize configuration: " + pathToConfig + " is a directory.");
+                return null;
+            }
+        }
+
+        return null;
     }
 
     public void onStart(Application app) {
+        isValidationRequired = !validateSecret();
+
         insertInitialData();
         if (app.isTest()) {
             insertTestData();
@@ -56,11 +79,13 @@ public class Global extends GlobalSettings {
         NotificationMail.startSchedule();
     }
 
-    private void validateSecret() {
+    private boolean validateSecret() {
         play.Configuration config = play.Configuration.root();
         String secret = config.getString("application.secret");
         if (secret == null || !secret.equals(DEFAULT_SECRET)) {
-            isSecretConfigured = true;
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -123,39 +148,16 @@ public class Global extends GlobalSettings {
     @Override
     @SuppressWarnings("rawtypes")
     public Action onRequest(final Http.Request request, Method actionMethod) {
-        if (!isSecretConfigured) {
-            return new Action.Simple() {
-                @Override
-                public Result call(Http.Context ctx) throws Throwable {
-                    DynamicForm form = form().bindFromRequest();
-                    String seed = form.get("seed");
-                    if (seed != null) {
-                        SecureRandom random = new SecureRandom(seed.getBytes());
-                        String secret = new BigInteger(130, random).toString(32);
-
-                        Path path = Paths.get("conf/application.conf");
-                        byte[] bytes = Files.readAllBytes(path);
-                        String config = new String(bytes);
-                        config = config.replace(DEFAULT_SECRET, secret);
-                        Files.write(path, config.getBytes());
-
-                        isSecretConfigured = true;
-                        shouldRestart = true;
-
-                        return ok(restart.render());
-                    } else {
-                        return ok(secret.render());
-                    }
+        if (isValidationRequired) {
+            if (validateSecret() == false) {
+                if (isRestartRequired) {
+                    return getRestartAction();
+                } else {
+                    return getConfigSecretAction();
                 }
-            };
-        } else if (shouldRestart) {
-             return new Action.Simple() {
-
-                @Override
-                public Result call(Http.Context ctx) throws Throwable {
-                    return ok(restart.render());
-                }
-            };
+            } else {
+                isValidationRequired = false;
+            }
         }
 
         final long start = System.currentTimeMillis();
@@ -164,6 +166,42 @@ public class Global extends GlobalSettings {
                 Result result = delegate.call(ctx);
                 AccessLogger.log(request, result, start);
                 return result;
+            }
+        };
+    }
+
+    private Action getConfigSecretAction() {
+        return new Action.Simple() {
+            @Override
+            public Result call(Http.Context ctx) throws Throwable {
+                DynamicForm form = form().bindFromRequest();
+                String seed = form.get("seed");
+                if (seed != null) {
+                    SecureRandom random = new SecureRandom(seed.getBytes());
+                    String secret = new BigInteger(130, random).toString(32);
+
+                    Path path = Paths.get("conf/application.conf");
+                    byte[] bytes = Files.readAllBytes(path);
+                    String config = new String(bytes);
+                    config = config.replace(DEFAULT_SECRET, secret);
+                    Files.write(path, config.getBytes());
+
+                    isRestartRequired = true;
+
+                    return ok(restart.render());
+                } else {
+                    return ok(secret.render());
+                }
+            }
+        };
+    }
+
+    private Action getRestartAction() {
+        return new Action.Simple() {
+
+            @Override
+            public Result call(Http.Context ctx) throws Throwable {
+                return ok(restart.render());
             }
         };
     }
