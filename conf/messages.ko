@@ -31,6 +31,7 @@ title.newPullRequest = 코드 보내기
 title.keymap = 단축키 안내
 title.boardList = 게시판
 title.boardDetail = 글 읽기
+title.zenmode = 집중 모드
 
 hive.name = HIVE
 hive.title = 협업개발 플랫폼

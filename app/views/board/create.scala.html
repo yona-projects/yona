@@ -19,7 +19,7 @@
 			</dd>
 
             <dd style="position: relative;">
-                <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
+                <a href="#" class="go-zen"><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
 				<textarea id="body" name="body" class="zen-mode text content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
 			</dd>
 
@@ -58,6 +58,7 @@ $(document).ready(function(){
 	
 	$("#title").focus();
     $('.zen-mode').zenForm({theme: 'light'});
+    $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
 });
 </script>
 }

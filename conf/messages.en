@@ -31,6 +31,7 @@ title.newPullRequest = Pull Request
 title.keymap = Keyboard shortcuts
 title.boardList = Post List
 title.boardDetail = Post View
+title.zenmode = zen mode
 
 hive.name = HIVE
 hive.title = Collaborative Software Development Platform

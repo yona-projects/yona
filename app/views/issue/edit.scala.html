@@ -25,7 +25,7 @@
 			<input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title" maxlength="250" tabindex="1">
             	</dd>
                 <dd style="position: relative;">
-                    <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
+                    <a href="#" class="go-zen"><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
 			<textarea id="body" name="body" markdown="true" class="zen-mode text content" tabindex="2">@issue.body</textarea>
             	</dd>
             </dl>
@@ -150,6 +150,7 @@
 			"htOptLabel"        : htOptLabel
 		});
         $('.zen-mode').zenForm({theme: 'light'});
+        $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
 	});
 </script>
 
