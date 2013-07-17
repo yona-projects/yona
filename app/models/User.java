@@ -432,5 +432,9 @@ public class User extends Model {
         return user.getEnrolledProjects().contains(project);
     }
 
-
+    @Override
+    public void delete() {
+        Assignee.finder.where().eq("user.id", id).findUnique().delete();
+        super.delete();
+    }
 }
