@@ -21,6 +21,8 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.storage.file.WindowCache;
+import org.eclipse.jgit.storage.file.WindowCacheConfig;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -961,7 +963,30 @@ public class GitRepository implements PlayRepository {
 
     public void close() {
         repository.close();
-        delete();
+    }
+
+    /**
+     * 코드저장소 프로젝트명을 변경하고 결과를 반환한다.
+     * 
+     * 변경전 {@code repository.close()}를 통해 open된 repository의 리소스를 반환하고
+     * repository 내부에서 사용하는 {@code WindowCache}를 초기화하여 packFile의 참조를 제거한다.
+     * 
+     * @param projectName
+     * @return 코드저장소 이름 변경성공시 true / 실패시 false
+     * @see playRepository.PlayRepository#rename(models.Project, models.Project)
+     */
+    @Override
+    public boolean renameTo(String projectName) {
+        
+        repository.close();
+        WindowCache.reconfigure(new WindowCacheConfig());
+        
+        File src = new File(getGitDirectory(this.ownerName, this.projectName));
+        File dest = new File(getGitDirectory(this.ownerName, projectName));
+
+        src.setWritable(true);
+        
+        return src.renameTo(dest);
     }
 
 }
