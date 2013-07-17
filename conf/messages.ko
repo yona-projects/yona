@@ -250,7 +250,6 @@ post.attachment = 첨부파일
 post.numOfComments = 댓글개수
 post.error.emptyTitle = 글 제목을 입력해주세요
 post.error.emptyBody = 글 내용을 입력해주세요
-post.notice = 공지
 
 #Project
 project.myproject = 내 프로젝트
@@ -609,3 +608,9 @@ project.default.group.member = 멤버로 참여중인 프로젝트
 project.default.group.watching = 지켜보는 프로젝트
 daysAgo.prefix=최근
 daysAgo.suffix=일 전
+
+# Importing git project
+import.error.empty.url = Git 저장소 URL을 입력하세요.
+import.error.wrong.url = Git 저장소 URL이 올바르지 않습니다.
+import.from.git = Git 저장소에서 코드 가져오기
+import.or = 또는

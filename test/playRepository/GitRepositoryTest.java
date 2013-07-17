@@ -171,7 +171,8 @@ public class GitRepositoryTest {
         fromRepo.create();
 
         // When
-        GitRepository.cloneRepository(original, fork);
+        String gitUrl = GitRepository.getGitDirectoryURL(original);
+        GitRepository.cloneRepository(gitUrl, fork);
 
         // Then
         File file = new File(GitRepository.getGitDirectory(fork));
@@ -224,7 +225,7 @@ public class GitRepositoryTest {
         assertThat(readmeFileInClone).isEqualTo("hello 1");
         String readmeFileInOrigin = new String(getRawFile(originRepository, readmeFileName));
         assertThat(readmeFileInOrigin).isEqualTo("hello 1");
-        
+
         cloneRepository.close();
         originRepository.close();
     }
@@ -378,14 +379,14 @@ public class GitRepositoryTest {
         String fileName = "hello.md";
         String content = "hello 2";
         newCommit(original, repository, fileName, content, "commit 2");
-        
+
         // master 로 이동
-        GitRepository.checkout(repository, "master");    
+        GitRepository.checkout(repository, "master");
         // When
         GitRepository.merge(repository, branchName);
         // Then
         assertThat(new String(getRawFile(repository, fileName))).isEqualTo(content);
-        
+
         gitRepository.close();
         repository.close();
     }
@@ -411,7 +412,7 @@ public class GitRepositoryTest {
                 .setGitDir(new File(GitRepository.getGitDirectory(original)))
                 .build();
         assertThat(new String(getRawFile(originalRepo, fileName))).isEqualTo(content);
-        
+
         originalRepo.close();
     }
 
