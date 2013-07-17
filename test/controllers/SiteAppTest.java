@@ -2,7 +2,6 @@ package controllers;
 
 import models.*;
 import org.junit.*;
-import play.Configuration;
 import play.test.FakeApplication;
 import play.test.Helpers;
 

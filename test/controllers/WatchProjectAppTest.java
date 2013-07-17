@@ -10,8 +10,6 @@ import models.User;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import play.mvc.Http;

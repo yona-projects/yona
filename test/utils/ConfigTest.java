@@ -2,7 +2,6 @@ package utils;
 
 import java.util.HashMap;
 
-import org.junit.After;
 import org.junit.Test;
 
 import play.test.FakeApplication;
