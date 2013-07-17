@@ -65,7 +65,8 @@ public class Global extends GlobalSettings {
 
     private void validateSecret() {
         play.Configuration config = play.Configuration.root();
-        if (!config.getString("application.secret").equals(DEFAULT_SECRET)) {
+        String secret = config.getString("application.secret");
+        if (secret == null || !secret.equals(DEFAULT_SECRET)) {
             isSecretConfigured = true;
         }
     }
