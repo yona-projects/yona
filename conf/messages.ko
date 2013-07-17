@@ -614,3 +614,5 @@ import.error.empty.url = Git 저장소 URL을 입력하세요.
 import.error.wrong.url = Git 저장소 URL이 올바르지 않습니다.
 import.from.git = Git 저장소에서 코드 가져오기
 import.or = 또는
+git.repository.url = Git 저장소 URL
+git.url.alert = Git 저장소 URL을 입력하세요. 예) https://github.com/nforge/hive.git

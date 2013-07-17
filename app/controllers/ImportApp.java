@@ -20,6 +20,11 @@ import static play.data.Form.form;
  */
 public class ImportApp extends Controller {
 
+    /**
+     * Git repository에서 코드를 가져와서 프로젝트를 만드는 폼을 보여준다.
+     *
+     * @return
+     */
     public static Result importForm() {
         if (UserApp.currentUser().isAnonymous()) {
             flash(Constants.WARNING, "user.login.alert");
@@ -29,6 +34,12 @@ public class ImportApp extends Controller {
         }
     }
 
+    /**
+     * 새 프로젝트 시작 폼에 추가로 Git 저장소 URL을 추가로 입력받고
+     * 해당 저장소를 clone하여 프로젝트의 Git 저장소를 생성한다.
+     *
+     * @return
+     */
     @Transactional
     public static Result newProject() {
         if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){

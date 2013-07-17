@@ -614,3 +614,5 @@ import.error.empty.url = Please input Git repository URL.
 import.error.wrong.url = Wrong Git repository URL.
 import.from.git = Import a Git repository.
 import.or = Or
+git.repository.url = Git repository URL
+git.url.alert = Please input Git repository URL. ex) https://github.com/nforge/hive.git
