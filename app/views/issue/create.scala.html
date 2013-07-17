@@ -12,18 +12,19 @@
 
 	<div class="content-wrap frm-wrap">
 
-	@form(action = routes.IssueApp.newIssue(project.owner, project.name), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
+	@form(action = routes.IssueApp.newIssue(project.owner, project.name), 'id -> "issue-form", 'enctype -> "multipart/form-data" ) {
     <div class="row-fluid">
-        <div class="span9">            
+        <div class="span9">
             <dl>
         		<dt>
         			<label for="title">@Messages("post.new.title")</label>
             	</dt>
             	<dd>
-            		<input type="text" id="title" name="title" value="" class="text title" maxlength="250" tabindex="1">
+			<input type="text" id="title" name="title" value="" class="text title zen-mode" maxlength="250" tabindex="1">
             	</dd>
-            	<dd>
-        			<textarea id="body" name="body" markdown="true" class="text content" tabindex="2"></textarea>
+		<dd style="position: relative;">
+                    <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
+				<textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
         		</dd>
             </dl>
         
@@ -124,6 +125,9 @@
 		});
 
 		$("#title").focus();
+
+        $('.zen-mode').zenForm({theme: 'light'});
+        $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
 	});
 
 </script>

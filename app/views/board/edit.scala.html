@@ -15,11 +15,12 @@
 				<label for="title">@Messages("post.new.title")</label>
 			</dt>
 			<dd>
-				@helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
+				@helper.inputText(form("title"), 'class->"zen-mode text title", 'maxlength -> "250", 'tabindex -> 1)
 			</dd>
 
-			<dd>
-				@helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+		    <dd style="position: relative;">
+                <a href="#" class="go-zen" ><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
+                <textarea id="body" name="body" class="zen-mode text content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
 			</dd>
 
 			@if(isAllowedToNotice){
@@ -56,6 +57,8 @@ $(document).ready(function(){
 		"elTextarea"	 : $("#body"),
 		"sUploaderAction": "@routes.AttachmentApp.uploadFile"
 	});
+    $('.zen-mode').zenForm({theme: 'light'});
+    $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
 });
 </script>
 }
