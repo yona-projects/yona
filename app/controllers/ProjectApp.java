@@ -17,6 +17,7 @@ import play.mvc.Result;
 import playRepository.Commit;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
+import scala.reflect.io.FileOperationException;
 import utils.AccessControl;
 import utils.Constants;
 import utils.HttpUtil;
@@ -214,18 +215,20 @@ public class ProjectApp extends Controller {
      * @return
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws NoSuchAlgorithmException the no such algorithm exception
+     * @throws ServletException 
+     * @throws UnsupportedOperationException 
      */
     @Transactional
-    public static Result settingProject(String loginId, String projectName) throws IOException, NoSuchAlgorithmException {
+    public static Result settingProject(String loginId, String projectName) throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
         Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
-        Project project = filledUpdatedProjectForm.get();
+        Project updatedProject = filledUpdatedProjectForm.get();
 
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), updatedProject.asResource(), Operation.UPDATE)) {
             flash(Constants.WARNING, "project.member.isManager");
-            return redirect(routes.ProjectApp.settingForm(loginId, project.name));
+            return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
         }
 
-        if (!Project.projectNameChangeable(project.id, loginId, project.name)) {
+        if (!Project.projectNameChangeable(updatedProject.id, loginId, updatedProject.name)) {
             flash(Constants.WARNING, "project.name.duplicate");
             filledUpdatedProjectForm.reject("name");
         }
@@ -241,18 +244,25 @@ public class ProjectApp extends Controller {
                 flash(Constants.WARNING, "project.logo.fileSizeAlert");
                 filledUpdatedProjectForm.reject("logoPath");
             } else {
-                Attachment.deleteAll(project.asResource());
-                new Attachment().store(filePart.getFile(), filePart.getFilename(), project.asResource());
+                Attachment.deleteAll(updatedProject.asResource());
+                new Attachment().store(filePart.getFile(), filePart.getFilename(), updatedProject.asResource());
             }
         }
-
+        
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render("title.projectSetting",
-                    filledUpdatedProjectForm, Project.find.byId(project.id)));
+                    filledUpdatedProjectForm, Project.find.byId(updatedProject.id)));
         }
 
-        project.update();
-        return redirect(routes.ProjectApp.settingForm(loginId, project.name));
+        Project project = Project.find.byId(updatedProject.id);
+        PlayRepository repository = RepositoryService.getRepository(project);
+        
+        if (!repository.renameTo(updatedProject.name)) {
+            throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
+        }
+        
+        updatedProject.update();
+        return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
     }
 
     /**

@@ -1,5 +1,6 @@
 package playRepository;
 
+import models.Project;
 import models.resource.Resource;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -104,4 +105,11 @@ public interface PlayRepository {
     public abstract boolean isFile(String path) throws SVNException, IOException;
 
     public abstract boolean isFile(String path, String revStr) throws SVNException, IOException;
+
+    /**
+     * 코드저장소 프로젝트명을 변경하고 결과를 반환한다.
+     * @param projectName
+     * @return 코드저장소 이름 변경성공시 true / 실패시 false
+     */
+    public abstract boolean renameTo(String projectName);
 }

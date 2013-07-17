@@ -306,4 +306,21 @@ public class SVNRepository implements PlayRepository {
     public boolean isFile(String path, String revStr) throws SVNException {
         return isFile(path, Long.valueOf(revStr));
     }
+
+
+    /**
+     * 코드저장소 프로젝트명을 변경하고 결과를 반환한다.
+     * @param projectName
+     * @return 코드저장소 이름 변경성공시 true / 실패시 false
+     */
+    @Override
+    public boolean renameTo(String projectName) {
+    
+        File src = new File(getRepoPrefix() + this.ownerName + "/" + this.projectName);
+        File dest = new File(getRepoPrefix() + this.ownerName + "/" + projectName);
+        src.setWritable(true);
+        
+        return src.renameTo(dest);
+
+    }
 }
