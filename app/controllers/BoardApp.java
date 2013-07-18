@@ -66,7 +66,7 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
@@ -125,7 +125,7 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         if (AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         if (postForm.hasErrors()) {
@@ -173,7 +173,7 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), post.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         if(request().getHeader("Accept").contains("application/json")) {
@@ -213,7 +213,7 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
@@ -309,7 +309,7 @@ public class BoardApp extends AbstractPostingApp {
 
         if (!AccessControl.isProjectResourceCreatable(
                     UserApp.currentUser(), project, ResourceType.NONISSUE_COMMENT)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         final PostingComment comment = commentForm.get();

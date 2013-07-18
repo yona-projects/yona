@@ -93,7 +93,7 @@ public class CodeHistoryApp extends Controller {
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
@@ -143,7 +143,7 @@ public class CodeHistoryApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
@@ -180,7 +180,7 @@ public class CodeHistoryApp extends Controller {
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project,
                 ResourceType.CODE_COMMENT)) {
-            return forbidden(forbidden.render(project));
+            return forbidden(forbidden.render("error.forbidden", project));
         }
 
         CodeComment codeComment = codeCommentForm.get();
@@ -205,7 +205,7 @@ public class CodeHistoryApp extends Controller {
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), codeComment.asResource(),
                 Operation.DELETE)) {
-            return forbidden(forbidden.render(codeComment.project));
+            return forbidden(forbidden.render("error.forbidden", codeComment.project));
         }
 
         codeComment.delete();

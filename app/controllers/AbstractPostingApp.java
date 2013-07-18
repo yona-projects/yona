@@ -160,7 +160,7 @@ public class AbstractPostingApp extends Controller {
      */
     protected static Result delete(Model target, Resource resource, Call redirectTo) {
         if (!AccessControl.isAllowed(UserApp.currentUser(), resource, Operation.DELETE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", resource.getProject()));
         }
 
         target.delete();
@@ -186,7 +186,7 @@ public class AbstractPostingApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.error.forbidden.render(original.project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", original.project));
         }
 
         posting.id = original.id;
@@ -217,7 +217,7 @@ public class AbstractPostingApp extends Controller {
      */
     public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, resourceType)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         return ok(content);
@@ -233,11 +233,11 @@ public class AbstractPostingApp extends Controller {
         User user = UserApp.currentUser();
 
         if (!AccessControl.isAllowed(user, target.asResource(), Operation.READ)) {
-            return forbidden("You have no permission to do that.");
+            return forbidden(views.html.error.forbidden.render("You have no permission to do that.", target.asResource().getProject()));
         }
 
         if (user.isAnonymous()) {
-            return forbidden("Anonymous cannot watch it.");
+            return forbidden(views.html.error.forbidden.render("Anonymous cannot watch it.", target.asResource().getProject()));
         }
 
         target.watch(user);
@@ -255,7 +255,7 @@ public class AbstractPostingApp extends Controller {
         User user = UserApp.currentUser();
 
         if (user.isAnonymous()) {
-            return forbidden("Anonymous cannot unwatch it.");
+            return forbidden(views.html.error.forbidden.render("Anonymous cannot unwatch it.", target.asResource().getProject()));
         }
 
         target.unwatch(user);

@@ -74,7 +74,7 @@ public class MilestoneApp extends Controller {
         }
 
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         return ok(create.render("title.newMilestone", new Form<>(Milestone.class), project));
@@ -104,7 +104,7 @@ public class MilestoneApp extends Controller {
         }
 
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         validate(project, milestoneForm);
@@ -154,7 +154,7 @@ public class MilestoneApp extends Controller {
         Milestone milestone = Milestone.findById(milestoneId);
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
@@ -184,7 +184,7 @@ public class MilestoneApp extends Controller {
         Milestone original = Milestone.findById(milestoneId);
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         if(!original.title.equals(milestoneForm.field("title").value())) {
@@ -221,7 +221,7 @@ public class MilestoneApp extends Controller {
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
         if(!project.id.equals(milestone.project.id)) {
             return internalServerError();
@@ -247,7 +247,7 @@ public class MilestoneApp extends Controller {
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         milestone.open();
@@ -271,7 +271,7 @@ public class MilestoneApp extends Controller {
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         milestone.close();

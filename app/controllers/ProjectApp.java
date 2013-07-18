@@ -102,7 +102,7 @@ public class ProjectApp extends Controller {
         project.fixInvalidForkData();
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -158,7 +158,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -178,7 +178,7 @@ public class ProjectApp extends Controller {
     @Transactional
     public static Result newProject() throws Exception {
         if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
-           return forbidden("'" + UserApp.currentUser().name + "' has no permission");
+           return forbidden(views.html.error.forbidden_default.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
@@ -298,7 +298,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -353,7 +353,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         project.cleanEnrolledUsers();
@@ -429,12 +429,12 @@ public class ProjectApp extends Controller {
         if (UserApp.currentUser().id.equals(userId)
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
-                return forbidden(Messages.get("project.member.ownerCannotLeave"));
+                return forbidden(views.html.error.forbidden.render("project.member.ownerCannotLeave", project));
             }
             ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(loginId, projectName));
         } else {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
     }
 
@@ -461,13 +461,13 @@ public class ProjectApp extends Controller {
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
-                return forbidden(Messages.get("project.member.ownerMustBeAManager"));
+                return forbidden(views.html.error.forbidden.render("project.member.ownerMustBeAManager", project));
             }
             ProjectUser.assignRole(userId, project.id, form(Role.class)
                     .bindFromRequest().get().id);
             return status(Http.Status.NO_CONTENT);
         } else {
-            return forbidden(Messages.get("project.member.isManager"));
+            return forbidden(views.html.error.forbidden.render("project.member.isManager", project));
         }
     }
 
@@ -578,7 +578,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         if (!request().accepts("application/json")) {
@@ -616,7 +616,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         // Get category and name from the request. Return 400 Bad Request if name is not given.
@@ -688,7 +688,7 @@ public class ProjectApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         // _method must be 'delete'

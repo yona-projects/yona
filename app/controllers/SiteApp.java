@@ -258,7 +258,7 @@ public class SiteApp extends Controller {
         Map<String, String[]> projects = request().body().asFormUrlEncoded();
 
         if(!UserApp.currentUser().isSiteManager()) {
-            return forbidden(Messages.get("auth.unauthorized.waringMessage"));
+            return forbidden(views.html.error.forbidden_default.render("auth.unauthorized.waringMessage"));
         }
 
         if (!request().accepts("application/json")) {

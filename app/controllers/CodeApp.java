@@ -34,7 +34,7 @@ public class CodeApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return unauthorized(views.html.error.unauthorized.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {

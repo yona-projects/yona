@@ -1,16 +1,11 @@
-@(target:String)
+@(messageKey:String = "error.nodisplay")
 
-@home(Messages("error.nodisplay"), utils.MenuType.SITE_HOME) {
+@home(Messages(messageKey), utils.MenuType.SITE_HOME) {
 <div class="page">
-
     <div class="error-wrap">
         <i class="ico-404"></i>
-        <p>@Messages("error.nodisplay")</p>
-		@if(target != null){
-		<p>@Messages(target)</p>
-		}
+        <p>@Messages(messageKey)</p>
         <a href="@routes.Application.index()" class="nbtn medium">@Messages("menu.home")</a>
     </div>
-    
 </div>
 }

@@ -51,7 +51,7 @@ public class IssueLabelApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden("You have no permission to access the project '" + project + "'.");
+            return forbidden(views.html.error.forbidden.render("You have no permission to access the project '" + project + "'.", project));
         }
 
         List<Map<String, String>> labels = new ArrayList<>();
@@ -100,8 +100,8 @@ public class IssueLabelApp extends Controller {
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
-            return forbidden("You have no permission to add an issue label to the project '" +
-                    project + "'.");
+            return forbidden(views.html.error.forbidden.render("You have no permission to add an issue label to the project '" +
+                    project + "'.", project));
         }
 
         IssueLabel label = labelForm.get();
@@ -161,7 +161,7 @@ public class IssueLabelApp extends Controller {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), label.asResource(), Operation.DELETE)) {
-            return forbidden("You have no permission to delete the label #" + label.id + ".");
+            return forbidden(views.html.error.forbidden.render("You have no permission to delete the label #" + label.id + ".", label.project));
         }
 
         label.delete();

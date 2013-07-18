@@ -48,7 +48,7 @@ public class PullRequestApp extends Controller {
 
         User currentUser = UserApp.currentUser();
         if(!AccessControl.isProjectResourceCreatable(currentUser, project, ResourceType.FORK)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, project);
@@ -80,7 +80,7 @@ public class PullRequestApp extends Controller {
 
         User currentUser = UserApp.currentUser();
         if(!AccessControl.isProjectResourceCreatable(currentUser, originalProject, ResourceType.FORK)) {
-            return forbidden();
+            return forbidden(views.html.error.forbidden.render("error.forbidden", originalProject));
         }
 
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
@@ -478,7 +478,7 @@ public class PullRequestApp extends Controller {
         // 게스트 중에서 코드 요청을 보낸 사용자는 취소 할 수 있다.
         if(isGuest(project, user)) {
             if(!user.equals(pullRequest.contributor)) {
-                forbidden("Only this project's member and manager and the pull_request's author are allowed.");
+                forbidden(views.html.error.forbidden.render("Only this project's member and manager and the pull_request's author are allowed.", project));
             }
         }
 
@@ -585,7 +585,7 @@ public class PullRequestApp extends Controller {
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
 
         if(isGuest(project, user)) {
-            result = forbidden("Guest is not allowed this request");
+            result = forbidden(views.html.error.forbidden.render("Guest is not allowed this request", project));
         }
 
         return result;

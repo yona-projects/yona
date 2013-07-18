@@ -26,7 +26,7 @@ public class SimpleCommentApp extends Controller {
         }
 
         if (!AccessControl.isCreatable(UserApp.currentUser(), ResourceType.SIMPLE_COMMENT)) {
-            return forbidden(Messages.get("auth.unauthorized.comment"));
+            return forbidden(views.html.error.forbidden_default.render("auth.unauthorized.comment"));
         }
 
 

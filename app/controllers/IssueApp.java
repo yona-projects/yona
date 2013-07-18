@@ -138,7 +138,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<SearchCondition> issueParamForm = new Form<>(SearchCondition.class);
@@ -200,7 +200,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         for (IssueLabel label: issueInfo.labels) {
@@ -317,7 +317,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         return redirect(request().getHeader("Referer"));
@@ -346,7 +346,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         if (issueForm.hasErrors()) {
@@ -391,7 +391,7 @@ public class IssueApp extends AbstractPostingApp {
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
@@ -508,7 +508,7 @@ public class IssueApp extends AbstractPostingApp {
 
         if (!AccessControl.isProjectResourceCreatable(
                     UserApp.currentUser(), project, ResourceType.ISSUE_COMMENT)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 
         final IssueComment comment = commentForm.get();
