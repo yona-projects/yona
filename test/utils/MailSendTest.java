@@ -1,24 +1,15 @@
 package utils;
 
-import controllers.routes;
 import info.schleichardt.play2.mailplugin.Mailer;
-import junit.framework.Assert;
-import models.ModelTest;
-import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import play.test.FakeApplication;
 import play.test.Helpers;
 
-import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.callAction;
-import static play.test.Helpers.fakeApplication;
-import static play.test.Helpers.running;
 
 /**
  * User: doortts
@@ -30,7 +21,7 @@ public class MailSendTest {
 
     @Before
     public void startApp() {
-        app = Helpers.fakeApplication(Helpers.inMemoryDatabase());
+        app = Helpers.fakeApplication(support.Config.makeTestConfig());
         Helpers.start(app);
     }
 

@@ -1,10 +1,7 @@
 package utils;
 
 import java.util.HashMap;
-import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import play.test.FakeApplication;
@@ -13,16 +10,11 @@ import play.test.Helpers;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ConfigTest {
-    protected static FakeApplication app;
-    private Map<String, String> additionalConfiguration;
-
-    @Before
-    public void before() {
-        additionalConfiguration = new HashMap<>(Helpers.inMemoryDatabase());
-    }
-
     @Test
     public void getScheme() {
+        FakeApplication app;
+        HashMap<String, String> additionalConfiguration = support.Config.makeTestConfig();
+
         additionalConfiguration.put("application.scheme", "http");
         app = Helpers.fakeApplication(additionalConfiguration);
         Helpers.start(app);
@@ -38,6 +30,9 @@ public class ConfigTest {
 
     @Test
     public void getHostname() {
+        FakeApplication app;
+        HashMap<String, String> additionalConfiguration = support.Config.makeTestConfig();
+
         additionalConfiguration.put("application.hostname", "www.nforge.com");
         additionalConfiguration.put("application.port", "8080");
         app = Helpers.fakeApplication(additionalConfiguration);
