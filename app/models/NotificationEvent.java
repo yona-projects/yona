@@ -200,12 +200,11 @@ public class NotificationEvent extends Model {
         return finder.byId(resourceId) != null;
     }
 
-    @Override
-    public void save() {
-        if (notificationMail == null) {
-            notificationMail = new NotificationMail();
-            notificationMail.notificationEvent = this;
+    public static void add(NotificationEvent event) {
+        if (event.notificationMail == null) {
+            event.notificationMail = new NotificationMail();
+            event.notificationMail.notificationEvent = event;
         }
-        super.save();
+        event.save();
     }
 }

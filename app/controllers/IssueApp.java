@@ -397,7 +397,8 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.type = NotificationType.NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = newIssue.body;
-        notiEvent.save();
+
+        NotificationEvent.add(notiEvent);
 
         return redirect(issueCall);
     }
@@ -518,7 +519,8 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.resourceId = updatedIssue.id;
         notiEvent.resourceType = updatedIssue.asResource().getType();
         notiEvent.type = NotificationType.ISSUE_STATE_CHANGED;
-        notiEvent.save();
+
+        NotificationEvent.add(notiEvent);
     }
 
     /**
@@ -554,7 +556,8 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.resourceId = updatedIssue.id;
         notiEvent.resourceType = updatedIssue.asResource().getType();
         notiEvent.type = NotificationType.ISSUE_ASSIGNEE_CHANGED;
-        notiEvent.save();
+
+        NotificationEvent.add(notiEvent);
     }
 
     /*

@@ -162,9 +162,8 @@ public class AbstractPostingApp extends Controller {
         notiEvent.type = NotificationType.NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
-        notiEvent.save();
 
-        return redirect(toView);
+        NotificationEvent.add(notiEvent);
     }
 
     /**

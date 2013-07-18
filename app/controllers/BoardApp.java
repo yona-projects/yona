@@ -165,9 +165,8 @@ public class BoardApp extends AbstractPostingApp {
         notiEvent.type = NotificationType.NEW_POSTING;
         notiEvent.oldValue = null;
         notiEvent.newValue = post.body;
-        notiEvent.save();
+        NotificationEvent.add(notiEvent);
 
-        return redirect(toPost);
     }
 
     /**
