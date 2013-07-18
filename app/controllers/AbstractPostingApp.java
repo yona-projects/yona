@@ -141,6 +141,12 @@ public class AbstractPostingApp extends Controller {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
+        addNotificationEventFromNewComment(comment, toView);
+
+        return redirect(toView);
+    }
+
+    private static void addNotificationEventFromNewComment(Comment comment, Call toView) {
         AbstractPosting post = comment.getParent();
         Set<User> watchers = post.getWatchers();
         watchers.remove(UserApp.currentUser());

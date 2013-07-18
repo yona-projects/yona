@@ -144,6 +144,12 @@ public class BoardApp extends AbstractPostingApp {
 
         Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
 
+        addNotificationEventFromNewPost(post, toPost);
+
+        return redirect(toPost);
+    }
+
+    private static void addNotificationEventFromNewPost(Posting post, Call toPost) {
         Set<User> watchers = post.getWatchers();
         watchers.addAll(getMentionedUsers(post.body));
         watchers.remove(post.getAuthor());
