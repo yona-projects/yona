@@ -526,8 +526,7 @@ error.notfound.issue = 존재하지 않는 이슈입니다
 error.forbidden = 권한이 없습니다
 error.unauthorized = 로그인 해야 합니다
 error.badrequest = 잘못된 요청입니다
-error.nodisplay = 서비스를 사용할 수 없습니다
-
+error.internalServerError = 서버 오류가 발생하여 서비스를 이용할 수 없습니다
 
 #PullReqeust
 pullRequest.is.safe = 코드를 안전하게 자동으로 병합할 수 있습니다.

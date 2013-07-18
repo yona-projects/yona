@@ -205,7 +205,7 @@ public class Global extends GlobalSettings {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
 
         if (Play.isProd()) {
-            return Results.internalServerError(views.html.error.nodisplay_default.render(null));
+            return Results.internalServerError(views.html.error.internalServerError_default.render("error.internalServerError"));
         } else {
             return super.onError(request,  t);
         }
