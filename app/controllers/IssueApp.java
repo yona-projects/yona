@@ -286,7 +286,7 @@ public class IssueApp extends AbstractPostingApp {
                 } else {
                     newAssignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
                 }
-                assigneeChanged = isAssigneeChanged(issue.assignee, newAssignee);
+                assigneeChanged = !issue.assigneeEquals(newAssignee);
                 issue.assignee = newAssignee;
             }
 
@@ -471,7 +471,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
 
-        if(isAssigneeChanged(originalIssue.assignee, issue.assignee)) {
+        if(!originalIssue.assigneeEquals(issue.assignee)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             User oldAssignee = null;
             if(originalIssue.assignee != null) {
@@ -488,11 +488,6 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         return result;
-    }
-
-    private static boolean isAssigneeChanged(Assignee oldAssignee, Assignee newAssignee) {
-        return ((newAssignee != null && oldAssignee != null) && (newAssignee.id != oldAssignee.id))
-        || ((newAssignee != oldAssignee) && (newAssignee == null || oldAssignee == null));
     }
 
     private static void sendStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
