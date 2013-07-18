@@ -174,17 +174,18 @@ public class AbstractPostingApp extends Controller {
      * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
      */
     public static void sendNotification(Notification noti) {
+        Set<User> receivers = noti.getReceivers();
+        receivers.remove(User.anonymous);
+        if(receivers.isEmpty()) {
+            return;
+        }
+
         final HtmlEmail email = new HtmlEmail();
 
         try {
             play.Configuration config = play.Configuration.root();
             email.setFrom(config.getString("smtp.user") + "@" + config.getString("smtp" + ".domain"));
             email.addTo(config.getString("smtp.user") + "@" + config.getString("smtp.domain"));
-            Set<User> receivers = noti.getReceivers();
-            receivers.remove(User.anonymous);
-            if(receivers.isEmpty()) {
-                return;
-            }
             for (User receiver : receivers) {
                 email.addBcc(receiver.email, receiver.name);
             }
