@@ -124,7 +124,7 @@ public class BoardApp extends AbstractPostingApp {
             return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
-        if (AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
+        if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
             return forbidden(views.html.error.forbidden.render("error.forbidden", project));
         }
 

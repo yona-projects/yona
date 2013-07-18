@@ -296,6 +296,10 @@ public class MilestoneApp extends Controller {
             return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
+        
+        if(milestone == null) {
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
+        }
         return ok(view.render(milestone.title, milestone, project));
     }
 }

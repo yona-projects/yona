@@ -197,12 +197,13 @@ public class Global extends GlobalSettings {
     @Override
     public Result onHandlerNotFound(RequestHeader request) {
         AccessLogger.log(request, null, Http.Status.NOT_FOUND);
-        return Results.notFound(views.html.error.notfound_default.render(request.path()));
+        return Results.notFound(views.html.error.notfound_default.render("error.notfound"));
     }
 
     @Override
     public Result onError(RequestHeader request, Throwable t) {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
+
         if (Play.isProd()) {
             return Results.internalServerError(views.html.error.nodisplay_default.render(null));
         } else {
