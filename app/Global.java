@@ -24,6 +24,7 @@ import controllers.routes;
 import play.Application;
 import play.GlobalSettings;
 import play.Configuration;
+import play.Play;
 import play.api.mvc.Handler;
 import play.i18n.Messages;
 import play.libs.Yaml;
@@ -202,13 +203,11 @@ public class Global extends GlobalSettings {
     @Override
     public Result onError(RequestHeader request, Throwable t) {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
-        
-        String mode = play.Configuration.root().getString("%prod.application.mode");
-        if ("prod".equals(mode)) {
-            return Results.internalServerError(views.html.error.nodisplay_default.render(null));        
+        if (Play.isProd()) {
+            return Results.internalServerError(views.html.error.nodisplay_default.render(null));
         } else {
             return super.onError(request,  t);
-        }   
+        }
     }
 
     @Override
