@@ -490,6 +490,16 @@ public class IssueApp extends AbstractPostingApp {
         return result;
     }
 
+    /**
+     * 상태 변경에 대한 notification을 등록한다.
+     *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
+     *
+     * @param oldState
+     * @param updatedIssue
+     * @param urlToView
+     */
     private static void addStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
         NotificationEvent notiEvent = new NotificationEvent();
 
@@ -511,6 +521,16 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.save();
     }
 
+    /**
+     * 담당자 변경에 대한 notification을 등록한다.
+     *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
+     *
+     * @param oldAssignee
+     * @param updatedIssue
+     * @param urlToView
+     */
     private static void addAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
         NotificationEvent notiEvent = new NotificationEvent();
 
