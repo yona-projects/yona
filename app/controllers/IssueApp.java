@@ -323,7 +323,7 @@ public class IssueApp extends AbstractPostingApp {
                 addAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
             }
             if(stateChanged) {
-                sendStateChangedNotification(oldState, updatedIssue, urlToView);
+                addStateChangedNotification(oldState, updatedIssue, urlToView);
             }
         }
 
@@ -482,15 +482,15 @@ public class IssueApp extends AbstractPostingApp {
 
         if(issue.state != originalIssue.state) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
-            sendStateChangedNotification(issue.state, updatedIssue,
+            addStateChangedNotification(issue.state, updatedIssue,
                     redirectTo.absoluteURL(request()
-            ));
+                    ));
         }
 
         return result;
     }
 
-    private static void sendStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
+    private static void addStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
         NotificationEvent notiEvent = new NotificationEvent();
 
         notiEvent.oldValue = oldState.state();
