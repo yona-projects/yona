@@ -162,7 +162,7 @@ public class AbstractPostingApp extends Controller {
     }
 
     /**
-     * 어떤 게시물이 등록되었을 때, 그 프로젝틑 지켜보는 사용자들에게 알림 메일을 발송한다.
+     * 어떤 게시물이 등록되었을 때, 그 프로젝트를 지켜보는 사용자들에게 알림 메일을 발송한다.
      *
      * @param noti
      * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
