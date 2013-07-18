@@ -31,7 +31,7 @@ public class SearchApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (project == null) {
-            notFound();
+            notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 		/* @TODO 쿼리에 대해서 특수문자나 공백 체크 해야함. */
         ContentSearchCondition condition = form(ContentSearchCondition.class).bindFromRequest().get();

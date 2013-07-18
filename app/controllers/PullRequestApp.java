@@ -212,7 +212,7 @@ public class PullRequestApp extends Controller {
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
         if(form.hasErrors()) {
-            return badRequest(form.errors().toString());
+            return badRequest(views.html.error.badrequest.render(form.errors().toString(), project));
         }
 
         Project originalProject = project.originalProject;
@@ -247,7 +247,7 @@ public class PullRequestApp extends Controller {
             return badRequestForNullProject(userName, projectName);
         }
         if(!project.vcs.equals("GIT")) {
-            return badRequest("Now, only git project is allowed this request.");
+            return badRequest(views.html.error.badrequest.render("Now, only git project is allowed this request.", project));
         }
         List<PullRequest> pullRequests = PullRequest.findOpendPullRequests(project);
         return ok(list.render(project, pullRequests, "opened"));
@@ -515,12 +515,12 @@ public class PullRequestApp extends Controller {
             return badRequestForNullProject(userName, projectName);
         }
         if(!project.isFork()) {
-            return badRequest("Only fork project is allowed this request");
+            return badRequest(views.html.error.badrequest.render("Only fork project is allowed this request", project));
         }
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
         if(isGuest(project, currentUser)) {
-            return badRequest("Guest is not allowed this request");
+            return badRequest(views.html.error.badrequest.render("Guest is not allowed this request", project));
         }
 
         return null;
@@ -538,7 +538,7 @@ public class PullRequestApp extends Controller {
      * @return
      */
     private static Status badRequestForNullProject(String userName, String projectName) {
-        return badRequest("No project matches given parameters'" + userName + "' and project_name '" + projectName + "'");
+        return badRequest(views.html.error.badrequest_default.render("No project matches given parameters'" + userName + "' and project_name '" + projectName + "'"));
     }
 
     /**
@@ -558,7 +558,7 @@ public class PullRequestApp extends Controller {
         }
 
         if(pullRequest == null) {
-            return badRequest("No pull_request matches given pull_request_id '" + pullRequestId + "'");
+            return badRequest(views.html.error.badrequest.render("No pull_request matches given pull_request_id '" + pullRequestId + "'", project));
         }
         return null;
     }

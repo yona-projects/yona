@@ -154,7 +154,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -294,7 +294,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -317,10 +317,10 @@ public class ProjectApp extends Controller {
      * @throws Exception the exception
      */
     public static Result deleteProject(String loginId, String projectName) throws Exception {
-	Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
-	if (project == null) {
-            return notFound();
+        if (project == null) {
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
@@ -349,7 +349,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -390,7 +390,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -423,7 +423,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (UserApp.currentUser().id.equals(userId)
@@ -456,7 +456,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -574,7 +574,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -612,7 +612,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
@@ -625,7 +625,7 @@ public class ProjectApp extends Controller {
         String name = HttpUtil.getFirstValueFromQuery(data, "name");
         if (name == null || name.length() == 0) {
             // A label must have its name.
-            return badRequest("Label name is missing.");
+            return badRequest(views.html.error.badrequest.render("Label name is missing.", project));
         }
 
         Label label = Label.find
@@ -684,7 +684,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
@@ -695,13 +695,13 @@ public class ProjectApp extends Controller {
         Map<String, String[]> data = request().body().asFormUrlEncoded();
         if (!HttpUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
                 .equals("delete")) {
-            return badRequest("_method must be 'delete'.");
+            return badRequest(views.html.error.badrequest.render("_method must be 'delete'.", project));
         }
 
         Label tag = Label.find.byId(id);
 
         if (tag == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         project.detachLabel(tag);

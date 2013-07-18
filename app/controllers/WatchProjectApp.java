@@ -49,6 +49,6 @@ public class WatchProjectApp extends Controller {
     }
 
     private static Result badProject(String userName, String projectName) {
-        return badRequest("No project matches given user name '" + userName + "' and project name '" + projectName + "'");
+        return badRequest(views.html.error.badrequest_default.render("No project matches given user name '" + userName + "' and project name '" + projectName + "'"));
     }
 }

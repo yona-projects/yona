@@ -222,7 +222,7 @@ public class UserApp extends Controller {
         Form<User> userForm = form(User.class).bindFromRequest();
 
         if(userForm.hasErrors()) {
-            return badRequest();
+            return badRequest(views.html.error.badrequest_default.render("error.badrequest"));
         }
 
         User currentUser = currentUser();

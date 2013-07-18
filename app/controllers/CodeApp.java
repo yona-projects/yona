@@ -30,7 +30,7 @@ public class CodeApp extends Controller {
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {

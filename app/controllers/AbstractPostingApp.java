@@ -182,7 +182,7 @@ public class AbstractPostingApp extends Controller {
      */
     protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Callback updatePosting) {
         if (postingForm.hasErrors()) {
-            return badRequest(postingForm.errors().toString());
+            return badRequest(views.html.error.badrequest.render(postingForm.errors().toString(), original.project));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {

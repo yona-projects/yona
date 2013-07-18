@@ -87,7 +87,7 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -106,7 +106,7 @@ public class CodeHistoryApp extends Controller {
             List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch);
 
             if (commits == null) {
-                return notFound();
+                return notFound(views.html.error.notfound.render("error.notfound", project, null));
             }
 
             return ok(history.render(project, commits, page, branch));
@@ -139,7 +139,7 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -150,7 +150,7 @@ public class CodeHistoryApp extends Controller {
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
 
         if (patch == null) {
-            return notFound();
+            return notFound(views.html.error.notfound.render("error.notfound", project, null));
         }
 
         List<CodeComment> comments = CodeComment.find.where().eq("commitId",
@@ -164,14 +164,14 @@ public class CodeHistoryApp extends Controller {
         Form<CodeComment> codeCommentForm = new Form<>(CodeComment.class)
                 .bindFromRequest();
 
-        if (codeCommentForm.hasErrors()) {
-            return badRequest(codeCommentForm.errors().toString());
-        }
-
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
             return notFound(notfound_default.render(request().path()));
+        }
+
+        if (codeCommentForm.hasErrors()) {
+            return badRequest(views.html.error.badrequest.render(codeCommentForm.errors().toString(), project));
         }
 
         if (RepositoryService.getRepository(project).getCommit(commitId) == null) {

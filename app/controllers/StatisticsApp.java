@@ -9,7 +9,7 @@ public class StatisticsApp extends Controller {
 	public static Result statistics(String userName, String projectName) {
 		Project project = Project.findByOwnerAndProjectName(userName, projectName);
 		if (project == null) {
-		    return notFound();
+		    return notFound(views.html.error.notfound_default.render("error.notfound"));
 		}
 		return ok(statistics.render("statistics", project));
 	}

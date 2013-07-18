@@ -43,7 +43,7 @@ public class MilestoneApp extends Controller {
     public static Result milestones(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
 
@@ -70,7 +70,7 @@ public class MilestoneApp extends Controller {
     public static Result newMilestoneForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
@@ -100,7 +100,7 @@ public class MilestoneApp extends Controller {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
 
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
@@ -149,7 +149,7 @@ public class MilestoneApp extends Controller {
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(milestoneId);
 
@@ -178,7 +178,7 @@ public class MilestoneApp extends Controller {
     public static Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Milestone original = Milestone.findById(milestoneId);
@@ -217,7 +217,7 @@ public class MilestoneApp extends Controller {
     public static Result deleteMilestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)) {
@@ -243,7 +243,7 @@ public class MilestoneApp extends Controller {
     public static Result open(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
@@ -267,7 +267,7 @@ public class MilestoneApp extends Controller {
     public static Result close(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
@@ -293,7 +293,7 @@ public class MilestoneApp extends Controller {
     public static Result milestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(views.html.error.notfound_default.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         return ok(view.render(milestone.title, milestone, project));
