@@ -381,7 +381,7 @@ public class IssueApp extends AbstractPostingApp {
 
         final Call issueCall = routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber());
 
-        String title = String.format("[%s] %s (#%d)", newIssue.project.name, newIssue.title, newIssue.getNumber());
+        String title = NotificationEvent.formatNewTitle(newIssue);
         Set<User> watchers = newIssue.getWatchers();
         watchers.addAll(getMentionedUsers(newIssue.body));
         watchers.remove(newIssue.getAuthor());
@@ -506,8 +506,7 @@ public class IssueApp extends AbstractPostingApp {
 
         notiEvent.senderId = UserApp.currentUser().id;
 
-        notiEvent.title = String.format("Re: [%s] %s (#%d)", updatedIssue.project.name,
-                updatedIssue.title, updatedIssue.getNumber());
+        notiEvent.title = NotificationEvent.formatReplyTitle(updatedIssue);
 
         notiEvent.created = new Date();
         notiEvent.urlToView = urlToView;
@@ -527,7 +526,7 @@ public class IssueApp extends AbstractPostingApp {
         }
         receivers.remove(UserApp.currentUser());
 
-        notiEvent.title = String.format("Re: [%s] %s (#%d)", updatedIssue.project.name, updatedIssue.title, updatedIssue.getNumber());
+        notiEvent.title = NotificationEvent.formatReplyTitle(updatedIssue);
 
         if (updatedIssue.assignee != null) {
             notiEvent.newValue = User.find.byId(updatedIssue.assignee.user.id).loginId;

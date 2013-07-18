@@ -144,14 +144,13 @@ public class BoardApp extends AbstractPostingApp {
 
         Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
 
-        String title = String.format("[%s] %s (#%d)", post.project.name, post.title, post.getNumber());
         Set<User> watchers = post.getWatchers();
         watchers.addAll(getMentionedUsers(post.body));
         watchers.remove(post.getAuthor());
 
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
-        notiEvent.title = title;
+        notiEvent.title = NotificationEvent.formatNewTitle(post);
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toPost.absoluteURL(request());

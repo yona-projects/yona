@@ -61,6 +61,16 @@ public class NotificationEvent extends Model {
     @OneToOne(mappedBy="notificationEvent", cascade = CascadeType.ALL)
     public NotificationMail notificationMail;
 
+    public static String formatReplyTitle(AbstractPosting posting) {
+        return String.format("Re: [%s] %s (#%d)",
+                posting.project.name, posting.title, posting.getNumber());
+    }
+
+    public static String formatNewTitle(AbstractPosting posting) {
+        return String.format("[%s] %s (#%d)",
+                posting.project.name, posting.title, posting.getNumber());
+    }
+
     @Transient
     public String getMessage() {
         if (message != null) {

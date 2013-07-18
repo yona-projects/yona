@@ -142,13 +142,12 @@ public class AbstractPostingApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
         AbstractPosting post = comment.getParent();
-        String title = String.format("Re: [%s] %s (#%d)", post.project.name, post.title, post.getNumber());
         Set<User> watchers = post.getWatchers();
         watchers.remove(UserApp.currentUser());
 
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
-        notiEvent.title = title;
+        notiEvent.title = NotificationEvent.formatReplyTitle(post);;
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toView.absoluteURL(request());
