@@ -11,6 +11,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.AccessControl;
+import utils.Views;
 import views.html.board.view;
 
 import static play.libs.Json.toJson;
@@ -97,11 +98,11 @@ public class IssueLabelApp extends Controller {
 
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(views.html.error.notfound_default.render("error.notfound"));
+            return notFound(Views.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
-            return forbidden(views.html.error.forbidden.render("You have no permission to add an issue label to the project '" +
+            return forbidden(Views.Forbidden.render("You have no permission to add an issue label to the project '" +
                     project + "'.", project));
         }
 
@@ -152,17 +153,17 @@ public class IssueLabelApp extends Controller {
         DynamicForm bindedForm = form().bindFromRequest();
         if (!bindedForm.get("_method").toLowerCase()
                 .equals("delete")) {
-            return badRequest(views.html.error.badrequest_default.render("_method must be 'delete'."));
+            return badRequest(Views.BadRequest.render("_method must be 'delete'."));
         }
 
         IssueLabel label = IssueLabel.finder.byId(id);
 
         if (label == null) {
-            return notFound(views.html.error.notfound_default.render("The label #" + id + " is not found."));
+            return notFound(Views.NotFound.render("The label #" + id + " is not found."));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), label.asResource(), Operation.DELETE)) {
-            return forbidden(views.html.error.forbidden.render("You have no permission to delete the label #" + label.id + ".", label.project));
+            return forbidden(Views.Forbidden.render("You have no permission to delete the label #" + label.id + ".", label.project));
         }
 
         label.delete();

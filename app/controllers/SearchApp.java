@@ -7,6 +7,7 @@ import com.avaje.ebean.*;
 import models.*;
 import play.mvc.*;
 
+import utils.Views;
 import views.html.search.*;
 
 import static play.data.Form.form;
@@ -31,7 +32,7 @@ public class SearchApp extends Controller {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (project == null) {
-            notFound(views.html.error.notfound_default.render("error.notfound"));
+            notFound(Views.NotFound.render("error.notfound"));
         }
 		/* @TODO 쿼리에 대해서 특수문자나 공백 체크 해야함. */
         ContentSearchCondition condition = form(ContentSearchCondition.class).bindFromRequest().get();

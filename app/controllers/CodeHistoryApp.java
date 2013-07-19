@@ -25,6 +25,7 @@ import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.HttpUtil;
+import utils.Views;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.diff;
@@ -87,13 +88,13 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound(views.html.error.notfound_default.render("error.notfound"));
+            return notFound(Views.NotFound.render("error.notfound"));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
+            return forbidden(Views.Forbidden.render("error.forbidden", project));
         }
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
@@ -106,7 +107,7 @@ public class CodeHistoryApp extends Controller {
             List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch);
 
             if (commits == null) {
-                return notFound(views.html.error.notfound.render("error.notfound", project, null));
+                return notFound(Views.NotFound.render("error.notfound", project, null));
             }
 
             return ok(history.render(project, commits, page, branch));
@@ -139,18 +140,18 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound(views.html.error.notfound_default.render("error.notfound"));
+            return notFound(Views.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
+            return forbidden(Views.Forbidden.render("error.forbidden", project));
         }
 
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
 
         if (patch == null) {
-            return notFound(views.html.error.notfound.render("error.notfound", project, null));
+            return notFound(Views.NotFound.render("error.notfound", project, null));
         }
 
         List<CodeComment> comments = CodeComment.find.where().eq("commitId",
@@ -171,7 +172,7 @@ public class CodeHistoryApp extends Controller {
         }
 
         if (codeCommentForm.hasErrors()) {
-            return badRequest(views.html.error.badrequest.render(codeCommentForm.errors().toString(), project));
+            return badRequest(Views.BadRequest.render(codeCommentForm.errors().toString(), project));
         }
 
         if (RepositoryService.getRepository(project).getCommit(commitId) == null) {

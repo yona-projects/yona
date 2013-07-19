@@ -16,6 +16,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
 import utils.AccessControl;
+import utils.Views;
 import views.html.code.view;
 import views.html.code.nohead;
 
@@ -30,11 +31,11 @@ public class CodeApp extends Controller {
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound(views.html.error.notfound_default.render("error.notfound"));
+            return notFound(Views.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render("error.forbidden", project));
+            return forbidden(Views.Forbidden.render("error.forbidden", project));
         }
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {

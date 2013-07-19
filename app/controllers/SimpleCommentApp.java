@@ -8,6 +8,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
 import utils.Constants;
+import utils.Views;
 
 /**
  * {@link models.SimpleComment} CRUD 컨트롤러
@@ -26,7 +27,7 @@ public class SimpleCommentApp extends Controller {
         }
 
         if (!AccessControl.isCreatable(UserApp.currentUser(), ResourceType.SIMPLE_COMMENT)) {
-            return forbidden(views.html.error.forbidden_default.render("auth.unauthorized.comment"));
+            return forbidden(Views.Forbidden.render("auth.unauthorized.comment"));
         }
 
 
