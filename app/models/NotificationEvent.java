@@ -99,17 +99,13 @@ public class NotificationEvent extends Model {
         }
     }
 
-    public Project getProject() {
-        Finder<Long, ? extends Model> finder = null;
-
+    public Resource getResource() {
         Resource resource = null;
 
         switch(resourceType) {
             case ISSUE_POST:
                 resource = Issue.finder.byId(resourceId).asResource();
                 break;
-            case ISSUE_ASSIGNEE:
-                return Assignee.finder.byId(resourceId).project;
             case ISSUE_COMMENT:
                 resource = IssueComment.find.byId(resourceId).asResource();
                 break;
@@ -135,21 +131,33 @@ public class NotificationEvent extends Model {
                 resource = Milestone.find.byId(resourceId).asResource();
                 break;
             default:
-                if (EnumSet.allOf(ResourceType.class).contains(resourceType)) {
-                    play.Logger.warn("Unsupported resource type " + resourceType);
-                } else {
-                    play.Logger.warn("Unknown resource type " + resourceType);
-                }
-                return null;
+                throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }
 
-        if (resource != null) {
-            return resource.getProject();
+        return resource;
+    }
+
+    private static String getInvalidResourceTypeMessage(ResourceType resourceType) {
+        if (EnumSet.allOf(ResourceType.class).contains(resourceType)) {
+            return "Unsupported resource type " + resourceType;
         } else {
-            return null;
+            return "Unknown resource type " + resourceType;
         }
     }
 
+    public Project getProject() {
+        switch(resourceType) {
+        case ISSUE_ASSIGNEE:
+            return Assignee.finder.byId(resourceId).project;
+        default:
+            Resource resource = getResource();
+            if (resource != null) {
+                return resource.getProject();
+            } else {
+                return null;
+            }
+        }
+    }
 
     public boolean resourceExists() {
         Finder<Long, ? extends Model> finder = null;
@@ -186,11 +194,7 @@ public class NotificationEvent extends Model {
                 finder = Milestone.find;
                 break;
             default:
-                if (EnumSet.allOf(ResourceType.class).contains(resourceType)) {
-                    play.Logger.warn("Unsupported resource type " + resourceType);
-                } else {
-                    play.Logger.warn("Unknown resource type " + resourceType);
-                }
+                throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }
 
         return finder.byId(resourceId) != null;
