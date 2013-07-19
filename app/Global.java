@@ -1,22 +1,14 @@
 import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.typesafe.config.ConfigFactory;
-import models.Issue;
-import models.Posting;
-import models.Project;
-import models.User;
+import models.*;
 
 import com.avaje.ebean.Ebean;
 
@@ -25,7 +17,6 @@ import play.Application;
 import play.GlobalSettings;
 import play.Configuration;
 import play.api.mvc.Handler;
-import play.i18n.Messages;
 import play.libs.Yaml;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -61,6 +52,8 @@ public class Global extends GlobalSettings {
         if (app.isTest()) {
             insertTestData();
         }
+
+        NotificationMail.startSchedule();
     }
 
     private void validateSecret() {

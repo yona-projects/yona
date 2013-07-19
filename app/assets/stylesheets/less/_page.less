@@ -496,6 +496,12 @@
                         color: #888;
                         font-size: 11px;
                         margin-bottom: 10px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-height: 40px;
+                        display:-webkit-box;
+                        -webkit-line-clamp:2;
+                        -webkit-box-orient:vertical;
 
                         .commit-logs {
                             .commit-log {

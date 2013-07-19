@@ -213,6 +213,11 @@ abstract public class AbstractPosting extends Model {
         authorName = user.name;
     }
 
+    @Transient
+    public User getAuthor() {
+        return User.find.byId(authorId);
+    }
+
     /**
      * 이슈나 글에 달려있는 댓글을 반환한다.
      *
@@ -273,6 +278,9 @@ abstract public class AbstractPosting extends Model {
                 actualWatchers.add(user);
             }
         }
+
+        List<User> watchers = project.watchers;
+        actualWatchers.addAll(watchers);
 
         actualWatchers.addAll(getExplicitWatchers());
         actualWatchers.removeAll(getExplicitUnwatchers());

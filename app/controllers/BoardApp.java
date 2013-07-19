@@ -5,13 +5,13 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
 import models.*;
+import models.enumeration.NotificationType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 import views.html.board.*;
-import views.html.error.*;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -21,9 +21,8 @@ import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Result;
 
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -133,7 +132,7 @@ public class BoardApp extends AbstractPostingApp {
             return badRequest(create.render(postForm.errors().toString(), postForm, project, isAllowedToNotice));
         }
 
-        Posting post = postForm.get();
+        final Posting post = postForm.get();
         post.createdDate = JodaDateUtil.now();
         post.setAuthor(UserApp.currentUser());
         post.project = project;
@@ -143,7 +142,31 @@ public class BoardApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), post.asResource());
 
-        return redirect(routes.BoardApp.post(project.owner, project.name, post.getNumber()));
+        Call toPost = routes.BoardApp.post(project.owner, project.name, post.getNumber());
+
+        addNotificationEventFromNewPost(post, toPost);
+
+        return redirect(toPost);
+    }
+
+    private static void addNotificationEventFromNewPost(Posting post, Call toPost) {
+        Set<User> watchers = post.getWatchers();
+        watchers.addAll(getMentionedUsers(post.body));
+        watchers.remove(post.getAuthor());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = NotificationEvent.formatNewTitle(post);
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = toPost.absoluteURL(request());
+        notiEvent.resourceId = post.id;
+        notiEvent.resourceType = post.asResource().getType();
+        notiEvent.type = NotificationType.NEW_POSTING;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = post.body;
+        NotificationEvent.add(notiEvent);
+
     }
 
     /**
@@ -233,7 +256,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param projectName 프로젝트 이름
      * @param number 게시물number
      * @return
-     * @see controllers.AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form, play.mvc.Call, utils.Callback)
+     * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form
      */
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();

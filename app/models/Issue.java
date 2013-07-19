@@ -364,4 +364,9 @@ public class Issue extends AbstractPosting {
     protected Set<User> getExplicitUnwatchers() {
         return explicitUnwatchers;
     }
+
+    public boolean assigneeEquals(Assignee assignee) {
+        return ((assignee != null && this.assignee != null) && (assignee.id != this.assignee.id))
+                || ((assignee != this.assignee) && (assignee == null || this.assignee == null));
+    }
 }

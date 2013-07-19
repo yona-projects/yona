@@ -594,3 +594,9 @@ member.enrollment.help = 프로젝트 관리자나 멤버가 승인하면 프로
 member.enrollment.will.help = 프로젝트에 멤버 등록 요청을 보내면 프로젝트 관리자나 멤버가 확인할 수 있습니다.
 new.enrollment = 멤버 등록 요청하기
 cancel.enrollment = 멤버 등록 요청 취소하기
+
+# Notification
+notification.issue.reopened = 다시 열림
+notification.issue.closed  = 닫힘
+notification.issue.assigned = {0}에게 할당됨
+notification.issue.unassigned = 이제 담당자 없음

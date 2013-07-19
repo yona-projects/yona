@@ -19,6 +19,7 @@ import org.apache.shiro.util.ByteSource;
 import play.data.format.Formats;
 import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
@@ -134,6 +135,10 @@ public class User extends Model {
             inverseJoinColumns= @JoinColumn(name="project_id")
     )
     public List<Project> enrolledProjects;
+
+    @ManyToMany(mappedBy = "receivers")
+    @OrderBy("id DESC")
+    public List<NotificationEvent> notificationEvents;
 
     public User(){}
 
@@ -378,14 +383,20 @@ public class User extends Model {
         return this.enrolledProjects;
     }
 
+    @Transactional
     public void addWatching(Project project) {
         getWatchingProjects().add(project);
+        update();
+
         project.upWatcingCount();
         project.update();
     }
 
+    @Transactional
     public void removeWatching(Project project) {
         getWatchingProjects().remove(project);
+        update();
+
         project.downWathcingCount();
         project.update();
     }

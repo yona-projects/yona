@@ -3,15 +3,11 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 
-import play.Logger;
-import play.data.DynamicForm;
 import play.mvc.Http;
 import views.html.issue.edit;
 import views.html.issue.view;
 import views.html.issue.list;
 import views.html.issue.create;
-import views.html.error.notfound;
-import views.html.error.forbidden;
 
 import utils.AccessControl;
 import utils.Callback;
@@ -27,15 +23,9 @@ import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
 import static play.data.Form.form;
@@ -284,15 +274,27 @@ public class IssueApp extends AbstractPostingApp {
                 continue;
             }
 
+            boolean assigneeChanged = false;
+            User oldAssignee = null;
             if (issueMassUpdate.assignee != null) {
-                if (issueMassUpdate.assignee.isAnonymous()) {
-                    issue.assignee = null;
-                } else {
-                    issue.assignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                if(issue.assignee != null) {
+                    oldAssignee = issue.assignee.user;
                 }
+                Assignee newAssignee = null;
+                if (issueMassUpdate.assignee.isAnonymous()) {
+                    newAssignee = null;
+                } else {
+                    newAssignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
+                }
+                assigneeChanged = !issue.assigneeEquals(newAssignee);
+                issue.assignee = newAssignee;
             }
 
-            if (issueMassUpdate.state != null) {
+            boolean stateChanged = false;
+            State oldState = null;
+            if ((issueMassUpdate.state != null) && (issue.state != issueMassUpdate.state)) {
+                stateChanged = true;
+                oldState = issue.state;
                 issue.state = issueMassUpdate.state;
             }
 
@@ -314,6 +316,15 @@ public class IssueApp extends AbstractPostingApp {
 
             issue.update();
             updatedItems++;
+
+            Issue updatedIssue = Issue.finder.byId(issue.id);
+            String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).absoluteURL(request());
+            if(assigneeChanged) {
+                addAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
+            }
+            if(stateChanged) {
+                addStateChangedNotification(oldState, updatedIssue, urlToView);
+            }
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
@@ -353,7 +364,7 @@ public class IssueApp extends AbstractPostingApp {
             return badRequest(create.render(issueForm.errors().toString(), issueForm, project));
         }
 
-        Issue newIssue = issueForm.get();
+        final Issue newIssue = issueForm.get();
         newIssue.createdDate = JodaDateUtil.now();
         newIssue.setAuthor(UserApp.currentUser());
         newIssue.project = project;
@@ -368,7 +379,28 @@ public class IssueApp extends AbstractPostingApp {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), newIssue.asResource());
 
-        return redirect(routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber()));
+        final Call issueCall = routes.IssueApp.issue(project.owner, project.name, newIssue.getNumber());
+
+        String title = NotificationEvent.formatNewTitle(newIssue);
+        Set<User> watchers = newIssue.getWatchers();
+        watchers.addAll(getMentionedUsers(newIssue.body));
+        watchers.remove(newIssue.getAuthor());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = issueCall.absoluteURL(request());
+        notiEvent.resourceId = newIssue.id;
+        notiEvent.resourceType = newIssue.asResource().getType();
+        notiEvent.type = NotificationType.NEW_ISSUE;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = newIssue.body;
+
+        NotificationEvent.add(notiEvent);
+
+        return redirect(issueCall);
     }
 
     /**
@@ -413,14 +445,14 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      * @throws IOException
-     * @see {@link AbstractPostingApp#editPosting(AbstractPosting, AbstractPosting, Form, Call, Callback)}
+     * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
     public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
 
-        final Project project = ProjectApp.getProject(ownerName, projectName);
+        Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound();
         }
@@ -438,7 +470,94 @@ public class IssueApp extends AbstractPostingApp {
             }
         };
 
-        return editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
+        Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
+
+        if(!originalIssue.assigneeEquals(issue.assignee)) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+            User oldAssignee = null;
+            if(originalIssue.assignee != null) {
+                oldAssignee = originalIssue.assignee.user;
+            }
+            addAssigneeChangedNotification(oldAssignee, updatedIssue, redirectTo.absoluteURL(request()));
+        }
+
+        if(issue.state != originalIssue.state) {
+            Issue updatedIssue = Issue.finder.byId(originalIssue.id);
+            addStateChangedNotification(issue.state, updatedIssue,
+                    redirectTo.absoluteURL(request()
+                    ));
+        }
+
+        return result;
+    }
+
+    /**
+     * 상태 변경에 대한 notification을 등록한다.
+     *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
+     *
+     * @param oldState
+     * @param updatedIssue
+     * @param urlToView
+     */
+    private static void addStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
+        NotificationEvent notiEvent = new NotificationEvent();
+
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = updatedIssue.state.state();
+
+        notiEvent.receivers = updatedIssue.getWatchers();
+        notiEvent.receivers.remove(UserApp.currentUser());
+
+        notiEvent.senderId = UserApp.currentUser().id;
+
+        notiEvent.title = NotificationEvent.formatReplyTitle(updatedIssue);
+
+        notiEvent.created = new Date();
+        notiEvent.urlToView = urlToView;
+        notiEvent.resourceId = updatedIssue.id;
+        notiEvent.resourceType = updatedIssue.asResource().getType();
+        notiEvent.type = NotificationType.ISSUE_STATE_CHANGED;
+
+        NotificationEvent.add(notiEvent);
+    }
+
+    /**
+     * 담당자 변경에 대한 notification을 등록한다.
+     *
+     * 등록된 notification은 사이트 메인 페이지를 통해 사용자에게 보여지며 또한
+     * {@link models.NotificationMail#startSchedule()} 에 의해 메일로 발송된다.
+     *
+     * @param oldAssignee
+     * @param updatedIssue
+     * @param urlToView
+     */
+    private static void addAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
+        NotificationEvent notiEvent = new NotificationEvent();
+
+        Set<User> receivers = updatedIssue.getWatchers();
+        if(oldAssignee != null) {
+            notiEvent.oldValue = oldAssignee.loginId;
+            receivers.add(oldAssignee);
+        }
+        receivers.remove(UserApp.currentUser());
+
+        notiEvent.title = NotificationEvent.formatReplyTitle(updatedIssue);
+
+        if (updatedIssue.assignee != null) {
+            notiEvent.newValue = User.find.byId(updatedIssue.assignee.user.id).loginId;
+        }
+
+        notiEvent.created = new Date();
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = receivers;
+        notiEvent.urlToView = urlToView;
+        notiEvent.resourceId = updatedIssue.id;
+        notiEvent.resourceType = updatedIssue.asResource().getType();
+        notiEvent.type = NotificationType.ISSUE_ASSIGNEE_CHANGED;
+
+        NotificationEvent.add(notiEvent);
     }
 
     /*

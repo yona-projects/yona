@@ -25,7 +25,7 @@ public class WatchProjectApp extends Controller {
         }
 
         user.addWatching(project);
-        user.update();
+
 
         return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }
@@ -43,7 +43,6 @@ public class WatchProjectApp extends Controller {
         }
 
         user.removeWatching(project);
-        user.update();
 
         return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }

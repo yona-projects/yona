@@ -47,6 +47,10 @@ public class Config {
         Configuration config = Configuration.root();
         String user = config.getString("smtp.user");
 
+        if (user == null) {
+            return null;
+        }
+
         if (user.contains("@")) {
             return user;
         } else {
