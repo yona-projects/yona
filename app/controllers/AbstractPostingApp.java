@@ -184,7 +184,7 @@ public class AbstractPostingApp extends Controller {
 
         try {
             play.Configuration config = play.Configuration.root();
-            email.setFrom(config.getString("smtp.user") + "@" + config.getString("smtp" + ".domain"));
+            email.setFrom(Config.getEmailFromSmtp());
             email.addTo(config.getString("smtp.user") + "@" + config.getString("smtp.domain"));
             for (User receiver : receivers) {
                 email.addBcc(receiver.email, receiver.name);
