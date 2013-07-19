@@ -21,6 +21,7 @@ import java.util.Set;
  */
 @Entity
 public class NotificationEvent extends Model {
+    private static final long serialVersionUID = 1L;
 
     @Id
     public Long id;

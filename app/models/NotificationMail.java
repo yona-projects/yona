@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Entity
 public class NotificationMail extends Model {
+    private static final long serialVersionUID = 1L;
+
     @Id
     public Long id;
 
