@@ -2,7 +2,7 @@ package controllers;
 
 import com.avaje.ebean.ExpressionList;
 import models.*;
-import models.enumeration.ResourceType;
+import models.enumeration.Operation;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
@@ -15,6 +15,7 @@ import play.Logger;
 import play.data.Form;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
+import utils.AccessControl;
 import utils.Constants;
 import utils.ReservedWordsValidator;
 import views.html.login;
@@ -24,6 +25,8 @@ import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static play.data.Form.form;
@@ -119,7 +122,7 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.UserApp.userInfo(authenticate.loginId));
+            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own"));
         }
 
         flash(Constants.WARNING, "user.login.failed");
@@ -291,12 +294,97 @@ public class UserApp extends Controller {
     /**
      * 사용자 정보 조회
      *
+     * when: 사용자 로그인 아이디나 아바타를 클릭할 때 사용한다.
+     *
+     * {@code groups}에는 여러 그룹 이름이 콤마(,)를 기준으로 들어올 수 있으며,
+     * 각그룹에 해당하는 프로젝트 목록을 간추리고,
+     * 그 프로젝트 목록에 포함되는 이슈, 게시물, 풀리퀘, 마일스톤 데이터를 종합하고 최근 등록일 순으로 정렬하여 보여준다.
+     *
      * @param loginId 로그인ID
      * @return
      */
-    public static Result userInfo(String loginId){
+    public static Result userInfo(String loginId, String groups){
         User user = User.findByLoginId(loginId);
-        return ok(info.render(user));
+        String[] groupNames = groups.trim().split(",");
+
+        List<Project> projects = new ArrayList<>();
+        List<Posting> postings = new ArrayList<>();
+        List<Issue> issues = new ArrayList<>();
+        List<PullRequest> pullRequests = new ArrayList<>();
+        List<Milestone> milestones = new ArrayList<>();
+
+        collectProjects(loginId, user, groupNames, projects);
+        collectDatas(projects, postings, issues, pullRequests, milestones);
+        sortDatas(projects, postings, issues, pullRequests, milestones);
+
+        return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones));
+    }
+
+    private static void sortDatas(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+        Collections.sort(projects, new Comparator<Project>() {
+            @Override
+            public int compare(Project p1, Project p2) {
+                return p2.createdDate.compareTo(p1.createdDate);
+            }
+        });
+
+        Collections.sort(issues, new Comparator<Issue>() {
+            @Override
+            public int compare(Issue i1, Issue i2) {
+                return i2.createdDate.compareTo(i1.createdDate);
+            }
+        });
+
+
+        Collections.sort(postings, new Comparator<Posting>() {
+            @Override
+            public int compare(Posting p1, Posting p2) {
+                return p2.createdDate.compareTo(p1.createdDate);
+            }
+        });
+
+        Collections.sort(pullRequests, new Comparator<PullRequest>() {
+            @Override
+            public int compare(PullRequest p1, PullRequest p2) {
+                return p2.created.compareTo(p1.created);
+            }
+        });
+
+        Collections.sort(milestones, new Comparator<Milestone>() {
+            @Override
+            public int compare(Milestone m1, Milestone m2) {
+                return m2.title.compareTo(m1.title);
+            }
+        });
+    }
+
+    private static void collectDatas(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+        // collect all postings, issues, pullrequests and milesotnes that are contained in the projects.
+        for(Project project : projects) {
+            if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+                postings.addAll(Posting.findRecentlyCreated(project, 10));
+                issues.addAll(Issue.findRecentlyOpendIssues(project, 10));
+                pullRequests.addAll(PullRequest.findOpendPullRequests(project));
+                milestones.addAll(Milestone.findOpenMilestones(project.id));
+            }
+        }
+    }
+
+    private static void collectProjects(String loginId, User user, String[] groupNames, List<Project> projects) {
+        // collect all projects that are included in the project groups.
+        for(String group : groupNames) {
+            switch (group) {
+                case "own":
+                    projects.addAll(Project.findProjectsCreatedByUser(loginId, null));
+                    break;
+                case "member":
+                    projects.addAll(Project.findProjectsByMember(user.id));
+                    break;
+                case "watching":
+                    projects.addAll(user.watchingProjects);
+                    break;
+            }
+        }
     }
 
     /**
@@ -352,7 +440,7 @@ public class UserApp extends Controller {
         }
 
         user.update();
-        return redirect(routes.UserApp.userInfo(user.loginId));
+        return redirect(routes.UserApp.userInfo(user.loginId, "own"));
     }
 
     /**
@@ -364,7 +452,7 @@ public class UserApp extends Controller {
      */
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId));
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own"));
     }
 
     /**

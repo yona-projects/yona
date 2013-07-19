@@ -168,7 +168,7 @@ public class Issue extends AbstractPosting {
     public static int countIssuesBy(Long projectId, State state, Long assigneeId, Long authorId, Long milestoneId) {
         ExpressionList<Issue> exl = finder.where();
         exl = exl.eq("project.id", projectId);
-        
+
         if (state != State.ALL){
             exl = exl.eq("state", state);
         }
@@ -181,10 +181,10 @@ public class Issue extends AbstractPosting {
         if (milestoneId != null && milestoneId >= 0){
             exl = exl.eq("milestone.id", milestoneId);
         }
-        
+
         return exl.findRowCount();
     }
-    
+
     /**
      * Generate a Microsoft Excel file in byte array from the given issue list,
      * using JXL.
@@ -369,4 +369,22 @@ public class Issue extends AbstractPosting {
         return ((assignee != null && this.assignee != null) && (assignee.id != this.assignee.id))
                 || ((assignee != this.assignee) && (assignee == null || this.assignee == null));
     }
+
+    /**
+     * {@code project}에서 최근 열려있는 이슈 중에 {@code size} 만큼을 가져온다.
+     *
+     * when: 프로필 화면에서 여러 프로젝트의 이슈 목록을 종합하여 보여줄 때 사용한다.
+     *
+     * @param project
+     * @param size
+     * @return
+     */
+    public static List<Issue> findRecentlyOpendIssues(Project project, int size) {
+        return finder.where()
+                .eq("project.id", project.id)
+                .order().desc("createdDate")
+                .findPagingList(size).getPage(0)
+                .getList();
+    }
+
 }

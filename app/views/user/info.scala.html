@@ -1,4 +1,4 @@
-@(user:User)
+@(user:User, groupNames:Array[String], projects:List[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone])
 
 @import utils.TemplateHelper._
 
@@ -22,10 +22,6 @@
 @home(user.loginId, utils.MenuType.USER) {
 
 <div class="page">
-    <h1 class="page-title">
-        <a href="@routes.ProjectApp.projects()">@Messages("hive.name")</a>
-        <a href="@routes.UserApp.userInfo(user.loginId)"> / @user.loginId</a>
-    </h1>
     <section class="user-box">
         <div class="user-info-box">
             <div class="whoami-wrap" style="background-image:url('@user.avatarUrl')">
@@ -45,6 +41,22 @@
                 <strong>@Messages("userinfo.since")</strong>
                 <span class="since">@user.getDateString</span>
             </div>
+
+            <hr />
+            <ul class="nav nav-list">
+                <li class="nav-header">@Messages("project.group")</li>
+                <li @if(groupNames.contains("own")){class="active"}>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")</a>
+                </li>
+                <li @if(groupNames.contains("member")){class="active"}>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")</a>
+                </li>
+                @if(user.loginId == session.get("loginId")){
+                <li @if(groupNames.contains("watching")){class="active"}>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")</a>
+                </li>
+                }
+            </ul>
         </div>
 
         <div class="user-stream-box">
@@ -55,61 +67,67 @@
                 </a>
             </div>
             }
-            
+
             <ul class="nav nav-tabs">
                 <li class="active">
-                    <a href="#createdByMe" data-toggle="tab">
-                        @Messages("project.createdByMe")
-                        <span class="num-badge">@Project.findProjectsCreatedByUser(user.loginId, "name").size()</span>
+                    <a href="#projects" data-toggle="tab">
+                        @Messages("projects")
                     </a>
                 </li>
                 <li>
-                    <a href="#belongsToMe" data-toggle="tab">
-                        @Messages("project.belongsToMe")
-                        <span class="num-badge">@belongsToMe_count()</span>
+                    <a href="#postings" data-toggle="tab">
+                        @Messages("menu.board")
                     </a>
                 </li>
-                @if(user.loginId == session.get("loginId")){
                 <li>
-                    <a href="#watching" data-toggle="tab">
-                        @Messages("project.watchingproject")
-                        <span class="num-badge">@watching_count(session.get("loginId"))</span>
+                    <a href="#pullRequests" data-toggle="tab">
+                        @Messages("menu.board")
                     </a>
                 </li>
-                }
+                <li>
+                    <a href="#issues" data-toggle="tab">
+                        @Messages("menu.issue")
+                    </a>
+                </li>
+                <li>
+                    <a href="#milestones" data-toggle="tab">
+                        @Messages("project.milestone")
+                    </a>
+                </li>
             </ul>
-            
+
             <div class="tab-content">
-                <div id="createdByMe" class="tab-pane active">
+                <div id="projects" class="tab-pane active">
                     <ul class="user-streams all-projects">
-                        @for(project <- Project.findProjectsCreatedByUser(user.loginId, "name")){
-                           @partial_projectlist(project, user)
+                        @for(project <- projects){
+                            @partial_projectlist(project, user)
                         }
                     </ul>
                 </div>
-                <div id="belongsToMe" class="tab-pane">
-                    <ul class="user-streams all-projects">
-                    @for(project <- user.myProjects("name")){
-                        @if(!project.isOwner(user)){
-                            @partial_projectlist(project, user)
+                <div id="postings" class="tab-pane">
+                    <ul class="board-list unstyled">
+                        @for(post <- postings){
+                            @partial_postings(post, post.project)
                         }
+                    </ul>
+                </div>
+                <div id="issues" class="tab-pane">
+                    @for(issue <- issues){
+                        @partial_issues(issue, issue.project)
+                    }
+                </div>
+                <div id="pullRequests" class="tab-pane">
+                    @for(pull <- pullRequests){
+                        @partial_pullRequests(pull, pull.toProject)
+                    }
+                </div>
+                <div id="milestones" class="tab-pane">
+                    <ul class="milestones">
+                    @for(milestone <- milestones){
+                        @partial_milestones(milestone, milestone.project)
                     }
                     </ul>
                 </div>
-                
-                @if(user.loginId == session.get("loginId")){
-                <div id="watching" class="tab-pane">
-                    <ul class="user-streams all-projects">
-                @defining(User.findByLoginId(session.get("loginId")).getWatchingProjects()){ watchingProjects =>
-                    @if(watchingProjects.length > 0) {
-                        @for(project <- watchingProjects){
-                            @partial_projectlist(project, user)
-                        }
-                    }
-                }
-                    </ul>
-                </div>
-            }
            </div>
         </div>
     </section>

@@ -1,16 +1,25 @@
 @(project:Project, user:User)
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
+
+@projectLogoImage = @{
+    defining(Attachment.findByContainer(project.asResource)) { files =>
+        if(files.size > 0){
+            "/files/" + files.head.id
+        } else {
+            routes.Assets.at("images/bg-default-project.jpg")
+        }
+    }
+}
+
 <li class="project">
     <div class="info-wrap">
-        @if(user.loginId != project.owner){
-        <div class="owner-avatar-wrap">
-            <a href="@routes.UserApp.userInfo(project.owner)">
-                <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name">
-            </a>&nbsp;
+        <div class="pull-left span2">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)">
+                <img src="@projectLogoImage" class="logo img-rounded" />
+            </a>
         </div>
-        }
-        <div style="float:left">
+        <div class="pull-left" style="margin-left: 10px;">
             <div class="header">
                 <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
                 @if(!project.isPublic){ <i class="ico ico-lock"></i> }
@@ -18,7 +27,7 @@
             @if(project.isFork()){
             <div class="forked label">
                 <i class="icon-retweet icon-white vmiddle"></i>
-                &nbsp;@Messages("fork.original")
+                @Messages("fork.original")
                 <span>/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
                 <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
             </div>
@@ -30,8 +39,8 @@
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-                by <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
-                at <strong>@agoString(JodaDateUtil.ago(project.createdDate))</strong> @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong>
+                <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
+                <strong>@agoString(JodaDateUtil.ago(project.createdDate))</strong> @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong>
             </div>
         </div>
     </div>
@@ -58,12 +67,12 @@
                 @if(session.get("loginId") != project.owner ){
                     @if(User.isWatching(project)){
                         <span data-toggle="tooltip" title="unwatch" data-placement="right">
-                            <a id="btnWatch" href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn small last"><i class="icon-star icon-middle icon-white"></i></a>
+                            <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="watchBtn nbtn small last"><i class="icon-star icon-middle icon-white"></i></a>
                         </span>
                     }
                     @if(!User.isWatching(project) && project.isPublic) {
                         <span data-toggle="tooltip" title="watch" data-placement="right">
-                            <a id="btnWatch" href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn  purple small last "><i class="icon-star-empty icon-middle icon-white"></i></a>
+                            <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="watchBtn nbtn  purple small last "><i class="icon-star-empty icon-middle icon-white"></i></a>
                         </span>
                     }
                 }

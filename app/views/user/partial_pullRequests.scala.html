@@ -1,0 +1,69 @@
+@(req:PullRequest, project:Project)
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+
+@branchName(branch:String) = @{
+    branch.replace("refs/heads/", "")
+}
+
+@projectLogoImage = @{
+    defining(Attachment.findByContainer(project.asResource)) { files =>
+        if(files.size > 0){
+            "/files/" + files.head.id
+        } else {
+            routes.Assets.at("images/bg-default-project.jpg")
+        }
+    }
+}
+
+<div class="row-fluid issue-item">
+    <div class="span10">
+        <div class="pull-left span1" style="margin-right: 10px;">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)">
+                <img src="@projectLogoImage" alt="@project.owner / @project.name" class="img-rounded" />
+            </a>
+        </div>
+        <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap mlarge pull-left">
+            <img src="@req.contributor.avatarUrl" alt="@req.contributor.name">
+        </a>
+        <label>
+            <div class="title">
+                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, req.id)" class="title-link">@req.title</a>
+            </div>
+            <div class="infos nm">
+                <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
+                <span class="date"><i class="icon-calendar"></i> @agoString(req.createdAgo())</span>
+                <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                <code>
+                    <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
+                    <a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a> :
+                    @branchName(req.fromBranch)
+                </code>
+                </span>
+                        <span style="margin-left: 3px;">
+                            <i class="icon-long-arrow-right icon-large"></i>
+                        </span>
+                <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                <code>
+                    <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a> /
+                    <a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a> :
+                    @branchName(req.toBranch)
+                </code>
+                </span>
+            </div>
+        </label>
+    </div>
+    <div class="span2">
+        <div class="empty-avatar-space pull-right">
+            @if(req.receiver != null) {
+            <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap img-rounded">
+                <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
+            </a>
+            } else {
+            &nbsp;
+            }
+        </div>
+        <div class="state @req.state.toString.toLowerCase pull-right">@Messages("issue.state." + req.state.toString.toLowerCase)</div>
+    </div>
+</div>

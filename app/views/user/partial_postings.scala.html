@@ -1,0 +1,48 @@
+@(post:Posting, project:Project)
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+
+@projectLogoImage = @{
+    defining(Attachment.findByContainer(project.asResource)) { files =>
+        if(files.size > 0){
+            "/files/" + files.head.id
+        } else {
+            routes.Assets.at("images/bg-default-project.jpg")
+        }
+    }
+}
+
+<li class="board">
+    <div class="pull-left" style="margin-right: 10px;">
+        <a href="@routes.ProjectApp.project(project.owner, project.name)">
+            <img src="@projectLogoImage" alt="@project.owner / @project.name" class="img-rounded span1" />
+        </a>
+    </div>
+    <div class="author-avatar-space">
+        <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap img-rounded">
+            <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName">
+        </a>
+    </div>
+    <div class="contents">
+        <p class="title">
+            <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
+                @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
+                @post.title
+            </a>
+            @if(Attachment.findByContainer(post.asResource).size > 0){
+            <i class="ico ico-clip icon-middle"></i>
+            }
+        </p>
+        <p class="infos nm">
+            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a>
+            &nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
+        </p>
+    </div>
+    <div class="right-panel">
+        <div class="comment-wrap">
+            @if(post.numOfComments > 0){
+            <i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
+            }
+        </div>
+    </div>
+</li>
