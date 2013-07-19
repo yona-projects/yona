@@ -1,13 +1,13 @@
 <script type="text/javascript">
 $(document).ready(function(){
 	@if(flash.containsKey("warning")) {
-		$hive.notify("@Messages(flash.get("warning"))");
+		$hive.notify("@Messages(flash.get("warning"))", 3000);
 	}
 	@if(flash.containsKey("success")) {
-		$hive.notify("@Messages(flash.get("success"))");
+		$hive.notify("@Messages(flash.get("success"))", 3000);
 	}
 	@if(flash.containsKey("info")) {
-		$hive.notify("@Messages(flash.get("info"))");
+		$hive.notify("@Messages(flash.get("info"))", 3000);
 	}
 });
 </script>
