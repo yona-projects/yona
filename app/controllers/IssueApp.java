@@ -557,7 +557,6 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.save();
     }
 
-
     /*
      * form 에서 전달받은 마일스톤ID를 이용해서 이슈객체에 마일스톤 객체를 set한다
      */
