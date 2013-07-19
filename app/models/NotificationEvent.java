@@ -10,7 +10,6 @@ import play.i18n.Messages;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
