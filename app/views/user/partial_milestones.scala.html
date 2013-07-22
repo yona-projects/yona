@@ -1,0 +1,63 @@
+@(milestone:Milestone, project:Project)
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import scala.collection.immutable._
+@import models.enumeration.ResourceType
+@import models.enumeration.Operation
+
+@projectLogoImage = @{
+    defining(Attachment.findByContainer(project.asResource)) { files =>
+        if(files.size > 0){
+            "/files/" + files.head.id
+        } else {
+            routes.Assets.at("images/bg-default-project.jpg")
+        }
+    }
+}
+
+@makeIssuesLink(mId: Long, _state: String) = @{
+    buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),Map("milestone"->mId.toString))
+}
+
+<li class="milestone">
+    <div class="infos">
+        <div class="meta-info">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)">
+                <img src="@projectLogoImage" class="logo img-rounded span2" style="margin-right: 10px;" />
+            </a>
+            <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
+            @if(milestone.dueDate != null) {
+            <span class="sp">|</span>
+            <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+            <span class="date">(@milestone.until)</span>
+            }
+            <div class="issue-wrap nbtn-group pull-right">
+                <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn medium">
+                @Messages("issue.state.open") <strong class="num-badge open">@milestone.getNumOpenIssues</strong>
+                </a>
+                <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn medium">
+                @Messages("issue.state.closed") <strong class="num-badge closed">@milestone.getNumClosedIssues</strong>
+                </a>
+            </div>
+        </div>
+
+        <div class="progress-wrap">
+            <div class="progress">
+                <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
+            </div>
+            <div class="progress-label">
+                <div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
+                    <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+                </div>
+                <div class="pull-right">
+                    <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!--
+             -->@milestone.getCompletionRate<!--
+             --><i>%</i>
+    </div>
+</li>

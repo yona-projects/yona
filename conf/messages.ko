@@ -600,3 +600,8 @@ notification.issue.reopened = 다시 열림
 notification.issue.closed  = 닫힘
 notification.issue.assigned = {0}에게 할당됨
 notification.issue.unassigned = 이제 담당자 없음
+
+# Grouping
+project.group = 프로젝트 분류
+project.default.group.member = 멤버로 참여중인 프로젝트
+project.default.group.watching = 지켜보는 프로젝트
