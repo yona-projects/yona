@@ -20,6 +20,12 @@ import java.util.List;
 public interface PlayRepository {
 
     /**
+     * 이보다 큰 크기의 파일은 파일 브라우저가 그 내용을 보여주지 않는다.
+     */
+    long MAX_FILE_SIZE_CAN_BE_VIEWED = play.Configuration.root().getInt(
+            "application.codeBrowser.viewer.maxFileSize", 1024 * 1024);
+
+    /**
      * 저장소를 생성한다.
      *
      * @throws IOException
