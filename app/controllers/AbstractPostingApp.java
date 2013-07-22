@@ -20,7 +20,6 @@ import play.libs.Akka;
 import play.mvc.*;
 import utils.AccessControl;
 
-import utils.Callback;
 import utils.Config;
 import utils.Constants;
 import utils.ErrorViews;
@@ -122,6 +121,7 @@ public class AbstractPostingApp extends Controller {
      * {@code commentForm}에서 입력값을 꺼내 현재 사용자를 작성자로 설정하고 댓글을 저장한다.
      * 현재 사용자 임시 저장소에 있는 첨부파일을 댓글의 첨부파일로 옮긴다.
      *
+     *
      * @param comment
      * @param commentForm
      * @param toView
@@ -129,7 +129,7 @@ public class AbstractPostingApp extends Controller {
      * @return
      * @throws IOException
      */
-    public static Result newComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Callback containerUpdater) throws IOException {
+    public static Result newComment(final Comment comment, Form<? extends Comment> commentForm, final Call toView, Runnable containerUpdater) throws IOException {
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "board.comment.empty");
             return redirect(toView);
@@ -231,6 +231,7 @@ public class AbstractPostingApp extends Controller {
      * 게시물이나 이슈가 수정될 때 {@code noti} 객체가 null이 아니면 알림을 발송한다.
      *
      *
+     *
      * @param original
      * @param posting
      * @param postingForm
@@ -238,7 +239,7 @@ public class AbstractPostingApp extends Controller {
      * @param updatePosting
      * @return
      */
-    protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Callback updatePosting) {
+    protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Runnable updatePosting) {
         if (postingForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render(postingForm.errors().toString(), original.project));
         }

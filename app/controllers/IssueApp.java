@@ -10,7 +10,6 @@ import views.html.issue.list;
 import views.html.issue.create;
 
 import utils.AccessControl;
-import utils.Callback;
 import utils.JodaDateUtil;
 import utils.HttpUtil;
 import utils.ErrorViews;
@@ -463,7 +462,7 @@ public class IssueApp extends AbstractPostingApp {
 
         // updateIssueBeforeSave.run would be called just before this issue is saved.
         // It updates some properties only for issues, such as assignee or labels, but not for non-issues.
-        Callback updateIssueBeforeSave = new Callback() {
+        Runnable updateIssueBeforeSave = new Runnable() {
             @Override
             public void run() {
                 issue.comments = originalIssue.comments;
@@ -610,7 +609,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param number 이슈 번호
      * @return
      * @throws IOException
-     * @see {@link AbstractPostingApp#newComment(Comment, Form, Call, Callback)}
+     * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -633,7 +632,7 @@ public class IssueApp extends AbstractPostingApp {
 
         final IssueComment comment = commentForm.get();
 
-        return newComment(comment, commentForm, redirectTo, new Callback() {
+        return newComment(comment, commentForm, redirectTo, new Runnable() {
             @Override
             public void run() {
                 comment.issue = issue;

@@ -14,7 +14,6 @@ import play.libs.Json;
 import views.html.board.*;
 
 import utils.AccessControl;
-import utils.Callback;
 import utils.JodaDateUtil;
 import utils.ErrorViews;
 
@@ -268,7 +267,7 @@ public class BoardApp extends AbstractPostingApp {
         final Posting post = postForm.get();
         final Posting original = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
-        Callback updatePostingBeforeUpdate = new Callback() {
+        Runnable updatePostingBeforeUpdate = new Runnable() {
             @Override
             public void run() {
                 post.comments = original.comments;
@@ -315,7 +314,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param number 게시물number
      * @return
      * @throws IOException
-     * @see controllers.AbstractPostingApp#newComment(models.Comment, play.date.Form, play.mvc.Call, utils.Callback)
+     * @see controllers.AbstractPostingApp#newComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
      */
     public static Result newComment(String owner, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
@@ -338,7 +337,7 @@ public class BoardApp extends AbstractPostingApp {
 
         final PostingComment comment = commentForm.get();
 
-        return newComment(comment, commentForm, redirectTo, new Callback() {
+        return newComment(comment, commentForm, redirectTo, new Runnable() {
             @Override
             public void run() {
                 comment.posting = posting;
