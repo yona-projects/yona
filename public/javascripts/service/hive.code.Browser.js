@@ -398,6 +398,7 @@
                 "html": ["html", "htm"],
                 "ini": ["ini", "config"],
                 "jade": ["jade"],
+                "java": ["java"],
                 "javascript": ["js"],
                 "json": ["json"],
                 "jsp": ["jsp"],
