@@ -382,6 +382,7 @@ public class Issue extends AbstractPosting {
     public static List<Issue> findRecentlyOpendIssues(Project project, int size) {
         return finder.where()
                 .eq("project.id", project.id)
+                .eq("state", State.OPEN)
                 .order().desc("createdDate")
                 .findPagingList(size).getPage(0)
                 .getList();

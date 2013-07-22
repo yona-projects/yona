@@ -314,13 +314,13 @@ public class UserApp extends Controller {
         List<Milestone> milestones = new ArrayList<>();
 
         collectProjects(loginId, user, groupNames, projects);
-        collectDatas(projects, postings, issues, pullRequests, milestones);
-        sortDatas(projects, postings, issues, pullRequests, milestones);
+        collectDatum(projects, postings, issues, pullRequests, milestones);
+        sortDatum(projects, postings, issues, pullRequests, milestones);
 
         return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones));
     }
 
-    private static void sortDatas(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+    private static void sortDatum(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
         Collections.sort(projects, new Comparator<Project>() {
             @Override
             public int compare(Project p1, Project p2) {
@@ -358,7 +358,7 @@ public class UserApp extends Controller {
         });
     }
 
-    private static void collectDatas(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+    private static void collectDatum(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
         // collect all postings, issues, pullrequests and milesotnes that are contained in the projects.
         for(Project project : projects) {
             if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
