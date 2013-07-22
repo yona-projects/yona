@@ -24,10 +24,7 @@ import views.html.user.*;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
@@ -307,7 +304,12 @@ public class UserApp extends Controller {
         User user = User.findByLoginId(loginId);
         String[] groupNames = groups.trim().split(",");
 
-        List<Project> projects = new ArrayList<>();
+        Set<Project> projects = new TreeSet<>(new Comparator<Project>() {
+            @Override
+            public int compare(Project p1, Project p2) {
+                return p2.name.compareTo(p1.name);
+            }
+        });
         List<Posting> postings = new ArrayList<>();
         List<Issue> issues = new ArrayList<>();
         List<PullRequest> pullRequests = new ArrayList<>();
@@ -315,18 +317,12 @@ public class UserApp extends Controller {
 
         collectProjects(loginId, user, groupNames, projects);
         collectDatum(projects, postings, issues, pullRequests, milestones);
-        sortDatum(projects, postings, issues, pullRequests, milestones);
+        sortDatum(postings, issues, pullRequests, milestones);
 
         return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones));
     }
 
-    private static void sortDatum(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
-        Collections.sort(projects, new Comparator<Project>() {
-            @Override
-            public int compare(Project p1, Project p2) {
-                return p2.createdDate.compareTo(p1.createdDate);
-            }
-        });
+    private static void sortDatum(List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
 
         Collections.sort(issues, new Comparator<Issue>() {
             @Override
@@ -358,7 +354,7 @@ public class UserApp extends Controller {
         });
     }
 
-    private static void collectDatum(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+    private static void collectDatum(Set<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
         // collect all postings, issues, pullrequests and milesotnes that are contained in the projects.
         for(Project project : projects) {
             if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -370,7 +366,7 @@ public class UserApp extends Controller {
         }
     }
 
-    private static void collectProjects(String loginId, User user, String[] groupNames, List<Project> projects) {
+    private static void collectProjects(String loginId, User user, String[] groupNames, Set<Project> projects) {
         // collect all projects that are included in the project groups.
         for(String group : groupNames) {
             switch (group) {
