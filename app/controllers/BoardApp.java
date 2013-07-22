@@ -242,7 +242,7 @@ public class BoardApp extends AbstractPostingApp {
         Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
 
-        return ok(edit.render("board.post.modify", editForm, number, project, isAllowedToNotice));
+        return ok(edit.render("board.post.modify", editForm, posting, number, project, isAllowedToNotice));
     }
 
     /**

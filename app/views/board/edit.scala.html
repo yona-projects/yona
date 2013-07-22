@@ -1,4 +1,4 @@
-@(title:String, form:Form[Posting], number:Long,  project:Project, isAllowedToNotice:Boolean)
+@(title:String, form:Form[Posting], posting:Posting, number:Long,  project:Project, isAllowedToNotice:Boolean)
 
 @import utils.TemplateHelper._
 @import models.enumeration.ResourceType
@@ -20,7 +20,7 @@
 
 		    <dd style="position: relative;">
                 <a href="#" class="go-zen" ><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
-                <textarea id="body" name="body" class="zen-mode text content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")"></textarea>
+                <textarea id="body" name="body" class="zen-mode text content" markdown="true" tabindex="2" data-label="@Messages("post.error.emptyBody")">@posting.body</textarea>
 			</dd>
 
 			@if(isAllowedToNotice){
