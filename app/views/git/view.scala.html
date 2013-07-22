@@ -36,7 +36,7 @@
                 </button>
             </span>
         </legend>
-        <div class="well" id="helpMessage">
+        <div class="well" id="helpMessage" style="display:none;">
             <div class="row-fluid">
                 <div class="pull-left">
                     <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
@@ -186,7 +186,6 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#helpMessage').hide();
         $('#helpBtn').click(function(e){
             e.preventDefault();
             $('#helpMessage').toggle();
