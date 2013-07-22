@@ -20,7 +20,7 @@ import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
 import utils.HttpUtil;
-import utils.Views;
+import utils.ErrorViews;
 import views.html.project.*;
 import play.i18n.Messages;
 
@@ -97,13 +97,13 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'"));
+            return notFound(ErrorViews.NotFound.render("No project matches given parameters'" + loginId + "' and project_name '" + projectName + "'"));
         }
 
         project.fixInvalidForkData();
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
@@ -155,11 +155,11 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -179,7 +179,7 @@ public class ProjectApp extends Controller {
     @Transactional
     public static Result newProject() throws Exception {
         if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
-           return forbidden(Views.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
+           return forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
 
@@ -295,11 +295,11 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
@@ -321,7 +321,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
@@ -350,11 +350,11 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         project.cleanEnrolledUsers();
@@ -391,7 +391,7 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
@@ -424,18 +424,18 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (UserApp.currentUser().id.equals(userId)
                 || AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
-                return forbidden(Views.Forbidden.render("project.member.ownerCannotLeave", project));
+                return forbidden(ErrorViews.Forbidden.render("project.member.ownerCannotLeave", project));
             }
             ProjectUser.delete(userId, project.id);
             return redirect(routes.ProjectApp.members(loginId, projectName));
         } else {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
     }
 
@@ -457,18 +457,18 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             if (project.isOwner(User.find.byId(userId))) {
-                return forbidden(Views.Forbidden.render("project.member.ownerMustBeAManager", project));
+                return forbidden(ErrorViews.Forbidden.render("project.member.ownerMustBeAManager", project));
             }
             ProjectUser.assignRole(userId, project.id, form(Role.class)
                     .bindFromRequest().get().id);
             return status(Http.Status.NO_CONTENT);
         } else {
-            return forbidden(Views.Forbidden.render("project.member.isManager", project));
+            return forbidden(ErrorViews.Forbidden.render("project.member.isManager", project));
         }
     }
 
@@ -575,11 +575,11 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         if (!request().accepts("application/json")) {
@@ -613,11 +613,11 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         // Get category and name from the request. Return 400 Bad Request if name is not given.
@@ -626,7 +626,7 @@ public class ProjectApp extends Controller {
         String name = HttpUtil.getFirstValueFromQuery(data, "name");
         if (name == null || name.length() == 0) {
             // A label must have its name.
-            return badRequest(Views.BadRequest.render("Label name is missing.", project));
+            return badRequest(ErrorViews.BadRequest.render("Label name is missing.", project));
         }
 
         Label label = Label.find
@@ -685,24 +685,24 @@ public class ProjectApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         // _method must be 'delete'
         Map<String, String[]> data = request().body().asFormUrlEncoded();
         if (!HttpUtil.getFirstValueFromQuery(data, "_method").toLowerCase()
                 .equals("delete")) {
-            return badRequest(Views.BadRequest.render("_method must be 'delete'.", project));
+            return badRequest(ErrorViews.BadRequest.render("_method must be 'delete'.", project));
         }
 
         Label tag = Label.find.byId(id);
 
         if (tag == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         project.detachLabel(tag);

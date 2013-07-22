@@ -17,7 +17,7 @@ import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.Constants;
 import utils.ReservedWordsValidator;
-import utils.Views;
+import utils.ErrorViews;
 import views.html.login;
 import views.html.user.*;
 
@@ -223,7 +223,7 @@ public class UserApp extends Controller {
         Form<User> userForm = form(User.class).bindFromRequest();
 
         if(userForm.hasErrors()) {
-            return badRequest(Views.BadRequest.render("error.badrequest"));
+            return badRequest(ErrorViews.BadRequest.render("error.badrequest"));
         }
 
         User currentUser = currentUser();

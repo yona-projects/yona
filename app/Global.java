@@ -35,7 +35,7 @@ import play.mvc.Result;
 import play.mvc.Results;
 
 import utils.AccessLogger;
-import utils.Views;
+import utils.ErrorViews;
 
 import play.data.DynamicForm;
 import views.html.secret;
@@ -198,7 +198,7 @@ public class Global extends GlobalSettings {
     @Override
     public Result onHandlerNotFound(RequestHeader request) {
         AccessLogger.log(request, null, Http.Status.NOT_FOUND);
-        return Results.notFound(Views.NotFound.render());
+        return Results.notFound(ErrorViews.NotFound.render());
     }
 
     @Override
@@ -215,7 +215,7 @@ public class Global extends GlobalSettings {
     @Override
     public Result onBadRequest(RequestHeader request, String error) {
         AccessLogger.log(request, null, Http.Status.BAD_REQUEST);
-        return Results.badRequest(Views.BadRequest.render());
+        return Results.badRequest(ErrorViews.BadRequest.render());
     }
 
 }

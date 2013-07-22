@@ -22,7 +22,7 @@ import utils.AccessControl;
 import utils.Callback;
 import utils.Config;
 import utils.Constants;
-import utils.Views;
+import utils.ErrorViews;
 
 import java.io.IOException;
 import java.util.Set;
@@ -161,7 +161,7 @@ public class AbstractPostingApp extends Controller {
      */
     protected static Result delete(Model target, Resource resource, Call redirectTo) {
         if (!AccessControl.isAllowed(UserApp.currentUser(), resource, Operation.DELETE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", resource.getProject()));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", resource.getProject()));
         }
 
         target.delete();
@@ -183,11 +183,11 @@ public class AbstractPostingApp extends Controller {
      */
     protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Callback updatePosting) {
         if (postingForm.hasErrors()) {
-            return badRequest(Views.BadRequest.render(postingForm.errors().toString(), original.project));
+            return badRequest(ErrorViews.BadRequest.render(postingForm.errors().toString(), original.project));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", original.project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", original.project));
         }
 
         posting.id = original.id;
@@ -218,7 +218,7 @@ public class AbstractPostingApp extends Controller {
      */
     public static Result newPostingForm(Project project, ResourceType resourceType, Content content) {
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, resourceType)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         return ok(content);
@@ -234,11 +234,11 @@ public class AbstractPostingApp extends Controller {
         User user = UserApp.currentUser();
 
         if (!AccessControl.isAllowed(user, target.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("You have no permission to do that.", target.asResource().getProject()));
+            return forbidden(ErrorViews.Forbidden.render("You have no permission to do that.", target.asResource().getProject()));
         }
 
         if (user.isAnonymous()) {
-            return forbidden(Views.Forbidden.render("Anonymous cannot watch it.", target.asResource().getProject()));
+            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot watch it.", target.asResource().getProject()));
         }
 
         target.watch(user);
@@ -256,7 +256,7 @@ public class AbstractPostingApp extends Controller {
         User user = UserApp.currentUser();
 
         if (user.isAnonymous()) {
-            return forbidden(Views.Forbidden.render("Anonymous cannot unwatch it.", target.asResource().getProject()));
+            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot unwatch it.", target.asResource().getProject()));
         }
 
         target.unwatch(user);

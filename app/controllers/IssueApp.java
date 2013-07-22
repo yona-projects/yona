@@ -17,7 +17,7 @@ import utils.AccessControl;
 import utils.Callback;
 import utils.JodaDateUtil;
 import utils.HttpUtil;
-import utils.Views;
+import utils.ErrorViews;
 
 import play.data.Form;
 import play.mvc.Call;
@@ -135,11 +135,11 @@ public class IssueApp extends AbstractPostingApp {
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<SearchCondition> issueParamForm = new Form<>(SearchCondition.class);
@@ -192,16 +192,16 @@ public class IssueApp extends AbstractPostingApp {
     public static Result issue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         Issue issueInfo = Issue.findByNumber(project, number);
         if (issueInfo == null) {
-            return notFound(Views.NotFound.render("error.notfound", project, "issue"));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, "issue"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         for (IssueLabel label: issueInfo.labels) {
@@ -227,7 +227,7 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newIssueForm(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         return newPostingForm(project, ResourceType.ISSUE_POST,
@@ -259,7 +259,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound", project, null));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
         }
 
         int updatedItems = 0;
@@ -318,7 +318,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (updatedItems == 0 && rejectedByPermission > 0) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         return redirect(request().getHeader("Referer"));
@@ -343,11 +343,11 @@ public class IssueApp extends AbstractPostingApp {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_POST)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         if (issueForm.hasErrors()) {
@@ -387,12 +387,12 @@ public class IssueApp extends AbstractPostingApp {
     public static Result editIssueForm(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Issue issue = Issue.findByNumber(project, number);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<Issue> editForm = new Form<>(Issue.class).fill(issue);
@@ -423,7 +423,7 @@ public class IssueApp extends AbstractPostingApp {
 
         final Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         final Issue originalIssue = Issue.findByNumber(project, number);
 
@@ -470,7 +470,7 @@ public class IssueApp extends AbstractPostingApp {
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Issue issue = Issue.findByNumber(project, number);
         Call redirectTo =
@@ -496,7 +496,7 @@ public class IssueApp extends AbstractPostingApp {
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         final Issue issue = Issue.findByNumber(project, number);
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
@@ -504,12 +504,12 @@ public class IssueApp extends AbstractPostingApp {
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {
-            return badRequest(Views.BadRequest.render(commentForm.errors().toString(), project));
+            return badRequest(ErrorViews.BadRequest.render(commentForm.errors().toString(), project));
         }
 
         if (!AccessControl.isProjectResourceCreatable(
                     UserApp.currentUser(), project, ResourceType.ISSUE_COMMENT)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         final IssueComment comment = commentForm.get();

@@ -6,7 +6,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
-import utils.Views;
+import utils.ErrorViews;
 import views.html.board.view;
 
 /**
@@ -67,7 +67,7 @@ public class EnrollProjectApp extends Controller {
     }
 
     private static Result badProject(String loginId, String projectName) {
-        return badRequest(Views.BadRequest.render("No project matches given user name '" + loginId + "' and project name '" + projectName + "'"));
+        return badRequest(ErrorViews.BadRequest.render("No project matches given user name '" + loginId + "' and project name '" + projectName + "'"));
     }
 
 }

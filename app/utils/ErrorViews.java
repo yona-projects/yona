@@ -6,7 +6,7 @@ import play.api.templates.Html;
 /**
  * The Enum Views.
  */
-public enum Views {
+public enum ErrorViews {
     Forbidden {
         @Override
         public Html render(String messageKey) {

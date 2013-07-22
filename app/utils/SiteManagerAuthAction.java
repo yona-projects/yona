@@ -27,7 +27,7 @@ public class SiteManagerAuthAction extends Action.Simple {
     @Override
     public Result call(Context context) throws Throwable {
         if (!UserApp.currentUser().isSiteManager()) {
-            return forbidden(Views.Forbidden.render("auth.unauthorized.waringMessage"));
+            return forbidden(ErrorViews.Forbidden.render("auth.unauthorized.waringMessage"));
         }
         return delegate.call(context);
     }

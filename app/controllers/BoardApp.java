@@ -16,7 +16,7 @@ import views.html.error.*;
 import utils.AccessControl;
 import utils.Callback;
 import utils.JodaDateUtil;
-import utils.Views;
+import utils.ErrorViews;
 
 import play.data.Form;
 import play.mvc.Call;
@@ -63,11 +63,11 @@ public class BoardApp extends AbstractPostingApp {
     public static Result posts(String userName, String projectName, int pageNum) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<SearchCondition> postParamForm = new Form<>(SearchCondition.class);
@@ -98,7 +98,7 @@ public class BoardApp extends AbstractPostingApp {
     public static Result newPostForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound", project, "post"));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, "post"));
         }
 
         boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
@@ -122,11 +122,11 @@ public class BoardApp extends AbstractPostingApp {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.BOARD_POST)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         if (postForm.hasErrors()) {
@@ -165,16 +165,16 @@ public class BoardApp extends AbstractPostingApp {
     public static Result post(String userName, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render());
+            return notFound(ErrorViews.NotFound.render());
         }
 
         Posting post = Posting.findByNumber(project, number);
         if (post == null) {
-            return notFound(Views.NotFound.render("error.notfound", project, "post"));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, "post"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), post.asResource(), Operation.READ)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         if(request().getHeader("Accept").contains("application/json")) {
@@ -205,16 +205,16 @@ public class BoardApp extends AbstractPostingApp {
     public static Result editPostForm(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         Posting posting = Posting.findByNumber(project, number);
         if (posting == null) {
-            return notFound(Views.NotFound.render("error.notfound", project, "post"));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, "post"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), posting.asResource(), Operation.UPDATE)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<Posting> editForm = new Form<>(Posting.class).fill(posting);
@@ -240,7 +240,7 @@ public class BoardApp extends AbstractPostingApp {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         final Posting post = postForm.get();
         final Posting original = Posting.findByNumber(project, number);
@@ -271,7 +271,7 @@ public class BoardApp extends AbstractPostingApp {
     public static Result deletePost(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.posts(project.owner, project.name, 1);
@@ -297,7 +297,7 @@ public class BoardApp extends AbstractPostingApp {
     public static Result newComment(String owner, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         if (project == null) {
-            return notFound(Views.NotFound.render("error.notfound"));
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         final Posting posting = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
@@ -310,7 +310,7 @@ public class BoardApp extends AbstractPostingApp {
 
         if (!AccessControl.isProjectResourceCreatable(
                     UserApp.currentUser(), project, ResourceType.NONISSUE_COMMENT)) {
-            return forbidden(Views.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         final PostingComment comment = commentForm.get();
