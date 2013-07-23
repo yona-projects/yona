@@ -8,6 +8,7 @@ import javax.persistence.*;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
+import utils.JodaDateUtil;
 
 import java.util.*;
 
@@ -98,6 +99,12 @@ public class Posting extends AbstractPosting {
                 .order().desc("createdDate")
                 .findPagingList(size).getPage(0)
                 .getList();
+    }
+
+    public static List<Posting> findRecentlyCreatedByDaysAgo(Project project, int days) {
+        return Posting.finder.where()
+                .eq("project.id", project.id)
+                .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
     }
 
     /**

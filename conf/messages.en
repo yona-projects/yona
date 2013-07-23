@@ -605,3 +605,5 @@ notification.issue.unassigned = Unassigned
 project.group = Project Gorups
 project.default.group.member = Member
 project.default.group.watching = Watching
+daysAgo.prefix=recently
+daysAgo.suffix=days ago

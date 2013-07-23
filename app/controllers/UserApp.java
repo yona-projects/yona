@@ -38,6 +38,7 @@ public class UserApp extends Controller {
     public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
     public static final int MAX_FETCH_USERS = 1000;
     private static final int HASH_ITERATIONS = 1024;
+    public static final int DAYS_AGO = 7;
 
     /**
      * ajax 를 이용한 사용자 검색
@@ -119,7 +120,7 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own"));
+            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own", DAYS_AGO));
         }
 
         flash(Constants.WARNING, "user.login.failed");
@@ -300,7 +301,10 @@ public class UserApp extends Controller {
      * @param loginId 로그인ID
      * @return
      */
-    public static Result userInfo(String loginId, String groups){
+    public static Result userInfo(String loginId, String groups, int daysAgo){
+        if(daysAgo <= 0){
+           daysAgo = 1;
+        }
         User user = User.findByLoginId(loginId);
         String[] groupNames = groups.trim().split(",");
 
@@ -319,7 +323,7 @@ public class UserApp extends Controller {
         collectDatum(projects, postings, issues, pullRequests, milestones);
         sortDatum(postings, issues, pullRequests, milestones);
 
-        return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones));
+        return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo));
     }
 
     private static void sortDatum(List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
@@ -358,9 +362,9 @@ public class UserApp extends Controller {
         // collect all postings, issues, pullrequests and milesotnes that are contained in the projects.
         for(Project project : projects) {
             if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                postings.addAll(Posting.findRecentlyCreated(project, 10));
-                issues.addAll(Issue.findRecentlyOpendIssues(project, 10));
-                pullRequests.addAll(PullRequest.findOpendPullRequests(project));
+                postings.addAll(Posting.findRecentlyCreatedByDaysAgo(project, DAYS_AGO));
+                issues.addAll(Issue.findRecentlyOpendIssuesByDaysAgo(project, DAYS_AGO));
+                pullRequests.addAll(PullRequest.findOpendPullRequestsByDaysAgo(project, DAYS_AGO));
                 milestones.addAll(Milestone.findOpenMilestones(project.id));
             }
         }
@@ -436,7 +440,7 @@ public class UserApp extends Controller {
         }
 
         user.update();
-        return redirect(routes.UserApp.userInfo(user.loginId, "own"));
+        return redirect(routes.UserApp.userInfo(user.loginId, "own", DAYS_AGO));
     }
 
     /**
@@ -448,7 +452,7 @@ public class UserApp extends Controller {
      */
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own"));
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own", DAYS_AGO));
     }
 
     /**

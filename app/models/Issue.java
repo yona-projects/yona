@@ -376,16 +376,13 @@ public class Issue extends AbstractPosting {
      * when: 프로필 화면에서 여러 프로젝트의 이슈 목록을 종합하여 보여줄 때 사용한다.
      *
      * @param project
-     * @param size
+     * @param days days ago
      * @return
      */
-    public static List<Issue> findRecentlyOpendIssues(Project project, int size) {
+    public static List<Issue> findRecentlyOpendIssuesByDaysAgo(Project project, int days) {
         return finder.where()
                 .eq("project.id", project.id)
                 .eq("state", State.OPEN)
-                .order().desc("createdDate")
-                .findPagingList(size).getPage(0)
-                .getList();
+                .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
     }
-
 }

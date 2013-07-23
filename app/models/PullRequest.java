@@ -118,6 +118,13 @@ public class PullRequest extends Model {
                 .findList();
     }
 
+    public static List<PullRequest> findOpendPullRequestsByDaysAgo(Project project, int days) {
+        return finder.where()
+                .eq("toProject", project)
+                .eq("state", State.OPEN)
+                .ge("created", JodaDateUtil.before(days)).order().desc("created").findList();
+    }
+
     public static List<PullRequest> findClosedPullRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)
