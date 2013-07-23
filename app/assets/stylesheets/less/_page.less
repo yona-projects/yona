@@ -1358,8 +1358,8 @@
 
                 ul > li {
                     a {
-                        display:block; padding:15px 25px;
-                        font-weight:bold; font-size:14px;
+                        display:block; padding:10px 10px;
+                        font-weight:bold; font-size:12px;
                         -webkit-transition-duration:0.3s;
 
                         .icon-large { margin-right:5px; vertical-align:middle; }
@@ -1374,8 +1374,11 @@
                     }
                     &.active {
                         border-bottom:2px solid @primary;
-                        color:@primary;
+                        color:@black;
                         /*.menu-title { display:inline; }*/
+                    }
+                    &.inactive {
+                        color:#777;
                     }
                 }
             }

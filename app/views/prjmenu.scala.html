@@ -6,7 +6,8 @@
 @import models.enumeration.ResourceType;
 
 @isActiveMenu(m_type:MenuType) = @{
-    if (m_type == menuType) {"active"}
+    if (m_type == menuType) {"class=active"}
+    else {"class=inactive"}
 }
 
 @getPullRequestURL(project:Project) = @{
@@ -117,14 +118,14 @@
             </div>
 
     		<ul class="unstyled">
-                <li class="@isActiveMenu(MenuType.PROJECT_HOME)">
+                <li @isActiveMenu(MenuType.PROJECT_HOME)>
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-home"></i>
                         <span class="menu-title">@Messages("title.projectHome")</span>
                     </a>
                 </li>
                 <li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.BOARD)">
+                <li @isActiveMenu(MenuType.BOARD)>
                     <a href="@routes.BoardApp.posts(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-bullhorn"></i>
                         <span class="menu-title">@Messages("menu.board")</span>
@@ -134,7 +135,7 @@
                     </a>
                 </li>
                 <li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.CODE)">
+                <li @isActiveMenu(MenuType.CODE)>
                     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-code"></i>
                         <span class="menu-title">@Messages("menu.code")</span>
@@ -142,7 +143,7 @@
                 </li>
                 @if(project.vcs.equals("GIT")){
                 <li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
+                <li @isActiveMenu(MenuType.PULL_REQUEST)>
                     <a href="@getPullRequestURL(project)" data-toggle="tooltip" class="menu-item">
                         <i class="icon-large icon-code-fork"></i>
                         <span class="menu-title">@Messages("menu.pullRequest")</span>
@@ -153,7 +154,7 @@
                 </li>
                 }
                 <li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.ISSUE)">
+                <li @isActiveMenu(MenuType.ISSUE)>
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="menu-item">
                         <i class="icon-large icon-exclamation-sign"></i>
                         <span class="menu-title">@Messages("menu.issue")</span>
@@ -163,7 +164,7 @@
                     </a>
                 </li>
                 <li class="sp-line">|</li>
-                <li class="@isActiveMenu(MenuType.MILESTONE)">
+                <li @isActiveMenu(MenuType.MILESTONE)>
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-pushpin"></i>
                         <span class="menu-title">@Messages("project.milestone")</span>
@@ -174,7 +175,7 @@
                 </li>
     		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
     			<li class="sp-line">|</li>
-    			<li class="@isActiveMenu(MenuType.PROJECT_SETTING)">
+			<li @isActiveMenu(MenuType.PROJECT_SETTING)>
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-cogs"></i>
                         <span class="menu-title">@Messages("menu.admin")</span>
