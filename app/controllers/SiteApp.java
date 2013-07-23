@@ -256,7 +256,6 @@ public class SiteApp extends Controller {
     public static Result mailList() {
         Set<String> emails = new HashSet<>();
         Map<String, String[]> projects = request().body().asFormUrlEncoded();
-
         if(!UserApp.currentUser().isSiteManager()) {
             return forbidden(Messages.get("auth.unauthorized.waringMessage"));
         }

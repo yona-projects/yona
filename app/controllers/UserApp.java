@@ -39,6 +39,8 @@ public class UserApp extends Controller {
     public static final int MAX_FETCH_USERS = 1000;
     private static final int HASH_ITERATIONS = 1024;
     public static final int DAYS_AGO = 7;
+    public static final int UNDEFINED = 0;
+    public static final String DAYS_AGO_COOKIE = "daysAgo";
 
     /**
      * ajax 를 이용한 사용자 검색
@@ -302,9 +304,21 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result userInfo(String loginId, String groups, int daysAgo){
-        if(daysAgo <= 0){
-           daysAgo = 1;
+        if (daysAgo == UNDEFINED) {
+            Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
+            if(cookie != null) {
+                daysAgo = Integer.parseInt(cookie.value());
+            } else {
+                daysAgo = DAYS_AGO;
+                response().setCookie(DAYS_AGO_COOKIE, daysAgo + "");
+            }
+        } else {
+            if(daysAgo < 0) {
+                daysAgo = 1;
+            }
+            response().setCookie(DAYS_AGO_COOKIE, daysAgo + "");
         }
+
         User user = User.findByLoginId(loginId);
         String[] groupNames = groups.trim().split(",");
 
