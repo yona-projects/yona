@@ -23,7 +23,7 @@
 
 @makeIssuesLink(mId: Long, _state: String) = @{
 	buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),
-		Map("milestone"->mId.toString)
+		Map("milestoneId"->mId.toString)
 	)
 }
 
