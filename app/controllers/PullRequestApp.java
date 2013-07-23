@@ -342,8 +342,6 @@ public class PullRequestApp extends Controller {
 
                     // merge 결과 확인
                     isSafe[0] = mergeResult.getMergeStatus().isSuccessful();
-
-                    GitRepository.deleteMergingDirectory(pullRequest);
                 }
             });
         }

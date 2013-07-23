@@ -636,8 +636,6 @@ public class GitRepository implements PlayRepository {
 
                     // 풀리퀘스트 완료
                     pullRequest.state = State.CLOSED;
-
-                    deleteMergingDirectory(pullRequest);
                 }
             }
         });
@@ -812,7 +810,7 @@ public class GitRepository implements PlayRepository {
 
     /**
      * {@link Project}의 Git 저장소의 {@code fromBranch}에 있는 내용을
-     * 현재 사용중인 Git 저장소의 {@code toBranch}로 fetct 한다.
+     * 현재 사용중인 Git 저장소의 {@code toBranch}로 fetch 한다.
      *
      * @param repository fetch 실행할 Git 저장소
      * @param project fetch 대상 프로젝트
@@ -862,6 +860,8 @@ public class GitRepository implements PlayRepository {
             CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
             operation.invoke(cloneAndFetch);
 
+            // master로 이동
+            checkout(cloneRepository, "master");
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
         } catch (IOException e) {
@@ -869,7 +869,6 @@ public class GitRepository implements PlayRepository {
         } finally {
             if(cloneRepository != null) {
                 cloneRepository.close();
-//                FileUtil.rm_rf(cloneRepository.getDirectory());
             }
         }
     }
@@ -890,11 +889,11 @@ public class GitRepository implements PlayRepository {
 
         // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
         // 없을 때는 새로 만든다.
-        File gitDirectory = new File(directory);
-        if(!gitDirectory.exists()) {
+        File workingTreeDirectory = new File(directory + "/.git");
+        if(!workingTreeDirectory.exists()) {
             return cloneRepository(pullRequest.toProject, directory).getRepository();
         } else {
-            return new RepositoryBuilder().setGitDir(gitDirectory).build();
+            return new RepositoryBuilder().setGitDir(workingTreeDirectory).build();
         }
     }
 
