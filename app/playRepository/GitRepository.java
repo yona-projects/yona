@@ -844,7 +844,7 @@ public class GitRepository implements PlayRepository {
         Repository cloneRepository = null;
         try {
             cloneRepository = buildCloneRepository(pullRequest);
-            
+
             String srcToBranchName = pullRequest.toBranch;
             String destToBranchName = srcToBranchName + "-to";
             String srcFromBranchName = pullRequest.fromBranch;
@@ -853,7 +853,7 @@ public class GitRepository implements PlayRepository {
             // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
             deleteBranch(cloneRepository, destToBranchName);
             deleteBranch(cloneRepository, destFromBranchName);
-            
+
             // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
             fetch(cloneRepository, pullRequest.toProject, srcToBranchName, destToBranchName);
             // 코드를 보내는 브랜치에 해당하는 코드를 fetch 한다.
@@ -861,7 +861,7 @@ public class GitRepository implements PlayRepository {
 
             CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
             operation.invoke(cloneAndFetch);
-            
+
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
         } catch (IOException e) {
@@ -869,7 +869,7 @@ public class GitRepository implements PlayRepository {
         } finally {
             if(cloneRepository != null) {
                 cloneRepository.close();
-                FileUtil.rm_rf(cloneRepository.getDirectory());
+//                FileUtil.rm_rf(cloneRepository.getDirectory());
             }
         }
     }
@@ -888,13 +888,14 @@ public class GitRepository implements PlayRepository {
         // merge 할 때 사용할 Git 저장소 디렉토리 경로를 생성한다.
         String directory = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
 
-        // clone으로 생성될 디렉토리를 미리 삭제한다.
-        FileUtil.rm_rf(new File(directory));
-
-        // 코드 받을 쪽 프로젝트를 clone 한다.
-        Git git = cloneRepository(pullRequest.toProject, directory);
-
-        return git.getRepository();
+        // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
+        // 없을 때는 새로 만든다.
+        File gitDirectory = new File(directory);
+        if(!gitDirectory.exists()) {
+            return cloneRepository(pullRequest.toProject, directory).getRepository();
+        } else {
+            return new RepositoryBuilder().setGitDir(gitDirectory).build();
+        }
     }
 
     /**
@@ -967,25 +968,25 @@ public class GitRepository implements PlayRepository {
 
     /**
      * 코드저장소 프로젝트명을 변경하고 결과를 반환한다.
-     * 
+     *
      * 변경전 {@code repository.close()}를 통해 open된 repository의 리소스를 반환하고
      * repository 내부에서 사용하는 {@code WindowCache}를 초기화하여 packFile의 참조를 제거한다.
-     * 
+     *
      * @param projectName
      * @return 코드저장소 이름 변경성공시 true / 실패시 false
      * @see playRepository.PlayRepository#rename(models.Project, models.Project)
      */
     @Override
     public boolean renameTo(String projectName) {
-        
+
         repository.close();
         WindowCache.reconfigure(new WindowCacheConfig());
-        
+
         File src = new File(getGitDirectory(this.ownerName, this.projectName));
         File dest = new File(getGitDirectory(this.ownerName, projectName));
 
         src.setWritable(true);
-        
+
         return src.renameTo(dest);
     }
 
