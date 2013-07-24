@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
-import static com.avaje.ebean.Expr.icontains;
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
@@ -528,8 +527,8 @@ public class ProjectApp extends Controller {
      * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
-        String rawQuery = "%" + query + "%";
-        ExpressionList<Project> el = Project.find.where().raw("owner like ? or name like ? or overview like ?", new String[] {rawQuery, rawQuery, rawQuery});
+
+        ExpressionList<Project> el = Project.find.where().disjunction().icontains("owner", query).icontains("name", query).icontains("overview", query).endJunction();
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {
@@ -553,9 +552,9 @@ public class ProjectApp extends Controller {
      * @return JSON 형태의 프로젝트 목록
      */
     private static Result getProjectsToJSON(String query) {
-        String rawQuery = "%" + query + "%";
-        ExpressionList<Project> el = Project.find.where().raw("owner like ? or name like ? or overview like ?", new String[] {rawQuery, rawQuery, rawQuery});
-        
+
+        ExpressionList<Project> el = Project.find.where().disjunction().icontains("owner", query).icontains("name", query).icontains("overview", query).endJunction();
+
         int total = el.findRowCount();
         if (total > MAX_FETCH_PROJECTS) {
             el.setMaxRows(MAX_FETCH_PROJECTS);
