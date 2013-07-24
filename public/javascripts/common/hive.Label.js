@@ -30,17 +30,10 @@ hive.Label = (function(htOptions){
 	 */
 	function _init(htOptions){
 		htOptions = htOptions || {"bEditable": false};
-		
 		_initVar(htOptions);
 		_initElement(htOptions);
-
-		// initialize label editor on bEditable == true
-		if(htVar.bEditable){
-			_initLabelEditor();
-		}
-		
+		_initLabelEditor();
 		_attachEvent();
-		_getLabels(htOptions.fOnLoad);		
 	}
 	
 	/**
@@ -69,12 +62,14 @@ hive.Label = (function(htOptions){
 	 * initialize element variable
 	 */
 	function _initElement(htOptions){
-		htElement.welContainer  = $(htOptions.welContainer || "fieldset.labels").empty();
+		htElement.welContainer  = $(htOptions.welContainer || "fieldset.labels");
 		htElement.welForm = $(htOptions.welForm || 'form#issue-form,form.form-search,form#search');
 		
 		// add label
 		htElement.welLabels = $('.labels'); 
 		htElement.welLabelEditor = $('.label-editor'); 		
+
+		htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
 	}
 	
 	/**
@@ -83,6 +78,7 @@ hive.Label = (function(htOptions){
 	 */
 	function _attachEvent(){
 		htElement.welForm.submit(_onSubmitForm);		
+		htElement.welBtnManageLabel.click(_clickBtnManageLabel);
 	}
 	
 	/**
@@ -103,14 +99,26 @@ hive.Label = (function(htOptions){
 	}
 
 	/**
+	 * 라벨 에디터 컨트롤
+	 */
+	function _clickBtnManageLabel() {
+		htVar.bEditable = !htVar.bEditable;
+		_initLabelEditor();
+	}
+
+	/**
 	 * 라벨 편집기 초기화
 	 * initialize Label Editor
 	 */
 	function _initLabelEditor(){
-		hive.LabelEditor.appendTo(htElement.welContainer, {
-			"sURLPost" : htVar.sURLPost,
-			"fOnCreate": _onCreateNewLabel
-		});
+		htElement.welContainer.empty();
+		if(htVar.bEditable){
+			hive.LabelEditor.appendTo(htElement.welContainer, {
+				"sURLPost" : htVar.sURLPost,
+				"fOnCreate": _onCreateNewLabel
+			});
+		}
+		_getLabels(htVar.fOnLoad);
 	}
 	
 	/**

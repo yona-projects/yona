@@ -67,11 +67,6 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
-	    var htOptLabel = {
-		    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-		    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-	    };
-	
 	    $hive.loadModule("issue.List", {
 		    "elPagination": $("#pagination"),
 		    "welMassUpdateForm": $('#mass-update-form'),
@@ -83,8 +78,7 @@
 		    "welDetachingLabel": $("#detaching-label"),
 		    "welDeleteButton": $("#delete"),
 		    "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
-		    "nTotalPages" : @totalPageCount,
-		    "htOptLabel"  : htOptLabel
+		    "nTotalPages" : @totalPageCount
 	    });
     });
 </script>

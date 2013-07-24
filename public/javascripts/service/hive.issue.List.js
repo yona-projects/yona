@@ -22,9 +22,6 @@
 			_initVar(htOptions || {})
 			_initElement(htOptions || {});
 			_attachEvent();
-			
-			_initLabel(htOptions.htOptLabel);
-			
 			_initPagination();
 			_setLabelColor();
 		}
@@ -33,7 +30,6 @@
 		 * initialize variables except element
 		 */
 		function _initVar(htOptions){
-		    htVar.htOptLabel = htOptions.htOptLabel;
 			htVar.nTotalPages = htOptions.nTotalPages || 1;
             htVar.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
 
@@ -62,8 +58,6 @@
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
             htElement.welDeleteButton = htOptions.welDeleteButton;
             htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
-
-            htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");            
 		}
 		
 		/**
@@ -88,15 +82,7 @@
                 _onCheckIssue();
                 return false; 
             });
-            
-            // manage Labels
-            htElement.welBtnManageLabel.click(_clickBtnManageLabel);
 		}
-
-        function _clickBtnManageLabel() {
-            htVar.htOptLabel.bEditable = !htVar.htOptLabel.bEditable;
-            _initLabel(htVar.htOptLabel);
-        }
 
         /**
          * Add a hidden input element into the given form.
@@ -156,14 +142,6 @@
 			htElement.welContainer.toggleClass("advanced");
 	   	}
 
-		/**
-		 * initialize hive.Label
-		 * @param {Hash Table} htOptions
-		 */
-		function _initLabel(htOptions){		
-			hive.Label.init(htOptions);
-        }
-		
 		/**
 		 * update Pagination
 		 * @requires hive.Pagination
