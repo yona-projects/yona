@@ -519,17 +519,17 @@ public class ProjectApp extends Controller {
      *
      * when : 프로젝트명, 프로젝트 관리자, 공개여부로 프로젝트 목록 조회시
      *
-     * 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고
+     * 프로젝트명 / 관리자 아이디 / Overview 중 {@code query}를 포함하고
      * 공개여부가 @{code state} 인 프로젝트 목록을 최근생성일로 정렬하여 페이징 형태로 가져온다.
      *
-     * @param query 검색질의(프로젝트명 또는 관리자)
+     * @param query 검색질의(프로젝트명 / 관리자 아이디 / Overview)
      * @param state 프로젝트 상태(공개/비공개)
      * @param pageNum 페이지번호
      * @return 프로젝트명 또는 관리자 로그인 아이디가 {@code query}를 포함하고 공개여부가 @{code state} 인 프로젝트 목록
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
-        ExpressionList<Project> el = Project.find.where().or(icontains("name", query),
-                icontains("owner", query));
+        String rawQuery = "%" + query + "%";
+        ExpressionList<Project> el = Project.find.where().raw("owner like ? or name like ? or overview like ?", new String[] {rawQuery, rawQuery, rawQuery});
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {
@@ -546,21 +546,23 @@ public class ProjectApp extends Controller {
     /**
      * 프로젝트 정보를 JSON으로 가져온다.
      *
-     * 프로젝트명 또는 관리자 아이디에 {@code query} 가 포함되는 프로젝트 목록을 {@link #MAX_FETCH_PROJECTS} 만큼 가져오고
+     * 프로젝트명 / 관리자 아이디 / Overview 중 {@code query} 가 포함되는 프로젝트 목록을 {@link #MAX_FETCH_PROJECTS} 만큼 가져오고
      * JSON으로 변환하여 반환한다.
      *
-     * @param query 검색질의(프로젝트명 또는 관리자)
+     * @param query 검색질의(프로젝트명 / 관리자 / Overview)
      * @return JSON 형태의 프로젝트 목록
      */
     private static Result getProjectsToJSON(String query) {
-        List<String> projectNames = new ArrayList<>();
-        ExpressionList<Project> el = Project.find.where().or(icontains("name", query),
-                icontains("owner", query));
+        String rawQuery = "%" + query + "%";
+        ExpressionList<Project> el = Project.find.where().raw("owner like ? or name like ? or overview like ?", new String[] {rawQuery, rawQuery, rawQuery});
+        
         int total = el.findRowCount();
         if (total > MAX_FETCH_PROJECTS) {
             el.setMaxRows(MAX_FETCH_PROJECTS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
         }
+        
+        List<String> projectNames = new ArrayList<>();
         for (Project project: el.findList()) {
             projectNames.add(project.owner + "/" + project.name);
         }
