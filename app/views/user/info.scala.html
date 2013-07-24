@@ -1,4 +1,4 @@
-@(user:User, groupNames:Array[String], projects:Set[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone], daysAgo:Int)
+@(user:User, groupNames:Array[String], projects:Set[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone], daysAgo:Int, selected:String)
 
 @import utils.TemplateHelper._
 
@@ -66,13 +66,13 @@
                     <i class="ico ico-pencil"></i> @Messages("title.newProject")
                 </a>
             </div>
-            <div id='daysAgo' class="pull-right">
-                @Messages("daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo">@Messages("daysAgo.suffix")
-            </div>
             }
 
             <ul class="nav nav-tabs">
-                <li class="active">
+                <li class="days-ago">
+                    @Messages("daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo">@Messages("daysAgo.suffix")
+                </li>
+                <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
                         @Messages("projects")
                     </a>
@@ -148,27 +148,36 @@ $(document).ready(function(){
     });
     $hive.loadModule("project.Global");
 
+    var selectedTab = '@selected';
     //daysAgo input enter
     $('#daysAgoBtn').on("keypress", function(e) {
         /* ENTER PRESSED*/
         if (e.keyCode == 13) {
             /* FOCUS ELEMENT */
             var daysAgo = $(this).val();
-            window.location.href='?daysAgo='+daysAgo;
+            window.location.href='?daysAgo='+daysAgo+'&selected='+selectedTab;
             return false;
         }
     });
 
-    $('#daysAgo').hide();
-
     $('a[data-toggle="tab"]').click(function(e){
+        //get href link and remove '#' from #link from 'href' value
+        selectedTab = $(this).attr('href').replace('#', '');
+
+        //postings, pullRequests, issues 탭이 아닐경우에는 daysAgo input 을 disabled 시킨다.
         var targets = ['#postings','#pullRequests','#issues'];
         if($.inArray($(this).attr('href'), targets) === -1){
-            $('#daysAgo').hide();
+            $("#daysAgoBtn").prop('disabled', true);
+            $("#daysAgoBtn").css('color','#eee');
         } else {
-            $('#daysAgo').show();
+            $("#daysAgoBtn").prop('disabled', false);
+            $("#daysAgoBtn").css('color','');
+            $("#daysAgoBtn").blur()
         }
     });
+
+    // in loading, previously selected tab click
+    $('a[href=#@selected]').trigger('click');
 });
 </script>
 }

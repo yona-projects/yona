@@ -122,7 +122,7 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own", DAYS_AGO));
+            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own", DAYS_AGO, null));
         }
 
         flash(Constants.WARNING, "user.login.failed");
@@ -303,7 +303,7 @@ public class UserApp extends Controller {
      * @param loginId 로그인ID
      * @return
      */
-    public static Result userInfo(String loginId, String groups, int daysAgo){
+    public static Result userInfo(String loginId, String groups, int daysAgo, String selected){
         if (daysAgo == UNDEFINED) {
             Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
             if(cookie != null) {
@@ -337,7 +337,7 @@ public class UserApp extends Controller {
         collectDatum(projects, postings, issues, pullRequests, milestones);
         sortDatum(postings, issues, pullRequests, milestones);
 
-        return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo));
+        return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo, selected));
     }
 
     private static void sortDatum(List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
@@ -454,7 +454,7 @@ public class UserApp extends Controller {
         }
 
         user.update();
-        return redirect(routes.UserApp.userInfo(user.loginId, "own", DAYS_AGO));
+        return redirect(routes.UserApp.userInfo(user.loginId, "own", DAYS_AGO, null));
     }
 
     /**
@@ -466,7 +466,7 @@ public class UserApp extends Controller {
      */
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own", DAYS_AGO));
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own", DAYS_AGO, null));
     }
 
     /**

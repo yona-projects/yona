@@ -29,10 +29,19 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
+
 	<div class="pull-right">
+        <div class="btn-group">
+            <a href="@urlToList&milestoneId=@param.milestoneId" @if(param.assigneeId == null && param.authorLoginId == null){class="btn active"} else {class="btn"}>@Messages("issue.list.all") <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, null, null, param.milestoneId)</span></a>
+            @if(UserApp.currentUser().id != -1l){
+                <a href="@urlAssignedToMe" @if(param.assigneeId == UserApp.currentUser().id){ class="btn active"} else {class="btn"}>@Messages("issue.list.assignedToMe") <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, UserApp.currentUser().id, null, param.milestoneId)</span></a>
+            }
+            <a href="@urlAuthoredByMe" @if(param.authorLoginId == UserApp.currentUser().loginId){ class="btn active"} else { class="btn"}>@Messages("issue.list.authoredByMe") <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, null, UserApp.currentUser().id, param.milestoneId)</span></a>
+            </div>
+
         <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
     </div>
-    
+
 	<ul class="nav nav-tabs nm">
     @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
         <li @if(param.state == state.state) { class="active" }>
@@ -74,14 +83,6 @@
         
         <div class="span3 search-wrap">
             <div class="inner bggray @if(param.authorLoginId != null || param.assigneeId != null || param.milestoneId != null){ advanced }">
-                <ul class="unstyled preset-list">
-                    <li @if(param.assigneeId == null && param.authorLoginId == null){ class="active"}><a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all") <strong class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, null, null, param.milestoneId)</strong></a></li>
-                    @if(UserApp.currentUser().id != -1l){
-                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}><a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe") <strong class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, UserApp.currentUser().id, null, param.milestoneId)</strong></a></li>
-                    }
-                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}><a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe") <strong class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, null, UserApp.currentUser().id, param.milestoneId)</strong></a></li>
-                </ul>
-
                 @if(param.milestoneId != null){
                     @defining(Milestone.findById(param.milestoneId)){ milestone =>
                         @if(milestone != null){
