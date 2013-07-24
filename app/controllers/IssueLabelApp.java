@@ -11,6 +11,8 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.AccessControl;
+import utils.ErrorViews;
+import views.html.board.view;
 
 import static play.libs.Json.toJson;
 
@@ -96,12 +98,12 @@ public class IssueLabelApp extends Controller {
 
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_LABEL)) {
-            return forbidden("You have no permission to add an issue label to the project '" +
-                    project + "'.");
+            return forbidden(ErrorViews.Forbidden.render("You have no permission to add an issue label to the project '" +
+                    project + "'.", project));
         }
 
         IssueLabel label = labelForm.get();
@@ -151,17 +153,17 @@ public class IssueLabelApp extends Controller {
         DynamicForm bindedForm = form().bindFromRequest();
         if (!bindedForm.get("_method").toLowerCase()
                 .equals("delete")) {
-            return badRequest("_method must be 'delete'.");
+            return badRequest(ErrorViews.BadRequest.render("_method must be 'delete'."));
         }
 
         IssueLabel label = IssueLabel.finder.byId(id);
 
         if (label == null) {
-            return notFound("The label #" + id + " is not found.");
+            return notFound(ErrorViews.NotFound.render("The label #" + id + " is not found."));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), label.asResource(), Operation.DELETE)) {
-            return forbidden("You have no permission to delete the label #" + label.id + ".");
+            return forbidden(ErrorViews.Forbidden.render("You have no permission to delete the label #" + label.id + ".", label.project));
         }
 
         label.delete();

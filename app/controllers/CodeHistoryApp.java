@@ -25,6 +25,7 @@ import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.HttpUtil;
+import utils.ErrorViews;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.diff;
@@ -87,13 +88,13 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         String pageStr = HttpUtil.getFirstValueFromQuery(request().queryString(), "page");
@@ -106,7 +107,7 @@ public class CodeHistoryApp extends Controller {
             List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch);
 
             if (commits == null) {
-                return notFound();
+                return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
             }
 
             return ok(history.render(project, commits, page, branch));
@@ -139,18 +140,18 @@ public class CodeHistoryApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(views.html.error.forbidden.render(project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
 
         if (patch == null) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
         }
 
         List<CodeComment> comments = CodeComment.find.where().eq("commitId",
@@ -164,14 +165,14 @@ public class CodeHistoryApp extends Controller {
         Form<CodeComment> codeCommentForm = new Form<>(CodeComment.class)
                 .bindFromRequest();
 
-        if (codeCommentForm.hasErrors()) {
-            return badRequest(codeCommentForm.errors().toString());
-        }
-
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
         if (project == null) {
-            return notFound(notfound_default.render("error.notfound", request().path()));
+            return notFound(notfound_default.render(request().path()));
+        }
+
+        if (codeCommentForm.hasErrors()) {
+            return badRequest(ErrorViews.BadRequest.render(codeCommentForm.errors().toString(), project));
         }
 
         if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
@@ -180,7 +181,7 @@ public class CodeHistoryApp extends Controller {
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project,
                 ResourceType.CODE_COMMENT)) {
-            return forbidden(forbidden.render(project));
+            return forbidden(forbidden.render("error.forbidden", project));
         }
 
         CodeComment codeComment = codeCommentForm.get();
@@ -200,12 +201,12 @@ public class CodeHistoryApp extends Controller {
         CodeComment codeComment = CodeComment.find.byId(id);
 
         if (codeComment == null) {
-            return notFound(notfound_default.render("error.notfound", request().path()));
+            return notFound(notfound_default.render(request().path()));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), codeComment.asResource(),
                 Operation.DELETE)) {
-            return forbidden(forbidden.render(codeComment.project));
+            return forbidden(forbidden.render("error.forbidden", codeComment.project));
         }
 
         codeComment.delete();

@@ -17,6 +17,7 @@ import play.mvc.Result;
 import play.mvc.With;
 import utils.Constants;
 import utils.SiteManagerAuthAction;
+import utils.ErrorViews;
 import views.html.site.*;
 
 import java.util.*;
@@ -257,7 +258,7 @@ public class SiteApp extends Controller {
         Set<String> emails = new HashSet<>();
         Map<String, String[]> projects = request().body().asFormUrlEncoded();
         if(!UserApp.currentUser().isSiteManager()) {
-            return forbidden(Messages.get("auth.unauthorized.waringMessage"));
+            return forbidden(ErrorViews.Forbidden.render("auth.unauthorized.waringMessage"));
         }
 
         if (!request().accepts("application/json")) {

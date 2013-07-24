@@ -1,10 +1,10 @@
-@(messageKey:String = "error.notfound")
+@(messageKey:String = "error.forbidden")
 
 @home(Messages(messageKey), utils.MenuType.SITE_HOME) {
 <div class="page">
     <div class="error-wrap">
-        <i class="ico-404"></i>
-        <p>@Messages(messageKey)</p>    
+        <i class="ico ico-err2"></i>
+        <p>@Messages(messageKey)</p>
         <a href="@routes.Application.index()" class="nbtn medium">@Messages("menu.home")</a>
     </div>
 </div>

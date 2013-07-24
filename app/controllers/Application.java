@@ -37,7 +37,7 @@ public class Application extends Controller {
             path = path.substring(0, path.length() - 1);
         } else {
             Logger.error("Unexpected url call : " + request().path());
-            return notFound(notfound_default.render("error.notfound", path));
+            return notFound(notfound_default.render("error.notfound"));
         }
         Logger.debug("Trailing slash removed and redirected: " + request().path() + " to " + path );
         return redirect(path);

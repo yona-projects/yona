@@ -6,6 +6,7 @@ import play.data.*;
 import play.mvc.*;
 import utils.AccessControl;
 import utils.Constants;
+import utils.ErrorViews;
 import views.html.milestone.*;
 
 import java.util.*;
@@ -43,7 +44,7 @@ public class MilestoneApp extends Controller {
     public static Result milestones(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
 
@@ -70,11 +71,11 @@ public class MilestoneApp extends Controller {
     public static Result newMilestoneForm(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         return ok(create.render("title.newMilestone", new Form<>(Milestone.class), project));
@@ -100,11 +101,11 @@ public class MilestoneApp extends Controller {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         validate(project, milestoneForm);
@@ -149,12 +150,12 @@ public class MilestoneApp extends Controller {
     public static Result editMilestoneForm(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(milestoneId);
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<Milestone> editForm = new Form<>(Milestone.class).fill(milestone);
@@ -178,13 +179,13 @@ public class MilestoneApp extends Controller {
     public static Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Milestone original = Milestone.findById(milestoneId);
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         if(!original.title.equals(milestoneForm.field("title").value())) {
@@ -217,11 +218,11 @@ public class MilestoneApp extends Controller {
     public static Result deleteMilestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
         if(!project.id.equals(milestone.project.id)) {
             return internalServerError();
@@ -243,11 +244,11 @@ public class MilestoneApp extends Controller {
     public static Result open(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         milestone.open();
@@ -267,11 +268,11 @@ public class MilestoneApp extends Controller {
     public static Result close(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
         if(!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         milestone.close();
@@ -293,9 +294,13 @@ public class MilestoneApp extends Controller {
     public static Result milestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
-            return notFound();
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
+        
+        if(milestone == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
         return ok(view.render(milestone.title, milestone, project));
     }
 }

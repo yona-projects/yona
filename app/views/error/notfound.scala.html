@@ -6,7 +6,7 @@
     } else if(target.equals("post")) {
         utils.MenuType.BOARD
     } else {
-        utils.MenuType.NONE
+        utils.MenuType.PROJECT_HOME
     }
 }
 
@@ -30,15 +30,11 @@
 
 @main(title, project, utils.MenuType.NONE) {
 <div class="page">
-
     @prjmenu(project, getMenuType(targetType), "")
-
     <div class="error-wrap">
         <i class="ico ico-err2"></i>
-        <p>@getMessage(targetType)</p>
-        
+        <p>@getMessage(targetType)</p>       
         <a href="@getReturnURL(targetType)" class="nbtn medium">@Messages("button.list")</a>
     </div>
-    
 </div>
 }

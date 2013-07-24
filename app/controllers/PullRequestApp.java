@@ -18,6 +18,7 @@ import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.Constants;
 import utils.JodaDateUtil;
+import utils.ErrorViews;
 import views.html.git.*;
 
 import javax.servlet.ServletException;
@@ -48,7 +49,7 @@ public class PullRequestApp extends Controller {
 
         User currentUser = UserApp.currentUser();
         if(!AccessControl.isProjectResourceCreatable(currentUser, project, ResourceType.FORK)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, project);
@@ -80,7 +81,7 @@ public class PullRequestApp extends Controller {
 
         User currentUser = UserApp.currentUser();
         if(!AccessControl.isProjectResourceCreatable(currentUser, originalProject, ResourceType.FORK)) {
-            return forbidden();
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", originalProject));
         }
 
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
@@ -212,7 +213,7 @@ public class PullRequestApp extends Controller {
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
         if(form.hasErrors()) {
-            return badRequest(form.errors().toString());
+            return badRequest(ErrorViews.BadRequest.render(form.errors().toString(), project));
         }
 
         Project originalProject = project.originalProject;
@@ -247,7 +248,7 @@ public class PullRequestApp extends Controller {
             return badRequestForNullProject(userName, projectName);
         }
         if(!project.vcs.equals("GIT")) {
-            return badRequest("Now, only git project is allowed this request.");
+            return badRequest(ErrorViews.BadRequest.render("Now, only git project is allowed this request.", project));
         }
         List<PullRequest> pullRequests = PullRequest.findOpendPullRequests(project);
         return ok(list.render(project, pullRequests, "opened"));
@@ -476,7 +477,7 @@ public class PullRequestApp extends Controller {
         // 게스트 중에서 코드 요청을 보낸 사용자는 취소 할 수 있다.
         if(isGuest(project, user)) {
             if(!user.equals(pullRequest.contributor)) {
-                forbidden("Only this project's member and manager and the pull_request's author are allowed.");
+                forbidden(ErrorViews.Forbidden.render("Only this project's member and manager and the pull_request's author are allowed.", project));
             }
         }
 
@@ -513,12 +514,12 @@ public class PullRequestApp extends Controller {
             return badRequestForNullProject(userName, projectName);
         }
         if(!project.isFork()) {
-            return badRequest("Only fork project is allowed this request");
+            return badRequest(ErrorViews.BadRequest.render("Only fork project is allowed this request", project));
         }
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
         if(isGuest(project, currentUser)) {
-            return badRequest("Guest is not allowed this request");
+            return badRequest(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
         }
 
         return null;
@@ -536,7 +537,7 @@ public class PullRequestApp extends Controller {
      * @return
      */
     private static Status badRequestForNullProject(String userName, String projectName) {
-        return badRequest("No project matches given parameters'" + userName + "' and project_name '" + projectName + "'");
+        return badRequest(ErrorViews.BadRequest.render("No project matches given parameters'" + userName + "' and project_name '" + projectName + "'"));
     }
 
     /**
@@ -556,7 +557,7 @@ public class PullRequestApp extends Controller {
         }
 
         if(pullRequest == null) {
-            return badRequest("No pull_request matches given pull_request_id '" + pullRequestId + "'");
+            return badRequest(ErrorViews.BadRequest.render("No pull_request matches given pull_request_id '" + pullRequestId + "'", project));
         }
         return null;
     }
@@ -583,7 +584,7 @@ public class PullRequestApp extends Controller {
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
 
         if(isGuest(project, user)) {
-            result = forbidden("Guest is not allowed this request");
+            result = forbidden(ErrorViews.Forbidden.render("Guest is not allowed this request", project));
         }
 
         return result;

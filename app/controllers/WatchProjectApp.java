@@ -6,6 +6,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
+import utils.ErrorViews;
 
 /**
  * @author Keesun Baik
@@ -48,6 +49,6 @@ public class WatchProjectApp extends Controller {
     }
 
     private static Result badProject(String userName, String projectName) {
-        return badRequest("No project matches given user name '" + userName + "' and project name '" + projectName + "'");
+        return badRequest(ErrorViews.BadRequest.render("No project matches given user name '" + userName + "' and project name '" + projectName + "'"));
     }
 }

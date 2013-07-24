@@ -19,6 +19,7 @@ import utils.AccessControl;
 import utils.Constants;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
+import utils.ErrorViews;
 import views.html.login;
 import views.html.user.*;
 
@@ -226,7 +227,7 @@ public class UserApp extends Controller {
         Form<User> userForm = form(User.class).bindFromRequest();
 
         if(userForm.hasErrors()) {
-            return badRequest();
+            return badRequest(ErrorViews.BadRequest.render("error.badrequest"));
         }
 
         User currentUser = currentUser();

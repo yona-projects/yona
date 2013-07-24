@@ -18,14 +18,17 @@ import controllers.routes;
 import play.Application;
 import play.GlobalSettings;
 import play.Configuration;
+import play.Play;
 import play.api.mvc.Handler;
 import play.libs.Yaml;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
 import play.mvc.Result;
+import play.mvc.Results;
 
 import utils.AccessLogger;
+import utils.ErrorViews;
 
 import play.data.DynamicForm;
 import views.html.secret;
@@ -227,18 +230,24 @@ public class Global extends GlobalSettings {
     @Override
     public Result onHandlerNotFound(RequestHeader request) {
         AccessLogger.log(request, null, Http.Status.NOT_FOUND);
-        return super.onHandlerNotFound(request);
+        return Results.notFound(ErrorViews.NotFound.render());
     }
 
     @Override
     public Result onError(RequestHeader request, Throwable t) {
         AccessLogger.log(request, null, Http.Status.INTERNAL_SERVER_ERROR);
-        return super.onError(request, t);
+
+        if (Play.isProd()) {
+            return Results.internalServerError(views.html.error.internalServerError_default.render("error.internalServerError"));
+        } else {
+            return super.onError(request,  t);
+        }
     }
 
     @Override
     public Result onBadRequest(RequestHeader request, String error) {
         AccessLogger.log(request, null, Http.Status.BAD_REQUEST);
-        return super.onBadRequest(request, error);
+        return Results.badRequest(ErrorViews.BadRequest.render());
     }
+
 }
