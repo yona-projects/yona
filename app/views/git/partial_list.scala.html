@@ -24,9 +24,11 @@
                         <span class="date"><i class="icon-calendar"></i> @agoString(req.createdAgo())</span>
                         <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
                             <code>
+                                @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {
                                 <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
                                 <a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a> :
-                                @branchName(req.fromBranch)
+                                }
+                                <i class="icon-code-fork"></i> @branchName(req.fromBranch)
                             </code>
                         </span>
                         <span style="margin-left: 3px;">
@@ -34,9 +36,11 @@
                         </span>
                         <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
                             <code>
+                                @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
                                 <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a> /
                                 <a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a> :
-                                @branchName(req.toBranch)
+                                }
+                                <i class="icon-code-fork"></i> @branchName(req.toBranch)
                             </code>
                         </span>
                     </div>
