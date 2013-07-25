@@ -173,7 +173,7 @@ public class Global extends GlobalSettings {
         };
     }
 
-    private Action getConfigSecretAction() {
+    private Action<Void> getConfigSecretAction() {
         return new Action.Simple() {
             @Override
             public Result call(Http.Context ctx) throws Throwable {
@@ -199,7 +199,7 @@ public class Global extends GlobalSettings {
         };
     }
 
-    private Action getRestartAction() {
+    private Action<Void> getRestartAction() {
         return new Action.Simple() {
 
             @Override
