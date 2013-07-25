@@ -43,6 +43,8 @@ public class UserApp extends Controller {
     public static final int DAYS_AGO = 7;
     public static final int UNDEFINED = 0;
     public static final String DAYS_AGO_COOKIE = "daysAgo";
+    public static final String DEFAULT_GROUP = "own";
+    public static final String DEFAULT_SELECTED_TAB = "projects";
 
     /**
      * ajax 를 이용한 사용자 검색
@@ -124,7 +126,7 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own", DAYS_AGO, "projects"));
+            return redirect(routes.UserApp.userInfo(authenticate.loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
         }
 
         flash(Constants.WARNING, "user.login.failed");
@@ -485,7 +487,7 @@ public class UserApp extends Controller {
         }
 
         user.update();
-        return redirect(routes.UserApp.userInfo(user.loginId, "own", DAYS_AGO, "projects"));
+        return redirect(routes.UserApp.userInfo(user.loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 
     /**
@@ -497,7 +499,7 @@ public class UserApp extends Controller {
      */
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own", DAYS_AGO, "projects"));
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
 
     /**
