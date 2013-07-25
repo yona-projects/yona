@@ -124,7 +124,7 @@ public class UserApp extends Controller {
             if (sourceUser.rememberMe) {
                 setupRememberMe(authenticate);
             }
-            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own", DAYS_AGO, null));
+            return redirect(routes.UserApp.userInfo(authenticate.loginId, "own", DAYS_AGO, "projects"));
         }
 
         flash(Constants.WARNING, "user.login.failed");
@@ -485,7 +485,7 @@ public class UserApp extends Controller {
         }
 
         user.update();
-        return redirect(routes.UserApp.userInfo(user.loginId, "own", DAYS_AGO, null));
+        return redirect(routes.UserApp.userInfo(user.loginId, "own", DAYS_AGO, "projects"));
     }
 
     /**
@@ -497,7 +497,7 @@ public class UserApp extends Controller {
      */
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
-        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own", DAYS_AGO, null));
+        return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, "own", DAYS_AGO, "projects"));
     }
 
     /**
