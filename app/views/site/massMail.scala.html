@@ -13,7 +13,7 @@
     <p>
         <input id="mailtoPrj" type="radio" name="mailingType" value="projects" checked>@Messages("site.massMail.toProjects"):
         <label for="mailtoPrj" class="radio">
-            <span id="selected-projects"><!-- project names are added here by hive.site.MassMail.js --></span>
+            <span id="selected-projects"><!-- project names are added here by yobi.site.MassMail.js --></span>
             <input id="input-project" type="text" class="text uname" data-provider="typeahead" autocomplete="off" placeholder="@Messages("project.name")"/>
             <button id="select-project" type="submit" class="btn btn-primary" data-loading-text="@Messages("site.massMail.loading")">
                 <strong>@Messages("button.add")</strong>
@@ -28,7 +28,7 @@
 
 <script type="text/javascript">
   $(document).ready(function(){
-    $hive.loadModule("site.MassMail", {
+    $yobi.loadModule("site.MassMail", {
         "sURLMailList": "@routes.SiteApp.mailList()",
         "sURLProjects": "@routes.ProjectApp.projects()"
     });

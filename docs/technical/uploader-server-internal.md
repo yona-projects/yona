@@ -3,7 +3,7 @@
 개요
 ----
 
-Hive의 파일 업로드 및 다운로드 기능은 HTTP 요청과 응답을 통해 이루어진다. 요청은 `controller.AttachmentApp`이 `models.Attachment`를 이용하여 처리한다.
+Yobi의 파일 업로드 및 다운로드 기능은 HTTP 요청과 응답을 통해 이루어진다. 요청은 `controller.AttachmentApp`이 `models.Attachment`를 이용하여 처리한다.
 
 파일을 업로드하거나 다운로드하는 요청은 conf/routes 파일에 다음과 같이 정의되어 있다.
 

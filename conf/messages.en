@@ -33,9 +33,9 @@ title.boardList = Post List
 title.boardDetail = Post View
 title.zenmode = zen mode
 
-hive.name = HIVE
-hive.title = Collaborative Software Development Platform
-hive.description = Make it better and simpler!
+yobi.name = Yobi
+yobi.title = Collaborative Software Development Platform
+yobi.description = Make it better and simpler!
 
 menu.home = Home
 menu.board = Board
@@ -388,7 +388,7 @@ user.loginWithNewPassword = Please, login with new password!
 user.notExists.name = User Doesn't Exists
 user.locked = User account is locked
 user.isLocked = is locked?
-user.signup.requested = Sign-up for hive is requested. Site admin will review your request. Thanks
+user.signup.requested = Sign-up for yobi is requested. Site admin will review your request. Thanks
 user.avatar.onlyImage = Only an image is allowed.
 
 #Role
@@ -509,7 +509,7 @@ userinfo.leaveProject = Leave
 userinfo.leaveProject.confirm = Are you sure to leave {0}?
 
 #Admin
-admin.resetPasswordEmail.title = [HIVE] Password reset mail request
+admin.resetPasswordEmail.title = [Yobi] Password reset mail request
 admin.resetPasswordEmail.mailcontents = copy the below url and paste it to browser url bar
 admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
 

@@ -198,7 +198,7 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-	// 프로젝트 전역 단축키: hive.ShortcutKey
+	// 프로젝트 전역 단축키: yobi.ShortcutKey
     var htKeyMap = {
         "H": "@routes.ProjectApp.project(project.owner, project.name)",
         "B": "@routes.BoardApp.posts(project.owner, project.name)",
@@ -213,7 +213,7 @@ $(document).ready(function(){
         }
     };
 
-    $hive.loadModule("project.Global", {
+    $yobi.loadModule("project.Global", {
         "htKeyMap": htKeyMap,
         "sRepoURL": "@CodeApp.getURLWithLoginId(project)"
     });

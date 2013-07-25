@@ -33,7 +33,7 @@ db.default.logStatements=true
 # MySQL Configuration
 # db.default.driver=com.mysql.jdbc.Driver
 # db.default.url="jdbc:mysql://127.0.0.1:3306/nforge?characterEncoding=utf-8"
-# db.default.user=hive
+# db.default.user=yobi
 # db.default.password=""
 
 # Local
@@ -78,7 +78,7 @@ smtp.host = smtp.gmail.com
 smtp.port = 465
 smtp.ssl = true
 #smtp.user = yourGmailId
-smtp.user = hiveproject.mail
+smtp.user = yobiproject.mail
 # Be careful!!!
 smtp.password = yourGmailPassword
 smtp.domain = gmail.com

@@ -78,7 +78,7 @@ public class ProjectAppTest {
         //Given
         Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
 
-        Label label1 = new Label("OS", "hive-linux");
+        Label label1 = new Label("OS", "yobi-linux");
         label1.save();
         project.labels.add(label1);
         project.update();
@@ -105,7 +105,7 @@ public class ProjectAppTest {
         assertThat(json.has(id1)).isTrue();
         assertThat(json.has(id2)).isTrue();
         assertThat(json.get(id1).get("category").asText()).isEqualTo("OS");
-        assertThat(json.get(id1).get("name").asText()).isEqualTo("hive-linux");
+        assertThat(json.get(id1).get("name").asText()).isEqualTo("yobi-linux");
         assertThat(json.get(id2).get("category").asText()).isEqualTo("Label");
         assertThat(json.get(id2).get("name").asText()).isEqualTo("foo");
     }

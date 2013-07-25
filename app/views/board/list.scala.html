@@ -83,12 +83,12 @@
 
 <script type="text/javascript">
 	$(document).ready(function() {
-		$hive.loadModule("board.List", {
+		$yobi.loadModule("board.List", {
 			"elPagination": $('#pagination'),
 			"nTotalPages" : @page.getTotalPageCount
 		});
 		
-		hive.ShortcutKey.setKeymapLink({
+		yobi.ShortcutKey.setKeymapLink({
 		   "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
 		   @if(page.getPageIndex > 0){
            ,"A": "@getPageListUrl(page.getPageIndex - 1)"

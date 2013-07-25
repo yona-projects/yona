@@ -1,12 +1,12 @@
 Introduction
 ============
 
-게시물의 목록과 같이 컬렉션인 리소스의 경우, 그 리소스의 전체가 아닌 일부만 보고 싶은 경우가 있다. 이러한 요구를 만족시키기 위해 HIVE는 pagination을 지원한다. pagination을 지원하는 리소스는 페이지들의 list로 간주되며, 페이지는 1개 이상의 element의 list이다. 클라이언트는 리소스의 특정 페이지만을 요청할 수 있으며, 서버 역시 특정 페이지만을 돌려줄 수 있다.
+게시물의 목록과 같이 컬렉션인 리소스의 경우, 그 리소스의 전체가 아닌 일부만 보고 싶은 경우가 있다. 이러한 요구를 만족시키기 위해 Yobi는 pagination을 지원한다. pagination을 지원하는 리소스는 페이지들의 list로 간주되며, 페이지는 1개 이상의 element의 list이다. 클라이언트는 리소스의 특정 페이지만을 요청할 수 있으며, 서버 역시 특정 페이지만을 돌려줄 수 있다.
 
 pagination.js
 =============
 
-HIVE는 pagination 레이아웃을 그려주는 자바스크립트 라이브러리인 pagination.js를 제공한다. 이 파일은 public/javascript/paginatin.js 에 위치한다.
+Yobi는 pagination 레이아웃을 그려주는 자바스크립트 라이브러리인 pagination.js를 제공한다. 이 파일은 public/javascript/paginatin.js 에 위치한다.
 
 Pagination.update(target, totalPages, options)
 ----------------------------------------------

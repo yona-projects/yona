@@ -82,7 +82,7 @@ public class AbstractPostingApp extends Controller {
         public String getHtmlMessage() {
             return String.format(
                     "<pre>%s</pre><hr><a href=\"%s\">%s</a>",
-                    getMessage(), getUrlToView(), "View it on HIVE");
+                    getMessage(), getUrlToView(), "View it on Yobi");
         }
         public String getPlainMessage() {
             return String.format(
@@ -171,7 +171,7 @@ public class AbstractPostingApp extends Controller {
      * 어떤 게시물이 등록되었을 때, 그 프로젝트를 지켜보는 사용자들에게 알림 메일을 발송한다.
      *
      * @param noti
-     * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/watch.md>watch.md</a>
+     * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/watch.md>watch.md</a>
      */
     public static void sendNotification(Notification noti) {
         Set<User> receivers = noti.getReceivers();

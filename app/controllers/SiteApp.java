@@ -221,7 +221,7 @@ public class SiteApp extends Controller {
      *
      * 세션 {@code loginId} 가 사이트 관리자이고 삭제할 {@code loginId}가 {@code anonymous}가 아니면 계정 장금 또는 해제한후 사용자 관리페이지로 리다이렉트한다.
      * 세션 {@code loginId} 가 사이트 관리자이고 삭제할 {@code loginId}가 익명사용자이면 경고메세지와 함께사용자 관리페이지로 리다이렉트한다.
-     * 세션 {@code loginId} 가 사이트 관리자가 아니면 경고메세지와 함께 Hive 첫페이지로 리다이렉트한다.
+     * 세션 {@code loginId} 가 사이트 관리자가 아니면 경고메세지와 함께 Yobi 첫페이지로 리다이렉트한다.
      *
      * @param loginId the login id
      * @return the result

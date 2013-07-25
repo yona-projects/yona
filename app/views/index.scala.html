@@ -3,7 +3,7 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-@home("hive.name", utils.MenuType.SITE_HOME) {
+@home("yobi.name", utils.MenuType.SITE_HOME) {
     <div class="page on-fold-intro">
         <div class="fn-intro-wrap">
 	        <div class="tag-line-wrap tag-line-wrap-index">
@@ -103,10 +103,10 @@
         $(document).ready(function(){
             $("#toggleIntro").click(function(){
                 $(".page").toggleClass("on-fold-intro");
-                localStorage.setItem("hive-intro", !$(".page").hasClass("on-fold-intro"));
+                localStorage.setItem("yobi-intro", !$(".page").hasClass("on-fold-intro"));
             });
             
-            if(localStorage.getItem("hive-intro") != "false"){
+            if(localStorage.getItem("yobi-intro") != "false"){
                 $(".page").removeClass("on-fold-intro");
             }
         });

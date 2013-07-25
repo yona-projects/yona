@@ -56,7 +56,7 @@ case insensitive
 예외
 ----
 
-MS-DOS나 Windows 3.1, Windows 95 등에서 사용하는, "FILENAME.TXT"와 같은 식의 8.3 filename(short filename)은 지원하지 않는 것으로 한다. Hive는 Oracle JRE의 [Certified System Configurations]((http://www.oracle.com/technetwork/java/javase/config-417990.html) 이외의 구성에서는 정상 동작하는 것을 보장하지 않는다.
+MS-DOS나 Windows 3.1, Windows 95 등에서 사용하는, "FILENAME.TXT"와 같은 식의 8.3 filename(short filename)은 지원하지 않는 것으로 한다. Yobi는 Oracle JRE의 [Certified System Configurations]((http://www.oracle.com/technetwork/java/javase/config-417990.html) 이외의 구성에서는 정상 동작하는 것을 보장하지 않는다.
 
 기타 주의사항
 -------------
@@ -82,4 +82,4 @@ github는 사용자 이름에 대한 validation 규칙은 매우 단순하다. g
 
 반면 저장소 이름에 대한 규칙은 명확히 알려주지 않으므로 실험을 통해서 알아낼 수 밖에 없다. 확인해 본 결과 alphanumeric과 `-`, `_`, `.`를 사용할 수 있으며 그 이외의 문자는 `-`로 자동 변환된다. 또한 예외적으로 예약된 이름들이 있다. 예를 들어 저장소 이름을 `.`나 `..`라고 지을 수는 없다.
 
-Hive가 Github의 저장소를 import하거나 혹은 반대의 상황이 가능하도록 하려면 가급적 서로의 이름규칙이 호환되도록 하는 것이 편하다.
+Yobi가 Github의 저장소를 import하거나 혹은 반대의 상황이 가능하도록 하려면 가급적 서로의 이름규칙이 호환되도록 하는 것이 편하다.
