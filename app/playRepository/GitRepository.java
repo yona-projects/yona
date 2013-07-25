@@ -16,7 +16,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -588,20 +587,20 @@ public class GitRepository implements PlayRepository {
 
 
     /**
-     * {@code originalProject}의 Git 저장소를 clone 하는 {@code forkingProject}의 Git 저장소를 생성한다.
+     * {@code gitUrl}의 Git 저장소를 clone 하는 {@code forkingProject}의 Git 저장소를 생성한다.
      *
      * 모든 브랜치를 복사하며 bare 모드로 생성한다.
      *
-     * @param originalProject
+     * @param gitUrl
      * @param forkingProject
      * @throws GitAPIException
      * @throws IOException
      * * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html#def_bare_repository">bare repository</a>
      */
-    public static void cloneRepository(Project originalProject, Project forkingProject) throws GitAPIException, IOException {
+    public static void cloneRepository(String gitUrl, Project forkingProject) throws GitAPIException, IOException {
         String directory = getGitDirectory(forkingProject);
         Git.cloneRepository()
-                .setURI(getGitDirectoryURL(originalProject))
+                .setURI(gitUrl)
                 .setDirectory(new File(directory))
                 .setCloneAllBranches(true)
                 .setBare(true)
@@ -859,7 +858,6 @@ public class GitRepository implements PlayRepository {
 
             CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
             operation.invoke(cloneAndFetch);
-
             // master로 이동
             checkout(cloneRepository, "master");
         } catch (GitAPIException e) {
@@ -973,7 +971,7 @@ public class GitRepository implements PlayRepository {
      *
      * @param projectName
      * @return 코드저장소 이름 변경성공시 true / 실패시 false
-     * @see playRepository.PlayRepository#rename(models.Project, models.Project)
+     * @see playRepository.PlayRepository#renameTo(String)
      */
     @Override
     public boolean renameTo(String projectName) {

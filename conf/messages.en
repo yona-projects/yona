@@ -250,7 +250,6 @@ post.attachment = Attachment
 post.numOfComments = Comment Count
 post.error.emptyTitle = Title is required
 post.error.emptyBody = Post with empty body cannot be created
-post.notice = notice
 
 #Project
 project.myproject = My Projects
@@ -609,3 +608,11 @@ project.default.group.member = Member
 project.default.group.watching = Watching
 daysAgo.prefix=recently
 daysAgo.suffix=days ago
+
+# Importing git project
+import.error.empty.url = Please input Git repository URL.
+import.error.wrong.url = Wrong Git repository URL.
+import.from.git = Import a Git repository.
+import.or = Or
+git.repository.url = Git repository URL
+git.url.alert = Please input Git repository URL. ex) https://github.com/nforge/hive.git

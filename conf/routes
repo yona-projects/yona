@@ -18,6 +18,10 @@ GET     /favicon.ico                                    controllers.Assets.at(pa
 GET     /init                                           controllers.Application.init()
 GET		/UIKit											controllers.Application.UIKit()
 
+# Import
+GET     /import                                         controllers.ImportApp.importForm()
+POST    /import                                         controllers.ImportApp.newProject()
+
 # User
 GET     /users                                          controllers.UserApp.users(query: String ?= "")
 GET     /users/loginform                                controllers.UserApp.loginForm()
