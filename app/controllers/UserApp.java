@@ -308,7 +308,6 @@ public class UserApp extends Controller {
      * @return
      */
     public static Result userInfo(String loginId, String groups, int daysAgo, String selected) {
-        Logger.debug("input days: " + daysAgo);
         if (daysAgo == UNDEFINED) {
             Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
             if (cookie != null) {
