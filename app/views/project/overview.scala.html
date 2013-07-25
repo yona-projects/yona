@@ -123,7 +123,7 @@
 		                }
 		            </header>
 		            <ul class="infos" id="label-board">
-		                <!-- labels are added here by hive.project.Home.js -->
+		                <!-- labels are added here by yobi.project.Home.js -->
 		            </ul>
 
 		            <script id="label-delete-button-template" type="text/x-jquery-tmpl">
@@ -184,7 +184,7 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-	$hive.loadModule("project.Home", {
+	$yobi.loadModule("project.Home", {
         "sURLProjectLabels": "@routes.ProjectApp.labels(project.owner, project.name)",
         "sURLLabels"       : "@routes.LabelApp.labels()",
         "sURLLabelCategories": "@routes.LabelApp.categories()",

@@ -1,4 +1,4 @@
-HIVE는 사이트 운영자와 HIVE 개발자를 위해 운영중에 발생한 상황에 대한 로그를 남긴다. 로그는 logs 디렉토리에 있는 로그 파일 및 표준출력을 통해 남겨지게 된다.
+Yobi는 사이트 운영자와 Yobi 개발자를 위해 운영중에 발생한 상황에 대한 로그를 남긴다. 로그는 logs 디렉토리에 있는 로그 파일 및 표준출력을 통해 남겨지게 된다.
 
 로그 파일
 ---------
@@ -18,7 +18,7 @@ HIVE는 사이트 운영자와 HIVE 개발자를 위해 운영중에 발생한 �
 
 로그의 설정에 대해서는 [LOGBack 문서](http://logback.qos.ch/documentation.html)를 참조한다.
 
-주의: PlayFramework는 `conf/application.conf`를 통해서도 로그에 대한 설정을 할 수 있도록 허용한다. 그러나 HIVE에서는 보다 정교한 설정을 위해 `conf/application-logger.xml`에 설정을 남기도록 하고 있다. 두 파일의 설정이 각각 다른 경우 의도하지 않은 동작을 하게 될 수 있으므로, 로그 관련 설정은 `conf/application-logger.xml`에서만 하도록 한다.
+주의: PlayFramework는 `conf/application.conf`를 통해서도 로그에 대한 설정을 할 수 있도록 허용한다. 그러나 Yobi에서는 보다 정교한 설정을 위해 `conf/application-logger.xml`에 설정을 남기도록 하고 있다. 두 파일의 설정이 각각 다른 경우 의도하지 않은 동작을 하게 될 수 있으므로, 로그 관련 설정은 `conf/application-logger.xml`에서만 하도록 한다.
 
 로그 레벨
 ---------
@@ -51,4 +51,4 @@ logs/access.log에 기록되는(기본 설정에서) 액세스 로그는, 다음
 
     127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif" 200 - "http://www.example.com/start.html" "Mozilla/4.08 [en] (Win98; I ;Nav)" 70ms
 
-또한 현재는 HIVE 기능상의 한계로 ident와 요청의 길이는 항상 "-" 으로 로그가 남게 된다. 응답이 정상적으로 처리되지 못해 에러가 발생한 경우에는 처리시간도 "-" 으로 기록된다.
+또한 현재는 Yobi 기능상의 한계로 ident와 요청의 길이는 항상 "-" 으로 로그가 남게 된다. 응답이 정상적으로 처리되지 못해 에러가 발생한 경우에는 처리시간도 "-" 으로 기록된다.

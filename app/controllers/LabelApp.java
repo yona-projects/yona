@@ -38,7 +38,7 @@ public class LabelApp extends Controller {
      * @param query 태그에 대한 검색어 질의
      * @param limit 가져올 태그의 최대 갯수
      * @return 태그 목록 요청에 대한 응답
-     * @see <a href="https://github.com/nforge/hive/blob/master/docs/technical/label-typeahead
+     * @see <a href="https://github.com/nforge/yobi/blob/master/docs/technical/label-typeahead
      * .md>label-typeahead.md</a>
      */
     public static Result labels(String query, String category, Integer limit) {

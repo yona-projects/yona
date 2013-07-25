@@ -34,7 +34,7 @@ public class MailSendTest {
             "this is the mailtext.\n\nsincerely sender\n\n" +
             "테스트 메일입니다. 답장을 보내지 마세요. :)";
     public static final String DEFAULT_HTML_MESSAGE = "<html><body style='background: red'><p>Hello</p></body></html>";
-    public static final String SENDER_LOCALHOST = "hiveproject.mail@gmail.com";
+    public static final String SENDER_LOCALHOST = "yobiproject.mail@gmail.com";
     public static final String RECIPIENT_LOCALHOST = "nforge@nhn.com";
     public static final String SUBJECT = "메일 발송 테스트입니다 - the subject of the email";
     public static final String ATTACHEMENT_TXT_FILE_NAME = "the-text-file.txt";

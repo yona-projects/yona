@@ -7,7 +7,7 @@
 
 <div class="page">
     <h1 class="page-title">
-        <span class="gray">@Messages("hive.name")/</span>@user.loginId
+        <span class="gray">@Messages("yobi.name")/</span>@user.loginId
     </h1>
 
     <div class="profile-frmwrap">
@@ -59,7 +59,7 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
-        $hive.loadModule("user.Setting", {
+        $yobi.loadModule("user.Setting", {
             "sURLUpload": "@routes.AttachmentApp.uploadFile",
             "sURLFiles" : "@routes.AttachmentApp.getFileList()"
         });

@@ -1,21 +1,21 @@
 <a name="english"></a>
 [[한국어]](#korean)
-HIVE
+Yobi
 =======
-[![Build Status](https://travis-ci.org/nforge/hive.png?branch=master)](https://travis-ci.org/nforge/hive)
+[![Build Status](https://travis-ci.org/nforge/yobi.png?branch=master)](https://travis-ci.org/nforge/yobi)
 
 
 
-HIVE, collaborative SW development platform.<br/>(Currently, unversioned - work in progress)
+Yobi, collaborative SW development platform.<br/>(Currently, unversioned - work in progress)
 
 
-What is HIVE?
+What is Yobi?
 --
 
-HIVE, a brand new version of nFORGE, is a web-based collaborative platform for software development.
-HIVE offers many features to increase productivity and quality of your software: a bug tracker to manage bugs and issues, a wiki to share documents, a configuration management tool to control software version and so on.
+Yobi, a brand new version of nFORGE, is a web-based collaborative platform for software development.
+Yobi offers many features to increase productivity and quality of your software: a bug tracker to manage bugs and issues, a wiki to share documents, a configuration management tool to control software version and so on.
 
-<img src="https://raw.github.com/nforge/hive/master/docs/hive_front.png">
+<img src="https://raw.github.com/nforge/yobi/master/docs/yobi_front.png">
 
 
 ## Installation
@@ -42,16 +42,16 @@ or
 
     cd play-2.1.0
 
-### download hive
+### download yobi
 
-    git clone https://github.com/nforge/hive.git
+    git clone https://github.com/nforge/yobi.git
 
-You can also make your own hive directory in any other place. But in that case, you should add playframework home path to $PATH environment.
+You can also make your own yobi directory in any other place. But in that case, you should add playframework home path to $PATH environment.
 
 
-### cd to cloned hive directory
+### cd to cloned yobi directory
 
-    cd hive
+    cd yobi
 
 
 ### run play framework
@@ -67,7 +67,7 @@ Required files will be download automatically. In the first time, it may take ab
 
 It will downloaded addtional files and compile sources.
 
-If you want to run hive in production mode, use **start** , not **run**.
+If you want to run yobi in production mode, use **start** , not **run**.
 
 ### connect by browser
 
@@ -85,22 +85,22 @@ see [http://www.playframework.com/documentation/2.1.1/Production](http://www.pla
 # for korean
 [[English]](#english)
 
-HIVE
+Yobi
 ===========
 
 협업 개발 플랫폼 (현재 개발중이며 아직 공식 버전 넘버링이 안 된 상태입니다.)
 
 
-HIVE 소개
+Yobi 소개
 --
-HIVE (구 nFORGE)는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다. 버그나 이슈을 관리할 수 있는 버그 트래커, 각종 문서와 정보를 간편하게 공유할 수 있는 위키, 소스코드의 변경내역을 편리하게 관리할 수 있는 형상관리 툴, 일반적인 용도의 게시판, 그리고 최종 작업 결과물을 공유하기 위한 파일 릴리즈 기능 등을 포함하고 있습니다.
+Yobi (구 nFORGE)는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다. 버그나 이슈을 관리할 수 있는 버그 트래커, 각종 문서와 정보를 간편하게 공유할 수 있는 위키, 소스코드의 변경내역을 편리하게 관리할 수 있는 형상관리 툴, 일반적인 용도의 게시판, 그리고 최종 작업 결과물을 공유하기 위한 파일 릴리즈 기능 등을 포함하고 있습니다.
 
-<img src="https://raw.github.com/nforge/hive/master/docs/hive_front.png">
+<img src="https://raw.github.com/nforge/yobi/master/docs/yobi_front.png">
 *개발중인 화면입니다*
 
 라이센스
 --
-HIVE는 GNU GPL v2로 배포되는 오픈소스입니다. (MIT 라이센스로 변경될 예정입니다)
+Yobi는 GNU GPL v2로 배포되는 오픈소스입니다. (MIT 라이센스로 변경될 예정입니다)
 
 ## 설치하기
 
@@ -126,13 +126,13 @@ java 7(1.7) 이상이어야 합니다.
 
     cd play-2.1.0
 
-### hive 소스 내려 받기
+### yobi 소스 내려 받기
 
-    git clone https://github.com/nforge/hive.git
+    git clone https://github.com/nforge/yobi.git
 
-### clone 받은 hive 디렉터리로 이동
+### clone 받은 yobi 디렉터리로 이동
 
-    cd hive
+    cd yobi
 
 ### 상단에 있는 play 실행파일 실행
 

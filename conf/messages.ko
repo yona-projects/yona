@@ -33,9 +33,9 @@ title.boardList = 게시판
 title.boardDetail = 글 읽기
 title.zenmode = 집중 모드
 
-hive.name = HIVE
-hive.title = 협업개발 플랫폼
-hive.description = Make it better and simpler!
+yobi.name = Yobi
+yobi.title = 협업개발 플랫폼
+yobi.description = Make it better and simpler!
 
 menu.home = 홈
 menu.board = 게시판
@@ -387,7 +387,7 @@ user.loginWithNewPassword = 새로 설정한 비밀번호로 로그인 하세요
 user.notExists.name = 존재하지 않는 사용자입니다.
 user.locked = 잠긴 사용자 계정입니다.
 user.isLocked = 잠김여부
-user.signup.requested = HIVE 가입이 요청되었습니다. 사이트 관리자가 검토/승인 후 사용가능합니다. 감사합니다.
+user.signup.requested = Yobi 가입이 요청되었습니다. 사이트 관리자가 검토/승인 후 사용가능합니다. 감사합니다.
 user.avatar.onlyImage = 이미지 파일만 올리실 수 있습니다.
 
 #Role
@@ -508,7 +508,7 @@ userinfo.leaveProject = 탈퇴
 userinfo.leaveProject.confirm = 정말 {0} 프로젝트에서 탈퇴하시겠습니까?
 
 #Admin
-admin.resetPasswordEmail.title = [HIVE] 비밀번호 재 설정
+admin.resetPasswordEmail.title = [Yobi] 비밀번호 재 설정
 admin.resetPasswordEmail.mailcontents = 아래 URL을 브라우저 주소창에 붙여 넣으세요
 admin.resetPasswordEmail.invalidRequest = 잘못된 비밀번호 재 설정 요청입니다.
 

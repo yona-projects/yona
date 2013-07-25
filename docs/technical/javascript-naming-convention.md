@@ -20,18 +20,18 @@
 
 * 네임스페이스 이름은 소문자를 사용한다
 
-        hive.namespace.Module = {};
+        yobi.namespace.Module = {};
 
-* 네임스페이스 이름은 hive 형식으로 시작한다. $hive 를 사용하는 경우에는 이미 hive 네임스페이스가 정의되어 있다.
+* 네임스페이스 이름은 yobi 형식으로 시작한다. $yobi 를 사용하는 경우에는 이미 yobi 네임스페이스가 정의되어 있다.
 
-        var oNS = $hive.createNamespace("hive.namespace.Module");
+        var oNS = $yobi.createNamespace("yobi.namespace.Module");
         oNS.container[oNS.name] = function() { };
 
 * 네임스페이스의 이름을 정의할 때에는 언더스코어 표기법을 적용한다. 
 
-        hive.project = {};
-        hive.project.todo_list = {};
-        hive.project.todo_list.Controller = function(){ };
+        yobi.project = {};
+        yobi.project.todo_list = {};
+        yobi.project.todo_list.Controller = function(){ };
 
 ## 모듈 이름
 
@@ -140,9 +140,9 @@
 * JavaScript 파일은 네임스페이스를 포함하여 모듈 단위로 구성한다. 파일 이름 규칙은 각각 네임스페이스 + 모듈 이름 규칙을 따른다
 
         js/lib/jquery/jquery-1.9.0.js
-        js/common/hive.Label.js
-        js/service/hive.project.New.js
-        js/service/hive.board.List.js
+        js/common/yobi.Label.js
+        js/service/yobi.project.New.js
+        js/service/yobi.board.List.js
 
 
 ----

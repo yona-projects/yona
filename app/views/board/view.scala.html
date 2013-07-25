@@ -118,14 +118,14 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-		$hive.loadModule("board.View", {
+		$yobi.loadModule("board.View", {
 			"sAction": "@routes.AttachmentApp.uploadFile",
             "sWatchUrl"     : "@routes.BoardApp.watch(project.owner, project.name, post.getNumber)",
             "sUnwatchUrl"   : "@routes.BoardApp.unwatch(project.owner, project.name, post.getNumber)"
 		});
 		
-        // hive.ShortcutKey
-        hive.ShortcutKey.setKeymapLink({
+        // yobi.ShortcutKey
+        yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.BoardApp.newPostForm(project.owner, project.name)",
             "L": "@routes.BoardApp.posts(project.owner, project.name)"
             @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){

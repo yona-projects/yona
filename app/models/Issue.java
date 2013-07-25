@@ -35,7 +35,7 @@ public class Issue extends AbstractPosting {
      * @param assigneeId      이슈에 배정된 담당자 Id
      * @param milestone       이슈가 등록된 마일스톤
      * @param importance      이슈 상세정보의 중요도
-     * @author HIVE TEAM
+     * @author Yobi TEAM
      */
     private static final long serialVersionUID = -2409072006294045262L;
 

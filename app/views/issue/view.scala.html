@@ -176,23 +176,23 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-		// hive.Label
+		// yobi.Label
 		var htOptLabel = {
 			"bEditable"    : false,
 			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
 			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
 		};
 
-		// hive.issue.View
-		$hive.loadModule("issue.View", {
+		// yobi.issue.View
+		$yobi.loadModule("issue.View", {
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"    : htOptLabel,
             "sWatchUrl"     : "@routes.IssueApp.watch(project.owner, project.name, issue.getNumber)",
             "sUnwatchUrl"   : "@routes.IssueApp.unwatch(project.owner, project.name, issue.getNumber)"
 		});
 
-	    // hive.ShortcutKey
-        hive.ShortcutKey.setKeymapLink({
+	    // yobi.ShortcutKey
+        yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
             "L": "@routes.IssueApp.issues(project.owner, project.name,"open")"
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {

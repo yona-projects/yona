@@ -1,8 +1,8 @@
 @()(implicit lang:Lang)
 @import utils.TemplateHelper._
 
-@**<!-- hive.ui.Dialog -->**@
-<div id="hiveDialog" class="modal hide fade hiveDialog" tabindex="-1" role="dialog" aria-hidden="true">
+@**<!-- yobi.ui.Dialog -->**@
+<div id="yobiDialog" class="modal hide fade yobiDialog" tabindex="-1" role="dialog" aria-hidden="true">
 	<div class="btn-dismiss"><button type="button" class="btn-transparent" data-dismiss="modal">&times;</button></div>
 	<div class="message">
 		<p class="center-text msg"></p>
@@ -11,11 +11,11 @@
 		</p>
 	</div>
 </div>
-@**<!-- //hive.ui.Dialog -->**@
+@**<!-- //yobi.ui.Dialog -->**@
 
-@**<!-- hive.ui.Toast -->**@
-<div id="hiveToasts" class="hiveToasts"></div>
-<script type="text/x-jquery-tmpl" id="tplHiveToast">
+@**<!-- yobi.ui.Toast -->**@
+<div id="yobiToasts" class="yobiToasts"></div>
+<script type="text/x-jquery-tmpl" id="tplYobiToast">
 <div class="toast" tabindex="-1">
 	<div class="btn-dismiss"><button type="button" class="btn-transparent">&times;</button></div>
 	<div class="center-text">
@@ -24,7 +24,7 @@
     </div>
 </div>
 </script>
-@**<!-- //hive.ui.Toast -->**@
+@**<!-- //yobi.ui.Toast -->**@
 
 <script type="text/javascript" src="@routes.Application.jsMessages()"></script>
 <script type="text/javascript" src="@getJSLink("lib/jquery/jquery.tmpl")"></script>
@@ -37,19 +37,19 @@
 <script type="text/javascript" src="@getJSLink("lib/rgbcolor")"></script>
 <script type="text/javascript" src="@getJSLink("lib/humanize")"></script>
 <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.Pagination")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.Markdown")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.FileUploader")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.FileDownloader")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.Label")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ShortcutKey")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ui.Dropdown")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ui.Typeahead")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ui.Dialog")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ui.Toast")"></script>
-<script type="text/javascript" src="@getJSLink("common/hive.ui.Tabs")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.Pagination")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.Markdown")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.FileUploader")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.FileDownloader")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.Label")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ShortcutKey")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ui.Dropdown")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ui.Typeahead")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ui.Dialog")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ui.Toast")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ui.Tabs")"></script>
 <script type="text/javascript">
-	$hive.setScriptPath("@getJSPath()");
+	$yobi.setScriptPath("@getJSPath()");
 	
 	$(document).ready(function(){
 		// tooltip
@@ -58,24 +58,24 @@
     	// jquery.placeholder plugin initiator
         $('input[type=text], textarea').placeholder();
 
-     	// hive.Dropdown
+     	// yobi.Dropdown
      	var sActivation;
         $(".btn-group[data-name]").each(function(i, el){
         	sActivation = $(el).attr("data-activate");
         	if(typeof sActivation == "undefined" || sActivation != "manual"){
-        		(new hive.ui.Dropdown({"elContainer":el}));
+        		(new yobi.ui.Dropdown({"elContainer":el}));
         	}
         });
         
-        // hive.ShortcutKey
+        // yobi.ShortcutKey
         // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
-        hive.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
+        yobi.ShortcutKey.attach("CTRL+ENTER", function(htInfo){
             if(htInfo.bFormInput){
                 $(htInfo.welTarget.parents("form").get(0)).submit();
             }
         });
         @if(session.contains("loginId")){
-        hive.ShortcutKey.setKeymapLink({
+            yobi.ShortcutKey.setKeymapLink({
             "P": "@routes.UserApp.userInfo(session.get("loginId"))"
         });
         }
