@@ -1,11 +1,6 @@
 package utils;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -36,6 +31,10 @@ import javax.servlet.http.Part;
 
 import controllers.UserApp;
 
+import org.tmatesoft.svn.core.SVNErrorCode;
+import org.tmatesoft.svn.core.SVNErrorMessage;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.internal.util.SVNEncodingUtil;
 import play.Play;
 import play.i18n.Lang;
 import play.mvc.Http;
@@ -48,11 +47,12 @@ public class PlayServletRequest implements HttpServletRequest {
     private final Request request;
     Map<String, Object> attributes = new HashMap<>();
     private final HttpSession httpSession;
+    private String loginId;
 
-    public PlayServletRequest(Request request, HttpSession httpSession, String pathInfo) {
+    public PlayServletRequest(Request request, String pathInfo) {
         this.request = request;
-        this.httpSession = httpSession;
-        this.pathInfo = pathInfo;
+        this.httpSession = new PlayServletSession(new PlayServletContext());
+        this.pathInfo = SVNEncodingUtil.uriEncode(pathInfo);
     }
 
     /**
@@ -112,16 +112,33 @@ public class PlayServletRequest implements HttpServletRequest {
     @Override
     public ServletInputStream getInputStream() throws IOException {
         RawBuffer raw = request.body().asRaw();
-        byte[] buf = raw.asBytes();
+
+        byte[] buf;
+
+        try {
+            buf = raw.asBytes();
+        } catch (NullPointerException e) {
+            // asBytes() raises NullPointerException if the raw body is larger
+            // than the limit defined by BodyParser.of annotation at
+            // SvnApp.service() method.
+            throw new IOException("Request entity is too large.", e);
+        }
+
         final InputStream in;
 
-        // If the content size is bigger than memoryThreshold,
-        // which is defined as 100 * 1024 in play.api.mvc.BodyParsers trait,
-        // the content is stored as a file.
+        // If the content size is bigger than memoryThreshold, which is defined
+        // as Integer.MAX_VALUE in play.core.j.JavaParsers.raw method, the
+        // content is stored as a file.
         if (buf != null) {
             in = new ByteArrayInputStream(buf);
         } else {
-            in = new FileInputStream(raw.asFile());
+            File file = raw.asFile();
+            if (file == null) {
+                // asFile() may return null if the raw body is larger than the limit defined by
+                // BodyParser.of annotation at SvnApp.service() method.
+                throw new IOException("Request entity is too large.");
+            }
+            in = new FileInputStream(file);
         }
 
         return new ServletInputStream() {
@@ -130,9 +147,14 @@ public class PlayServletRequest implements HttpServletRequest {
                 return in.read();
             }
 
+            public void close() throws IOException {
+                in.close();
+                super.close();
+            }
+
             @Override
             protected void finalize() throws IOException {
-                in.close();
+                close();
             }
         };
     }
@@ -428,7 +450,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getRemoteUser() {
-        return UserApp.currentUser().loginId;
+        return loginId;
     }
 
     @Override
@@ -476,7 +498,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
             @Override
             public String getName() {
-                return UserApp.currentUser().loginId;
+                return loginId;
             }
 
         };
