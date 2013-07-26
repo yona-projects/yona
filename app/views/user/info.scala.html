@@ -1,4 +1,4 @@
-@(user:User, groupNames:Array[String], projects:Set[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone], daysAgo:Int, selected:String)
+@(user:User, groupNames:Array[String], projects:List[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone], daysAgo:Int, selected:String)
 
 @import utils.TemplateHelper._
 
@@ -74,27 +74,27 @@
                 </li>
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
-                        @Messages("projects")
+                        @Messages("projects") (@projects.size)
                     </a>
                 </li>
                 <li>
                     <a href="#postings" data-toggle="tab">
-                        @Messages("menu.board")
+                        @Messages("menu.board") (@postings.size)
                     </a>
                 </li>
                 <li>
                     <a href="#pullRequests" data-toggle="tab">
-                        @Messages("menu.pullRequest")
+                        @Messages("menu.pullRequest") (@pullRequests.size)
                     </a>
                 </li>
                 <li>
                     <a href="#issues" data-toggle="tab">
-                        @Messages("menu.issue")
+                        @Messages("menu.issue") (@issues.size)
                     </a>
                 </li>
                 <li>
                     <a href="#milestones" data-toggle="tab">
-                        @Messages("project.milestone")
+                        @Messages("project.milestone") (@milestones.size)
                     </a>
                 </li>
             </ul>

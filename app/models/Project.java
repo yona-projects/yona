@@ -9,6 +9,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
+import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -226,6 +227,18 @@ public class Project extends Model {
     public static List<Project> findProjectsByMember(Long userId) {
         return find.where().eq("projectUser.user.id", userId).findList();
     }
+
+    /**
+     * {@code userId} 가 owner가 아니고 멤버로 있는 프로젝트 목록을 반환한다.
+     *
+     * @param userId the user id
+     * @return {@code userId}의 프로젝트 목록
+     */
+    public static List<Project> findProjectsJustMemberAndNotOwner(User user) {
+        return find.where().eq("projectUser.user.id", user.id)
+                .ne("owner", user.loginId).findList();
+    }
+
 
     /**
      * {@code userId} 가 멤버로 있는 프로젝트 목록을 {@code orderString} 에 따라 정렬하여 반환한다.

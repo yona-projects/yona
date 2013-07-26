@@ -17,6 +17,7 @@ import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.AccessControl;
 import utils.Constants;
+import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 import views.html.login;
 import views.html.user.*;
@@ -303,17 +304,18 @@ public class UserApp extends Controller {
      * @param loginId 로그인ID
      * @return
      */
-    public static Result userInfo(String loginId, String groups, int daysAgo, String selected){
+    public static Result userInfo(String loginId, String groups, int daysAgo, String selected) {
+        Logger.debug("input days: " + daysAgo);
         if (daysAgo == UNDEFINED) {
             Cookie cookie = request().cookie(DAYS_AGO_COOKIE);
-            if(cookie != null) {
+            if (cookie != null) {
                 daysAgo = Integer.parseInt(cookie.value());
             } else {
                 daysAgo = DAYS_AGO;
                 response().setCookie(DAYS_AGO_COOKIE, daysAgo + "");
             }
         } else {
-            if(daysAgo < 0) {
+            if (daysAgo < 0) {
                 daysAgo = 1;
             }
             response().setCookie(DAYS_AGO_COOKIE, daysAgo + "");
@@ -322,22 +324,41 @@ public class UserApp extends Controller {
         User user = User.findByLoginId(loginId);
         String[] groupNames = groups.trim().split(",");
 
-        Set<Project> projects = new TreeSet<>(new Comparator<Project>() {
-            @Override
-            public int compare(Project p1, Project p2) {
-                return p2.name.compareTo(p1.name);
-            }
-        });
         List<Posting> postings = new ArrayList<>();
         List<Issue> issues = new ArrayList<>();
         List<PullRequest> pullRequests = new ArrayList<>();
         List<Milestone> milestones = new ArrayList<>();
 
-        collectProjects(loginId, user, groupNames, projects);
-        collectDatum(projects, postings, issues, pullRequests, milestones);
+        List<Project> projects = collectProjects(loginId, user, groupNames);
+        collectDatum(projects, postings, issues, pullRequests, milestones, daysAgo);
         sortDatum(postings, issues, pullRequests, milestones);
 
+        sortByLastPushedDateAndName(projects);
         return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo, selected));
+    }
+
+    private static void sortByLastPushedDateAndName(List<Project> projects) {
+        Collections.sort(projects, new Comparator<Project>() {
+            @Override
+            public int compare(Project p1, Project p2) {
+                int compareLastPushedDate = 0;
+                if (p1.lastPushedDate == null && p2.lastPushedDate == null) {
+                    return p1.name.compareTo(p2.name);
+                }
+
+                if (p1.lastPushedDate == null) {
+                    return 1;
+                } else if (p2.lastPushedDate == null) {
+                    return -1;
+                }
+
+                compareLastPushedDate = p2.lastPushedDate.compareTo(p1.lastPushedDate);
+                if (compareLastPushedDate == 0) {
+                    return p1.name.compareTo(p2.name);
+                }
+                return compareLastPushedDate;
+            }
+        });
     }
 
     private static void sortDatum(List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
@@ -348,7 +369,6 @@ public class UserApp extends Controller {
                 return i2.createdDate.compareTo(i1.createdDate);
             }
         });
-
 
         Collections.sort(postings, new Comparator<Posting>() {
             @Override
@@ -372,31 +392,41 @@ public class UserApp extends Controller {
         });
     }
 
-    private static void collectDatum(Set<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones) {
+    private static void collectDatum(List<Project> projects, List<Posting> postings, List<Issue> issues, List<PullRequest> pullRequests, List<Milestone> milestones, int daysAgo) {
         // collect all postings, issues, pullrequests and milesotnes that are contained in the projects.
-        for(Project project : projects) {
+        for (Project project : projects) {
             if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-                postings.addAll(Posting.findRecentlyCreatedByDaysAgo(project, DAYS_AGO));
-                issues.addAll(Issue.findRecentlyOpendIssuesByDaysAgo(project, DAYS_AGO));
-                pullRequests.addAll(PullRequest.findOpendPullRequestsByDaysAgo(project, DAYS_AGO));
+                postings.addAll(Posting.findRecentlyCreatedByDaysAgo(project, daysAgo));
+                issues.addAll(Issue.findRecentlyOpendIssuesByDaysAgo(project, daysAgo));
+                pullRequests.addAll(PullRequest.findOpendPullRequestsByDaysAgo(project, daysAgo));
                 milestones.addAll(Milestone.findOpenMilestones(project.id));
             }
         }
     }
 
-    private static void collectProjects(String loginId, User user, String[] groupNames, Set<Project> projects) {
+    private static List<Project> collectProjects(String loginId, User user, String[] groupNames) {
+        List<Project> projectCollection = new ArrayList<>();
         // collect all projects that are included in the project groups.
-        for(String group : groupNames) {
+        for (String group : groupNames) {
             switch (group) {
                 case "own":
-                    projects.addAll(Project.findProjectsCreatedByUser(loginId, null));
+                    addProjectNotDupped(projectCollection, Project.findProjectsCreatedByUser(loginId, null));
                     break;
                 case "member":
-                    projects.addAll(Project.findProjectsByMember(user.id));
+                    addProjectNotDupped(projectCollection, Project.findProjectsJustMemberAndNotOwner(user));
                     break;
                 case "watching":
-                    projects.addAll(user.watchingProjects);
+                    addProjectNotDupped(projectCollection, user.watchingProjects);
                     break;
+            }
+        }
+        return projectCollection;
+    }
+
+    private static void addProjectNotDupped(List<Project> target, List<Project> foundProjects) {
+        for (Project project : foundProjects) {
+            if( !target.contains(project) ) {
+                target.add(project);
             }
         }
     }
