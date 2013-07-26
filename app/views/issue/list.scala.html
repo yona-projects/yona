@@ -31,7 +31,7 @@
 
 
 	<div class="pull-right">
-        <div class="btn-group">
+        <div class="btn-group" style="margin-right: 20px;">
             <a href="@urlToList&milestoneId=@param.milestoneId" @if(param.assigneeId == null && param.authorLoginId == null){class="btn active"} else {class="btn"}>@Messages("issue.list.all") <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, null, null, param.milestoneId)</span></a>
             @if(UserApp.currentUser().id != -1l){
                 <a href="@urlAssignedToMe" @if(param.assigneeId == UserApp.currentUser().id){ class="btn active"} else {class="btn"}>@Messages("issue.list.assignedToMe") <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, UserApp.currentUser().id, null, param.milestoneId)</span></a>
