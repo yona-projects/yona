@@ -1,4 +1,4 @@
-@(title: String, milestone: models.Milestone, project: Project)
+@(title: String, milestone: models.Milestone, project: Project, issueState:State)
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
 @import utils.AccessControl._
@@ -9,6 +9,10 @@
     buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),
         Map("milestoneId"->mId.toString)
     )
+}
+
+@getTabLinkByState(state:State) = {
+	@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)?state=@state.state
 }
 
 @main(title, project, utils.MenuType.MILESTONE) {
@@ -40,48 +44,33 @@
     <div class="milestone-desc">
         <div markdown="true">@milestone.contents</div>
     </div>
-
-    <ul class="nav nav-tabs">
-        <li class="active">
-            <a href="#all" data-toggle="tab">
-                @Messages("issue.state.all")
-                <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, null, null, milestone.id)</span>
+	
+	<ul class="nav nav-tabs nm">
+    @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+        <li @if(issueState == state) { class="active" }>
+            <a href="@getTabLinkByState(state)">
+                @Messages("issue.state." + state.name.toLowerCase())
+                <span class="num-badge">@Issue.countIssuesBy(project.id, state, null, null, milestone.id)</span>
             </a>
         </li>
-        <li>
-            <a href="#open" data-toggle="tab">
-                @Messages("issue.state.open")
-                <span class="num-badge">@Issue.countIssuesBy(project.id, State.OPEN, null, null, milestone.id)</span>
-            </a>
-        </li>
-        <li>
-            <a href="#closed" data-toggle="tab">
-                @Messages("issue.state.closed")
-                <span class="num-badge">@Issue.countIssuesBy(project.id, State.CLOSED, null, null, milestone.id)</span>
-            </a>
-        </li>
+    }
     </ul>
-
-    <div class="tab-content">
-        <div id="all" class="tab-pane active">
-            <div class="issues">
-                @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
-                @issue.partial_list(project, milestone.sortedByNumberOfIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
-            </div>
-        </div>
-        <div id="open" class="tab-pane">
-            <div class="issues">
-                @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
-                @issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
-            </div>
-        </div>
-        <div id="closed" class="tab-pane">
-            <div class="issues">
-                @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
-                @issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
-            </div>
-        </div>
-    </div>
+    
+	<div class="issues">
+		<h5 class="margin-bottom-20">@Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong></h5>
+        
+        @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+        @{
+	        if(issueState == State.OPEN) {
+	        	issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+	        } else if(issueState == State.CLOSED) {
+	        	issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+	        } else {
+	        	issue.partial_list(project, milestone.sortedByNumberOfIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+	        }
+        }
+        
+	</div>
 
     <div class="actrow right-txt" style="padding: 15px 0;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
