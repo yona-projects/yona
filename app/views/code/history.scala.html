@@ -105,9 +105,13 @@
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
+
                                     <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                                    @if( user.avatarUrl == UserApp.DEFAULT_AVATAR_URL ){
+                                        <img src="@urlToPicture(commit.getAuthorEmail, 32)">
+                                    } else {
                                         <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-                                    </a>
+                                    } </a>
                                 }
                                 case (_, email, _) if email != null => {
                                     <span class="avatar-wrap">

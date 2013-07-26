@@ -1,6 +1,8 @@
 package playRepository;
 
+import controllers.CodeApp;
 import controllers.ProjectApp;
+import controllers.UserApp;
 import models.Project;
 import models.PullRequest;
 import models.User;
@@ -30,10 +32,12 @@ import org.tmatesoft.svn.core.SVNException;
 import play.Logger;
 import play.libs.Json;
 import utils.FileUtil;
+import utils.GravatarUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.*;
 
 /**
@@ -275,8 +279,9 @@ public class GitRepository implements PlayRepository {
 
     private void setAvatar(ObjectNode objectNode, String emailAddress) {
         User user = User.findByEmail(emailAddress);
-        if(user.isAnonymous()) {
-            objectNode.put("avatar", "/assets/images/default-avatar-34.png");
+        if(user.isAnonymous() || user.avatarUrl.equals(UserApp.DEFAULT_AVATAR_URL)) {
+            String localDefaultImageUrl = CodeApp.hostName + "/assets/images/default-avatar-34.png";
+            objectNode.put("avatar", GravatarUtil.getAvatar(emailAddress, 34, localDefaultImageUrl ));
         } else {
             objectNode.put("avatar", user.avatarUrl);
         }

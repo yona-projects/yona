@@ -27,7 +27,9 @@ import java.util.Date;
 import java.util.List;
 
 public class CodeApp extends Controller {
-	public static Result codeBrowser(String userName, String projectName)
+    public static String hostName;
+
+    public static Result codeBrowser(String userName, String projectName)
             throws IOException, UnsupportedOperationException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         if (project == null) {
@@ -73,6 +75,7 @@ public class CodeApp extends Controller {
     }
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
+        CodeApp.hostName = request().host();
         ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
         if(findFileInfo != null) {
             return ok(findFileInfo);
