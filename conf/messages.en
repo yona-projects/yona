@@ -33,7 +33,7 @@ title.boardList = Post List
 title.boardDetail = Post View
 title.zenmode = zen mode
 
-yobi.name = Yobi
+app.name = Yobi
 yobi.title = Collaborative Software Development Platform
 yobi.description = Make it better and simpler!
 
@@ -234,7 +234,6 @@ post.new.title = Title
 post.new.contents = Contents
 post.new.filePath = File Path
 post.author = Author
-post.notice = Notice
 post.notice.label = Set this post to notice
 post.age = Age
 post.menu.search = Search

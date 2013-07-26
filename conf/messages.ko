@@ -33,7 +33,7 @@ title.boardList = 게시판
 title.boardDetail = 글 읽기
 title.zenmode = 집중 모드
 
-yobi.name = Yobi
+app.name = Yobi
 yobi.title = 협업개발 플랫폼
 yobi.description = Make it better and simpler!
 
@@ -234,7 +234,6 @@ post.new.title = 제목
 post.new.contents = 내용
 post.new.filePath = 파일 경로
 post.author = 글쓴이
-post.notice = 공지사항
 post.notice.label = 이 글을 공지사항으로 설정합니다
 post.age = 나이
 post.menu.search = 검색
