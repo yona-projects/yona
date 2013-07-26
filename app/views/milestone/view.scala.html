@@ -41,18 +41,53 @@
         <div markdown="true">@milestone.contents</div>
     </div>
 
-    <div class="issues">
-        <h5 class="margin-bottom-20">@Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong></h5>
-        
-        @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
-        @issue.partial_list(project,milestone.sortedByStateOfIssue(),IssueApp.SearchCondition.emptySearchCondition,0,0)
+    <ul class="nav nav-tabs">
+        <li class="active">
+            <a href="#all" data-toggle="tab">
+                @Messages("issue.state.all")
+                <span class="num-badge">@Issue.countIssuesBy(project.id, State.ALL, null, null, milestone.id)</span>
+            </a>
+        </li>
+        <li>
+            <a href="#open" data-toggle="tab">
+                @Messages("issue.state.open")
+                <span class="num-badge">@Issue.countIssuesBy(project.id, State.OPEN, null, null, milestone.id)</span>
+            </a>
+        </li>
+        <li>
+            <a href="#closed" data-toggle="tab">
+                @Messages("issue.state.closed")
+                <span class="num-badge">@Issue.countIssuesBy(project.id, State.CLOSED, null, null, milestone.id)</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="all" class="tab-pane active">
+            <div class="issues">
+                @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+                @issue.partial_list(project, milestone.sortedByNumberOfIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+            </div>
+        </div>
+        <div id="open" class="tab-pane">
+            <div class="issues">
+                @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+                @issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+            </div>
+        </div>
+        <div id="closed" class="tab-pane">
+            <div class="issues">
+                @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+                @issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+            </div>
+        </div>
     </div>
 
     <div class="actrow right-txt" style="padding: 15px 0;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
         <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium red pull-left">@Messages("milestone.delete")</a>
         }
-        
+
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
             @if(milestone.state == State.OPEN) {
                 <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium blue">@Messages("milestone.close")</a>

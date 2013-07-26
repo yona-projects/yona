@@ -71,16 +71,37 @@ public class Milestone extends Model {
     	return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
     }
 
-    public List<Issue> sortedByStateOfIssue(){
+    public List<Issue> sortedByNumberOfIssue(){
         List <Issue>sortedIssues = new ArrayList<>(this.issues);
         Collections.sort(sortedIssues, new Comparator<Issue>() {
             @Override
             public int compare(Issue a, Issue b) {
-                return -a.state.toString().compareTo(b.state.toString());
+                return b.getNumber().compareTo(a.getNumber());
             }
         });
         return sortedIssues;
     }
+
+    public List<Issue> sortedByNumberOfOpenIssue(){
+        List<Issue> openedIssues = new ArrayList<>();
+        for(Issue issue : sortedByNumberOfIssue()) {
+            if(issue.isOpen()) {
+                openedIssues.add(issue);
+            }
+        }
+        return openedIssues;
+    }
+
+    public List<Issue> sortedByNumberOfClosedIssue(){
+        List<Issue> closedIssues = new ArrayList<>();
+        for(Issue issue : sortedByNumberOfIssue()) {
+            if(issue.isClosed()) {
+                closedIssues.add(issue);
+            }
+        }
+        return closedIssues;
+    }
+
     public int getNumTotalIssues() {
         return issues.size();
     }
