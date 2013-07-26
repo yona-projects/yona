@@ -11,7 +11,10 @@ import play.mvc.Result;
 import playRepository.GitRepository;
 import utils.AccessControl;
 import utils.Constants;
+import utils.FileUtil;
 import views.html.project.importing;
+
+import java.io.File;
 
 import static play.data.Form.form;
 
@@ -74,6 +77,7 @@ public class ImportApp extends Controller {
             ProjectUser.assignRole(UserApp.currentUser().id, projectId, RoleType.MANAGER);
         } catch (Exception e) {
             flash(Constants.WARNING, "import.error.wrong.url");
+            FileUtil.rm_rf(new File(GitRepository.getGitDirectory(project)));
             return badRequest(importing.render("title.newProject", filledNewProjectForm));
         }
 
