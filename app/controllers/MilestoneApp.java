@@ -11,6 +11,8 @@ import views.html.milestone.*;
 
 import java.util.*;
 
+import org.apache.commons.lang3.StringUtils;
+
 import static play.data.Form.form;
 
 /**
@@ -301,6 +303,10 @@ public class MilestoneApp extends Controller {
         if(milestone == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-        return ok(view.render(milestone.title, milestone, project));
+        
+        String paramState = request().getQueryString("state");
+        State state = State.getValue(paramState);
+        
+        return ok(view.render(milestone.title, milestone, project, state));
     }
 }
