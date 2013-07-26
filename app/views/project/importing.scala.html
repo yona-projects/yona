@@ -8,8 +8,8 @@
             <form action="@routes.ImportApp.newProject()" method="post" name="newproject" class="frm-wrap">
                 <legend>
                     @Messages("import.from.git")
-                    <span class="pull-right">
-                        <a href="@routes.ProjectApp.newProjectForm()"><small>@Messages("import.or") @Messages("title.newProject")</small></a>
+                    <span>
+                        <small>@Messages("import.or") &nbsp </small><a href="@routes.ProjectApp.newProjectForm()" class="btn btn-small"><strong>@Messages("title.newProject")</strong></a>
                     </span>
                 </legend>
                 <div class="n-alert" data-errType="name">
