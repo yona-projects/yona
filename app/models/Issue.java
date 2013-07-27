@@ -46,6 +46,12 @@ public class Issue extends AbstractPosting {
 
     public State state;
 
+    public static List<State> availableStates = new ArrayList<>();
+    static {
+        availableStates.add(State.OPEN);
+        availableStates.add(State.CLOSED);
+    }
+
     @ManyToOne
     public Milestone milestone;
 
@@ -384,5 +390,70 @@ public class Issue extends AbstractPosting {
                 .eq("project.id", project.id)
                 .eq("state", State.OPEN)
                 .ge("createdDate", JodaDateUtil.before(days)).order().desc("createdDate").findList();
+    }
+
+    /**
+     * 이전 이슈 상태가 무엇이었는지 알려준다.
+     * (현재는 OPEN/CLOSE 만 존재하나 이후 DEVELOPING이나 QA등을 추가할 수 있도록 할 예정임)
+     *
+     * when: 어떤 이슈의 이전 상태가 무엇이었는지 알고 싶을 때
+     *
+     * 주의!
+     * 현재는 상태가 circular 형태로 동작한다. 그래서 처음 상태의 이전 상태는 마지막 상태로 알려준다.
+     *
+     * @return 현재 이슈의 이전 상태
+     */
+    public State previousState() {
+        int currentState = Issue.availableStates.indexOf(this.state);
+        if(isLastState(currentState)) {
+            return Issue.availableStates.get(0);
+        } else {
+            return Issue.availableStates.get(currentState + 1);
+        }
+    }
+
+    private boolean isLastState(int currentState) {
+        return currentState + 1 == Issue.availableStates.size();
+    }
+
+    /**
+     * 다음 이슈 상태가 무엇인지 알려준다.
+     * (현재는 OPEN/CLOSE 만 존재하나 이후 DEVELOPING이나 QA등을 추가할 수 있도록 할 예정임)
+     *
+     * when: 어떤 이슈의 다음 상태가 무엇이 될지 알고 싶을 때
+     *
+     * 주의!
+     * 현재는 상태가 circular 형태로 동작한다. 그래서 최종 상태의 다음 상태는 처음 상태로 알려준다.
+     *
+     * @return 현재 이슈의 다음 상태
+     */
+    public State nextState() {
+        int currentState = Issue.availableStates.indexOf(this.state);
+        if(isFirstState(currentState)) {
+            return Issue.availableStates.get(Issue.availableStates.size()-1);
+        } else {
+            return Issue.availableStates.get(currentState - 1);
+        }
+    }
+
+    private boolean isFirstState(int currentState) {
+        return currentState  == 0;
+    }
+
+    /**
+     * 이슈를 다음 이슈 상태로 전이한다.
+     * (현재는 OPEN/CLOSE 만 존재)
+     *
+     * when: 이슈의 상태를 간단히 전이시킬 때
+     *
+     * 주의!
+     * 현재는 상태가 circular 형태로 동작한다. 그래서 최종 상태의 다음 상태는 처음 상태가 된다.
+     *
+     * @return 현재 이슈의 다음 상태
+     */
+    public State toNextState(){
+        this.state = nextState();
+        super.update();
+        return this.state;
     }
 }

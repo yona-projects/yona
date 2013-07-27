@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import models.enumeration.State;
 import org.junit.Test;
 import org.junit.Before;
 
@@ -40,6 +41,7 @@ public class IssueTest extends ModelTest<Issue> {
         issue.setTitle("hello");
         issue.setBody("world");
         issue.setAuthor(author);
+        issue.state = State.OPEN;
         issue.save();
     }
 
@@ -115,5 +117,35 @@ public class IssueTest extends ModelTest<Issue> {
         assertThat(matcher.group()).isEqualTo("@admin");
         matcher.find();
         assertThat(matcher.group()).isEqualTo("@keesun");
+    }
+
+    @Test
+    public void nextState(){
+        //Given
+        issue.state = State.OPEN;
+
+        //When //Then
+        assertThat(issue.nextState()).isEqualTo(State.CLOSED);
+    }
+
+    @Test
+    public void previousState(){
+        //Given
+        issue.state = State.CLOSED;
+
+        //When //Then
+        assertThat(issue.previousState()).isEqualTo(State.OPEN);
+    }
+
+    @Test
+    public void toNextState(){
+        //Given
+        State exptected = issue.nextState();
+
+        //When
+        issue.toNextState();
+
+        //Then
+        assertThat(issue.state).isEqualTo(exptected);
     }
 }
