@@ -10,6 +10,7 @@ import models.User;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
+import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -85,7 +86,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("msg", entry.getCommitMessage());
                 String author = entry.getAuthor();
                 data.put("author", author);
-                setAvatar(data, author);
+                data.put("avatar", getAvatar(author));
                 data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
@@ -96,31 +97,18 @@ public class SVNRepository implements PlayRepository {
 
         } else if(nodeKind == SVNNodeKind.FILE) {
             //파일 내용 출력
-            ObjectNode result = Json.newObject();
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            SVNProperties prop = new SVNProperties();
-            repository.getFile(path, -1l, prop, baos);
-
-            result.put("type", "file");
-            result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
-            String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
-            result.put("author", author);
-            setAvatar(result, author);
-            result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
-            result.put("data", baos.toString());
-            return result;
+            return fileAsJson(path, repository);
         } else {
             return null;
         }
     }
 
-    private void setAvatar(ObjectNode data, String author) {
+    private static String getAvatar(String author) {
         User user = User.findByLoginId(author);
         if(user.isAnonymous()) {
-            data.put("avatar", "/assets/images/default-avatar-34.png");
+            return "/assets/images/default-avatar-34.png";
         } else {
-            data.put("avatar", user.avatarUrl);
+            return user.avatarUrl;
         }
     }
 
@@ -151,7 +139,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("msg", entry.getCommitMessage());
                 String author = entry.getAuthor();
                 data.put("author", author);
-                setAvatar(data, author);
+                data.put("avatar", getAvatar(author));
                 data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
@@ -161,24 +149,45 @@ public class SVNRepository implements PlayRepository {
             return result;
 
         } else if(nodeKind == SVNNodeKind.FILE) {
-            //파일 내용 출력
-            ObjectNode result = Json.newObject();
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            SVNProperties prop = new SVNProperties();
-            repository.getFile(path, -1l, prop, baos);
-
-            result.put("type", "file");
-            result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
-            String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
-            result.put("author", author);
-            setAvatar(result, author);
-            result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
-            result.put("data", baos.toString());
-            return result;
+            return fileAsJson(path, repository);
         } else {
             return null;
         }
+    }
+
+    private ObjectNode fileAsJson(String path, org.tmatesoft.svn.core.io.SVNRepository repository) throws SVNException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        SVNProperties prop = new SVNProperties();
+        repository.getFile(path, -1l, prop, baos);
+        long size = repository.info(path, -1l).getSize();
+        boolean isBinary;
+        String mimeType;
+        String data = null;
+        if (size > MAX_FILE_SIZE_CAN_BE_VIEWED) {
+            isBinary = true;
+            mimeType = "application/octet-stream";
+        } else {
+            byte[] bytes = baos.toByteArray();
+            isBinary = FileUtil.isBinary(bytes);
+            if (!isBinary) {
+                data = new String(bytes);
+            }
+            mimeType = new Tika().detect(bytes, path);
+        }
+        String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
+
+        ObjectNode result = Json.newObject();
+        result.put("type", "file");
+        result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
+        result.put("author", author);
+        result.put("avatar", getAvatar(author));
+        result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
+        result.put("size", size);
+        result.put("isBinary", isBinary);
+        result.put("mimeType", mimeType);
+        result.put("data", data);
+
+        return result;
     }
 
     @Override
