@@ -325,6 +325,7 @@ project.created = 생성
 project.codeUpdate = 마지막 코드 업데이트
 project.watch = 지켜보기
 project.unwatch = 그만 지켜보기
+project.is.empty = 프로젝트가 존재하지 않습니다.
 
 # project.history.item: {0}=누가,{1}=무엇을,{2}=어떻게
 project.history.item = {0}님이 {1} {2}
@@ -547,6 +548,7 @@ fork.original = 원본 프로젝트
 pullRequest = 코드 보내기
 pullRequest.menu.overview = 개요
 pullRequest.menu.commit = 커밋
+pullRequest.is.empty = 코드 주고 받을 내용이 없습니다.
 already.existing.fork.alert = 이전에 만들어둔 포크 프로젝트로 이동합니다.
 fork.go = 바로가기
 fork.already.exist = 동일한 원본 프로젝트를 복사한 프로젝트가 있습니다.

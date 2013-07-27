@@ -325,6 +325,7 @@ project.created = Created
 project.codeUpdate = code update
 project.watch = Watch
 project.unwatch = Unwatch
+project.is.empty = Project doesn't exist
 
 # project.history.item: {0}=who ,{1}=what ,{2}=how
 project.history.item = {0} {1} {2}
@@ -547,6 +548,7 @@ fork.original = Forked from
 pullRequest = PullRequest
 pullRequest.menu.overview = Overview
 pullRequest.menu.commit = Commits
+pullRequest.is.empty = Threre are no pull requests
 already.existing.fork.alert = Moved to existing fork project
 fork.go = Go
 fork.already.exist = There is already forked the same project.

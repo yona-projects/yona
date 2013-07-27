@@ -101,6 +101,11 @@
 
             <div class="tab-content">
                 <div id="projects" class="tab-pane active">
+                    @if(postings.size==0){
+                        <div class="error-wrap">
+                            <p>@Messages("project.is.empty")</p>
+                        </div>
+                    }
                     <ul class="user-streams all-projects">
                         @for(project <- projects){
                             @partial_projectlist(project, user)
@@ -108,6 +113,11 @@
                     </ul>
                 </div>
                 <div id="postings" class="tab-pane">
+                    @if(postings.size==0){
+                        <div class="error-wrap">
+                            <p>@Messages("daysAgo.prefix") @Messages("post.is.empty")</p>
+                        </div>
+                    }
                     <ul class="board-list unstyled">
                         @for(post <- postings){
                             @partial_postings(post, post.project)
@@ -115,16 +125,31 @@
                     </ul>
                 </div>
                 <div id="issues" class="tab-pane">
+                    @if(issues.size==0){
+                        <div class="error-wrap">
+                            <p>@Messages("daysAgo.prefix") @Messages("issue.is.empty")</p>
+                        </div>
+                    }
                     @for(issue <- issues){
                         @partial_issues(issue, issue.project)
                     }
                 </div>
                 <div id="pullRequests" class="tab-pane">
+                    @if(pullRequests.size==0){
+                        <div class="error-wrap">
+                            <p>@Messages("daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
+                        </div>
+                    }
                     @for(pull <- pullRequests){
                         @partial_pullRequests(pull, pull.toProject)
                     }
                 </div>
                 <div id="milestones" class="tab-pane">
+                    @if(milestones.size==0){
+                        <div class="error-wrap">
+                            <p>@Messages("milestone.is.empty")</p>
+                        </div>
+                    }
                     <ul class="milestones">
                     @for(milestone <- milestones){
                         @partial_milestones(milestone, milestone.project)
