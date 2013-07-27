@@ -19,6 +19,8 @@
     @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())
 }
 
+@showBadgeNumberIfExist(number:Int) = { @if(number>0){ <span class="num-badge">@number</span> } }
+
 @home(user.loginId, utils.MenuType.USER) {
 
 <div class="page">
@@ -36,27 +38,25 @@
                 }
             </div>
 
-            <hr />
+            <ul class="nav nav-list project-category">
+                <li class="nav-header categotry-header">@Messages("project.group")</li>
+                <li @if(groupNames.contains("own")){class="active"}>
+                <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")</a>
+                </li>
+                <li @if(groupNames.contains("member")){class="active"}>
+                <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")</a>
+                </li>
+                @if(user.loginId == session.get("loginId")){
+                    <li @if(groupNames.contains("watching")){class="active"}>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")</a>
+                    </li>
+                }
+            </ul>
+
             <div class="user-since">
                 <strong>@Messages("userinfo.since")</strong>
                 <span class="since">@user.getDateString</span>
             </div>
-
-            <hr />
-            <ul class="nav nav-list">
-                <li class="nav-header">@Messages("project.group")</li>
-                <li @if(groupNames.contains("own")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")</a>
-                </li>
-                <li @if(groupNames.contains("member")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")</a>
-                </li>
-                @if(user.loginId == session.get("loginId")){
-                <li @if(groupNames.contains("watching")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")</a>
-                </li>
-                }
-            </ul>
         </div>
 
         <div class="user-stream-box">
@@ -74,27 +74,27 @@
                 </li>
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
-                        @Messages("projects") (@projects.size)
+                        @Messages("projects") @showBadgeNumberIfExist(projects.size)
                     </a>
                 </li>
                 <li>
                     <a href="#postings" data-toggle="tab">
-                        @Messages("menu.board") (@postings.size)
+                        @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
                     </a>
                 </li>
                 <li>
                     <a href="#pullRequests" data-toggle="tab">
-                        @Messages("menu.pullRequest") (@pullRequests.size)
+                        @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
                     </a>
                 </li>
                 <li>
                     <a href="#issues" data-toggle="tab">
-                        @Messages("menu.issue") (@issues.size)
+                        @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
                     </a>
                 </li>
                 <li>
                     <a href="#milestones" data-toggle="tab">
-                        @Messages("project.milestone") (@milestones.size)
+                        @Messages("project.milestone") @showBadgeNumberIfExist(milestones.size)
                     </a>
                 </li>
             </ul>

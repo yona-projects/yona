@@ -882,20 +882,19 @@
         }
     }
 }
+.bottom-actrow {margin-top:15px;  padding: 6px 2px;}
 .search-wrap {
     form { margin: 0; }
 
     .inner {
         position:relative;
-        padding: 20px; /*10px 20px 10px 40px;*/
+        padding: 20px 20px 5px 20px;
 
         input { margin:0; }
         form  { margin:0 auto; /*text-align:center;*/ }
         .input-medium { width:94%; }
 
         .actrow { position:absolute; right:0px; top:10px; }
-        .bottom-actrow { padding-top:25px; margin-top:25px; border-top:1px solid #ddd; }
-
         .text {
             background-color: #fff;
             border: 1px solid #ccc;
@@ -925,14 +924,13 @@
             .srch-advanced {
                 display:block; text-align:left;
                 margin:10px 0 20px;
-                border-top: 1px solid #D6D6D6;
             }
             .btn-advanced {
                 i { .ico-arrow-up-blue; }
             }
         }
 
-        .labels-wrap { border-top:1px solid #ddd; padding-top:10px; }
+        .labels-wrap { padding-top:10px; }
         .milestone-info {
             padding-bottom:20px;
             margin-bottom:20px;
@@ -2325,11 +2323,10 @@ div.markdown-preview {
     .state {
         margin-top:12px;
         margin-right:25px;
-
         font-weight:bold;
-        color:#bbb;
+        color:@secondary;
 
-        &.open { color:@secondary; }
+        &.open { color:#999; }
     }
 
     .empty-avatar-space {
@@ -3104,6 +3101,7 @@ div.markdown-preview {
     }
 
     .user-since {
+        margin-top: 10px;
         padding:0 10px;
 
         .since {
@@ -3621,5 +3619,26 @@ code.milestone-title{
   .btn{
     padding-top: 2px;
     padding-bottom: 2px;
+  }
+}
+
+.project-category {
+  margin-top: 10px;
+  border: 2px solid #000;
+  border-radius: 5px;
+  border-top: 5px solid #000;
+  .categotry-header {
+    text-shadow: none;
+    background-color: #000;
+    color: #FFF;
+    padding-bottom: 7px;
+    font-size: 12px;
+  }
+  li {
+   a {
+    font-size: 13px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+   }
   }
 }
