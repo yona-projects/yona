@@ -1,6 +1,8 @@
 package models;
 
+import models.enumeration.ResourceType;
 import models.enumeration.State;
+import models.resource.Resource;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -171,6 +173,30 @@ public class PullRequest extends Model {
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
                 .findRowCount();
+    }
+
+    public Resource asResource() {
+        return new Resource() {
+            @Override
+            public Long getId() {
+                return id;
+            }
+
+            @Override
+            public Project getProject() {
+                return toProject;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.PULL_REQUEST;
+            }
+
+            @Override
+            public Long getAuthorId() {
+                return contributor.id;
+            }
+        };
     }
 
 }

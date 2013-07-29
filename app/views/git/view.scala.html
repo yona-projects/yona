@@ -133,15 +133,23 @@
         </div>
         <div class="board-footer board-actrow">
             @if(pull.isOpen()){
-                @if(isSafe){
-                <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                    @if(isSafe){
+                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
+                    }
+                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reject")</a>
                 }
-                <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reject")</a>
-                <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                }
             }
             @if(pull.isRejected()){
-                <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
-                <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
+                }
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                }
             }
         </div>
 
