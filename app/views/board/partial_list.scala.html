@@ -12,10 +12,10 @@
             <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
                 @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
                 @post.title
+                @if(Attachment.findByContainer(post.asResource).size > 0){
+                    <i class="ico ico-clip vmiddle"></i>
+                }
             </a>
-            @if(Attachment.findByContainer(post.asResource).size > 0){
-                <i class="ico ico-clip icon-middle"></i>
-            }
         </p>
         <p class="infos nm">
             by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a><!--

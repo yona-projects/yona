@@ -25,15 +25,4 @@
 			@usermenu(null)
         </div>
     </div>
-
-	@** for Site Administrator **@
-    @if(session.contains("userId") && session.get("userId").equals("1")){
-    <div class="side-menu-wrap">
-        <ul class="side-menus unstyled bg">
-            <li class="side-menu"><a href="/statistics"><i class="ico ico-statistics"></i></a></li>
-            <li class="side-menu"><a href="@routes.SiteApp.userList()"><i class="ico ico-setting"></i></a></li>
-        </ul>
-    </div>
-    }
-    @** // **@
 </header>
