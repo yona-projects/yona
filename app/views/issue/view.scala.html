@@ -29,9 +29,9 @@
 		<div class="div btn-group btn-flat">
         @for(state <- Issue.availableStates){
             @if( state.state == issue.state.state ){
-            <a href="@routes.IssueApp.nextState(UserApp.currentUser().loginId, project.name, issue.getNumber)" class="btn active @isFirstState(issue.state) no-gradient">@Messages("issue.state." + issue.state.state)</a>
+            <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(UserApp.currentUser().loginId, project.name, issue.getNumber)"} class="btn active @isFirstState(issue.state) no-gradient">@Messages("issue.state." + issue.state.state)</a>
             } else {
-            <a href="@routes.IssueApp.nextState(UserApp.currentUser().loginId, project.name, issue.getNumber)" class="btn no-gradient">@Messages("issue.state." + state.state)</a>
+            <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(UserApp.currentUser().loginId, project.name, issue.getNumber)"} class="btn no-gradient">@Messages("issue.state." + state.state)</a>
             }
         }
 
@@ -94,6 +94,9 @@
 		}
 		</p>
 
+        <button type="button"
+            class="btn small white @if(issue.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }" data-toggle="button" id="watch-button"> @Messages("notification.watch") </button>
+
         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
         <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
         }
@@ -139,12 +142,6 @@
 	@** // Comment **@
 
     @help.keymap("issueDetail", project)
-
-    <button type="button" class="btn small white
-        @if(issue.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
-        data-toggle="button" id="watch-button">
-        @Messages("notification.watch")
-    </button>
 </div>
 
 <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
