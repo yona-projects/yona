@@ -99,6 +99,10 @@ public class NotificationEvent extends Model {
         }
     }
 
+    public User getSender() {
+        return User.find.byId(this.senderId);
+    }
+    
     public Resource getResource() {
         Resource resource = null;
 
