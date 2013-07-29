@@ -501,11 +501,13 @@ public class ProjectApp extends Controller {
      */
     public static Result projects(String query, String state, int pageNum) {
 
-        String prefer = HttpUtil.getPreferType(request(), JSON, HTML);
+        String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
 
         if (prefer == null) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
+
+        response().setHeader("Vary", "Accept");
 
         if (prefer.equals(JSON)) {
             return getProjectsToJSON(query);
@@ -561,7 +563,7 @@ public class ProjectApp extends Controller {
             el.setMaxRows(MAX_FETCH_PROJECTS);
             response().setHeader("Content-Range", "items " + MAX_FETCH_PROJECTS + "/" + total);
         }
-        
+
         List<String> projectNames = new ArrayList<>();
         for (Project project: el.findList()) {
             projectNames.add(project.owner + "/" + project.name);
