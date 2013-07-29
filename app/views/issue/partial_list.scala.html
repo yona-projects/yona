@@ -23,7 +23,12 @@
         </a>-->**@
         <label for="issue-@issue.id">
             <div class="title">
-                <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title-link">@issue.title</a>
+                <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)" class="title-link">
+                    @issue.title
+                    @if(Attachment.findByContainer(issue.asResource).size > 0){
+                        <i class="ico ico-clip vmiddle"></i>
+                    }
+                </a>
                 @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
                     @makeLabelLink(project, searchCondition, label)
                 }

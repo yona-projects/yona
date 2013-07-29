@@ -171,7 +171,7 @@ yobi.Pagination = (function(window, document) {
 
 			welPageNext = $('<li class="page-num ikon">').append(linkToNext);
 		} else {
-			welPageNext = $('<li class="page-num ikon">').append($('<i class="ico btn-pg-next off">')).append($('<span class="off">').text('NEXT'));
+			welPageNext = $('<li class="page-num ikon">').append($('<span class="off">').text('NEXT').append('<i class="ico btn-pg-next off">'));
 		}
 
 		// fill #pagination
