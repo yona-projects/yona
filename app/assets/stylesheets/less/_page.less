@@ -2,11 +2,13 @@
 .gnb-logo {
     display: block;
     width: 123px; height: 55px;
-    text-indent: -250px; overflow:hidden;
+    overflow:hidden;
     background-size:123px 55px;
-    background-image: url("@{base-image-path}/logo-white.png");
+    font-family: tahoma;
+    font-weight: bold;
+    text-decoration: none;
+    a:hover { text-decoration: none}
     &.orange {
-        background-image: url("@{base-image-path}/logo-orange.png");
     }
 }
 
@@ -192,9 +194,13 @@
                     width: 123px;
                     height: 55px;
                     display: block;
-                    text-indent: -250px;
                     background-size:123px 55px;
-                    background-image: url("@{base-image-path}/logo-orange.png");
+                    color: @primary;
+                    text-decoration: none;
+                    &a:hover {text-decoration:none;}
+                    padding-left: 15px;
+                    font-family: tahoma;
+                    font-weight: bold;
                 }
             }
 
