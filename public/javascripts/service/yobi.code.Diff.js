@@ -462,7 +462,7 @@
                 nLineB: 0,
                 sPath: ""
             };
-            var rxHunkHeader = /@@\s+-(\d+),(\d+)\s+\+(\d+),(\d+)\s+@@/;
+            var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
             var bAddedOrRemoved;
             var aHunkRange;
             var nLastLineA = 0;
@@ -510,9 +510,17 @@
                             }
                         } else {
                             htDiff.nLineA = aHunkRange[1];
-                            nLastLineA = htDiff.nLineA + aHunkRange[2];
+                            if (isNaN(aHunkRange[2])) {
+                                nLastLineA = htDiff.nLineA + 1;
+                            } else {
+                                nLastLineA = htDiff.nLineA + aHunkRange[2];
+                            }
                             htDiff.nLineB = aHunkRange[3];
-                            nLastLineB = htDiff.nLineB + aHunkRange[4];
+                            if (isNaN(aHunkRange[4])) {
+                                nLastLineB = htDiff.nLineB + 1;
+                            } else {
+                                nLastLineB = htDiff.nLineB + aHunkRange[4];
+                            }
                             _flushChangedLines(welTable, htDiff);
                             _appendHunkHeader(welTable, htDiff.sPath, aLine[i]);
                             bInHunk = true;
