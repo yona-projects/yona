@@ -30,23 +30,88 @@ import java.util.*;
 
 public class PlayServletResponse implements HttpServletResponse {
 
+    private final PipedInputStream inputStream;
     private Response response;
     private String characterEncoding;
-    private int status;
-    private ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    private PrintWriter pw = new PrintWriter(bos);
+    private int status = 0;
+    private PrintWriter pw;
+    private ChunkedOutputStream outputStream;
+    private Object statusLock;
 
-    public PlayServletResponse(Response response) {
-        this.response = response;
+    /**
+     * {@code response}의 상태 코드가 최종적으로 결정될 때 까지 기다린 다음 그 상태 코드를 가져온다.
+     *
+     * @return
+     * @throws InterruptedException
+     */
+    public int waitAndGetStatus() throws InterruptedException {
+        Object statusLock = getStatusLock();
+        synchronized (statusLock) {
+            statusLock.wait();
+            return getStatus();
+        }
     }
 
-    public ByteArrayOutputStream getBuffer(){
-        return bos;
+    public Object getStatusLock() {
+        return statusLock;
+    }
+
+    class ChunkedOutputStream extends ServletOutputStream {
+        private byte[] buffer = new byte[1024 * 1024];
+        private int offset = 0;
+        private OutputStream target;
+
+        public ChunkedOutputStream(OutputStream target) {
+            this.target = target;
+        }
+
+        @Override
+        public void write(int b) throws IOException {
+            if (offset >= buffer.length - 1) {
+                flush();
+            }
+            buffer[offset++] = (byte) b;
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException {
+            synchronized (statusLock) {
+                // Make sure HTTP status and header is specified.
+                statusLock.notifyAll();
+            }
+            target.write(b);
+        }
+
+        @Override
+        public void flush() throws IOException {
+            synchronized (statusLock) {
+                // Make sure HTTP status and header is specified.
+                statusLock.notifyAll();
+            }
+            byte[] b = Arrays.copyOf(buffer, offset);
+            target.write(b);
+            offset = 0;
+        }
+
+        @Override
+        public void close() throws IOException {
+            offset = 0;
+            target.close();
+            super.close();
+        }
+    }
+
+    public PlayServletResponse(Response response) throws IOException {
+        this.response = response;
+        this.statusLock = new Object();
+        this.inputStream = new PipedInputStream();
+        this.outputStream = new ChunkedOutputStream(new PipedOutputStream(this.inputStream));
+        this.pw = new PrintWriter(this.outputStream);
     }
 
     @Override
     public void flushBuffer() throws IOException {
-        pw.flush();
+        getWriter().flush();
     }
 
     @Override
@@ -74,16 +139,13 @@ public class PlayServletResponse implements HttpServletResponse {
         throw new UnsupportedOperationException();
     }
 
+    public PipedInputStream getInputStream() {
+        return this.inputStream;
+    }
+
     @Override
     public ServletOutputStream getOutputStream() throws IOException {
-        return new ServletOutputStream() {
-
-            @Override
-            public void write(int b) throws IOException {
-                bos.write(b);
-            }
-
-        };
+        return outputStream;
     }
 
     @Override
@@ -103,8 +165,13 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void resetBuffer() {
-        pw.flush();
-        bos.reset();
+        try {
+            getWriter().flush();
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        // FIXME: pipedOutput does not have reset method. Is it required?
+        // pipedOutput.reset();
     }
 
     @Override
@@ -231,7 +298,8 @@ public class PlayServletResponse implements HttpServletResponse {
         setStatus(statusCode);
         resetBuffer();
         if (msg != null) {
-            pw.write(msg);
+            play.Logger.error(msg);
+            getWriter().write(msg);
             response.setHeader(Http.HeaderNames.CONTENT_TYPE, "text/plain");
         } else {
             response.getHeaders().remove(Http.HeaderNames.CONTENT_TYPE);
@@ -301,7 +369,5 @@ public class PlayServletResponse implements HttpServletResponse {
             encoding = encoding.substring(1, encoding.length() - 1);
         }
         return (encoding.trim());
-
     }
-
 }
