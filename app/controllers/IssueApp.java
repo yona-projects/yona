@@ -432,6 +432,36 @@ public class IssueApp extends AbstractPostingApp {
     }
 
     /**
+     * 이슈 상태 전이
+     *
+     * <p>when: 특정 이슈를 다음 상태로 전이시킬 때</p>
+     *
+     * OPEN 된 이슈의 다음 상태는 CLOSED가 된다.
+     * 단, CLOSED 된 상태의 이슈를 다음 상태로 전이시키면 OPEN 상태가 된다.
+     *
+     * @param ownerName 프로젝트 소유자 이름
+     * @param projectName 프로젝트 이름
+     * @param number 이슈 번호
+     * @return
+     * @throws IOException
+     */
+    public static Result nextState(String ownerName, String projectName, Long number) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+        final Issue issue = Issue.findByNumber(project, number);
+
+        Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", issue.project));
+        }
+        issue.toNextState();
+        addStateChangedNotification(issue.previousState(), issue, redirectTo.absoluteURL(request() ));
+        return redirect(redirectTo);
+    }
+
+    /**
      * 이슈 수정
      *
      * <p>when: 이슈 수정 폼에서 저장</p>

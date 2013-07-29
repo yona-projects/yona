@@ -15,6 +15,7 @@
 	#@issue.getNumber @issue.title
 	@** Messages(title) **@
 }
+@isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 
 @main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
@@ -25,8 +26,15 @@
 		<div class="board-id div"><strong class="secondary-txt">#@issue.getNumber</strong></div>
 		<h1 class="title div">@issue.title</h1>
 		<div class="date div">@agoString(issue.ago)</div>
-		<div class="div">
-			<span class="badge badge-issue-@issue.state.state.toLowerCase">@Messages("issue.state." + issue.state.state)</span>
+		<div class="div btn-group btn-flat">
+        @for(state <- Issue.availableStates){
+            @if( state.state == issue.state.state ){
+            <a href="@routes.IssueApp.nextState(UserApp.currentUser().loginId, project.name, issue.getNumber)" class="btn active @isFirstState(issue.state) no-gradient">@Messages("issue.state." + issue.state.state)</a>
+            } else {
+            <a href="@routes.IssueApp.nextState(UserApp.currentUser().loginId, project.name, issue.getNumber)" class="btn no-gradient">@Messages("issue.state." + state.state)</a>
+            }
+        }
+
 		</div>
 	</div>
 
