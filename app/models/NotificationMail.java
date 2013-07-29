@@ -81,6 +81,7 @@ public class NotificationMail extends Model {
                         if (mail.notificationEvent.resourceExists()) {
                             AbstractPostingApp.sendNotification(
                                     AbstractPostingApp.NotificationFactory.create(
+                                            mail.notificationEvent.getSender(),
                                             mail.notificationEvent.receivers,
                                             mail.notificationEvent.title,
                                             mail.notificationEvent.getMessage(),

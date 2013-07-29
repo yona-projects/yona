@@ -72,9 +72,11 @@ public class AbstractPostingApp extends Controller {
         public String getTitle();
         public String getHtmlMessage();
         public String getPlainMessage();
+        public User getSender();
         public Set<User> getReceivers();
         public String getMessage();
         public String getUrlToView();
+        
     }
 
     protected static abstract class AbstractNotification implements Notification {
@@ -91,9 +93,13 @@ public class AbstractPostingApp extends Controller {
     }
 
     public static class NotificationFactory {
-        public static Notification create(final Set<User> receivers, final String title,
+        public static Notification create(final User sender, final Set<User> receivers, final String title,
                                           final String message, final String urlToView) {
             return new AbstractNotification() {
+                public User getSender() {
+                    return sender;
+                }
+                
                 public String getTitle() {
                     return title;
                 }
@@ -184,11 +190,13 @@ public class AbstractPostingApp extends Controller {
 
         try {
             play.Configuration config = play.Configuration.root();
-            email.setFrom(Config.getEmailFromSmtp());
-            email.addTo(config.getString("smtp.user") + "@" + config.getString("smtp.domain"));
+            email.setFrom(noti.getSender().email, noti.getSender().name);
+            email.addTo(config.getString("smtp.user") + "@" + config.getString("smtp.domain"), "Yobi");
+            
             for (User receiver : receivers) {
                 email.addBcc(receiver.email, receiver.name);
             }
+            
             email.setSubject(noti.getTitle());
             email.setHtmlMsg(noti.getHtmlMessage());
             email.setTextMsg(noti.getPlainMessage());
