@@ -215,7 +215,7 @@ public class SVNRepository implements PlayRepository {
         // Using diffClient, write the changes by commitId into
         // byteArrayOutputStream, as unified format.
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        diffClient.doDiff(svnURL, null, SVNRevision.create(rev), SVNRevision.create(rev - 1),
+        diffClient.doDiff(svnURL, null, SVNRevision.create(rev - 1), SVNRevision.create(rev),
                 SVNDepth.INFINITY, true, byteArrayOutputStream);
 
 
