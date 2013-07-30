@@ -94,8 +94,7 @@
 		}
 		</p>
 
-        <button type="button"
-            class="btn small white @if(issue.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }" data-toggle="button" id="watch-button"> @Messages("notification.watch") </button>
+        <button id="watch-button" type="button" class="nbtn medium blue @if(issue.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
 
         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
         <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>

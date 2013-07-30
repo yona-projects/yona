@@ -934,6 +934,10 @@
             .btn-advanced {
                 i { .ico-arrow-up-blue; }
             }
+            .caret-wrap .caret { 
+                border-top:0; 
+                border-bottom:4px solid @blue;
+            }
         }
 
         .labels-wrap { padding-top:10px; }
@@ -1012,7 +1016,7 @@
     // -- project list -- //
     .project {
         margin: 5px 0px; /*5px 20px;*/
-        padding: 10px 20px;
+        padding: 10px 0px;
         overflow: hidden;
         border-bottom: 1px solid #DCDCDC;
         .info-wrap {
@@ -1097,7 +1101,7 @@
                 strong { color:@secondary; }
            }
 
-           .leaveProject { margin-top:2px; }
+           /*.leaveProject { margin-top:2px; }*/
         }
     }
 
@@ -1323,8 +1327,8 @@
       margin:0 !important;
     }
     .menu-list {
-      border: 2px solid #DADADA;
-      border-radius: 5px;
+      /*border: 2px solid #DADADA;
+      border-radius: 5px;*/
       width: auto;
       float: left;
     }
