@@ -90,7 +90,8 @@ public class SvnApp extends Controller {
     private static PlayServletResponse startDavService(final String ownerName, String pathInfo) throws IOException {
         // For DavServlet, transform HTTP request and HTTP response in this context to
         // ServletRequest and ServletResponse
-        final PlayServletRequest request = new PlayServletRequest(request(), pathInfo);
+        final PlayServletRequest request = new PlayServletRequest(request(),
+                UserApp.currentUser().loginId, pathInfo);
         final PlayServletResponse response = new PlayServletResponse(response());
 
         new Thread() {

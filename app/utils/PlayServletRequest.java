@@ -49,10 +49,11 @@ public class PlayServletRequest implements HttpServletRequest {
     private final HttpSession httpSession;
     private String loginId;
 
-    public PlayServletRequest(Request request, String pathInfo) {
+    public PlayServletRequest(Request request, String authenticatedLoginId, String pathInfo) {
         this.request = request;
         this.httpSession = new PlayServletSession(new PlayServletContext());
         this.pathInfo = SVNEncodingUtil.uriEncode(pathInfo);
+        this.loginId = authenticatedLoginId;
     }
 
     /**
