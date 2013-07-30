@@ -12,18 +12,17 @@
     }
 }
 
-<li class="board">
-    <div class="pull-left" style="margin-right: 10px;">
-        <a href="@routes.ProjectApp.project(project.owner, project.name)">
-            <img src="@projectLogoImage" alt="@project.owner / @project.name" class="img-rounded span1" />
+<li class="board" style="padding:10px 0;">
+    <div class="pull-left">
+        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
+            <img src="@projectLogoImage" alt="@project.owner / @project.name"/>
         </a>
-    </div>
-    <div class="author-avatar-space">
-        <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap img-rounded">
+        <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap mlarge">
             <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName">
         </a>
     </div>
-    <div class="contents">
+
+    <div class="contents" style="padding-left:10px;">
         <p class="title">
             <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
                 @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}

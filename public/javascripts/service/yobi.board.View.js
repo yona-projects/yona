@@ -54,13 +54,15 @@
          */
         function _attachEvent(){
             htElement.welBtnWatch.click(function(weEvt) {
-                var bWatched = $(weEvt.target).hasClass('active');
+                var welTarget = $(weEvt.target);
+                var bWatched = welTarget.hasClass("active");
 
-                if (!bWatched) {
-                    $yobi.sendForm({ "sURL" : htVar.sWatchUrl });
-                } else {
-                    $yobi.sendForm({ "sURL" : htVar.sUnwatchUrl });
-                }
+                $yobi.sendForm({
+                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                    "fOnLoad": function(){
+                        welTarget.toggleClass("active");
+                    }
+                });
             });
         }
 

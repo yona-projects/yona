@@ -29,3 +29,41 @@
         }
     }
 }
+
+.lst-stacked {
+    li {
+        font-size:13px;
+        padding:8px;
+        a { display: block}
+        .num-badge { padding:0 2px; }
+        
+        &.active {
+            color: #fff;
+            background: @secondary;
+            font-weight:bold;
+            .border-radius(2px);
+            .box-shadow(inset 1px 1px 1px rgba(0,0,0,0.2));
+            
+            .num-badge { color:#fff; }
+        }
+    }
+}
+
+.caret-wrap {
+    padding:5px;
+    
+    .caret {
+        display: inline-block;
+        width: 0;
+        height: 0;
+        vertical-align: top;
+        border-top: 4px solid @blue;
+        border-right: 4px solid transparent;
+        border-left: 4px solid transparent;
+        content: "";        
+        margin-top:9px;
+        
+        &.up { border-top:0; border-bottom-width:4px solid @blue; }
+        &.down { border-top:4px solid @blue; border-bottom:0; }
+    }
+}

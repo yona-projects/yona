@@ -46,6 +46,7 @@
                 <ul class="activity-streams unstyled">
                     @for(noti <- UserApp.currentUser.notificationEvents){
                     <li class="activity-stream">
+                        @**<!--
                         @if(noti.getProject != null){
                         <a class="user-thumb-wrap" href="@routes.ProjectApp.project(noti.getProject.owner, noti.getProject.name)">
                         @defining(Attachment.findByContainer(ResourceType.PROJECT, noti.getProject.id)) { attachments =>
@@ -59,15 +60,16 @@
                         } else {
                         <a class="user-thumb-wrap"><img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar"></a>
                         }
+                        -->**@
                         <div class="activity-desc">
                             <h5 class="header-text">
                                 <a href="@noti.urlToView">@noti.title</a>
                                 @defining(User.find.byId(noti.senderId)) { user =>
                                 @if(user != null) {
-                                by <a href="@routes.UserApp.userInfo(user.loginId)"><span class="date">@user.loginId</span></a>
+                                <a href="@routes.UserApp.userInfo(user.loginId)"><span class="date">@user.loginId</span></a>
                                 }
                                 }
-                                at <span class="date">@agoString(JodaDateUtil.ago(noti.created))</span>
+                                <span class="date">@agoString(JodaDateUtil.ago(noti.created))</span>
                             </h5>
                             <div class="desc">@noti.getMessage</div>
                         </div>

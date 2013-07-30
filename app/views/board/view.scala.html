@@ -42,6 +42,12 @@
 		</div>
 	</div>
 	<div class="board-footer board-actrow">
+        <button id="watch-button" type="button" class="nbtn medium blue
+            @if(post.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
+            data-toggle="button">
+            @Messages("notification.watch")
+        </button>
+	    
 		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
 		<a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
 		}
@@ -85,12 +91,6 @@
 	</div>
 	
 	@help.keymap("boardDetail", project)
-
-    <button type="button" class="btn small white
-        @if(post.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
-        data-toggle="button" id="watch-button">
-        @Messages("notification.watch")
-    </button>
 </div>
 
 <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--

@@ -21,11 +21,13 @@
 }
 
 <li class="milestone">
+    <div class="pull-left">
+        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap large" style="margin:8px 8px 0 0;">
+            <img src="@projectLogoImage">
+        </a>
+    </div>
     <div class="infos">
         <div class="meta-info">
-            <a href="@routes.ProjectApp.project(project.owner, project.name)">
-                <img src="@projectLogoImage" class="logo img-rounded span2" style="margin-right: 10px;" />
-            </a>
             <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
             @if(milestone.dueDate != null) {
             <span class="sp">|</span>

@@ -125,7 +125,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     white-space:nowrap;
 
     .border-radius(2px);
-    .box-shadow(0 1px 2px rgba(0, 0, 0, .25));
+    /*.box-shadow(0 1px 2px rgba(0, 0, 0, .25));*/
     .inline-block;
     > i.ico { margin-right: 5px; }
 
@@ -141,6 +141,10 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.blue {
         background-color: @blue2; /*#56B5D9*/
         &:hover { background-color: darken(@blue2, 10%); color: #00ddff; }
+        .num-badge { 
+            background-color:#fff;
+            color:@blue2;
+        }
     }
 
     &.orange {

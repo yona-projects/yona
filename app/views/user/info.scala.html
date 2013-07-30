@@ -38,8 +38,7 @@
                 }
             </div>
 
-            <ul class="nav nav-list project-category">
-                <li class="nav-header categotry-header">@Messages("project.group")</li>
+            <ul class="unstyled lst-stacked" style="margin-top:20px;">
                 <li @if(groupNames.contains("own")){class="active"}>
                 <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")</a>
                 </li>
@@ -69,9 +68,6 @@
             }
 
             <ul class="nav nav-tabs">
-                <li class="days-ago">
-                    @Messages("daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo">@Messages("daysAgo.suffix")
-                </li>
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
                         @Messages("projects") @showBadgeNumberIfExist(projects.size)
@@ -99,6 +95,10 @@
                 </li>
             </ul>
 
+            <div class="right-txt">
+                @Messages("daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo">@Messages("daysAgo.suffix")
+            </div>
+            
             <div class="tab-content">
                 <div id="projects" class="tab-pane active">
                     @if(projects.size==0){

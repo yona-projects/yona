@@ -21,13 +21,11 @@
 
 <div class="row-fluid issue-item">
     <div class="span10">
-        <div class="pull-left span1" style="margin-right: 10px;">
-            <a href="@routes.ProjectApp.project(project.owner, project.name)">
-                <img src="@projectLogoImage" alt="@project.owner / @project.name" class="img-rounded" />
-            </a>
-        </div>
         <div class="pull-left">
-            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap img-rounded">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge nm">
+                <img src="@projectLogoImage" alt="@project.owner / @project.name">
+            </a>
+            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge">
                 <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" alt="@issue.authorName">
             </a>
         </div>

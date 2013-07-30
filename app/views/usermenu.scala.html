@@ -4,7 +4,6 @@
 @if(session.contains("loginId")){
     @if(project != null){
     <div class="member-role">
-        <i class="icon-user icon-large"></i>
         @Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))
     </div>
     }

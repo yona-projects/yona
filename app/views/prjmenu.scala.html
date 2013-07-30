@@ -29,11 +29,11 @@
                 <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last watchBtn">
-                        <i class="icon-eye-open icon-large"></i>
+                        <i class="icon-eye-open icon-large"></i> @Messages("notification.watch")
                     </a>
                     } else {
                     <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white last watchBtn">
-                        <i class="icon-eye-open icon-large"></i>
+                        <i class="icon-eye-open icon-large"></i> @Messages("notification.watch")
                     </a>
                     }
                     <button class="btn dropdown-toggle small" data-toggle="dropdown" style="padding:0">
@@ -155,7 +155,7 @@
                 }
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.ISSUE)>
-                    <a href="@routes.IssueApp.issues(project.owner, project.name, "all")" class="menu-item">
+                    <a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="menu-item">
                         <i class="icon-large icon-exclamation-sign"></i>
                         <span class="menu-title">@Messages("menu.issue")</span>
                         @if(Issue.countIssues(project.id, State.OPEN) > 0){
@@ -203,7 +203,7 @@ $(document).ready(function(){
         "H": "@routes.ProjectApp.project(project.owner, project.name)",
         "B": "@routes.BoardApp.posts(project.owner, project.name)",
         "C": "@routes.CodeApp.codeBrowser(project.owner, project.name)",
-        "I": "@routes.IssueApp.issues(project.owner, project.name,"all")",
+        "I": "@routes.IssueApp.issues(project.owner, project.name,"open")",
         "M": "@routes.MilestoneApp.milestones(project.owner, project.name)"
         @if(project.vcs.equals("GIT")){
            ,"F": "@getPullRequestURL(project)"
