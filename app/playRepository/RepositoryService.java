@@ -352,20 +352,22 @@ public class RepositoryService {
                 receivePack(requestStream, repository, new PipedOutputStream(responseStream),
                         updateLastPushedDate);
                 // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+            } else {
+                requestStream.close();
             }
 
             return responseStream;
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
             if(requestStream != null) {
-                try { requestStream.close(); } catch (IOException e) {
-                    Logger.error("failed to close request stream"); }
+                try { requestStream.close(); } catch (IOException e1) {
+                    Logger.error("failed to close request stream", e1);
+                }
             }
+            throw new RuntimeException(e);
         }
     }
 
-    private static void receivePack(final InputStream in, Repository repository,
+    private static void receivePack(final InputStream input, Repository repository,
                                     final OutputStream output,
                                     final Runnable updateLastPushedDate) {
         final ReceivePack receivePack = new ReceivePack(repository);
@@ -374,12 +376,13 @@ public class RepositoryService {
             @Override
             public void run() {
                 try {
-                    receivePack.receive(in, output, null);
-                    output.close();
+                    receivePack.receive(input, output, null);
                     updateLastPushedDate.run();
                 } catch (IOException e) {
-                    Logger.error(e.getMessage());
+                    Logger.error("receivePack failed", e);
                 }
+
+                closeStreams("receivePack", input, output);
             }
         }.start();
     }
@@ -393,11 +396,27 @@ public class RepositoryService {
             public void run() {
                 try {
                     uploadPack.upload(input, output, null);
-                    output.close();
                 } catch (IOException e) {
-                    Logger.error(e.getMessage());
+                    Logger.error("uploadPack failed", e);
                 }
+
+                closeStreams("uploadPack", input, output);
             }
         }.start();
     }
+
+    private static void closeStreams(String serviceName, InputStream input, OutputStream output) {
+        try {
+            input.close();
+        } catch (IOException e) {
+            Logger.error(serviceName + ": Failed to close input stream", e);
+        }
+
+        try {
+            output.close();
+        } catch (IOException e) {
+            Logger.error(serviceName + ": Failed to close output stream", e);
+        }
+    }
+
 }
