@@ -37,6 +37,7 @@ public class PlayServletResponse implements HttpServletResponse {
     private PrintWriter pw;
     private ChunkedOutputStream outputStream;
     private Object statusLock;
+    private boolean committed;
 
     /**
      * {@code response}의 상태 코드가 최종적으로 결정될 때 까지 기다린 다음 그 상태 코드를 가져온다.
@@ -78,6 +79,7 @@ public class PlayServletResponse implements HttpServletResponse {
             synchronized (statusLock) {
                 // Make sure HTTP status and header is specified.
                 statusLock.notifyAll();
+                committed = true;
             }
             target.write(b);
         }
@@ -155,7 +157,7 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public boolean isCommitted() {
-        throw new UnsupportedOperationException();
+        return committed;
     }
 
     @Override
@@ -320,6 +322,14 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void setHeader(String name, String value) {
+        if (name == null || name.length() == 0 || value == null) {
+            return;
+        }
+
+        if (isCommitted()) {
+            return;
+        }
+
         response.setHeader(name, value);
     }
 
@@ -330,6 +340,10 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void setStatus(int status) {
+        play.Logger.debug("setStatus: " + status);
+        if (status == 401) {
+            Thread.dumpStack();
+        }
         this.status = status;
     }
 
