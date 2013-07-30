@@ -47,13 +47,13 @@ public class PlayServletRequest implements HttpServletRequest {
     private final Request request;
     Map<String, Object> attributes = new HashMap<>();
     private final HttpSession httpSession;
-    private String loginId;
+    private String username;
 
-    public PlayServletRequest(Request request, String authenticatedLoginId, String pathInfo) {
+    public PlayServletRequest(Request request, String authenticatedUsername, String pathInfo) {
         this.request = request;
         this.httpSession = new PlayServletSession(new PlayServletContext());
         this.pathInfo = SVNEncodingUtil.uriEncode(pathInfo);
-        this.loginId = authenticatedLoginId;
+        this.username = authenticatedUsername;
     }
 
     /**
@@ -451,7 +451,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
     @Override
     public String getRemoteUser() {
-        return loginId;
+        return username;
     }
 
     @Override
@@ -499,7 +499,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
             @Override
             public String getName() {
-                return loginId;
+                return username;
             }
 
         };
