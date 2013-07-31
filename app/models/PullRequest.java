@@ -117,6 +117,7 @@ public class PullRequest extends Model {
         return finder.where()
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
+                .order().desc("created")
                 .findList();
     }
 
@@ -124,19 +125,23 @@ public class PullRequest extends Model {
         return finder.where()
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
-                .ge("created", JodaDateUtil.before(days)).order().desc("created").findList();
+                .ge("created", JodaDateUtil.before(days))
+                .order().desc("created")
+                .findList();
     }
 
     public static List<PullRequest> findClosedPullRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)
                 .eq("state", State.CLOSED)
+                .order().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> findSentPullRequests(Project project) {
         return finder.where()
                 .eq("fromProject", project)
+                .order().desc("created")
                 .findList();
     }
 
@@ -144,6 +149,7 @@ public class PullRequest extends Model {
         return finder.where()
                 .eq("fromProject", project)
                 .eq("state", State.CLOSED)
+                .order().desc("created")
                 .findList();
     }
 
@@ -151,12 +157,14 @@ public class PullRequest extends Model {
         return finder.where()
                 .eq("toProject", project)
                 .eq("state", State.REJECTED)
+                .order().desc("created")
                 .findList();
     }
 
     public static List<PullRequest> allReceivedRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)
+                .order().desc("created")
                 .findList();
     }
 
