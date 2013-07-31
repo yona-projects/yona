@@ -39,7 +39,8 @@
 
             .gnb-menus {
                 float: left;
-                margin: 0px 10px 22px 34px;
+                /*margin: 0px 10px 22px 34px;*/
+               margin:0 0 22px 34px;
 
                 .menu {
                     float: left;
@@ -310,11 +311,11 @@
     label { cursor:pointer; .inline-block; }
 }
 
-.user-thumb-wrap {
+/*.user-thumb-wrap {
     border: 1px solid #B4B4B4;
     .border-radius(3px);
     .inline-block;
-}
+}*/
 
 .checkbox {
     .inline-block;
@@ -474,21 +475,26 @@
 
             .activity-stream {
                 padding: 1px 0;
+                margin-bottom:6px; padding-bottom:6px;
+                border-bottom:1px solid #f1f1f1;
 
                 &:first-of-type { padding-top:10px; }
                 &:last-child    { border-bottom: 0 none; }
 
                 .user-thumb-wrap {
                     float: left;
-                    margin-right: 25px;
+                    margin-right: 10px;
                 }
                 .activity-desc {
                     overflow: hidden;
+                    
                     .header-text {
-                        margin-top: 0;
+                        margin-top: 0px;
+                        margin-bottom: 6px;
                         font-size: 12px;
                         line-height: 100%;
                         color: #666;
+                        
                         .actor {
                             color: @orange;/*#D06930;*/
                             font-weight: bold;/*normal;*/
@@ -497,11 +503,15 @@
                             font-size: 11px;
                             color: #000; /*#4092A1;*/
                         }
+                        .title { font-size:12px; font-weight:bold; }
                     }
+                    .author { font-weight:bold; }
+                    .date { color:#bbb; margin-left:5px; }
+                    
                     .desc {
                         color: #888;
                         font-size: 11px;
-                        margin-bottom: 10px;
+                        /*margin-bottom: 10px;*/
                         overflow: hidden;
                         text-overflow: ellipsis;
                         max-height: 40px;
@@ -575,11 +585,15 @@
 
         .my-projects {
             border:1px solid #ddd;
-            margin:0; border-top:none;
+            margin:0; /*border-top:none;*/
 
             .filter-wrap {
-                margin:0; padding:10px;
-                overflow:visible;
+                margin:0;
+                padding:0; 
+                overflow:hidden;
+                height:auto;
+                .title { background:#f7f7f7; padding:10px; display:block; font-weight:bold; border-bottom:1px solid #eee; }
+                .filters { padding:0 10px; }
             }
 
             .my-project {
@@ -2120,6 +2134,8 @@ div.markdown-preview {
 
 // -- new attach files //
 .upload-wrap {
+    padding:20px 10px !important;
+    
     .attach-wrap {
         text-align:center;
 
@@ -2274,7 +2290,7 @@ div.markdown-preview {
 
 .content-footer {
     padding: 10px;
-    background-color: #f7f7f7;
+    background-color: #f5f5f5;
     .border-radius(5px);
 }
 

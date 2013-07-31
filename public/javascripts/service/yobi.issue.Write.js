@@ -61,8 +61,18 @@
 			$("form").submit(_onSubmitForm);
             htElement.welBtnManageLabel.click(_clickBtnManageLabel);
             htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
+            
+            htElement.welTextarea.on("focus", function(){
+                $(window).on("beforeunload", _onBeforeUnload);
+            });
 		}
 
+        function _onBeforeUnload(){
+            if($yobi.getTrim(htElement.welTextarea.val()).length > 0){
+                return Messages("issue.error.beforeunload");
+            }
+        }
+        
         function _clickBtnManageLabel() {
             htVar.htOptLabel.bEditable = !htVar.htOptLabel.bEditable;
             _initLabel(htVar.htOptLabel);
@@ -130,6 +140,7 @@
 				return false;
 			}
 			
+			$(window).off("beforeunload", _onBeforeUnload);
 			return true;
 		}
 		

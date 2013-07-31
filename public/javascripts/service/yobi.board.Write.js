@@ -55,8 +55,18 @@
 		 */
 		function _attachEvent(){
 			htElement.welForm.submit(_onSubmitForm);
-		}
-		
+			
+			htElement.welInputBody.on("focus", function(){
+                $(window).on("beforeunload", _onBeforeUnload);
+            });
+        }
+
+        function _onBeforeUnload(){
+            if($yobi.getTrim(htElement.welInputBody.val()).length > 0){
+                return Messages("post.error.beforeunload");
+            }
+        }
+
 		/**
 		 * Validate form on submit
 		 */
@@ -71,6 +81,7 @@
 				return false;
 			}
 			
+			$(window).off("beforeunload", _onBeforeUnload);
 			return true;
 		}
 		

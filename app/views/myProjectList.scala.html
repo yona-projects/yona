@@ -21,17 +21,9 @@
 
 @if(projects != null){
 
-<ul id="myProjectsTab" class="nav nav-tabs my-projects-tab">
-	<li class="active">
-	   <a href="#createdProjects" data-toggle="tab">@Messages("project.createdByMe") <span class="num-badge">@countProjectCreated</span></a>
-	</li>
-	<li>
-	   <a href="#belongedProjects" data-toggle="tab">@Messages("project.belongsToMe") <span class="num-badge">@countProjectBelongs(projects)</span></a>
-    </li>
-</ul>
-
 <div class="my-projects">
     <div class="filter-wrap">
+        <div class="title">@Messages("title.projectList")</div>
         <div class="filters">
             @if(orderString){
 	            @defining(orderString.split(" ")){ order =>
@@ -45,41 +37,21 @@
         </div>
     </div>
 
-    <div class="tab-content">
-	    <ul id="createdProjects" class="unstyled tab-pane active">
-	    @for(project <- projects){
-	        @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
-	        <li class="my-project">
-	            <div class="project-header">
-	                <div class="name-wrap">
-	                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-	                        <strong>@project.name @if(!project.isPublic){ <i class="ico ico-lock"></i> }</strong><!-- 
-	                     --><i class="ico ico-gray-arrow-right"></i>
-	                    </a>
-	                </div>
-	        </li>
-	        }
-	    }
-	    </ul>
-	
-	    <ul id="belongedProjects" class="unstyled tab-pane">
-	    @for(project <- projects){
-	        @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
-	            <li class="my-project">
-	                <div class="project-header">
-	                    <div class="name-wrap">
-	                        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
-	                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-	                            <strong>@project.name @if(!project.isPublic){ <i class="ico ico-lock"></i> }</strong><!-- 
-	                         --><i class="ico ico-gray-arrow-right"></i>
-	                        </a>
-	                    </a>
-	                </div>
-	            </li>
-	        }
-	    }
-	    </ul>
-    </div>
+    <ul class="unstyled">
+    @for(project <- projects){
+        <li class="my-project">
+            <div class="project-header">
+                <div class="name-wrap">
+                    <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+                        <strong>@project.name @if(!project.isPublic){ <i class="ico ico-lock"></i> }</strong><!-- 
+                     --><i class="ico ico-gray-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </li>
+    }
+    </ul>
 </div>
 
 }
