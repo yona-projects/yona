@@ -11,6 +11,7 @@
 		<h1 class="page-title">
 			<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /</span><!--
 	 	--> <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
+	 			@if(!project.isPublic){  <i class="icon icon-lock small-lock"></i> }
 		</h1>
 
         @if(project.isFork()){
