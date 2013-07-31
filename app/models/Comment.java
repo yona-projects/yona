@@ -107,4 +107,13 @@ abstract public class Comment extends Model {
         super.delete();
         getParent().update();
     }
+
+    public static Comparator<Comment> comparator(){
+        return new Comparator<Comment>() {
+            @Override
+            public int compare(Comment o1, Comment o2) {
+                return o1.createdDate.compareTo(o2.createdDate);
+            }
+        };
+    }
 }

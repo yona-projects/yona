@@ -2,20 +2,21 @@ package models;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
-
-import jxl.*;
-import jxl.format.*;
-import jxl.format.Colour;
-import jxl.format.BorderLineStyle;
-import jxl.format.Border;
+import jxl.Workbook;
 import jxl.format.Alignment;
+import jxl.format.Border;
+import jxl.format.BorderLineStyle;
+import jxl.format.Colour;
+import jxl.format.*;
 import jxl.write.*;
-import models.enumeration.*;
+import models.enumeration.ResourceType;
+import models.enumeration.State;
 import models.resource.Resource;
-import utils.*;
+import utils.JodaDateUtil;
 
 import javax.persistence.*;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -327,6 +328,7 @@ public class Issue extends AbstractPosting {
      */
     @Transient
     public List<? extends Comment> getComments() {
+        Collections.sort(comments, Comment.comparator());
         return comments;
     }
 

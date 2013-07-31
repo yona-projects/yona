@@ -114,6 +114,7 @@ public class Posting extends AbstractPosting {
      */
     @Transient
     public List<? extends Comment> getComments() {
+        Collections.sort(comments, Comment.comparator());
         return comments;
     }
 
