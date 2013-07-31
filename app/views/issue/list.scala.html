@@ -94,12 +94,12 @@
                             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), UserApp.currentUser().id, null, param.milestoneId)</span>
                         </a>
                     </li>
-                    }
                     <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}>
                         <a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe")
                             <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), null, UserApp.currentUser().id, param.milestoneId)</span>
                         </a>
                     </li>
+                    }
                 </ul>
 
                 @if(param.milestoneId != null){
