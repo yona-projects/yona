@@ -1,4 +1,5 @@
-@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:IssueApp.SearchCondition, project:Project)
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param
+:IssueApp.SearchCondition, project:Project)
 
 @import helper._
 @import utils.TemplateHelper._
@@ -55,7 +56,7 @@
                 @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                     @partial_massupdate(project, param)
                 }
-                
+
                 @if(currentPage.getList().size() > 1){
         		<div class="filters pull-right">
         			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
@@ -78,15 +79,27 @@
             </div>
         }
         </div>
-        
+
         <div class="span3 search-wrap">
             <div class="inner bggray @if(param.authorLoginId != null || param.assigneeId != null || param.milestoneId != null){ advanced }">
                 <ul class="lst-stacked unstyled">
-                    <li @if(param.assigneeId == null && param.authorLoginId == null){class="active"}><a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all") <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, null, null, param.milestoneId)</span></a></li>
+                    <li @if(param.assigneeId == null && param.authorLoginId == null){class="active"}>
+                        <a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all")
+                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), null, null, param.milestoneId)</span>
+                        </a>
+                    </li>
                     @if(UserApp.currentUser().id != -1l){
-                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}><a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe") <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, UserApp.currentUser().id, null, param.milestoneId)</span></a></li>
+                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
+                        <a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe")
+                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), UserApp.currentUser().id, null, param.milestoneId)</span>
+                        </a>
+                    </li>
                     }
-                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}><a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe") <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.ALL, null, UserApp.currentUser().id, param.milestoneId)</span></a></li>
+                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}>
+                        <a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe")
+                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), null, UserApp.currentUser().id, param.milestoneId)</span>
+                        </a>
+                    </li>
                 </ul>
 
                 @if(param.milestoneId != null){
@@ -100,7 +113,7 @@
                 <form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
                     <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
                     <input type="hidden" name="state"   value="@param.state">
-                    
+
                     <div class="row-fluid">
                         <div class="span10">
                             <input type="text" name="filter" class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
@@ -112,7 +125,7 @@
 
                     <div class="row-fluid right-txt">
                         <button type="button" class="btn-advanced btn-transparent">
-                            <span class="caret-wrap"><span class="caret down blue"></span></span> 
+                            <span class="caret-wrap"><span class="caret down blue"></span></span>
                             @Messages("issue.advancedSearch")
                         </button>
                     </div>
@@ -137,7 +150,7 @@
                                         <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}><a>@assignee.user.name (@assignee.user.loginId)</a></li>
                                         }
                                     </ul>
-                                </div>                                
+                                </div>
                             </dd>
                         </dl>
                         <dl class="issue-option">
@@ -155,7 +168,7 @@
                                         <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
                                         }
                                     </ul>
-                                </div>                                
+                                </div>
                             </dd>
                         </dl>
                     </div>
