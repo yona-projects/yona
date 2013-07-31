@@ -152,13 +152,15 @@
          *
          * @param {String} sPath
          */
-        function encodePath(sPath) {
-            segments = sPath.split('/');
-            encodedSegments = [];
-            for (var i = 0; i < segments.length; i++) {
-                encodedSegments.push(encodeURIComponent(segments[i]));
+        function _encodePath(sPath) {
+            var aSegment = sPath.split('/');
+            var aEncodedSegment = [];
+
+            for (var i = 0; i < aSegment.length; i++) {
+                aEncodedSegment.push(encodeURIComponent(aSegment[i]));
             }
-            return encodedSegments.join('/');
+
+            return aEncodedSegment.join('/');
         }
 
 
@@ -176,7 +178,7 @@
                 htVar.bInitTree = true;
             }
 
-            $.ajax("code/" + sBranch + "/!" + encodePath(sPath), {
+            $.ajax("code/" + sBranch + "/!" + _encodePath(sPath), {
                 "datatype": "json",
                 "success" : _onLoadFiles,
                 "error"   : function(){
