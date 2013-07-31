@@ -73,7 +73,10 @@ public class SimpleComment extends Model {
     }
 
     public static List<SimpleComment> findByResourceKey(String resourceKey) {
-        return find.where().eq("resourceKey", resourceKey).findList();
+        return find.where()
+                .eq("resourceKey", resourceKey)
+                .orderBy().asc("createdDate")
+                .findList();
     }
 
     public Resource asResource(){
