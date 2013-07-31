@@ -1753,6 +1753,7 @@
         &.member-info {
             width: 260px; /*230px;*/
             margin-right: 0;
+			height:auto !important;
         }
 
         &.logo {
@@ -1807,11 +1808,6 @@
             }
         }
 
-        .member-wrap {
-            height: 130px;
-            overflow-y: auto;
-        }
-
         .project-members {
             list-style: none;
             margin: 0; padding: 10px;
@@ -1819,7 +1815,7 @@
             .member {
                 display:block;
                 padding: 5px 10px;
-                border-bottom: 1px solid @gray-d4;
+                border-bottom: 1px solid #ededed;
                 color: #999;
                 &:first-child {
                     padding-top: 0;
@@ -1834,9 +1830,10 @@
                    margin-left:5px;
 
                    strong {
-                       max-width:140px;
+                       max-width:180px;
                        overflow:hidden;
                        text-overflow:ellipsis;
+					   white-space:nowrap;
                        .inline-block;
                    }
                }
