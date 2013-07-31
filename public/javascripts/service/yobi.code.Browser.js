@@ -144,6 +144,24 @@
             yobi.ShortcutKey.attach("ALT+ENTER", _onClickBtnFullScreen);
 		}
 
+        /**
+         * 어떤 경로 sPath를 입력받아 URI의 path로 사용할 수 있도록 인코딩한다.
+         *
+         * sPath를 '/' 기준으로 자른 뒤 그 path segment 하나하나를 encodeURIComponent로
+         * 각각 인코딩하고 그것들을 '/'를 separator로 하여 다시 이어붙여서 반환한다.
+         *
+         * @param {String} sPath
+         */
+        function encodePath(sPath) {
+            segments = sPath.split('/');
+            encodedSegments = [];
+            for (var i = 0; i < segments.length; i++) {
+                encodedSegments.push(encodeURIComponent(segments[i]));
+            }
+            return encodedSegments.join('/');
+        }
+
+
 		/**
 		 * hashChange 이벤트 핸들러
 		 * 파일 목록 또는 내용을 서버에 요청한다
@@ -158,7 +176,7 @@
                 htVar.bInitTree = true;
             }
 
-            $.ajax("code/" + sBranch + "/!" + sPath, {
+            $.ajax("code/" + sBranch + "/!" + encodePath(sPath), {
                 "datatype": "json",
                 "success" : _onLoadFiles,
                 "error"   : function(){
