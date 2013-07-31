@@ -42,43 +42,39 @@
         
         <div class="row-fluid content-container">
             @if(session.contains("userId")){
-	        <div class="span8 main-stream">
+	        <div class="span9 main-stream">
                 <ul class="activity-streams unstyled">
                     @for(noti <- UserApp.currentUser.notificationEvents){
                     <li class="activity-stream">
-                        @**<!--
-                        @if(noti.getProject != null){
-                        <a class="user-thumb-wrap" href="@routes.ProjectApp.project(noti.getProject.owner, noti.getProject.name)">
-                        @defining(Attachment.findByContainer(ResourceType.PROJECT, noti.getProject.id)) { attachments =>
-                        @if(attachments.size > 0) {
-                            <img src="@routes.AttachmentApp.getFile(attachments.get(0).id)" width="62" height="62" alt="avatar">
-                            } else {
-                            <img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar">
-                            }
-                        }
-                        </a>
-                        } else {
-                        <a class="user-thumb-wrap"><img src="@routes.Assets.at("images/default-avatar-64.png")" width="62" height="62" alt="avatar"></a>
-                        }
-                        -->**@
+                        @defining(User.find.byId(noti.senderId)){ user =>
                         <div class="activity-desc">
-                            <h5 class="header-text">
-                                <a href="@noti.urlToView">@noti.title</a>
-                                @defining(User.find.byId(noti.senderId)) { user =>
-                                @if(user != null) {
-                                <a href="@routes.UserApp.userInfo(user.loginId)"><span class="date">@user.loginId</span></a>
-                                }
-                                }
-                                <span class="date">@agoString(JodaDateUtil.ago(noti.created))</span>
-                            </h5>
-                            <div class="desc">@noti.getMessage</div>
+                            <div class="user-thumb-wrap">
+                                <div class="avatar-wrap mlarge">
+                                    @if(user != null){
+                                        <img src="@user.avatarUrl" width="42" height="42">
+                                    } else {
+                                        <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
+                                    }
+                                </div>
+                            </div>
+                            <div class="header-text">
+                                <a href="@noti.urlToView" class="title">@noti.title</a>
+                                <div class="pull-right">
+                                    @if(user != null) {
+                                    <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@@@user.loginId</a>
+                                    }                                    
+                                    <span class="date">@agoString(JodaDateUtil.ago(noti.created))</span>
+                                </div>
+                            </div>
+                            <div class="desc"><a href="@noti.urlToView">@noti.getMessage</a></div>
                         </div>
+                        }
                     </li>
                     }
                 </ul>
 	       </div>
 	       
-	       <div class="span4">
+	       <div class="span3">
                 <div class="projects-wrap">
                     @myProjectList(projects, orderString)
 

@@ -82,6 +82,10 @@
                 _onCheckIssue();
                 return false; 
             });
+            
+            if($(htVar.sIssueCheckBoxesSelector + ':checked').length > 0){
+                _onCheckIssue();
+            }
 		}
 
         /**

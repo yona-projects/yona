@@ -214,6 +214,7 @@ issue.downloadAsExcel = 엑셀파일로 다운받기
 issue.search = 검색
 issue.error.emptyTitle = 이슈 제목을 입력해주세요
 issue.error.emptyBody = 이슈 내용을 입력해주세요
+issue.error.beforeunload = 아직 이슈를 저장하지 않았습니다. 저장하지 않은 채로 다른 페이지로 가시겠어요?
 issue.title = 제목
 issue.createdDate = 작성일
 issue.attachment = 첨부파일
@@ -249,6 +250,7 @@ post.attachment = 첨부파일
 post.numOfComments = 댓글개수
 post.error.emptyTitle = 글 제목을 입력해주세요
 post.error.emptyBody = 글 내용을 입력해주세요
+post.error.beforeunload = 아직 글을 저장하지 않았습니다. 저장하지 않은 채로 다른 페이지로 가시겠어요?
 
 #Project
 project.myproject = 내 프로젝트

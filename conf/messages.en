@@ -214,6 +214,7 @@ issue.downloadAsExcel = Download as Excel
 issue.search = SEARCH
 issue.error.emptyTitle = Title of this issue is required
 issue.error.emptyBody = Description about this issue is required
+issue.error.beforeunload = an Issue have not saved yet. Would you like to exit this page without saving? 
 issue.title = Title
 issue.createdDate = Created Date
 issue.attachment = Attachment
@@ -248,7 +249,8 @@ post.createdDate = Created Date
 post.attachment = Attachment
 post.numOfComments = Comment Count
 post.error.emptyTitle = Title is required
-post.error.emptyBody = Post with empty body cannot be created
+post.error.emptyBody = a Post with empty body cannot be created
+post.error.beforeunload = a Post have not saved yet. Would you like to exit this page without saving?
 
 #Project
 project.myproject = My Projects

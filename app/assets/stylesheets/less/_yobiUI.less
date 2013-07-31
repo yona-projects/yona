@@ -123,28 +123,24 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     border:0; padding:0;
     margin-right:5px;
     white-space:nowrap;
+    color: @white;
+    background-color: #707070;
 
     .border-radius(2px);
-    /*.box-shadow(0 1px 2px rgba(0, 0, 0, .25));*/
     .inline-block;
     > i.ico { margin-right: 5px; }
 
-    color: @white;
-    background-color: #707070;
     &:hover {
         background-color: darken(#707070, 10%);
         text-decoration: none;
     }
     &.last  { margin-right:0; }
-    &.active { .box-shadow(inset 1px 1px 2px rgba(0, 0, 0, 0.3)); }
+    &.active { .box-shadow(inset 2px 2px 1px rgba(0, 0, 0, 0.25)); }
     
     &.blue {
         background-color: @blue2; /*#56B5D9*/
         &:hover { background-color: darken(@blue2, 10%); color: #00ddff; }
-        .num-badge { 
-            background-color:#fff;
-            color:@blue2;
-        }
+        .num-badge { background-color:#fff; color:@blue2; }
     }
 
     &.orange {
@@ -472,8 +468,8 @@ button.nbtn {
     position: relative;
     padding: 2px 3px;
     font-size: 10px;
-    color: #fafafa;
-    background: #B80909;
+    color: @blue2;/*#fafafa;*/
+    /*background: #B80909;*/
     border-radius: 2px;
-    box-shadow: inset 0 -1px 0 #e3e3e3;
+    /*box-shadow: inset 0 -1px 0 #e3e3e3;*/
 }
