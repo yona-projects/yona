@@ -189,9 +189,8 @@ public class AbstractPostingApp extends Controller {
         final HtmlEmail email = new HtmlEmail();
 
         try {
-            play.Configuration config = play.Configuration.root();
-            email.setFrom(noti.getSender().email, noti.getSender().name);
-            email.addTo(config.getString("smtp.user") + "@" + config.getString("smtp.domain"), "Yobi");
+            email.setFrom(Config.getEmailFromSmtp(), noti.getSender().name);
+            email.addTo(Config.getEmailFromSmtp(), "Yobi");
             
             for (User receiver : receivers) {
                 email.addBcc(receiver.email, receiver.name);
