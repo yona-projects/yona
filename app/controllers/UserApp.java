@@ -69,7 +69,7 @@ public class UserApp extends Controller {
 
         List<String> loginIds = new ArrayList<>();
         for (User user: el.findList()) {
-            loginIds.add(user.loginId);
+            loginIds.add(user.loginId + " (" + user.name + ")");
         }
 
         return ok(toJson(loginIds));

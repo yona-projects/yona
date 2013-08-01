@@ -69,7 +69,11 @@
         function _initElement(sQuery){
             try {
                 htElement.welInput = $(sQuery);
-                htElement.welInput.typeahead({ minLength: 0 });
+                htElement.welInput.typeahead({ minLength: 0,
+                updater: function(item){
+                    // remove name part string
+                    return item.substr(0, item.indexOf("(")-1);
+                }});
                 htData = htElement.welInput.data('typeahead');
                 htData.items = htVar.htData.limit || 8;
                 htData.source = _onTypeAhead;
