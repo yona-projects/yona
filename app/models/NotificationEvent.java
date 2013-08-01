@@ -6,11 +6,15 @@ import models.enumeration.State;
 import models.resource.Resource;
 import play.db.ebean.Model;
 import play.i18n.Messages;
+import playRepository.Commit;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -61,6 +65,11 @@ public class NotificationEvent extends Model {
     @OneToOne(mappedBy="notificationEvent", cascade = CascadeType.ALL)
     public NotificationMail notificationMail;
 
+    public static String formatReplyTitle(Project project, Commit commit) {
+        return String.format("Re: [%s] %s (#%s)",
+                project.name, commit.getShortMessage(), commit.getShortId());
+    }
+
     public static String formatReplyTitle(AbstractPosting posting) {
         return String.format("Re: [%s] %s (#%d)",
                 posting.project.name, posting.title, posting.getNumber());
@@ -69,6 +78,16 @@ public class NotificationEvent extends Model {
     public static String formatNewTitle(AbstractPosting posting) {
         return String.format("[%s] %s (#%d)",
                 posting.project.name, posting.title, posting.getNumber());
+    }
+
+    public static Set<User> getMentionedUsers(String body) {
+        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
+        Set<User> users = new HashSet<>();
+        while(matcher.find()) {
+            users.add(User.findByLoginId(matcher.group().substring(1)));
+        }
+        users.remove(User.anonymous);
+        return users;
     }
 
     @Transient
@@ -134,6 +153,9 @@ public class NotificationEvent extends Model {
             case MILESTONE:
                 resource = Milestone.find.byId(resourceId).asResource();
                 break;
+            case CODE_COMMENT:
+                resource = CodeComment.find.byId(resourceId).asResource();
+                break;
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }
@@ -196,6 +218,9 @@ public class NotificationEvent extends Model {
                 break;
             case MILESTONE:
                 finder = Milestone.find;
+                break;
+            case CODE_COMMENT:
+                finder = CodeComment.find;
                 break;
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));

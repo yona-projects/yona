@@ -3,13 +3,12 @@ package controllers;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 
-import com.avaje.ebean.ExpressionList;
-import models.Attachment;
-import models.CodeComment;
-import models.Project;
+import models.*;
+import models.enumeration.NotificationType;
 import models.enumeration.Operation;
 
 import models.enumeration.ResourceType;
@@ -18,6 +17,7 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
 
 import play.data.Form;
+import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.Commit;
@@ -193,7 +193,32 @@ public class CodeHistoryApp extends Controller {
 
         Attachment.moveAll(UserApp.currentUser().asResource(), codeComment.asResource());
 
-        return redirect(routes.CodeHistoryApp.show(project.owner, project.name, commitId));
+        Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
+
+        addNotificationEventForNewComment(project, codeComment, toView);
+
+        return redirect(toView);
+    }
+
+    private static void addNotificationEventForNewComment(Project project, CodeComment codeComment, Call toView) throws IOException, SVNException, ServletException {
+        Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
+        Set<User> watchers = commit.getWatchers(project);
+        watchers.addAll(NotificationEvent.getMentionedUsers(codeComment.contents));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = NotificationEvent.formatReplyTitle(project, commit);
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = toView.absoluteURL(request());
+        notiEvent.resourceId = codeComment.id;
+        notiEvent.resourceType = codeComment.asResource().getType();
+        notiEvent.type = NotificationType.NEW_COMMENT;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = codeComment.contents;
+
+        NotificationEvent.add(notiEvent);
     }
 
     public static Result deleteComment(String ownerName, String projectName, String commitId,
@@ -212,5 +237,42 @@ public class CodeHistoryApp extends Controller {
         codeComment.delete();
 
         return redirect(routes.CodeHistoryApp.show(ownerName, projectName, commitId));
+    }
+
+    public static Result watch(String ownerName, String projectName,
+                               String commitId) throws IOException, ServletException, SVNException {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+
+        User user = UserApp.currentUser();
+
+        if (!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("You have no permission to do that.",
+                    project.asResource().getProject()));
+        }
+
+        if (user.isAnonymous()) {
+            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot watch it.", project));
+        }
+
+        commit.watch(project, user);
+
+        return ok();
+    }
+
+    public static Result unwatch(String ownerName, String projectName,
+                                 String commitId) throws IOException, ServletException, SVNException {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+
+        User user = UserApp.currentUser();
+
+        if (user.isAnonymous()) {
+            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot unwatch it.", project));
+        }
+
+        commit.unwatch(project, user);
+
+        return ok();
     }
 }

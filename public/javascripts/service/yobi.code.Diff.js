@@ -21,6 +21,7 @@
         function _init(htOptions){
             _initVar(htOptions);
             _initElement(htOptions);
+            _attachEvent();
             _render();
             _initFileUploader();
             _initFileDownloader();
@@ -32,6 +33,8 @@
         function _initVar(htOptions) {
             htVar.sAttachmentAction = htOptions.sAttachmentAction;
             htVar.bCommentable = htOptions.bCommentable;
+            htVar.sWatchUrl = htOptions.sWatchUrl;
+            htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
         }
 
         /**
@@ -55,6 +58,25 @@
                 $('#linenum-column-template').tmpl();
             htElement.welEmptyCommentButton =
                 $('#comment-button-template').tmpl();
+
+            htElement.welBtnWatch = $('#watch-button');
+        }
+
+        /**
+         * attach event handler
+         */
+        function _attachEvent(){
+            htElement.welBtnWatch.click(function(weEvt) {
+                var welTarget = $(weEvt.target);
+                var bWatched = welTarget.hasClass("active");
+
+                $yobi.sendForm({
+                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                    "fOnLoad": function(){
+                        welTarget.toggleClass("active");
+                    }
+                });
+            });
         }
 
         /**

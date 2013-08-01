@@ -3,11 +3,12 @@ package playRepository;
 import models.User;
 
 import java.util.Date;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.eclipse.jgit.revwalk.RevCommit;
 
-public class GitCommit implements Commit {
+public class GitCommit extends Commit {
     RevCommit revCommit;
 
     public GitCommit(RevCommit revCommit) {

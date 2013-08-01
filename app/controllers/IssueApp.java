@@ -383,7 +383,7 @@ public class IssueApp extends AbstractPostingApp {
 
         String title = NotificationEvent.formatNewTitle(newIssue);
         Set<User> watchers = newIssue.getWatchers();
-        watchers.addAll(getMentionedUsers(newIssue.body));
+        watchers.addAll(NotificationEvent.getMentionedUsers(newIssue.body));
         watchers.remove(newIssue.getAuthor());
 
         NotificationEvent notiEvent = new NotificationEvent();
@@ -735,6 +735,4 @@ public class IssueApp extends AbstractPostingApp {
 
         return AbstractPostingApp.unwatch(issue);
     }
-
-
 }

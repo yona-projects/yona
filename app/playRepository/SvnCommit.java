@@ -7,7 +7,7 @@ import java.util.TimeZone;
 
 import org.tmatesoft.svn.core.SVNLogEntry;
 
-public class SvnCommit implements Commit {
+public class SvnCommit extends Commit {
     SVNLogEntry entry;
 
     public SvnCommit(SVNLogEntry entry) {
