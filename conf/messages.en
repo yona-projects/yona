@@ -227,6 +227,7 @@ issue.update.detachLabel = Detach label
 issue.list.all = All Issues
 issue.list.assignedToMe = Assigned to me
 issue.list.authoredByMe = Created by me
+issue.assignToMe = Assign to me
 
 #Post
 post.new = New

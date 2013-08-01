@@ -25,11 +25,17 @@
 			
 			_initFileUploader();
 			
-			if(typeof htOptions.htOptLabel == "object"){
-				_initLabel(htOptions.htOptLabel);
-			}
+            htElement.welInputTitle.focus();
+
+            // zenForm
+            $(".zen-mode").zenForm({"theme": "light"});
+            $(".s--zen").tooltip({
+                "delay": {"show": 500, "hide": 100},
+                "title": Messages("title.zenmode"),
+                "placement": "left"
+            });
 		}
-		
+
 		/**
 		 * initialize variable
 		 */
@@ -38,7 +44,6 @@
             htVar.sIssueFormURL = htOptions.sIssueFormURL;
 			htVar.sUploaderAction = htOptions.sUploaderAction;
 			htVar.sTplFileItem = htOptions.sTplFileItem || (htElement.welTplFileItem ? htElement.welTplFileItem.text() : "");
-            htVar.htOptLabel = htOptions.htOptLabel || {};
 		}
 		
 		/**
@@ -59,7 +64,6 @@
 		 */
 		function _attachEvent(){
 			$("form").submit(_onSubmitForm);
-            htElement.welBtnManageLabel.click(_clickBtnManageLabel);
             htElement.welIssueOptions.on("click", htElement.welMilestoneRefresh, _onReloadMilestone);
             
             htElement.welTextarea.on("focus", function(){
@@ -98,23 +102,6 @@
 			  	"elContainer" : htElement.welUploader,
 			  	"elTextarea"  : htElement.welTextarea
 			});
-		}
-		
-		/**
-		 * 지정한 라벨들을 활성화 상태로 표시
-		 * @param {Hash Table} htActiveLabels
-		 * @example
-		 * htActiveLabels["labelId"] = "labelColor";
-		 */
-		function _initLabel(htOptions){
-			htOptions.fOnLoad = function(){
-				var sKey;
-				for(sKey in htOptions.htActive){
-				    yobi.Label.setActiveLabel(sKey, htOptions.htActive[sKey]);
-				}
-			};
-			
-			yobi.Label.init(htOptions);
 		}
 		
 		/**

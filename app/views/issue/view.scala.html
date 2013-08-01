@@ -100,7 +100,13 @@
 		}
 		</p>
 
-        <button id="watch-button" type="button" class="nbtn medium blue @if(issue.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+        <button id="watch-button" type="button" class="nbtn medium blue @if(issue.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
+            @if(issue.getWatchers.contains(UserApp.currentUser())) {
+                @Messages("project.unwatch")
+            } else {
+                @Messages("project.watch")
+            }
+        </button>
 
         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
         <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
@@ -110,13 +116,13 @@
 		<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
 		}
 
-		<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium">@Messages("button.list")</a>
+		<a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>
 		
 		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
 	</div>
 
 	@** Comment **@
-	<div class="board-comment-wrap">
+	<div id="comments" class="board-comment-wrap">
 		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 
 	    @if(issue.comments.size > 0) {

@@ -61,6 +61,7 @@
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
                         welTarget.toggleClass("active");
+                        welTarget.html(Messages(welTarget.hasClass("active") ? "project.unwatch" : "project.watch"));
                     }
                 });
             });

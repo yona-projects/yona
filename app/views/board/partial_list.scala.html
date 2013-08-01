@@ -1,7 +1,7 @@
 @(post:models.Posting, project:Project)
 <li class="board">
     <div class="num">
-        <a href="@routes.BoardApp.post(project.owner, project.name, post.id)">@post.getNumber</a>
+        <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.getNumber</a>
     </div>
     <div class="author-avatar-space">
         <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap img-rounded"><!--
@@ -18,7 +18,7 @@
             </a>
         </p>
         <p class="infos nm">
-            by <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a><!--
+            <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a><!--
             -->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
         </p>
     </div>
