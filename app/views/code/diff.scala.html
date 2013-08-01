@@ -114,6 +114,8 @@
 
         @views.html.commentForm(project, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
 	</div>
+
+    <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
 	
 	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
 	
@@ -140,7 +142,9 @@
         }
         $yobi.loadModule("code.Diff", {
             "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
-            "bCommentable": bCommentable
+            "bCommentable": bCommentable,
+            "sWatchUrl"     : "@routes.CodeHistoryApp.watch(project.owner, project.name, commit.getId)",
+            "sUnwatchUrl"   : "@routes.CodeHistoryApp.unwatch(project.owner, project.name, commit.getId)"
         });
 	});
 </script>

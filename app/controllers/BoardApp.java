@@ -151,7 +151,7 @@ public class BoardApp extends AbstractPostingApp {
 
     private static void addNotificationEventFromNewPost(Posting post, Call toPost) {
         Set<User> watchers = post.getWatchers();
-        watchers.addAll(getMentionedUsers(post.body));
+        watchers.addAll(NotificationEvent.getMentionedUsers(post.body));
         watchers.remove(post.getAuthor());
 
         NotificationEvent notiEvent = new NotificationEvent();

@@ -26,27 +26,14 @@ import utils.ErrorViews;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * {@link BoardApp}과 {@link IssueApp}에서 공통으로 사용하는 기능을 담고 있는 컨트롤러 클래스
  */
 public class AbstractPostingApp extends Controller {
     public static final int ITEMS_PER_PAGE = 15;
-
-    protected static Set<User> getMentionedUsers(String body) {
-        Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
-        Set<User> users = new HashSet<>();
-        while(matcher.find()) {
-            users.add(User.findByLoginId(matcher.group().substring(1)));
-        }
-        users.remove(User.anonymous);
-        return users;
-    }
 
     /**
      * 검색 조건
