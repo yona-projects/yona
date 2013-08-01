@@ -56,7 +56,7 @@ public class NotificationMail extends Model {
                     try {
                         sendMail();
                     } catch (Exception e) {
-                        play.Logger.warn(e.getMessage());
+                        play.Logger.warn("Failed to send notification mail", e);
                     }
                 }
 
