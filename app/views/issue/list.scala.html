@@ -30,58 +30,9 @@
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
-
-	<div class="pull-right">
-        <div class="btn-group" style="margin-right: 20px;">
-            </div>
-
-        <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
-    </div>
-
-	<ul class="nav nav-tabs nm">
-    @for(state <- Array(State.OPEN, State.CLOSED)) {
-        <li @if(param.state == state.state) { class="active" }>
-            <a href="@getTabLinkByState(state)">
-                @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@Issue.countIssuesBy(project.id, state, param.assigneeId, User.findByLoginId(param.authorLoginId).id, param.milestoneId)</span>
-            </a>
-        </li>
-    }
-    </ul>
-
     <div class="row-fluid">
-        <div class="span9">
-        @if(currentPage.getList().size() > 0){
-        	<div class="filter-wrap board">
-                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                    @partial_massupdate(project, param)
-                }
-
-                @if(currentPage.getList().size() > 1){
-        		<div class="filters pull-right">
-        			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
-        			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-        			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
-        		</div>
-        		}
-        	</div>
-
-            @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
-
-            <div class="bottom-actrow pull-right">
-                <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="nbtn white" style="width:100%; padding:6px 0"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
-            </div>
-            <div id="pagination"><!-- pagination.js will fill here. --></div>
-        } else {
-            <div class="error-wrap">
-                <i class="ico ico-err1"></i>
-                <p>@Messages("issue.is.empty")</p>
-            </div>
-        }
-        </div>
-
-        <div class="span3 search-wrap">
-            <div class="inner bggray @if(param.authorLoginId != null || param.assigneeId != null || param.milestoneId != null){ advanced }">
+        <div class="span2 search-wrap">
+            <div class="inner @if(param.authorLoginId != null || param.assigneeId != null || param.milestoneId != null){ advanced }">
                 <ul class="lst-stacked unstyled">
                     <li @if(param.assigneeId == null && param.authorLoginId == null){class="active"}>
                         <a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all")
@@ -105,6 +56,7 @@
                 @if(param.milestoneId != null){
                     @defining(Milestone.findById(param.milestoneId)){ milestone =>
                         @if(milestone != null){
+                            <hr>
                             @views.html.milestone.partial_status(milestone, project)
                         }
                     }
@@ -114,13 +66,10 @@
                     <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
                     <input type="hidden" name="state"   value="@param.state">
 
-                    <div class="row-fluid">
-                        <div class="span10">
-                            <input type="text" name="filter" class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
-                        </div>
-                        <div class="span2">
-                            <button type="submit" class="nbtn medium last" style="margin-left:-20px;">@Messages("issue.search")</button>
-                        </div>
+                    <hr>
+                    <div class="row-fluid srch-input">
+                        <input type="text" name="filter" class="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter" style="width:100%;">
+                        <button type="submit" class="nbtn medium last">@Messages("issue.search")</button>
                     </div>
 
                     <div class="row-fluid right-txt">
@@ -173,6 +122,7 @@
                         </dl>
                     </div>
 
+                    <hr>
                     <dl id="labels" class="issue-option labels-wrap">
                         <dt>
                             @Messages("label.select")
@@ -186,7 +136,52 @@
                     </dl>
                 </form>
             </div>
+        </div>        
+        <div class="span10">
+            <div class="pull-right">
+                <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
+            </div>
+            <ul class="nav nav-tabs nm">
+            @for(state <- Array(State.OPEN, State.CLOSED)) {
+                <li @if(param.state == state.state) { class="active" }>
+                    <a href="@getTabLinkByState(state)">
+                        @Messages("issue.state." + state.name.toLowerCase())
+                        <span class="num-badge">@Issue.countIssuesBy(project.id, state, param.assigneeId, User.findByLoginId(param.authorLoginId).id, param.milestoneId)</span>
+                    </a>
+                </li>
+            }
+            </ul>
+
+        @if(currentPage.getList().size() > 0){
+        	<div class="filter-wrap board">
+                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                    @partial_massupdate(project, param)
+                }
+
+                @if(currentPage.getList().size() > 1){
+        		<div class="filters pull-right">
+        			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
+        			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
+        			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
+        		</div>
+        		}
+        	</div>
+
+            @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
+
+            <div class="bottom-actrow pull-right">
+                <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="nbtn white" style="width:100%; padding:6px 0"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
+            </div>
+            <div id="pagination"><!-- pagination.js will fill here. --></div>
+        } else {
+            <div class="error-wrap">
+                <i class="ico ico-err1"></i>
+                <p>@Messages("issue.is.empty")</p>
+            </div>
+        }
         </div>
+
+
         @help.keymap("issueList", project)
     </div>
 </div>
