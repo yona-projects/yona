@@ -21,6 +21,10 @@ $(document).ready(function(){
     htOptions.sProjectUrl = "@routes.ProjectApp.project(project.owner, project.name)";
     }
 
+    if(!$('[markdown]').hasClass('readme-body')) {
+    	htOptions.bGfmStyle = true;
+    }
+
     yobi.Markdown(htOptions);
 });
 </script>

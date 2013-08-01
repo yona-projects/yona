@@ -46,10 +46,11 @@ yobi.Markdown = function(htOptions){
 	 */
 	function _initVar(htOptions){
 		htVar.rxCodeBlock = /```(\w+)(?:\r\n|\r|\n)((\r|\n|.)*?)(\r|\n)```/gm;
-        htVar.rxLink = _rxLink();
+    htVar.rxLink = _rxLink();
 		htVar.sTplSwitch = htOptions.sTplSwitch;
-        htVar.sIssuesUrl = htOptions.sIssuesUrl;
-        htVar.sProjectUrl = htOptions.sProjectUrl;
+    htVar.sIssuesUrl = htOptions.sIssuesUrl;
+    htVar.sProjectUrl = htOptions.sProjectUrl;
+    htVar.bGfmStyle = htOptions.bGfmStyle || false;
 	}
 	
 	/**
@@ -85,52 +86,55 @@ yobi.Markdown = function(htOptions){
 		  }
 		};
 		
-		   var makeLink = function(sMatch, sPre, sProject, sNum, sAt, sSha, sUser, sPost) {
-            var path, text;
+  	var makeLink = function(sMatch, sPre, sProject, sNum, sAt, sSha, sUser, sPost) {
+  		var path, text;
 
-            if (sPost) {
-                return sMatch;
-            }
+      if (sPost) {
+          return sMatch;
+      }
 
-            if (sPre.substr(0, 4).toLowerCase() == 'http') {
-                return sMatch;
-            }
+      if (sPre.substr(0, 4).toLowerCase() == 'http') {
+          return sMatch;
+      }
 
-            if (sSha && sProject && sAt) {
-                // owner/sProject@2022d330c5858eae9ca9cb5acb9e6a5060563b2c
-                path = '/' + sProject + '/commit/' + sSha;
-                text = sProject + '/' + sSha;
-            } else if (sSha && !sAt) {
-                // 2022d330c5858eae9ca9cb5acb9e6a5060563b2c
-                path = htVar.sProjectUrl + '/commit/' + sSha;
-                text = sSha;
-            } else if (sSha && sAt) {
-                // @abc1234
-                // This is a link for sUser even if it looks like a 160bit sSha.
-                path = '/' + sSha;
-                text = '@' + sSha;
-            } else if (sNum && sProject) {
-                // owner/sProject#1234
-                path = '/' + sProject + '/issue/' + sNum;
-                text = sProject + '/' + sNum;
-            } else if (sNum) {
-                // #1234
-                path = htVar.sProjectUrl + '/issue/' + sNum;
-                text ='#' + sNum;
-            } else if (sUser) {
-                // @foo
-                path = '/' + sUser;
-                text = '@' + sUser;
-            }
+      if (sSha && sProject && sAt) {
+          // owner/sProject@2022d330c5858eae9ca9cb5acb9e6a5060563b2c
+          path = '/' + sProject + '/commit/' + sSha;
+          text = sProject + '/' + sSha;
+      } else if (sSha && !sAt) {
+          // 2022d330c5858eae9ca9cb5acb9e6a5060563b2c
+          path = htVar.sProjectUrl + '/commit/' + sSha;
+          text = sSha;
+      } else if (sSha && sAt) {
+          // @abc1234
+          // This is a link for sUser even if it looks like a 160bit sSha.
+          path = '/' + sSha;
+          text = '@' + sSha;
+      } else if (sNum && sProject) {
+          // owner/sProject#1234
+          path = '/' + sProject + '/issue/' + sNum;
+          text = sProject + '/' + sNum;
+      } else if (sNum) {
+          // #1234
+          path = htVar.sProjectUrl + '/issue/' + sNum;
+          text ='#' + sNum;
+      } else if (sUser) {
+          // @foo
+          path = '/' + sUser;
+          text = '@' + sUser;
+      }
 
-            if (path && text) {
-                return sPre + '<a href="' + path + '">' + text + '</a>' + sPost;
-            } else {
-                return sMatch;
-            }
-        }
+      if (path && text) {
+          return sPre + '<a href="' + path + '">' + text + '</a>' + sPost;
+      } else {
+          return sMatch;
+      }
+    }
 
-        sText = sText.replace(htVar.rxLink, makeLink);
+    sText = sText.replace(htVar.rxLink, makeLink);
+
+    if(htVar.bGfmStyle) sText = sText.replace(/\n/g, "  \n");
+             
 		var lexer = new marked.Lexer(options);
 		var tokens = lexer.lex(sText);
 		var sHTML = marked.parser(tokens);
