@@ -81,12 +81,13 @@
             }
             }
             <span class="ago">@agoString(ago(commit.getAuthorDate))</span>
+            @if(comments.size > 0) {<span><input id="toggle-comments" type="checkbox" checked="checked" /> @Messages("code.showcomments")</span>}
             <strong class="commitId pull-right">@@@commit.getId</strong>
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
 
         <div class="diff-wrap">
-		  <div id="commit" class="diff-body">@patch</div>
+		  <div id="commit" class="diff-body show-comments">@patch</div>
         </div>
 
         @if(comments.size > 0) {

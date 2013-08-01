@@ -24,6 +24,7 @@
             _render();
             _initFileUploader();
             _initFileDownloader();
+            _initToggleCommentsButton();
         }
 
         /**
@@ -87,6 +88,15 @@
         function _initFileDownloader(){
             $(".attachments").each(function(n, el){
                 fileDownloader($(el), htVar.sAttachmentAction);
+            });
+        }
+
+        /**
+         * initialize toggle comments button
+         */
+        function _initToggleCommentsButton() {
+            $('#toggle-comments').click(function() {
+                $('#commit').toggleClass('show-comments');
             });
         }
 
@@ -279,6 +289,7 @@
             welUl.append(welCloseButton);
 
             welTr.after($('<tr>')
+                    .addClass('comments')
                     .data("path", welTr.data("path"))
                     .data("line", welTr.data("line"))
                     .data("side", welTr.data("side"))
