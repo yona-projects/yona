@@ -293,8 +293,8 @@ public class GitRepository implements PlayRepository {
     private void setAvatar(ObjectNode objectNode, String emailAddress) {
         User user = User.findByEmail(emailAddress);
         if(user.isAnonymous() || user.avatarUrl.equals(UserApp.DEFAULT_AVATAR_URL)) {
-            String localDefaultImageUrl = CodeApp.hostName + "/assets/images/default-avatar-34.png";
-            objectNode.put("avatar", GravatarUtil.getAvatar(emailAddress, 34, localDefaultImageUrl ));
+            String defaultImageUrl = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
+            objectNode.put("avatar", GravatarUtil.getAvatar(emailAddress, 34, defaultImageUrl));
         } else {
             objectNode.put("avatar", user.avatarUrl);
         }
