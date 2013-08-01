@@ -446,6 +446,7 @@ code.commitDate = Commit Date
 code.author = Author
 code.openCommentBox = Open Comment Box
 code.closeCommentBox = Close Comment Box
+code.showcomments = show comments
 
 #mail
 mail.password = Password
