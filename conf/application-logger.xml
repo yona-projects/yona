@@ -2,29 +2,45 @@
 
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
 
-    <appender name="ACCESS_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="ACCESS_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>access.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
         <encoder>
             <pattern>%message%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="APPLICATION_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="APPLICATION_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
         <encoder>
             <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="MAIL_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="MAIL_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/mail.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>mail.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
         <encoder>
             <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="ROOT_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <appender name="ROOT_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/root.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>root.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
         <encoder>
             <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
         </encoder>
