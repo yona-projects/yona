@@ -236,4 +236,11 @@ public class NotificationEvent extends Model {
         }
         event.save();
     }
+
+    public static void deleteBy(Resource resource) {
+        for (NotificationEvent event : NotificationEvent.find.where().where().eq("resourceType",
+                resource.getType()).eq("resourceId", resource.getId()).findList()) {
+            event.delete();
+        }
+    }
 }

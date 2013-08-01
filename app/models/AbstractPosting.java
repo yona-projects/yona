@@ -233,6 +233,7 @@ abstract public class AbstractPosting extends Model {
             comment.delete();
         }
         Attachment.deleteAll(asResource());
+        NotificationEvent.deleteBy(this.asResource());
         super.delete();
     }
 

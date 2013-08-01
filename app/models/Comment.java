@@ -104,6 +104,7 @@ abstract public class Comment extends Model {
      */
     public void delete() {
         Attachment.deleteAll(asResource());
+        NotificationEvent.deleteBy(this.asResource());
         super.delete();
         getParent().update();
     }
