@@ -215,8 +215,8 @@ public class ProjectApp extends Controller {
      * @return
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws NoSuchAlgorithmException the no such algorithm exception
-     * @throws ServletException 
-     * @throws UnsupportedOperationException 
+     * @throws ServletException
+     * @throws UnsupportedOperationException
      */
     @Transactional
     public static Result settingProject(String loginId, String projectName) throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
@@ -248,7 +248,7 @@ public class ProjectApp extends Controller {
                 new Attachment().store(filePart.getFile(), filePart.getFilename(), updatedProject.asResource());
             }
         }
-        
+
         if (filledUpdatedProjectForm.hasErrors()) {
             return badRequest(setting.render("title.projectSetting",
                     filledUpdatedProjectForm, Project.find.byId(updatedProject.id)));
@@ -256,11 +256,11 @@ public class ProjectApp extends Controller {
 
         Project project = Project.find.byId(updatedProject.id);
         PlayRepository repository = RepositoryService.getRepository(project);
-        
+
         if (!repository.renameTo(updatedProject.name)) {
             throw new FileOperationException("fail repository rename to " + project.owner + "/" + updatedProject.name);
         }
-        
+
         updatedProject.update();
         return redirect(routes.ProjectApp.settingForm(loginId, updatedProject.name));
     }
@@ -411,6 +411,7 @@ public class ProjectApp extends Controller {
             return redirect(routes.ProjectApp.members(loginId, projectName));
         } else if (!ProjectUser.isMember(user.id, project.id)){
             ProjectUser.assignRole(user.id, project.id, RoleType.MEMBER);
+            project.cleanEnrolledUsers();
         } else{
             flash(Constants.WARNING, "project.member.alreadyMember");
         }
