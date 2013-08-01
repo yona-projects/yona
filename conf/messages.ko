@@ -227,6 +227,7 @@ issue.update.detachLabel = 라벨 제거
 issue.list.all = 전체 이슈
 issue.list.assignedToMe = 나에게 할당된 이슈
 issue.list.authoredByMe = 내가 작성한 이슈
+issue.assignToMe = 나에게 할당하기 
 
 #Post
 post.new = 새글

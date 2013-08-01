@@ -1941,33 +1941,23 @@
     }
     .board-id {
         width: 35px;
-        line-height:16px;
+        line-height:20px;
         padding-right: 10px;
         font-size:14px;
     }
     .title {
         width: 90%;/*655px;*/
         padding-right: 20px;
-        font-size: 14px;
+        font-size: 18px;
         line-height: 16px;
         color: #000;
     }
     .date {
         width: 120px;
-        color: #999;
+        color: #999; line-height:20px;
     }
     &.issue {
         .title { width:80%;/*650px;*/ }
-        /*
-        .badge {
-            font-size:11px;
-            text-shadow:none;
-            .border-radius(2px);
-        }
-        .badge-issue-open {
-            background-color:@secondary;
-        }
-        */
     }
 }
 
@@ -2304,15 +2294,9 @@ div.markdown-preview {
         display:block;
     }
 
-    .num {
-        width:60px; margin-top:10px;
-        vertical-align: middle;
-        a {
-            display:inline-block; width:30px;
-            text-align:center; /*color:#b2b2b2;*/
-            font-weight:bold; color:@secondary;
-            &:hover { color:@primary; font-weight:bold; }
-        }
+    .mass-update-check {
+        width:40px; margin-top:10px;
+        vertical-align: middle; text-align:center;
     }
 
     .avatar-wrap {
@@ -2331,16 +2315,22 @@ div.markdown-preview {
         color:#999;
         font-size:11px; line-height:13px;
 
-        .date { margin-left:10px; }
         .comment-wrap {
             display:inline-block;
             margin-left:10px;
             .num { color: @secondary; font-weight:bold; }
             .ico { vertical-align: bottom; margin-right: 5px; }
         }
+        .lb { display:inline-block; }
     }
 
-    .title-link { font-size:13px; font-weight:bold; }
+    .title-link { 
+        display:block; 
+        padding:5px 0; margin-right:5px; 
+        font-size:15px; font-weight:bold;
+        
+        .issue-id { color:@secondary; margin-right:5px; font-size:13px; }
+    }
 
     .info-wrap {
         margin-top: 11px;
@@ -2352,9 +2342,9 @@ div.markdown-preview {
         margin-top:12px;
         margin-right:25px;
         font-weight:bold;
-        color:@secondary;
+        color:#999;
 
-        &.open { color:#999; }
+        &.open { color:@secondary; }
     }
 
     .empty-avatar-space {
@@ -2406,7 +2396,7 @@ div.markdown-preview {
             .title {
                 margin-bottom: 5px;
                 font-weight: bold;
-
+                font-size: 15px;
                 .label-notice {
                     background:@secondary;
                 }
@@ -3634,19 +3624,17 @@ code.milestone-title{
 }
 
 .btn-flat{
-  .active{
-    background-color: #4AB9EE;
-    color: #FFF;
-    text-shadow: none;
-    box-shadow: none;
-  }
-  .dirty{
-    background-color: #979797;
-  }
-  .btn{
-    padding-top: 2px;
-    padding-bottom: 2px;
-  }
+    .active {
+        color: #fff;
+        background-color: #979797;
+        text-shadow: none;
+        .box-shadow(none);
+    }
+    .dirty { background-color: @secondary; }
+    .btn {
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
 }
 
 .project-category {

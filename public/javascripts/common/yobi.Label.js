@@ -153,7 +153,7 @@ yobi.Label = (function(htOptions){
 
 			// run callback function
 			if (typeof fCallback == "function") {
-				fCallback();
+				fCallback(this);
 			}
 			
 			aLabels = null;

@@ -45,7 +45,7 @@
         <button id="watch-button" type="button" class="nbtn medium blue
             @if(post.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
             data-toggle="button">
-            @Messages("notification.watch")
+            @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
         </button>
 	    
 		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
@@ -62,7 +62,7 @@
 	</div>
 
 	@** Comment **@
-	<div class="board-comment-wrap">
+	<div id="comments" class="board-comment-wrap">
 		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@post.comments.size()</strong></div>
 	    <hr class="nm" />
 

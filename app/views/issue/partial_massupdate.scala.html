@@ -19,6 +19,10 @@
         </button>
         <ul class="dropdown-menu">
             <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
+            @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
+            }
+            <li class="divider"></li>
             @for(member <- project.members()) {
                 <li data-value="@member.user.id"><a>@member.user.name (@member.user.loginId)</a></li>
             }
