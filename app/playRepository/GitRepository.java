@@ -1,6 +1,5 @@
 package playRepository;
 
-import controllers.CodeApp;
 import controllers.ProjectApp;
 import controllers.UserApp;
 import models.Project;
@@ -36,8 +35,9 @@ import play.libs.Json;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
-import java.security.MessageDigest;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -647,6 +647,9 @@ public class GitRepository implements PlayRepository {
                 MergeResult mergeResult = merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
+                    // merge 커밋 메시지 수정
+                    amend(cloneRepository, UserApp.currentUser(), pullRequest);
+
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
                     // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
                     push(cloneRepository, getGitDirectoryURL(pullRequest.toProject), destToBranchName, srcToBranchName);
@@ -656,6 +659,16 @@ public class GitRepository implements PlayRepository {
                 }
             }
         });
+    }
+
+    private static void amend(Repository cloneRepository, User user, PullRequest pullRequest) throws GitAPIException {
+        Project fromProject = pullRequest.fromProject;
+        new Git(cloneRepository).commit()
+                .setAmend(true).setAuthor(user.name, user.email)
+                .setMessage("Merge pull request #" + pullRequest.id +
+                        " from " + fromProject.owner + "/" + fromProject.name + " " + pullRequest.fromBranch)
+                .setCommitter(pullRequest.contributor.name, pullRequest.contributor.email)
+                .call();
     }
 
     public static void deleteMergingDirectory(PullRequest pullRequest) {
@@ -684,6 +697,8 @@ public class GitRepository implements PlayRepository {
     /**
      * {@code repository}에서 {@code branchName}에 해당하는 브랜치를 merge 한다.
      *
+     * Fast forward 일 경우에도 머지 커밋을 기록하도록 --no-ff 옵션을 추가한다.
+     *
      * @param repository
      * @param branchName
      * @return
@@ -693,7 +708,7 @@ public class GitRepository implements PlayRepository {
     public static MergeResult merge(Repository repository, String branchName) throws GitAPIException, IOException {
         ObjectId branch = repository.resolve(branchName);
         return new Git(repository).merge()
-                .setFastForward(MergeCommand.FastForwardMode.NO_FF) // create a merge commit
+                .setFastForward(MergeCommand.FastForwardMode.NO_FF)
                 .include(branch)
                 .call();
     }
@@ -876,6 +891,7 @@ public class GitRepository implements PlayRepository {
 
             CloneAndFetch cloneAndFetch = new CloneAndFetch(cloneRepository, destToBranchName, destFromBranchName);
             operation.invoke(cloneAndFetch);
+
             // master로 이동
             checkout(cloneRepository, "master");
         } catch (GitAPIException e) {
