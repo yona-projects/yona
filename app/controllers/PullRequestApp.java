@@ -560,6 +560,11 @@ public class PullRequestApp extends Controller {
         if(pullRequest == null) {
             return badRequest(ErrorViews.BadRequest.render("No pull_request matches given pull_request_id '" + pullRequestId + "'", project));
         }
+
+        Project toProject = pullRequest.toProject;
+        if(!toProject.equals(project)) {
+            return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+        }
         return null;
     }
 
