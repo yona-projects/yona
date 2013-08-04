@@ -27,9 +27,6 @@ import com.avaje.ebean.Page;
 
 /**
  * User 클래스
- *
- *
- * @author WanSoon Park
  */
 @Table(name = "n4user")
 @Entity

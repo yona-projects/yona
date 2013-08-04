@@ -18,9 +18,6 @@ import java.io.File;
 
 import static play.data.Form.form;
 
-/**
- * @author Keesun Baik
- */
 public class ImportApp extends Controller {
 
     /**

@@ -8,10 +8,6 @@ import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-/**
- * @author "Hwi Ahn"
- *
- */
 public class RoleTest extends ModelTest<Role> {
     @Test
     public void findById() throws Exception {

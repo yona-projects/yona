@@ -8,9 +8,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.ErrorViews;
 
-/**
- * @author Keesun Baik
- */
 public class WatchProjectApp extends Controller {
 
     public static Result watch(String userName, String projectName) {

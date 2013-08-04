@@ -17,7 +17,6 @@ public class ModelTest<T> {
     public ModelTest() {
     }
 
-//    @BeforeClass
     @Before
     public void startApp() {
         app = Helpers.fakeApplication(support.Config.makeTestConfig());
@@ -30,7 +29,7 @@ public class ModelTest<T> {
     }
 
     /**
-     * Returns the first user. (id : 2 / name : hobi)
+     * Returns the first user. (id : 2 / name : yobi)
      * 
      * @return User
      */

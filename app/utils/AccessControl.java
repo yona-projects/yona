@@ -6,10 +6,6 @@ import models.enumeration.ResourceType;
 
 import models.resource.Resource;
 
-/**
- * @author "Hwi Ahn"
- * @author "Yi EungJun"
- */
 public class AccessControl {
 
     /**

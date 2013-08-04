@@ -7,10 +7,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-/**
- * @author "Hwi Ahn"
- *
- */
 public class ProjectTest extends ModelTest<Project> {
 
     @Test
@@ -68,11 +64,11 @@ public class ProjectTest extends ModelTest<Project> {
         // When
         Project project = Project.find.byId(1l);
         // Then
-        assertThat(project.name).isEqualTo("nForge4java");
-        assertThat(project.overview).isEqualTo("nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
+        assertThat(project.name).isEqualTo("projectYobi");
+        assertThat(project.overview).isEqualTo("Yobi는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.");
         assertThat(project.isPublic).isEqualTo(true);
         assertThat(project.vcs).isEqualTo("GIT");
-        assertThat(project.siteurl).isEqualTo("http://localhost:9000/nForge4java");
+        assertThat(project.siteurl).isEqualTo("http://localhost:9000/projectYobi");
       
     }
     
@@ -80,10 +76,10 @@ public class ProjectTest extends ModelTest<Project> {
     public void isOnlyManager() throws Exception {
         // Given
         // When
-        boolean hobiIsOnlyManager = Project.isOnlyManager(2l);
+        boolean yobiIsOnlyManager = Project.isOnlyManager(2l);
         boolean EungjunIsOnlyManager = Project.isOnlyManager(5l);
         // Then
-        assertTrue(hobiIsOnlyManager);
+        assertTrue(yobiIsOnlyManager);
         assertFalse(EungjunIsOnlyManager);
     }
 
@@ -99,8 +95,8 @@ public class ProjectTest extends ModelTest<Project> {
     @Test
     public void findByNameAndOwner() throws Exception {
         // Given
-        String userName = "hobi";
-        String projectName = "nForge4java";
+        String userName = "yobi";
+        String projectName = "projectYobi";
         // When
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         // Then
@@ -110,8 +106,8 @@ public class ProjectTest extends ModelTest<Project> {
     @Test
     public void isProject() throws Exception {
         // Given
-        String userName = "hobi";
-        String projectName = "nForge4java";
+        String userName = "yobi";
+        String projectName = "projectYobi";
         String newProjectName = "NanumFont";
         // When
         boolean result1 = Project.exists(userName, projectName);
@@ -125,7 +121,7 @@ public class ProjectTest extends ModelTest<Project> {
     @Test
     public void projectNameChangeable() throws Exception {
         // Given
-        String userName = "hobi";
+        String userName = "yobi";
         Long projectId = 1l;
         String newProjectName1 = "HelloSocialApp";
         String newProjectName2 = "NanumFont";

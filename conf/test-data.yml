@@ -1,26 +1,26 @@
 # Users
 users:
     - !!models.User
-        name:           Hobi
-        loginId:        hobi
+        name:           Yobi
+        loginId:        yobi
         password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
         passwordSalt:   '[B@1032a4'        
-        email:          hobi@nhn.com
+        email:          yobi@yobi.io
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-12-01 08:00:00
     - !!models.User
-        name:           scott
-        loginId:        k16wire
+        name:           Jihan
+        loginId:        laziel
         password:       v1O5ggs2TqM0prM1pLUD/zC+g7cavbWMXayVA9pvGHY=
-        passwordSalt:   '[B@1032a4'        
-        email:          k16wire@naver.com
+        passwordSalt:   '[B@1032a4'
+        email:          laziel@naver.com
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-01-01 08:00:00
     - !!models.User
         name:           suwon
         loginId:        doortts
         password:       rB5DBMe0hxMWs5FlQOJi5GmK+wj2Txx09MdgFqH83+k=
-        passwordSalt:   '[B@1032a4'        
+        passwordSalt:   '[B@1032a4'
         email:          doortts@gmail.com
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-07-01 08:00:00
@@ -28,7 +28,7 @@ users:
         name:           eungjun
         loginId:        nori
         password:       yOF0X0iKA1MVkaAJESNcdGE1n/3SWM8vDOKRYCXV2E0=
-        passwordSalt:   '[B@1032a4'        
+        passwordSalt:   '[B@1032a4'
         email:          ejlee@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-05-01 08:00:00
@@ -36,21 +36,21 @@ users:
 # Projects
 projects:
     - !!models.Project
-        name:           nForge4java
-        overview:       nFORGE는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
+        name:           projectYobi
+        overview:       Yobi는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
         isPublic:   true
         vcs:            GIT
-        siteurl:       http://localhost:9000/nForge4java
-        owner:          hobi
+        siteurl:       http://localhost:9000/projectYobi
+        owner:          yobi
         createdDate:           2012-02-01 08:00:00
     - !!models.Project
         name:           Jindo
-        overview:       Jindo는 NHN에서 제작한 Javascript Library 이다.
+        overview:       Jindo는 NHN에서 제작한 Javascript Library 입니다.
         isPublic:   false
         vcs:            Subversion
         siteurl:       http://localhost:9000/Jindo
-        owner:          k16wire
-        createdDate:           2012-01-01 08:00:00        
+        owner:          laziel
+        createdDate:           2012-01-01 08:00:00
     - !!models.Project
         name:           CUBRID
         overview:       CUBRID는 엔터프라이즈급 오픈 소스 DBMS로서, 인터넷 서비스에 최적화된 DBMS를 지향하고 있습니다.
@@ -58,15 +58,15 @@ projects:
         vcs:            GIT
         siteurl:       http://localhost:9000/CUBRID
         owner:          doortts
-        createdDate:           2012-08-01 08:00:00        
+        createdDate:           2012-08-01 08:00:00
     - !!models.Project
         name:           HelloSocialApp
         overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
         isPublic:   false
         vcs:            GIT
         siteurl:       http://localhost:9000/HelloSocialApp
-        owner:          hobi
-        createdDate:           2012-12-01 08:00:00        
+        owner:          yobi
+        createdDate:           2012-12-01 08:00:00
 
 # Board
 postings:
@@ -74,25 +74,25 @@ postings:
         title:          게시판이 새로 생성되었습니다.
         body:       새로운 게시판에서 많은 활동 부탁드립니다.
         authorId:       2
-        authorLoginId:  hobi
-        authorName:     hobi
+        authorLoginId:  yobi
+        authorName:     yobi
         project:        !!models.Project
                             id: 1
-        
-        
+
+
 postingComments:
     - !!models.PostingComment
-        contents:       게시판이 너무 기대됩니다. 많은 글이 필요합니다. 
+        contents:       게시판이 너무 기대됩니다. 많은 글이 필요합니다.
         authorId:       2
-        authorLoginId:  hobi
-        authorName:     hobi        
+        authorLoginId:  yobi
+        authorName:     yobi
         posting:       !!models.Posting
                             id: 1
 # Issues
 issues:
     - !!models.Issue
         authorId:       2
-        authorLoginId:  hobi       
+        authorLoginId:  yobi
         title:          불필요한 로그 출력 코드 제거
         body:           내용 불필요한~
         state:          OPEN
@@ -103,7 +103,7 @@ issues:
                             id: 1
     - !!models.Issue
         authorId:       3
-        authorLoginId:  k16wire
+        authorLoginId:  laziel
         title:          다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         body:           내용 다운로드는 익명 댓글에도 사용자명에 링크가 걸림
         state:          OPEN
@@ -267,7 +267,7 @@ issues:
                             id: 2
     - !!models.Issue
         authorId:       2
-        authorLoginId:  hobi
+        authorLoginId:  yobi
         title:          Remember me is not working
         body:           Test on Play2.1-Snapshot
         state:          OPEN
@@ -280,7 +280,7 @@ issueComments:
     - !!models.IssueComment
         contents:       코드를 수정했습니다
         authorId:       2
-        authorLoginId:  hobi
+        authorLoginId:  yobi
         issue:          !!models.Issue
                             id: 3
 # Milestone

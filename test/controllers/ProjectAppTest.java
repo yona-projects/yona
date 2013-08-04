@@ -53,7 +53,7 @@ public class ProjectAppTest {
 
         //When
         Result result = callAction(
-                controllers.routes.ref.ProjectApp.attachLabel("hobi", "nForge4java"),
+                controllers.routes.ref.ProjectApp.attachLabel("yobi", "projectYobi"),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
                         .withHeader("Accept", "application/json")
@@ -70,13 +70,13 @@ public class ProjectAppTest {
 
         assertThat(expected.category).isEqualTo("OS");
         assertThat(expected.name).isEqualTo("linux");
-        assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").labels.contains(expected)).isTrue();
+        assertThat(Project.findByOwnerAndProjectName("yobi", "projectYobi").labels.contains(expected)).isTrue();
     }
 
     @Test
     public void labels() {
         //Given
-        Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
         Label label1 = new Label("OS", "yobi-linux");
         label1.save();
@@ -91,7 +91,7 @@ public class ProjectAppTest {
 
         //When
         Result result = callAction(
-                controllers.routes.ref.ProjectApp.labels("hobi", "nForge4java"),
+                controllers.routes.ref.ProjectApp.labels("yobi", "projectYobi"),
                 fakeRequest().withHeader("Accept", "application/json")
         );
 
@@ -113,7 +113,7 @@ public class ProjectAppTest {
     @Test
     public void detachLabel() {
         //Given
-        Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
         Label label1 = new Label("OS", "linux");
         label1.save();
@@ -129,7 +129,7 @@ public class ProjectAppTest {
 
         //When
         Result result = callAction(
-                controllers.routes.ref.ProjectApp.detachLabel("hobi", "nForge4java",
+                controllers.routes.ref.ProjectApp.detachLabel("yobi", "projectYobi",
                         labelId),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
@@ -139,6 +139,6 @@ public class ProjectAppTest {
 
         //Then
         assertThat(status(result)).isEqualTo(204);
-        assertThat(Project.findByOwnerAndProjectName("hobi", "nForge4java").labels.contains(label1)).isFalse();
+        assertThat(Project.findByOwnerAndProjectName("yobi", "projectYobi").labels.contains(label1)).isFalse();
     }
 }

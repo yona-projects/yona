@@ -12,9 +12,6 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 
-/**
- * @author Keesun Baik
- */
 @Entity
 public class SimpleComment extends Model {
 

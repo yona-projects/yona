@@ -11,8 +11,6 @@ import views.html.board.view;
 
 /**
  * 프로젝트에 멤버로 등록해달라는 요청을 처리하는 컨트롤러
- *
- * @author Keesun Baik
  */
 public class EnrollProjectApp extends Controller {
 

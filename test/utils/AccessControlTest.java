@@ -28,12 +28,12 @@ public class AccessControlTest extends ModelTest<Role>{
     public void isAllowed_siteAdmin() {
         // Given
         User admin = User.findByLoginId("admin");
-        Project nforge4java = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        Project projectYobi = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
         // When
-        boolean canUpdate = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.UPDATE);
-        boolean canRead = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.READ);
-        boolean canDelete = AccessControl.isAllowed(admin, nforge4java.asResource(), Operation.DELETE);
+        boolean canUpdate = AccessControl.isAllowed(admin, projectYobi.asResource(), Operation.UPDATE);
+        boolean canRead = AccessControl.isAllowed(admin, projectYobi.asResource(), Operation.READ);
+        boolean canDelete = AccessControl.isAllowed(admin, projectYobi.asResource(), Operation.DELETE);
 
         // Then
         assertThat(canRead).isEqualTo(true);
@@ -44,13 +44,13 @@ public class AccessControlTest extends ModelTest<Role>{
     @Test
     public void isAllowed_projectCreator() {
         // Given
-        User hobi = User.findByLoginId("hobi");
-        Project nforge4java = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        User yobi = User.findByLoginId("yobi");
+        Project projectYobi = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
         // When
-        boolean canUpdate = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.UPDATE);
-        boolean canRead = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.READ);
-        boolean canDelete = AccessControl.isAllowed(hobi, nforge4java.asResource(), Operation.DELETE);
+        boolean canUpdate = AccessControl.isAllowed(yobi, projectYobi.asResource(), Operation.UPDATE);
+        boolean canRead = AccessControl.isAllowed(yobi, projectYobi.asResource(), Operation.READ);
+        boolean canDelete = AccessControl.isAllowed(yobi, projectYobi.asResource(), Operation.DELETE);
 
         // Then
         assertThat(canRead).isEqualTo(true);
@@ -62,12 +62,12 @@ public class AccessControlTest extends ModelTest<Role>{
     public void isAllowed_notAMember() {
         // Given
         User notMember = User.findByLoginId("nori");
-        Project nforge4java = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        Project projectYobi = Project.findByOwnerAndProjectName("yobi", "projectYobi");
 
         // When
-        boolean canUpdate = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.UPDATE);
-        boolean canRead = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.READ);
-        boolean canDelete = AccessControl.isAllowed(notMember, nforge4java.asResource(), Operation.DELETE);
+        boolean canUpdate = AccessControl.isAllowed(notMember, projectYobi.asResource(), Operation.UPDATE);
+        boolean canRead = AccessControl.isAllowed(notMember, projectYobi.asResource(), Operation.READ);
+        boolean canDelete = AccessControl.isAllowed(notMember, projectYobi.asResource(), Operation.DELETE);
 
         // Then
         assertThat(canRead).isEqualTo(true);

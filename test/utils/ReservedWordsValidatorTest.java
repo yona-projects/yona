@@ -12,8 +12,6 @@ import play.test.Helpers;
 
 /**
  * Reserved words Validator tests
- * 
- * @author kjkmadness
  */
 public class ReservedWordsValidatorTest {
     private Validator<String> validator = new ReservedWordsValidator();

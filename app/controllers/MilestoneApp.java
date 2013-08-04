@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import static play.data.Form.form;
 
 /**
- * 마일스톤 관리 컨트로러
+ * 마일스톤 관리
  */
 public class MilestoneApp extends Controller {
 

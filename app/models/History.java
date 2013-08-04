@@ -7,7 +7,6 @@ import java.util.*;
 /**
  * 프로젝트 Overview 화면에서 보여줄 히스토리를 나타내는 클래스
  *
- * @author Keesun Baik
  */
 public class History {
 

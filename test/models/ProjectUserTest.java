@@ -5,10 +5,6 @@ import java.util.List;
 import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
-/**
- * @author "Hwi Ahn"
- *
- */
 public class ProjectUserTest extends ModelTest<ProjectUser> {
     @Test
     public void findByIds() throws Exception {
@@ -70,7 +66,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Given
         // When
         // Then
-        assertThat(ProjectUser.options(1l).containsValue("k16wire")).isEqualTo(true);
+        assertThat(ProjectUser.options(1l).containsValue("laziel")).isEqualTo(true);
     }
 
     @Test
@@ -81,15 +77,15 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         // Then
         assertThat(projectUsers.size()).isEqualTo(2);
         assertThat(projectUsers.get(0).user.id).isEqualTo(2l);
-        assertThat(projectUsers.get(0).user.loginId).isEqualTo("hobi");
+        assertThat(projectUsers.get(0).user.loginId).isEqualTo("yobi");
         assertThat(projectUsers.get(0).role.name).isEqualTo("manager");
     }
 
     @Test
     public void roleOf() {
         // GIVEN
-        String loginId = "hobi";
-        Project project = Project.findByOwnerAndProjectName(loginId, "nForge4java");
+        String loginId = "yobi";
+        Project project = Project.findByOwnerAndProjectName(loginId, "projectYobi");
         // WHEN
         String roleName = ProjectUser.roleOf(loginId, project);
         // THEN
@@ -111,7 +107,7 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
         assertThat(roleName).isEqualTo("anonymous");
 
         // WHEN
-        roleName = ProjectUser.roleOf("k16wire", project);
+        roleName = ProjectUser.roleOf("laziel", project);
         // THEN
         assertThat(roleName).isEqualTo("member");
     }
@@ -119,8 +115,8 @@ public class ProjectUserTest extends ModelTest<ProjectUser> {
     @Test
     public void isAllowedToSettings() {
         // GIVEN
-        String loginId = "hobi";
-        Project project = Project.findByOwnerAndProjectName(loginId, "nForge4java");
+        String loginId = "yobi";
+        Project project = Project.findByOwnerAndProjectName(loginId, "projectYobi");
         // WHEN // THEN
         assertThat(ProjectUser.isAllowedToSettings(loginId, project)).isTrue();
         // WHEN // THEN

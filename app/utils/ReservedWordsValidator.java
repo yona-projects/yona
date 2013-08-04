@@ -20,7 +20,6 @@ import static play.libs.F.*;
 /**
  * Reserved words Validator
  *
- * @author kjkmadnesss
  */
 public class ReservedWordsValidator extends Validator<String> {
     public static final String MESSAGE = "validation.reservedWord";

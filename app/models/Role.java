@@ -11,9 +11,6 @@ import javax.persistence.OneToMany;
 import models.enumeration.RoleType;
 import play.db.ebean.Model;
 
-/**
- * @author "Hwi Ahn"
- */
 @Entity
 public class Role extends Model {
     private static final long serialVersionUID = 1L;

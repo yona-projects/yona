@@ -13,7 +13,6 @@ import utils.ErrorViews;
 /**
  * {@link models.SimpleComment} CRUD 컨트롤러
  *
- * @author Keesun Baik
  */
 public class SimpleCommentApp extends Controller {
 

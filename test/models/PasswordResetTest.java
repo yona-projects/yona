@@ -10,11 +10,6 @@ import utils.PasswordReset;
 
 import java.util.Map;
 
-/**
- * User: doortts
- * Date: 4/4/13
- * Time: 5:11 PM
- */
 public class PasswordResetTest extends ModelTest<PasswordReset> {
 
     @Before

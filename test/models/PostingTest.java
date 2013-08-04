@@ -1,7 +1,3 @@
-/**
- * @author Ahn Hyeok Jun
- */
-
 package models;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -42,8 +38,8 @@ public class PostingTest extends ModelTest<Posting> {
         // Given
         // When
         SearchParams searchParam = new SearchParams()
-            .add("project.owner", "hobi", Matching.EQUALS)
-            .add("project.name", "nForge4java", Matching.EQUALS)
+            .add("project.owner", "yobi", Matching.EQUALS)
+            .add("project.name", "projectYobi", Matching.EQUALS)
             .add("body", "", Matching.CONTAINS);
         OrderParams orderParams = new OrderParams().add("id", Direction.DESC);
         Page<Posting> page = FinderTemplate.getPage(orderParams, searchParam, Posting.finder, AbstractPostingApp.ITEMS_PER_PAGE, 0);
@@ -104,10 +100,10 @@ public class PostingTest extends ModelTest<Posting> {
     @Test
     public void author() throws Exception {
         // Given
-        Long currentUserId_hobi = 2l;
+        Long currentUserId_yobi = 2l;
         Long postId = 1l;
         // When
-        boolean result = Posting.finder.byId(postId).asResource().getAuthorId().equals(currentUserId_hobi);
+        boolean result = Posting.finder.byId(postId).asResource().getAuthorId().equals(currentUserId_yobi);
         // Then
         assertThat(result).isEqualTo(true);
     }

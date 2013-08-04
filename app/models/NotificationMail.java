@@ -14,13 +14,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nori
- * Date: 13. 7. 10
- * Time: 오전 11:19
- * To change this template use File | Settings | File Templates.
- */
 @Entity
 public class NotificationMail extends Model {
     private static final long serialVersionUID = 1L;

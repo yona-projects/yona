@@ -28,10 +28,10 @@ public class IssueTest extends ModelTest<Issue> {
 
     @Before
     public void before() {
-        project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         admin = User.findByLoginId("admin");
-        manager = User.findByLoginId("hobi");
-        member = User.findByLoginId("k16wire");
+        manager = User.findByLoginId("yobi");
+        member = User.findByLoginId("laziel");
         author = User.findByLoginId("nori");
         nonmember = User.findByLoginId("doortts");
         anonymous = new NullUser();

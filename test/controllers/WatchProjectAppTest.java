@@ -17,11 +17,6 @@ import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
 
-/**
- * WatchProjectAppTest
- * 
- * @author kjkmadness
- */
 public class WatchProjectAppTest {
     private static FakeApplication app;
 
@@ -54,8 +49,8 @@ public class WatchProjectAppTest {
     @Test
     public void testWatch_AnonymousUser() {
         // given
-        String ownerName = "hobi";
-        String projectName = "nForge4java";
+        String ownerName = "yobi";
+        String projectName = "projectYobi";
         FakeRequest request = fakeRequest();
 
         // when
@@ -69,8 +64,8 @@ public class WatchProjectAppTest {
     @Test
     public void testWatch() {
         // given
-        String ownerName = "hobi";
-        String projectName = "nForge4java";
+        String ownerName = "yobi";
+        String projectName = "projectYobi";
         String referer = "http://test/projects";
         Long userId = 3L;
         FakeRequest request = fakeRequest().
@@ -102,8 +97,8 @@ public class WatchProjectAppTest {
     @Test
     public void testUnwatch_AnonymousUser() {
         // given
-        String ownerName = "hobi";
-        String projectName = "nForge4java";
+        String ownerName = "yobi";
+        String projectName = "projectYobi";
         FakeRequest request = fakeRequest();
 
         // when
@@ -117,8 +112,8 @@ public class WatchProjectAppTest {
     @Test
     public void testUnwatch() {
      // given
-        String ownerName = "hobi";
-        String projectName = "nForge4java";
+        String ownerName = "yobi";
+        String projectName = "projectYobi";
         String referer = "http://test/projects";
         Long userId = 3L;
         FakeRequest request = fakeRequest().

@@ -56,11 +56,11 @@ public class UserAppTest {
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<>();
-                data.put("loginId", "hobi");
+                data.put("loginId", "yobi");
 
                 //When
                 Result result = callAction(
-                        controllers.routes.ref.UserApp.isUserExist("hobi"),
+                        controllers.routes.ref.UserApp.isUserExist("yobi"),
                         fakeRequest().withFormUrlEncodedBody(data)
                 ); // fakeRequest doesn't need here, but remains for example
 

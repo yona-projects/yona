@@ -11,11 +11,6 @@ import play.test.Helpers;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-/**
- * User: doortts
- * Date: 4/2/13
- * Time: 4:49 PM
- */
 public class MailSendTest {
     protected static FakeApplication app;
 

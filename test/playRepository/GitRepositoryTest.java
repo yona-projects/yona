@@ -43,7 +43,7 @@ public class GitRepositoryTest {
     @Test
     public void gitRepository() throws Exception {
         // Given
-        String userName = "hobi";
+        String userName = "yobi";
         String projectName = "testProject";
         // When
         GitRepository repo = new GitRepository(userName, projectName);
@@ -54,7 +54,7 @@ public class GitRepositoryTest {
     @Test
     public void create() throws Exception {
         // Given
-        String userName = "hobi";
+        String userName = "yobi";
         String projectName = "testProject";
         GitRepository repo = new GitRepository(userName, projectName);
         // When
@@ -75,7 +75,7 @@ public class GitRepositoryTest {
     @Test
     public void getPatch() throws IOException, NoFilepatternException, GitAPIException {
         // given
-        String userName = "hobi";
+        String userName = "yobi";
         String projectName = "testProject";
         String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
 
@@ -110,7 +110,7 @@ public class GitRepositoryTest {
     @Test
     public void getHistory() throws IOException, NoFilepatternException, GitAPIException {
         // given
-        String userName = "hobi";
+        String userName = "yobi";
         String projectName = "testProject";
         String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
 
@@ -235,7 +235,7 @@ public class GitRepositoryTest {
     @Test
     public void findFileInfo() throws Exception {
         // Given
-        String userName = "hobi";
+        String userName = "yobi";
         String projectName = "testProject";
         GitRepository repo = new GitRepository(userName, projectName);
         // When
@@ -247,7 +247,7 @@ public class GitRepositoryTest {
     @Test
     public void getRawFile() throws Exception {
         // Given
-        String userName = "hobi";
+        String userName = "yobi";
         String projectName = "testProject";
         GitRepository repo = new GitRepository(userName, projectName);
         // When

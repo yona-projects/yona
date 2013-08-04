@@ -13,13 +13,6 @@ import javax.validation.constraints.Size;
 import java.beans.Transient;
 import java.util.Date;
 
-/**
- * Created with IntelliJ IDEA.
- * User: nori
- * Date: 13. 7. 4
- * Time: 오후 2:47
- * To change this template use File | Settings | File Templates.
- */
 @Entity
 public class CodeComment extends Model {
     private static final long serialVersionUID = 1L;

@@ -50,7 +50,7 @@ public class UserTest extends ModelTest<User> {
 		// When
 		User user = User.find.byId(2l);
 		// Then
-		assertThat(user.name).isEqualTo("Hobi");
+		assertThat(user.name).isEqualTo("Yobi");
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class UserTest extends ModelTest<User> {
         //When
 	    String name = User.find.byId(2l).name;
         //Then
-	    assertThat(name).isEqualTo("Hobi");
+	    assertThat(name).isEqualTo("Yobi");
     }
 
 	@Test
@@ -75,7 +75,7 @@ public class UserTest extends ModelTest<User> {
 	public void findByLoginId() throws Exception {
 	    // Given
 	    // When
-	    User user = User.findByLoginId("k16wire");
+	    User user = User.findByLoginId("laziel");
 	    // Then
 	    assertThat(user.id).isEqualTo(3l);
 	}
@@ -84,7 +84,7 @@ public class UserTest extends ModelTest<User> {
 	public void findUsers() throws Exception {
 	    // Given
 	    // When
-	    Page<User> searchUsers = User.findUsers(0, "ho");
+	    Page<User> searchUsers = User.findUsers(0, "yo");
 	    // Then
 	    assertThat(searchUsers.getTotalRowCount()).isEqualTo(1);
 	}
@@ -101,8 +101,8 @@ public class UserTest extends ModelTest<User> {
 	@Test
 	public void isLoginId() throws Exception {
 	    // Given
-	    String existingId = "hobi";
-	    String nonExistingId = "hobiii";
+	    String existingId = "yobi";
+	    String nonExistingId = "yobiii";
 	    // When
 	    boolean result1 = User.isLoginIdExist(existingId);
 	    boolean result2 = User.isLoginIdExist(nonExistingId);

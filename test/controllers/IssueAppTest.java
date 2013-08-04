@@ -41,10 +41,10 @@ public class IssueAppTest {
         app = Helpers.fakeApplication(config);
         Helpers.start(app);
 
-        Project project = Project.findByOwnerAndProjectName("hobi", "nForge4java");
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
         admin = User.findByLoginId("admin");
-        manager = User.findByLoginId("hobi");
-        member = User.findByLoginId("k16wire");
+        manager = User.findByLoginId("yobi");
+        member = User.findByLoginId("laziel");
         author = User.findByLoginId("nori");
         nonmember = User.findByLoginId("doortts");
         anonymous = new NullUser();
@@ -77,7 +77,7 @@ public class IssueAppTest {
 
         //When
         return callAction(
-                controllers.routes.ref.IssueApp.newIssue("hobi", "nForge4java"),
+                controllers.routes.ref.IssueApp.newIssue("yobi", "projectYobi"),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
                         .withSession(UserApp.SESSION_USERID, user.getId().toString())
@@ -90,7 +90,7 @@ public class IssueAppTest {
         data.put("body", "universe");
 
         return callAction(
-                controllers.routes.ref.IssueApp.editIssue("hobi", "nForge4java", issue.getNumber()),
+                controllers.routes.ref.IssueApp.editIssue("yobi", "projectYobi", issue.getNumber()),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
                         .withSession(UserApp.SESSION_USERID, user.id.toString())
@@ -99,7 +99,7 @@ public class IssueAppTest {
 
     private Result deleteBy(User user) {
         return callAction(
-                controllers.routes.ref.IssueApp.deleteIssue("hobi", "nForge4java", issue.getNumber()),
+                controllers.routes.ref.IssueApp.deleteIssue("yobi", "projectYobi", issue.getNumber()),
                 fakeRequest()
                         .withSession(UserApp.SESSION_USERID, user.id.toString())
         );
@@ -112,7 +112,7 @@ public class IssueAppTest {
 
         //When
         return callAction(
-                controllers.routes.ref.IssueApp.newComment("hobi", "nForge4java", issue.getNumber()),
+                controllers.routes.ref.IssueApp.newComment("yobi", "projectYobi", issue.getNumber()),
                 fakeRequest()
                         .withFormUrlEncodedBody(data)
                         .withSession(UserApp.SESSION_USERID, user.getId().toString())
@@ -314,7 +314,7 @@ public class IssueAppTest {
     public void watch() {
         // When
         Result result = callAction(
-                controllers.routes.ref.IssueApp.watch("hobi", "nForge4java", issue.getNumber()),
+                controllers.routes.ref.IssueApp.watch("yobi", "projectYobi", issue.getNumber()),
                 fakeRequest()
                         .withSession(UserApp.SESSION_USERID, nonmember.id.toString())
         );
@@ -330,7 +330,7 @@ public class IssueAppTest {
     public void unwatch() {
         // When
         Result result = callAction(
-                controllers.routes.ref.IssueApp.unwatch("hobi", "nForge4java", issue.getNumber()),
+                controllers.routes.ref.IssueApp.unwatch("yobi", "projectYobi", issue.getNumber()),
                 fakeRequest()
                         .withSession(UserApp.SESSION_USERID, author.id.toString())
         );

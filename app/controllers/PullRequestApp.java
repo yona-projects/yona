@@ -28,8 +28,6 @@ import java.util.List;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
- *
- * @author Keesun Baik
  */
 public class PullRequestApp extends Controller {
 
