@@ -16,7 +16,6 @@ public class NullUser extends User {
         this.id = -1l;
         this.name = Messages.get("user.notExists.name");
         this.loginId = "";
-        this.loginId = "";
         this.email = "";
         this.createdDate = new Date();
         this.avatarUrl = UserApp.DEFAULT_AVATAR_URL;
