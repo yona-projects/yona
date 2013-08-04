@@ -180,7 +180,12 @@ $(document).ready(function(){
         if (e.keyCode == 13) {
             /* FOCUS ELEMENT */
             var daysAgo = $(this).val();
-            window.location.href='?daysAgo='+daysAgo+'&selected='+selectedTab;
+            var uri = parseUri(window.location.href);
+            var groupsOption = "";
+            if(uri.queryKey.groups){
+                groupsOption = "&groups=" + uri.queryKey.groups;
+            }
+            window.location.href='?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption;
             return false;
         }
     });
@@ -206,3 +211,5 @@ $(document).ready(function(){
 });
 </script>
 }
+
+<script type="text/javascript" src="@getJSLink("lib/parseuri")"></script>
