@@ -25,3 +25,4 @@ tags
 Thumbs.db
 Thumbs.db\:encryptable
 conf/application.user.conf
+conf/application.conf
