@@ -612,7 +612,7 @@ project.group = 프로젝트 분류
 project.default.group.member = 멤버로 참여중인 프로젝트
 project.default.group.watching = 지켜보는 프로젝트
 daysAgo.prefix=최근
-daysAgo.suffix=일 전
+daysAgo.suffix=일
 
 # Importing git project
 import.error.empty.url = Git 저장소 URL을 입력하세요.

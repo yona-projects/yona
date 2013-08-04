@@ -174,17 +174,28 @@ $(document).ready(function(){
     $yobi.loadModule("project.Global");
 
     var selectedTab = '@selected';
+    var stateObj = {};
+    var rememberCurrentTab = function(selectedTab){
+        var daysAgo = $('#daysAgoBtn').val();
+        var uri = parseUri(window.location.href);
+        var groupsOption = "";
+        if(uri.queryKey.groups){
+            groupsOption = "&groups=" + uri.queryKey.groups;
+        }
+        history.replaceState(stateObj, '', '?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption);
+    }
+
     //daysAgo input enter
     $('#daysAgoBtn').on("keypress", function(e) {
         /* ENTER PRESSED*/
         if (e.keyCode == 13) {
-            /* FOCUS ELEMENT */
-            var daysAgo = $(this).val();
+            var daysAgo = $('#daysAgoBtn').val();
             var uri = parseUri(window.location.href);
             var groupsOption = "";
             if(uri.queryKey.groups){
                 groupsOption = "&groups=" + uri.queryKey.groups;
             }
+            history.replaceState(stateObj, '', '?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption);
             window.location.href='?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption;
             return false;
         }
@@ -193,6 +204,7 @@ $(document).ready(function(){
     $('a[data-toggle="tab"]').click(function(e){
         //get href link and remove '#' from #link from 'href' value
         selectedTab = $(this).attr('href').replace('#', '');
+        rememberCurrentTab(selectedTab);
 
         //postings, pullRequests, issues 탭이 아닐경우에는 daysAgo input 을 disabled 시킨다.
         var targets = ['#postings','#pullRequests','#issues'];
