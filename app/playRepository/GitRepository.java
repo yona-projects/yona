@@ -876,9 +876,9 @@ public class GitRepository implements PlayRepository {
             cloneRepository = buildCloneRepository(pullRequest);
 
             String srcToBranchName = pullRequest.toBranch;
-            String destToBranchName = srcToBranchName + "-to";
+            String destToBranchName = srcToBranchName + "-to-" + pullRequest.id;
             String srcFromBranchName = pullRequest.fromBranch;
-            String destFromBranchName = srcFromBranchName + "-from";
+            String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
 
             // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
             deleteBranch(cloneRepository, destToBranchName);
