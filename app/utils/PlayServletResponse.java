@@ -340,10 +340,6 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public void setStatus(int status) {
-        play.Logger.debug("setStatus: " + status);
-        if (status == 401) {
-            Thread.dumpStack();
-        }
         this.status = status;
     }
 
