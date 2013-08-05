@@ -45,7 +45,6 @@ object ApplicationBuild extends Build {
     val projectSettings = Seq(
       // Add your own project settings here
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
-      resolvers += "svnkit-repository" at "http://maven.tmatesoft.com/content/repositories/releases/",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
       resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
       templatesImport += "models.enumeration._",
