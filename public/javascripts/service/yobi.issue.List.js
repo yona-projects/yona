@@ -58,6 +58,8 @@
             htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
             htElement.welDeleteButton = htOptions.welDeleteButton;
             htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
+
+      htElement.weAllCheckbox = $('#check-all');      
 		}
 		
 		/**
@@ -86,6 +88,14 @@
             if($(htVar.sIssueCheckBoxesSelector + ':checked').length > 0){
                 _onCheckIssue();
             }
+
+            $(htElement.weAllCheckbox).on('click' , function() {
+            	var checkedStatus = this.checked;
+            	$('input[name="checked-issue"]').each(function () {
+        				$(this).prop('checked', checkedStatus);
+        				_onCheckIssue();
+            	});
+            });
 		}
 
         /**
