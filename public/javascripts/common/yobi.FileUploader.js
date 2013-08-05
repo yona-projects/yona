@@ -7,7 +7,6 @@
  * http://yobi.dev.naver.com/license
  */
 yobi.FileUploader = (function() {
-	
 	var htVar = {};
 	var htElements = {};
 	
@@ -24,10 +23,9 @@ yobi.FileUploader = (function() {
 		htOptions = htOptions || {};
 		
 		_initElement(htOptions);
-		_initVar(htOptions);
-		_initDroppable();
-		
+		_initVar(htOptions);	
 		_attachEvent();
+		
         _requestList();
 	}
 
@@ -46,7 +44,9 @@ yobi.FileUploader = (function() {
 		htVar.sResourceId = htElements.welContainer.attr('data-resourceId');
 		htVar.sResourceType = htElements.welContainer.attr('data-resourceType');
 		
-		htVar.bDroppable = false;
+        htVar.bXHR2 = (typeof FormData != "undefined");
+		htVar.bDroppable = (typeof window.ondrop != "undefined");
+		htVar.bPastable = (typeof document.onpaste != "undefined");
 	}
 
 	/**
@@ -63,17 +63,14 @@ yobi.FileUploader = (function() {
 		htElements.welFileList  = htElements.welContainer.find("ul.attached-files");
 		htElements.welFileListHelp = htElements.welContainer.find("p.help");
 		htElements.welHelpDroppable = htElements.welContainer.find(".help-droppable");
-	}
-	
-	/**
-	 * 드래그앤드롭 설정
-	 * initialize drag&drop upload 
-	 */
-	function _initDroppable(){
-	    if(window.File && window.FileList){
-	        htVar.bDroppable = true;
-	        htElements.welHelpDroppable.show();
-	    }
+		htElements.welHelpPastable  = htElements.welContainer.find(".help-pastable");
+		
+		if(htVar.bDroppable){
+		    htElements.welHelpDroppable.show();
+		}
+		if(htVar.bPastable){
+		    htElements.welHelpPastable.show();
+		}
 	}
 	
 	/**
@@ -82,44 +79,21 @@ yobi.FileUploader = (function() {
 	 */
 	function _attachEvent(){
 		htElements.welInputFile.change(_onChangeFile);
-		
+
+        // Upload by Drag & Drop
 		if(htVar.bDroppable){
 		    htElements.welContainer.bind("dragover", function(weEvt){
-		        weEvt.preventDefault(); 
+		        weEvt.preventDefault();
+		        return false;
 		    });
+		    htElements.welTextarea.bind("drop", _onDropFile);
 		    htElements.welContainer.bind("drop", _onDropFile);
 		}
-	}
-	
-	/**
-	 * 파일을 드래그앤드롭해서 가져왔을 때 이벤트 핸들러
-	 * @param {Wrapped Event} weEvt
-	 */
-	function _onDropFile(weEvt){
-	    var oFiles = weEvt.originalEvent.dataTransfer.files;
-	    if(!oFiles || oFiles.length === 0){
-	        return;
-	    }
-	    
-	    var welForm = _getAjaxForm(oFiles);
-        var oFile = welForm.data("file");
-        _appendFileItem(oFile, true);
-	    
-        try {
-            welForm.submit();
-        } finally {
-            welForm.remove();
-            welForm = null;
-        }
-        
-        // TODO: 여러 파일 전송 지원
-        if(oFiles.length > 1){
-            $yobi.notify(Messages("attach.multipleNotYet"));
-        }
-        
-	    weEvt.stopPropagation();
-	    weEvt.preventDefault();
-	    return false;
+		
+		// Upload by paste
+		if(htVar.bPastable){
+		    htElements.welTextarea.bind("paste", _onPasteFile);
+		}
 	}
 	
 	/**
@@ -151,10 +125,61 @@ yobi.FileUploader = (function() {
      * @param {Object} oRes
      */
 	function _onLoadRequest(oRes) {
-        _appendFileItem(oRes.attachments, false); // 이미 첨부되어 있는 파일
-        _appendFileItem(oRes.tempFiles, true);    // 임시 파일 (저장하면 첨부됨)
+	    // 이미 첨부되어 있는 파일
+        _appendFileItem({
+            "vFile"     : oRes.attachments, // Array
+            "bTemporary": false
+        });
+        
+        // 임시 파일 (저장하면 첨부됨)
+        _appendFileItem({
+            "vFile"     : oRes.tempFiles,   // Array 
+            "bTemporary": true
+        });
+	}
+	
+	/**
+	 * 이미지 데이터를 클립보드에서 붙여넣었을 때 이벤트 핸들러
+	 * @param {Wrapped Event} weEvt
+	 */
+	function _onPasteFile(weEvt){
+	    if(!weEvt.originalEvent.clipboardData || !weEvt.originalEvent.clipboardData.items){
+	        return;
+	    }
+	    
+        var oItem = weEvt.originalEvent.clipboardData.items[0];
+
+        if(typeof oItem === "undefined"){
+            return;
+        }
+
+        var nSubmitId = _getSubmitId();
+        var oFile = oItem.getAsFile();
+        
+        if(!oFile || oFile.type.indexOf("image/") !== 0){
+            return;
+        }
+        
+        oFile.name = nSubmitId + ".png";
+        _uploadFile(nSubmitId, oFile);
 	}
 
+    /**
+     * 파일을 드래그앤드롭해서 가져왔을 때 이벤트 핸들러
+     * @param {Wrapped Event} weEvt
+     */
+    function _onDropFile(weEvt){
+        var oFiles = weEvt.originalEvent.dataTransfer.files;
+        if(!oFiles || oFiles.length === 0){
+            return;
+        }
+        _uploadFiles(oFiles);
+
+        weEvt.stopPropagation();
+        weEvt.preventDefault();
+        return false;
+    }
+    
 	/**
 	 * 파일 선택시 이벤트 핸들러
 	 * change event handler on <input type="file">
@@ -165,47 +190,59 @@ yobi.FileUploader = (function() {
 			return;
 		}
 		
-		// AjaxForm 생성하고 파일 첨부 목록에 항목 추가
-        var welForm = _getAjaxForm();
-        var oFile = welForm.data("file");
-		_appendFileItem(oFile, true);
-
-		try {
-			welForm.submit();
-		} finally {
-			welForm.remove();
-			welForm = null;
-		}
+		_uploadFiles(htElements.welInputFile[0].files);
 	}
 
-	/**
-	 * 파일 전송을 위한 ajaxForm 객체를 반환하는 함수
-     * 전송 상태 표시를 위한 이벤트 핸들러를 설정하고
-     * 선택한 파일 정보는 welForm.data("files") 로 제공한다 
-	 * 
-	 * - _onChangeFile 에서 호출하는 경우:
-	 *    파일을 선택한 <input type="file">을 복제하여 사용한다
-	 * 
-	 * - _onDropFile 에서 호출하는 경우:
-	 *    파일 목록(FileList) 객체를 인자로 받아 사용한다
-	 * 
-	 * @param {FileList} oFiles FileList 객체 (Optional)
-	 * @return {Wrapped Element}
-	 */
-	function _getAjaxForm(oFiles){
-	    var nSubmitId = parseInt(Math.random() * new Date().getTime());
+    /**
+     * Upload files
+     * 
+     * @param {FileList} oFiles
+     */
+    function _uploadFiles(oFiles){
+        var nSubmitId, oFile;
+        var oFiles = oFiles || htElements.welInputFile[0].files;
+        
+        for(var i = 0; i < oFiles.length; i++){
+            nSubmitId = _getSubmitId();
+            _uploadFile(nSubmitId, oFiles[i]);
+        }
+    }
+    
+    function _getSubmitId(){
+        return parseInt(Math.random() * new Date().getTime());
+    }
+    
+    /**
+     * Upload single file
+     * 
+     * @param {Number} nSubmitId
+     * @param {File} oFile
+     */
+    function _uploadFile(nSubmitId, oFile){
+        // append file on list
+        oFile.nSubmitId = nSubmitId;
+        _appendFileItem({
+            "vFile"     : oFile, // Object
+            "bTemporary": true
+        });
+        
+        return htVar.bXHR2 ? _uploadFileXHR(nSubmitId, oFile) : _uploadFileForm(nSubmitId, oFile);
+    }
+
+    /**
+     * Upload file with $.ajaxForm
+     * available in almost browsers, except Safari on OSX.
+     * http://malsup.com/jquery/form/
+     * 
+     * @param {Number} nSubmitId
+     * @param {File} oFile
+     */
+    function _uploadFileForm(nSubmitId, oFile){
         var welInputFile = htElements.welInputFile.clone();
         var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');    
-        welInputFile[0].files = oFiles || htElements.welInputFile[0].files;
-        
-        // TODO: 여러 파일 전송
-        
-        // 전송 상태 표시를 위한 submitId 값
-        var oFile = welInputFile[0].files[0];
-        oFile.nSubmitId = nSubmitId;
-        
+        welInputFile[0].files[0] = oFile;
+
         welForm.attr('action', htVar.sAction);
-        welForm.data('file', oFile);
         welForm.append(welInputFile).appendTo(document.body);
         
         // 폼 이벤트 핸들러 설정: nSubmitId 가 필요한 부분만
@@ -214,41 +251,75 @@ yobi.FileUploader = (function() {
             _onSuccessSubmit(nSubmitId, oRes);
         };
         htUploadOpts.uploadProgress = function(oEvent, nPos, nTotal, nPercentComplete){
-            _onUploadProgress(nSubmitId, oEvent, nPos, nTotal, nPercentComplete);
+            _onUploadProgress(nSubmitId, nPercentComplete);
         };
         htUploadOpts.error = function(oRes){
             _onErrorSubmit(nSubmitId, oRes);
         };
 
         welForm.ajaxForm(htUploadOpts);
-        
-        return welForm;
-	}
-	
+    }
+    
+    /**
+     * Upload file with XHR2
+     * available in IE 10+, FF4+, Chrome7+, Safari5+
+     * http://caniuse.com/xhr2
+     * 
+     * @param {Number} nSubmitId
+     * @param {File} oFile
+     */
+    function _uploadFileXHR(nSubmitId, oFile){
+        var oData = new FormData();
+        oData.append("filePath", oFile, oFile.name);
+
+        $.ajax({
+            "type" : "post",
+            "url"  : htVar.sAction,
+            "data" : oData,
+            "cache": false,
+            "processData": false,
+            "contentType": false,
+            "success": function(oRes){
+                _onSuccessSubmit(nSubmitId, oRes);
+            },
+            "error": function(){
+                _onErrorSubmit(nSubmitId, oRes);
+            },
+            "xhrFields": {"onprogress": function(weEvt){
+                if(weEvt.lengthComputable){
+                    _onUploadProgress(nSubmitId, Math.ceil(weEvt.loaded / weEvt.total));
+                }
+            }}
+        });
+    }
+
 	/**
 	 * 파일 항목을 첨부 파일 목록에 추가한다
+	 * 
 	 * 이미 전송된 파일 목록은 _onLoadRequest 에서 호출하고
-	 * 아직 전송전 임시 파일은 _onChangeFile  에서 호출한다
+	 * 아직 전송전 임시 파일은 _uploadFile    에서 호출한다
 	 *  
 	 * oFile.id 가 존재하는 경우는 이미 전송된 파일 항목이고
 	 * oFile.id 가 없는 경우는 전송대기 상태의 임시 항목이다
 	 *  
-	 * @param {Variant} vFile 하나의 파일 항목 객체(Object) 또는 여러 파일 항목을 담고 있는 배열(Array)
-	 * @param {Boolean} bTemp 임시 저장 여부
+	 * @param {Hash Table} htData
+	 * @param {Variant} htData.vFile      하나의 파일 항목 객체(Object) 또는 여러 파일 항목을 담고 있는 배열(Array)
+	 * @param {Boolean} htData.bTemporary 임시 저장 여부
+	 * 
 	 * @return {Number} 이번에 목록에 추가된 파일들의 크기 합계
 	 */
-	function _appendFileItem(vFile, bTemp){
-	    if(typeof vFile === "undefined"){
+	function _appendFileItem(htData){
+	    if(typeof htData.vFile === "undefined"){
 	        return 0;
 	    }
-	    
+
         var welItem;
         var nFileSize = 0;
-	    var aFiles = (vFile instanceof Array) ? vFile : [vFile]; // 배열 변수로 단일화
-	    var aWelItems = [];
+        var aWelItems = [];
+	    var aFiles = (htData.vFile instanceof Array) ? htData.vFile : [htData.vFile]; // 배열 변수로 단일화
 	    
         aFiles.forEach(function(oFile) {
-            welItem = _getFileItem(oFile, bTemp);
+            welItem = _getFileItem(oFile, htData.bTemporary);
             
             if(typeof oFile.id !== "undefined"){ // 서버의 첨부 목록에서 가져온 경우
                 welItem.addClass("complete");
@@ -279,6 +350,7 @@ yobi.FileUploader = (function() {
      * 
      * @param {Hash Table} htFile 파일 정보
      * @param {Boolean} bTemp 임시 파일 여부
+     * 
      * @return {Wrapped Element} 
      */
     function _getFileItem(htFile, bTemp) {
@@ -322,11 +394,9 @@ yobi.FileUploader = (function() {
      * uploadProgress event handler 
      * 
      * @param {Object} oEvent
-     * @param {Number} nPos
-     * @param {Number} nTotal
      * @param {Number} nPercentComplete
      */
-    function _onUploadProgress(nSubmitId, oEvent, nPos, nTotal, nPercentComplete){
+    function _onUploadProgress(nSubmitId, nPercentComplete){
         _setProgressBar(nSubmitId, nPercentComplete);
     }
 

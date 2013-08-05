@@ -9,16 +9,15 @@
         <div class="write-comment-box">
             <div class="write-comment-wrap">
                 <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
+                @** fileUploader **@
+                @if(!UserApp.currentUser.isAnonymous) {
+                    @fileUploader(resourceType, null)
+                }
+                @** end of fileUploader **@
                 <div class="right-txt">
                     <button class="nbtn medium orange">@Messages("button.comment.new")</button>
                 </div>
             </div>
-
-            @** fileUploader **@
-            @if(!UserApp.currentUser.isAnonymous) {
-                @fileUploader(resourceType, null)
-            }
-            @** end of fileUploader **@
         </div>
     </form>
 

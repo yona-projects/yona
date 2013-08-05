@@ -518,11 +518,11 @@ admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
 
 #Attachment
 attach.attachIfYouSave = will be attached when you save
-attach.clickToPost = click to post
+attach.clickToPost = Click to post
 attach.error = Upload failed by server error
 attach.drophere = Drop files here or
 attach.clickbutton = click Upload button
-attach.multipleNotYet = Multiple upload does not supported yet
+attach.pastehere = , or pasting from the clipboard. 
 
 #Error
 error.notfound = Page not found

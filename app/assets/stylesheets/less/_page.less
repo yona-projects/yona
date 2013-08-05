@@ -1961,11 +1961,11 @@
     border-bottom: 1px solid @gray-d4;
     .div {
         display: table-cell;
-        vertical-align: top;
+        vertical-align: middle;
     }
     .board-id {
         width: 35px;
-        line-height:20px;
+        line-height:22px;
         padding-right: 10px;
         font-size:14px;
     }
@@ -1973,18 +1973,18 @@
         width: 90%;/*655px;*/
         padding-right: 20px;
         font-size: 18px;
-        line-height: 16px;
+        line-height: 22px;
         color: #000;
     }
     .date {
         width: 120px;
-        color: #999; line-height:20px;
+        color: #999; line-height:22px;
     }
     &.issue {
         .title { width:80%;/*650px;*/ }
     }
 }
-
+/*
 .badge {
     font-size:11px;
     text-shadow:none;
@@ -1993,7 +1993,7 @@
 .badge-issue-open {
     background-color:@secondary;
 }
-
+*/
 .board-body {
     padding: 20px;
     .author-info {
@@ -2022,11 +2022,10 @@
        margin-bottom: 20px;
        a { font-weight:bold; }
     }
-
-    .attachments {
-        ul { list-style-type:none; margin:0; }
-        i { float:left; margin-right:5px; }
-    }
+}
+.attachments {
+    ul { list-style-type:none; margin:0; }
+    i { float:left; margin-right:5px; }
 }
 
 .board-comment-wrap {
@@ -2092,7 +2091,6 @@ div.markdown-preview {
 .write-comment-box {
     padding: 17px 20px 15px;
     .write-comment-wrap {
-        font-size: 0;
         margin-bottom: 10px;
 
         div.markdown-preview {
@@ -2106,7 +2104,7 @@ div.markdown-preview {
     .comment {
         width: 98.5%;/*795px;*/
         height: 80px;
-        margin: 0; margin-bottom:9px;
+        margin: 0;
         resize:vertical;
         .border-radius(2px 0 0 2px);
         .box-shadow(none);
@@ -2116,9 +2114,10 @@ div.markdown-preview {
     }
     .upload-wrap {
         background:#efefef;
-        padding:15px;
+        padding:10px; margin-bottom:10px;
         .border-radius(5px);
     }
+    .actrow { margin-top:10px; }
 }
 
 .board-footer {
@@ -2151,7 +2150,7 @@ div.markdown-preview {
 
 // -- new attach files //
 .upload-wrap {
-    padding:20px 10px !important;
+    padding:10px !important;
     
     .attach-wrap {
         text-align:center;
@@ -2176,7 +2175,7 @@ div.markdown-preview {
 
         .attached-file {
             display: inline-block;
-            width: 280px;
+            width: 360px;
             height: 30px;
             line-height: 30px;
             border: 1px solid #ccc;
@@ -2187,8 +2186,9 @@ div.markdown-preview {
             cursor:pointer;
             overflow: hidden;
             -webkit-transition-duration: 0.5s;
+            &:hover { border:1px solid @primary; }
 
-            .icon-question-sign { display:none; }
+            .icon-question-sign { display:none; margin-right:3px; color:@secondary; }
             .name {
                 display: inline-block;
                 max-width: 120px;
@@ -2213,12 +2213,20 @@ div.markdown-preview {
                 height: 30px;
                 font-size: 1.5em;
                 font-weight: bold;
+                &:hover { color:@primary; }
+            }
+            .btn-insert { 
+                display:none; 
+                line-height: 20px; 
+                margin-top: 2px; margin-right: 10px;
+                &:hover { background:#fff; color:@primary; }
             }
 
             /* 업로드 완료 후에는 삭제 버튼 표시 */
             &.complete {
                .progress    { display:none; }
                .btn-delete  { display:inline-block; }
+               .btn-insert  { display:block; }
             }
 
             /* 임시 파일 표시 */
@@ -2574,14 +2582,13 @@ div.markdown-preview {
         }
     }
 
-    .branches {
-        text-align:left;
+}
+.branches {
+    text-align:left;
 
-        .label {
-            margin:0; padding:0 5px; margin-right:3px;
-
-            &.branch { background-color:@orange; }
-        }
+    .label {
+        margin:0; padding:0 5px; margin-right:3px;
+        &.branch { background-color:@orange; }
     }
 }
 
