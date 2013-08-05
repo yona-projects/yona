@@ -881,7 +881,7 @@ public class GitRepository implements PlayRepository {
             String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
 
             // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
-            deleteBranch(cloneRepository, destToBranchName);
+//            deleteBranch(cloneRepository, destToBranchName);
             deleteBranch(cloneRepository, destFromBranchName);
 
             // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
@@ -893,7 +893,7 @@ public class GitRepository implements PlayRepository {
             operation.invoke(cloneAndFetch);
 
             // master로 이동
-            checkout(cloneRepository, "master");
+//            checkout(cloneRepository, "master");
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
         } catch (IOException e) {
