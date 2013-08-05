@@ -517,12 +517,12 @@ admin.resetPasswordEmail.mailcontents = 아래 URL을 브라우저 주소창에 
 admin.resetPasswordEmail.invalidRequest = 잘못된 비밀번호 재 설정 요청입니다.
 
 #Attachment
-attach.attachIfYouSave = 글을 저장하면 표시된 파일을 첨부합니다.
-attach.clickToPost = 표시된 파일을 클릭하면 본문에 추가합니다.
+attach.attachIfYouSave = 표시된 파일은 글을 저장하면 첨부됩니다.
+attach.clickToPost = 본문에 넣기
 attach.error = 서버 오류로 파일 첨부에 실패했습니다
-attach.drophere = 첨부할 파일을 이 곳에 끌어다 놓거나
+attach.drophere = 첨부할 파일을 끌어다 놓거나
 attach.clickbutton = 버튼을 클릭해서 선택하세요
-attach.multipleNotYet = 여러 파일 전송은<br>아직 지원되지 않습니다
+attach.pastehere = . 클립보드 이미지를 붙여 넣을 수도 있습니다
 
 #Error
 error.notfound = 페이지를 찾을 수 없습니다

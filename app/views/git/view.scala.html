@@ -87,6 +87,8 @@
                     </div>
                     }
                 }
+                
+                <div id="attachments" class="attachments" resourceType="@ResourceType.PULL_REQUEST" resourceId="@pull.id"></div>
             </div>
 
             <div id="commits" class="code-browse-wrap tab-pane">
@@ -137,7 +139,7 @@
                     @if(isSafe){
                     <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
                     }
-                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reject")</a>
+                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
                 }
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
                     <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
@@ -181,7 +183,7 @@
             <div class="write-comment-box">
                 <div class="write-comment-wrap">
                     <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
-                    <div class="right-txt">
+                    <div class="actrow right-txt">
                         <button class="nbtn medium orange">@Messages("button.comment.new")</button>
                     </div>
                 </div>
@@ -201,6 +203,11 @@
 
         $('span[data-toggle="tooltip"]').tooltip({
             placement : "bottom"
+        });
+        
+        new yobi.FileDownloader({
+            "elTarget": $("#attachments"), 
+            "sAction": "@routes.AttachmentApp.uploadFile" 
         });
     });
 </script>

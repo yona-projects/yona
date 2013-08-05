@@ -6,17 +6,16 @@
         <div class="btn-wrap">
              <div class="nbtn medium white fake-file-wrap">
                  <i class="ico ico-plus-blue"></i>@Messages("button.upload")<!--
-             --> <input type="file" class="file" name="filePath">
+             --> <input type="file" class="file" name="filePath" multiple="multiple">
              </div>
         </div>
         <span>@Messages("attach.clickbutton")</span>
+        <span class="help-pastable">@Messages("attach.pastehere")</span>
     </div>
 
     <ul class="attached-files unstyled"></ul>
     <p class="right-txt help">
         <i class="icon-question-sign"></i> @Messages("attach.attachIfYouSave")
-
-        <i class="icon-question-sign"></i> @Messages("attach.clickToPost")
     </p>
 </div>
 
@@ -29,5 +28,6 @@
             <div class="progress n4"><div class="bar orange"></div></div>
         </div>
         <button type="button" class="btn-transparent btn-delete pull-right">×</button>
+        <span class="pull-right nbtn small white btn-insert">@Messages("attach.clickToPost")</span>        
     </li>
 </script>

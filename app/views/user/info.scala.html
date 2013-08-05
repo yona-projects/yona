@@ -67,7 +67,7 @@
             </div>
             }
 
-            <ul class="nav nav-tabs">
+            <ul id="user-stream-tabs" class="nav nav-tabs">
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
                         @Messages("projects") @showBadgeNumberIfExist(projects.size)

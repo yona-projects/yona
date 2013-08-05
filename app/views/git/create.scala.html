@@ -3,9 +3,35 @@
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
+@branchItemType(itemType:String) = @{
+    if(itemType == "heads"){
+        "branch"
+    } else if(itemType == "tags") {
+        "tag"
+    } else {
+        itemType
+    }
+}
+
+@makeBranchItem(branch:String) = {
+    @defining(branch.split('/')){ names =>
+        @if(names(0).equals("refs")){
+            <li data-value="@branch">
+                <a href="#">
+                    <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
+                    @branch.replace("refs/" + names(1) + "/", "")
+                </a>
+            </li>
+        } else {
+            <li data-value="@branch"><a href="#">@branch</a></li>
+        }
+    }
+}
+
 @main(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    
     <div class="content-wrap frm-wrap">
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
             <legend>
@@ -37,15 +63,15 @@
                         </code>
                     </div>
 	                <div class="option-desc">
-	                    <div class="btn-group" data-name="fromBranch">
-	                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+	                    <div class="btn-group branches" data-name="fromBranch">
+	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
 	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
 	                            <span class="d-caret"><span class="caret"></span></span>
 	                        </button>
 	                        <ul class="dropdown-menu">
 	                            @for(branch <- fromBranches) {
 	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    <li data-value="@branch"><a href="javascript:void(0)">@branch</a></li>
+	                                    @makeBranchItem(branch)
 	                                }
 	                            }
 	                        </ul>
@@ -62,15 +88,15 @@
                         <code>@project.originalProject.owner / @project.originalProject.name</code>
                     </div>
 	                <div class="option-desc">
-	                    <div class="btn-group" data-name="toBranch">
-	                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+	                    <div class="btn-group branches" data-name="toBranch">
+	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
 	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
 	                            <span class="d-caret"><span class="caret"></span></span>
 	                        </button>
 	                        <ul class="dropdown-menu">
 	                            @for(branch <- toBranches) {
 	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    <li data-value="@branch"><a href="javascript:void(0)">@branch</a></li>
+	                                    @makeBranchItem(branch)
 	                                }
 	                            }
 	                        </ul>
@@ -82,6 +108,8 @@
             @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")
             @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
+            @fileUploader(ResourceType.PULL_REQUEST, null)
+            
             <div class="actions">
                 <button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
                 <a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
@@ -99,6 +127,13 @@
             e.preventDefault();
             $('#helpMessage').toggle();
         });
+
+        yobi.FileUploader.init({
+            "elContainer" : $("#upload"),
+            "elTextarea"  : $("#body"),
+            "sTplFileItem": $('#tplAttachedFile').text(),
+            "sAction": "@routes.AttachmentApp.uploadFile"
+        });
 	});
-</script>
+	</script>
 }
