@@ -11,10 +11,7 @@ import models.resource.Resource;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.codehaus.jackson.node.ObjectNode;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.LogCommand;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -638,7 +635,7 @@ public class GitRepository implements PlayRepository {
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
                 Repository cloneRepository = cloneAndFetch.getRepository();
                 String srcToBranchName = pullRequest.toBranch;
-                String destToBranchName = srcToBranchName + "-to";
+                String destToBranchName = cloneAndFetch.destToBranchName;
 
                 // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
                 checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
@@ -880,8 +877,11 @@ public class GitRepository implements PlayRepository {
             String srcFromBranchName = pullRequest.fromBranch;
             String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
 
+            new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
+            checkout(cloneRepository, Constants.MASTER);
+
             // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
-//            deleteBranch(cloneRepository, destToBranchName);
+            deleteBranch(cloneRepository, destToBranchName);
             deleteBranch(cloneRepository, destFromBranchName);
 
             // 코드를 받을 브랜치에 해당하는 코드를 fetch 한다.
@@ -893,7 +893,7 @@ public class GitRepository implements PlayRepository {
             operation.invoke(cloneAndFetch);
 
             // master로 이동
-//            checkout(cloneRepository, "master");
+            checkout(cloneRepository, Constants.MASTER);
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
         } catch (IOException e) {
