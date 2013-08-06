@@ -50,7 +50,7 @@
         <li @if(issueState == state) { class="active" }>
             <a href="@getTabLinkByState(state)">
                 @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@Issue.countIssuesBy(project.id, state, null, null, milestone.id)</span>
+                <span class="num-badge">@Issue.countIssuesBy(project.id, state, null, null, milestone.id, null)</span>
             </a>
         </li>
     }
