@@ -10,9 +10,9 @@
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 
-@urlAssignedToMe = {@urlToList&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
+@urlAssignedToMe = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", 1)&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
 
-@urlAuthoredByMe = {@urlToList&authorLoginId=@session.get("loginId")&milestoneId=@param.milestoneId}
+@urlAuthoredByMe = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", 1)&authorLoginId=@session.get("loginId")&milestoneId=@param.milestoneId}
 
 @getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", pageIndex + 1)}
 
