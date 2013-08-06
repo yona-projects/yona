@@ -277,6 +277,8 @@ yobi.Label = (function(htOptions){
 		
 		if (welLabel.siblings().size() > 0) {
 			welLabel.remove();
+			// setting menu 의 리스트 에서도 제거
+			$('li[data-value="'+sLabelId+'"]').remove();
 			return;
 		}
 		
@@ -287,6 +289,8 @@ yobi.Label = (function(htOptions){
 		if(htVar.bEditable){
 		    yobi.LabelEditor.removeCategory(sCategory);
 		}
+		// setting menu 의 리스트 에서도 제거
+		$('li[data-value="'+sLabelId+'"]').remove();
 	}
 
 	/**
