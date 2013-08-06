@@ -40,7 +40,6 @@ abstract public class AbstractPosting extends Model {
     @Size(max=255)
     public String title;
 
-    @Constraints.Required
     @Lob
     public String body;
 
