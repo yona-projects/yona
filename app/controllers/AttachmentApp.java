@@ -259,8 +259,8 @@ public class AttachmentApp extends Controller {
 
         if (containerType != null && containerId != null) {
             List<Map<String, String>> attachments = new ArrayList<>();
-            for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf(containerType),
-                    Long.parseLong(containerId))) {
+            for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf
+                    (containerType), containerId)) {
                 if (!AccessControl.isAllowed(UserApp.currentUser(),
                         attach.asResource(), Operation.READ)) {
                     return forbidden();

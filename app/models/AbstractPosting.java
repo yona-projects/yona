@@ -6,16 +6,15 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import org.joda.time.Duration;
-import play.Logger;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.*;
 import utils.AccessControl;
 import utils.JodaDateUtil;
+import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import javax.xml.stream.util.XMLEventConsumer;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -62,10 +61,6 @@ abstract public class AbstractPosting extends Model {
     // This field is only for ordering. This field should be persistent because
     // Ebean does NOT sort entities by transient field.
     public int numOfComments;
-
-    abstract protected Set<User> getExplicitWatchers();
-
-    abstract protected Set<User> getExplicitUnwatchers();
 
     /**
      * {@link Comment} 개수를 반환한다.
@@ -177,8 +172,8 @@ abstract public class AbstractPosting extends Model {
     public Resource asResource(final ResourceType type) {
         return new Resource() {
 	        @Override
-	        public Long getId() {
-	            return id;
+	        public String getId() {
+	            return id.toString();
 	        }
 
 	        @Override
@@ -279,11 +274,9 @@ abstract public class AbstractPosting extends Model {
             }
         }
 
-        List<User> watchers = project.watchers;
-        actualWatchers.addAll(watchers);
-
-        actualWatchers.addAll(getExplicitWatchers());
-        actualWatchers.removeAll(getExplicitUnwatchers());
+        actualWatchers.addAll(WatchService.findWatchers(project.asResource()));
+        actualWatchers.addAll(WatchService.findWatchers(asResource()));
+        actualWatchers.removeAll(WatchService.findUnwatchers(asResource()));
 
         Set<User> allowedWatchers = new HashSet<>();
         for (User watcher : actualWatchers) {
@@ -293,29 +286,5 @@ abstract public class AbstractPosting extends Model {
         }
 
         return allowedWatchers;
-    }
-
-    /**
-     * {@code user}가 명시적으로 이 게시물을 지켜보는 것으로 설정한다.
-     *
-     * @param user
-     */
-    @Transactional
-    public void watch(User user) {
-        getExplicitWatchers().add(user);
-        getExplicitUnwatchers().remove(user);
-        update();
-    }
-
-    /**
-     * {@code user}가 명시적으로 이 게시물을 무시하는 것(지켜보지 않는 것)으로 설정한다.
-     *
-     * @param user
-     */
-    @Transactional
-    public void unwatch(User user) {
-        getExplicitUnwatchers().add(user);
-        getExplicitWatchers().remove(user);
-        update();
     }
 }

@@ -46,7 +46,7 @@ public class Attachment extends Model {
 
     public Long size;
 
-    public Long containerId;
+    public String containerId;
 
     /**
      * 주어진 {@code attach}와 내용이 같은 첨부 파일을 찾는다.
@@ -87,7 +87,7 @@ public class Attachment extends Model {
      * @return 첨부 파일의 목록
      */
     public static List<Attachment> findByContainer(
-            ResourceType containerType, Long containerId) {
+            ResourceType containerType, String containerId) {
         return find.where()
                 .eq("containerType", containerType)
                 .eq("containerId", containerId).findList();
@@ -324,8 +324,8 @@ public class Attachment extends Model {
     public Resource asResource() {
         return new Resource() {
             @Override
-            public Long getId() {
-                return id;
+            public String getId() {
+                return id.toString();
             }
 
             @Override
@@ -347,7 +347,7 @@ public class Attachment extends Model {
                 return new Resource() {
 
                     @Override
-                    public Long getId() {
+                    public String getId() {
                         return containerId;
                     }
 

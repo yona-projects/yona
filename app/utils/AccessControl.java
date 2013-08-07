@@ -92,7 +92,7 @@ public class AccessControl {
 
         if (operation == Operation.READ) {
             if (resource.getType() == ResourceType.PROJECT) {
-                Project project = Project.find.byId(resource.getId());
+                Project project = Project.find.byId(Long.valueOf(resource.getId()));
                 return project != null && (project.isPublic || ProjectUser.isMember(user.id, project.id));
             }
 
@@ -106,7 +106,7 @@ public class AccessControl {
         case USER_AVATAR:
             return user.id.equals(resource.getId());
         case PROJECT:
-            return ProjectUser.isManager(user.id, resource.getId());
+            return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
         default:
             // undefined
             return false;

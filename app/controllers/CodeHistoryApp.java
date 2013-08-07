@@ -212,7 +212,7 @@ public class CodeHistoryApp extends Controller {
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toView.absoluteURL(request());
-        notiEvent.resourceId = codeComment.id;
+        notiEvent.resourceId = codeComment.id.toString();
         notiEvent.resourceType = codeComment.asResource().getType();
         notiEvent.type = NotificationType.NEW_COMMENT;
         notiEvent.oldValue = null;
@@ -237,42 +237,5 @@ public class CodeHistoryApp extends Controller {
         codeComment.delete();
 
         return redirect(routes.CodeHistoryApp.show(ownerName, projectName, commitId));
-    }
-
-    public static Result watch(String ownerName, String projectName,
-                               String commitId) throws IOException, ServletException, SVNException {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
-
-        User user = UserApp.currentUser();
-
-        if (!AccessControl.isAllowed(user, project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("You have no permission to do that.",
-                    project.asResource().getProject()));
-        }
-
-        if (user.isAnonymous()) {
-            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot watch it.", project));
-        }
-
-        commit.watch(project, user);
-
-        return ok();
-    }
-
-    public static Result unwatch(String ownerName, String projectName,
-                                 String commitId) throws IOException, ServletException, SVNException {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
-
-        User user = UserApp.currentUser();
-
-        if (user.isAnonymous()) {
-            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot unwatch it.", project));
-        }
-
-        commit.unwatch(project, user);
-
-        return ok();
     }
 }

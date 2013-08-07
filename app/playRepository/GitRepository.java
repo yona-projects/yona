@@ -323,7 +323,7 @@ public class GitRepository implements PlayRepository {
         LogCommand logCommand = git.log().add(untilCommitId);
 
         if (!basePath.isEmpty()) {
-            logCommand.addPath(basePath);
+           logCommand.addPath(basePath);
         }
 
         Set<String> paths = new HashSet<>();
@@ -551,7 +551,7 @@ public class GitRepository implements PlayRepository {
     public Resource asResource() {
         return new Resource() {
             @Override
-            public Long getId() {
+            public String getId() {
                 return null;
             }
 

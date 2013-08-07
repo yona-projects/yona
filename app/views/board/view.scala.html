@@ -122,8 +122,8 @@
 	$(document).ready(function(){
 		$yobi.loadModule("board.View", {
 			"sAction": "@routes.AttachmentApp.uploadFile",
-            "sWatchUrl"     : "@routes.BoardApp.watch(project.owner, project.name, post.getNumber)",
-            "sUnwatchUrl"   : "@routes.BoardApp.unwatch(project.owner, project.name, post.getNumber)"
+            "sWatchUrl"     : "@routes.WatchApp.watch(post.asResource.asParameter)",
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(post.asResource.asParameter)"
 		});
 		
         // yobi.ShortcutKey

@@ -1,6 +1,7 @@
 package controllers;
 
 import models.*;
+import models.resource.Resource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -312,9 +313,12 @@ public class IssueAppTest {
 
     @Test
     public void watch() {
+        // Given
+        Resource resource = issue.asResource();
+
         // When
         Result result = callAction(
-                controllers.routes.ref.IssueApp.watch("yobi", "projectYobi", issue.getNumber()),
+                controllers.routes.ref.WatchApp.watch(resource.asParameter()),
                 fakeRequest()
                         .withSession(UserApp.SESSION_USERID, nonmember.id.toString())
         );
@@ -328,9 +332,12 @@ public class IssueAppTest {
 
     @Test
     public void unwatch() {
+        // Given
+        Resource resource = issue.asResource();
+
         // When
         Result result = callAction(
-                controllers.routes.ref.IssueApp.unwatch("yobi", "projectYobi", issue.getNumber()),
+                controllers.routes.ref.WatchApp.unwatch(resource.asParameter()),
                 fakeRequest()
                         .withSession(UserApp.SESSION_USERID, author.id.toString())
         );

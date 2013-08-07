@@ -133,12 +133,12 @@ public class WatchProjectAppTest {
     private void assertProjectIsInUserWatchingProjects(String ownerName,
             String projectName, Long userId) {
         assertThat(Project.findByOwnerAndProjectName(ownerName, projectName)).
-        isIn(User.find.byId(userId).watchingProjects);
+        isIn(User.find.byId(userId).getWatchingProjects());
     }
 
     private void assertProjectIsNotInUserWatchingProjects(String ownerName,
             String projectName, Long userId) {
         assertThat(Project.findByOwnerAndProjectName(ownerName, projectName)).
-        isNotIn(User.find.byId(userId).watchingProjects);
+        isNotIn(User.find.byId(userId).getWatchingProjects());
     }
 }

@@ -24,6 +24,7 @@ import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
 import com.avaje.ebean.Page;
+import utils.WatchService;
 
 /**
  * User 클래스
@@ -112,16 +113,6 @@ public class User extends Model {
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     public List<ProjectUser> projectUser;
-
-    /**
-     * 관심 프로젝트
-     */
-    @ManyToMany
-    @JoinTable(name = "user_watching_project",
-            joinColumns= @JoinColumn(name="user_id"),
-            inverseJoinColumns= @JoinColumn(name="project_id")
-    )
-    public List<Project> watchingProjects;
 
     /**
      * 멤버 등록 요청한 프로젝트
@@ -324,8 +315,8 @@ public class User extends Model {
     public Resource asResource() {
         return new Resource() {
             @Override
-            public Long getId() {
-                return id;
+            public String getId() {
+                return id.toString();
             }
 
             @Override
@@ -343,8 +334,8 @@ public class User extends Model {
     public Resource avatarAsResource() {
         return new Resource() {
             @Override
-            public Long getId() {
-                return id;
+            public String getId() {
+                return id.toString();
             }
 
             @Override
@@ -367,13 +358,6 @@ public class User extends Model {
         return SiteAdmin.exists(this);
     }
 
-    public List<Project> getWatchingProjects(){
-        if(this.watchingProjects == null) {
-            this.watchingProjects = new ArrayList<>();
-        }
-        return this.watchingProjects;
-    }
-
     public List<Project> getEnrolledProjects(){
         if(this.enrolledProjects == null) {
             this.enrolledProjects = new ArrayList<>();
@@ -383,28 +367,29 @@ public class User extends Model {
 
     @Transactional
     public void addWatching(Project project) {
-        getWatchingProjects().add(project);
-        update();
-
+        WatchService.watch(this, project.asResource());
         project.upWatcingCount();
         project.update();
     }
 
     @Transactional
     public void removeWatching(Project project) {
-        getWatchingProjects().remove(project);
-        update();
-
+        WatchService.unwatch(this, project.asResource());
         project.downWathcingCount();
         project.update();
     }
 
     public static boolean isWatching(Project project) {
-        User user = UserApp.currentUser();
-        if(user.isAnonymous()) {
-            return false;
+        return WatchService.isWatching(project.asResource());
+    }
+
+    public List<Project> getWatchingProjects() {
+        List<String> projectIds = WatchService.findWatchedResourceIds(this, ResourceType.PROJECT);
+        List<Project> projects = new ArrayList<>();
+        for (String id : projectIds) {
+            projects.add(Project.find.byId(Long.valueOf(id)));
         }
-        return user.getWatchingProjects().contains(project);
+        return projects;
     }
 
     /**

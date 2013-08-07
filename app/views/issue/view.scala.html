@@ -228,8 +228,8 @@
 		$yobi.loadModule("issue.View", {
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"    : htOptLabel,
-            "sWatchUrl"     : "@routes.IssueApp.watch(project.owner, project.name, issue.getNumber)",
-            "sUnwatchUrl"   : "@routes.IssueApp.unwatch(project.owner, project.name, issue.getNumber)",
+            "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
             "welMilestone"  : $("#milestone"),
     		"welAssignee"   : $("#assignee"),
     		"welIssueUpdateForm" : $("#issueUpdateForm"),
