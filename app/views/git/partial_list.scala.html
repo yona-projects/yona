@@ -49,7 +49,7 @@
             <div class="span2">
                 <div class="empty-avatar-space pull-right">
                     @if(req.receiver != null) {
-                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap img-rounded">
+                        <a href="@routes.UserApp.userInfo(req.receiver.loginId)" class="avatar-wrap img-rounded" data-toggle="tooltip" data-placement="top" title="" data-original-title="@req.receiver.name">
                             <img src="@req.receiver.avatarUrl" width="32" height="32" alt="@req.receiver.name">
                         </a>
                     } else {
