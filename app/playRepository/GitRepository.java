@@ -359,6 +359,9 @@ public class GitRepository implements PlayRepository {
                     tw2.addTree(parent.getTree());
                 } else {
                     tw2 = TreeWalk.forPath(repository, basePath, parent.getTree());
+                    if (tw2 == null) {
+                        continue;
+                    }
                     tw2.enterSubtree();
                 }
 
