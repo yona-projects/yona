@@ -118,15 +118,7 @@
 				});
 				return false;
 			}
-			
-			// 본문이 비어있으면
-			if(sBody.length < 1){
-				$yobi.showAlert(Messages("issue.error.emptyBody"), function(){
-					htElement.welTextarea.focus();
-				});
-				return false;
-			}
-			
+						
 			$(window).off("beforeunload", _onBeforeUnload);
 			return true;
 		}

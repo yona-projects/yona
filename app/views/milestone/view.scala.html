@@ -44,22 +44,20 @@
     <div class="milestone-desc">
         <div markdown="true" class="markdown-wrap">@milestone.contents</div>
     </div>
-	
-	<ul class="nav nav-tabs nm">
-    @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+
+	<ul class="nav nav-tabs">
+    @for(state <- Array(State.OPEN, State.CLOSED)) {
         <li @if(issueState == state) { class="active" }>
             <a href="@getTabLinkByState(state)">
                 @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@Issue.countIssuesBy(project.id, state, null, null, milestone.id)</span>
+                <span class="num-badge">@Issue.countIssuesBy(project.id, state, null, null, milestone.id, null)</span>
             </a>
         </li>
     }
     </ul>
-    
+
 	<div class="issues">
-		<h5 class="margin-bottom-20">@Messages("menu.issue") <strong class="num-badge">@milestone.issues.size</strong></h5>
-        
-        @issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+		@issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
         @{
 	        if(issueState == State.OPEN) {
 	        	issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
@@ -69,7 +67,7 @@
 	        	issue.partial_list(project, milestone.sortedByNumberOfIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
 	        }
         }
-        
+
 	</div>
 
     <div class="actrow right-txt" style="padding: 15px 0;">

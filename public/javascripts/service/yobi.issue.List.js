@@ -79,9 +79,8 @@
             // massUpdate checkboxes
             htElement.waCheckboxes.change(_onCheckIssue);            
             yobi.ShortcutKey.attach("CTRL+A", function(htInfo){
-                htElement.waCheckboxes.attr("checked", true);
                 htInfo.weEvt.preventDefault();
-                _onCheckIssue();
+                $(htElement.weAllCheckbox).trigger('click');
                 return false; 
             });
             
@@ -91,10 +90,8 @@
 
             $(htElement.weAllCheckbox).on('click' , function() {
             	var checkedStatus = this.checked;
-            	$('input[name="checked-issue"]').each(function () {
-        				$(this).prop('checked', checkedStatus);
-        				_onCheckIssue();
-            	});
+            	$(htVar.sIssueCheckBoxesSelector).prop('checked', checkedStatus);
+        			_onCheckIssue();
             });
 		}
 

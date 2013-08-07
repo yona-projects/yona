@@ -38,7 +38,7 @@
     <appender name="ROOT_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${application.home}/logs/root.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>root.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/root.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
