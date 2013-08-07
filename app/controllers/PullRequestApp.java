@@ -1,6 +1,7 @@
 package controllers;
 
 import models.*;
+import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
@@ -9,6 +10,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import play.data.Form;
+import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -230,7 +232,7 @@ public class PullRequestApp extends Controller {
         }
 
         pullRequest.save();
-        
+
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id));
@@ -389,7 +391,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.ACCEPT);
         if(result != null) {
             return result;
         }
@@ -419,7 +421,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.REJECT);
         if(result != null) {
             return result;
         }
@@ -445,7 +447,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.REOPEN);
         if(result != null) {
             return result;
         }
@@ -580,7 +582,7 @@ public class PullRequestApp extends Controller {
      * @return
      */
     private static Result validatePullRequestOperation(Project project, PullRequest pullRequest,
-                                                       String userName, String projectName, long pullRequestId) {
+                                                       String userName, String projectName, long pullRequestId, Operation operation) {
         User user = UserApp.currentUser();
         if(user.isAnonymous()) {
             flash(Constants.WARNING, "user.login.alert");
@@ -588,9 +590,12 @@ public class PullRequestApp extends Controller {
         }
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
+        }
 
-        if(isGuest(project, user)) {
-            result = forbidden(ErrorViews.Forbidden.render("Guest is not allowed this request", project));
+        if(!AccessControl.isAllowed(user, pullRequest.asResource(), operation)) {
+            result = forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
         }
 
         return result;
