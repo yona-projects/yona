@@ -70,6 +70,11 @@ yobi.Label = (function(htOptions){
 		htElement.welLabelEditor = $('.label-editor'); 		
 
 		htElement.welBtnManageLabel = $(htOptions.welBtnManageLabel || "#manage-label-link");
+
+		// setting label list
+		htElement.welAttachLables = $('#attach-label-list');
+		htElement.welDeleteLables = $('#delete-label-list');
+
 	}
 	
 	/**
@@ -128,8 +133,21 @@ yobi.Label = (function(htOptions){
 	function _onCreateNewLabel(oLabel){
 		_addLabelIntoCategory(oLabel);
 		_setActiveLabel(oLabel.id, oLabel.color);
+		_addLabelForSettingGroup(oLabel);
 	}
 	
+	function _addLabelForSettingGroup(oLabel) {
+		htElement.welAttachLables.append(_makeNewSettingList(oLabel));
+		htElement.welDeleteLables.append(_makeNewSettingList(oLabel));
+	}
+
+	function _makeNewSettingList(oLabel) {
+		var welLabelLink = $('<li/>').attr("data-value", oLabel.id).append(
+			$("<a/>").text(oLabel.category + ' - ' +oLabel.name)
+		);
+		return welLabelLink;
+	}
+
 	/**
 	 * getLabels
 	 * 라벨 목록을 서버로부터 수신하여 목록 생성 
@@ -259,6 +277,8 @@ yobi.Label = (function(htOptions){
 		
 		if (welLabel.siblings().size() > 0) {
 			welLabel.remove();
+			// setting menu 의 리스트 에서도 제거
+			$('li[data-value="'+sLabelId+'"]').remove();
 			return;
 		}
 		
@@ -269,6 +289,8 @@ yobi.Label = (function(htOptions){
 		if(htVar.bEditable){
 		    yobi.LabelEditor.removeCategory(sCategory);
 		}
+		// setting menu 의 리스트 에서도 제거
+		$('li[data-value="'+sLabelId+'"]').remove();
 	}
 
 	/**
