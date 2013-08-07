@@ -3,9 +3,24 @@
 @import models.enumeration.ResourceType
 @import utils.AccessControl._
 
+<script src="/assets/javascripts/lib/jquery/jquery.cookie.js"></script>
+<script src="/assets/javascripts/lib/jquery/jquery.scrollTo.js"></script>
+<script type="text/javascript">
+	$(window).load(function(){
+	    if($.cookie("scrollToComment") !== null){
+	        $("#comment-editor").focus();
+	        $.scrollTo("#comment-editor", 0);
+	        $.cookie("scrollToComment", null);
+	    }
+	});
+
+	function scrollToComment() {
+	    $.cookie("scrollToComment", true);
+	}
+</script>
 @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, resourceType)){
 
-    <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
+    <form id="comment-form" action="@action" method="post" enctype="multipart/form-data" onsubmit="scrollToComment();">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
                 <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
