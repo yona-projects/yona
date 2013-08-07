@@ -4,6 +4,8 @@ import models.enumeration.NotificationType;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+import org.joda.time.DateTime;
+import play.Configuration;
 import play.db.ebean.Model;
 import play.i18n.Messages;
 import playRepository.Commit;
@@ -19,6 +21,9 @@ import java.util.regex.Pattern;
 @Entity
 public class NotificationEvent extends Model {
     private static final long serialVersionUID = 1L;
+
+    private static final int NOTIFICATION_DRAFT_TIME_IN_MILLIS = Configuration.root()
+            .getMilliseconds("application.notification.draft-time", 30 * 1000L).intValue();
 
     @Id
     public Long id;
@@ -73,6 +78,11 @@ public class NotificationEvent extends Model {
                 posting.project.name, posting.title, posting.getNumber());
     }
 
+    public String getOldValue() {
+        return oldValue;
+    }
+
+    @Transient
     public static Set<User> getMentionedUsers(String body) {
         Matcher matcher = Pattern.compile("@" + User.LOGIN_ID_PATTERN).matcher(body);
         Set<User> users = new HashSet<>();
@@ -227,6 +237,32 @@ public class NotificationEvent extends Model {
             event.notificationMail = new NotificationMail();
             event.notificationMail.notificationEvent = event;
         }
+
+        Date draftDate = DateTime.now().minusMillis(NOTIFICATION_DRAFT_TIME_IN_MILLIS).toDate();
+
+        NotificationEvent lastEvent = NotificationEvent.find.where()
+                .eq("resourceId", event.resourceId)
+                .eq("resourceType", event.resourceType)
+                .gt("created", draftDate)
+                .orderBy("id desc").setMaxRows(1).findUnique();
+
+        if (lastEvent != null) {
+            if (lastEvent.type.equals(event.type)) {
+                String oldValue = lastEvent.getOldValue();
+
+                if (event.senderId.equals(lastEvent.senderId)) {
+                    lastEvent.delete();
+                }
+
+                if ((event.newValue == null && oldValue == null)
+                        || event.newValue.equals(oldValue)) {
+                    // No need to add this event because the event just cancels the last event
+                    // which has just been deleted.
+                    return;
+                }
+            }
+        }
+
         event.save();
     }
 
