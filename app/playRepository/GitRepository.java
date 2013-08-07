@@ -266,7 +266,11 @@ public class GitRepository implements PlayRepository {
         result.put("type", "file");
         result.put("msg", commit.getShortMessage());
         result.put("author", commit.getAuthorIdent().getName());
-        setAvatar(result, commit.getAuthorIdent().getEmailAddress());
+        String emailAddress = commit.getAuthorIdent().getEmailAddress();
+        User user = User.findByEmail(emailAddress);
+        result.put("avatar", getAvatar(user));
+        result.put("userName", user.name);
+        result.put("userLoginId", user.loginId);
         result.put("createdDate", commitTime);
         result.put("commitMessage", commit.getShortMessage());
         result.put("commiter", commit.getAuthorIdent().getName());
@@ -287,13 +291,11 @@ public class GitRepository implements PlayRepository {
         return result;
     }
 
-    private void setAvatar(ObjectNode objectNode, String emailAddress) {
-        User user = User.findByEmail(emailAddress);
+    private String getAvatar(User user) {
         if(user.isAnonymous() || user.avatarUrl.equals(UserApp.DEFAULT_AVATAR_URL)) {
-            String defaultImageUrl = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
-            objectNode.put("avatar", GravatarUtil.getAvatar(emailAddress, 34, defaultImageUrl));
+            return GravatarUtil.getAvatar(user.email, 34);
         } else {
-            objectNode.put("avatar", user.avatarUrl);
+            return user.avatarUrl;
         }
     }
 
@@ -371,7 +373,11 @@ public class GitRepository implements PlayRepository {
                 ObjectNode data = Json.newObject();
                 data.put("type", modes.get(path));
                 data.put("msg", curr.getShortMessage());
-                setAvatar(data, curr.getAuthorIdent().getEmailAddress());
+                String emailAddress = curr.getAuthorIdent().getEmailAddress();
+                User user = User.findByEmail(emailAddress);
+                data.put("avatar", getAvatar(user));
+                data.put("userName", user.name);
+                data.put("userLoginId", user.loginId);
                 data.put("createdDate", curr.getCommitTime() * 1000l);
                 data.put("author", curr.getAuthorIdent().getName());
                 listData.put(path, data);
@@ -385,6 +391,10 @@ public class GitRepository implements PlayRepository {
 
         result.put("data", listData);
         return result;
+    }
+
+    private void setUserName(ObjectNode data, String emailAddress) {
+        User.findByEmail(emailAddress);
     }
 
     /* (non-Javadoc)

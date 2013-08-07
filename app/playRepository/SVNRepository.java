@@ -5,6 +5,7 @@ import java.util.*;
 
 import javax.servlet.*;
 
+import controllers.UserApp;
 import models.Project;
 import models.User;
 import models.enumeration.ResourceType;
@@ -29,6 +30,7 @@ import controllers.ProjectApp;
 import play.libs.Json;
 
 import utils.FileUtil;
+import utils.GravatarUtil;
 
 
 public class SVNRepository implements PlayRepository {
@@ -82,11 +84,15 @@ public class SVNRepository implements PlayRepository {
                 SVNDirEntry entry = iterator.next( );
 
                 ObjectNode data = Json.newObject();
+                String author = entry.getAuthor();
+                User user = User.findByLoginId(author);
+
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
-                String author = entry.getAuthor();
                 data.put("author", author);
-                data.put("avatar", getAvatar(author));
+                data.put("avatar", getAvatar(user));
+                data.put("userName", user.name);
+                data.put("userLoginId", user.loginId);
                 data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
@@ -103,10 +109,10 @@ public class SVNRepository implements PlayRepository {
         }
     }
 
-    private static String getAvatar(String author) {
-        User user = User.findByLoginId(author);
-        if(user.isAnonymous()) {
-            return "/assets/images/default-avatar-34.png";
+    private static String getAvatar(User user) {
+        if(user.isAnonymous() || user.avatarUrl.equals(UserApp.DEFAULT_AVATAR_URL)) {
+            String defaultImageUrl = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
+            return GravatarUtil.getAvatar(user.email, 34, defaultImageUrl);
         } else {
             return user.avatarUrl;
         }
@@ -135,11 +141,15 @@ public class SVNRepository implements PlayRepository {
                 SVNDirEntry entry = iterator.next( );
 
                 ObjectNode data = Json.newObject();
+                String author = entry.getAuthor();
+                User user = User.findByLoginId(author);
+
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
-                String author = entry.getAuthor();
+                data.put("userName", user.name);
+                data.put("userLoginId", user.loginId);
                 data.put("author", author);
-                data.put("avatar", getAvatar(author));
+                data.put("avatar", getAvatar(user));
                 data.put("createdDate", entry.getDate().getTime());
 
                 listData.put(entry.getName(), data);
@@ -175,12 +185,15 @@ public class SVNRepository implements PlayRepository {
             mimeType = new Tika().detect(bytes, path);
         }
         String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
+        User user = User.findByLoginId(author);
 
         ObjectNode result = Json.newObject();
         result.put("type", "file");
         result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
         result.put("author", author);
-        result.put("avatar", getAvatar(author));
+        result.put("avatar", getAvatar(user));
+        result.put("userName", user.name);
+        result.put("userLoginId", user.loginId);
         result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
         result.put("size", size);
         result.put("isBinary", isBinary);
@@ -324,11 +337,11 @@ public class SVNRepository implements PlayRepository {
      */
     @Override
     public boolean renameTo(String projectName) {
-    
+
         File src = new File(getRepoPrefix() + this.ownerName + "/" + this.projectName);
         File dest = new File(getRepoPrefix() + this.ownerName + "/" + projectName);
         src.setWritable(true);
-        
+
         return src.renameTo(dest);
 
     }

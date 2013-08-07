@@ -87,7 +87,7 @@
                     </div>
                     }
                 }
-                
+
                 <div id="attachments" class="attachments" resourceType="@ResourceType.PULL_REQUEST" resourceId="@pull.id"></div>
             </div>
 
@@ -135,18 +135,20 @@
         </div>
         <div class="board-footer board-actrow">
             @if(pull.isOpen()){
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-                    @if(isSafe){
+                @if(isSafe){
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
                     <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
                     }
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
                     <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
+                    }
                 }
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
                     <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
                 }
             }
             @if(pull.isRejected()){
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                     <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
                 }
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
@@ -204,10 +206,10 @@
         $('span[data-toggle="tooltip"]').tooltip({
             placement : "bottom"
         });
-        
+
         new yobi.FileDownloader({
-            "elTarget": $("#attachments"), 
-            "sAction": "@routes.AttachmentApp.uploadFile" 
+            "elTarget": $("#attachments"),
+            "sAction": "@routes.AttachmentApp.uploadFile"
         });
     });
 </script>
