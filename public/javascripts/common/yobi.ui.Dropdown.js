@@ -53,7 +53,8 @@
 		 * 이벤트 처리
 		 */
 		function _attachEvent(){
-			htElement.waItems.click(_onClickItem);
+			// 동적 list 추가 삭제 처리를 위한 event delegation
+			htElement.welContainer.on('click','.dropdown-menu  > li' , _onClickItem);
 		}
 	
 		/**
@@ -66,6 +67,7 @@
 			_setFormValue(welTarget);		// form value
 	
 			_onChange();
+			
 		}
 		
 		/**

@@ -52,7 +52,7 @@
             <span class="d-label">@Messages("issue.update.attachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu" id="attach-label-list">
         @for(label <- IssueLabel.findByProject(project)) {
             <li data-value="@label.id"><a>@label</a></li>
         }
@@ -64,7 +64,7 @@
             <span class="d-label">@Messages("issue.update.detachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu" id="delete-label-list">
         @for(label <- IssueLabel.findByProject(project)) {
             <li data-value="@label.id"><a>@label</a></li>
         }

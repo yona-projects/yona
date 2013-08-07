@@ -75,11 +75,6 @@
 				$yobi.showAlert(Messages("post.error.emptyTitle"));
 				return false;
 			}
-
-			if(htElement.welInputBody.val() == ""){
-				$yobi.showAlert(Messages("post.error.emptyBody"));
-				return false;
-			}
 			
 			$(window).off("beforeunload", _onBeforeUnload);
 			return true;

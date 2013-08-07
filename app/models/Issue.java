@@ -1,5 +1,7 @@
 package models;
 
+import static com.avaje.ebean.Expr.icontains;
+
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import jxl.Workbook;
@@ -15,6 +17,9 @@ import models.resource.Resource;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
+
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -170,9 +175,10 @@ public class Issue extends AbstractPosting {
      * @param assigneeId
      * @param authorId
      * @param milestoneId
+     * @param query
      * @return
      */
-    public static int countIssuesBy(Long projectId, State state, Long assigneeId, Long authorId, Long milestoneId) {
+    public static int countIssuesBy(Long projectId, State state, Long assigneeId, Long authorId, Long milestoneId, String query) {
         ExpressionList<Issue> exl = finder.where();
         exl = exl.eq("project.id", projectId);
 
@@ -187,6 +193,9 @@ public class Issue extends AbstractPosting {
         }
         if (milestoneId != null && milestoneId >= 0){
             exl = exl.eq("milestone.id", milestoneId);
+        }
+        if (!StringUtils.isEmpty(query)) {
+            exl = exl.or(icontains("title", query), icontains("body", query));
         }
 
         return exl.findRowCount();
