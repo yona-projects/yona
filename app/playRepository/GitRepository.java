@@ -331,47 +331,58 @@ public class GitRepository implements PlayRepository {
             modes.put(treeWalk.getNameString(), treeWalk.isSubtree() ? "folder" : "file");
         }
 
-        Iterator<RevCommit> iterator = logCommand.call().iterator();
+        // For each of every blobs and trees under the given basePath,
+        // get metadata including the log of the "interested" commit.
+        // We are interested only in the latest commits made change for anyone of `paths`.
+        Iterator<RevCommit> commitIter = logCommand.call().iterator();
+        while (commitIter.hasNext()) {
+            RevCommit curr = commitIter.next();
 
-        while (iterator.hasNext()) {
-            RevCommit curr = iterator.next();
-
-            TreeWalk tw;
+            // We want to find the latest commit for each of `paths`. We already know they have
+            // same `basePath`. So get every blobs and trees match one of `paths`, under the
+            // `basePath`, and put them into `objects`.
+            TreeWalk twForCurrent;
             if (basePath.isEmpty()) {
-                tw = new TreeWalk(repository);
-                tw.addTree(curr.getTree());
+                twForCurrent = new TreeWalk(repository);
+                twForCurrent.addTree(curr.getTree());
             } else {
-                tw = TreeWalk.forPath(repository, basePath, curr.getTree());
-                tw.enterSubtree();
+                twForCurrent = TreeWalk.forPath(repository, basePath, curr.getTree());
+                twForCurrent.enterSubtree();
             }
             Map<String, ObjectId> objects = new HashMap<>();
-            while(tw.next()) {
-                if (paths.contains(tw.getNameString())) {
-                    objects.put(tw.getNameString(), tw.getObjectId(0));
+            while(twForCurrent.next()) {
+                if (paths.contains(twForCurrent.getNameString())) {
+                    objects.put(twForCurrent.getNameString(), twForCurrent.getObjectId(0));
                 }
             }
 
-            // Remove objects not changed.
+            // Choose only "interest" objects from the blobs and trees. We are interested in
+            // blobs and trees which has change between the last commit and the current commit.
             for(RevCommit parent : curr.getParents()) {
-                TreeWalk tw2;
+                TreeWalk twForParent;
                 if (basePath.isEmpty()) {
-                    tw2 = new TreeWalk(repository);
-                    tw2.addTree(parent.getTree());
+                    twForParent = new TreeWalk(repository);
+                    twForParent.addTree(parent.getTree());
                 } else {
-                    tw2 = TreeWalk.forPath(repository, basePath, parent.getTree());
-                    if (tw2 == null) {
+                    twForParent = TreeWalk.forPath(repository, basePath, parent.getTree());
+                    if (twForParent == null) {
                         continue;
                     }
-                    tw2.enterSubtree();
+                    twForParent.enterSubtree();
                 }
 
-                while(tw2.next()) {
-                    if (tw2.getObjectId(0).equals(objects.get(tw2.getNameString()))) {
-                        objects.remove(tw2.getNameString());
+                // Remove every blob and tree from `objects` if any of parent commits have a
+                // object whose path and id is identical with the blob or the tree. It means the
+                // blob or tree is not changed so we are not interested in it.
+                while(twForParent.next()) {
+                    if (twForParent.getObjectId(0).equals(objects.get(twForParent.getNameString()))) {
+                        objects.remove(twForParent.getNameString());
                     }
                 }
             }
 
+            // Now, every objects in `objects` are interested. Get metadata from the objects, put
+            // them into listData and remove the path from paths.
             for (String path : objects.keySet()) {
                 ObjectNode data = Json.newObject();
                 data.put("type", modes.get(path));
@@ -387,6 +398,8 @@ public class GitRepository implements PlayRepository {
                 paths.remove(path);
             }
 
+            // If paths is empty, it means we have found every interested objects and no need to
+            // continue.
             if (paths.isEmpty()) {
                 break;
             }
