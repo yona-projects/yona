@@ -152,6 +152,8 @@ GET     /:ownerName/:project/pullRequest/:id/accept     controllers.PullRequestA
 GET     /:ownerName/:project/pullRequest/:id/reject     controllers.PullRequestApp.reject(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/cancel     controllers.PullRequestApp.cancel(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/open       controllers.PullRequestApp.open(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestApp.editPullRequestForm(ownerName, project, id: Long)
+POST    /:ownerName/:project/pullRequest/:id/edit       controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
 
 # SVN
 HEAD    /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)
