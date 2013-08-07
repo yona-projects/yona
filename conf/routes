@@ -86,6 +86,9 @@ GET    /:user/:project/labels                           controllers.ProjectApp.l
 POST   /:user/:project/labels                           controllers.ProjectApp.attachLabel(user, project)
 POST   /:user/:project/labels/:id                       controllers.ProjectApp.detachLabel(user, project, id: Long)
 
+# Notifications
+GET    /notifications                                   controllers.NotificationApp.notifications(from: Integer, limit: Integer)
+
 # Projects
 GET     /projectform                                    controllers.ProjectApp.newProjectForm()
 POST    /projects                                       controllers.ProjectApp.newProject()
