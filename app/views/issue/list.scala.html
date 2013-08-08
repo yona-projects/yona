@@ -144,7 +144,7 @@
             <ul class="nav nav-tabs nm">
             @for(state <- Array(State.OPEN, State.CLOSED)) {
                 <li @if(param.state == state.state) { class="active" }>
-                    <a href="@getTabLinkByState(state)">
+                    <a href="@getTabLinkByState(state)&filter=@param.filter">
                         @Messages("issue.state." + state.name.toLowerCase())
                         <span class="num-badge">@Issue.countIssuesBy(project.id, state, param.assigneeId, User.findByLoginId(param.authorLoginId).id, param.milestoneId, param.filter)</span>
                     </a>
