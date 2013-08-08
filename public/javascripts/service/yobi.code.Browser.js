@@ -546,7 +546,7 @@
             htData.date = (typeof htData.createdDate !=='undefined') ? (moment(new Date(htData.createdDate)).fromNow()) : '';
             //htData.fileClass = (htData.name ==='..') ? 'filename updir' : 'filename';
             htData.fileClass = (htData.name ==='..') ? 'filename updir' : (htData.type === "folder" ? 'filename dynatree-ico-cf' : 'filename dynatree-ico-c');
-            htAuthLink = (htData.userLoginId) ? '/'+userLoginId : 'javascript:void(0); return false;';
+            htAuthLink = (htData.userLoginId ) ? '/'+ htData.userLoginId : 'javascript:void(0); return false;';
             htData.avatar = (typeof htData.avatar !== 'undefined') ? '<a href="'+ htAuthLink + '" class="avatar-wrap smaller"><img src="' + htData.avatar + '"></a>' : '';
             htData.msg = htData.msg || '';
             
