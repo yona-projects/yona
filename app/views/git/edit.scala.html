@@ -1,0 +1,139 @@
+@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String], pull: PullRequest)
+
+@import utils.TemplateHelper._
+@implicitField = @{ helper.FieldConstructor(simpleForm) }
+
+@branchItemType(itemType:String) = @{
+    if(itemType == "heads"){
+        "branch"
+    } else if(itemType == "tags") {
+        "tag"
+    } else {
+        itemType
+    }
+}
+
+@makeBranchItem(branch:String, selectedBranch:String) = {
+    @defining(branch.split('/')){ names =>
+        @if(names(0).equals("refs")){
+            <li data-value="@branch" @if(branch.equals(selectedBranch)){data-selected="true" class="active"}>
+                <a href="#">
+                    <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
+                    @branch.replace("refs/" + names(1) + "/", "")
+                </a>
+            </li>
+        } else {
+            <li data-value="@branch" @if(branch.equals(selectedBranch)){data-selected="true" class="active"}><a href="#">@branch</a></li>
+        }
+    }
+}
+
+@main(title, project, utils.MenuType.PULL_REQUEST) {
+<div class="page">
+    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+
+    <div class="content-wrap frm-wrap">
+        @helper.form(action=routes.PullRequestApp.editPullRequest(project.owner, project.name, pull.id), 'enctype -> "multipart/form-data", 'class->"nm"){
+            <legend>
+                @Messages(title)
+                <span class="pull-right">
+                    <button id="helpBtn" class="nbtn small gray">
+                        <i class="icon-question-sign icon-large"></i> @Messages("title.help")
+                    </button>
+                </span>
+            </legend>
+            <div class="well" id="helpMessage" style="margin-bottom: 10px;">
+                <div class="row-fluid">
+                    <div class="pull-left">
+                        <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
+                    </div>
+                    <div class="pull-left help-messages">
+                        <p class="lead">@Messages("pullRequest.help.message.1")</p>
+                        <p>@Messages("pullRequest.help.message.2")</p>
+                        <p>@Messages("pullRequest.help.message.3")</p>
+                    </div>
+                </div>
+            </div>
+            <div class="pull-request-wrap">
+	            <div class="option request-from">
+	                <div class="option-label">@Messages("pullRequest.from")
+                        <code>
+                            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+                            <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a> :
+                        </code>
+                    </div>
+	                <div class="option-desc">
+	                    <div class="btn-group branches" data-name="fromBranch">
+	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
+	                            <span class="d-caret"><span class="caret"></span></span>
+	                        </button>
+	                        <ul class="dropdown-menu">
+	                            @for(branch <- fromBranches) {
+	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
+	                                    @makeBranchItem(branch, form("fromBranch").value())
+	                                }
+	                            }
+	                        </ul>
+	                    </div>
+	                </div>
+	            </div>
+
+                <div class="arrow">
+	               <i class="icon-long-arrow-right"></i>
+                </div>
+
+	            <div class="option request-to">
+	                <div class="option-label">@Messages("pullRequest.to"):
+                        <code>@project.originalProject.owner / @project.originalProject.name</code>
+                    </div>
+	                <div class="option-desc">
+	                    <div class="btn-group branches" data-name="toBranch">
+	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
+	                            <span class="d-caret"><span class="caret"></span></span>
+	                        </button>
+	                        <ul class="dropdown-menu">
+	                            @for(branch <- toBranches) {
+	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
+	                                    @makeBranchItem(branch, form("toBranch").value())
+	                                }
+	                            }
+	                        </ul>
+	                    </div>
+	                </div>
+	            </div>
+            </div>
+
+            @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")
+            @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+
+            @fileUploader(ResourceType.PULL_REQUEST, null)
+
+            <div class="actions">
+                <button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
+                <a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+            </div>
+        }
+    </div>
+</div>
+
+@views.html.markdown(project)
+
+<script type="text/javascript">
+	$(document).ready(function() {
+        $('#helpMessage').hide();
+        $('#helpBtn').click(function(e){
+            e.preventDefault();
+            $('#helpMessage').toggle();
+        });
+
+        yobi.FileUploader.init({
+            "elContainer" : $("#upload"),
+            "elTextarea"  : $("#body"),
+            "sTplFileItem": $('#tplAttachedFile').text(),
+            "sAction": "@routes.AttachmentApp.uploadFile"
+        });
+	});
+	</script>
+}

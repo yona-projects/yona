@@ -143,17 +143,17 @@
                     <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
                     }
                 }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
-                }
             }
             @if(pull.isRejected()){
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                     <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
                 }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
-                }
+            }
+            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+            <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+            }
+            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+            <a href="@routes.PullRequestApp.editPullRequestForm(pull.fromProject.owner, pull.fromProject.name, pull.id)" class="nbtn gray medium">@Messages("button.edit")</a>
             }
         </div>
 
