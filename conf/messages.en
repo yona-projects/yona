@@ -392,6 +392,7 @@ user.locked = User account is locked
 user.isLocked = is locked?
 user.signup.requested = Sign-up for yobi is requested. Site admin will review your request. Thanks
 user.avatar.onlyImage = Only an image is allowed.
+user.avatar.uploadError = Upload failed. Ask to Site admin
 
 #Role
 role.manager = Manager
