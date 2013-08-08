@@ -96,7 +96,7 @@
 		@** labels **@
 		<p class="labels-wrap pull-left">
 		@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-			<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button>
+			<a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 		}
 		</p>
 
