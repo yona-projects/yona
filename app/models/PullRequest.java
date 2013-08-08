@@ -204,4 +204,26 @@ public class PullRequest extends Model {
         };
     }
 
+    /**
+     * 새로운 코드 요청으로 기존 코드 요청을 수정한다.
+     *
+     * @param newPullRequest
+     */
+    public void updateWith(PullRequest newPullRequest) {
+        this.toBranch = newPullRequest.toBranch;
+        this.fromBranch = newPullRequest.fromBranch;
+        this.title = newPullRequest.title;
+        this.body = newPullRequest.body;
+        update();
+    }
+
+    /**
+     * {@code pullRequest}와 동일한 브랜치로 코드를 주고받는지 확인한다.
+     *
+     * @param pullRequest
+     * @return
+     */
+    public boolean hasSameBranchesWith(PullRequest pullRequest) {
+        return this.toBranch.equals(pullRequest.toBranch) && this.fromBranch.equals(pullRequest.fromBranch);
+    }
 }

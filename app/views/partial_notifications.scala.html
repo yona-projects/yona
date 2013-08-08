@@ -1,0 +1,57 @@
+@(from: Integer, limit: Integer)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@notifications(from: Integer, to: Integer) = @{
+    UserApp.currentUser.notificationEvents match {
+        case (events) if events.size < to => {
+            events.subList(from, events.size)
+        }
+        case (events) => {
+            events.subList(from, to)
+        }
+    }
+}
+
+@for(noti <- notifications(from, from + limit)){
+<li class="activity-stream">
+    @defining(User.find.byId(noti.senderId)){ user =>
+    <div class="activity-desc">
+        <div class="user-thumb-wrap">
+            <div class="avatar-wrap mlarge">
+                @if(user != null){
+                    <img src="@user.avatarUrl" width="42" height="42">
+                } else {
+                    <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
+                }
+            </div>
+        </div>
+        <div class="header-text">
+            <a href="@noti.urlToView" class="title">@noti.title</a>
+            <div class="pull-right">
+                @if(user != null) {
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@@@user.loginId</a>
+                }
+                <span class="date">@agoString(JodaDateUtil.ago(noti.created))</span>
+            </div>
+        </div>
+        <div class="desc"><a href="@noti.urlToView">@noti.getMessage</a></div>
+    </div>
+    }
+</li>
+}
+
+@if(UserApp.currentUser.notificationEvents.size > from + limit){
+<li><a href="javascript: void(0);" id="notification-more" class="btn">More</a></li>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#notification-more").click(function() {
+            $("#notification-more").remove();
+            $.get("@routes.NotificationApp.notifications(from + limit, limit)", function(data) {
+                $('.activity-streams').append(data);
+            });
+        });
+    });
+</script>
+}

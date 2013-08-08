@@ -28,6 +28,7 @@ title.help = 도움말
 title.search = 검색
 title.resetPassword = 비밀번호 재설정
 title.newPullRequest = 코드 보내기
+title.editPullRequest = 코드 보내기 수정
 title.keymap = 단축키 안내
 title.boardList = 게시판
 title.boardDetail = 글 읽기
@@ -227,7 +228,7 @@ issue.update.detachLabel = 라벨 제거
 issue.list.all = 전체 이슈
 issue.list.assignedToMe = 나에게 할당된 이슈
 issue.list.authoredByMe = 내가 작성한 이슈
-issue.assignToMe = 나에게 할당하기 
+issue.assignToMe = 나에게 할당하기
 
 #Post
 post.new = 새글
@@ -568,6 +569,7 @@ pullRequest.help.message.1 = 원본 프로젝트에 코드를 기여하는 방�
 pullRequest.help.message.2 = 본인이 보낼 코드가 들어있는 브랜치와 보낸 코드를 받아줄 원본 프로젝트의 브랜치를 지정하고 어떤 코드인지 설명해 주세요.
 pullRequest.help.message.3 = 원본 프로젝트의 멤버가 해당 코드를 확인하고 코드를 받거나 보류할 수 있습니다.
 pullRequest.listEmpty = 아직 받은 코드가 없습니다
+pullRequest.duplicated = 코드를 주고받는 브랜치가 현재 열려있는 코드 요청과 같습니다. 다른 브랜치를 선택하세요.
 forks = 복사본
 merge.help.1 = 보낸 코드의 커밋 내역과 설명을 확인할 수 있습니다.
 merge.help.2 = 프로젝트의 멤버가 수락 버튼을 클릭하면 해당 코드를 원본 프로젝트에 병합(merge)합니다.

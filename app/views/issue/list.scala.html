@@ -94,7 +94,7 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li data-value=""><a>@Messages("order.all")</a></li>
-                                        <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
+                                        <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("noAssignee")</a></li>
                                         @for(assignee <- project.assignees) {
                                         <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}><a>@assignee.user.name (@assignee.user.loginId)</a></li>
                                         }
@@ -112,7 +112,7 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li data-value=""><a>@Messages("milestone.state.all")</a></li>
-                                        <li data-value="0"><a>@Messages("noMilestone")</a></li>
+                                        <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("noMilestone")</a></li>
                                         @for(milestone <- Milestone.findByProjectId(project.id)) {
                                         <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
                                         }

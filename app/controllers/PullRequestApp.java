@@ -1,6 +1,7 @@
 package controllers;
 
 import models.*;
+import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.enumeration.State;
@@ -9,6 +10,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import play.data.Form;
+import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -230,7 +232,7 @@ public class PullRequestApp extends Controller {
         }
 
         pullRequest.save();
-        
+
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id));
@@ -389,7 +391,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.ACCEPT);
         if(result != null) {
             return result;
         }
@@ -419,7 +421,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.REJECT);
         if(result != null) {
             return result;
         }
@@ -445,7 +447,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.REOPEN);
         if(result != null) {
             return result;
         }
@@ -470,7 +472,7 @@ public class PullRequestApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         User user = UserApp.currentUser();
 
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.DELETE);
         if(result != null) {
             return result;
         }
@@ -486,7 +488,70 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequests(userName, projectName));
     }
 
+    /**
+     * 코드 요청 수정 폼으로 이동한다.
+     *
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     * @throws IOException
+     * @throws ServletException
+     */
+    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestId) throws IOException, ServletException {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project project = pullRequest.fromProject;
+        User user = UserApp.currentUser();
 
+        if(!AccessControl.isAllowed(user, pullRequest.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+        }
+
+        Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
+        List<String> fromBranches = RepositoryService.getRepository(pullRequest.fromProject).getBranches();
+        List<String> toBranches = RepositoryService.getRepository(pullRequest.toProject).getBranches();
+
+        return ok(edit.render("title.editPullRequest", editForm, project, fromBranches, toBranches, pullRequest));
+    }
+
+    /**
+     * 코드 요청을 수정한다.
+     *
+     * fromBranch와 toBranch를 변경했다면 기존에 동일한 브랜치로 코드를 주고 받는 열려있는 코드 요청이 있을 때 중복 에러를 던진다.
+     * 중복 에러가 발생하면 flash로 에러 메시지를 보여주고 수정 폼으로 이동한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
+    public static Result editPullRequest(String userName, String projectName, Long pullRequestId) {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project toProject = pullRequest.toProject;
+        Project fromProject = pullRequest.fromProject;
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), pullRequest.toProject));
+        }
+
+        Form<PullRequest> pullRequestForm = new Form<>(PullRequest.class).bindFromRequest();
+        PullRequest updatedPullRequest = pullRequestForm.get();
+        updatedPullRequest.toProject = toProject;
+        updatedPullRequest.fromProject = fromProject;
+
+        if(!updatedPullRequest.hasSameBranchesWith(pullRequest)) {
+            PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(updatedPullRequest);
+            if(sentRequest != null) {
+                flash(Constants.WARNING, "pullRequest.duplicated");
+                return redirect(routes.PullRequestApp.editPullRequestForm(fromProject.owner, fromProject.name, pullRequestId));
+            }
+        }
+
+        pullRequest.updateWith(updatedPullRequest);
+
+        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+    }
 
 
     /**
@@ -580,7 +645,7 @@ public class PullRequestApp extends Controller {
      * @return
      */
     private static Result validatePullRequestOperation(Project project, PullRequest pullRequest,
-                                                       String userName, String projectName, long pullRequestId) {
+                                                       String userName, String projectName, long pullRequestId, Operation operation) {
         User user = UserApp.currentUser();
         if(user.isAnonymous()) {
             flash(Constants.WARNING, "user.login.alert");
@@ -588,12 +653,16 @@ public class PullRequestApp extends Controller {
         }
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        if(result != null) {
+            return result;
+        }
 
-        if(isGuest(project, user)) {
-            result = forbidden(ErrorViews.Forbidden.render("Guest is not allowed this request", project));
+        if(!AccessControl.isAllowed(user, pullRequest.asResource(), operation)) {
+            result = forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
         }
 
         return result;
     }
+
 
 }

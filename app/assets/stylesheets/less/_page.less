@@ -919,7 +919,7 @@
         form  { margin:0 auto; /*text-align:center;*/ }
         .input-medium { width:94%; }
 
-        .actrow { position:absolute; right:0px; top:10px; }
+        .actrow { position:absolute; right:0px; top:0px; }
         .text {
             background-color: #fff;
             border: 1px solid #ccc;
@@ -1963,6 +1963,13 @@
     }
 }
 
+.board-wrap {
+    display:block;
+    overflow:auto;
+    padding-bottom:15px;
+    border-bottom:1px solid #ececec;
+}
+
 .board-header{
     padding: 15px 20px;
     border-top: 1px solid @gray-d4;
@@ -2365,6 +2372,14 @@ div.markdown-preview {
         .lb { display:inline-block; }
     }
 
+    .number-id {
+        padding:10px 5px;
+
+        .pullrequest-id {
+            color:@secondary; font-size:13px;
+        }
+    }
+    
     .title-link { 
         display:inline-block; 
         margin:5px 0; margin-right:5px; 

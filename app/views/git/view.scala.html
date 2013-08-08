@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="board-body">
-                    <div class="content" markdown="true">@pull.body</div>
+                    <div class="content markdown-wrap" markdown="true">@pull.body</div>
                 </div>
 
                 @if(pull.isOpen()){
@@ -87,7 +87,7 @@
                     </div>
                     }
                 }
-                
+
                 <div id="attachments" class="attachments" resourceType="@ResourceType.PULL_REQUEST" resourceId="@pull.id"></div>
             </div>
 
@@ -135,23 +135,25 @@
         </div>
         <div class="board-footer board-actrow">
             @if(pull.isOpen()){
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-                    @if(isSafe){
+                @if(isSafe){
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
                     <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
                     }
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
                     <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
-                }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                    }
                 }
             }
             @if(pull.isRejected()){
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                     <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
                 }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
-                }
+            }
+            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+            <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+            }
+            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+            <a href="@routes.PullRequestApp.editPullRequestForm(pull.fromProject.owner, pull.fromProject.name, pull.id)" class="nbtn gray medium">@Messages("button.edit")</a>
             }
         </div>
 
@@ -168,7 +170,7 @@
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                         <a class="pull-right close" href="#">&times;</a>
                         }
-                        <div class="comment-body" markdown="true">@comment.contents</div>
+                        <div class="comment-body markdown-wrap" markdown="true">@comment.contents</div>
                         <p class="commenter">
                             <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                             <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
@@ -204,10 +206,10 @@
         $('span[data-toggle="tooltip"]').tooltip({
             placement : "bottom"
         });
-        
+
         new yobi.FileDownloader({
-            "elTarget": $("#attachments"), 
-            "sAction": "@routes.AttachmentApp.uploadFile" 
+            "elTarget": $("#attachments"),
+            "sAction": "@routes.AttachmentApp.uploadFile"
         });
     });
 </script>

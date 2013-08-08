@@ -247,12 +247,19 @@ yobi.Label = (function(htOptions){
 	 * @param {Object} oLabel 
 	 */
 	function _setLabelColor(oLabel){
-		var sCSSTarget = '.labels .issue-label.active[data-labelId="' + oLabel.id + '"]';
-		document.styleSheets[0].addRule(sCSSTarget, 'background-color: ' + oLabel.color);
-		document.styleSheets[0].addRule(sCSSTarget, 'color: ' + $yobi.getContrastColor(oLabel.color));
-		
-		sCSSTarget = '.labels .issue-label[data-labelId="' + oLabel.id + '"]';
-		document.styleSheets[0].addRule(sCSSTarget, 'border-left: 3px solid ' + oLabel.color);
+		var sDefualtCssTarget = '.labels .issue-label[data-labelId="' + oLabel.id + '"]',
+				sActiceCSSTarget = '.labels .issue-label.active[data-labelId="' + oLabel.id + '"]';
+				
+		var sDefaultCss = 'border-left: 3px solid ' + oLabel.color;
+		var sActiveCss = 'background-color: ' + oLabel.color + '; color:'+$yobi.getContrastColor(oLabel.color);
+
+		if(document.styleSheets[0].addRule) {
+			document.styleSheets[0].addRule(sActiceCSSTarget,sActiveCss);
+			document.styleSheets[0].addRule(sDefualtCssTarget,sDefaultCss);
+		} else {
+			document.styleSheets[0].insertRule(sActiceCSSTarget+'{'+ sActiveCss +'}',0);
+			document.styleSheets[0].insertRule(sDefualtCssTarget+'{'+ sDefaultCss +'}',0);
+		}
 	}
 
 	/**

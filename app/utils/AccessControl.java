@@ -170,6 +170,14 @@ public class AccessControl {
                 return ProjectUser.isMember(user.id, project.id) ||
                         (project.isPublic && isEditableAsAuthor(user, project, resource));
             }
+        case ACCEPT:
+        case REJECT:
+        case REOPEN:
+            if (ProjectUser.isMember(user.id, project.id)) {
+                return true;
+            } else {
+                return false;
+            }
         default:
             // undefined
             return false;
@@ -220,6 +228,7 @@ public class AccessControl {
         case NONISSUE_COMMENT:
         case BOARD_POST:
         case CODE_COMMENT:
+        case PULL_REQUEST:
             return resource.getAuthorId().equals(user.id);
         default:
             return false;

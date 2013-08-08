@@ -72,12 +72,20 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (assigneeId != null) {
-                el.eq("assignee.user.id", assigneeId);
-                el.eq("assignee.project.id", project.id);
+                if (assigneeId == User.anonymous.id) {
+                    el.isNull("assignee");
+                } else {
+                    el.eq("assignee.user.id", assigneeId);
+                    el.eq("assignee.project.id", project.id);
+                }
             }
 
             if (milestoneId != null) {
-                el.eq("milestone.id", milestoneId);
+                if (milestoneId == Milestone.NULL_MILESTONE_ID) {
+                    el.isNull("milestone");
+                } else {
+                    el.eq("milestone.id", milestoneId);
+                }
             }
 
             if (labelIds != null) {
