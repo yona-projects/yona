@@ -137,7 +137,7 @@ public class AbstractPostingApp extends Controller {
 
         addNotificationEventFromNewComment(comment, toView);
 
-        return redirect(toView);
+        return redirect(toView + "#comment-" + comment.id);
     }
 
     private static void addNotificationEventFromNewComment(Comment comment, Call toView) {
