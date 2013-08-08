@@ -975,6 +975,146 @@ public class GitRepository implements PlayRepository {
     }
 
     /**
+     * {@code pullRequest}의 fromBranch를 삭제할 수 있는지 확인한다.
+     *
+     * 삭제하려는 fromBranch가 브랜치 목록에 있는지 확인하고,
+     * 브랜치 목록에 있을 때 fromBranch의 HEAD가 toProject에 있는지 확인한다.
+     *
+     * 브랜치 목록에 있으면서 toProject에 fromBranch의 HEAD가 있을 경우에만 fromBranch를 안전하게 삭제할 수 있다.
+     *
+     * 브랜치 목록에 없을 때는 이미 삭제 됐거나 현재 위치한 브랜치(master)에 있을 수 있어서 fromBranch를 삭제할 수 없거나,
+     * fromBranch에 toProject로 보내지 않은 새로운 커밋이 있어서 fromBranch를 삭제할 수 없다.
+     *
+     * @param pullRequest
+     * @return
+     */
+    public static boolean canDeleteFromBranch(PullRequest pullRequest) {
+        List<Ref> refs = null;
+        Repository fromRepo = null; // repository that sent the pull request
+        String currentBranch = null;
+        try {
+            fromRepo = buildGitRepository(pullRequest.fromProject);
+            currentBranch = fromRepo.getFullBranch();
+            refs = new Git(fromRepo).branchList().call();
+
+            for(Ref branchRef : refs) {
+                String branchName = branchRef.getName();
+                if(branchName.equals(pullRequest.fromBranch) && !branchName.equals(currentBranch)) {
+                    RevWalk revWalk = new RevWalk(fromRepo);
+                    RevCommit commit = revWalk.parseCommit(fromRepo.resolve(branchName));
+                    String commitName = commit.name(); // fromBranch's head commit name
+                    revWalk.release();
+
+                    // check whether the target repository has the commit witch is the fromBranch's head commit.
+                    Repository toRepo = buildGitRepository(pullRequest.toProject);
+                    ObjectId toBranch = toRepo.resolve(commitName);
+                    if(toBranch != null) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(fromRepo != null) {
+                fromRepo.close();
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * {@code pullRequest}의 fromBranch를 삭제한다.
+     *
+     * @param pullRequest
+     * @return {@code fromBranch}의 HEAD를 반환한다.
+     * @see PullRequest#lastCommitId;
+     */
+    public static String deleteFromBranch(PullRequest pullRequest) {
+        if(!canDeleteFromBranch(pullRequest)) {
+            return null;
+        }
+
+        RevWalk revWalk = null;
+        String lastCommitId;
+        Repository repo = null;
+        try {
+            repo = buildGitRepository(pullRequest.fromProject);
+            ObjectId branch = repo.resolve(pullRequest.fromBranch);
+            revWalk = new RevWalk(repo);
+            RevCommit commit = revWalk.parseCommit(branch);
+            lastCommitId = commit.getName();
+            deleteBranch(repo, pullRequest.fromBranch);
+            return lastCommitId;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(revWalk != null) {
+                revWalk.release();
+            }
+            if(repo != null) {
+                repo.close();
+            }
+        }
+    }
+
+    /**
+     * {@code pullRequest}의 fromBranch를 복구한다.
+     *
+     * @param pullRequest
+     */
+    public static void restoreBranch(PullRequest pullRequest) {
+        if(!canRestoreBranch(pullRequest)) {
+            return;
+        }
+
+        Repository repo = null;
+        try {
+            repo = buildGitRepository(pullRequest.fromProject);
+            new Git(repo).branchCreate()
+                    .setName(pullRequest.fromBranch.replaceAll("refs/heads/", ""))
+                    .setStartPoint(pullRequest.lastCommitId)
+                    .call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(repo != null) {
+                repo.close();
+            }
+        }
+    }
+
+    /**
+     * {@code pullRequest}의 fromBranch를 복구할 수 있는지 확인한다.
+     *
+     * when: 완료된 PullRequest 조회 화면에서 브랜치를 삭제 했을 때 해당 브랜치를 복구할 수 있는지 확인한다.
+     *
+     * {@link PullRequest#lastCommitId}가 저장되어 있어야 하며, fromBranch가 없어야 복구할 수 있다.
+     *
+     * @param pullRequest
+     * @return
+     */
+    public static boolean canRestoreBranch(PullRequest pullRequest) {
+        Repository repo = null;
+        try {
+            repo = buildGitRepository(pullRequest.fromProject);
+            ObjectId resolve = repo.resolve(pullRequest.fromBranch);
+            if(resolve == null && pullRequest.lastCommitId != null) {
+                return true;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(repo != null) {
+                repo.close();
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Clone과 Fetch 이후 작업에 필요한 정보를 담을 객체로 사용한다.
      */
     public static class CloneAndFetch {

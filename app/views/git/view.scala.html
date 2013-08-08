@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment])
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -146,19 +146,37 @@
                     <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
                     }
                 }
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                }
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.fromProject.owner, pull.fromProject.name, pull.id)" class="nbtn gray medium">@Messages("button.edit")</a>
+                }
             }
+
             @if(pull.isRejected()){
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                     <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
                 }
-            }
-            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-            <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
-            }
-            @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-            <a href="@routes.PullRequestApp.editPullRequestForm(pull.fromProject.owner, pull.fromProject.name, pull.id)" class="nbtn gray medium">@Messages("button.edit")</a>
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+                }
             }
         </div>
+        @if(pull.isClosed()) {
+        <div class="alert alert-info">
+            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
+            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
+            @if(canDeleteBranch) {
+                <code>@pull.fromBranch</code> @Messages("delete.frombranch.message")
+                <a class="nbtn black medium pull-right" href="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.id)">@Messages("delete.branch")</a>
+            }
+            @if(canRestoreBranch) {
+                <code>@pull.fromBranch</code> @Messages("restore.frombranch.message")
+                <a class="nbtn orange medium pull-right" href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)">@Messages("restore.branch")</a>
+            }
+        </div>
+        }
 
         <div class="board-comment-wrap">
             <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@comments.size</strong></div>

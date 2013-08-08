@@ -157,6 +157,8 @@ GET     /:ownerName/:project/pullRequest/:id/cancel     controllers.PullRequestA
 GET     /:ownerName/:project/pullRequest/:id/open       controllers.PullRequestApp.open(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestApp.editPullRequestForm(ownerName, project, id: Long)
 POST    /:ownerName/:project/pullRequest/:id/edit       controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/restorefrombranch   controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
 
 # SVN
 HEAD    /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)
