@@ -73,8 +73,34 @@
                         </div>
                         }
                     </div>
+                    
                 </div>
+                
+                <div class="btn-group dbtn-group">
+                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium orange last">
+                        <i class="icon-code-fork icon-large"></i>
+                        @Messages("fork")
+                    </a>
 
+                    <button class="btn dropdown-toggle small pl" data-toggle="dropdown">
+                        <span class="d-label">@project.forkingProjects.size()</span>
+                        <span class="d-caret"><span class="caret"></span></span>
+                    </button>
+
+                    <div class="dropdown-menu pull-right">
+                        <ul>
+                            <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
+                            @for(fork <- project.forkingProjects) {
+                                <li>
+                                    <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
+                                        <span class="gray">@fork.owner / </span><span class="bold">@fork.name</span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                
                 @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
                 <div class="btn-group dbtn-group">
                     @if(User.enrolled(project)){

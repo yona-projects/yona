@@ -3,9 +3,9 @@
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main(title, project, utils.MenuType.PULL_REQUEST) {
+@main(title, project.originalProject, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @prjmenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
     <div class="content-wrap frm-wrap">
         <legend>
             @Messages("forking", project.originalProject.owner, project.originalProject.name, project.owner, project.name)
