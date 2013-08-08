@@ -37,6 +37,9 @@
 			htVar.sAction = htOptions.sAction;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
+            
+            htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
+            htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welMilestone});
 		}
 		
 		/**
@@ -49,6 +52,10 @@
 			htElement.welAttachments = $(".attachments");
 			htElement.welLabels = $('.issue-label');
             htElement.welBtnWatch = $('#watch-button');
+            
+            htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
+            htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
+            
 		}
 
         /**
@@ -67,8 +74,15 @@
                     }
                 });
             });
+            
+            
+            htVar.oMilestone.onChange(_onChangeUpdateField);
+            htVar.oAssignee.onChange(_onChangeUpdateField);
         }
-
+        
+        function _onChangeUpdateField() {
+            htElement.welIssueUpdateForm.submit();
+        }
 		/**
 		 * initialize fileUploader
 		 */
