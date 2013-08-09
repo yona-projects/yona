@@ -16,103 +16,200 @@
 
         /**
          * initialize
+         * 
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
             _initElement();
-            _initVar(htOptions);
-            _initFormValidator();
             _attachEvent();
+
+            _initFormValidator();
         }
 
         /**
          * 엘리먼트 변수 초기화
          * initialize elements
-         * @private
          */
         function _initElement(){
-            htElement.welInputOldPassword  = $('#oldPassword');
-            htElement.welInputPassword  = $('#password');
-            htElement.welInputRetypedPassword = $('#retypedPassword');
-
+            // 기본
             htElement.welFormBasic = $("#frmBasic");
-            htElement.welFormPswd = $("#frmPassword");
 
+            // 아바타
+            htElement.welFormAvatar = $("#frmAvatar");
             htElement.welAvatarWrap = $("#avatarWrap");
             htElement.welAvatarImage = htElement.welAvatarWrap.find("img");
             htElement.welAvatarProgress = htElement.welAvatarWrap.find(".progress");
-            htElement.welAvatarFile = $("#avatarFile");
-            htElement.welAvatarUploaded = $("#avatarUploaded");
-        }
-
-        /**
-         * 변수 초기화
-         * initialize variables
-         * @private
-         */
-        function _initVar(htOptions){
-            htVar.sURLUpload = htOptions.sURLUpload;
-            htVar.sURLFiles = htOptions.sURLFiles;
             htVar.nProgressHeight = htElement.welAvatarWrap.height();
-            htVar.htUploadOpts = {
-                "error"         : _onErrorAvatarUpload,
-                "success"       : _onAvatarUploaded,
-                "beforeSubmit"  : _onBeforeAvatarUpload,
-                "uploadProgress": _onAvatarUploading
-            };
-
-            /*
-            $.ajax(htVar.sURLFiles, {
-                "success": function(data){
-                    console.log(data);
-                }
-            });
-            */
+            
+            // 비밀번호 변경
+            htElement.welFormPswd = $("#frmPassword");
+            htElement.welInputOldPassword  = $('#oldPassword');
+            htElement.welInputPassword  = $('#password');
+            htElement.welInputRetypedPassword = $('#retypedPassword');
         }
 
         /**
          * 이벤트 초기화
          * attach event
-         * @private
          */
         function _attachEvent(){
+            // 비밀번호 설정
             htElement.welInputOldPassword.focusout(_onBlurInputPassword);
             htElement.welInputPassword.focusout(_onBlurInputPassword);
             htElement.welInputRetypedPassword.focusout(_onBlurInputPassword);
 
-            htElement.welAvatarFile.change(_onChangeAvatarFile);
+            // 아바타 업로드 설정
+            yobi.Files.attach({
+                "beforeUpload"  : _onAvatarBeforeUpload,
+                "successUpload" : _onAvatarUploaded,
+                "errorUpload"   : _onAvatarUploadError,
+                "uploadProgress": _onAvatarUploading
+            });
+            yobi.Files.setUploader(".avatar-frm");
         }
 
         /**
-         * 아바타 변경 버튼을 눌러 파일을 선택한 경우
-         * #avatarFile 의 change 이벤트 핸들러
-         */
-        function _onChangeAvatarFile(weEvt){
-            var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
-            var welFile = htElement.welAvatarFile.clone();
-
-            welFile[0].files = htElement.welAvatarFile[0].files;
-            welForm.attr('action', htVar.sURLUpload);
-            welForm.append(welFile).appendTo(document.body);
-            welForm.ajaxForm(htVar.htUploadOpts);
-
-            try {
-                welForm.submit();
-            } finally {
-                welFile.remove();
-                welForm.remove();
-                welForm = welFile = null;
-            }
-        }
-
-        /**
-         * 아바타 이미지 업로드하기 전에 점검하는 함수
-         * ajaxForm 의 beforeSubmit 이벤트 핸들러
+         * 아바타 이미지 업로드 전 타입/확장자 검사
+         * false 를 반환하면 업로드 하지 않는다
+         * 
+         * @param {Hash Table} htData
+         * @param {File} htData.oFile 업로드 파일
          * @return {Boolean}
          */
-        function _onBeforeAvatarUpload(){
-            // 선택된 파일명이 없으면 false 반환
-            return !(htElement.welAvatarFile.val().length === 0);
+        function _onAvatarBeforeUpload(htData){
+            if(htData.oFile.type.indexOf("image/") !== 0){
+                _onErrorAvatarUpload(Messages("user.avatar.onlyImage"));
+                return false;
+            }
+        }
+        
+        /**
+         * 아바타 이미지 업로드가 완료된 후
+         * ajaxForm 의 success 이벤트 핸들러
+         * 
+         * @param {Hash Table} htData 업로드 된 파일의 정보
+         */
+        function _onAvatarUploaded(htData){
+            var oRes = htData.oRes;
+            
+            htElement.welAvatarImage.attr("src", oRes.url);
+            
+            var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
+            if(welAvatarId.length === 0){
+                welAvatarId = htElement.welFormAvatar.append($("<input>").attr({
+                    "type": "hidden",
+                    "name": "avatarId",
+                    "value": oRes.id
+                }));
+            } else {
+                welAvatarId.attr("value", oRes.id);
+            }
+            
+            _setAvatarProgressBar(100);
+
+            // Crop 후에 업로드 인지, 처음 업로드인지 구분
+            if(!htVar.oJcrop){
+                _setJcrop(oRes); // jCrop 설정
+            } else {
+                htElement.welFormAvatar.submit();
+            }
+        }
+        
+        /**
+         * jCrop 설정
+         * 
+         * @param {Object} oRes 파일 정보
+         */
+        function _setJcrop(oRes){
+            var welImg = $("#avatarImgCrop");
+            welImg.on("load", function(){
+                htVar.oJcrop = null;
+                
+                welImg.Jcrop({
+                    "aspectRatio": 1,
+                    "minSize"  : [128, 128],
+                    "bgColor"  : "#fff",
+                    "setSelect": [0, 0, 128, 128],
+                    "onSelect" : _onAvatarImageCrop,
+                    "onChange" : _onAvatarImageCrop,
+                    "onRelease": _onAvatarImageCropCancel
+                }, function(){
+                    htVar.oJcrop = this;
+                });
+            });
+            welImg.attr("src", oRes.url);
+
+            // 파일 업로드 버튼은 감추고, 크롭 이미지 전송 버튼 활성화
+            $("#btnUploadFile").hide();
+            $("#btnSubmitCrop").show();
+            $("#btnSubmitCrop").click(_sendCroppedImage);
+        }
+        
+        /**
+         * jCrop 커스텀 이벤트 핸들러
+         * 잘라내기 된 이미지를 미리보기 해주는 역할
+         * 
+         * @param {Hash Table} htData
+         */
+        function _onAvatarImageCrop(htData){
+            if(htData.w <= 0){
+                return;
+            }
+            var nRx = 128 / htData.w;
+            var nRy = 128 / htData.h;
+            
+            var nWidth = $("#avatarImgCrop").width();
+            var nHeight = $("#avatarImgCrop").height();
+            
+            // 미리보기 표시
+            htElement.welAvatarImage.css({
+                "width"     : Math.round(nRx * nWidth) + "px",
+                "height"    : Math.round(nRy * nHeight) + "px",
+                "marginLeft": "-" + Math.round(nRx * htData.x) + "px",
+                "marginTop" : "-" + Math.round(nRy * htData.y) + "px"
+            });
+            
+            htVar.htLastCrop = htData;
+        }
+        
+        /**
+         * jCrop 취소시 이벤트 핸들러
+         * 완전하게 취소할 수 없고 늘 128x128 이상의 이미지 영역을 갖도록
+         */
+        function _onAvatarImageCropCancel(){
+            if(htVar.oJcrop){
+                htVar.oJcrop.setSelect([0, 0, 128, 128]);
+            } else {
+                htVar.htLastCrop = null;
+            }
+        }
+        
+        /**
+         * jCrop 의 결과와 canvas 를 이용해서
+         * 잘라낸 이미지를 서버에 전송하는 함수
+         * #btnSubmitCrop 버튼을 클릭했을 때 실행된다
+         */
+        function _sendCroppedImage(){
+            var elImage = new Image();
+            
+            // 원본 이미지 크기를 알아내기 위해 새 객체로 불러온다
+            // 브라우저 캐시를 사용하므로 네트워크 호출 없음
+            elImage.onload = function(){
+                var htData = htVar.htLastCrop;
+                var nWidth = $("#avatarImgCrop").width();
+                var nRealWidth  = elImage.width;
+                var nRw = nRealWidth / nWidth; // 실제 이미지 크기와 jCrop 영역의 비율 계산
+                var elCanvas = document.getElementById("avatarCrop"); // canvas
+                var oContext = elCanvas.getContext("2d");
+                
+                oContext.drawImage(elImage, htData.x * nRw, htData.y * nRw, htData.w * nRw, htData.h * nRw, 0, 0, 128, 128);
+                
+                // canvas-to-blob.js
+                elCanvas.toBlob(function(oFile){
+                    yobi.Files.uploadFile(oFile);
+                }, 'image/jpeg', 100);
+            }
+            elImage.src = $("#avatarImgCrop").attr("src");
         }
 
         /**
@@ -120,18 +217,15 @@
          * 일반적으로 서버 연결에 실패했을 때 이 상황이 발생한다.
          * ajaxForm 의 error 이벤트 핸들러.
          */
-        function _onErrorAvatarUpload(sMessage){
-            if (sMessage) {
-                $yobi.showAlert(sMessage);
-            } else {
-                $yobi.showAlert("아바타 이미지를 업로드 할 수 없었습니다.\n관리자에게 문의해주세요");
-            }
+        function _onAvatarUploadError(sMessage){
+            $yobi.alert(sMessage || Messages("user.avatar.uploadError"));
             _setAvatarProgressBar(0);
         }
 
         /**
          * 아바타 이미지 업로드 진행 상태
          * ajaxForm 의 uploadProgress 이벤트 핸들러
+         * 
          * @param {Wrapped Event} weEvt
          * @param {Number} nPosition
          * @param {Number}
@@ -142,31 +236,8 @@
         }
 
         /**
-         * 아바타 이미지 업로드가 완료된 후
-         * ajaxForm 의 success 이벤트 핸들러
-         * @param {Hash Table} htData 업로드 된 파일의 정보
-         */
-        function _onAvatarUploaded(htData){
-            if(typeof htData != "object" || !htData.url){
-                _onErrorAvatarUpload();
-                return false;
-            }
-
-            if(htData.mimeType.split("/")[0].toLowerCase() != 'image') {
-                _onErrorAvatarUpload(Messages("user.avatar.onlyImage"));
-                return false;
-            }
-
-            htElement.welAvatarImage.attr("src", htData.url);
-            htElement.welFormBasic.append($("<input>").attr({
-                "type": "hidden",
-                "name": "avatarId",
-                "value": htData.id}));
-            _setAvatarProgressBar(100);
-        }
-
-        /**
          * 아바타 이미지 업로드 진행 상태 표시 함수
+         * 
          * @param {Number} nPercent
          */
         function _setAvatarProgressBar(nPercent){
@@ -176,10 +247,10 @@
 
             // 꽉 차면 보이지 않게 하고 다시 0으로 되돌림
             if(nPercent === 100){
-//                htElement.welAvatarUploaded.show();
                 htElement.welAvatarProgress.css("opacity", 0);
+                
                 setTimeout(function(){
-                    htElement.welFormBasic.submit();
+                    //htElement.welFormBasic.submit();
                     _setAvatarProgressBar(0);
                 }, 1000);
             }
@@ -188,7 +259,6 @@
         /**
          * 비밀번호 확인 입력란 벗어날 때 이벤트 핸들러
          * 마지막 입력란이므로 전체 폼 유효성 검사
-         * @private
          */
         function _onBlurInputPassword(){
             htVar.oValidator._validateForm();
@@ -206,19 +276,19 @@
             ];
 
             htVar.oValidator = new FormValidator('passwordReset', aRules, _onFormValidate);
-
-            // set error message
-            htVar.oValidator.setMessage('required',      Messages("validation.required"));
-            htVar.oValidator.setMessage('min_length',    Messages("validation.tooShortPassword"));
-            htVar.oValidator.setMessage('matches',       Messages("validation.passwordMismatch"));
+            htVar.oValidator.setMessage('required',   Messages("validation.required"));
+            htVar.oValidator.setMessage('min_length', Messages("validation.tooShortPassword"));
+            htVar.oValidator.setMessage('matches',    Messages("validation.passwordMismatch"));
         }
 
         /**
          * on validate form
+         * 
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
             _clearTooltips();
+            
             // to avoid bootstrap bug
             if (aErrors.length <= 0) {
                 return _clearTooltips();
@@ -227,32 +297,22 @@
             var welTarget;
             aErrors.forEach(function(htError){
                 welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
+                
                 if(welTarget){
-                    showErrorMessage(welTarget, htError.message);
+                    _showTooltip(welTarget, htError.message);
                 }
             });
-        }
-
-        /**
-         * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
-         * @private
-         */
-        function _clearTooltips(){
-            try {
-                htElement.welFormPswd.find("input").each(function(i, v){
-                    $(v).tooltip("destroy");
-                });
-            } catch(e){}
         }
 
         /**
          * Bootstrap toolTip function has some limitation.
          * In this case, toolTip doesn't provide easy way to change title and contents.
          * So, unfortunately I had to change data value in directly.
+         * 
          * @param {Wrapped Element} welInput
          * @param {String} sMessage
          */
-        function showErrorMessage(welInput, sMessage){
+        function _showTooltip(welInput, sMessage){
             welInput.tooltip({"trigger": "manual", "placement": "right"});
 
             var oToolTip = welInput.data('tooltip');
@@ -264,11 +324,14 @@
             welInput.tooltip('show');
         }
 
-        function hideErrorMessage(welInput){
-            welInput.tooltip("hide");
-
-            try{
-                welInput.tooltip("destroy");
+        /**
+         * 폼 영역에 있는 jquery.tooltip 모두 제거하는 함수
+         */
+        function _clearTooltips(){
+            try {
+                htElement.welFormPswd.find("input").each(function(i, v){
+                    $(v).tooltip("destroy");
+                });
             } catch(e){} // to avoid bootstrap bug
         }
 
