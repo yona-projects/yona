@@ -95,6 +95,7 @@
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
+		    /**/
 		    yobi.FileUploader.init({
                 "sMode"       : htVar.sMode,
                 "sAction"     : htVar.sUploaderAction,
@@ -102,6 +103,8 @@
 			  	"elContainer" : htElement.welUploader,
 			  	"elTextarea"  : htElement.welTextarea
 			});
+			/**/
+			/*yobi.Files.setUploader(htElement.welUploader, htElement.welTextarea);*/
 		}
 		
 		/**
