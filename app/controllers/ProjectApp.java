@@ -7,6 +7,7 @@ import models.enumeration.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
+import play.Logger;
 import play.data.Form;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
@@ -23,15 +24,11 @@ import utils.Constants;
 import utils.HttpUtil;
 import utils.ErrorViews;
 import views.html.project.*;
-import play.i18n.Messages;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
@@ -361,7 +358,6 @@ public class ProjectApp extends Controller {
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
@@ -371,6 +367,65 @@ public class ProjectApp extends Controller {
         return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
+    }
+
+    /**
+     * 본문이나 댓글에서 특정 사용자 멘션 할때 자동완성 팝업에 쓰일 사용자 목록을 가져온다
+     *
+     * 현재 목록에 실리는 대상은
+     * - 프로젝트 멤버
+     * - 해당 프로젝트에서 이슈나 코멘트를 작성한 사람
+     *
+     * @param loginId
+     * @param projectName
+     * @return
+     */
+    public static Result mentionList(String loginId, String projectName) {
+        String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
+        if (prefer == null) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        }
+        response().setHeader("Vary", "Accept");
+
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        Set<User> userSet = new HashSet<>();
+        collectProjectMemberList(project, userSet);
+        collectProjectIssueAndCommentAuthor(project, userSet);
+
+        List<Map<String, String>> mentionList = new ArrayList<>();
+        collectedUsersToMap(mentionList, userSet);
+        return ok(toJson(mentionList));
+    }
+
+    private static void collectedUsersToMap(List<Map<String, String>> users, Set<User> userSet) {
+        for(User user: userSet) {
+            Map<String, String> projectUserMap = new HashMap<>();
+            if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
+                projectUserMap.put("username", user.loginId);
+                projectUserMap.put("name", user.name);
+                projectUserMap.put("image", user.avatarUrl);
+                users.add(projectUserMap);
+            }
+        }
+    }
+
+    private static void collectProjectIssueAndCommentAuthor(Project project, Set<User> userSet) {
+        for(Issue issue: project.issues) {
+            userSet.add(User.findByLoginId(issue.authorLoginId));
+            for(Comment comment: issue.comments) {
+                userSet.add(User.findByLoginId(comment.authorLoginId));
+            }
+        }
+    }
+
+    private static void collectProjectMemberList(Project project, Set<User> userSet) {
+        for(ProjectUser projectUser: project.projectUser) {
+            userSet.add(projectUser.user);
+        }
     }
 
     /**
@@ -503,7 +558,6 @@ public class ProjectApp extends Controller {
     public static Result projects(String query, String state, int pageNum) {
 
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
-
         if (prefer == null) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
