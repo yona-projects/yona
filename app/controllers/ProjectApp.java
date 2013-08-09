@@ -536,6 +536,7 @@ public class ProjectApp extends Controller {
                 .icontains("owner", query)
                 .icontains("name", query)
                 .icontains("overview", query)
+                .icontains("labels.name", query)
                 .endJunction();
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
@@ -565,6 +566,7 @@ public class ProjectApp extends Controller {
                 .icontains("owner", query)
                 .icontains("name", query)
                 .icontains("overview", query)
+                .icontains("labels.name", query)
                 .endJunction();
 
         int total = el.findRowCount();
