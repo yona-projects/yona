@@ -44,8 +44,10 @@
 			<a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap pull-left">
 				<img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName">
 			</a>
-			<div class="media-body">
-				<p>
+			<div class="media-body" style="overflow:visible;display:inline-block;">
+				<form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
+				<input type="hidden" name="issues[0].id" value="@issue.id" /> 
+				<p style="float:left;">
 					@**<!-- author  -->**@
 					@Messages("issue.author")
 					<a href="@routes.UserApp.userInfo(issue.authorLoginId)" @if(issue.assigneeName != null){ class="gray-txt" }>
@@ -61,31 +63,52 @@
 
 					@**<!-- assignee  -->**@
 					@Messages("issue.assignee")
-					@if(issue.assigneeName == null){
-					<a href="#" class="gray-txt">
-						<strong>@Messages("issue.noAssignee")</strong>
-					</a>
-					} else {
-					<a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)">
-						<strong>@issue.assignee.user.loginId (@issue.assigneeName)</strong>
-					</a>
-					}
+					&nbsp;&nbsp;<div id="assignee" class="btn-group" data-name="assignee.id">
+				        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+				        	@if(issue.assigneeName != null){
+				            <span class="d-label">@issue.assignee.user.loginId (@issue.assigneeName)</span>
+				            } else {
+				            <span class="d-label">@Messages("noAssignee")</span>
+				            }
+				            <span class="d-caret"><span class="caret"></span></span>
+				        </button>
+				        <ul class="dropdown-menu">
+				            <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
+				            @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+				                <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
+				            }
+				            <li class="divider"></li>
+				            @for(member <- project.members()) {
+				                <li data-value="@member.user.id"><a>@member.user.loginId (@member.user.name)</a></li>
+				            }
+				        </ul>
+				    </div>
 				</p>
-
-				@** status **@
-				<p>
-					@**<!-- comment
+				<p style="float:left;">
+				    @**<!-- comment
 					@Messages("comment") <strong class="num">@issue.comments.size</strong>
 					-->**@
 
 					@**<!-- milestone  -->**@
 					@Messages("milestone")
-					@if(issue.milestone != null) {
-						<a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)"><strong class="num">@issue.milestone.title</strong></a>
-					} else {
-						<a href="#" class="gray-txt"><strong>@Messages("none")</strong></a>
-					}
+					&nbsp;&nbsp;<div id="milestone" class="btn-group" data-name="milestone.id">
+				        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+				        	@if(issue.milestone != null) {
+				            <span class="d-label">@issue.milestone.title</span>
+				        	} else {
+				        	<span class="d-label">@Messages("noMilestone")</span>
+				        	}
+				            <span class="d-caret"><span class="caret"></span></span>
+				        </button>
+				        <ul class="dropdown-menu">
+				            <li data-value="-1"><a>@Messages("noMilestone")</a></li>
+				            @for(milestone <- Milestone.findByProjectId(project.id)) {
+				                <li data-value="@milestone.id"><a>@milestone.title</a></li>
+				            }
+				        </ul>
+				    </div>
 				</p>
+				</form>
 			</div>
     	</div>
     	<div class="content markdown-wrap" markdown="true">@issue.body</div>
@@ -96,7 +119,7 @@
 		@** labels **@
 		<p class="labels-wrap pull-left">
 		@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-			<button class="issue-label" data-labelId="@label.id" style="background-color:@label.color">@label.name</button>
+			<a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 		}
 		</p>
 
@@ -204,7 +227,11 @@
 			"sAction"       : "@routes.AttachmentApp.uploadFile",
 			"htOptLabel"    : htOptLabel,
             "sWatchUrl"     : "@routes.IssueApp.watch(project.owner, project.name, issue.getNumber)",
-            "sUnwatchUrl"   : "@routes.IssueApp.unwatch(project.owner, project.name, issue.getNumber)"
+            "sUnwatchUrl"   : "@routes.IssueApp.unwatch(project.owner, project.name, issue.getNumber)",
+            "welMilestone"  : $("#milestone"),
+    		"welAssignee"   : $("#assignee"),
+    		"welIssueUpdateForm" : $("#issueUpdateForm"),
+    		"sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
 		});
 
 	    // yobi.ShortcutKey

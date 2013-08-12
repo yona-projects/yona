@@ -532,7 +532,12 @@ public class ProjectApp extends Controller {
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
 
-        ExpressionList<Project> el = Project.find.where().disjunction().icontains("owner", query).icontains("name", query).icontains("overview", query).endJunction();
+        ExpressionList<Project> el = Project.find.where().disjunction()
+                .icontains("owner", query)
+                .icontains("name", query)
+                .icontains("overview", query)
+                .icontains("labels.name", query)
+                .endJunction();
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {
@@ -557,7 +562,12 @@ public class ProjectApp extends Controller {
      */
     private static Result getProjectsToJSON(String query) {
 
-        ExpressionList<Project> el = Project.find.where().disjunction().icontains("owner", query).icontains("name", query).icontains("overview", query).endJunction();
+        ExpressionList<Project> el = Project.find.where().disjunction()
+                .icontains("owner", query)
+                .icontains("name", query)
+                .icontains("overview", query)
+                .icontains("labels.name", query)
+                .endJunction();
 
         int total = el.findRowCount();
         if (total > MAX_FETCH_PROJECTS) {

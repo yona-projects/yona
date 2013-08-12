@@ -39,6 +39,7 @@
 <script type="text/javascript" src="@getJSLink("lib/validate")"></script>
 <script type="text/javascript" src="@getJSLink("common/yobi.Pagination")"></script>
 <script type="text/javascript" src="@getJSLink("common/yobi.Markdown")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.Files")"></script>
 <script type="text/javascript" src="@getJSLink("common/yobi.FileUploader")"></script>
 <script type="text/javascript" src="@getJSLink("common/yobi.FileDownloader")"></script>
 <script type="text/javascript" src="@getJSLink("common/yobi.Label")"></script>
@@ -79,5 +80,11 @@
             "P": "@routes.UserApp.userInfo(session.get("loginId"))"
         });
         }
+
+        // yobi.Files
+        yobi.Files.init({
+            "sListURL"  : "@routes.AttachmentApp.getFileList",
+            "sUploadURL": "@routes.AttachmentApp.uploadFile"
+        });
 	});
 </script>
