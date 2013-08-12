@@ -12,7 +12,7 @@
 @for(issue <- issueList){
 <div class="row-fluid issue-item">
     <div class="span10">
-        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+        @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
 	    <label for="issue-@issue.id" class="mass-update-check pull-left">
 	       <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id" class="checkbox">
         </label>

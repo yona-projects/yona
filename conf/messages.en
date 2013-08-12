@@ -441,6 +441,7 @@ code.newer = Newer
 code.older = Older
 code.repoUrl = URL
 code.nohead = Create a new repository on the command line
+code.noheadRemote = Push an existing repository from the command line
 code.copyUrl = Copy URL
 code.filename = Filename
 code.commitMsg = Commit Message

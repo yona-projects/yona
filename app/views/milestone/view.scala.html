@@ -18,16 +18,16 @@
 @main(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.MILESTONE, "")
-    <h3>
+    <h4>
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
-        <small>
+        <small class="ml10">
             @if(milestone.dueDate != null) {
             <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
             <span class="date">(@milestone.until)</span>
             }
             <span class="badge badge-issue-@milestone.state.state.toLowerCase margin-left-5">@Messages("milestone.state." + milestone.state.state)</span>
         </small>
-    </h3>
+    </h4>
 
     <div class="progress">
         <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
@@ -46,7 +46,7 @@
     </div>
 
 	<ul class="nav nav-tabs">
-    @for(state <- Array(State.OPEN, State.CLOSED)) {
+    @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
         <li @if(issueState == state) { class="active" }>
             <a href="@getTabLinkByState(state)">
                 @Messages("issue.state." + state.name.toLowerCase())
@@ -57,7 +57,9 @@
     </ul>
 
 	<div class="issues">
+	    <div class="filter-wrap">
 		@issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+		</div>
         @{
 	        if(issueState == State.OPEN) {
 	        	issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
@@ -77,7 +79,7 @@
 
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
             @if(milestone.state == State.OPEN) {
-                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium blue">@Messages("milestone.close")</a>
+                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("milestone.close")</a>
             }
             @if(milestone.state == State.CLOSED) {
                 <a href="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium white">@Messages("milestone.open")</a>

@@ -47,7 +47,7 @@
 			<div class="media-body" style="overflow:visible;display:inline-block;">
 				<form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
 				<input type="hidden" name="issues[0].id" value="@issue.id" /> 
-				<p style="float:left;">
+				<p class="pull-left">
 					@**<!-- author  -->**@
 					@Messages("issue.author")
 					<a href="@routes.UserApp.userInfo(issue.authorLoginId)" @if(issue.assigneeName != null){ class="gray-txt" }>
@@ -59,18 +59,19 @@
 					    }
                     </strong>
 					</a>
-					&nbsp;&middot;&nbsp;
-
+                    
+                    &nbsp;&middot;&nbsp;
+                    
 					@**<!-- assignee  -->**@
-					@Messages("issue.assignee")
-					&nbsp;&nbsp;<div id="assignee" class="btn-group" data-name="assignee.id">
+					@Messages("issue.assignee")&nbsp;&nbsp;
+					<div id="assignee" class="btn-group" data-name="assignee.id">
 				        <button class="btn dropdown-toggle large" data-toggle="dropdown">
 				        	@if(issue.assigneeName != null){
 				            <span class="d-label">@issue.assignee.user.loginId (@issue.assigneeName)</span>
 				            } else {
 				            <span class="d-label">@Messages("noAssignee")</span>
 				            }
-				            <span class="d-caret"><span class="caret"></span></span>
+				            <span class="d-caret nlb"><span class="caret"></span></span>
 				        </button>
 				        <ul class="dropdown-menu">
 				            <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
@@ -84,21 +85,17 @@
 				        </ul>
 				    </div>
 				</p>
-				<p style="float:left;">
-				    @**<!-- comment
-					@Messages("comment") <strong class="num">@issue.comments.size</strong>
-					-->**@
-
+				<p class="pull-left">
 					@**<!-- milestone  -->**@
-					@Messages("milestone")
-					&nbsp;&nbsp;<div id="milestone" class="btn-group" data-name="milestone.id">
+					@Messages("milestone")&nbsp;&nbsp;
+					<div id="milestone" class="btn-group" data-name="milestone.id">
 				        <button class="btn dropdown-toggle large" data-toggle="dropdown">
 				        	@if(issue.milestone != null) {
 				            <span class="d-label">@issue.milestone.title</span>
 				        	} else {
 				        	<span class="d-label">@Messages("noMilestone")</span>
 				        	}
-				            <span class="d-caret"><span class="caret"></span></span>
+				            <span class="d-caret nlb"><span class="caret"></span></span>
 				        </button>
 				        <ul class="dropdown-menu">
 				            <li data-value="-1"><a>@Messages("noMilestone")</a></li>
