@@ -18,14 +18,16 @@
     }
 }
 
-<div class="project-menu"><!--  data-spy="affix"> -->
+<div class="project-menu">
     <div class="project-menu-wrap">
         <div class="project-menu-container main">
             <div class="actrow">
+                <!-- repo URL -->
                 <button id="btnClone" type="button" class="nbtn medium">
                     <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
                 </button>
 
+                <!-- watch project -->
                 <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last watchBtn">
@@ -36,7 +38,7 @@
                         <i class="icon-eye-open icon-large"></i> @Messages("notification.watch")
                     </a>
                     }
-                    <button class="btn dropdown-toggle small" data-toggle="dropdown" style="padding:0">
+                    <button class="btn dropdown-toggle small @if(User.isWatching(project)){blue}" data-toggle="dropdown" style="padding:0">
                         <div class="d-caret"><span class="caret"></span></div>
                     </button>
                     <div class="dropdown-menu pull-right pop-watch">
@@ -73,33 +75,33 @@
                         </div>
                         }
                     </div>
-                    
                 </div>
+                <!-- // -->
                 
+                <!-- fork project -->
+                @if(project.vcs.equals("GIT")){
                 <div class="btn-group dbtn-group">
                     <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium orange last">
                         <i class="icon-code-fork icon-large"></i>
                         @Messages("fork")
+                        <span class="num-badge">@project.forkingProjects.size()</span>
                     </a>
-
-                    <button class="btn dropdown-toggle small pl" data-toggle="dropdown">
-                        <span class="d-label">@project.forkingProjects.size()</span>
-                        <span class="d-caret"><span class="caret"></span></span>
-                    </button>
-
-                    <div class="dropdown-menu pull-right">
-                        <ul>
-                            <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
-                            @for(fork <- project.forkingProjects) {
-                                <li>
-                                    <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
-                                        <span class="gray">@fork.owner / </span><span class="bold">@fork.name</span>
-                                    </a>
-                                </li>
-                            }
-                        </ul>
-                    </div>
+                    <button class="btn dropdown-toggle small orange" data-toggle="dropdown" style="padding:0">
+                        <div class="d-caret"><span class="caret"></span></div>
+                    </button>                    
+                    <ul class="dropdown-menu">
+                        <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
+                        @for(fork <- project.forkingProjects) {
+                        <li>
+                            <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
+                                <span class="gray">@fork.owner / </span><span class="bold">@fork.name</span>
+                            </a>
+                        </li>
+                        }
+                    </ul>
                 </div>
+                }
+                <!-- // -->
                 
                 @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
                 <div class="btn-group dbtn-group">
@@ -143,7 +145,7 @@
                 }
             </div>
 
-		<ul class="unstyled menu-list">
+            <ul class="unstyled menu-list">
                 <li @isActiveMenu(MenuType.PROJECT_HOME)>
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-home"></i>
@@ -199,20 +201,20 @@
                         }
                     </a>
                 </li>
-    		@if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+                @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
     			<li class="sp-line">|</li>
-			<li @isActiveMenu(MenuType.PROJECT_SETTING)>
+                <li @isActiveMenu(MenuType.PROJECT_SETTING)>
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" class="menu-item">
                         <i class="icon-large icon-cogs"></i>
                         <span class="menu-title">@Messages("menu.admin")</span>
                     </a>
                 </li>
-    		}
+                }
     		</ul>
         </div>
 	</div>
 </div>
-    <div style="margin-top: 50px"></div>
+<div style="margin-top: 50px"></div>
 
 <script id="tplRepoURL" type="text/x-jquery-tmpl">
     <strong class="clone-label @project.vcs">@project.vcs</strong>

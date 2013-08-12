@@ -12,32 +12,40 @@
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
         @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-        <legend>
-            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
-                <code>
-                    <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
-                    <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a> :
-                    @branchName(pull.fromBranch)
-                </code>
-            </span>
-            <span style="margin-left: 3px;">
-                <i class="icon-long-arrow-right"></i>
-            </span>
-            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
-                <code>
-                    <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
-                    <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a> :
-                    @branchName(pull.toBranch)
-                </code>
-            </span>
-            <span class="pull-right">
-                <button id="helpBtn" class="nbtn small gray">
-                <i class="icon-question-sign icon-large"></i> @Messages("title.help")
+        
+        <div style="padding-bottom:10px; margin-bottom:10px;">
+            <div class="pull-right">            
+                <button id="helpBtn" class="nbtn small gray mt5">
+                    <i class="icon-question-sign icon-large"></i> @Messages("title.help")
                 </button>
-            </span>
-        </legend>
-        <div class="well" id="helpMessage" style="display:none;">
-            <div class="row-fluid">
+            </div>
+            <div>
+                <a href="@routes.UserApp.userInfo(pull.contributor.loginId)" class="avatar-wrap">
+                    <img src="@pull.contributor.avatarUrl" width="32" height="32">
+                </a>
+                <a href="@routes.UserApp.userInfo(pull.contributor.loginId)">
+                    @pull.contributor.name (@pull.contributor.loginId)
+                </a>
+                @Messages("merge.requested")
+
+                <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                    <code>
+                        <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a>/<!--
+                     --><a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a> :
+                        @branchName(pull.fromBranch)
+                    </code>
+                </span>
+                <span style="margin:0 10px;"><i class="icon-arrow-right" style="font-size:12px;"></i></span>
+                <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                    <code>
+                        <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a>/<!--
+                     --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a> :
+                        @branchName(pull.toBranch)
+                    </code>
+                </span>
+            </div>
+            <div id="helpMessage" class="well" style="display:none;">
+                <div class="row-fluid">
                 <div class="pull-left">
                     <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
                 </div>
@@ -47,22 +55,19 @@
                     <p>@Messages("merge.help.3")</p>
                     <p>@Messages("merge.help.4")</p>
                 </div>
+                </div>
             </div>
         </div>
-
-        <ul class="nav nav-tabs yobi-tabs">
-            <li class="active">
-                <a href="#info" data-toggle="tab">개요</a>
-            </li>
-            <li>
-                <a href="#commits" data-toggle="tab">커밋</a>
-            </li>
+        
+        <ul class="nav nav-tabs nm">
+            <li class="active"><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
+            <li><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
         </ul>
         <div class="tab-content">
             <div id="info" class="tab-pane active">
-                @** Pull Request Info **@
-                <div class="board-header issue">
-                    <div class="board-id div"><strong class="secondary-txt">@pull.id</strong></div>
+                @**<!-- Pull Request Info -->**@
+                <div class="board-header issue" style="border-top:none;">
+                    <div class="board-id div"><strong class="secondary-txt">#@pull.id</strong></div>
                     <h1 class="title div">@pull.title</h1>
                     <div class="date div">@utils.TemplateHelper.agoString(pull.createdAgo())</div>
                     <div class="div">
@@ -77,12 +82,10 @@
                 @if(pull.isOpen()){
                     @if(isSafe){
                     <div class="alert alert-success">
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
                         @Messages("pullRequest.is.safe")
                     </div>
                     } else {
                     <div class="alert alert-error">
-                        <button type="button" class="close" data-dismiss="alert">&times;</button>
                         @Messages("pullRequest.is.not.safe")
                     </div>
                     }
@@ -92,7 +95,7 @@
             </div>
 
             <div id="commits" class="code-browse-wrap tab-pane">
-                <div id="history" class="commit-wrap">
+                <div id="history" class="commit-wrap mt20">
                     <table class="code-table commits">
                         <thead class="thead">
                         <tr>
@@ -162,8 +165,8 @@
             @if(comments.size > 0) {
             <ul class="comments">
                 @for(comment <- comments){
-                <li class="comment" id="comment-@comment.id">
-                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
+                <li id="comment-@comment.id" class="comment">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
                         <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
                     </a>
                     <div class="media-body">
@@ -181,16 +184,8 @@
                 }
             </ul>
             }
-            <form id="comment-form" action="@routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id)" method="post" enctype="multipart/form-data">
-            <div class="write-comment-box">
-                <div class="write-comment-wrap">
-                    <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
-                    <div class="actrow right-txt">
-                        <button class="nbtn medium orange">@Messages("button.comment.new")</button>
-                    </div>
-                </div>
-            </div>
-            </form>
+            
+            @views.html.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())
         </div>
     </div>
 
@@ -198,18 +193,9 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#helpBtn').click(function(e){
-            e.preventDefault();
-            $('#helpMessage').toggle();
-        });
-
-        $('span[data-toggle="tooltip"]').tooltip({
-            placement : "bottom"
-        });
-
-        new yobi.FileDownloader({
-            "elTarget": $("#attachments"),
-            "sAction": "@routes.AttachmentApp.uploadFile"
+        $yobi.loadModule("git.View", {
+            "sFilesURL" : "@routes.AttachmentApp.getFileList",
+            "sUploadURL": "@routes.AttachmentApp.uploadFile"
         });
     });
 </script>

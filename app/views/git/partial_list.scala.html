@@ -12,7 +12,7 @@
                 <div class="num pull-left number-id">
                     <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.id)"><string class="pullrequest-id">#@req.id</string></a>
                 </div>
-                <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap mlarge pull-left">
+                <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap mlarge pull-left ml10 mt5">
                     <img src="@req.contributor.avatarUrl" alt="@req.contributor.name">
                 </a>
                 <label>
@@ -21,24 +21,22 @@
                     </div>
                     <div class="infos nm">
                         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
-                        <span class="date"><i class="icon-calendar"></i> @agoString(req.createdAgo())</span>
-                        <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                        <span class="date ml10">@agoString(req.createdAgo())</span>
+                        <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
                             <code>
                                 @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {
-                                <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
-                                <a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a> :
+                                <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a>/<!--
+                             --><a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>:
                                 }
                                 <i class="icon-code-fork"></i> @branchName(req.fromBranch)
                             </code>
                         </span>
-                        <span style="margin-left: 3px;">
-                            <i class="icon-long-arrow-right icon-large"></i>
-                        </span>
+                        <span style="margin:0 10px;"><i class="icon-arrow-right" style="font-size:12px;"></i></span>
                         <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
                             <code>
                                 @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
-                                <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a> /
-                                <a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a> :
+                                <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a>/<!--
+                             --><a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>:
                                 }
                                 <i class="icon-code-fork"></i> @branchName(req.toBranch)
                             </code>
@@ -64,27 +62,27 @@
 <div class="row-fluid">
     <ul class="thumbnails">
         <li class="span4">
-            <div class="thumbnail">
+            <div class="thumbnail" style="height:520px;">
                 <div class="caption">
-                    <h3>@Messages("fork")</h3>
+                    <h5>@Messages("fork")</h5>
                     <p>@Messages("fork.help.message.1")</p>
                 </div>
                 <img src="@routes.Assets.at("images/fork-pull/fork.jpg")">
             </div>
         </li>
         <li class="span4">
-            <div class="thumbnail">
+            <div class="thumbnail" style="height:520px;">
                 <div class="caption">
-                    <h3>@Messages("pullRequest")</h3>
+                    <h5>@Messages("pullRequest")</h5>
                     <p>@Messages("pullRequest.help.message.2")</p>
                 </div>
                 <img src="@routes.Assets.at("images/fork-pull/pull-request.jpg")">
             </div>
         </li>
         <li class="span4">
-            <div class="thumbnail">
+            <div class="thumbnail" style="height:520px;">
                 <div class="caption">
-                    <h3>@Messages("pullRequest.accept")</h3>
+                    <h5>@Messages("pullRequest.accept")</h5>
                     <p>@Messages("merge.help.2")</p>
                 </div>
                 <img src="@routes.Assets.at("images/fork-pull/merge.jpg")">

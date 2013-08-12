@@ -1431,17 +1431,13 @@
             }
 
             .actrow {
-                position:absolute;
-                top:10px; right:0;
+                float:right; margin-top:5px;
                 z-index: 777;
 
                 /* 저장소 URL 표시용 popover */
                 .popover {
                     width:430px;
                     max-width:500px;
-                    left:-100% !important;
-
-                    .arrow { left:64% }
 
                     .clone-label {
                         display:inline-block;
@@ -1455,6 +1451,11 @@
                         .repo-url { width:260px; margin:0; }
                         .copy-url { font-size:11px; font-weight:bold; margin:0; }
                     }
+                }
+                
+                .dropdown-menu li { 
+                    display:block; padding:0;
+                    &.disabled { padding:5px 0 }
                 }
             }
         }
@@ -2873,7 +2874,7 @@ div.markdown-preview {
 
         td { padding: 0 15px 0 5px; }
         .thead {
-            background-color: #eee;
+            background-color: #f5f5f5;
             line-height: 34px;
             font-size: 12px;
             border-bottom:1px solid #ccc;
@@ -3711,4 +3712,13 @@ code.milestone-title{
     padding-bottom: 7px;
    }
   }
+}
+
+/** code comments **/
+div#commit tr.comments {
+    display:none;
+}
+
+div#commit.show-comments tr.comments {
+    display: table-row;
 }
