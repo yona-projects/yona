@@ -440,7 +440,12 @@ code.commits = Commits
 code.newer = Newer
 code.older = Older
 code.repoUrl = URL
-code.nohead = Create a new repository on the command line
+code.nohead = <div class="alert alert-block"> <h4>The repository is empty!</h4> Follow below instructions to make local Git repository and push REAMDME.md file to Yobi.</div>
+code.nohead.clone = Create new local repository by cloning the repository created on Yobi, and push README.md file.
+code.nohead.init = Or, create new local repository by yourself and add a remote that indicate the Yobi repository and push README.md file.
+code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
+code.nohead.pull.push = You can keep update your code to your Yobi repository with 'pull' and 'push'. The 'pull' means getting update from the remote repository, and 'push' means putting your code to remote repository.
+
 code.copyUrl = Copy URL
 code.filename = Filename
 code.commitMsg = Commit Message
@@ -575,7 +580,7 @@ merge.help.1 = You can see commiits and check details about received code.
 merge.help.2 = If a member of the original project accept the code, it will be merged into.
 merge.help.3 = If the code is not safe to merge, you can't accept it.
 merge.help.4 = You can reject or delete the code request.
-merge.requested = has requested pull : 
+merge.requested = has requested pull :
 
 # Notifcation
 notification.watch = Watch

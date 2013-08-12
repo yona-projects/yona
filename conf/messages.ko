@@ -440,7 +440,11 @@ code.commits = 커밋
 code.newer = 이전
 code.older = 다음
 code.repoUrl = 저장소 URL
-code.nohead = 아직 저장소가 비어있습니다.<br>아래의 명령어를 이용해 저장소에 파일을 커밋해보세요
+code.nohead = <div class="alert alert-block"> <h4>저장소가 비어있습니다!</h4> 로컬에 Git 저장소를 만들고 Yobi에 코드를 올리는 방법은 다음과 같습니다.</div>
+code.nohead.clone = Yobi에 생성된 Git 저장소를 clone 받아서 로컬에 Git 저장소를 만들고 README.md 파일을 Yobi에 올릴 수 있습니다.
+code.nohead.init = 또는, 로컬에서 Git 저장소를 만들고 remote로 Yobi에 생성된 Git 저장소를 직접 추가하고 README.md 파일을 Yobi에 올릴 수 있습니다.
+code.nohead.remote = 로컬에 이미 만들어둔 Git 저장소가 있다면 Yobi에 생성된 Git 저장소만 remote로 추가하고 코드를 올릴 수 있습니다.
+code.nohead.pull.push = 지속적으로 코드를 갱신하여 올릴 때는 pull과 push를 사용할 수 있습니다. pull은 remote에서 코드를 가져오고, push는 remote로 코드를 보냅니다.
 code.copyUrl = 주소 복사
 code.filename = 파일명
 code.commitMsg = 커밋 메시지
@@ -575,7 +579,7 @@ merge.help.1 = 보낸 코드의 커밋 내역과 설명을 확인할 수 있습�
 merge.help.2 = 프로젝트의 멤버가 수락 버튼을 클릭하면 해당 코드를 원본 프로젝트에 병합(merge)합니다.
 merge.help.3 = 코드를 안전하게 병합할 수 없는 경우에는 해당 코드를 수락할 수 없습니다.
 merge.help.4 = 코드를 수락할 수 없는 경우에는 보류 상태로 변경하여 추가 작업을 기다리거나 취소하여 해당 코드 요청을 삭제할 수 있습니다.
-merge.requested = 이 보내는 코드: 
+merge.requested = 이 보내는 코드:
 
 # Notifcation
 notification.watch = 지켜보기
