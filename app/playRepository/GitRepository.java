@@ -687,10 +687,10 @@ public class GitRepository implements PlayRepository {
     private static void amend(Repository cloneRepository, User user, PullRequest pullRequest) throws GitAPIException {
         Project fromProject = pullRequest.fromProject;
         new Git(cloneRepository).commit()
-                .setAmend(true).setAuthor(user.name, user.email)
+                .setAmend(true).setAuthor(pullRequest.contributor.name, pullRequest.contributor.email)
                 .setMessage("Merge pull request #" + pullRequest.id +
                         " from " + fromProject.owner + "/" + fromProject.name + " " + pullRequest.fromBranch)
-                .setCommitter(pullRequest.contributor.name, pullRequest.contributor.email)
+                .setCommitter(user.name, user.email)
                 .call();
     }
 
