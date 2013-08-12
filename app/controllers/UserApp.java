@@ -478,7 +478,7 @@ public class UserApp extends Controller {
                 Attachment attachment = Attachment.find.byId(avatarId);
                 String primary = attachment.mimeType.split("/")[0].toLowerCase();
                 if (primary.equals("image")) {
-                    attachment.deleteAll(currentUser().avatarAsResource());
+                    Attachment.deleteAll(currentUser().avatarAsResource());
                     attachment.moveTo(currentUser().avatarAsResource());
                     user.avatarUrl = routes.AttachmentApp.getFile(attachment.id).url();
                 }

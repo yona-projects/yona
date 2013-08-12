@@ -49,7 +49,7 @@
                     }
                 </ul>
             </div>
-            
+
 		    @defining(
 		        if(selectedBranch) {
 		            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
@@ -65,7 +65,7 @@
 		            <a href="@url">@Messages("code.commits")</a>
 		        </li>
 		    </ul>
-		    
+
 			<div id="history" class="commit-wrap">
 				<table class="code-table commits">
 					<thead class="thead">
@@ -90,14 +90,35 @@
                                 <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                 }
                                 }
-                                
+
                                 @defining(commit.getMessage()){ commitMsg =>
-                                <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
-						            @commitMsg.split("\n")(0)
-                                </a>
-                                @if(commitMsg.split("\n").length > 1){ 
-                                <button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>
-                                <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre> 
+                                @if(commitMsg.startsWith("Merge pull request")) {
+                                    @defining(commitMsg.split(" ")(3)) { pullRequestIdPart =>
+                                        @defining(pullRequestIdPart.replace("#", "").toLong) { pullRequestId =>
+                                        <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+                                            @defining(commitMsg.indexOf(" #")) { indexOfPullRequestStart =>
+                                                @commitMsg.split("\n")(0).substring(0, indexOfPullRequestStart)
+                                            }
+                                        </a>
+                                        <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pullRequestId)">
+                                            @pullRequestId
+                                        </a>
+                                        <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+                                            @defining(commitMsg.indexOf(commitMsg.split(" ")(3)) + commitMsg.split(" ")(3).length) { indexOfPullRequestIdEnd =>
+                                            @commitMsg.split("\n")(0).substring(indexOfPullRequestIdEnd)
+                                            }
+                                        </a>
+                                        }
+                                    }
+                                } else {
+                                    <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+                                        @commitMsg.split("\n")(0)
+                                    </a>
+                                }
+
+                                @if(commitMsg.split("\n").length > 1){
+                                    <button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>
+                                    <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
                                 }
                                 }
 							</td>
@@ -146,7 +167,7 @@
             <a href="@url?page=@(page + 1)" class="nbtn medium pull-right">@Messages("code.older")</a>
             }
         </div>
-        
+
     } @** end of if(history.size) **@
 
   } @** end of defining url **@

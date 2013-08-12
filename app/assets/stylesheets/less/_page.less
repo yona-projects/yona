@@ -1532,6 +1532,12 @@
     }
 }
 
+.check-all {
+            width:40px; 
+            vertical-align: middle; 
+            text-align:center;
+        }
+
 //-- filters
 .filter-wrap {
     display: block;/*inline;*/
@@ -1539,14 +1545,6 @@
     height:30px;
     /*margin-bottom: 15px;
     overflow: hidden;*/
-
-    .mass-update-form {
-        .check-all {
-            width:40px; 
-            vertical-align: middle; 
-            text-align:center;
-        }
-    }
 
     .filters {
         color:#666;
@@ -1578,7 +1576,7 @@
     i {
        .inline-block;
        .border-radius(2px);
-       width:7px; height:7px;
+       width:35px; height:7px;
        margin:0 3px;
        &.orange { background:@orange; }
        &.blue { background:@blue2;     }
@@ -1647,6 +1645,36 @@
                 .title    { font-size:20px; font-weight:bold; }
                 .sp       { margin: 0 5px; color:#E4E4E4; }
                 .due-date { color: #666; /*999;*/ }
+
+                .nbtn {
+                    border: 1px solid #ccc;
+                    border-right: none;
+                    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0);
+                    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0);
+                    -webkit-border-radius: 2px 0 0 2px !important;
+                    -moz-border-radius: 2px 0 0 2px !important;
+                    border-radius: 2px 0 0 2px !important;
+                }
+
+                .closed-issue {
+                    background: #f36c22;
+                }
+
+                .closed-issue:hover {
+                    color:#fff;
+                    background-color: #d6530c;
+                }
+
+                .open-issue:hover {
+                    background-color: #575757;
+                    color:#fff;
+                }
+
+                .num-badge {
+                    color: #fff;
+                    margin-left:3px;
+                }
             }
             .progress-wrap {
                 overflow: hidden;
