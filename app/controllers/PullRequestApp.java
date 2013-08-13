@@ -350,9 +350,18 @@ public class PullRequestApp extends Controller {
             });
         }
 
+        boolean canDeleteBranch = false;
+        boolean canRestoreBranch = false;
+        if(pullRequest.isClosed()) {
+            canDeleteBranch = GitRepository.canDeleteFromBranch(pullRequest);
+            canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
+        }
+
+
         List<SimpleComment> comments = SimpleComment
                 .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments));
+
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch));
     }
 
     /**
@@ -532,7 +541,7 @@ public class PullRequestApp extends Controller {
         Project fromProject = pullRequest.fromProject;
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), pullRequest.toProject));
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
         }
 
         Form<PullRequest> pullRequestForm = new Form<>(PullRequest.class).bindFromRequest();
@@ -549,6 +558,40 @@ public class PullRequestApp extends Controller {
         }
 
         pullRequest.updateWith(updatedPullRequest);
+
+        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+    }
+
+    /**
+     * {@code pullRequestId}에 해당하는 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 삭제한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
+    public static Result deleteFromBranch(String userName, String projectName, Long pullRequestId) {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project toProject = pullRequest.toProject;
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
+        }
+
+        pullRequest.deleteFromBranch();
+
+        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+    }
+
+    public static Result restoreFromBranch(String userName, String projectName, Long pullRequestId) {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project toProject = pullRequest.toProject;
+
+        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
+        }
+
+        pullRequest.restoreFromBranch();
 
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
     }

@@ -62,9 +62,9 @@
 
     <div class="filter-wrap milestone">
         <div class="milestone-legend pull-left">
-            <i class="gray"></i>@Messages("issue.state.open")
-            <i class="blue"></i>@Messages("issue.state.assigned")
-            <i class="orange"></i>@Messages("issue.state.closed")
+            <i class="orange"></i> @Messages("issue.state.closed")
+            <i class="gray"></i> @Messages("issue.state.open") 
+            
         </div>
 
         @if(milestones.length > 1){
@@ -96,11 +96,11 @@
                         <span class="date">(@milestone.until)</span>
                     }
                     <div class="issue-wrap nbtn-group pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn medium">
-                            @Messages("issue.state.open") <strong class="num-badge open">@milestone.getNumOpenIssues</strong>
+                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn medium open-issue">
+                            @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
                         </a>
-                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn medium">
-                            @Messages("issue.state.closed") <strong class="num-badge closed">@milestone.getNumClosedIssues</strong>
+                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn medium closed-issue">
+                            @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
                         </a>
                     </div>
                 </div>
