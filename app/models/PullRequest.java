@@ -6,6 +6,7 @@ import models.resource.Resource;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import playRepository.GitRepository;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
@@ -60,6 +61,14 @@ public class PullRequest extends Model {
     public Date received;
 
     public State state = State.OPEN;
+
+    /**
+     * {@link #fromBranch}의 가장 최근 커밋 ID
+     *
+     * when: 브랜치를 삭제한 뒤 복구할 때 사용한다.
+     *
+     */
+    public String lastCommitId;
 
     @Override
     public String toString() {
@@ -225,5 +234,24 @@ public class PullRequest extends Model {
      */
     public boolean hasSameBranchesWith(PullRequest pullRequest) {
         return this.toBranch.equals(pullRequest.toBranch) && this.fromBranch.equals(pullRequest.fromBranch);
+    }
+
+    public boolean isClosed() {
+        return state == State.CLOSED;
+    }
+
+    /**
+     * {@link #fromBranch}를 삭제하고 해당 브랜치의 최근 커밋 ID를 {@link #lastCommitId}에 저장한다.
+     *
+     * @see #lastCommitId
+     */
+    public void deleteFromBranch() {
+        String lastCommitId = GitRepository.deleteFromBranch(this);
+        this.lastCommitId = lastCommitId;
+        update();
+    }
+
+    public void restoreFromBranch() {
+        GitRepository.restoreBranch(this);
     }
 }

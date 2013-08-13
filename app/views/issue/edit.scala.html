@@ -5,6 +5,7 @@
 @import models.enumeration.Operation
 @import models.enumeration._
 @import utils.AccessControl._
+@import utils.TemplateHelper._
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
@@ -130,6 +131,40 @@
 
 @markdown(project)
 
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+<script type="text/javascript">
+var memebrList = {
+    emptyQuery: true,
+    typeaheadOpts: {
+        items: 15
+    },
+    users: []
+}
+
+var prevWhich;
+
+$(function(){
+    function _findUserList(){
+        $.ajax({
+            type: "GET",
+            contentType: 'application/json',
+            url: "@routes.ProjectApp.mentionList(project.owner, project.name)",
+            dataType: "json"
+        }).done(function( data ) {
+            memebrList.users = data;
+            $("#body").mention(memebrList);
+        });
+    }
+
+    $("#body" ).keypress(function(event){
+        if( event.which == 64 ){ // 64 = at
+            _findUserList();
+        }
+    });
+})
+
+</script>
 <script type="text/javascript">
 	$(document).ready(function(){
 		// yobi.Label

@@ -47,6 +47,14 @@ yobi.Files = (function(){
 	}
 
     /**
+     * Returns Environment information
+     * @return {Hash Table}
+     */
+    function _getEnv(){
+        return htVar;
+    }
+    
+    /**
      * Upload files
      * 
      * @param {Variant} oFiles FileList or File Object, HTMLInputElement(IE)
@@ -82,7 +90,7 @@ yobi.Files = (function(){
             return false;
         }
         
-        return htVar.bXHR2 ? _uploadFileXHR(oFile, nSubmitId) : _uploadFileForm(oFile, nSubmitId);
+        return htVar.bXHR2 ? _uploadFileXHR(nSubmitId, oFile) : _uploadFileForm(nSubmitId, oFile);
     }
 
     /**
@@ -90,10 +98,10 @@ yobi.Files = (function(){
      * available in IE 10+, FF4+, Chrome7+, Safari5+
      * http://caniuse.com/xhr2
      * 
-     * @param {File} oFile
      * @param {Number} nSubmitId
+     * @param {File} oFile
      */
-    function _uploadFileXHR(oFile, nSubmitId){
+    function _uploadFileXHR(nSubmitId, oFile){
         var oData = new FormData();
         oData.append("filePath", oFile, oFile.name);
 
@@ -123,27 +131,55 @@ yobi.Files = (function(){
      * available in almost browsers, except Safari on OSX.
      * http://malsup.com/jquery/form/
      * 
-     * @param {File} oFile
      * @param {Number} nSubmitId
+     * @param {HTMLElement} elFile
      */
-    function _uploadFileForm(oFile, nSubmitId){
+    function _uploadFileForm(nSubmitId, elFile){
+        // FileForm 이용한 업로드는 input[type=file] 이 반드시 필요하다
+        if(!htElements.welInputFile && !elFile){
+            return false;
+        }
+        
+        var welInputFile = htElements.welInputFile || $(elFile); // 원래의 file input
+        var welInputFileClone = welInputFile.clone();            // 새로 끼워넣을 복제품.
+        var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
+
+        welInputFileClone.insertAfter(welInputFile); // 예전 input 뒤에 끼워넣고
+        welInputFileClone.change(_onChangeFile);     // 이벤트 핸들러
+        htElements.welInputFile = welInputFileClone; // 레퍼런스 교체
+
+        welForm.attr('action', htVar.sUploadURL);
+        welForm.append(welInputFile).appendTo(document.body);
+
+        // free memory finally
+        var fClear = function(){
+            welInputFile.remove();
+            welForm.remove();
+            welForm = welInputFile = null;
+        };
+        
         // 폼 이벤트 핸들러 설정: nSubmitId 가 필요한 부분만
         var htUploadOpts = htVar.htUploadOpts;
-        htUploadOpts.target = htVar.sUploadURL;
         htUploadOpts.success = function(oRes){
             _onSuccessSubmit(nSubmitId, oRes);
-        };
-        htUploadOpts.error = function(oRes){
-            _onErrorSubmit(nSubmitId, oRes);
+            fClear();
+            fClear = null;
         };
         htUploadOpts.uploadProgress = function(oEvent, nPos, nTotal, nPercentComplete){
             _onUploadProgress(nSubmitId, nPercentComplete);
+            fClear();
+            fClear = null;
+        };
+        htUploadOpts.error = function(oRes){
+            _onErrorSubmit(nSubmitId, oRes);
+            fClear();
+            fClear = null;
         };
 
-        htElements.welFormFile.ajaxForm(htUploadOpts);
-        htElements.welFormFile.ajaxSubmit();
+        welForm.ajaxForm(htUploadOpts);
+        welForm.submit();
     }
-    
+        
     /**
      * 파일 업로드 진행상태 처리 함수
      * uploadProgress event handler 
@@ -186,7 +222,6 @@ yobi.Files = (function(){
 	 * @param {Object} oRes
 	 */
 	function _onErrorSubmit(nSubmitId, oRes){
-	    console.log(oRes);
 	    // fireEvent: onError
 	    _fireEvent("errorUpload", {
 	        "nSubmitId": nSubmitId,
@@ -261,11 +296,6 @@ yobi.Files = (function(){
         htElements.welContainer = $(elContainer);
         htElements.welTextarea  = $(elTextarea);
         htElements.welInputFile = htElements.welContainer.find("input[type=file]");
-        
-        // temporarily
-        if(htVar.bXHR2 === false){
-            htElements.welContainer.hide();
-        }
     }
     
     /**
@@ -273,8 +303,6 @@ yobi.Files = (function(){
      */
     function _attachEvent(){
         htElements.welInputFile.change(_onChangeFile);
-        htElements.welFormFile = $('<form action="' + htVar.sUploadURL + '" method="post" enctype="multipart/form-data"></form>');
-        htElements.welInputFile.wrap(htElements.welFormFile);
 
         // Upload by Drag & Drop
         if(htVar.bDroppable){
@@ -429,6 +457,7 @@ yobi.Files = (function(){
     // public interface
 	return {
 	    "init"       : _init,
+	    "getEnv"     : _getEnv,
 	    "setUploader": _setUploader,
 	    "attach"     : _attachCustomEvent,
 	    "detach"     : _detachCustomEvent,

@@ -98,6 +98,9 @@ GET     /:user/:project/settingform                     controllers.ProjectApp.s
 POST    /:user/:project/setting                         controllers.ProjectApp.settingProject(user, project)
 GET     /:user/:project/deleteform                      controllers.ProjectApp.deleteForm(user, project)
 GET     /:user/:project/delete                          controllers.ProjectApp.deleteProject(user, project)
+GET     /:user/:project/mentionList                     controllers.ProjectApp.mentionList(user, project, number:Long ?= -1, resourceType:String ?= "")
+GET     /:user/:project/mentionListAtCommitDiff             controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "")
+GET     /:user/:project/mentionListAtPullRequest             controllers.ProjectApp.mentionListAtPullRequest(user, project, commitId:String ?= "", pullRequestId:Long)
 GET     /:user/:project/members                         controllers.ProjectApp.members(user, project)
 POST    /:user/:project/members                         controllers.ProjectApp.newMember(user, project)
 POST    /:user/:project/member/:id/edit                 controllers.ProjectApp.editMember(user, project, id:Long)
@@ -157,6 +160,8 @@ GET     /:ownerName/:project/pullRequest/:id/cancel     controllers.PullRequestA
 GET     /:ownerName/:project/pullRequest/:id/open       controllers.PullRequestApp.open(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestApp.editPullRequestForm(ownerName, project, id: Long)
 POST    /:ownerName/:project/pullRequest/:id/edit       controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/restorefrombranch   controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
 
 # SVN
 HEAD    /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)
