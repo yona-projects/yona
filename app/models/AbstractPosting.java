@@ -214,7 +214,7 @@ abstract public class AbstractPosting extends Model {
 
     @Transient
     public User getAuthor() {
-        return User.find.byId(authorId);
+        return User.findByLoginId(authorLoginId);
     }
 
     /**
@@ -271,7 +271,7 @@ abstract public class AbstractPosting extends Model {
 
         actualWatchers.addAll(baseWatchers);
 
-        actualWatchers.add(User.find.byId(authorId));
+        actualWatchers.add(getAuthor());
         for (Comment c : getComments()) {
             User user = User.find.byId(c.authorId);
             if (user != null) {
