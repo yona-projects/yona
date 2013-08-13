@@ -45,10 +45,10 @@
 >            "sOption": "Option Value"
 >        });
 
-* 현재 페이지 내에서 해당 모듈을 찾을 수 없는 경우, 즉 명시적으로 <script> 태그를 통해 포함하지 않은 경우
+* 현재 페이지 내에서 해당 모듈을 찾을 수 없는 경우, 즉 명시적으로 `<script>` 태그를 통해 포함하지 않은 경우
     자동으로 javascripts/service 에서 동적으로 자바스크립트 파일을 로딩하려 시도한다.
-    이미 페이지 내에 <script> 태그를 이용해 포함한 경우에는 동적 로딩은 시도되지 않는다.
-    동적 로딩을 시도하는 파일 경로는 javascripts/service/yobi.(module.Name).js 이다.
+    이미 페이지 내에 `<script>` 태그를 이용해 포함한 경우에는 동적 로딩은 시도되지 않는다.
+    동적 로딩을 시도하는 파일 경로는 `javascripts/service/yobi.(module.Name).js` 이다.
 * 자바스크립트 파일 로딩이 완료되어 모듈 코드를 사용할 수 있을 때 자동으로 초기화를 시도하며 내부적으로 수행되는 코드는 아래와 같다.
     이 중 htOption 변수는 $yobi.loadModule() 의 두번째 인자와 동일하다
 
@@ -62,7 +62,7 @@
 * 최상위 객체에 대한 prototype 확장은 사용하지 않는다. 이는 모든 코드에 영향을 미칠 수 있으며 코드 유지보수를 어렵게 만든다
 * 전역 함수, 전역 변수는 최소화 한다. 네임스페이스를 활용하여 코드의 유효 범위를 한정한다
 * HTML 템플릿은 되도록 자바스크립트 파일 내에 포함하지 않는다
-* HTML 템플릿은 정적 페이지내에 <script type="text/x-jquery-tmpl"> 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
+* HTML 템플릿은 정적 페이지내에 `<script type="text/x-jquery-tmpl">` 형태로 위치시키고 자바스크립트는 그 내용을 활용하는 형태로 작성한다
 * HTML 템플릿 문법($.tmpl)은 https://github.com/BorisMoore/jquery-tmpl 참조
 * 단순하게 문자열 치환 기능만을 사용할 때는 $.tmpl 대신 $yobi.tmpl 함수를 사용한다
 

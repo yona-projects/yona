@@ -88,12 +88,6 @@ public class IssueApp extends AbstractPostingApp {
                 }
             }
 
-            if (labelIds != null) {
-                for (Long labelId : labelIds) {
-                    el.eq("labels.id", labelId);
-                }
-            }
-
             if (commentedCheck) {
                 el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
             }
@@ -101,6 +95,12 @@ public class IssueApp extends AbstractPostingApp {
             State st = State.getValue(state);
             if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
                 el.eq("state", st);
+            }
+
+            if (labelIds != null) {
+                for (Long labelId : labelIds) {
+                    el.idIn(el.query().copy().where().eq("labels.id", labelId).findIds());
+                }
             }
 
             if (orderBy != null) {

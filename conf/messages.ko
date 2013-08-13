@@ -253,6 +253,7 @@ post.numOfComments = 댓글개수
 post.error.emptyTitle = 글 제목을 입력해주세요
 post.error.emptyBody = 글 내용을 입력해주세요
 post.error.beforeunload = 아직 글을 저장하지 않았습니다. 저장하지 않은 채로 다른 페이지로 가시겠어요?
+post.notice = 공지
 
 #Project
 project.myproject = 내 프로젝트

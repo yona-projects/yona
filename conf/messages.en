@@ -253,6 +253,7 @@ post.numOfComments = Comment Count
 post.error.emptyTitle = Title is required
 post.error.emptyBody = a Post with empty body cannot be created
 post.error.beforeunload = a Post have not saved yet. Would you like to exit this page without saving?
+post.notice = notice
 
 #Project
 project.myproject = My Projects

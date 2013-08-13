@@ -99,7 +99,7 @@
                     <table class="code-table commits">
                         <thead class="thead">
                         <tr>
-                            <td class="commit-id"><strong>@@</strong></td>
+                            <td class="commit-id"><strong>@{"@"}</strong></td>
                             <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
                             <td class="date"><strong>@Messages("code.commitDate")</strong></td>
                             <td class="author"><strong>@Messages("code.author")</strong></td>
@@ -209,11 +209,18 @@
 
 @views.html.markdown(project)
 
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {
             "sFilesURL" : "@routes.AttachmentApp.getFileList",
             "sUploadURL": "@routes.AttachmentApp.uploadFile"
+        });
+
+        yobi.Mention({
+            target:'comment-editor',
+            url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, commits.get(0).getId, pull.id).toString)"
         });
     });
 </script>

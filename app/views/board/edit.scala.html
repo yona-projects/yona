@@ -50,6 +50,8 @@
 
 @markdown(project)
 
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
 $(document).ready(function(){
 	$yobi.loadModule("board.Write", {
@@ -59,6 +61,13 @@ $(document).ready(function(){
 	});
     $('.zen-mode').zenForm({theme: 'light'});
     $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});
+
+    yobi.Mention({
+        target:'body',
+        url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, posting.getNumber, posting.asResource().getType().resource()).toString())"
+    });
 });
+
+
 </script>
 }
