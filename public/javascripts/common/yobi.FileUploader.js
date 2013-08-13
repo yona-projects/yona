@@ -190,7 +190,7 @@ yobi.FileUploader = (function() {
 			return;
 		}
 		
-		_uploadFiles(htElements.welInputFile[0].files);
+        _uploadFiles(htElements.welInputFile[0].files || htElements.welInputFile);
 	}
 
     /**
@@ -221,8 +221,9 @@ yobi.FileUploader = (function() {
     function _uploadFile(nSubmitId, oFile){
         // append file on list
         oFile.nSubmitId = nSubmitId;
+        
         _appendFileItem({
-            "vFile"     : oFile, // Object
+            "vFile"     : (oFile.files ? oFile.files[0] : oFile), // Object
             "bTemporary": true
         });
         
@@ -235,29 +236,47 @@ yobi.FileUploader = (function() {
      * http://malsup.com/jquery/form/
      * 
      * @param {Number} nSubmitId
-     * @param {File} oFile
+     * @param {HTMLInputElement} elFile
      */
-    function _uploadFileForm(nSubmitId, oFile){
-        var welInputFile = htElements.welInputFile.clone();
-        var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');    
-        welInputFile[0].files[0] = oFile;
+    function _uploadFileForm(nSubmitId, elFile){
+        var welInputFile = htElements.welInputFile; // 원래의 file input
+        var welInputFileClone = htElements.welInputFile.clone(); // 새로 끼워넣을 복제품.
+        var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none" accept="text/html">');
 
+        welInputFileClone.insertAfter(welInputFile); // 예전 input 뒤에 끼워넣고
+        htElements.welInputFile = welInputFileClone; // 레퍼런스 교체
+        htElements.welInputFile.change(_onChangeFile);
+        
         welForm.attr('action', htVar.sAction);
         welForm.append(welInputFile).appendTo(document.body);
+
+        // free memory finally
+        var fClear = function(){
+            welInputFile.remove();
+            welForm.remove();
+            welForm = welInputFile = null;
+        };
         
         // 폼 이벤트 핸들러 설정: nSubmitId 가 필요한 부분만
         var htUploadOpts = htVar.htUploadOpts;
         htUploadOpts.success = function(oRes){
             _onSuccessSubmit(nSubmitId, oRes);
+            fClear();
+            fClear = null;
         };
         htUploadOpts.uploadProgress = function(oEvent, nPos, nTotal, nPercentComplete){
             _onUploadProgress(nSubmitId, nPercentComplete);
+            fClear();
+            fClear = null;
         };
         htUploadOpts.error = function(oRes){
             _onErrorSubmit(nSubmitId, oRes);
+            fClear();
+            fClear = null;
         };
 
         welForm.ajaxForm(htUploadOpts);
+        welForm.submit();
     }
     
     /**
@@ -317,14 +336,16 @@ yobi.FileUploader = (function() {
         var nFileSize = 0;
         var aWelItems = [];
 	    var aFiles = (htData.vFile instanceof Array) ? htData.vFile : [htData.vFile]; // 배열 변수로 단일화
-	    
+
         aFiles.forEach(function(oFile) {
             welItem = _getFileItem(oFile, htData.bTemporary);
             
-            if(typeof oFile.id !== "undefined"){ // 서버의 첨부 목록에서 가져온 경우
+            if(typeof oFile.id !== "undefined" && oFile.id !== ""){ 
+                // 서버의 첨부 목록에서 가져온 경우
                 welItem.addClass("complete");
                 welItem.click(_onClickListItem);
-            } else {                            // 전송하기 전의 임시 항목
+            } else { 
+                // 전송하기 전의 임시 항목인 경우
                 welItem.attr("id", oFile.nSubmitId);
                 welItem.css("opacity", "0.2");
                 welItem.data("progressBar", welItem.find(".progress > .bar"));                
@@ -386,6 +407,11 @@ yobi.FileUploader = (function() {
             "data-name": oRes.name,
             "data-mime": oRes.mimeType
         });
+        
+        // for IE (uploadFileForm)
+        welItem.find(".name").html(oRes.name);
+        welItem.find(".size").html(humanize.filesize(oRes.size));
+        
         welItem.click(_onClickListItem);
     }
 
@@ -409,7 +435,7 @@ yobi.FileUploader = (function() {
 	 */
 	function _onSuccessSubmit(nSubmitId, oRes){
 		htElements.welInputFile.val("");
-		
+
 		// Validate server response
 		if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
 		    return _onErrorSubmit(nSubmitId, oRes);
@@ -462,7 +488,7 @@ yobi.FileUploader = (function() {
 	function _onClickListItem(weEvt){
 		var welTarget = $(weEvt.target);
 		var welItem = $(weEvt.currentTarget);
-		
+
 		// 파일 아이템 전체에 이벤트 핸들러가 설정되어 있으므로
 		// 클릭이벤트 발생한 위치를 삭제버튼과 나머지 영역으로 구분하여 처리
 		if(welTarget.hasClass("btn-delete")){
@@ -496,25 +522,24 @@ yobi.FileUploader = (function() {
 	 * 
 	 * @param {Wrapped Element} welItem
 	 */
-	function _deleteAttachedFile(welItem){			
-		$yobi.sendForm({
-			"sURL": welItem.attr("data-href"),
-			"htOptForm": {
-				"method" :"post",
-				"enctype":"multipart/form-data"
-			},
-			"htData" : {"_method":"delete"},
-			"fOnLoad": function(){
-				_clearLinkInTextarea(welItem);
-				welItem.remove();
-				
-				// 남은 항목이 없으면 목록 감춤
-				if(htElements.welFileList.children().length === 0){
-				    htElements.welFileList.hide();
-				    htElements.welFileListHelp.hide();
-				}
-			}
-		});
+	function _deleteAttachedFile(welItem){
+	    var welForm = $('<form method="post" enctype="multipart/form-data">');
+	    welForm.attr("action", welItem.attr("data-href"));
+	    welForm.appendTo(document.body);
+	    welForm.ajaxForm({
+	        "data"    : {"_method":"delete"},
+	        "success" : function(){
+                _clearLinkInTextarea(welItem);
+                welItem.remove();
+                
+                // 남은 항목이 없으면 목록 감춤
+                if(htElements.welFileList.children().length === 0){
+                    htElements.welFileList.hide();
+                    htElements.welFileListHelp.hide();
+                }
+            }
+	    });
+	    welForm.submit();
 	}
 	
 	/**
