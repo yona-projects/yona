@@ -100,8 +100,8 @@
                                                 @commitMsg.split("\n")(0).substring(0, indexOfPullRequestStart)
                                             }
                                         </a>
-                                        <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pullRequestId)">
-                                            @pullRequestId
+                                        <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pullRequestId)" class="secondary-txt">
+                                            #@pullRequestId
                                         </a>
                                         <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
                                             @defining(commitMsg.indexOf(commitMsg.split(" ")(3)) + commitMsg.split(" ")(3).length) { indexOfPullRequestIdEnd =>
