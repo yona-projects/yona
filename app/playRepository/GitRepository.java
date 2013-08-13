@@ -16,6 +16,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -673,6 +676,10 @@ public class GitRepository implements PlayRepository {
                     // merge 커밋 메시지 수정
                     amend(cloneRepository, UserApp.currentUser(), pullRequest);
 
+                    ObjectId[] mergedCommits = mergeResult.getMergedCommits();
+                    pullRequest.mergedCommitIdFrom = mergedCommits[0].getName();
+                    pullRequest.mergedCommitIdTo = mergedCommits[1].getName();
+
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
                     // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
                     push(cloneRepository, getGitDirectoryURL(pullRequest.toProject), destToBranchName, srcToBranchName);
@@ -844,7 +851,7 @@ public class GitRepository implements PlayRepository {
             return commits;
         } finally {
             if(walk != null) {
-                walk.release();
+                walk.dispose();
             }
         }
     }
@@ -942,19 +949,23 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static Repository buildCloneRepository(PullRequest pullRequest) throws GitAPIException, IOException {
+    public static Repository buildCloneRepository(PullRequest pullRequest) {
         Project toProject = pullRequest.toProject;
 
         // merge 할 때 사용할 Git 저장소 디렉토리 경로를 생성한다.
         String directory = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
 
-        // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
-        // 없을 때는 새로 만든다.
-        File workingTreeDirectory = new File(directory + "/.git");
-        if(!workingTreeDirectory.exists()) {
-            return cloneRepository(pullRequest.toProject, directory).getRepository();
-        } else {
-            return new RepositoryBuilder().setGitDir(workingTreeDirectory).build();
+        try {
+            // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
+            // 없을 때는 새로 만든다.
+            File workingTreeDirectory = new File(directory + "/.git");
+            if(!workingTreeDirectory.exists()) {
+                return cloneRepository(pullRequest.toProject, directory).getRepository();
+            } else {
+                return new RepositoryBuilder().setGitDir(workingTreeDirectory).build();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -1112,6 +1123,50 @@ public class GitRepository implements PlayRepository {
         }
 
         return false;
+    }
+
+    public static List<GitCommit> diffCommits(PullRequest pullRequest) {
+        List<GitCommit> commits = new ArrayList<>();
+        if(pullRequest.mergedCommitIdFrom == null || pullRequest.mergedCommitIdTo == null) {
+            return commits;
+        }
+
+        Repository repo = buildCloneRepository(pullRequest);
+        RevWalk walk = null;
+        try {
+            walk = new RevWalk(repo);
+            ObjectId from = repo.resolve(pullRequest.mergedCommitIdFrom);
+            ObjectId to = repo.resolve(pullRequest.mergedCommitIdTo);
+
+            RevCommit markEndCommit = walk.parseCommit(from);
+            RevCommit markStartCommit = walk.parseCommit(to);
+            walk.markStart(markStartCommit);
+
+            /**
+             * to부터 시작해서 from까지 walk 하다가 from까지 가게되면 멈춘다.
+             *
+             * parent 커밋 ID를 조회해 가는거니까 왔던 길을 거꾸로 돌아 걸어가는 느낌으로 to부터 걸어간다.
+             * 이때 to에 해당하는 커밋 ID는 포함시키고 from에 해당하는 커밋 ID는 제외해야 한다.
+             *
+             * @see PullRequest#mergedCommitIdFrom
+             * @see PullRequest#mergedCommitIdTo
+             */
+            for(RevCommit rev : walk) {
+                if(rev.equals(markEndCommit)) {
+                    break;
+                } else {
+                    commits.add(new GitCommit(rev));
+                }
+            }
+
+            return commits;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(walk != null) {
+                walk.dispose();
+            }
+        }
     }
 
     /**

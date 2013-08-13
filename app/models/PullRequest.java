@@ -1,5 +1,6 @@
 package models;
 
+import controllers.UserApp;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
@@ -69,6 +70,29 @@ public class PullRequest extends Model {
      *
      */
     public String lastCommitId;
+
+    /**
+     * merge commit의 parent 중에서 코드를 받는 쪽 브랜치의 HEAD 커밋 ID.
+     *
+     * when: merge된 커밋 목록을 조회할 때 사용한다.
+     *
+     * 이 커밋 ID는 코드를 보내는쪽에도 존재하며 그 뒤의 커밋 ID부터 추가된 커밋 ID로 볼 수 있다.
+     *
+     * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
+     *
+     */
+    public String mergedCommitIdFrom;
+
+    /**
+     * merge commit의 parent 중에서 코드를 보내는 쪽 브랜치의 HEAD 커밋 ID.
+     *
+     * when: merge된 커밋 목록을 조회할 때 사용한다.
+     *
+     * #mergedCommitIdFrom 뒤에 추가된 커밋 ID부터 이 커밋 ID까지를 추가된 커밋 ID로 불 수 있다.
+     *
+     * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
+     */
+    public String mergedCommitIdTo;
 
     @Override
     public String toString() {
@@ -253,5 +277,14 @@ public class PullRequest extends Model {
 
     public void restoreFromBranch() {
         GitRepository.restoreBranch(this);
+    }
+
+    public void merge() {
+        GitRepository.merge(this);
+        if(this.state == State.CLOSED) {
+            this.received = JodaDateUtil.now();
+            this.receiver = UserApp.currentUser();
+            this.update();
+        }
     }
 }

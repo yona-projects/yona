@@ -326,7 +326,7 @@ public class PullRequestApp extends Controller {
 
         final boolean[] isSafe = {false};
         final List<GitCommit> commits = new ArrayList<>();
-        if(pullRequest.isOpen()) {
+        if(!pullRequest.isClosed()) {
             GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
                 public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
                     Repository clonedRepository = cloneAndFetch.getRepository();
@@ -348,6 +348,11 @@ public class PullRequestApp extends Controller {
                     isSafe[0] = mergeResult.getMergeStatus().isSuccessful();
                 }
             });
+        } else {
+            List<GitCommit> commitList = GitRepository.diffCommits(pullRequest);
+            for(GitCommit commit : commitList) {
+                commits.add(commit);
+            }
         }
 
         boolean canDeleteBranch = false;
@@ -405,12 +410,8 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        GitRepository.merge(pullRequest);
-        if(pullRequest.state == State.CLOSED) {
-            pullRequest.received = JodaDateUtil.now();
-            pullRequest.receiver = UserApp.currentUser();
-            pullRequest.update();
-        }
+        pullRequest.merge();
+
         return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
     }
 
