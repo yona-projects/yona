@@ -120,8 +120,10 @@ yobi.Markdown = function(htOptions){
           text ='#' + sNum;
       } else if (sUser) {
           // @foo
-          path = '/' + sUser;
-          text = '@' + sUser;
+          if (sPre.length == 0 || !/\w/.test(sPre[sPre.length - 1])) {
+            path = '/' + sUser;
+            text = '@' + sUser;
+          }
       }
 
       if (path && text) {
