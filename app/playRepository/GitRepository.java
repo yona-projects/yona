@@ -904,6 +904,7 @@ public class GitRepository implements PlayRepository {
             String destFromBranchName = srcFromBranchName + "-from-" + pullRequest.id;
 
             new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
+            new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
             checkout(cloneRepository, Constants.MASTER);
 
             // 코드를 받아오면서 생성될 브랜치를 미리 삭제한다.
@@ -919,6 +920,8 @@ public class GitRepository implements PlayRepository {
             operation.invoke(cloneAndFetch);
 
             // master로 이동
+            new Git(cloneRepository).reset().setMode(ResetCommand.ResetType.HARD).setRef(Constants.HEAD).call();
+            new Git(cloneRepository).clean().setIgnore(true).setCleanDirectories(true).call();
             checkout(cloneRepository, Constants.MASTER);
         } catch (GitAPIException e) {
             throw new IllegalStateException(e);
