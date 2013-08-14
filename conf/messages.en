@@ -446,7 +446,6 @@ code.nohead.clone = Create new local repository by cloning the repository create
 code.nohead.init = Or, create new local repository by yourself and add a remote that indicate the Yobi repository and push README.md file.
 code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
 code.nohead.pull.push = You can keep update your code to your Yobi repository with 'pull' and 'push'. The 'pull' means getting update from the remote repository, and 'push' means putting your code to remote repository.
-
 code.copyUrl = Copy URL
 code.filename = Filename
 code.commitMsg = Commit Message
@@ -587,6 +586,20 @@ delete.frombranch.message = can be deleted.
 restore.frombranch.message = can be restored.
 delete.branch = Delete Branch
 restore.branch = Restore Branch
+pullRequest.conflict.files = Conflicted Files
+pullRequest.resolve.conflict = Resolving Conflicts
+pullRequest.resolver.step1 = Move to the code sending branch on your workspace.
+pullRequest.resolver.step2 = (If you did it already, skip) Add the upstream repository's URL as new remote.
+pullRequest.resolver.step3 = Get the latest upstream code.
+pullRequest.resolver.step4 = Rebase with the code receiving branch.
+pullRequest.resolver.step5 = There will be some conflicted files. Open those files and edit it properly.
+pullRequest.resolver.step6 = If you fixed it, you should let the Git knows it.
+pullRequest.resolver.step7 = After resolving the conflicts, continue the rebasing.
+pullRequest.resolver.step8 = You may repeat 5 to 7 several times or not.
+pullRequest.resolver.step9 = After the rebasing, push it forcefully.
+pullRequest.resolver.step10 = The End!
+pullRequest.resolver.step11 = Check again your pull request can be merged safely or not.
+page.refresh = Page Refresh
 
 # Notifcation
 notification.watch = Watch
