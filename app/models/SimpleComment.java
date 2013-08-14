@@ -98,6 +98,15 @@ public class SimpleComment extends Model {
             public ResourceType getType() {
                 return ResourceType.SIMPLE_COMMENT;
             }
+
+            @Override
+            public Long getAuthorId() {
+                return authorId;
+            }
         };
+    }
+
+    public static SimpleComment findById(Long id) {
+        return find.byId(id);
     }
 }

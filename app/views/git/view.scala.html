@@ -189,7 +189,7 @@
                     </a>
                     <div class="media-body">
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                        <a class="pull-right close" href="#">&times;</a>
+                        <a class="pull-right close" href="@routes.SimpleCommentApp.deleteComment(comment.id)">&times;</a>
                         }
                         <div class="comment-body markdown-wrap" markdown="true">@comment.contents</div>
                         <p class="commenter">

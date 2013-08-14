@@ -446,7 +446,6 @@ code.nohead.clone = Create new local repository by cloning the repository create
 code.nohead.init = Or, create new local repository by yourself and add a remote that indicate the Yobi repository and push README.md file.
 code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
 code.nohead.pull.push = You can keep update your code to your Yobi repository with 'pull' and 'push'. The 'pull' means getting update from the remote repository, and 'push' means putting your code to remote repository.
-
 code.copyUrl = Copy URL
 code.filename = Filename
 code.commitMsg = Commit Message
@@ -635,5 +634,5 @@ import.error.wrong.url = Wrong Git repository URL.
 import.from.git = Import a Git repository.
 import.or = Or
 git.repository.url = Git repository URL
-git.url.alert = Please input Git repository URL. ex) https://github.com/nforge/hive.git
+git.url.alert = Please input Git repository URL. ex) https://github.com/nforge/yobi.git
 import.long.runnning = It may takes few minutes as the case depending on remote project size or network.

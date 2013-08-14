@@ -43,7 +43,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 /** yobi.ui.Dropdown **/
 .dropdown-toggle {
     background:@white; text-align:left;
-    padding:0; padding-left:12px; outline:none;
+    padding:0px; padding-left:12px; outline:none;
     .border-radius(2px);
 
     &.small  .d-label { width: 29px;  }
@@ -67,7 +67,8 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         
         .caret {
             border-top-color:@secondary;
-        }        
+        }
+        &.nlb { border-left:none; }
     }
     
     &.blue {
@@ -77,6 +78,11 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.orange {
         background:@orange; border-bottom:1px solid rgba(0,0,0,0.25);
         .d-caret .caret { border-top-color:#fff; }
+    }
+}
+@-moz-document url-prefix() {
+    *>.dropdown-toggle {
+        padding:3px 0 !important;
     }
 }
 .btn-group.open .btn.dropdown-toggle {
