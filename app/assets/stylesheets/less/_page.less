@@ -1999,32 +1999,27 @@
 }
 
 .board-header{
-    padding: 15px 20px;
+    display:block; clear:both;
+    height:30px; padding: 15px 20px;
     border-top: 1px solid @gray-d4;
     border-bottom: 1px solid @gray-d4;
-    .div {
-        display: table-cell;
-        vertical-align: middle;
-    }
+
     .board-id {
-        width: 35px;
-        line-height:22px;
-        padding-right: 10px;
         font-size:14px;
+        padding-right: 10px;
+        color:@secondary;
     }
     .title {
-        width: 90%;/*655px;*/
-        padding-right: 20px;
         font-size: 18px;
-        line-height: 22px;
+        line-height: 30px;
         color: #000;
     }
     .date {
-        width: 120px;
-        color: #999; line-height:22px;
-    }
-    &.issue {
-        .title { width:80%;/*650px;*/ }
+        display:inline-block; 
+        vertical-align:top; 
+        line-height:29px; 
+        margin-right:20px;
+        color: #999;
     }
 }
 .badge {
@@ -2037,30 +2032,31 @@
 }
 
 .board-body {
-    padding: 20px;
+    /*padding: 20px 0;*/
     .author-info {
-        margin-bottom: 34px;
-        .media-body {
-            padding-left: 10px;
-            p {
-                margin-bottom: 5px;
-                line-height: 30px;
-            }
-            .name {
-                font-size: 11px;
-            }
-            .status {
-                margin: 0;
-                color: #646464;
-                font-size: 11px;
-                .ico {
-                    vertical-align: top;
-                }
+        /*margin-bottom: 34px;*/
+        padding:15px 0 0 10px;
+        
+        dl { margin-bottom:10px; }
+        dl.author { height:50px; }
+        p {
+            margin-bottom: 5px;
+            line-height: 14px;
+        }
+        .name {
+            font-size: 11px;
+        }
+        .status {
+            margin: 0;
+            color: #646464;
+            font-size: 11px;
+            .ico {
+                vertical-align: top;
             }
         }
     }
     .content {
-        /*width: 700px;*/
+       padding:0 10px;
        margin-bottom: 20px;
        a { font-weight:bold; }
     }
@@ -2087,7 +2083,7 @@
         padding: 0;
         list-style: none;
         .comment {
-            padding: 20px;
+            padding: 10px 20px;
             border-bottom:1px solid #ececec;
 
             .media-body {
@@ -2173,9 +2169,9 @@ div.markdown-preview {
             margin-right: 5px;
         }
     }
-    a {
+    /*a {
         margin-left: 5px;
-    }
+    }*/
 }
 .board-actrow {
     margin:20px 0;
@@ -2733,6 +2729,7 @@ div.markdown-preview {
             td.linenum {
                 text-align: right;
                 color: rgba(0, 0, 0, 0.3);
+                white-space: nowrap;
             }
             span {
                 white-space: pre;
@@ -2917,6 +2914,7 @@ div.markdown-preview {
                 border-bottom: 1px solid #E6E6E6;
                 &:last-of-type { border-bottom:none; }
             }
+            .message { line-height:150%; }
         }
 
         .filename {
@@ -3752,3 +3750,4 @@ div#commit.show-comments tr.comments {
     display: table-row;
 }
 
+div#mode-select { text-align:right; }
