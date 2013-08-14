@@ -339,7 +339,10 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        return redirect(request().getHeader("Referer"));
+        // Response as JSON on XHR
+        String contentType = HttpUtil.getPreferType(request(), "application/json");
+        Boolean isXHR = contentType.equals("application/json");
+        return isXHR ? ok() : redirect(request().getHeader("Referer"));
     }
 
     /**

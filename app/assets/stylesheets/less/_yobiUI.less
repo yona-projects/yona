@@ -137,6 +137,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     white-space:nowrap;
     color: @white;
     background-color: #707070;
+    .box-shadow(inset 0px -1px 1px rgba(0,0,0,0.3));
 
     .border-radius(2px);
     .inline-block;
@@ -147,7 +148,9 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         text-decoration: none;
     }
     &.last  { margin-right:0; }
-    &.active { .box-shadow(inset 2px 2px 1px rgba(0, 0, 0, 0.25)); }
+    &.active { 
+        .box-shadow(inset 1px 1px 4px rgba(0, 0, 0, 0.25)); 
+    }
     
     &.blue {
         background-color: @blue2; /*#56B5D9*/
@@ -188,7 +191,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.white {
         color: #222;
         background-color: @white;
-        &:hover { background-color: darken(@white, 10%); }
+        &:hover { background-color: darken(@white, 10%); color:@primary; }
     }
 }
 a.nbtn, div.nbtn, span.nbtn, p.nbtn {
@@ -238,7 +241,7 @@ button.nbtn {
     border:1px solid rgba(0,0,0,0.1);/*none;*/
     padding:2px 4px; margin-right:5px;
     font-size:11px; font-weight:bold;
-    /*.box-shadow(inset 0px -1px 1px rgba(0,0,0,0.3));*/
+    text-shadow:none;
     -webkit-transition-duration:0.25s;
     &:last-of-type { margin:0; }
 
@@ -481,4 +484,153 @@ button.nbtn {
     padding: 2px 3px;
     font-size: 11px;
     color: @blue2;
+}
+
+/* ============================================================
+ * bootstrapSwitch v1.3 by Larentis Mattia @spiritualGuru
+ * http://www.larentis.eu/switch/
+ * ============================================================
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * ============================================================ */
+/**
+ * Flat UI Free 
+ * licensed under a CC BY 3.0 and MIT License
+ * 
+ * http://creativecommons.org/licenses/by/3.0/
+ * http://opensource.org/licenses/mit-license.html
+ */
+.has-switch {
+    border-radius: 30px;
+    display: inline-block;
+    cursor: pointer;
+    line-height: 1.231;
+    overflow: hidden;
+    position: relative;
+    text-align: left;
+    width: 80px;
+    -webkit-mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
+    mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+.has-switch.deactivate {
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+    cursor: default !important;
+}
+.has-switch.deactivate label,
+.has-switch.deactivate span {
+    cursor: default !important;
+}
+.has-switch > div {
+    width: 162%;
+    position: relative;
+    top: 0;
+}
+.has-switch > div.switch-animate {
+    -webkit-transition: left 0.25s ease-out;
+    -moz-transition: left 0.25s ease-out;
+    -o-transition: left 0.25s ease-out;
+    transition: left 0.25s ease-out;
+    -webkit-backface-visibility: hidden;
+}
+.has-switch > div.switch-off {
+    left: -63%;
+}
+.has-switch > div.switch-off label {
+    background-color: #7f8c9a;
+    border-color: #bdc3c7;
+    -webkit-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
+    -moz-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
+    box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
+}
+.has-switch > div.switch-on {
+    left: 0%;
+}
+.has-switch > div.switch-on label {
+    background-color: #fff;
+}
+.has-switch input[type=checkbox] {
+    display: none;
+}
+.has-switch span {
+    cursor: pointer;
+    font-size: 13px;/*14.994px;*/
+    font-weight: 700;
+    float: left;
+    height: 29px;
+    line-height: 19px;
+    margin: 0;
+    padding-bottom: 6px;
+    padding-top: 5px;
+    position: relative;
+    text-align: center;
+    width: 50%;
+    z-index: 1;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-transition: 0.25s ease-out;
+    -moz-transition: 0.25s ease-out;
+    -o-transition: 0.25s ease-out;
+    transition: 0.25s ease-out;
+    -webkit-backface-visibility: hidden;
+}
+.has-switch span.switch-left {
+    border-radius: 30px 0 0 30px;
+    background-color: @secondary;
+    color: #fff;
+    border-left: 1px solid transparent;
+    &:hover {
+        background-color:darken(@secondary, 10%);
+    }
+}
+.has-switch span.switch-right {
+    border-radius: 0 30px 30px 0;
+    background-color: #bdc3c7;
+    color: #555;/*#ffffff;*/
+    text-indent: 5px;
+    &:hover {
+        background-color:darken(#bdc3c7, 10%);
+    }
+}
+.has-switch label {
+    border: 4px solid @secondary;
+    border-radius: 50%;
+    float: left;
+    height: 21px;
+    margin: 0 -15px 0 -14px;
+    padding: 0;
+    position: relative;
+    vertical-align: middle;
+    width: 21px;
+    z-index: 100;
+    -webkit-transition: 0.25s ease-out;
+    -moz-transition: 0.25s ease-out;
+    -o-transition: 0.25s ease-out;
+    transition: 0.25s ease-out;
+    -webkit-backface-visibility: hidden;
+}
+.switch-square {
+    border-radius: 6px;
+    -webkit-mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
+    mask: url('@{base-image-path}/switch-mask.png') 0 0 no-repeat;
+}
+.switch-square > div.switch-off label {
+    border-color: #7f8c9a;
+    border-radius: 6px 0 0 6px;
+}
+.switch-square span.switch-left {
+    border-radius: 6px 0 0 6px;
+}
+.switch-square span.switch-right {
+    border-radius: 0 6px 6px 0;
+}
+.switch-square label {
+    border-radius: 0 6px 6px 0;
+    border-color: @secondary;
 }

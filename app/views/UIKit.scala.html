@@ -8,8 +8,10 @@
 <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap")">
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("yobi")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("fontawesome/css/font-awesome.min")">
 <script type="text/javascript" src="@getJSLink("lib/jquery/jquery-1.9.0")"></script>
 <script type="text/javascript" src="@getJSLink("lib/bootstrap")"></script>
+<script type="text/javascript" src="@getJSLink("lib/bootstrap-switch")"></script>
 <script type="text/javascript" src="@getJSLink("common/yobi.Common")"></script>
 <style type="text/css">
 body { color:#ccc; }
@@ -296,6 +298,21 @@ dd { margin-left:0; }
 				</li>
 			</ul>
 		</div>
+		
+		<hr>
+		<h3>Switches</h3>
+		<xmp class="css"><input type="checkbox" data-toggle="switch"></xmp>
+		<div>
+            <div class="switch" data-on-label="미해결" data-off-label="해결">
+                <input type="checkbox" data-toggle="switch" checked="checked">
+            </div>
+            <div class="switch deactivate" data-on-label="미해결" data-off-label="해결">
+                <input type="checkbox" data-toggle="switch">
+            </div>
+            <div class="switch switch-square" data-on-label="<i class='icon-eye-close'></i>" data-off-label="<i class='icon-eye-open'></i>">
+                <input type="checkbox" data-toggle="switch">
+            </div>
+		</div>
 	</div>
 </div>
 
@@ -304,6 +321,7 @@ dd { margin-left:0; }
 		<span class="provider">&copy; <strong>NHN Corp.</strong></span>
 	</div>
 </footer>
-
+<script type="text/javascript">
+</script>
 </body>
 </html>
