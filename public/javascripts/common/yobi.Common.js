@@ -301,6 +301,16 @@ $yobi = yobi.Common = (function(){
         });
     }
 	
+	/**
+	 * Convert special characters to HTML entities
+	 * @param {String} sHTML
+	 * @return {String}
+	 */
+	function htmlspecialchars(sHTML){
+	    htVar.welHSC = htVar.welHSC || $("<div>");
+	    return htVar.welHSC.text(sHTML).html();
+	}
+	
 	/* public Interface */
 	return {
         "setScriptPath"   : setScriptPath,
@@ -315,7 +325,8 @@ $yobi = yobi.Common = (function(){
         "alert"     : showAlert,
         "notify"    : notify,
         "nl2br"     : nl2br,
-        "tmpl"      : processTpl
+        "tmpl"      : processTpl,
+        "htmlspecialchars": htmlspecialchars
 	};
 })();
 
