@@ -149,7 +149,7 @@
 		<ul class="comments">
 		@for(comment <- issue.comments){
 			<li class="comment" id="comment-@comment.id">
-				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
+				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
 		        	<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
 	        	</a>
 				<div class="media-body">
