@@ -43,7 +43,11 @@ public class IssueLabel extends Model {
     public Set<Issue> issues;
 
     public static List<IssueLabel> findByProject(Project project) {
-        return finder.where().eq("project.id", project.id).findList();
+        return finder.where()
+                .eq("project.id", project.id)
+                .orderBy().asc("category")
+                .orderBy().asc("id")
+                .findList();
     }
 
     public String toString() {
