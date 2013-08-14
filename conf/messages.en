@@ -635,5 +635,5 @@ import.error.wrong.url = Wrong Git repository URL.
 import.from.git = Import a Git repository.
 import.or = Or
 git.repository.url = Git repository URL
-git.url.alert = Please input Git repository URL. ex) https://github.com/nforge/hive.git
+git.url.alert = Please input Git repository URL. ex) https://github.com/nforge/yobi.git
 import.long.runnning = It may takes few minutes as the case depending on remote project size or network.
