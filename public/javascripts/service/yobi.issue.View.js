@@ -33,9 +33,14 @@
 		 * initialize variables except HTML Element
 		 */
 		function _initVar(htOptions){
-			htVar.sTplFileItem = $('#tplAttachedFile').text();
-			htVar.sAction = htOptions.sAction;
-            htVar.sWatchUrl = htOptions.sWatchUrl;
+            htVar.sTplFileItem = $('#tplAttachedFile').text();
+
+		    htVar.sIssueId = htOptions.sIssueId;
+		    htVar.sIssuesUrl = htOptions.sIssuesUrl;
+		    
+			htVar.sUploadUrl  = htOptions.sUploadUrl;
+			htVar.sFilesUrl   = htOptions.sFilesUrl;
+            htVar.sWatchUrl   = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             
             htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
@@ -56,6 +61,7 @@
             htElement.welIssueUpdateForm = htOptions.welIssueUpdateForm;
             htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
             
+            htElement.welChkIssueOpen = $("#issueOpen");
 		}
 
         /**
@@ -64,25 +70,54 @@
         function _attachEvent(){
             htElement.welBtnWatch.click(function(weEvt) {
                 var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("active");
+                var bWatched = welTarget.hasClass("watching");
 
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget.toggleClass("active");
-                        welTarget.html(Messages(welTarget.hasClass("active") ? "project.unwatch" : "project.watch"));
+                        welTarget.toggleClass("watching");
+                        welTarget.html(Messages(welTarget.hasClass("watching") ? "project.unwatch" : "project.watch"));
                     }
                 });
             });
-            
-            
+
             htVar.oMilestone.onChange(_onChangeUpdateField);
             htVar.oAssignee.onChange(_onChangeUpdateField);
+            
+            htElement.welChkIssueOpen.change(_onChangeIssueOpen);
         }
         
+        /**
+         * 이슈 해결/미해결 스위치 변경시
+         */
+        function _onChangeIssueOpen(){
+            var welTarget  = $(this);
+            var bChecked   = welTarget.prop("checked");
+            var sNextState = bChecked ? "OPEN" : "CLOSED";
+            
+            $.ajax(htVar.sIssuesUrl, {
+                "method": "post",
+                "data": {
+                    "issues[0].id": htVar.sIssueId,
+                    "state": sNextState
+                },
+                "success": function(){
+                    welTarget.prop("checked", bChecked);
+                },
+                "error" : function(){
+                    welTarget.prop("checked", !bChecked);
+                    $yobi.notify(Messages("error.internalServerError"));
+                }
+            });
+        }
+        
+        /**
+         * 이슈 즉시 수정 폼 변경시 이벤트 핸들러
+         */
         function _onChangeUpdateField() {
             htElement.welIssueUpdateForm.submit();
         }
+        
 		/**
 		 * initialize fileUploader
 		 */
@@ -91,7 +126,7 @@
 				"elContainer" : htElement.welUploader,
 				"elTextarea"  : htElement.welTextarea,
 				"sTplFileItem": htVar.sTplFileItem,
-				"sAction": htVar.sAction
+				"sAction"     : htVar.sUploadUrl
 			});
 		}
 		
@@ -100,7 +135,7 @@
 		 */
 		function _initFileDownloader(){
 			htElement.welAttachments.each(function(n, el){
-				fileDownloader($(el), htVar.sAction);
+				fileDownloader($(el), htVar.sFilesUrl);
 			});
 		}
         
