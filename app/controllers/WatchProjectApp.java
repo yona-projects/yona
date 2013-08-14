@@ -7,6 +7,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
 import utils.ErrorViews;
+import utils.WatchService;
 
 public class WatchProjectApp extends Controller {
 
@@ -22,8 +23,7 @@ public class WatchProjectApp extends Controller {
             return redirect(routes.UserApp.loginForm());
         }
 
-        user.addWatching(project);
-
+        WatchService.watch(project.asResource());
 
         return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }
@@ -40,7 +40,7 @@ public class WatchProjectApp extends Controller {
             return redirect(routes.UserApp.loginForm());
         }
 
-        user.removeWatching(project);
+        WatchService.unwatch(project.asResource());
 
         return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }

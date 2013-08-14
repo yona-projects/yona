@@ -287,8 +287,8 @@ public class Issue extends AbstractPosting {
     public Resource fieldAsResource(final ResourceType resourceType) {
         return new Resource() {
             @Override
-            public Long getId() {
-                return id;
+            public String getId() {
+                return id.toString();
             }
 
             @Override
@@ -359,28 +359,6 @@ public class Issue extends AbstractPosting {
         return super.getWatchers(baseWatchers);
     }
 
-    /**
-     * 명시적으로 이 이슈를 지켜보고 있는 사용자들
-     */
-    @ManyToMany
-    @JoinTable(name="ISSUE_EXPLICIT_WATCHER")
-    private Set<User> explicitWatchers;
-
-    /**
-     * 명시적으로 이 이슈를 무시하는(지켜보지 않는) 사용자들
-     */
-    @ManyToMany
-    @JoinTable(name="ISSUE_EXPLICIT_UNWATCHER")
-    private Set<User> explicitUnwatchers;
-
-
-    protected Set<User> getExplicitWatchers() {
-        return explicitWatchers;
-    }
-
-    protected Set<User> getExplicitUnwatchers() {
-        return explicitUnwatchers;
-    }
 
     public boolean assigneeEquals(Assignee otherAssignee) {
         return (assignee == otherAssignee) ||

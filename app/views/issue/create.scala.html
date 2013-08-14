@@ -5,6 +5,7 @@
 @import models.enumeration.Operation
 @import controllers.UserApp;
 @import utils.AccessControl._
+@import utils.TemplateHelper._
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
@@ -115,6 +116,9 @@
 
 @markdown(project)
 
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+
 <script type="text/javascript">
 	$(document).ready(function(){
 	    // yobi.Label
@@ -131,6 +135,12 @@
             "sIssueFormURL"  : "@routes.IssueApp.newIssueForm(project.owner, project.name)",
 			"sUploaderAction": "@routes.AttachmentApp.uploadFile"
 		});
-	});
+
+        yobi.Mention({
+            target:'body',
+            url : '@routes.ProjectApp.mentionList(project.owner, project.name)'
+        });
+
+    });
 </script>
 }

@@ -278,7 +278,7 @@ $yobi = yobi.Common = (function(){
 	 * @return {String}
 	 */
 	function nl2br(sText){
-		return sText.split("\n").join("<br>");		
+		return (typeof sText === "string") ? sText.split("\n").join("<br>") : sText;
 	}
 	
 	/**

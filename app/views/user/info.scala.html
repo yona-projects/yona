@@ -1,4 +1,5 @@
 @(user:User, groupNames:Array[String], projects:List[Project], postings:List[Posting], issues:List[Issue], pullRequests:List[PullRequest], milestones:List[Milestone], daysAgo:Int, selected:String)
+@import utils.MD5Util
 
 @import utils.TemplateHelper._
 
@@ -21,6 +22,10 @@
 
 @showBadgeNumberIfExist(number:Int) = { @if(number>0){ <span class="num-badge">@number</span> } }
 
+@emailObfuscation(emailAddress:String) = {
+    @Html(emailAddress.reverse.replace("@","@<span class='z'>"+MD5Util.md5Hex(emailAddress)+"</span>").replace(".", "<span class='z'>"+MD5Util.md5Hex(emailAddress).reverse+"</span>."))
+}
+
 @home(user.loginId, utils.MenuType.USER) {
 
 <div class="page">
@@ -29,7 +34,7 @@
             <div class="whoami-wrap" style="background-image:url('@user.avatarUrl')">
                 <div class="whoami">
                     <span class="uname">@user.name</span>
-                    <span class="email">@user.email</span>
+                    <span class="eml reverb">@emailObfuscation(user.email)</span>
                 </div>
                 @if(user != null && session != null && user.loginId == session.get("loginId")){
                 <div class="edit">

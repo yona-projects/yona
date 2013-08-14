@@ -160,7 +160,7 @@ public class BoardApp extends AbstractPostingApp {
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toPost.absoluteURL(request());
-        notiEvent.resourceId = post.id;
+        notiEvent.resourceId = post.id.toString();
         notiEvent.resourceType = post.asResource().getType();
         notiEvent.type = NotificationType.NEW_POSTING;
         notiEvent.oldValue = null;
@@ -367,20 +367,4 @@ public class BoardApp extends AbstractPostingApp {
 
         return delete(comment, comment.asResource(), redirectTo);
     }
-
-    public static Result watch(String ownerName, String projectName, Long postingNumber) {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Posting posting = Posting.findByNumber(project, postingNumber);
-
-        return AbstractPostingApp.watch(posting);
-    }
-
-    public static Result unwatch(String ownerName, String projectName, Long postingNumber) {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Posting posting = Posting.findByNumber(project, postingNumber);
-
-        return AbstractPostingApp.unwatch(posting);
-    }
-
-
 }

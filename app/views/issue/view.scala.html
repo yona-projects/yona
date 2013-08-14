@@ -271,6 +271,8 @@
 
 @markdown(project)
 
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
 		// yobi.Label
@@ -285,8 +287,8 @@
             "htOptLabel"    : htOptLabel,
 			"sUploadUrl"    : "@routes.AttachmentApp.uploadFile",
 			"sFilesUrl"     : "@routes.AttachmentApp.getFileList",
-            "sWatchUrl"     : "@routes.IssueApp.watch(project.owner, project.name, issue.getNumber)",
-            "sUnwatchUrl"   : "@routes.IssueApp.unwatch(project.owner, project.name, issue.getNumber)",
+            "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
     		"sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",
     		"sIssueId"      : "@issue.id",
             "welMilestone"  : $("#milestone"),
@@ -302,6 +304,13 @@
             @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
            ,"E": "@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)"
             }
+        });
+
+        @play.Logger.debug(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType().resource())+"")
+
+        yobi.Mention({
+            target:'comment-editor',
+            url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType().resource()).toString())"
         });
 	});
 </script>

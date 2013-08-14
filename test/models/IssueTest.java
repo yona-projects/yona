@@ -14,6 +14,7 @@ import org.junit.Before;
 import com.avaje.ebean.Page;
 import play.Logger;
 import play.data.validation.Validation;
+import utils.WatchService;
 
 public class IssueTest extends ModelTest<Issue> {
     private User admin;
@@ -85,13 +86,13 @@ public class IssueTest extends ModelTest<Issue> {
 
     @Test
     public void watchExplicitly() {
-        issue.watch(nonmember);
+        WatchService.watch(nonmember, issue.asResource());
         assertThat(issue.getWatchers().contains(nonmember)).isTrue();
     }
 
     @Test
     public void unwatchExplicitly() {
-        issue.unwatch(author);
+        WatchService.unwatch(author, issue.asResource());
         assertThat(issue.getWatchers().contains(author)).isFalse();
     }
 

@@ -88,12 +88,6 @@ public class IssueApp extends AbstractPostingApp {
                 }
             }
 
-            if (labelIds != null) {
-                for (Long labelId : labelIds) {
-                    el.eq("labels.id", labelId);
-                }
-            }
-
             if (commentedCheck) {
                 el.ge("numOfComments", AbstractPosting.NUMBER_OF_ONE_MORE_COMMENTS);
             }
@@ -101,6 +95,12 @@ public class IssueApp extends AbstractPostingApp {
             State st = State.getValue(state);
             if (st.equals(State.OPEN) || st.equals(State.CLOSED)) {
                 el.eq("state", st);
+            }
+
+            if (labelIds != null) {
+                for (Long labelId : labelIds) {
+                    el.idIn(el.query().copy().where().eq("labels.id", labelId).findIds());
+                }
             }
 
             if (orderBy != null) {
@@ -403,7 +403,7 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = issueCall.absoluteURL(request());
-        notiEvent.resourceId = newIssue.id;
+        notiEvent.resourceId = newIssue.id.toString();
         notiEvent.resourceType = newIssue.asResource().getType();
         notiEvent.type = NotificationType.NEW_ISSUE;
         notiEvent.oldValue = null;
@@ -557,7 +557,7 @@ public class IssueApp extends AbstractPostingApp {
 
         notiEvent.created = new Date();
         notiEvent.urlToView = urlToView;
-        notiEvent.resourceId = updatedIssue.id;
+        notiEvent.resourceId = updatedIssue.id.toString();
         notiEvent.resourceType = updatedIssue.asResource().getType();
         notiEvent.type = NotificationType.ISSUE_STATE_CHANGED;
 
@@ -594,7 +594,7 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = receivers;
         notiEvent.urlToView = urlToView;
-        notiEvent.resourceId = updatedIssue.id;
+        notiEvent.resourceId = updatedIssue.id.toString();
         notiEvent.resourceType = updatedIssue.asResource().getType();
         notiEvent.type = NotificationType.ISSUE_ASSIGNEE_CHANGED;
 
@@ -731,19 +731,5 @@ public class IssueApp extends AbstractPostingApp {
                 labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
             }
         }
-    }
-
-    public static Result watch(String ownerName, String projectName, Long issueNumber) {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Issue issue = Issue.findByNumber(project, issueNumber);
-
-        return AbstractPostingApp.watch(issue);
-    }
-
-    public static Result unwatch(String ownerName, String projectName, Long issueNumber) {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-        Issue issue = Issue.findByNumber(project, issueNumber);
-
-        return AbstractPostingApp.unwatch(issue);
     }
 }

@@ -32,8 +32,8 @@ public class NullUser extends User {
     public Resource asResource() {
         return new Resource() {
             @Override
-            public Long getId() {
-                return id;
+            public String getId() {
+                return id.toString();
             }
 
             @Override

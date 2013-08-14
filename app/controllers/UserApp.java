@@ -418,7 +418,7 @@ public class UserApp extends Controller {
                     addProjectNotDupped(projectCollection, Project.findProjectsJustMemberAndNotOwner(user));
                     break;
                 case "watching":
-                    addProjectNotDupped(projectCollection, user.watchingProjects);
+                    addProjectNotDupped(projectCollection, user.getWatchingProjects());
                     break;
             }
         }

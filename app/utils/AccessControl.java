@@ -59,6 +59,7 @@ public class AccessControl {
                 case NONISSUE_COMMENT:
                 case FORK:
                 case CODE_COMMENT:
+                case SIMPLE_COMMENT:
                     return true;
                 default:
                     return false;
@@ -92,7 +93,7 @@ public class AccessControl {
 
         if (operation == Operation.READ) {
             if (resource.getType() == ResourceType.PROJECT) {
-                Project project = Project.find.byId(resource.getId());
+                Project project = Project.find.byId(Long.valueOf(resource.getId()));
                 return project != null && (project.isPublic || ProjectUser.isMember(user.id, project.id));
             }
 
@@ -106,7 +107,7 @@ public class AccessControl {
         case USER_AVATAR:
             return user.id.equals(resource.getId());
         case PROJECT:
-            return ProjectUser.isManager(user.id, resource.getId());
+            return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
         default:
             // undefined
             return false;

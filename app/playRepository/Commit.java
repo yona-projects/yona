@@ -1,15 +1,12 @@
 package playRepository;
 
-import models.CodeComment;
-import models.CommitExplicitWatching;
-import models.Project;
-import models.User;
+import models.*;
 import models.enumeration.Operation;
-import play.db.ebean.Model;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 import utils.AccessControl;
+import utils.WatchService;
 
-import javax.persistence.*;
-import java.beans.Transient;
 import java.util.*;
 
 public abstract class Commit {
@@ -47,16 +44,12 @@ public abstract class Commit {
             }
         }
 
-        // Add every user who watch the project to which this commit belongs
-        actualWatchers.addAll(project.watchers);
+        // Add every user who watches the project to which this commit belongs
+        actualWatchers.addAll(WatchService.findWatchers(project.asResource()));
 
         // For this commit, add every user who watch explicitly and remove who unwatch explicitly.
-        CommitExplicitWatching explicit =
-                CommitExplicitWatching.findByProjectAndCommitId(project, getId());
-        if (explicit != null) {
-            actualWatchers.addAll(explicit.watchers);
-            actualWatchers.removeAll(explicit.unwatchers);
-        }
+        actualWatchers.addAll(WatchService.findWatchers(asResource(project)));
+        actualWatchers.removeAll(WatchService.findUnwatchers(asResource(project)));
 
         // Filter the watchers who has no permission to read this commit.
         Set<User> allowedWatchers = new HashSet<>();
@@ -69,15 +62,48 @@ public abstract class Commit {
         return allowedWatchers;
     }
 
-    public void watch(Project project, User user) {
-        CommitExplicitWatching explicit = CommitExplicitWatching.getOrCreate(project, getId());
-        explicit.watchers.add(user);
-        explicit.update();
+    public static Project getProjectFromResourceId(String resourceId) {
+        String[] pair = resourceId.split(":");
+        return Project.find.byId(Long.valueOf(pair[0]));
     }
 
-    public void unwatch(Project project, User user) {
-        CommitExplicitWatching explicit = CommitExplicitWatching.getOrCreate(project, getId());
-        explicit.unwatchers.add(user);
-        explicit.update();
+    public static Resource getAsResource(final String resourceId) {
+        return new Resource() {
+
+            @Override
+            public String getId() {
+                return resourceId;
+            }
+
+            @Override
+            public Project getProject() {
+                return getProjectFromResourceId(resourceId);
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.COMMIT;
+            }
+        };
+    }
+
+    public Resource asResource(final Project project) {
+        return new Resource() {
+
+            @Override
+            public String getId() {
+                return project.id + ":" + Commit.this.getId();
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.COMMIT;
+            }
+        };
     }
 }
