@@ -8,6 +8,7 @@ import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import playRepository.GitRepository;
+import utils.Constants;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
@@ -286,5 +287,9 @@ public class PullRequest extends Model {
             this.receiver = UserApp.currentUser();
             this.update();
         }
+    }
+
+    public String getResourceKey() {
+        return ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + this.id;
     }
 }

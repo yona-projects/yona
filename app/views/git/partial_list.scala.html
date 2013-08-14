@@ -22,6 +22,13 @@
                     <div class="infos nm">
                         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
                         <span class="date ml10">@agoString(req.createdAgo())</span>
+                        @defining(SimpleComment.countByResourceKey(req.getResourceKey())) { count =>
+                            @if(count > 0) {
+                            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.id)#comments">
+                                <i class="ico icon-comments"></i><span class="num">@count</span>
+                            </a>
+                            }
+                        }
                         <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
                             <code>
                                 @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {

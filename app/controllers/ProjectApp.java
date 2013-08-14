@@ -487,7 +487,9 @@ public class ProjectApp extends Controller {
 
         addCommentAuthors(pullRequestId, userSet);
         addProjectMemberList(project, userSet);
-        addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userSet);
+        if(!commitId.isEmpty()) {
+            addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userSet);
+        }
         userSet.add(pullRequest.contributor);
         userSet.remove(UserApp.currentUser());
 

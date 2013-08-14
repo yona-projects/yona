@@ -76,6 +76,12 @@ public class SimpleComment extends Model {
                 .findList();
     }
 
+    public static int countByResourceKey(String resourceKey) {
+        return find.where()
+                .eq("resourceKey", resourceKey)
+                .findRowCount();
+    }
+
     public Resource asResource(){
         return new Resource() {
             @Override
@@ -92,6 +98,15 @@ public class SimpleComment extends Model {
             public ResourceType getType() {
                 return ResourceType.SIMPLE_COMMENT;
             }
+
+            @Override
+            public Long getAuthorId() {
+                return authorId;
+            }
         };
+    }
+
+    public static SimpleComment findById(Long id) {
+        return find.byId(id);
     }
 }
