@@ -1,0 +1,34 @@
+@(branch:String, project:Project)
+
+@import java.net.URLEncoder
+
+@branchItemType(itemType:String) = @{
+    if(itemType == "heads"){
+        "branch"
+    } else if(itemType == "tags") {
+        "tag"
+    } else {
+        itemType
+    }
+}
+
+@getBranchURL(project:Project, branchName:String) = @{
+    if(project != null){
+        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"))
+    } else {
+        "#"
+    }
+}
+
+@defining(branch.split('/')){ names =>
+    @defining(names.slice(2, names.length).mkString("/")){ branchName =>
+        @if(names(0).equals("refs") && names.length >= 3){
+            <li data-value="@branch"><a href="@getBranchURL(project, branchName)"><!--
+             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
+             -->@branchName
+            </a></li>
+        } else {
+            <li data-value="@branch"><a href="#">@branch</a></li>
+        }
+    }
+}
