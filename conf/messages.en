@@ -446,7 +446,6 @@ code.nohead.clone = Create new local repository by cloning the repository create
 code.nohead.init = Or, create new local repository by yourself and add a remote that indicate the Yobi repository and push README.md file.
 code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
 code.nohead.pull.push = You can keep update your code to your Yobi repository with 'pull' and 'push'. The 'pull' means getting update from the remote repository, and 'push' means putting your code to remote repository.
-
 code.copyUrl = Copy URL
 code.filename = Filename
 code.commitMsg = Commit Message

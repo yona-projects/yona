@@ -147,7 +147,9 @@ $yobi = yobi.Common = (function(){
 		};
 		
 		// attach onLoad event handler
-		if(typeof elScript.onload == "undefined"){
+		if(elScript.addEventListener) { // for FF
+            elScript.addEventListener("load", fOnLoad, false);
+		} else if(typeof elScript.onload == "undefined"){
 			elScript.onreadystatechange = function(){ // for IE
 				if(this.readyState === "complete" || this.readyState === "loaded"){
 					fOnLoad();
