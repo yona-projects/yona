@@ -59,6 +59,7 @@ public class AccessControl {
                 case NONISSUE_COMMENT:
                 case FORK:
                 case CODE_COMMENT:
+                case SIMPLE_COMMENT:
                     return true;
                 default:
                     return false;
