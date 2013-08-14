@@ -85,7 +85,7 @@
 								</a>
 							</td>
 							<td class="messages">
-                                @defining(CodeComment.count(commit.getId)){ numOfComment =>
+                                @defining(CodeComment.count(project, commit.getId)){ numOfComment =>
                                 @if(numOfComment > 0) {
                                 <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                 }
