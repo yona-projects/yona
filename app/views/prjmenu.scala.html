@@ -21,12 +21,23 @@
 <div class="project-menu">
     <div class="project-menu-wrap">
         <div class="project-menu-container main">
-            <div class="actrow">
+            <div class="actrow">              
                 <!-- repo URL -->
                 <button id="btnClone" type="button" class="nbtn medium">
                     <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
                 </button>
-
+                <div id="showRepoURL" class="popover bottom">
+                    <div class="arrow"></div>
+                    <div class="popover-content">
+                        <strong class="clone-label @project.vcs">@project.vcs</strong>
+                        <p class="repo-wrap">
+                            <input type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
+                            <button type="button" class="btn copy-url">@Messages("code.copyUrl")</button>
+                        </p>
+                    </div>
+                </div>
+                <!-- // -->
+                
                 <!-- watch project -->
                 <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){

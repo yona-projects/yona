@@ -65,6 +65,7 @@ POST    /files/:id                            			controllers.AttachmentApp.delet
 
 # Simple Comments
 POST    /comment/:resourceKey                           controllers.SimpleCommentApp.newComment(resourceKey)
+GET     /comment/:id/delete                             controllers.SimpleCommentApp.deleteComment(id: Long)
 
 # Boards
 GET     /:user/:project/posts                           controllers.BoardApp.posts(user, project, pageNum: Int ?= 1)

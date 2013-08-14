@@ -45,12 +45,29 @@
             htElement.welProjectMenu = $(".project-menu");
             htElement.welProjectMenuWrap = $(".project-menu-wrap");
 
-            htElement.welBtnWatch =  $(".watchBtn, #btnWatch");
-            htElement.welBtnEnroll =  $(".enrollBtn");
-            htElement.welBtnClone = $("#btnClone");
+            htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
+            htElement.welBtnEnroll  = $(".enrollBtn");
+            htElement.welBtnClone   = $("#btnClone");
             htElement.welForkedFrom = $("#forkedFrom");
+
+            htElement.welShowRepoURL = $("#showRepoURL");
+            _placeShowRepoURL();
         }
 
+        /**
+         * 저장소 URL 정보 표시 레이어 위치 조절
+         */
+        function _placeShowRepoURL(){
+            var nWidth   = htElement.welShowRepoURL.width();
+            var nBtnHeight = htElement.welBtnClone.height();
+            var htOffset   = htElement.welBtnClone.offset();
+            
+            htElement.welShowRepoURL.css({
+                "left": (htOffset.left - (nWidth / 2)) + "px",
+                "top" : (nBtnHeight + 15) + "px"
+            });
+        }
+        
         /**
          * 이벤트 핸들러 초기화
          * attach event handlers
@@ -64,13 +81,21 @@
                 "html"   : true
             });
 
-            htElement.welBtnClone.popover({
-                "html"     : true,
-                "placement": "bottom",
-                "trigger"  : "manual",
-                "content"  : $("#tplRepoURL").html()
-            });
             htElement.welBtnClone.click(_onClickBtnClone);
+            
+            // 주소 복사 버튼
+            htElement.welShowRepoURL.find(".copy-url").zclip({
+                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                "copy": function() {
+                    return htVar.sRepoURL;
+                }
+            });
+            // 주소 표시 영역
+            htElement.welShowRepoURL.find(".repo-url").click(function(){
+                $(this).select();
+            });
+            
+            $(window).on("resize", _placeShowRepoURL);
         }
 
         /**
@@ -78,8 +103,20 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnWatch(weEvt){
+            var sURL = $(this).attr('href');
+            //$('<form action="' + sURL + '" method="post"></form>').submit();
+            $.ajax(sURL, {
+                "method" : "post",
+                "success": function(){
+                    document.location.reload();
+                },
+                "error": function(){
+                    $yobi.notify("Server Error");
+                }
+            })
+
             weEvt.preventDefault();
-            $('<form action="' + $(this).attr('href') + '" method="post"></form>').submit();
+            return false;
         }
 
         /**
@@ -87,8 +124,9 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
-            weEvt.preventDefault();
             $('<form action="' + $(this).attr('href') + '" method="post"></form>').submit();
+            weEvt.preventDefault();
+            return false;
         }
 
         /**
@@ -102,29 +140,9 @@
 
         /**
          * Clone 버튼 클릭시 이벤트 핸들러
-         * $.popover 를 수동으로 제어하도록 되어 있음
          */
         function _onClickBtnClone(){
-            htElement.welBtnClone.popover("toggle");
-
-            // popover 영역은 표시할 때마다 새로 생성하므로
-            // 이벤트 처리를 다시 해야 함
-            var welPopover = htElement.welProjectMenu.find(".popover");
-
-            if(welPopover.length > 0){
-                // 주소 복사 버튼
-                welPopover.find(".copy-url").zclip({
-                    "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                    "copy": function() {
-                        return htVar.sRepoURL;
-                    }
-                });
-
-                // 주소 표시 영역
-                welPopover.find(".repo-url").click(function(){
-                    $(this).select();
-                });
-            }
+            htElement.welShowRepoURL.toggle();
         }
 
         /**

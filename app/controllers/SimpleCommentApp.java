@@ -1,6 +1,7 @@
 package controllers;
 
 import models.SimpleComment;
+import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import play.data.Form;
 import play.i18n.Messages;
@@ -36,6 +37,19 @@ public class SimpleCommentApp extends Controller {
         newComment.save();
 
         return redirect;
+    }
+
+    public static Result deleteComment(Long id) {
+        SimpleComment simpleComment = SimpleComment.findById(id);
+        if(simpleComment == null) {
+            notFound();
+        }
+        if (!AccessControl.isAllowed(UserApp.currentUser(), simpleComment.asResource(), Operation.DELETE)) {
+            return forbidden(ErrorViews.Forbidden.render("auth.unauthorized.waringMessage"));
+        }
+        simpleComment.delete();
+        String backPageUrl = request().getHeader("Referer");
+        return redirect(backPageUrl);
     }
 
 }
