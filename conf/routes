@@ -76,8 +76,6 @@ GET     /:user/:project/post/:number/delete                 controllers.BoardApp
 GET     /:user/:project/post/:number/editform               controllers.BoardApp.editPostForm(user, project, number:Long)
 POST    /:user/:project/post/:number/edit                   controllers.BoardApp.editPost(user, project, number:Long)
 GET     /:user/:project/post/:number/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, number:Long, commentId:Long)
-POST    /:user/:project/post/:number/watch         controllers.BoardApp.watch(user, project, number:Long)
-POST    /:user/:project/post/:number/unwatch       controllers.BoardApp.unwatch(user, project, number:Long)
 
 # Labels
 GET    /labels                                          controllers.LabelApp.labels(query: String ?= "", category: String ?= "", limit: Integer ?= null)
@@ -98,6 +96,9 @@ GET     /:user/:project/settingform                     controllers.ProjectApp.s
 POST    /:user/:project/setting                         controllers.ProjectApp.settingProject(user, project)
 GET     /:user/:project/deleteform                      controllers.ProjectApp.deleteForm(user, project)
 GET     /:user/:project/delete                          controllers.ProjectApp.deleteProject(user, project)
+GET     /:user/:project/mentionList                     controllers.ProjectApp.mentionList(user, project, number:Long ?= -1, resourceType:String ?= "")
+GET     /:user/:project/mentionListAtCommitDiff             controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "")
+GET     /:user/:project/mentionListAtPullRequest             controllers.ProjectApp.mentionListAtPullRequest(user, project, commitId:String ?= "", pullRequestId:Long)
 GET     /:user/:project/members                         controllers.ProjectApp.members(user, project)
 POST    /:user/:project/members                         controllers.ProjectApp.newMember(user, project)
 POST    /:user/:project/member/:id/edit                 controllers.ProjectApp.editMember(user, project, id:Long)
@@ -127,8 +128,6 @@ GET    /:user/:project/issue/$number<[0-9]+>/nextstate                  controll
 GET     /:user/:project/issue/$number<[0-9]+>/delete                controllers.IssueApp.deleteIssue(user, project, number:Long)
 POST    /:user/:project/issue/$number<[0-9]+>/comments              controllers.IssueApp.newComment(user, project, number:Long)
 GET     /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
-POST    /:user/:project/issue/$number<[0-9]+>/watch         controllers.IssueApp.watch(user, project, number:Long)
-POST    /:user/:project/issue/$number<[0-9]+>/unwatch       controllers.IssueApp.unwatch(user, project, number:Long)
 
 # Issue Labels
 GET     /:user/:project/issue/labels                        controllers.IssueLabelApp.labels(user, project)
@@ -157,6 +156,8 @@ GET     /:ownerName/:project/pullRequest/:id/cancel     controllers.PullRequestA
 GET     /:ownerName/:project/pullRequest/:id/open       controllers.PullRequestApp.open(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestApp.editPullRequestForm(ownerName, project, id: Long)
 POST    /:ownerName/:project/pullRequest/:id/edit       controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/restorefrombranch   controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
 
 # SVN
 HEAD    /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)
@@ -188,14 +189,15 @@ GET     /:user/:project/commit/:id                      controllers.CodeHistoryA
 POST    /:user/:project/commit/:commitId/comments       controllers.CodeHistoryApp.newComment(user, project, commitId)
 GET    /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeHistoryApp.deleteComment(user, project, commitId, id: Long)
 
-POST     /:user/:project/commit/:id/watch                      controllers.CodeHistoryApp.watch(user, project, id)
-POST     /:user/:project/commit/:id/unwatch                    controllers.CodeHistoryApp.unwatch(user, project, id)
-
 # Search
 GET     /:user/:project/search                          controllers.SearchApp.contentsSearch(user, project, page: Int ?= 0)
 
 # Help
 GET     /help                                           controllers.HelpApp.help()
+
+# Watch
+POST    /watch         controllers.WatchApp.watch(resource: models.resource.ResourceParam)
+POST    /unwatch       controllers.WatchApp.unwatch(resource: models.resource.ResourceParam)
 
 # Statistics
 GET     /:user/:project/statistics                      controllers.StatisticsApp.statistics(user, project)
@@ -211,3 +213,4 @@ POST    /:user/:project/cancel/enroll                   controllers.EnrollProjec
 
 # remove trailing slash
 GET     /*paths                                         controllers.Application.removeTrailer(paths)
+

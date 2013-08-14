@@ -12,7 +12,6 @@ import playRepository.Commit;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -49,7 +48,7 @@ public class NotificationEvent extends Model {
     @Enumerated(EnumType.STRING)
     public ResourceType resourceType;
 
-    public Long resourceId;
+    public String resourceId;
 
     @Enumerated(EnumType.STRING)
     public NotificationType type;
@@ -124,60 +123,15 @@ public class NotificationEvent extends Model {
     public User getSender() {
         return User.find.byId(this.senderId);
     }
-    
+
     public Resource getResource() {
-        Resource resource = null;
-
-        switch(resourceType) {
-            case ISSUE_POST:
-                resource = Issue.finder.byId(resourceId).asResource();
-                break;
-            case ISSUE_COMMENT:
-                resource = IssueComment.find.byId(resourceId).asResource();
-                break;
-            case NONISSUE_COMMENT:
-                resource = PostingComment.find.byId(resourceId).asResource();
-                break;
-            case LABEL:
-                resource = Label.find.byId(resourceId).asResource();
-                break;
-            case BOARD_POST:
-                resource = Posting.finder.byId(resourceId).asResource();
-                break;
-            case USER:
-                resource = null;
-                break;
-            case PROJECT:
-                resource = Project.find.byId(resourceId).asResource();
-                break;
-            case ATTACHMENT:
-                resource = Attachment.find.byId(resourceId).asResource();
-                break;
-            case MILESTONE:
-                resource = Milestone.find.byId(resourceId).asResource();
-                break;
-            case CODE_COMMENT:
-                resource = CodeComment.find.byId(resourceId).asResource();
-                break;
-            default:
-                throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
-        }
-
-        return resource;
-    }
-
-    private static String getInvalidResourceTypeMessage(ResourceType resourceType) {
-        if (EnumSet.allOf(ResourceType.class).contains(resourceType)) {
-            return "Unsupported resource type " + resourceType;
-        } else {
-            return "Unknown resource type " + resourceType;
-        }
+        return Resource.get(resourceType, resourceId);
     }
 
     public Project getProject() {
         switch(resourceType) {
         case ISSUE_ASSIGNEE:
-            return Assignee.finder.byId(resourceId).project;
+            return Assignee.finder.byId(Long.valueOf(resourceId)).project;
         default:
             Resource resource = getResource();
             if (resource != null) {
@@ -189,47 +143,7 @@ public class NotificationEvent extends Model {
     }
 
     public boolean resourceExists() {
-        Finder<Long, ? extends Model> finder = null;
-
-        switch(resourceType) {
-            case ISSUE_POST:
-                finder = Issue.finder;
-                break;
-            case ISSUE_ASSIGNEE:
-                finder = Assignee.finder;
-                break;
-            case ISSUE_COMMENT:
-                finder = IssueComment.find;
-                break;
-            case NONISSUE_COMMENT:
-                finder = PostingComment.find;
-                break;
-            case LABEL:
-                finder = Label.find;
-                break;
-            case BOARD_POST:
-                finder = Posting.finder;
-                break;
-            case USER:
-                finder = User.find;
-                break;
-            case PROJECT:
-                finder = Project.find;
-                break;
-            case ATTACHMENT:
-                finder = Attachment.find;
-                break;
-            case MILESTONE:
-                finder = Milestone.find;
-                break;
-            case CODE_COMMENT:
-                finder = CodeComment.find;
-                break;
-            default:
-                throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
-        }
-
-        return finder.byId(resourceId) != null;
+        return Resource.exists(resourceType, resourceId);
     }
 
     public static void add(NotificationEvent event) {

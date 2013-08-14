@@ -40,6 +40,10 @@
             htElement.welAvatarImage = htElement.welAvatarWrap.find("img");
             htElement.welAvatarProgress = htElement.welAvatarWrap.find(".progress");
             htVar.nProgressHeight = htElement.welAvatarWrap.height();
+
+            htElement.welBtnUploadFile = $("#btnUploadFile");
+            htElement.welBtnSubmitCrop = $("#btnSubmitCrop");
+            htElement.welImgCrop = $("#avatarImgCrop");
             
             // 비밀번호 변경
             htElement.welFormPswd = $("#frmPassword");
@@ -77,8 +81,8 @@
          * @return {Boolean}
          */
         function _onAvatarBeforeUpload(htData){
-            if(htData.oFile.type.indexOf("image/") !== 0){
-                _onErrorAvatarUpload(Messages("user.avatar.onlyImage"));
+            if(htData.oFile && htData.oFile.type.indexOf("image/") !== 0){
+                _onAvatarUploadError(Messages("user.avatar.onlyImage"));
                 return false;
             }
         }
@@ -92,16 +96,24 @@
         function _onAvatarUploaded(htData){
             var oRes = htData.oRes;
             
+            // 업로드 완료한 파일이 이미지가 아니면 오류 처리하고 삭제
+            if(oRes.mimeType.indexOf("image/") !== 0){
+                _onAvatarUploadError(Messages("user.avatar.onlyImage"));
+                yobi.Files.deleteFile({"sURL": oRes.url});
+                return false;
+            }
+
             htElement.welAvatarImage.attr("src", oRes.url);
             
+            // 설정 폼에 avatarId 설정
             var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
-            if(welAvatarId.length === 0){
+            if(welAvatarId.length === 0){ // 없으면 새로 설정하고
                 welAvatarId = htElement.welFormAvatar.append($("<input>").attr({
                     "type": "hidden",
                     "name": "avatarId",
                     "value": oRes.id
                 }));
-            } else {
+            } else { // 이미 있으면 값만 수정
                 welAvatarId.attr("value", oRes.id);
             }
             
@@ -121,11 +133,10 @@
          * @param {Object} oRes 파일 정보
          */
         function _setJcrop(oRes){
-            var welImg = $("#avatarImgCrop");
-            welImg.on("load", function(){
+            htElement.welImgCrop.on("load", function(){
                 htVar.oJcrop = null;
                 
-                welImg.Jcrop({
+                htElement.welImgCrop.Jcrop({
                     "aspectRatio": 1,
                     "minSize"  : [128, 128],
                     "bgColor"  : "#fff",
@@ -137,12 +148,14 @@
                     htVar.oJcrop = this;
                 });
             });
-            welImg.attr("src", oRes.url);
+            htElement.welImgCrop.show();
+            htElement.welImgCrop.attr("src", oRes.url);
 
             // 파일 업로드 버튼은 감추고, 크롭 이미지 전송 버튼 활성화
-            $("#btnUploadFile").hide();
-            $("#btnSubmitCrop").show();
-            $("#btnSubmitCrop").click(_sendCroppedImage);
+            
+            htElement.welBtnUploadFile.hide();
+            htElement.welBtnSubmitCrop.show();
+            htElement.welBtnSubmitCrop.click(_sendCroppedImage);
         }
         
         /**
@@ -158,8 +171,8 @@
             var nRx = 128 / htData.w;
             var nRy = 128 / htData.h;
             
-            var nWidth = $("#avatarImgCrop").width();
-            var nHeight = $("#avatarImgCrop").height();
+            var nWidth = htElement.welImgCrop.width();
+            var nHeight = htElement.welImgCrop.height();
             
             // 미리보기 표시
             htElement.welAvatarImage.css({
@@ -195,21 +208,36 @@
             // 원본 이미지 크기를 알아내기 위해 새 객체로 불러온다
             // 브라우저 캐시를 사용하므로 네트워크 호출 없음
             elImage.onload = function(){
+                // 실제 이미지 크기와 jCrop 영역의 비율 계산
                 var htData = htVar.htLastCrop;
-                var nWidth = $("#avatarImgCrop").width();
+                var nWidth = htElement.welImgCrop.width();
                 var nRealWidth  = elImage.width;
-                var nRw = nRealWidth / nWidth; // 실제 이미지 크기와 jCrop 영역의 비율 계산
-                var elCanvas = document.getElementById("avatarCrop"); // canvas
-                var oContext = elCanvas.getContext("2d");
-                
-                oContext.drawImage(elImage, htData.x * nRw, htData.y * nRw, htData.w * nRw, htData.h * nRw, 0, 0, 128, 128);
-                
-                // canvas-to-blob.js
-                elCanvas.toBlob(function(oFile){
-                    yobi.Files.uploadFile(oFile);
-                }, 'image/jpeg', 100);
+                var nRw = nRealWidth / nWidth; 
+                var htCropData = {
+                    "x": (htData.x * nRw),
+                    "y": (htData.y * nRw),
+                    "w": (htData.w * nRw),
+                    "h": (htData.h * nRw)
+                };
+
+                var htEnv = yobi.Files.getEnv();
+            
+                // blob 전송이 가능한 환경이면 캔버스를 이용해 처리하고
+                if(htEnv.bXHR2){
+                    var elCanvas = document.getElementById("avatarCrop"); // canvas
+                    var oContext = elCanvas.getContext("2d");                
+                    oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
+                    
+                    // canvas-to-blob.js
+                    elCanvas.toBlob(function(oFile){
+                        yobi.Files.uploadFile(oFile);
+                    }, 'image/jpeg', 100);
+                } else {
+                    // TODO: 아니면 서버에 Crop 데이터만 전송한다 (for IE)
+                    htElement.welFormAvatar.submit();
+                }
             }
-            elImage.src = $("#avatarImgCrop").attr("src");
+            elImage.src = htElement.welImgCrop.attr("src");
         }
 
         /**

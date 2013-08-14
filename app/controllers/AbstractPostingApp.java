@@ -151,7 +151,7 @@ public class AbstractPostingApp extends Controller {
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = toView.absoluteURL(request());
-        notiEvent.resourceId = comment.id;
+        notiEvent.resourceId = comment.id.toString();
         notiEvent.resourceType = comment.asResource().getType();
         notiEvent.type = NotificationType.NEW_COMMENT;
         notiEvent.oldValue = null;
@@ -274,45 +274,5 @@ public class AbstractPostingApp extends Controller {
         }
 
         return ok(content);
-    }
-
-    /**
-     * 현재 사용자가 게시물을 명시적으로 지켜보는 것으로 설정한다.
-     *
-     * @param target
-     * @return
-     */
-    public static Result watch(AbstractPosting target) {
-        User user = UserApp.currentUser();
-
-        if (!AccessControl.isAllowed(user, target.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("You have no permission to do that.", target.asResource().getProject()));
-        }
-
-        if (user.isAnonymous()) {
-            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot watch it.", target.asResource().getProject()));
-        }
-
-        target.watch(user);
-
-        return ok();
-    }
-
-    /**
-     * 현재 사용자가 게시물을 명시적으로 무시하는(지켜보지 않는) 것으로 설정한다.
-     *
-     * @param target
-     * @return
-     */
-    public static Result unwatch(AbstractPosting target) {
-        User user = UserApp.currentUser();
-
-        if (user.isAnonymous()) {
-            return forbidden(ErrorViews.Forbidden.render("Anonymous cannot unwatch it.", target.asResource().getProject()));
-        }
-
-        target.unwatch(user);
-
-        return ok();
     }
 }

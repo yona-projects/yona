@@ -1,11 +1,13 @@
 package models;
 
+import controllers.UserApp;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import playRepository.GitRepository;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
@@ -60,6 +62,37 @@ public class PullRequest extends Model {
     public Date received;
 
     public State state = State.OPEN;
+
+    /**
+     * {@link #fromBranch}의 가장 최근 커밋 ID
+     *
+     * when: 브랜치를 삭제한 뒤 복구할 때 사용한다.
+     *
+     */
+    public String lastCommitId;
+
+    /**
+     * merge commit의 parent 중에서 코드를 받는 쪽 브랜치의 HEAD 커밋 ID.
+     *
+     * when: merge된 커밋 목록을 조회할 때 사용한다.
+     *
+     * 이 커밋 ID는 코드를 보내는쪽에도 존재하며 그 뒤의 커밋 ID부터 추가된 커밋 ID로 볼 수 있다.
+     *
+     * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
+     *
+     */
+    public String mergedCommitIdFrom;
+
+    /**
+     * merge commit의 parent 중에서 코드를 보내는 쪽 브랜치의 HEAD 커밋 ID.
+     *
+     * when: merge된 커밋 목록을 조회할 때 사용한다.
+     *
+     * #mergedCommitIdFrom 뒤에 추가된 커밋 ID부터 이 커밋 ID까지를 추가된 커밋 ID로 불 수 있다.
+     *
+     * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
+     */
+    public String mergedCommitIdTo;
 
     @Override
     public String toString() {
@@ -183,8 +216,8 @@ public class PullRequest extends Model {
     public Resource asResource() {
         return new Resource() {
             @Override
-            public Long getId() {
-                return id;
+            public String getId() {
+                return id.toString();
             }
 
             @Override
@@ -225,5 +258,33 @@ public class PullRequest extends Model {
      */
     public boolean hasSameBranchesWith(PullRequest pullRequest) {
         return this.toBranch.equals(pullRequest.toBranch) && this.fromBranch.equals(pullRequest.fromBranch);
+    }
+
+    public boolean isClosed() {
+        return state == State.CLOSED;
+    }
+
+    /**
+     * {@link #fromBranch}를 삭제하고 해당 브랜치의 최근 커밋 ID를 {@link #lastCommitId}에 저장한다.
+     *
+     * @see #lastCommitId
+     */
+    public void deleteFromBranch() {
+        String lastCommitId = GitRepository.deleteFromBranch(this);
+        this.lastCommitId = lastCommitId;
+        update();
+    }
+
+    public void restoreFromBranch() {
+        GitRepository.restoreBranch(this);
+    }
+
+    public void merge() {
+        GitRepository.merge(this);
+        if(this.state == State.CLOSED) {
+            this.received = JodaDateUtil.now();
+            this.receiver = UserApp.currentUser();
+            this.update();
+        }
     }
 }

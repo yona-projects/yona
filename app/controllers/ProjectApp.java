@@ -23,15 +23,11 @@ import utils.Constants;
 import utils.HttpUtil;
 import utils.ErrorViews;
 import views.html.project.*;
-import play.i18n.Messages;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
@@ -361,7 +357,6 @@ public class ProjectApp extends Controller {
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
@@ -371,6 +366,204 @@ public class ProjectApp extends Controller {
         return ok(views.html.project.members.render("title.memberList",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
+    }
+
+    /**
+     * 이슈나 게시판 본문, 댓글에서 보여줄 멘션 목록
+     *
+     * 대상
+     * - 해당 프로젝트 멤버
+     * - 해당 이슈/게시글 작성자
+     * - 해당 이슈/게시글의 코멘트 작성자
+     *
+     * @param loginId
+     * @param projectName
+     * @param number 글번호
+     * @param resourceType
+     * @return
+     */
+    public static Result mentionList(String loginId, String projectName, Long number, String resourceType) {
+        String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
+        if (prefer == null) {
+            return status(Http.Status.NOT_ACCEPTABLE);
+        } else {
+            response().setHeader("Vary", "Accept");
+        }
+
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        Set<User> userSet = new HashSet<>();
+        addProjectMemberList(project, userSet);
+        collectAuthorAndCommenter(project, number, userSet, resourceType);
+        userSet.remove(UserApp.currentUser());
+
+        List<Map<String, String>> mentionList = new ArrayList<>();
+        collectedUsersToMap(mentionList, userSet);
+        return ok(toJson(mentionList));
+    }
+
+    /**
+     * CommitDiff 화면에서 코멘트 작성시 보여줄 멘션 목록
+     *
+     * 대상 (자신을 제외한)
+     * - 프로젝트 멤버
+     * - 커밋 작성자
+     * - 해당 커밋에 코드 코멘트를 작성한 사람들
+     *
+     * @param ownerLoginId
+     * @param projectName
+     * @param commitId
+     * @return
+     * @throws IOException
+     * @throws UnsupportedOperationException
+     * @throws ServletException
+     * @throws GitAPIException
+     * @throws SVNException
+     */
+    public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId)
+            throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
+            SVNException {
+        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+
+        Set<User> userSet = new HashSet<>();
+        addProjectMemberList(project, userSet);
+        addCommitAuthor(commit, userSet);
+        addCodeCommenters(commitId, project.id, userSet);
+        userSet.remove(UserApp.currentUser());
+
+        List<Map<String, String>> mentionList = new ArrayList<>();
+        collectedUsersToMap(mentionList, userSet);
+        return ok(toJson(mentionList));
+    }
+
+    /**
+     * Pull-Request에 대해 댓글을 달때 보여줄 멘션 리스트
+     *
+     * 대상 (자신을 제외한)
+     * - 코멘트를 작성한 사람들
+     * - Pull Request를 받는 프로젝트의 멤버
+     * - Commit Author
+     * - Pull Request 요청자
+     *
+     * @param ownerLoginId
+     * @param projectName
+     * @param commitId
+     * @param pullRequestId
+     * @return
+     * @throws IOException
+     * @throws UnsupportedOperationException
+     * @throws ServletException
+     * @throws GitAPIException
+     * @throws SVNException
+     */
+    public static Result mentionListAtPullRequest(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
+            throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
+            SVNException {
+        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Set<User> userSet = new HashSet<>();
+
+        addCommentAuthors(pullRequestId, userSet);
+        addProjectMemberList(project, userSet);
+        addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userSet);
+        userSet.add(pullRequest.contributor);
+        userSet.remove(UserApp.currentUser());
+
+        List<Map<String, String>> mentionList = new ArrayList<>();
+        collectedUsersToMap(mentionList, userSet);
+        return ok(toJson(mentionList));
+    }
+
+    private static void addCommentAuthors(Long pullRequestId, Set<User> userSet) {
+        List<SimpleComment> comments = SimpleComment
+                .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
+        for (SimpleComment codeComment : comments) {
+            userSet.add(User.findByLoginId(codeComment.authorLoginId));
+        }
+    }
+
+    private static void addCodeCommenters(String commitId, Long projectId, Set<User> userSet) {
+        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+                commitId).eq("project.id", projectId).findList();
+
+        for (CodeComment codeComment : comments) {
+            userSet.add(User.findByLoginId(codeComment.authorLoginId));
+        }
+    }
+
+    private static void addCommitAuthor(Commit commit, Set<User> userSet) {
+        if(!commit.getAuthor().isAnonymous()) {
+            userSet.add(commit.getAuthor());
+        }
+
+        //fallback: additional search by email id
+        if (commit.getAuthorEmail() != null){
+            User author = User.findByLoginId(commit.getAuthorEmail().substring(0, commit.getAuthorEmail().lastIndexOf("@")));
+            if(!author.isAnonymous()) {
+                userSet.add(author);
+            }
+        }
+    }
+
+    private static void collectAuthorAndCommenter(Project project, Long number, Set<User> userSet, String resourceType) {
+        AbstractPosting posting = null;
+        switch (ResourceType.getValue(resourceType)) {
+            case ISSUE_POST:
+                posting = AbstractPosting.findByNumber(Issue.finder, project, number);
+                break;
+            case BOARD_POST:
+                posting = AbstractPosting.findByNumber(Posting.finder, project, number);
+                break;
+            default:
+                return;
+        }
+
+        if(posting != null) {
+            userSet.add(User.findByLoginId(posting.authorLoginId));
+            for(Comment comment: posting.getComments()) {
+                userSet.add(User.findByLoginId(comment.authorLoginId));
+            }
+        }
+    }
+
+    private static void collectedUsersToMap(List<Map<String, String>> users, Set<User> userSet) {
+        for(User user: userSet) {
+            Map<String, String> projectUserMap = new HashMap<>();
+            if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
+                projectUserMap.put("username", user.loginId);
+                projectUserMap.put("name", user.name);
+                projectUserMap.put("image", user.avatarUrl);
+                users.add(projectUserMap);
+            }
+        }
+    }
+
+    private static void addProjectMemberList(Project project, Set<User> userSet) {
+        for(ProjectUser projectUser: project.projectUser) {
+            userSet.add(projectUser.user);
+        }
     }
 
     /**
@@ -503,7 +696,6 @@ public class ProjectApp extends Controller {
     public static Result projects(String query, String state, int pageNum) {
 
         String prefer = HttpUtil.getPreferType(request(), HTML, JSON);
-
         if (prefer == null) {
             return status(Http.Status.NOT_ACCEPTABLE);
         }
@@ -536,7 +728,6 @@ public class ProjectApp extends Controller {
                 .icontains("owner", query)
                 .icontains("name", query)
                 .icontains("overview", query)
-                .icontains("labels.name", query)
                 .endJunction();
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
@@ -566,7 +757,6 @@ public class ProjectApp extends Controller {
                 .icontains("owner", query)
                 .icontains("name", query)
                 .icontains("overview", query)
-                .icontains("labels.name", query)
                 .endJunction();
 
         int total = el.findRowCount();

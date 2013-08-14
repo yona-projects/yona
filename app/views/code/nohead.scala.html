@@ -17,16 +17,31 @@
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
-		
+
 	<div class="row-fluid">
 		<div class="span12">
-			<h5>@Html(Messages("code.nohead"))</h5>
-            
+			@Html(Messages("code.nohead"))
+            <h5>@Messages("code.nohead.clone")</h5>
 			<pre><code>git clone @getCodeURL(project)
 cd @project.name/
-touch readme.md
-git add readme.md
+touch README.md
+git add README.md
 git commit -m "Hello @Messages("app.name")"
+git push origin master</code></pre>
+            <h5>@Messages("code.nohead.init")</h5>
+            <pre><code>mkdir @project.name
+cd @project.name/
+touch README.md
+git init
+git add README.md
+git commit -m "Hello @Messages("app.name")"
+git remote add origin @getCodeURL(project)
+git push origin master</code></pre>
+            <h5>@Messages("code.nohead.remote")</h5>
+            <pre><code>git remote add origin @getCodeURL(project)
+git push origin master</code></pre>
+            <h5>@Messages("code.nohead.pull.push")</h5>
+            <pre><code>git pull origin master
 git push origin master</code></pre>
 		</div>
     </div>

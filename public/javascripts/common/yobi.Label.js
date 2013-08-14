@@ -54,7 +54,7 @@ yobi.Label = (function(htOptions){
 		
 		htVar.sTplLabel = htOptions.sTplLabel || '<div class="control-group"><label class="control-label" data-category="${category}">${category}</label></div>';
 		htVar.sTplControls = htOptions.sTplControls || '<div class="controls label-group" data-category="${category}"></div>';		
-		htVar.sTplBtnLabelId = htOptions.sTplBtnLabelId || '<button type="button" class="issue-label ${labelCSS}" data-labelId="${labelId}">${labelName}</button>';		
+		htVar.sTplBtnLabelId = htOptions.sTplBtnLabelId || '<button type="button" class="issue-label ${labelCSS} ${activeClass}" data-labelId="${labelId}">${labelName}</button>';
 	}
 	
 	/**
@@ -203,7 +203,8 @@ yobi.Label = (function(htOptions){
 		var welBtnLabelId = $.tmpl(htVar.sTplBtnLabelId, {
 			"labelId": oLabel.id,
 			"labelName": oLabel.name,
-			"labelCSS" : 'active-' + $yobi.getContrastColor(oLabel.color)
+			"labelCSS" : 'active-' + $yobi.getContrastColor(oLabel.color),
+			"activeClass" : _getActiveClass(parseInt(oLabel.id))
 		});
 		
 		// 편집모드: 라벨 버튼을 항상 active 상태로 유지하고, 삭제 링크를 추가
@@ -260,6 +261,17 @@ yobi.Label = (function(htOptions){
 			document.styleSheets[0].insertRule(sActiceCSSTarget+'{'+ sActiveCss +'}',0);
 			document.styleSheets[0].insertRule(sDefualtCssTarget+'{'+ sDefaultCss +'}',0);
 		}
+	}
+
+	/**
+	 * 라벨 선택 여부에 따라 적절한 class 를 반환한다.
+	 * @param {Number} nLabelId
+	 */
+	function _getActiveClass(nLabelId) {
+		if (htVar.aSelectedLabels && htVar.aSelectedLabels.indexOf(nLabelId) != -1) {
+			return 'active';
+		}
+		return '';
 	}
 
 	/**

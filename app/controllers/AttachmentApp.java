@@ -82,7 +82,7 @@ public class AttachmentApp extends Controller {
         // To avoid this, if application/json is not acceptable by client, the
         // Content-Type field of response is set to "text/html". But, ACTUALLY
         // IT WILL BE SEND IN JSON!
-        String contentType = request().accepts("application/json") ? "application/json" : "text/html";
+        String contentType = HttpUtil.getPreferType(request(), "application/json", "text/html");
         response().setHeader("Content-Type", contentType);
 
         // The response SHOULD include an entity containing a list of resource
@@ -259,8 +259,8 @@ public class AttachmentApp extends Controller {
 
         if (containerType != null && containerId != null) {
             List<Map<String, String>> attachments = new ArrayList<>();
-            for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf(containerType),
-                    Long.parseLong(containerId))) {
+            for (Attachment attach : Attachment.findByContainer(ResourceType.valueOf
+                    (containerType), containerId)) {
                 if (!AccessControl.isAllowed(UserApp.currentUser(),
                         attach.asResource(), Operation.READ)) {
                     return forbidden();

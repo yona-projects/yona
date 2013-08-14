@@ -31,7 +31,7 @@
             }
             @** // **@
             
-            @defining(User.findByLoginId(session.get("loginId")).getWatchingProjects()){ watchingProjects =>
+            @defining(UserApp.currentUser.getWatchingProjects()){ watchingProjects =>
                 @if(watchingProjects.length > 0) {
                     <li class="divider"></li>
                     <li class="disabled"><span><i class="icon-eye-open"></i> @Messages("project.watchingproject") (@watchingProjects.size())</span></li>

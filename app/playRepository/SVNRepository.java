@@ -291,7 +291,7 @@ public class SVNRepository implements PlayRepository {
     public Resource asResource() {
         return new Resource() {
             @Override
-            public Long getId() {
+            public String getId() {
                 return null;
             }
 
