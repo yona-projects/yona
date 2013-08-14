@@ -1,6 +1,7 @@
 package models;
 
 import controllers.UserApp;
+import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
@@ -8,13 +9,17 @@ import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import playRepository.GitRepository;
+import utils.AccessControl;
 import utils.Constants;
 import utils.JodaDateUtil;
+import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class PullRequest extends Model {
@@ -291,5 +296,34 @@ public class PullRequest extends Model {
 
     public String getResourceKey() {
         return ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + this.id;
+    }
+
+    public Set<User> getWatchers() {
+        Set<User> actualWatchers = new HashSet<>();
+
+        actualWatchers.add(this.contributor);
+        for (SimpleComment c : getComments()) {
+            User user = User.find.byId(c.authorId);
+            if (user != null) {
+                actualWatchers.add(user);
+            }
+        }
+
+        actualWatchers.addAll(WatchService.findWatchers(toProject.asResource()));
+        actualWatchers.addAll(WatchService.findWatchers(asResource()));
+        actualWatchers.removeAll(WatchService.findUnwatchers(asResource()));
+
+        Set<User> allowedWatchers = new HashSet<>();
+        for (User watcher : actualWatchers) {
+            if (AccessControl.isAllowed(watcher, asResource(), Operation.READ)) {
+                allowedWatchers.add(watcher);
+            }
+        }
+
+        return allowedWatchers;
+    }
+
+    public List<SimpleComment> getComments() {
+        return SimpleComment.findByResourceKey(this.getResourceKey());
     }
 }

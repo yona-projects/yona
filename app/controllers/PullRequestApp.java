@@ -1,14 +1,12 @@
 package controllers;
 
 import models.*;
-import models.enumeration.Operation;
-import models.enumeration.ResourceType;
-import models.enumeration.RoleType;
-import models.enumeration.State;
+import models.enumeration.*;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import play.api.mvc.Call;
 import play.data.Form;
 import play.i18n.Messages;
 import play.libs.Json;
@@ -25,8 +23,10 @@ import views.html.git.create;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
@@ -238,7 +238,30 @@ public class PullRequestApp extends Controller {
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
-        return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id));
+        Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id);
+        addNewPullRequestNotification(pullRequestCall, pullRequest);
+        return redirect(pullRequestCall);
+    }
+
+    private static void addNewPullRequestNotification(Call pullRequestCall, PullRequest pullRequest) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(pullRequest.contributor);
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = pullRequestCall.absoluteURL(request());
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.type = NotificationType.NEW_ISSUE;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = pullRequest.body;
+
+        NotificationEvent.add(notiEvent);
     }
 
     private static void validateForm(Form<PullRequest> form) {

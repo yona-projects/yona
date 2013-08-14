@@ -77,6 +77,11 @@ public class NotificationEvent extends Model {
                 posting.project.name, posting.title, posting.getNumber());
     }
 
+    public static String formatNewTitle(PullRequest pullRequest) {
+        return String.format("[%s] %s (#%d)",
+                pullRequest.toProject.name, pullRequest.title, pullRequest.id);
+    }
+
     public String getOldValue() {
         return oldValue;
     }
@@ -186,4 +191,6 @@ public class NotificationEvent extends Model {
             event.delete();
         }
     }
+
+
 }
