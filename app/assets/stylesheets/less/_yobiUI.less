@@ -260,10 +260,19 @@ button.nbtn {
     }
     /*&.editable .delete { display:inline; }*/
 
+    &.list-label {
+        padding:0 2px;
+        font-weight:normal;
+    }
+
     &.active {
         .border-radius(2px);
         &.active-white   { color:#fff; }
         &.active-dimgray { color:#696969; }
+    }
+
+    &:hover {
+        .opacity(70);
     }
 }
 
@@ -357,13 +366,19 @@ button.nbtn {
     background:#ddd;
     .border-radius(3px) !important;
 
-    &.mini    { width:12px; height:12px; line-height:12px; }
+    &.mini    { width:12px; height:12px; }
     &.smaller { width:20px; height:20px;  }
     &.small   { width:24px; height:24px;   }
     &.medium  { width:32px; height:32px;   }
     &.mlarge  { width:40px; height:40px;   }
     &.large   { width:64px; height:64px;   }
     &.xlarge  { width:128px; height:128px; }
+
+    img {
+        width:100%;
+        height:100%;
+        vertical-align:top;
+    }
 }
 
 /** tab UI **/

@@ -15,6 +15,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.GitCommit;
+import playRepository.GitConflicts;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
@@ -27,6 +28,7 @@ import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
@@ -326,6 +328,7 @@ public class PullRequestApp extends Controller {
 
         final boolean[] isSafe = {false};
         final List<GitCommit> commits = new ArrayList<>();
+        final List<GitConflicts> conflicts = new ArrayList<>();
         if(!pullRequest.isClosed()) {
             GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
                 public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
@@ -346,6 +349,10 @@ public class PullRequestApp extends Controller {
 
                     // merge 결과 확인
                     isSafe[0] = mergeResult.getMergeStatus().isSuccessful();
+
+                    if(mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
+                        conflicts.add(new GitConflicts(clonedRepository, mergeResult));
+                    }
                 }
             });
         } else {
@@ -364,7 +371,7 @@ public class PullRequestApp extends Controller {
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch));
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts.get(0)));
     }
 
     /**
