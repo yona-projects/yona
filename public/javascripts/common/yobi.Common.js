@@ -147,7 +147,9 @@ $yobi = yobi.Common = (function(){
 		};
 		
 		// attach onLoad event handler
-		if(typeof elScript.onload == "undefined"){
+		if(elScript.addEventListener) { // for FF
+            elScript.addEventListener("load", fOnLoad, false);
+		} else if(typeof elScript.onload == "undefined"){
 			elScript.onreadystatechange = function(){ // for IE
 				if(this.readyState === "complete" || this.readyState === "loaded"){
 					fOnLoad();
@@ -301,6 +303,16 @@ $yobi = yobi.Common = (function(){
         });
     }
 	
+	/**
+	 * Convert special characters to HTML entities
+	 * @param {String} sHTML
+	 * @return {String}
+	 */
+	function htmlspecialchars(sHTML){
+	    htVar.welHSC = htVar.welHSC || $("<div>");
+	    return htVar.welHSC.text(sHTML).html();
+	}
+	
 	/* public Interface */
 	return {
         "setScriptPath"   : setScriptPath,
@@ -315,7 +327,8 @@ $yobi = yobi.Common = (function(){
         "alert"     : showAlert,
         "notify"    : notify,
         "nl2br"     : nl2br,
-        "tmpl"      : processTpl
+        "tmpl"      : processTpl,
+        "htmlspecialchars": htmlspecialchars
 	};
 })();
 

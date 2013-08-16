@@ -221,7 +221,7 @@
         <div class="board-comment-wrap">
             <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@comments.size</strong></div>
             @if(comments.size > 0) {
-            <ul class="comments">
+            <ul class="comments" id="comments">
                 @for(comment <- comments){
                 <li id="comment-@comment.id" class="comment">
                     <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
@@ -229,7 +229,7 @@
                     </a>
                     <div class="media-body">
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                        <a class="pull-right close" href="#">&times;</a>
+                        <a class="pull-right close" href="@routes.SimpleCommentApp.deleteComment(comment.id)">&times;</a>
                         }
                         <div class="comment-body markdown-wrap" markdown="true">@comment.contents</div>
                         <p class="commenter">
@@ -260,7 +260,11 @@
 
         yobi.Mention({
             target:'comment-editor',
-            url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, commits.get(0).getId, pull.id).toString)"
+            @if(commits.isEmpty()) {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString)"
+            } else {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, commits.get(0).getId, pull.id).toString)"
+            }
         });
     });
 </script>

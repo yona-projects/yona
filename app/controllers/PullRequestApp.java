@@ -369,9 +369,7 @@ public class PullRequestApp extends Controller {
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
 
-
-        List<SimpleComment> comments = SimpleComment
-                .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
+        List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
         return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts.get(0)));
     }

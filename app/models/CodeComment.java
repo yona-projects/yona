@@ -43,8 +43,11 @@ public class CodeComment extends Model {
         createdDate = new Date();
     }
 
-    public static int count(String commitId) {
-        return CodeComment.find.where().eq("commitId", commitId).findRowCount();
+    public static int count(Project project, String commitId) {
+        return CodeComment.find.where()
+                .eq("project.id", project.id)
+                .eq("commitId", commitId)
+                .findRowCount();
     }
 
     @Transient

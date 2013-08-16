@@ -8,27 +8,6 @@
 @import org.joda.time.Duration
 @import controllers.CodeApp
 
-@branchItemType(itemType:String) = @{
-    if(itemType == "heads"){
-        "branch"
-    } else {
-        itemType
-    }
-}
-
-@makeBranchItem(project:Project, branch:String) = {
-    @defining(branch.split('/')){ names =>
-        @if(names(0).equals("refs") && names.length == 3){
-            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"))"><!--
-             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
-             -->@names(2)
-            </a></li>
-        } else {
-            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@branch</a></li>
-        }
-    }
-}
-
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
 	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
@@ -44,7 +23,7 @@
                 <ul class="dropdown-menu">
                     @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
                         @for(branch <- branches){
-                            @makeBranchItem(project, branch)
+                            @partial_branchitem(branch, project)
                         }
                     }
                 </ul>
@@ -85,7 +64,7 @@
 								</a>
 							</td>
 							<td class="messages">
-                                @defining(CodeComment.count(commit.getId)){ numOfComment =>
+                                @defining(CodeComment.count(project, commit.getId)){ numOfComment =>
                                 @if(numOfComment > 0) {
                                 <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                 }
@@ -175,9 +154,9 @@
 
 <script type="text/javascript">
 $(document).ready(function(){
-   $("button.more").click(function(){
-       $(this).next("pre").toggleClass("hidden");
-   });
+    $("button.more").click(function(){
+        $(this).next("pre").toggleClass("hidden");
+    });
 });
 </script>
 }

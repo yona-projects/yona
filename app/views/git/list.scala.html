@@ -14,7 +14,7 @@
     </div>
 
     @if(project.hasForks() || project.isFork()) {
-    <ul id="pullRequestsTab" class="nav nav-tabs">
+    <ul class="nav nav-tabs">
         @if(project.hasForks()){
             <li @if(requestType.equals("opened")){class="active"}>
                 <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">

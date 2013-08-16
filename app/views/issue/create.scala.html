@@ -15,89 +15,96 @@
 
 	@form(action = routes.IssueApp.newIssue(project.owner, project.name), 'id -> "issue-form", 'enctype -> "multipart/form-data" ) {
     <div class="row-fluid">
-        <div class="span9">
+        <div class="span12">
             <dl>
-        		<dt>
-        			<label for="title">@Messages("post.new.title")</label>
-            	</dt>
-            	<dd>
-			<input type="text" id="title" name="title" value="" class="text title zen-mode" maxlength="250" tabindex="1">
-            	</dd>
-		<dd style="position: relative;">
-                    <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
-				<textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
-        		</dd>
-            </dl>
-        
-            @** fileUploader **@
-            @if(!UserApp.currentUser.isAnonymous) {
-                @fileUploader(ResourceType.ISSUE_POST, null)
-            }
-            @** end of fileUploader **@
-        </div>
-
-		<div class="span3">
-    		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
-    		<dl class="issue-option">
-                 <dt>@Messages("issue.new.detailInfo.assignee")</dt>
-                 <dd>
-                 	<div id="assignee" class="btn-group" data-name="assignee.user.id">
-    					<button class="btn dropdown-toggle auto" data-toggle="dropdown">
-    						<span class="d-label">@Messages("issue.new.selectDefault.assignee")</span>
-    						<span class="d-caret"><span class="caret"></span></span>
-    					</button>
-    					<ul class="dropdown-menu">
-    					@for(member <- project.members()) {
-                            <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
-                        }
-    					</ul>
-    				</div>
-                 </dd>
-    		</dl>
-    		}
-
-    		@if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
-                <dl id="milestoneOption" class="issue-option">
-                    <dt>@Messages("issue.new.detailInfo.milestone")</dt>
-                    <dd>
-                    @defining(Milestone.options(project.id)) { milestones =>
-                        @if(milestones.isEmpty()) {
-                            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
-                            <i class="icon-refresh"></i>
-                        } else {
-                            <div id="milestoneId" class="btn-group" data-name="milestoneId">
-                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
-                                    <span class="d-caret"><span class="caret"></span></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    @milestones.map{ v =>
-                                    <li data-value="@v._1"><a>@v._2</a></li>
-                                    }
-                                </ul>
-                            </div>
-                        }
-                    }
-                    </dd>
-                </dl>
-    		}
-
-            <dl id="labels" class="issue-option">
                 <dt>
-                    @Messages("label.select")
-                    @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                    <button id="manage-label-link" type="button" class="btn-transparent"><i class="icon-cog"></i></button>
-                    }
+                    <label for="title">@Messages("post.new.title")</label>
                 </dt>
                 <dd>
-                    <fieldset class="labels issue-form-labels"></fieldset>
+                    <input type="text" id="title" name="title" value="" class="text title zen-mode" maxlength="250" tabindex="1">
                 </dd>
             </dl>
         </div>
-    </div>
 
+        <div class="row-fluid">
+            <div class="span2">
+                @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
+                <dl class="issue-option">
+                     <dt>@Messages("issue.new.detailInfo.assignee")</dt>
+                     <dd>
+                        <div id="assignee" class="btn-group" data-name="assignee.user.id">
+                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                <span class="d-label">@Messages("issue.new.selectDefault.assignee")</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                            @for(member <- project.members()) {
+                                <li data-value="@member.user.id"><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
+                            }
+                            </ul>
+                        </div>
+                     </dd>
+                </dl>
+                }
+    
+                @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
+                    <dl id="milestoneOption" class="issue-option">
+                        <dt>@Messages("issue.new.detailInfo.milestone")</dt>
+                        <dd>
+                        @defining(Milestone.options(project.id)) { milestones =>
+                            @if(milestones.isEmpty()) {
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
+                                <i class="icon-refresh"></i>
+                            } else {
+                                <div id="milestoneId" class="btn-group" data-name="milestoneId">
+                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                        <span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
+                                        <span class="d-caret"><span class="caret"></span></span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        @milestones.map{ v =>
+                                        <li data-value="@v._1"><a>@v._2</a></li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        }
+                        </dd>
+                    </dl>
+                }
+    
+                <dl id="labels" class="issue-option">
+                    <dt>
+                        @Messages("label.select")
+                        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
+                        <button id="manage-label-link" type="button" class="btn-transparent"><i class="icon-cog"></i></button>
+                        }
+                    </dt>
+                    <dd>
+                        <fieldset class="labels issue-form-labels"></fieldset>
+                    </dd>
+                </dl>
+            </div>
+                    
+            <div class="span10">
+                <dl>
+            		<dd style="position: relative;">
+                        <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
+                        <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
+            		</dd>
+                </dl>
+            
+                @** fileUploader **@
+                @if(!UserApp.currentUser.isAnonymous) {
+                    @fileUploader(ResourceType.ISSUE_POST, null)
+                }
+                @** end of fileUploader **@
+            </div>
+        </div>
+    </div>
+    
     <div class="row-fluid">
-    	<div class="span9 right-txt actrow">
+        <div class="span12 actrow right-txt">
     	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
     	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
     	</div>

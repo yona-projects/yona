@@ -553,7 +553,7 @@
             if(htData.msg.length && htData.msg.length > 70){
                 htData.msg = htData.msg.substr(0, 70) + "...";
             }
-
+            htData.msg = $yobi.htmlspecialchars(htData.msg);
             var sHTML = $yobi.tmpl(htVar.sTplListItem, htData);
             return sHTML;
         }

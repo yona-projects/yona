@@ -23,124 +23,182 @@
 
 	@** Post Info **@
 	<div class="board-header issue">
-		<div class="board-id div"><strong class="secondary-txt">#@issue.getNumber</strong></div>
-		<h1 class="title div">@issue.title</h1>
-		<div class="date div">@agoString(issue.ago)</div>
-		<div class="div btn-group btn-flat">
-        @for(state <- Issue.availableStates){
-            @if( state.state == issue.state.state ){
-            <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)"} class="btn active @isFirstState(issue.state) no-gradient">@Messages("issue.state." + issue.state.state)</a>
-            } else {
-            <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)"} class="btn no-gradient">@Messages("issue.state." + state.state)</a>
+		<div class="title pull-left">
+		    <strong class="board-id">#@issue.getNumber</strong> @issue.title
+        </div>
+		<div class="pull-right">
+            <div class="date">@agoString(issue.ago)</div>
+            <div class="switch @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){ deactivate }" data-on-label="@Messages("issue.state.open")" data-off-label="@Messages("issue.state.closed")">
+                <input id="issueOpen" type="checkbox" data-toggle="switch" @if(issue.state == State.OPEN){ checked="checked" }>
+            </div>
+            @**<!--
+            <div class="div btn-group btn-flat">
+            @for(state <- Issue.availableStates){
+                @if( state.state == issue.state.state ){
+                <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)"} class="btn active @isFirstState(issue.state) no-gradient">@Messages("issue.state." + issue.state.state)</a>
+                } else {
+                <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)"} class="btn no-gradient">@Messages("issue.state." + state.state)</a>
+                }
             }
-        }
-
+            </div>
+            -->**@
 		</div>
 	</div>
 
 	@** Content body **@
-	<div class="board-body">
-		<div class="author-info">
-			<a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap pull-left">
-				<img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName">
-			</a>
-			<div class="media-body" style="overflow:visible;display:inline-block;">
-				<form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
-				<input type="hidden" name="issues[0].id" value="@issue.id" /> 
-				<p style="float:left;">
-					@**<!-- author  -->**@
-					@Messages("issue.author")
-					<a href="@routes.UserApp.userInfo(issue.authorLoginId)" @if(issue.assigneeName != null){ class="gray-txt" }>
-                    <strong>
-					    @if(issue.authorLoginId != null){
-                        @issue.authorLoginId (@issue.authorName)
-					    } else {
-					    @Messages("issue.noAuthor")
-					    }
-                    </strong>
-					</a>
-					&nbsp;&middot;&nbsp;
+	<!--board-body-->
+    <div class="board-body row-fluid">
+        <div class="span2 mb20">
+            <div class="author-info">
+                <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post" class="frm-wrap">
+                    <input type="hidden" name="issues[0].id" value="@issue.id" /> 
 
-					@**<!-- assignee  -->**@
-					@Messages("issue.assignee")
-					&nbsp;&nbsp;<div id="assignee" class="btn-group" data-name="assignee.id">
-				        <button class="btn dropdown-toggle large" data-toggle="dropdown">
-				        	@if(issue.assigneeName != null){
-				            <span class="d-label">@issue.assignee.user.loginId (@issue.assigneeName)</span>
-				            } else {
-				            <span class="d-label">@Messages("noAssignee")</span>
-				            }
-				            <span class="d-caret"><span class="caret"></span></span>
-				        </button>
-				        <ul class="dropdown-menu">
-				            <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
-				            @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-				                <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
-				            }
-				            <li class="divider"></li>
-				            @for(member <- project.members()) {
-				                <li data-value="@member.user.id"><a>@member.user.loginId (@member.user.name)</a></li>
-				            }
-				        </ul>
-				    </div>
-				</p>
-				<p style="float:left;">
-				    @**<!-- comment
-					@Messages("comment") <strong class="num">@issue.comments.size</strong>
-					-->**@
+                    @**<!-- author  -->**@
+                    <dl class="author">
+                        <dt>@Messages("issue.author")</dt>
+                        <dd>
+                            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap pull-left small mr10">
+                                <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName">
+                            </a>
+                            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" @if(issue.assigneeName != null){ class="gray-txt" } style="line-height:26px;">
+                                @if(issue.authorLoginId != null){ @issue.authorLoginId (@issue.authorName) } else { @Messages("issue.noAuthor") }
+                            </a>
+                        </dd>
+                    </dl>
+                    @**<!-- // -->**@
+                    
+                    @**<!-- state  -->**@
+                    <!--
+                    <dl>
+                        <dt>@Messages("issue.state")</dt>
+                        <dd>
+                            <div id="state" class="btn-group" data-name="state">
+                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                    <span class="d-label">@Messages("issue.state")</span>
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="@State.OPEN.name" @if(issue.state == State.OPEN){data-selected="true" class="active"}><a>@Messages("issue.state.open")</a></li>
+                                    <li data-value="@State.CLOSED.name" @if(issue.state == State.CLOSED){data-selected="true" class="active"}><a>@Messages("issue.state.closed")</a></li>
+                                </ul>
+                            </div>
+                        </dd>
+                    </dl>
+                    -->
+                    
+                    @**<!-- assignee  -->**@
+                    <dl>
+                        <dt>@Messages("issue.assignee")</dt>
+                        <dd>
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                            <div id="assignee" class="btn-group" data-name="assignee.id">
+                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                    @if(issue.assigneeName != null){
+                                    <span class="d-label">@issue.assignee.user.loginId (@issue.assigneeName)</span>
+                                    } else {
+                                    <span class="d-label">@Messages("noAssignee")</span>
+                                    }
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
+                                    @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                        <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
+                                    }
+                                    <li class="divider"></li>
+                                    @for(member <- project.members()) {
+                                        <li data-value="@member.user.id"><a>@member.user.loginId (@member.user.name)</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        } else {
+                            @if(issue.assigneeName != null){
+                                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap pull-left small mr10">
+                                    <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="32" height="32" alt="@issue.assigneeName">
+                                </a>
+                                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)">
+                                    @issue.assignee.user.loginId (@issue.assigneeName)
+                                </a>
+                            } else {
+                                @Messages("issue.noAssignee")
+                            }
+                        }
+                        </dd>
+                    </dl>
+                    @**<!-- // -->**@
 
-					@**<!-- milestone  -->**@
-					@Messages("milestone")
-					&nbsp;&nbsp;<div id="milestone" class="btn-group" data-name="milestone.id">
-				        <button class="btn dropdown-toggle large" data-toggle="dropdown">
-				        	@if(issue.milestone != null) {
-				            <span class="d-label">@issue.milestone.title</span>
-				        	} else {
-				        	<span class="d-label">@Messages("noMilestone")</span>
-				        	}
-				            <span class="d-caret"><span class="caret"></span></span>
-				        </button>
-				        <ul class="dropdown-menu">
-				            <li data-value="-1"><a>@Messages("noMilestone")</a></li>
-				            @for(milestone <- Milestone.findByProjectId(project.id)) {
-				                <li data-value="@milestone.id"><a>@milestone.title</a></li>
-				            }
-				        </ul>
-				    </div>
-				</p>
-				</form>
-			</div>
-    	</div>
-    	<div class="content markdown-wrap" markdown="true">@issue.body</div>
-    	<div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
-	</div>
+                    @**<!-- milestones -->**@
+                    <dl>
+                        <dt>@Messages("milestone")</dt>
+                        <dd>
+                        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                            <div id="milestone" class="btn-group" data-name="milestone.id">
+                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                                    @if(issue.milestone != null) {
+                                    <span class="d-label">@issue.milestone.title</span>
+                                    } else {
+                                    <span class="d-label">@Messages("noMilestone")</span>
+                                    }
+                                    <span class="d-caret"><span class="caret"></span></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li data-value="-1"><a>@Messages("noMilestone")</a></li>
+                                    @for(milestone <- Milestone.findByProjectId(project.id)) {
+                                        <li data-value="@milestone.id"><a>@milestone.title</a></li>
+                                    }
+                                </ul>
+                            </div>
+                        } else {
+                            @if(issue.milestone != null) {
+                                <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
+                                    @issue.milestone.title
+                                </a>
+                            } else {
+                                @Messages("noMilestone")
+                            }
+                        }
+                        </dd>
+                    </dl>
+                    @**<!-- // -->**@
+                    
+                </form>
+            </div>	            
+        </div>
+        
+        <div class="span10">
+            <div class="pull-right" style="padding:20px;">
+                @**<!-- labels -->**@
+                <p class="labels-wrap">
+                @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                    <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                }
+                </p>
+            </div>
+            <div class="content markdown-wrap" markdown="true">@issue.body</div>
+            <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
+        </div>
+    </div>
 
 	<div class="board-footer board-actrow">
-		@** labels **@
-		<p class="labels-wrap pull-left">
-		@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-			<a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
-		}
-		</p>
-
-        <button id="watch-button" type="button" class="nbtn medium blue @if(issue.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
-            @if(issue.getWatchers.contains(UserApp.currentUser())) {
-                @Messages("project.unwatch")
-            } else {
-                @Messages("project.watch")
+        <div class="pull-left">
+            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+            <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
             }
-        </button>
+    
+            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+            <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
+            }
+            
+            <button id="watch-button" type="button" class="nbtn medium @if(issue.getWatchers.contains(UserApp.currentUser())) { watching }" data-toggle="button">
+                @if(issue.getWatchers.contains(UserApp.currentUser())) {
+                    @Messages("project.unwatch")
+                } else {
+                    @Messages("project.watch")
+                }
+            </button>
+        </div>
 
-        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-        <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
-        }
-
-		@if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-		<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
-		}
-
-		<a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>
-		
+		<a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>		
 		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
 	</div>
 
@@ -152,7 +210,7 @@
 		<ul class="comments">
 		@for(comment <- issue.comments){
 			<li class="comment" id="comment-@comment.id">
-				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
+				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
 		        	<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
 	        	</a>
 				<div class="media-body">
@@ -226,14 +284,17 @@
 
 		// yobi.issue.View
 		$yobi.loadModule("issue.View", {
-			"sAction"       : "@routes.AttachmentApp.uploadFile",
-			"htOptLabel"    : htOptLabel,
+            "htOptLabel"    : htOptLabel,
+			"sUploadUrl"    : "@routes.AttachmentApp.uploadFile",
+			"sFilesUrl"     : "@routes.AttachmentApp.getFileList",
             "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
+    		"sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",
+    		"sIssueId"      : "@issue.id",
             "welMilestone"  : $("#milestone"),
-    		"welAssignee"   : $("#assignee"),
-    		"welIssueUpdateForm" : $("#issueUpdateForm"),
-    		"sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
+            "welAssignee"   : $("#assignee"),
+            "welIssueUpdateForm": $("#issueUpdateForm"),
+            "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]"
 		});
 
 	    // yobi.ShortcutKey
