@@ -597,6 +597,7 @@ notification.will.help = プロジェクトを見守ると次のイベントの�
 notification.help.new = 新しいスレッドやイシューが投稿された時
 notification.help.new.comment = スレッド,イシュー, コードに新しいコメントが投稿された時
 notification.help.update.issue= イシュー状態や担当者が変更される時
+notification.help.update.pullrequest = Update pull-request's state
 
 # Reset secret
 secret.welcome = ようこそ!
