@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean)
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -8,6 +8,21 @@
 @branchName(branch:String) = @{
     branch.replace("refs/heads/", "")
 }
+
+@getCodeURL(project: Project) = @{
+    if(session == null){
+        CodeApp.getURL(project.owner, project.name)
+    } else {
+        defining(ProjectUser.roleOf(session.get("loginId"), project)) { role =>
+            if(role == "manager" || role == "member"){
+                CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
+            } else {
+                CodeApp.getURL(project.owner, project.name)
+            }
+        }
+    }
+}
+
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
@@ -83,11 +98,36 @@
                 @if(pull.isOpen()){
                     @if(isSafe){
                     <div class="alert alert-success">
-                        @Messages("pullRequest.is.safe")
+                        <h5>@Messages("pullRequest.is.safe")</h5>
                     </div>
                     } else {
                     <div class="alert alert-error">
-                        @Messages("pullRequest.is.not.safe")
+                        <h5>@Messages("pullRequest.is.not.safe")</h5>
+                        @if(conflicts != null) {
+                        <div>
+                            <h5>@Messages("pullRequest.conflict.files")</h5>
+                            <ul class="unstyled">
+                                @for(file <- conflicts.conflictFiles) {
+                                <li><i class="icon-file"></i> @file</li>
+                                }
+                            </ul>
+                        </div>
+                        <div>
+                            <h5>@Messages("pullRequest.resolve.conflict")</h5>
+                            <ol>
+                                <li>@Messages("pullRequest.resolver.step1") <code>git checkout @branchName(pull.fromBranch)</code></li>
+                                <li>@Messages("pullRequest.resolver.step2") <code>git remote add upstream @getCodeURL(pull.toProject)</code></li>
+                                <li>@Messages("pullRequest.resolver.step3") <code>git fetch upstream</code></li>
+                                <li>@Messages("pullRequest.resolver.step4") <code>git rebase upstream/@branchName(pull.toBranch)</code></li>
+                                <li>@Messages("pullRequest.resolver.step5") </li>
+                                <li>@Messages("pullRequest.resolver.step6") <code>git add 충돌을_해결한_파일</code></li>
+                                <li>@Messages("pullRequest.resolver.step7") <code>git rebase --continue</code></li>
+                                <li>@Messages("pullRequest.resolver.step8") </li>
+                                <li>@Messages("pullRequest.resolver.step9") <code>git push -f origin @branchName(pull.fromBranch)</code></li>
+                                <li>@Messages("pullRequest.resolver.step10") <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.id)" class="nbtn orange small">@Messages("page.refresh")</a>@Messages("pullRequest.resolver.step11")</li>
+                            </ol>
+                        </div>
+                        }
                     </div>
                     }
                 }

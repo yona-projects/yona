@@ -15,6 +15,7 @@
  */
 yobi.Pagination = (function(window, document) {
 	var htRegEx = {};
+	var rxDigit = /^.[0-9]*$/;
 	
 	/**
 	 * getQuery
@@ -140,21 +141,23 @@ yobi.Pagination = (function(window, document) {
 		// on submit event handler
 		if (typeof (options.submit) == 'function') {
 			var keydownOnInput = function(e) {
-				options.submit($(target).val());
+			    if(validateInputNum($(target), options.current)){
+				    options.submit($(target).val());
+                }
 			};
 		} else {
 			var keydownOnInput = function(e) {
-				var target = e.target || e.srcElement;
-				if (e.which == 13) {
-					document.location.href = urlWithPageNum(options.url, $(target).val(), paramNameForPage);
+				var welTarget = $(e.target || e.srcElement);
+				if (e.which == 13 && validateInputNum(welTarget, options.current)) {
+					document.location.href = urlWithPageNum(options.url, welTarget.val(), paramNameForPage);
 				}
 			}
 		}
 
 		// page input box
-		var elInput = $('<input name="pageNum" type="number" min="1" max="' + totalPages + '" class="input-mini" value="' + options.current + '">').keydown(keydownOnInput);
+		var elInput = $('<input name="pageNum" type="text" pattern="[0-9]*" min="1" max="' + totalPages + '" class="input-mini" value="' + options.current + '">').keydown(keydownOnInput);
 		var welPageInputContainer = $('<li class="page-num">').append(elInput);
-		var welDelimiter = $('<li class="page-num">').text('/');
+		var welDelimiter = $('<li class="page-num delimiter">').text('/');
 		var welTotalPages = $('<li class="page-num">').text(totalPages);
 
 		// next page exists
@@ -178,6 +181,25 @@ yobi.Pagination = (function(window, document) {
 		var welPageList = $('<ul class="page-nums">').append([welPagePrev, welPageInputContainer, welDelimiter, welTotalPages, welPageNext]);
 		target.append(welPageList);
 	};
+
+    // validate number range
+    function validateInputNum(welTarget, nCurrentPageNum){
+        if(rxDigit.test(welTarget.val()) === false){
+            welTarget.val(nCurrentPageNum);
+            return false;
+        }
+        
+        var nVal = parseInt(welTarget.val(), 10);
+        var nMin = parseInt(welTarget.attr("min"), 10);
+        var nMax = parseInt(welTarget.attr("max"), 10);
+        
+        if(nVal < nMin){
+            welTarget.val(nMin);
+        } else if(nVal > nMax){
+            welTarget.val(nMax);
+        }
+        return true;
+    }
 
 	return {
 		"update" : updatePagination

@@ -69,6 +69,7 @@ label.confirm.delete = Are you Sure?
 label.select = Select Label
 label.error.duplicated = Failed to create new label. It might be same label exists already.
 label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid.
+label.error.empty = Failed to create new label.\nCategory, Color, Name fields cannot be empty.
 label.addNewCategory = Add new category
 label.addNewLabel = Add new label
 
@@ -586,6 +587,20 @@ delete.frombranch.message = can be deleted.
 restore.frombranch.message = can be restored.
 delete.branch = Delete Branch
 restore.branch = Restore Branch
+pullRequest.conflict.files = Conflicted Files
+pullRequest.resolve.conflict = Resolving Conflicts
+pullRequest.resolver.step1 = Move to the code sending branch on your workspace.
+pullRequest.resolver.step2 = (If you did it already, skip) Add the upstream repository's URL as new remote.
+pullRequest.resolver.step3 = Get the latest upstream code.
+pullRequest.resolver.step4 = Rebase with the code receiving branch.
+pullRequest.resolver.step5 = There will be some conflicted files. Open those files and edit it properly.
+pullRequest.resolver.step6 = If you fixed it, you should let the Git knows it.
+pullRequest.resolver.step7 = After resolving the conflicts, continue the rebasing.
+pullRequest.resolver.step8 = You may repeat 5 to 7 several times or not.
+pullRequest.resolver.step9 = After the rebasing, push it forcefully.
+pullRequest.resolver.step10 = The End!
+pullRequest.resolver.step11 = Check again your pull request can be merged safely or not.
+page.refresh = Page Refresh
 
 # Notifcation
 notification.watch = Watch
@@ -607,7 +622,7 @@ restart.welcome = Welcome!
 restart.notice = The server needs to be restarted.
 
 # Project member enrollments
-member.enrollment.request = Member enrollment requests
+member.enrollment.request = Be a member
 you.want.to.be.a.member = You want to be a member of {0} project.
 you.may.want.to.be.a.member = You may want to be a member of {0} project.
 member.enrollment.help = You can be a member if the members of this project accept this request.

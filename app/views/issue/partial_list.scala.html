@@ -6,7 +6,7 @@
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
 
 @makeLabelLink(project:Project, searchCondition:IssueApp.SearchCondition, label:IssueLabel) = {
-    <a href="@urlToList&orderBy=@searchCondition.orderBy&filter=@searchCondition.filter&labelIds=@label.id" class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+    <a href="@urlToList&orderBy=@searchCondition.orderBy&filter=@searchCondition.filter&labelIds=@label.id" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 
 @for(issue <- issueList){
@@ -27,13 +27,13 @@
                     
                     @issue.title
                     @if(Attachment.findByContainer(issue.asResource).size > 0){
-                        <i class="ico ico-clip vmiddle"></i>
+                        <i class="icon icon-paper-clip vmiddle"></i>
                     }
                 </a>
             </div>
             <div class="infos nm">
                 @if(issue.authorName){
-                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author">@issue.authorLoginId (@issue.authorName)</a>
+                    <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="author" data-toggle="tooltip" data-placement="top" title="@issue.authorName">@issue.authorLoginId</a>
                 } else {
                     <span class="gray-txt">@Messages("issue.noAuthor")</span>
                 }
@@ -42,7 +42,7 @@
                 
                 @if(issue.comments.size()>0){
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="comment-wrap">
-                        <i class="ico ico-comment-bubble"></i><span class="num">@issue.comments.size()</span>
+                        <i class="icon icon-comments"></i><span class="num">@issue.comments.size()</span>
                     </a>
                 }
                 

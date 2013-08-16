@@ -520,6 +520,7 @@ yobi.LabelEditor = (function(welContainer, htOptions){
 		
 		// 하나라도 입력안된 것이 있으면 서버 요청 하지 않음
 		if(htData.name.length === 0 || htData.color.length === 0 || htData.category.length === 0){
+		    $yobi.alert(Messages("label.error.empty"));
 			return false;
 		}
 		

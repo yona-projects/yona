@@ -68,21 +68,20 @@
 		function _getToast(sMessage){
 			var welToast = htElement.welToast.clone();
 			var welMessage = welToast.find(".msg");
-			var welBtnClose = welToast.find(".btn-dismiss");
 			
 			welToast.css("opacity", "0");
+            welToast.click(_onClickClose);
 			welMessage.html($yobi.nl2br(sMessage));
-			welBtnClose.click(_onClickClose);
 			
 			return welToast;
 		}
 
 		/**
-		 * 토스트 메시지의 닫기 버튼 클릭시 이벤트 핸들러
+		 * 토스트 메시지 클릭시 이벤트 핸들러
 		 * transition 사용하지 않고 즉각 삭제
 		 */
-		function _onClickClose(){
-			$(this).parent().remove();
+		function _onClickClose(weEvt){
+		    $(this).remove();
 		}
 		
 		/**
