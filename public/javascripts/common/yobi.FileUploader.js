@@ -488,7 +488,7 @@ yobi.FileUploader = (function() {
 	function _onClickListItem(weEvt){
 		var welTarget = $(weEvt.target);
 		var welItem = $(weEvt.currentTarget);
-
+        
 		// 파일 아이템 전체에 이벤트 핸들러가 설정되어 있으므로
 		// 클릭이벤트 발생한 위치를 삭제버튼과 나머지 영역으로 구분하여 처리
 		if(welTarget.hasClass("btn-delete")){
@@ -523,23 +523,23 @@ yobi.FileUploader = (function() {
 	 * @param {Wrapped Element} welItem
 	 */
 	function _deleteAttachedFile(welItem){
-	    var welForm = $('<form method="post" enctype="multipart/form-data">');
-	    welForm.attr("action", welItem.attr("data-href"));
-	    welForm.appendTo(document.body);
-	    welForm.ajaxForm({
-	        "data"    : {"_method":"delete"},
-	        "success" : function(){
+	   var sURL = welItem.attr("data-href");
+	   yobi.Files.deleteFile({
+	       "sURL"   : sURL,
+	       "fOnLoad": function(){
                 _clearLinkInTextarea(welItem);
                 welItem.remove();
-                
+
                 // 남은 항목이 없으면 목록 감춤
                 if(htElements.welFileList.children().length === 0){
                     htElements.welFileList.hide();
                     htElements.welFileListHelp.hide();
                 }
+            },
+            "fOnError": function(){
+                $yobi.alert(Messages("error.internalServerError"));
             }
-	    });
-	    welForm.submit();
+	   });
 	}
 	
 	/**

@@ -32,6 +32,7 @@ a {
     width:100%;
     text-align: center;
     margin-top: 20px;
+    clear:both;
     
     .page-nums {
         margin: 0;
@@ -45,9 +46,20 @@ a {
             padding: 0 10px;
             font-size: 12px;
             color: #8e9094;
+            
             .current {
                 color: @orange; /*#4489A4;*/
                 font-weight: bold;
+            }
+            .input-mini {
+                margin:0; width:30px;
+                text-align:center; font-weight:bold;
+                border:1px solid #eee;
+                &:hover, &:focus { 
+                    /*background:#f5f5f5;*/
+                    .box-shadow(inset -1px -1px 2px rgba(0,0,0,0.1));
+                    color:@primary;
+                }
             }
             &.ikon {
                 &:nth-child(4n-2) { //--- prev
@@ -65,6 +77,7 @@ a {
                     }
                 }
             }
+            &.delimiter { color:#ddd; padding:0 5px; }
         }
     }
 }

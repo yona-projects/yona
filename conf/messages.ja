@@ -69,6 +69,7 @@ label.confirm.delete = ラベルを削除するとイシューに指定したラ
 label.select = ラベル選択
 label.error.duplicated = ラベルを作れません。\nすでに同じラベルがあるかもしれません。
 label.error.creationFailed = ラベル作りに失敗しました。\nサーバに問題があるかもしくはただしい要請ではないかも知れません。
+label.error.empty = ラベル作りに失敗しました。\n分類、色、名を全部入力してください。
 label.addNewCategory = 分類追加
 label.addNewLabel = ラベル追加
 

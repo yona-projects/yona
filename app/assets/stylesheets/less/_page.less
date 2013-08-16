@@ -908,9 +908,10 @@
     }
 }
 .bottom-actrow {margin-top:15px;  padding: 6px 2px;}
+.issue-list-wrap { clear:both;}
 .search-wrap {
     form { margin: 0; }
-
+    float:left;
     .inner {
         position:relative;
         /*padding: 20px 20px 5px 20px;*/
@@ -1348,7 +1349,7 @@
 }
 
 .project-menu {
-
+    display:block; clear:both;
     padding-bottom: 10px;
     margin-bottom:10px;
     ul {
@@ -2021,6 +2022,7 @@
         margin-right:20px;
         color: #999;
     }
+    .badge { color:#fff; }
 }
 .badge {
     font-size:11px;
@@ -2195,7 +2197,7 @@ div.markdown-preview {
 
         .btn-wrap {
             display:inline-block !important;
-            margin:0 5px;
+            margin:0 5px; vertical-align:top;
         }
         span {
             display:inline-block;
@@ -2257,6 +2259,7 @@ div.markdown-preview {
                 display:none; 
                 line-height: 20px; 
                 margin-top: 2px; margin-right: 10px;
+                .box-shadow(none);
                 &:hover { background:#fff; color:@primary; }
             }
 
@@ -2274,8 +2277,9 @@ div.markdown-preview {
         }
     }
 
-    .help { display:none; }
-    .help-droppable { display:none; }
+    .help { display:none !important; }
+    .help-droppable { display:none !important; }
+    .help-pastable  { display:none !important; }
 }
 // -- //
 
@@ -2390,7 +2394,7 @@ div.markdown-preview {
             display:inline-block;
             margin-left:10px;
             .num { color: @secondary; font-weight:bold; }
-            .ico { vertical-align: bottom; margin-right: 5px; }
+            .icon {  margin-right: 3px; color : #51aacc; } 
         }
         .lb { display:inline-block; }
     }
@@ -3751,3 +3755,4 @@ div#commit.show-comments tr.comments {
 }
 
 div#mode-select { text-align:right; }
+.pullreq-info { display:block; clear:both; padding-bottom:10px; margin-bottom:10px; }
