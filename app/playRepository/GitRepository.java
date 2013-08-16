@@ -1131,32 +1131,22 @@ public class GitRepository implements PlayRepository {
             return commits;
         }
 
-        Repository repo = buildCloneRepository(pullRequest);
+        Repository repo = null;
         RevWalk walk = null;
         try {
-            walk = new RevWalk(repo);
-            ObjectId from = repo.resolve(pullRequest.mergedCommitIdFrom);
-            ObjectId to = repo.resolve(pullRequest.mergedCommitIdTo);
+            repo = buildGitRepository(pullRequest.toProject);
+            ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
+            if(untilId == null) {
+                return commits;
+            }
+            ObjectId sinceId = repo.resolve(pullRequest.mergedCommitIdFrom);
+            if(sinceId == null) {
+                return commits;
+            }
 
-            RevCommit markEndCommit = walk.parseCommit(from);
-            RevCommit markStartCommit = walk.parseCommit(to);
-            walk.markStart(markStartCommit);
-
-            /**
-             * to부터 시작해서 from까지 walk 하다가 from까지 가게되면 멈춘다.
-             *
-             * parent 커밋 ID를 조회해 가는거니까 왔던 길을 거꾸로 돌아 걸어가는 느낌으로 to부터 걸어간다.
-             * 이때 to에 해당하는 커밋 ID는 포함시키고 from에 해당하는 커밋 ID는 제외해야 한다.
-             *
-             * @see PullRequest#mergedCommitIdFrom
-             * @see PullRequest#mergedCommitIdTo
-             */
-            for(RevCommit rev : walk) {
-                if(rev.equals(markEndCommit)) {
-                    break;
-                } else {
-                    commits.add(new GitCommit(rev));
-                }
+            Iterable<RevCommit> logIterator = new Git(repo).log().addRange(sinceId, untilId).call();
+            for(RevCommit commit : logIterator) {
+                commits.add(new GitCommit(commit));
             }
 
             return commits;
