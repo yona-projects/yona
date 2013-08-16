@@ -449,7 +449,30 @@ public class PullRequestApp extends Controller {
 
         pullRequest.merge();
 
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
+        return redirect(call);
+    }
+
+    private static void addPullRequestUpdateNotification(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = pullRequestCall.absoluteURL(request());
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.type = NotificationType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = newState.state();
+
+        NotificationEvent.add(notiEvent);
     }
 
 
@@ -473,11 +496,11 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        pullRequest.state = State.REJECTED;
-        pullRequest.received = JodaDateUtil.now();
-        pullRequest.receiver = UserApp.currentUser();
-        pullRequest.update();
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+        pullRequest.reject();
+
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.REJECTED);
+        return redirect(call);
     }
 
     /**
@@ -499,11 +522,10 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        pullRequest.state = State.OPEN;
-        pullRequest.received = JodaDateUtil.now();
-        pullRequest.receiver = UserApp.currentUser();
-        pullRequest.update();
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+        pullRequest.reopen();
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        addPullRequestUpdateNotification(call, pullRequest, State.REJECTED, State.OPEN);
+        return redirect(call);
     }
 
     /**
@@ -621,6 +643,14 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
     }
 
+    /**
+     * {@code pullRequestId}에 해당한느 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 복구한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
     public static Result restoreFromBranch(String userName, String projectName, Long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project toProject = pullRequest.toProject;

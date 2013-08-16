@@ -326,4 +326,18 @@ public class PullRequest extends Model {
     public List<SimpleComment> getComments() {
         return SimpleComment.findByResourceKey(this.getResourceKey());
     }
+
+    public void reject() {
+        this.state = State.REJECTED;
+        this.received = JodaDateUtil.now();
+        this.receiver = UserApp.currentUser();
+        this.update();
+    }
+
+    public void reopen() {
+        this.state = State.OPEN;
+        this.received = JodaDateUtil.now();
+        this.receiver = UserApp.currentUser();
+        this.update();
+    }
 }

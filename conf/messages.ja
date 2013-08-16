@@ -621,6 +621,9 @@ notification.issue.reopened = 未決に成る
 notification.issue.closed  = 解決
 notification.issue.assigned = {0}が担当者に成る
 notification.issue.unassigned = もう担当者無し
+notification.pullrequest.closed = Merged
+notification.pullrequest.rejected = Rejected
+notification.pullrequest.reopened = 未決に成る
 
 # Grouping
 project.group = プロジェクトグループ

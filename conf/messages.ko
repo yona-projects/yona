@@ -546,7 +546,7 @@ error.internalServerError = 서버 오류가 발생하여 서비스를 이용할
 #PullReqeust
 pullRequest.is.safe = 코드를 안전하게 자동으로 병합할 수 있습니다.
 pullRequest.is.not.safe = 코드를 자동으로 병합할 때 충돌이 발생합니다. 자동으로 코드를 병합할 수 없습니다.
-pullRequest.accept = 수락
+pullRequest.accept = 코드 받기
 pullRequest.reject = 보류
 pullRequest.cancel = 취소
 pullRequest.reopen = 다시 열기
@@ -640,7 +640,10 @@ cancel.enrollment = 멤버 등록 요청 취소하기
 notification.issue.reopened = 다시 열림
 notification.issue.closed  = 닫힘
 notification.issue.assigned = {0}에게 할당됨
-notification.issue.unassigned = 이제 담당자 없음
+notification.issue.unassigned = 이제 담당자
+notification.pullrequest.closed = 보낸 코드 잘 받았음
+notification.pullrequest.rejected = 보낸 코드 거절
+notification.pullrequest.reopened = 다시 열림
 
 # Grouping
 project.group = 프로젝트 분류

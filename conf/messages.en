@@ -641,6 +641,9 @@ notification.issue.reopened = Re-opened
 notification.issue.closed  = Closed
 notification.issue.assigned = Assigned to {0}
 notification.issue.unassigned = Unassigned
+notification.pullrequest.closed = Merged
+notification.pullrequest.rejected = Rejected
+notification.pullrequest.reopened = Re-opened
 
 # Grouping
 project.group = Project Gorups

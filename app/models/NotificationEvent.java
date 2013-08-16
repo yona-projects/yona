@@ -127,6 +127,14 @@ public class NotificationEvent extends Model {
         case NEW_PULL_REQUEST:
         case NEW_SIMPLE_COMMENT:
             return newValue;
+        case PULL_REQUEST_STATE_CHANGED:
+            if(newValue.equals(State.CLOSED.state())) {
+                return Messages.get("notification.pullrequest.closed");
+            } else if(newValue.equals(State.REJECTED.state())) {
+                return Messages.get("notification.pullrequest.rejected");
+            } else {
+                return Messages.get("notification.pullrequest.reopened");
+            }
         default:
             return null;
         }
