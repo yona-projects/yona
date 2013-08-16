@@ -107,7 +107,7 @@
                                     }
                                     <li class="divider"></li>
                                     @for(member <- project.members()) {
-                                        <li data-value="@member.user.id"><a>@member.user.loginId (@member.user.name)</a></li>
+                                        <li data-value="@member.user.id" data-id="@member.user.id"><a>@member.user.loginId (@member.user.name)</a></li>
                                     }
                                 </ul>
                             </div>

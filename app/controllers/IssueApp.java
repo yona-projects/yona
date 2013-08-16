@@ -340,7 +340,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         // Response as JSON on XHR
-        String contentType = HttpUtil.getPreferType(request(), "application/json");
+        String contentType = HttpUtil.getPreferType(request(), "application/json", "text/html");
         Boolean isXHR = contentType.equals("application/json");
         return isXHR ? ok() : redirect(request().getHeader("Referer"));
     }

@@ -68,23 +68,31 @@
          * attach event handler
          */
         function _attachEvent(){
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("watching");
-
-                $yobi.sendForm({
-                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
-                    "fOnLoad": function(){
-                        welTarget.toggleClass("watching");
-                        welTarget.html(Messages(welTarget.hasClass("watching") ? "project.unwatch" : "project.watch"));
-                    }
-                });
-            });
-
-            htVar.oMilestone.onChange(_onChangeUpdateField);
-            htVar.oAssignee.onChange(_onChangeUpdateField);
+            // 지켜보기
+            htElement.welBtnWatch.click(_onClickBtnWatch);
             
+            // 이슈 정보 업데이트
             htElement.welChkIssueOpen.change(_onChangeIssueOpen);
+            htVar.oMilestone.onChange(_onChangeMilestone);
+            htVar.oAssignee.onChange(_onChangeAssignee);
+        }
+        
+        /**
+         * 지켜보기 버튼 클릭시 이벤트 핸들러
+         * 
+         * @param {Wrapped Event} weEvt
+         */
+        function _onClickBtnWatch(weEvt){
+            var welTarget = $(weEvt.target);
+            var bWatched = welTarget.hasClass("watching");
+
+            $yobi.sendForm({
+                "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                "fOnLoad": function(){
+                    welTarget.toggleClass("watching");
+                    welTarget.html(Messages(welTarget.hasClass("watching") ? "project.unwatch" : "project.watch"));
+                }
+            });
         }
         
         /**
@@ -95,20 +103,73 @@
             var bChecked   = welTarget.prop("checked");
             var sNextState = bChecked ? "OPEN" : "CLOSED";
             
-            $.ajax(htVar.sIssuesUrl, {
-                "method": "post",
-                "data": {
-                    "issues[0].id": htVar.sIssueId,
-                    "state": sNextState
-                },
-                "success": function(){
+            _requestUpdateIssue({
+               "htData" : {"state": sNextState},
+               "fOnLoad": function(){
                     welTarget.prop("checked", bChecked);
                 },
-                "error" : function(){
+               "fOnError": function(){
                     welTarget.prop("checked", !bChecked);
-                    $yobi.notify(Messages("error.internalServerError"));
-                }
+                    _onErrorRequest();
+               }
             });
+        }
+        
+        /**
+         * 담당자 변경시
+         * 
+         * @param {String} sValue 선택된 항목의 값
+         */
+        function _onChangeAssignee(sValue){
+            _requestUpdateIssue({
+               "htData"  : {"assignee.id": sValue},
+               "fOnLoad" : function(){
+                   $yobi.notify(Messages("issue.update.assignee"), 3000);
+                   htVar.oAssignee.selectItem("li[data-id=" + sValue + "]");
+               },
+               "fOnError": _onErrorRequest
+            });
+        }
+        
+        /**
+         * 마일스톤 변경시
+         * 
+         * @param {String} sValue 선택된 항목의 값
+         */
+        function _onChangeMilestone(sValue){
+            _requestUpdateIssue({
+               "htData"  : {"milestone.id": sValue},
+               "fOnLoad" : function(){
+                   $yobi.notify(Messages("issue.update.milestone"), 3000);
+               },
+               "fOnError": _onErrorRequest
+            });
+        }
+        
+        /**
+         * 이슈 정보 업데이트 AJAX 호출
+         * 
+         * @param {Hash Table} htOptions
+         */
+        function _requestUpdateIssue(htOptions){
+            var htReqData = {"issues[0].id": htVar.sIssueId};
+            for(var sKey in htOptions.htData){
+                htReqData[sKey] = htOptions.htData[sKey];
+            }
+            
+            $.ajax(htVar.sIssuesUrl, {
+                "method" : "post",
+                "data"   : htReqData,
+                "success": htOptions.fOnLoad,
+                "error"  : htOptions.fOnError
+            });
+        }
+        
+        /**
+         * 이슈 정보 업데이트 호출 실패시
+         */
+        function _onErrorRequest(){
+            $yobi.alert(Messages("error.internalServerError"));
         }
         
         /**

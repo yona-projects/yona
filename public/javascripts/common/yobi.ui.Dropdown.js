@@ -167,7 +167,8 @@
 		return {
 			"getValue": _getValue,
 			"onChange": _setOnChange,
-			"selectByValue": _selectByValue
+			"selectByValue": _selectByValue,
+			"selectItem"   : _selectItem
 		};
 	};
 
