@@ -170,20 +170,19 @@
 
             @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
 
-            <div class="bottom-actrow pull-right">
-                <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="nbtn white" style="width:100%; padding:6px 0"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
+            <div class="pull-left" style="padding:10px;">
+                <a href="@routes.IssueApp.issues(project.owner, project.name, param.state, "xls")" class="nbtn white" style="width:100%; padding:6px"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
             </div>
+            @help.keymap("issueList", project)
             <div id="pagination"><!-- pagination.js will fill here. --></div>
         } else {
             <div class="error-wrap">
                 <i class="ico ico-err1"></i>
                 <p>@Messages("issue.is.empty")</p>
             </div>
+            @help.keymap("issueList", project)
         }
         </div>
-
-
-        @help.keymap("issueList", project)
     </div>
 </div>
 

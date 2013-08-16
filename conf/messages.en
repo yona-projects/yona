@@ -69,6 +69,7 @@ label.confirm.delete = Are you Sure?
 label.select = Select Label
 label.error.duplicated = Failed to create new label. It might be same label exists already.
 label.error.creationFailed = Failed to create new label. It might be server error or your request is invalid.
+label.error.empty = Failed to create new label.\nCategory, Color, Name fields cannot be empty.
 label.addNewCategory = Add new category
 label.addNewLabel = Add new label
 
@@ -607,7 +608,7 @@ restart.welcome = Welcome!
 restart.notice = The server needs to be restarted.
 
 # Project member enrollments
-member.enrollment.request = Member enrollment requests
+member.enrollment.request = Be a member
 you.want.to.be.a.member = You want to be a member of {0} project.
 you.may.want.to.be.a.member = You may want to be a member of {0} project.
 member.enrollment.help = You can be a member if the members of this project accept this request.
