@@ -18,11 +18,9 @@ import playRepository.GitCommit;
 import playRepository.GitConflicts;
 import playRepository.GitRepository;
 import playRepository.RepositoryService;
-import utils.AccessControl;
-import utils.Constants;
-import utils.JodaDateUtil;
-import utils.ErrorViews;
+import utils.*;
 import views.html.git.*;
+import views.html.git.create;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
@@ -206,7 +204,7 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    public static Result newPullRequest(String userName, String projectName) {
+    public static Result newPullRequest(String userName, String projectName) throws IOException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         Result result = validateBeforePullRequest(project, userName, projectName);
@@ -215,8 +213,11 @@ public class PullRequestApp extends Controller {
         }
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
+        validateForm(form);
         if(form.hasErrors()) {
-            return badRequest(ErrorViews.BadRequest.render(form.errors().toString(), project));
+            List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
+            List<String> toBranches = RepositoryService.getRepository(project.originalProject).getBranches();
+            return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, fromBranches, toBranches));
         }
 
         Project originalProject = project.originalProject;
@@ -238,6 +239,14 @@ public class PullRequestApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id));
+    }
+
+    private static void validateForm(Form<PullRequest> form) {
+        Map<String, String> data = form.data();
+        ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullrequest.fromBranch.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullrequest.toBranch.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullrequest.title.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("body"), "pullrequest.body.required");
     }
 
     /**
@@ -328,7 +337,7 @@ public class PullRequestApp extends Controller {
 
         final boolean[] isSafe = {false};
         final List<GitCommit> commits = new ArrayList<>();
-        final List<GitConflicts> conflicts = new ArrayList<>();
+        final GitConflicts[] conflicts = {null};
         if(!pullRequest.isClosed()) {
             GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
                 public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
@@ -351,7 +360,7 @@ public class PullRequestApp extends Controller {
                     isSafe[0] = mergeResult.getMergeStatus().isSuccessful();
 
                     if(mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
-                        conflicts.add(new GitConflicts(clonedRepository, mergeResult));
+                        conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
                     }
                 }
             });
@@ -371,7 +380,7 @@ public class PullRequestApp extends Controller {
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts.get(0)));
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0]));
     }
 
     /**
@@ -634,7 +643,7 @@ public class PullRequestApp extends Controller {
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
         if(isGuest(project, currentUser)) {
-            return badRequest(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
+            return forbidden(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
         }
 
         return null;
