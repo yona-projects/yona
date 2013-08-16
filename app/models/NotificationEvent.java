@@ -67,6 +67,11 @@ public class NotificationEvent extends Model {
                 project.name, commit.getShortMessage(), commit.getShortId());
     }
 
+    public static String formatReplyTitle(PullRequest pullRequest) {
+        return String.format("Re: [%s] %s (#%s)",
+                pullRequest.toProject.name, pullRequest.title, pullRequest.id);
+    }
+
     public static String formatReplyTitle(AbstractPosting posting) {
         return String.format("Re: [%s] %s (#%d)",
                 posting.project.name, posting.title, posting.getNumber());
@@ -119,6 +124,8 @@ public class NotificationEvent extends Model {
         case NEW_ISSUE:
         case NEW_POSTING:
         case NEW_COMMENT:
+        case NEW_PULL_REQUEST:
+        case NEW_SIMPLE_COMMENT:
             return newValue;
         default:
             return null;
@@ -191,6 +198,7 @@ public class NotificationEvent extends Model {
             event.delete();
         }
     }
+
 
 
 }
