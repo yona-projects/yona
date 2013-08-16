@@ -27,6 +27,21 @@
         </div>
 
         <div class="row-fluid">
+            <div class="span10">
+                <dl>
+                    <dd style="position: relative;">
+                        <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
+                        <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
+                    </dd>
+                </dl>
+            
+                @** fileUploader **@
+                @if(!UserApp.currentUser.isAnonymous) {
+                    @fileUploader(ResourceType.ISSUE_POST, null)
+                }
+                @** end of fileUploader **@
+            </div>
+
             <div class="span2">
                 @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
                 <dl class="issue-option">
@@ -84,27 +99,12 @@
                         <fieldset class="labels issue-form-labels"></fieldset>
                     </dd>
                 </dl>
-            </div>
-                    
-            <div class="span10">
-                <dl>
-            		<dd style="position: relative;">
-                        <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
-                        <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
-            		</dd>
-                </dl>
-            
-                @** fileUploader **@
-                @if(!UserApp.currentUser.isAnonymous) {
-                    @fileUploader(ResourceType.ISSUE_POST, null)
-                }
-                @** end of fileUploader **@
-            </div>
+            </div>                    
         </div>
     </div>
     
     <div class="row-fluid">
-        <div class="span12 actrow right-txt">
+        <div class="span10 actrow right-txt">
     	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
     	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
     	</div>

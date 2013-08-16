@@ -48,6 +48,19 @@
 	@** Content body **@
 	<!--board-body-->
     <div class="board-body row-fluid">
+        <div class="span10">
+            <div class="pull-right" style="padding:20px;">
+                @**<!-- labels -->**@
+                <p class="labels-wrap">
+                @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
+                    <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+                }
+                </p>
+            </div>
+            <div class="content markdown-wrap" markdown="true">@issue.body</div>
+            <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
+        </div>
+        
         <div class="span2 mb20">
             <div class="author-info">
                 <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post" class="frm-wrap">
@@ -163,43 +176,30 @@
                     
                 </form>
             </div>	            
-        </div>
-        
-        <div class="span10">
-            <div class="pull-right" style="padding:20px;">
-                @**<!-- labels -->**@
-                <p class="labels-wrap">
-                @for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {
-                    <a href='@routes.IssueApp.issues(project.owner, project.name, issue.state.state(), "html", 1)&labelIds=@label.id' class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
-                }
-                </p>
-            </div>
-            <div class="content markdown-wrap" markdown="true">@issue.body</div>
-            <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
-        </div>
+        </div>        
     </div>
 
 	<div class="board-footer board-actrow">
         <div class="pull-left">
-            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-            <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
-            }
-    
-            @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-            <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
-            }
-            
-            <button id="watch-button" type="button" class="nbtn medium @if(issue.getWatchers.contains(UserApp.currentUser())) { watching }" data-toggle="button">
-                @if(issue.getWatchers.contains(UserApp.currentUser())) {
-                    @Messages("project.unwatch")
-                } else {
-                    @Messages("project.watch")
-                }
-            </button>
+            <a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>       
+            <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
         </div>
 
-		<a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>		
-		<a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
+        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
+        <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
+        }
+
+        @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
+        }
+        
+        <button id="watch-button" type="button" class="nbtn medium @if(issue.getWatchers.contains(UserApp.currentUser())) { watching }" data-toggle="button">
+            @if(issue.getWatchers.contains(UserApp.currentUser())) {
+                @Messages("project.unwatch")
+            } else {
+                @Messages("project.watch")
+            }
+        </button>
 	</div>
 
 	@** Comment **@
