@@ -11,21 +11,24 @@
 	@prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
   
 	@** Post Info **@
-	<div class="board-header">
-		<div class="board-id div">@post.getNumber</div>
-		<h1 class="title div">@post.title</h1>
-		<div class="date div">@utils.TemplateHelper.agoString(post.ago())</div>
-	</div>
-  
+    <div class="board-header issue">
+        <div class="title pull-left">
+            <strong class="board-id">@post.getNumber</strong> @post.title
+        </div>
+        <div class="pull-right">
+            <div class="date">@agoString(post.ago)</div>
+        </div>
+    </div>	
+
 	@** Content body **@
 	<div class="board-body">
 		<div class="author-info">
-			<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-left">
+			<a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap pull-left mr10">
 				<img src="@User.findByLoginId(post.authorLoginId).avatarUrl" width="32" height="32" alt="@post.authorName">
 			</a>
 			<div class="media-body">
 				<p>
-					<a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorLoginId</strong></a>
+					<a href="@routes.UserApp.userInfo(post.authorLoginId)"><strong>@post.authorLoginId</strong> (@post.authorName)</a>
 				</p>
 				<p class="status">
 				    @Messages("comment") <strong class="num">@post.numOfComments</strong>
@@ -42,22 +45,21 @@
 		</div>
 	</div>
 	<div class="board-footer board-actrow">
-        <button id="watch-button" type="button" class="nbtn medium blue
-            @if(post.getWatchers.contains(UserApp.currentUser())) { active } else { inactive }"
-            data-toggle="button">
-            @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
-        </button>
-	    
-		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-		<a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
-		}
+	    <div class="pull-left">
+            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
+            <a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
+            }
+    
+            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+            <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
+            }
 
-		@if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-		<a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
-		}
+            <button id="watch-button" type="button" class="nbtn medium @if(post.getWatchers.contains(UserApp.currentUser())) { watching }" data-toggle="button">
+                @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
+            </button>
+	    </div>
 
 		<a href="@routes.BoardApp.posts(project.owner, project.name)" class="nbtn medium">@Messages("button.list")</a>
-		
 		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("post.write")</a>
 	</div>
 
