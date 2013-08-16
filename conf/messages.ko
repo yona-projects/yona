@@ -586,6 +586,20 @@ delete.frombranch.message = 브랜치를 삭제할 수 있습니다.
 restore.frombranch.message = 브랜치를 복구할 수 있습니다.
 delete.branch = 브랜치 삭제
 restore.branch = 브랜치 복구
+pullRequest.conflict.files = 충돌난 파일
+pullRequest.resolve.conflict = 충돌 해결하기
+pullRequest.resolver.step1 = 코드를 보낸 사용자가 로컬에서 코드를 보내는 브랜치로 이동합니다.
+pullRequest.resolver.step2 = (이전에 했으면 생략 가능) 원본 저장소 URL을 remote로 등록합니다.
+pullRequest.resolver.step3 = 코드를 받을 저장소의 최신 코드를 받아옵니다.
+pullRequest.resolver.step4 = 코드를 받을 브랜치로 rebase를 합니다.
+pullRequest.resolver.step5 = 그러면 분명히 충돌하는 파일이 있을겁니다. 편집기로 충돌한 파일을 열어서 적절하게 수정하세요.
+pullRequest.resolver.step6 = 충돌을 해결했다면 해결했다고 알려줍니다.
+pullRequest.resolver.step7 = 모든 충돌을 해결했다면 rebase를 계속 진행합니다.
+pullRequest.resolver.step8 = 5~7번 과정을 여러번 반복할 수도 있습니다.
+pullRequest.resolver.step9 = rebase가 끝났다면 origin으로 코드를 강제 푸쉬 합니다.
+pullRequest.resolver.step10 = 끝났습니다!
+pullRequest.resolver.step11 = 을 클릭하면 자동으로 병합할 수 있는지 다시 확인할 수 있습니다.
+page.refresh = 페이지 새로고침
 
 # Notifcation
 notification.watch = 지켜보기
