@@ -13,19 +13,31 @@
         @thead(Messages("site.userlist.locked"))
         <tbody>
         @for(user <- currentPage.getList()) {
-        @if( user.isLocked == true ){
+        @if(user.state == UserState.LOCKED){
             @listItem(user)
         }
         }
         </tbody>
         </table>
     </div>
-    
+
+    <div class="section39">
+        @thead(Messages("site.userlist.deleted"))
+        <tbody>
+        @for(user <- currentPage.getList()) {
+            @if(user.state == UserState.DELETED){
+                @listItem(user)
+            }
+        }
+        </tbody>
+    </table>
+    </div>
+
     <div class="section0">
         @thead(Messages("site.userlist.unlocked"))
         <tbody>
         @for(user <- currentPage.getList()) {
-        @if( user.isLocked == false ){
+        @if(user.state == UserState.ACTIVE){
             @listItem(user)
         }
         }
@@ -43,10 +55,9 @@
 <table class="bbs_type1">
 <caption>@title</caption>
 <colgroup>
-    <col style="width:16%" />
-    <col style="width:16%" />
-    <col style="width:28%" />
-    <col style="width:12%" />
+    <col style="width:20%" />
+    <col style="width:20%" />
+    <col style="width:32%" />
     <col />
 </colgroup>
 <thead>
@@ -54,7 +65,6 @@
     <th scope="col">@Messages("user.loginId")</th>
     <th scope="col">@Messages("user.name")</th>
     <th scope="col">@Messages("user.email")</th>
-    <th scope="col">@Messages("user.isLocked")</th>
     <th scope="col" class="last">&nbsp;</th>
 </tr>
 </thead>
@@ -65,9 +75,10 @@
     <td><a href="@routes.UserApp.userInfo(user.loginId)">@user.loginId</a></td>
     <td class="c">@user.name</td>
     <td><a href="#alertEdit-@user.loginId" data-toggle="modal">@user.email</a></td>
-    <td class="c">@user.isLocked</td>
     <td class="btn_area c">
-        <a class="btn" href="@routes.SiteApp.toggleAccountLock(user.loginId)">@Messages("button.user.makeAccountUnlock."+ user.isLocked)</a>
+        @if(!(user.state == UserState.DELETED)){
+        <a class="btn" href="@routes.SiteApp.toggleAccountLock(user.loginId)">@Messages("button" +
+                ".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))</a>
         <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion-@user.loginId">@Messages("button.delete")</a>
         
         <div id="alertDeletion-@user.loginId" class="modal hide">
@@ -100,6 +111,7 @@
 				</div>
 			</form>
 		</div>
+        }
 	</td>
 </tr>
 }
