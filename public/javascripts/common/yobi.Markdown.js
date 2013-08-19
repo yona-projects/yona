@@ -50,7 +50,7 @@ yobi.Markdown = function(htOptions){
         htVar.sTplSwitch = htOptions.sTplSwitch;
         htVar.sIssuesUrl = htOptions.sIssuesUrl;
         htVar.sProjectUrl = htOptions.sProjectUrl;
-        htVar.bGfmStyle = htOptions.bGfmStyle || false;
+        htVar.bWysiwyg = htOptions.bWysiwyg || false;
     }
     
     /**
@@ -70,12 +70,13 @@ yobi.Markdown = function(htOptions){
      */
     function _renderMarkdown(sText) {
             
-        var options = {
+        var htMarkedOption = {
           gfm: true,
+          wysiwyg: htVar.bWysiwyg,
           tables: true,
           breaks: false,
           pedantic: false,
-          sanitize: true,
+          sanitize: false,
           smartLists: true,
           langPrefix: '',
           highlight: function(code, lang) {
@@ -135,11 +136,7 @@ yobi.Markdown = function(htOptions){
 
         sText = sText.replace(htVar.rxLink, makeLink);
 
-        if(htVar.bGfmStyle) sText = sText.replace(/\n/g, "  \n");
-             
-        var lexer = new marked.Lexer(options);
-        var tokens = lexer.lex(sText);
-        var sHTML = marked.parser(tokens);
+        var sHTML = marked(sText,htMarkedOption);
 
         return sHTML;
     }
