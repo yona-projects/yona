@@ -55,13 +55,13 @@
         function _attachEvent(){
             htElement.welBtnWatch.click(function(weEvt) {
                 var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("active");
-
+                var bWatched = (welTarget.attr("data-watching") == "true") ? true : false;
+                
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget.toggleClass("active");
-                        welTarget.html(Messages(welTarget.hasClass("active") ? "project.unwatch" : "project.watch"));
+                        welTarget.attr("data-watching", !bWatched);
+                        welTarget.html(Messages(!bWatched ? "project.unwatch" : "project.watch"));
                     }
                 });
             });
