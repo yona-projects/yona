@@ -796,7 +796,9 @@ Parser.prototype.parse = function(src) {
 
   var out = '';
   while (this.next()) {
-    out += this.tok();
+    out += (this.options.hook) 
+      ? this.options.hook(this.tok(),this.token.type)
+      : this.tok();
   }
 
   return out;
@@ -1129,6 +1131,7 @@ marked.setOptions = function(opt) {
 marked.defaults = {
   gfm: true,
   wysiwyg : false,
+  hook: null,
   tables: true,
   breaks: false,
   pedantic: false,
