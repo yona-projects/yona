@@ -68,23 +68,23 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            yobi.FileUploader.init({
-                "elContainer" : htElement.welUploader,
-                "elTextarea"  : htElement.welTextarea,
-                "sTplFileItem": htVar.sTplFileItem,
-                "sAction"     : htVar.sUploadURL
-            });
+            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var sUploaderId = oUploader.attr("data-namespace");
+            
+            (new yobi.Attachments({
+                "elContainer"  : htElement.welUploader,
+                "elTextarea"   : htElement.welTextarea,
+                "sTplFileItem" : htVar.sTplFileItem,
+                "sUploaderId"  : sUploaderId
+            }));
         }
         
         /**
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(n, el){
-                (new yobi.FileDownloader({
-                    "elTarget": htElement.welAttachments,
-                    "sAction" : htVar.sFilesURL
-                }));
+            htElement.welAttachments.each(function(n, elContainer){
+                (new yobi.Attachments({"elContainer": elContainer}));
             });
         }
 

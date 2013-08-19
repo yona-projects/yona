@@ -118,24 +118,11 @@
     </div>
 </div>
 
-@views.html.markdown(project)
+@markdown(project)
 
 <script type="text/javascript">
-	$(document).ready(function() {
-        $('#helpMessage').hide();
-        $('#helpBtn').click(function(e){
-            e.preventDefault();
-            $('#helpMessage').toggle();
-        });
-
-        $yobi.loadModule("pullRequest.Write");
-
-        yobi.FileUploader.init({
-            "elContainer" : $("#upload"),
-            "elTextarea"  : $("#body"),
-            "sTplFileItem": $('#tplAttachedFile').text(),
-            "sAction": "@routes.AttachmentApp.uploadFile"
-        });
-	});
-	</script>
+$(document).ready(function() {
+    $yobi.loadModule("git.Write");
+});
+</script>
 }

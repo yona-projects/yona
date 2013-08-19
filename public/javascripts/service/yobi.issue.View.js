@@ -172,31 +172,27 @@
             $yobi.alert(Messages("error.internalServerError"));
         }
         
-        /**
-         * 이슈 즉시 수정 폼 변경시 이벤트 핸들러
-         */
-        function _onChangeUpdateField() {
-            htElement.welIssueUpdateForm.submit();
-        }
-        
 		/**
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
-		    yobi.FileUploader.init({
-				"elContainer" : htElement.welUploader,
-				"elTextarea"  : htElement.welTextarea,
-				"sTplFileItem": htVar.sTplFileItem,
-				"sAction"     : htVar.sUploadUrl
-			});
+			var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+			var sUploaderId = oUploader.attr("data-namespace");
+			
+			(new yobi.Attachments({
+			    "elContainer"  : htElement.welUploader,
+			    "elTextarea"   : htElement.welTextarea,
+			    "sTplFileItem" : htVar.sTplFileItem,
+			    "sUploaderId"  : sUploaderId
+			}));
 		}
 		
 		/**
 		 * initialize fileDownloader
 		 */
 		function _initFileDownloader(){
-			htElement.welAttachments.each(function(n, el){
-				fileDownloader($(el), htVar.sFilesUrl);
+			htElement.welAttachments.each(function(i, elContainer){
+    			(new yobi.Attachments({"elContainer": elContainer}));
 			});
 		}
         

@@ -22,8 +22,8 @@ yobi.FileUploader = (function() {
 	function _init(htOptions){
 		htOptions = htOptions || {};
 		
+        _initVar(htOptions);
 		_initElement(htOptions);
-		_initVar(htOptions);	
 		_attachEvent();
 		
         _requestList();
@@ -40,13 +40,9 @@ yobi.FileUploader = (function() {
 		htVar.sTplFileItem = htOptions.sTplFileItem;
 		htVar.htUploadOpts = {"dataType": "json"};
 		
-		htVar.sMode = htOptions.sMode;
-		htVar.sResourceId = htElements.welContainer.attr('data-resourceId');
-		htVar.sResourceType = htElements.welContainer.attr('data-resourceType');
-		
-        htVar.bXHR2 = (typeof FormData != "undefined");
-		htVar.bDroppable = (typeof window.ondrop != "undefined");
-		htVar.bPastable = (typeof document.onpaste != "undefined");
+        htVar.bXHR2 = (typeof FormData != "undefined"); // XMLHttpRequest 2 required
+		htVar.bDroppable = (typeof window.File != "undefined"); // HTML5 FileAPI required
+		htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2; // onpaste & XHR2 required
 	}
 
 	/**
@@ -64,15 +60,15 @@ yobi.FileUploader = (function() {
 		htElements.welFileListHelp = htElements.welContainer.find("p.help");
 		htElements.welHelpDroppable = htElements.welContainer.find(".help-droppable");
 		htElements.welHelpPastable  = htElements.welContainer.find(".help-pastable");
+
+		htElements.welHelpDroppable[htVar.bDroppable ? "show" : "hide"]();
+        htElements.welHelpPastable[htVar.bPastable ? "show" : "hide"]();
 		
-		if(htVar.bDroppable){
-		    htElements.welHelpDroppable.show();
-		}
-		if(htVar.bPastable){
-		    htElements.welHelpPastable.show();
-		}
+		// ResourceId, ResourceType
+        htVar.sResourceId = htElements.welContainer.attr('data-resourceId');
+        htVar.sResourceType = htElements.welContainer.attr('data-resourceType');
 	}
-	
+
 	/**
 	 * 이벤트 핸들러 설정
 	 * attach event handlers
@@ -143,18 +139,14 @@ yobi.FileUploader = (function() {
 	 * @param {Wrapped Event} weEvt
 	 */
 	function _onPasteFile(weEvt){
-	    if(!weEvt.originalEvent.clipboardData || !weEvt.originalEvent.clipboardData.items){
+	    var oClip = weEvt.originalEvent.clipboardData;
+	    if(!oClip || !oClip.items || (typeof oClip.items[0] === "undefined")){
 	        return;
 	    }
 	    
-        var oItem = weEvt.originalEvent.clipboardData.items[0];
-
-        if(typeof oItem === "undefined"){
-            return;
-        }
-
-        var nSubmitId = _getSubmitId();
+        var oItem = oClip.items[0];
         var oFile = oItem.getAsFile();
+        var nSubmitId = _getSubmitId();
         
         if(!oFile || oFile.type.indexOf("image/") !== 0){
             return;
