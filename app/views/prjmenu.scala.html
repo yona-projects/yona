@@ -92,12 +92,12 @@
                 <!-- fork project -->
                 @if(project.vcs.equals("GIT")){
                 <div class="btn-group dbtn-group">
-                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium orange last">
+                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium white last">
                         <i class="icon-code-fork icon-large"></i>
                         @Messages("fork")
                         <span class="num-badge">@project.forkingProjects.size()</span>
                     </a>
-                    <button class="btn dropdown-toggle small orange" data-toggle="dropdown" style="padding:0">
+                    <button class="btn dropdown-toggle small white" data-toggle="dropdown" style="padding:0">
                         <div class="d-caret"><span class="caret"></span></div>
                     </button>                    
                     <ul class="dropdown-menu">
