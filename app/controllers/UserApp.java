@@ -4,6 +4,7 @@ import com.avaje.ebean.ExpressionList;
 import models.*;
 import models.enumeration.Operation;
 
+import models.enumeration.UserState;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
@@ -17,7 +18,6 @@ import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.AccessControl;
 import utils.Constants;
-import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 import utils.ErrorViews;
 import views.html.login;
@@ -114,11 +114,17 @@ public class UserApp extends Controller {
         User sourceUser = form(User.class).bindFromRequest().get();
 
         if (isUseSignUpConfirm()) {
-            if (User.findByLoginId(sourceUser.loginId).isLocked == true ) {
+            if (User.findByLoginId(sourceUser.loginId).state == UserState.LOCKED) {
                 flash(Constants.WARNING, "user.locked");
                 return redirect(routes.UserApp.loginForm());
             }
         }
+
+        if (User.findByLoginId(sourceUser.loginId).state == UserState.DELETED) {
+            flash(Constants.WARNING, "user.deleted");
+            return redirect(routes.UserApp.loginForm());
+        }
+
         User authenticate = authenticateWithPlainPassword(sourceUser.loginId, sourceUser.password);
 
         if (authenticate != null) {
@@ -208,8 +214,7 @@ public class UserApp extends Controller {
             return badRequest(signup.render("title.signup", newUserForm));
         } else {
             User user = createNewUser(newUserForm.get());
-            User.create(user);
-            if (user.isLocked) {
+            if (user.state == UserState.LOCKED) {
                 flash(Constants.INFO, "user.signup.requested");
             } else {
                 addUserInfoToSession(user);
@@ -625,8 +630,9 @@ public class UserApp extends Controller {
         user.passwordSalt = rng.nextBytes().getBytes().toString();
         user.password = hashedPassword(user.password, user.passwordSalt);
         user.avatarUrl = DEFAULT_AVATAR_URL;
+        User.create(user);
         if (isUseSignUpConfirm()) {
-            user.isLocked = true;
+            user.changeState(UserState.LOCKED);
         }
         return user;
     }

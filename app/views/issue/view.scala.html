@@ -193,7 +193,7 @@
         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
         }
         
-        <button id="watch-button" type="button" class="nbtn medium" data-toggle="button">
+        <button id="watch-button" type="button" class="nbtn medium" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
             @if(issue.getWatchers.contains(UserApp.currentUser())) {
                 @Messages("project.unwatch")
             } else {

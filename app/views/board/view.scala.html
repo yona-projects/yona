@@ -46,21 +46,21 @@
 	</div>
 	<div class="board-footer board-actrow">
 	    <div class="pull-left">
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-            <a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
-            }
-    
-            @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-            <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
-            }
-
-            <button id="watch-button" type="button" class="nbtn medium data-toggle="button">
-                @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
-            </button>
+            <a href="@routes.BoardApp.posts(project.owner, project.name)" class="nbtn medium">@Messages("button.list")</a>
+            <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("post.write")</a>
 	    </div>
+	    
+        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
+        <a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
+        }
 
-		<a href="@routes.BoardApp.posts(project.owner, project.name)" class="nbtn medium">@Messages("button.list")</a>
-		<a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("post.write")</a>
+        @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
+        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
+        }
+
+        <button id="watch-button" type="button" class="nbtn medium" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+            @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
+        </button>
 	</div>
 
 	@** Comment **@
