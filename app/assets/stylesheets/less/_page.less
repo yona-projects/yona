@@ -1041,7 +1041,7 @@
 .all-projects {
     margin: 0 0 20px;
     list-style: none;
-
+    clear:both;
     // -- project list -- //
     .project {
         margin: 5px 0px; /*5px 20px;*/
@@ -2132,7 +2132,7 @@ div.markdown-preview {
     padding: 17px 20px 15px;
     .write-comment-wrap {
         margin-bottom: 10px;
-
+        position: relative;
         div.markdown-preview {
             .border-radius(2px 0 0 2px);
         }
@@ -3549,7 +3549,7 @@ div.markdown-preview {
 
     .lnb_area{
       width:200px;margin:0 auto;
-      h3.h_site{margin:0;padding:19px 0 17px 19px;border-style:solid;border-width:1px;border-color:#e6e6e6 #e6e6e6 #c9c9c9;background-color:#f8f8f8;font-size:14px;color::#4c4c4c;line-height:1em}
+      h3.h_site{margin:0;padding:19px 0 17px 19px;border-style:solid;border-width:1px;border-color:#e6e6e6 #e6e6e6 #c9c9c9;background-color:#f8f8f8;font-size:14px;color:#4c4c4c;line-height:1em}
       ul{
         margin:0;padding:3px 9px 30px;list-style:none;border-style:solid;border-width:1px;border-color:#f6f6f6 #e6e6e6 #ececec;
         li{
@@ -3757,3 +3757,8 @@ div#commit.show-comments tr.comments {
 
 /*div#mode-select { text-align:right; }*/
 .pullreq-info { display:block; clear:both; padding-bottom:10px; margin-bottom:10px; }
+.markdown-help {
+  position: absolute;
+  margin-top: -1px;
+  right: 5px;
+}

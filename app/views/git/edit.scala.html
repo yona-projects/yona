@@ -162,6 +162,8 @@ $(function(){
             $('#helpMessage').toggle();
         });
 
+        $yobi.loadModule("pullRequest.Write");
+
         yobi.FileUploader.init({
             "elContainer" : $("#upload"),
             "elTextarea"  : $("#body"),

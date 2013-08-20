@@ -549,7 +549,7 @@ pullRequest.is.not.safe = 코드를 자동으로 병합할 때 충돌이 발생�
 pullRequest.accept = 수락
 pullRequest.reject = 보류
 pullRequest.cancel = 취소
-pullRequest.reopen = 다시 확인
+pullRequest.reopen = 다시 열기
 pullRequest.select.branch = 브랜치를 선택하세요.
 pullRequest.from = 코드 보내는 곳
 pullRequest.to = 코드 받을 곳
@@ -603,6 +603,10 @@ pullRequest.resolver.step9 = rebase가 끝났다면 origin으로 코드를 강�
 pullRequest.resolver.step10 = 끝났습니다!
 pullRequest.resolver.step11 = 을 클릭하면 자동으로 병합할 수 있는지 다시 확인할 수 있습니다.
 page.refresh = 페이지 새로고침
+pullrequest.fromBranch.required = 보낼 코드가 들어있는 브랜치를 선택하세요.
+pullrequest.toBranch.required = 코드를 받을 브랜치를 선택하세요.
+pullrequest.body.required = 내용을 입력하세요.
+pullrequest.title.required = 제목을 입력하세요.
 
 # Notifcation
 notification.watch = 지켜보기

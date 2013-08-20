@@ -8,6 +8,7 @@
     <form id="comment-form" action="@action" method="post" enctype="multipart/form-data">
         <div class="write-comment-box">
             <div class="write-comment-wrap">
+                @help.markdown()
                 <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {

@@ -16,7 +16,7 @@
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, "OPEN", "html", 1)}
 
 @makeLabelLink(project:Project, label:IssueLabel) = {
-    <a href="@urlToList&labelIds=@label.id" class="label issue-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+    <a href="@urlToList&labelIds=@label.id" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 
 <div class="row-fluid issue-item">

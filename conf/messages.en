@@ -603,6 +603,10 @@ pullRequest.resolver.step9 = After the rebasing, push it forcefully.
 pullRequest.resolver.step10 = The End!
 pullRequest.resolver.step11 = Check again your pull request can be merged safely or not.
 page.refresh = Page Refresh
+pullrequest.fromBranch.required = Select a branch that contains the sending code.
+pullrequest.toBranch.required = Select a branch that will receives the sending code.
+pullrequest.body.required = Explain this pull request.
+pullrequest.title.required = Input title.
 
 # Notifcation
 notification.watch = Watch
