@@ -77,6 +77,11 @@ public class Project extends Model implements LabelOwner {
      */
     private long lastPostingNumber;
 
+    /**
+     * 마지막 등록된 코드 보내기 번호
+     */
+    private long lastPullRequestNumber;
+
     @ManyToMany
     public Set<Label> labels;
 
@@ -798,6 +803,10 @@ public class Project extends Model implements LabelOwner {
     @Override
     public Set<Label> getLabels() {
         return labels;
+    }
+
+    public long nextPullRequestNumber(){
+        return ++this.lastPullRequestNumber;
     }
 
 }

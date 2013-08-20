@@ -224,10 +224,10 @@ public class PullRequestApp extends Controller {
         // 동일한 브랜치로 주고 받으며, Open 상태의 PullRequest가 이미 존재한다면 해당 PullRequest로 이동한다.
         PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(pullRequest);
         if(sentRequest != null) {
-            return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, sentRequest.id));
+            return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, sentRequest.number));
         }
 
-        pullRequest.save();
+        pullRequest.saveWithNumber();
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
@@ -339,14 +339,14 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result pullRequest(String userName, String projectName, long pullRequestId) {
-        final PullRequest pullRequest = PullRequest.findById(pullRequestId);
+    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
         if(result != null) {
             return result;
         }
@@ -420,14 +420,14 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result pullRequestCommits(String userName, String projectName, long pullRequestId) {
+    public static Result pullRequestCommits(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
         if(result != null) {
             return result;
         }
@@ -443,21 +443,21 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result accept(String userName, String projectName, long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+    public static Result accept(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.ACCEPT);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.ACCEPT);
         if(result != null) {
             return result;
         }
 
         pullRequest.merge();
 
-        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
         return redirect(call);
     }
@@ -483,8 +483,6 @@ public class PullRequestApp extends Controller {
         NotificationEvent.add(notiEvent);
     }
 
-
-
     /**
      * {@code pullRequestId}에 해당하는 코드 요청을 보류한다.
      *
@@ -492,21 +490,21 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result reject(String userName, String projectName, Long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+    public static Result reject(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.REJECT);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.REJECT);
         if(result != null) {
             return result;
         }
 
         pullRequest.reject();
 
-        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.REJECTED);
         return redirect(call);
     }
@@ -518,20 +516,20 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result open(String userName, String projectName, Long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+    public static Result open(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.REOPEN);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.REOPEN);
         if(result != null) {
             return result;
         }
 
         pullRequest.reopen();
-        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         addPullRequestUpdateNotification(call, pullRequest, State.REJECTED, State.OPEN);
         return redirect(call);
     }
@@ -541,15 +539,16 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result cancel(String userName, String projectName, Long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+    public static Result cancel(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+
         User user = UserApp.currentUser();
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestId, Operation.DELETE);
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.DELETE);
         if(result != null) {
             return result;
         }
@@ -568,9 +567,8 @@ public class PullRequestApp extends Controller {
     /**
      * 코드 요청 수정 폼으로 이동한다.
      *
-     *
-     * @param userName
-     * @param projectName
+     * @param userName 코드를 보낸 프로젝트(fromProject)의 owner
+     * @param projectName 코드를 보낸 프로젝트(fromProject)의 project name
      * @param pullRequestId
      * @return
      * @throws IOException
@@ -627,20 +625,20 @@ public class PullRequestApp extends Controller {
 
         pullRequest.updateWith(updatedPullRequest);
 
-        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequest.number));
     }
 
     /**
-     * {@code pullRequestId}에 해당하는 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 삭제한다.
+     * {@code pullRequestNumber}에 해당하는 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 삭제한다.
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result deleteFromBranch(String userName, String projectName, Long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        Project toProject = pullRequest.toProject;
+    public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
+        Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
@@ -648,20 +646,21 @@ public class PullRequestApp extends Controller {
 
         pullRequest.deleteFromBranch();
 
-        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
     }
 
     /**
-     * {@code pullRequestId}에 해당한느 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 복구한다.
+     * {@code pullRequestNumber}에 해당한느 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 복구한다.
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result restoreFromBranch(String userName, String projectName, Long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        Project toProject = pullRequest.toProject;
+    public static Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
+        Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
+
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
@@ -669,7 +668,7 @@ public class PullRequestApp extends Controller {
 
         pullRequest.restoreFromBranch();
 
-        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+        return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
     }
 
     /**
@@ -770,22 +769,22 @@ public class PullRequestApp extends Controller {
      * @param pullRequest
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
     private static Result validatePullRequest(Project project, PullRequest pullRequest,
-                                              String userName, String projectName, long pullRequestId) {
+                                              String userName, String projectName, long pullRequestNumber) {
         if(project == null) {
             return badRequestForNullProject(userName, projectName);
         }
 
         if(pullRequest == null) {
-            return badRequest(ErrorViews.BadRequest.render("No pull_request matches given pull_request_id '" + pullRequestId + "'", project));
+            return badRequest(ErrorViews.BadRequest.render("No pull_request matches given pull_request_number '" + pullRequestNumber + "'", project));
         }
 
         Project toProject = pullRequest.toProject;
         if(!toProject.equals(project)) {
-            return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+            return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
         }
         return null;
     }
@@ -798,18 +797,18 @@ public class PullRequestApp extends Controller {
      * @param pullRequest
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
     private static Result validatePullRequestOperation(Project project, PullRequest pullRequest,
-                                                       String userName, String projectName, long pullRequestId, Operation operation) {
+                                                       String userName, String projectName, long pullRequestNumber, Operation operation) {
         User user = UserApp.currentUser();
         if(user.isAnonymous()) {
             flash(Constants.WARNING, "user.login.alert");
             return redirect(routes.UserApp.loginForm());
         }
 
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestId);
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
         if(result != null) {
             return result;
         }

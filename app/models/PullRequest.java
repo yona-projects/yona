@@ -8,6 +8,7 @@ import models.resource.Resource;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import playRepository.GitRepository;
 import utils.AccessControl;
 import utils.Constants;
@@ -99,6 +100,11 @@ public class PullRequest extends Model {
      * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
      */
     public String mergedCommitIdTo;
+
+    /**
+     * #toProject 마다 순차적으로 유일한 수를 가진다.
+     */
+    public Long number;
 
     @Override
     public String toString() {
@@ -339,5 +345,23 @@ public class PullRequest extends Model {
         this.received = JodaDateUtil.now();
         this.receiver = UserApp.currentUser();
         this.update();
+    }
+
+    public static List<PullRequest> findByToProject(Project project) {
+        return finder.where().eq("toProject", project).order().asc("created").findList();
+    }
+
+    @Transactional
+    public void saveWithNumber() {
+        this.number = toProject.nextPullRequestNumber();
+        this.save();
+        toProject.update();
+    }
+
+    public static PullRequest findOne(Project toProject, long number) {
+        if(toProject == null || number <= 0) {
+            return null;
+        }
+        return finder.where().eq("toProject", toProject).eq("number", number).findUnique();
     }
 }

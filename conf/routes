@@ -22,6 +22,9 @@ GET		/UIKit											controllers.Application.UIKit()
 GET     /import                                         controllers.ImportApp.importForm()
 POST    /import                                         controllers.ImportApp.newProject()
 
+# Data Sync
+GET     /sync/pullrequest/number                        controllers.DataSyncApp.initPullRequestNumbers()
+
 # User
 GET     /users                                          controllers.UserApp.users(query: String ?= "")
 GET     /users/loginform                                controllers.UserApp.loginForm()
