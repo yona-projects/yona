@@ -25,14 +25,13 @@
         <div class="progress">
             <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
         </div>
-        <div class="progress-label">
-            @**<!-- 0% 일 수도 있어서 최소한의 텍스트 영역 확보 -->**@
-            <div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
-                <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+        <div class="progress-info">
+            <div class="pull-left" >
+                <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>        
             </div>
             <div class="pull-right">
                 <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
             </div>
-        </div>
+        </div>    
     </div>
 </div>
