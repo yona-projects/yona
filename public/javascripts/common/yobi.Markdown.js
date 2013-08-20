@@ -74,29 +74,28 @@ yobi.Markdown = function(htOptions){
         var hooks = function(sSrc,sType) {
             
             var sGfmLinkRules =  '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)',
-                rCheckCodeBlock = /(<\/?[\s\S]+>)/g,
-                rCodeRules = /<code>[^\n]*\{GFMAUTOLINMATCHES\}[^\n]*<\/code>/ig,
-                rHaperLinkRules = /<a[^<]*href[^\n]+\{GFMAUTOLINMATCHES\}/ig,
-                rImageRules = /<img[^<]*src[^\n]+\{GFMAUTOLINMATCHES\}/ig,
-                aChecker = [];
-
+                rIgnoreRules = /<code>[^<]*<\/code>|<img[^<]+src=[^>]+\/?>|<a [^<]*href[^>]*>[^<]+<\/a>/igm,
+                aIgnores,
+                sIgnore,
+                aChecker;
+                
             if(sType=='code') return sSrc;
 
             sGfmLinkRules = sGfmLinkRules.replace(/\[user\]/g,htVar.sUserRules)
                 .replace(/\[user\]/g,htVar.sUserRules)
                 .replace(/\[project\]/g,htVar.sProjecRules)
                 .replace(/\[shar1\]/g,htVar.sSha1Rules)
-                .replace(/\[issue\]/g,htVar.sIssueRules);
+                .replace(/\[issue\]/g,htVar.sIssueRules);         
 
-                   
+            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) { 
+                if(aIgnores = sSrc.match(rIgnoreRules)) {
+                    while(sIgnore = aIgnores.shift()) {
+                        if(aChecker = new RegExp(sIgnore.replace(/\//g,'\/'),'ig').exec(sSrc)) {
+                            if(nMatchIndex > aChecker.index && nMatchIndex < aChecker.index+aChecker[0].length) return sMatch;  
+                        }
+                    }
+                }    
 
-            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) {
-                var sLeftContext = sSrc.slice(0, nMatchIndex),
-                    sRightContext = sSrc.slice(nMatchIndex+sMatch.length),
-                    sCheckContext = sLeftContext+'{GFMAUTOLINMATCHES}' +sRightContext;
-                     
-                if(rCodeRules.test(sCheckContext) || rHaperLinkRules.test(sCheckContext) || rImageRules.test(sCheckContext)) return sMatch;    
-                
                 if(/\w/.test(sSrc[nMatchIndex-1]) || /\w/.test(sSrc[nMatchIndex+sMatch.length])) return sMatch;
 
                 return _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue, sAt, sShar1,sMention);
