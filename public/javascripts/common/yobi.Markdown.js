@@ -8,197 +8,204 @@
  */
 yobi.Markdown = function(htOptions){
 
-	var htVar = {};
-	var htElement = {};
-	
-	/**
-	 * initialize
-	 * @param {Hash Table} htOptions
-	 */
-	function _init(htOptions){
-		_initVar(htOptions);
-		_initElement(htOptions);
-		
-		_enableMarkdown();
-	}
+    var htVar = {};
+    var htElement = {};
+    
+    /**
+     * initialize
+     * @param {Hash Table} htOptions
+     */
+    function _init(htOptions){
+        _initVar(htOptions);
+        _initElement(htOptions);
+        
+        _enableMarkdown();
+    }
 
     /**
-     * Return a regular expresion for autolink.
-     */
-    function _rxLink() {
-        // case insensitive match
-        var sUserPat = "[a-z0-9-_.]+";
-        var sProjectPat = "[-a-z0-9_]+";
-        var sNumberPat = "[0-9]+";
-        var sShaPat = "[0-9a-f]{7,40}";
-
-        var sProjectPathPat = sUserPat + "/" + sProjectPat;
-        var sTargetPat =
-            "#(" + sNumberPat + ")|(@)?(" + sShaPat + ")|@(" + sUserPat + ")";
-
-        return new RegExp(
-                "(\\S*?)(" + sProjectPathPat + ")?(?:" + sTargetPat + ")(\\S*?)", "gi");
-    }
-
-	/**
-	 * initialize variables
-	 * @param {Hash Table} htOptions
-	 */
-	function _initVar(htOptions){
-		htVar.rxCodeBlock = /```(\w+)(?:\r\n|\r|\n)((\r|\n|.)*?)(\r|\n)```/gm;
-    htVar.rxLink = _rxLink();
-		htVar.sTplSwitch = htOptions.sTplSwitch;
-    htVar.sIssuesUrl = htOptions.sIssuesUrl;
-    htVar.sProjectUrl = htOptions.sProjectUrl;
-    htVar.bGfmStyle = htOptions.bGfmStyle || false;
-	}
-	
-	/**
-	 * initialize element
+     * initialize variables
      * @param {Hash Table} htOptions
-	 */
-	function _initElement(htOptions){
-		htElement.waTarget = $(htOptions.aTarget) || $("[markdown]");
-	}
-	
-	/**
-	 * Render as Markdown document
+     */
+    function _initVar(htOptions){
+        htVar.sTplSwitch = htOptions.sTplSwitch;
+        htVar.sIssuesUrl = htOptions.sIssuesUrl;
+        htVar.sProjectUrl = htOptions.sProjectUrl;
+        htVar.bWysiwyg = htOptions.bWysiwyg || false;
+        htVar.sUserRules = '[a-z0-9_\\-\\.]';
+        htVar.sProjecRules = '[a-z0-9_\\-]';
+        htVar.sIssueRules = '\\d';
+        htVar.sSha1Rules = '[a-f0-9]{7,40}';
+    }
+    
+    /**
+     * initialize element
+     * @param {Hash Table} htOptions
+     */
+    function _initElement(htOptions){
+        htElement.waTarget = $(htOptions.aTarget) || $("[markdown]");
+    }
+    
+    /**
+     * Render as Markdown document
      * @require showdown.js
      * @require hljs.js
-	 * @param {String} sText
-	 * @return {String}
-	 */
-	function _renderMarkdown(sText) {
-    		
-		var options = {
-		  gfm: true,
-		  tables: true,
-		  breaks: false,
-		  pedantic: false,
-		  sanitize: true,
-		  smartLists: true,
-		  langPrefix: '',
-		  highlight: function(code, lang) {
-		    if (lang === 'js') {
-		      return highlighter.javascript(code);
-		    }
-		    return code;
-		  }
-		};
-		
-  	var makeLink = function(sMatch, sPre, sProject, sNum, sAt, sSha, sUser, sPost) {
-  		var path, text;
-
-      if (sPost) {
-          return sMatch;
-      }
-
-      if (sPre.substr(0, 4).toLowerCase() == 'http') {
-          return sMatch;
-      }
-
-      if (sSha && sProject && sAt) {
-          // owner/sProject@2022d330c5858eae9ca9cb5acb9e6a5060563b2c
-          path = '/' + sProject + '/commit/' + sSha;
-          text = sProject + '/' + sSha;
-      } else if (sSha && !sAt) {
-          // 2022d330c5858eae9ca9cb5acb9e6a5060563b2c
-          path = htVar.sProjectUrl + '/commit/' + sSha;
-          text = sSha;
-      } else if (sSha && sAt) {
-          // @abc1234
-          // This is a link for sUser even if it looks like a 160bit sSha.
-          path = '/' + sSha;
-          text = '@' + sSha;
-      } else if (sNum && sProject) {
-          // owner/sProject#1234
-          path = '/' + sProject + '/issue/' + sNum;
-          text = sProject + '/' + sNum;
-      } else if (sNum) {
-          // #1234
-          path = htVar.sProjectUrl + '/issue/' + sNum;
-          text ='#' + sNum;
-      } else if (sUser) {
-          // @foo
-          if (sPre.length == 0 || !/\w/.test(sPre[sPre.length - 1])) {
-            path = '/' + sUser;
-            text = '@' + sUser;
+     * @param {String} sText
+     * @return {String}
+     */
+    function _renderMarkdown(sText) {
+            
+        var htMarkedOption = {
+          gfm: true,
+          wysiwyg: htVar.bWysiwyg,
+          tables: true,
+          breaks: false,
+          pedantic: false,
+          sanitize: false,
+          smartLists: true,
+          langPrefix: '',
+          highlight: function(code, lang) {
+            if (lang === 'js') {
+              return highlighter.javascript(code);
+            }
+            return code;
           }
-      }
+        };
+        
+        var hooks = function(sSrc,sType) {
+            
+            var sGfmLinkRules =  '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)',
+                rCheckCodeBlock = /(<\/?[\s\S]+>)/g,
+                rCodeRules = /<code>[^\n]*\{GFMAUTOLINMATCHES\}[^\n]*<\/code>/ig,
+                rHaperLinkRules = /<a[^<]*href[^\n]+\{GFMAUTOLINMATCHES\}/ig,
+                rImageRules = /<img[^<]*src[^\n]+\{GFMAUTOLINMATCHES\}/ig,
+                aChecker = [];
 
-      if (path && text) {
-          return sPre + '<a href="' + path + '">' + text + '</a>' + sPost;
-      } else {
-          return sMatch;
-      }
+            if(sType=='code') return sSrc;
+
+            sGfmLinkRules = sGfmLinkRules.replace(/\[user\]/g,htVar.sUserRules)
+                .replace(/\[user\]/g,htVar.sUserRules)
+                .replace(/\[project\]/g,htVar.sProjecRules)
+                .replace(/\[shar1\]/g,htVar.sSha1Rules)
+                .replace(/\[issue\]/g,htVar.sIssueRules);
+
+                   
+
+            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) {
+                var sLeftContext = sSrc.slice(0, nMatchIndex),
+                    sRightContext = sSrc.slice(nMatchIndex+sMatch.length),
+                    sCheckContext = sLeftContext+'{GFMAUTOLINMATCHES}' +sRightContext;
+                     
+                if(rCodeRules.test(sCheckContext) || rHaperLinkRules.test(sCheckContext) || rImageRules.test(sCheckContext)) return sMatch;    
+                
+                if(/\w/.test(sSrc[nMatchIndex-1]) || /\w/.test(sSrc[nMatchIndex+sMatch.length])) return sMatch;
+
+                return _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue, sAt, sShar1,sMention);
+            });    
+            
+            return  sSrc;
+        };
+
+        htMarkedOption.hook = hooks;
+
+        return marked(sText,htMarkedOption);
     }
 
-    sText = sText.replace(htVar.rxLink, makeLink);
+    function _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt,sShar1,sMention) {
+        var sRef,
+            sTitle,
+            sOwner = htVar.sProjectUrl.split('/')[1],
+            sProject = htVar.sProjectUrl.split('/')[2]; 
 
-    if(htVar.bGfmStyle) sText = sText.replace(/\n/g, "  \n");
-             
-		var lexer = new marked.Lexer(options);
-		var tokens = lexer.lex(sText);
-		var sHTML = marked.parser(tokens);
+        if(sProjectGroup && sUserName && sIssue && !sProjectPath) {
+            // User/#Num nforge#12345
+            sRef = [sUserName, sProject, 'issue', sIssue].join("/");
+            sTitle = sMatch;
+        } else if(sProjectGroup && sProjectPath && sIssue && !sUserName) {
+            // User/Project#Num nforge/yobi#12345
+            sRef = [sProjectGroup, 'issue', sIssue].join("/");
+            sTitle = sMatch;
+        } else if(sIssue && !sProjectGroup && !sProjectPath && !sUserName) {
+            // #Num #123
+            sRef = [sOwner, sProject, 'issue', sIssue].join("/");
+            sTitle = sMatch;
+        } else if(sProjectGroup && sUserName && sShar1 && !sProjectPath && !sAt) {
+            // SHA1 be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
+            sRef = [sOwner, sProject, 'commit' , sMatch].join("/");
+            sTitle = sMatch.slice(0,7);
+        } else if(sProjectGroup && sUserName && sShar1 && sAt && !sProjectPath ) {
+            // User@SHA1 nforge@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
+            sRef = [sUserName, sProject, 'commit' , sShar1].join("/");
+            sTitle = [sUserName, '@', sShar1.slice(0,7)].join("");
+        } else if(sProjectGroup && sShar1 && sProjectPath && sAt && !sUserName) {
+            // User/Project@SHA1 nforge/yobi@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
+            sRef = [sProjectGroup, 'commit' , sShar1].join("/");
+            sTitle = [sProjectGroup, '@', sShar1.slice(0,7)].join("");
+        } else if (sMention) {
+            sRef = sMention;
+            sTitle = sMatch;
+        } else {
+            return sMatch;
+        }
 
-		return sHTML;
-	}
+        return '<a href="/'+sRef+'">'+sTitle+'</a>';
+        
+    }
 
-	/**
-	 * set Markdown Editor
-	 * @param {Wrapped Element} welTextarea
-	 */
-	function _setEditor(welTextarea) {
-		// create new preview area 
-		var welPreview = $('<div class="markdown-preview markdown-wrap">');
-		welPreview.css({
-			"display"   : "none",
-			"width"     : welTextarea.width()  + 'px',
-			"min-height": welTextarea.height() + 'px',
-			"padding"   : welTextarea.css("padding")
-		});
+    /**
+     * set Markdown Editor
+     * @param {Wrapped Element} welTextarea
+     */
+    function _setEditor(welTextarea) {
+        // create new preview area 
+        var welPreview = $('<div class="markdown-preview markdown-wrap">');
+        welPreview.css({
+            "display"   : "none",
+            "width"     : welTextarea.width()  + 'px',
+            "min-height": welTextarea.height() + 'px',
+            "padding"   : welTextarea.css("padding")
+        });
 
-		var welPreviewSwitch = $('<div id="mode-select">');
-			welPreviewSwitch.html(htVar.sTplSwitch);
+        var welPreviewSwitch = $('<div id="mode-select">');
+            welPreviewSwitch.html(htVar.sTplSwitch);
 
-		var fOnChangeSwitch = function() {
-			var bPreview = ($("input:radio[name=edit-mode]:checked").val() == "preview");
-			welPreview.html(_renderMarkdown(welTextarea.val()));
-			(bPreview ? welPreview: welTextarea).show();
-			(bPreview ? welTextarea: welPreview).hide();
-		};
-		welPreviewSwitch.change(fOnChangeSwitch);
+        var fOnChangeSwitch = function() {
+            var bPreview = ($("input:radio[name=edit-mode]:checked").val() == "preview");
+            welPreview.html(_renderMarkdown(welTextarea.val()));
+            (bPreview ? welPreview: welTextarea).show();
+            (bPreview ? welTextarea: welPreview).hide();
+        };
+        welPreviewSwitch.change(fOnChangeSwitch);
 
-		welTextarea.before(welPreviewSwitch);
-		welTextarea.before(welPreview);
-	}
+        welTextarea.before(welPreviewSwitch);
+        welTextarea.before(welPreview);
+    }
 
-	/**
-	 * set Markdown Viewer
-	 * @param {Wrapped Element} welTarget is not <textarea> or <input>
-	 */
-	function _setViewer(welTarget) {
-		welTarget.html(_renderMarkdown(welTarget.text())).show();
-	}
-	
-	/**
-	 * enableMarkdown
-	 * same as nforge.markdown.enable
-	 */
-	function _enableMarkdown(){
-		var sTagName;
-		
-		htElement.waTarget.each(function(nIndex, elTarget){
-			sTagName = elTarget.tagName.toUpperCase();
-			
-			if(sTagName == "TEXTAREA" || sTagName == "INPUT" || elTarget.contentEditable == "true"){
-				_setEditor($(elTarget));
-			} else {
-				_setViewer($(elTarget));
-			}
-		});
-	}
+    /**
+     * set Markdown Viewer
+     * @param {Wrapped Element} welTarget is not <textarea> or <input>
+     */
+    function _setViewer(welTarget) {
+        welTarget.html(_renderMarkdown(welTarget.text())).show();
+    }
+    
+    /**
+     * enableMarkdown
+     * same as nforge.markdown.enable
+     */
+    function _enableMarkdown(){
+        var sTagName;
+        
+        htElement.waTarget.each(function(nIndex, elTarget){
+            sTagName = elTarget.tagName.toUpperCase();
+            
+            if(sTagName == "TEXTAREA" || sTagName == "INPUT" || elTarget.contentEditable == "true"){
+                _setEditor($(elTarget));
+            } else {
+                _setViewer($(elTarget));
+            }
+        });
+    }
 
-	// initialize
-	_init(htOptions || {});
+    // initialize
+    _init(htOptions || {});
 };

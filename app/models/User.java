@@ -6,10 +6,7 @@ import java.util.*;
 import javax.persistence.*;
 
 import controllers.UserApp;
-import models.enumeration.Direction;
-import models.enumeration.Matching;
-import models.enumeration.ResourceType;
-import models.enumeration.RoleType;
+import models.enumeration.*;
 import models.resource.Resource;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
@@ -95,10 +92,11 @@ public class User extends Model {
      */
     public boolean rememberMe;
 
-    /**
-     * 계정 잠금
-     */
-    public boolean isLocked = false;
+    @Enumerated(EnumType.STRING)
+    public UserState state;
+
+    @Formats.DateTime(pattern = "yyyy-MM-dd")
+    public Date lastStateModifiedDate;
 
     /**
      * 계정 생성일
@@ -428,7 +426,32 @@ public class User extends Model {
 
     @Override
     public void delete() {
-        Assignee.finder.where().eq("user.id", id).findUnique().delete();
+        for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
+            assignee.delete();
+        }
         super.delete();
+    }
+
+    public void changeState(UserState state) {
+        this.state = state;
+        lastStateModifiedDate = new Date();
+
+        if (this.state == UserState.DELETED) {
+            name = "DELETED";
+            oldPassword = "";
+            password = "";
+            passwordSalt = "";
+            email = "deleted-" + loginId + "@noreply.yobi.io";
+            avatarUrl = UserApp.DEFAULT_AVATAR_URL;
+            rememberMe = false;
+            projectUser.clear();
+            enrolledProjects.clear();
+            notificationEvents.clear();
+            for (Assignee assignee : Assignee.finder.where().eq("user.id", id).findList()) {
+                assignee.delete();
+            }
+        }
+
+        update();
     }
 }

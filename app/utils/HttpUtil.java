@@ -79,8 +79,8 @@ public class HttpUtil {
             URISyntaxException, UnsupportedEncodingException {
         URI aURI = new URI(url);
 
-        List<String> pairStrings = new ArrayList<String>();
-        Set<String> keySet = new HashSet(Arrays.asList(keys));
+        List<String> pairStrings = new ArrayList<>();
+        Set<String> keySet = new HashSet<>(Arrays.asList(keys));
         for (String pairString : aURI.getQuery().split("&")) {
             String[] pair = pairString.split("=");
             if (pair.length == 0) {

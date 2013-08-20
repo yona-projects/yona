@@ -84,13 +84,13 @@
          */
         function _onClickBtnWatch(weEvt){
             var welTarget = $(weEvt.target);
-            var bWatched = welTarget.hasClass("watching");
-
+            var bWatched = (welTarget.attr("data-watching") == "true") ? true : false;
+            
             $yobi.sendForm({
                 "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                 "fOnLoad": function(){
-                    welTarget.toggleClass("watching");
-                    welTarget.html(Messages(welTarget.hasClass("watching") ? "project.unwatch" : "project.watch"));
+                    welTarget.attr("data-watching", !bWatched);
+                    welTarget.html(Messages(!bWatched ? "project.unwatch" : "project.watch"));
                 }
             });
         }

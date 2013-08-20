@@ -5,12 +5,12 @@ import com.avaje.ebean.Page;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
 
+import models.enumeration.UserState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
 import play.Logger;
-import play.i18n.Messages;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -168,7 +168,7 @@ public class SiteApp extends Controller {
             if (Project.isOnlyManager(userId)) {
                 flash(Constants.WARNING, "site.userList.deleteAlert");
             } else {
-                User.find.byId(userId).delete();
+                User.find.byId(userId).changeState(UserState.DELETED);
             }
         } else {
             flash(Constants.WARNING, "auth.unauthorized.waringMessage");
@@ -233,8 +233,11 @@ public class SiteApp extends Controller {
                 flash(Constants.WARNING, "user.notExists.name");
                 return redirect(routes.SiteApp.userList(0, null));
             }
-            targetUser.isLocked = !targetUser.isLocked;
-            targetUser.save();
+            if (targetUser.state == UserState.ACTIVE) {
+                targetUser.changeState(UserState.LOCKED);
+            } else {
+                targetUser.changeState(UserState.ACTIVE);
+            }
             return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
         }
         flash(Constants.WARNING, "auth.unauthorized.waringMessage");

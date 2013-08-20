@@ -1,6 +1,7 @@
 package controllers;
 
 import models.*;
+import models.enumeration.UserState;
 import org.junit.*;
 import play.test.FakeApplication;
 import play.test.Helpers;
@@ -46,8 +47,7 @@ public class SiteAppTest {
         data.put("loginId", loginId);
 
         User targetUser = User.findByLoginId(loginId);
-        System.out.println(targetUser.isLocked);
-        boolean currentIsLocked = targetUser.isLocked;
+        UserState currentIsLocked = targetUser.state;
 
         //When
         callAction(
@@ -57,6 +57,6 @@ public class SiteAppTest {
                         .withSession("loginId", "admin")
         );
         //Then
-        assertThat(User.findByLoginId(loginId).isLocked).isNotEqualTo(currentIsLocked);
+        assertThat(User.findByLoginId(loginId).state).isNotEqualTo(currentIsLocked);
     }
 }
