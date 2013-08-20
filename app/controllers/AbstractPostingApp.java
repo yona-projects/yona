@@ -14,6 +14,7 @@ import models.*;
 import models.enumeration.Direction;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import models.enumeration.UserState;
 
 import play.data.Form;
 import play.libs.Akka;
@@ -28,6 +29,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.Iterator;
 
 /**
  * {@link BoardApp}과 {@link IssueApp}에서 공통으로 사용하는 기능을 담고 있는 컨트롤러 클래스
@@ -168,7 +170,18 @@ public class AbstractPostingApp extends Controller {
      */
     public static void sendNotification(Notification noti) {
         Set<User> receivers = noti.getReceivers();
+
+        // Remove inactive users.
+        Iterator<User> iterator = receivers.iterator();
+        while (iterator.hasNext()) {
+            User user = iterator.next();
+            if (user.state != UserState.ACTIVE) {
+                iterator.remove();
+            }
+        }
+
         receivers.remove(User.anonymous);
+
         if(receivers.isEmpty()) {
             return;
         }

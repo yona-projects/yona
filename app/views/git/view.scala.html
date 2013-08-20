@@ -90,7 +90,7 @@
                         <span class="date badge badge-issue-@pull.state.state.toLowerCase">@Messages("issue.state." + pull.state.state)</span>
                     </div>
                 </div>
-                
+
                 <div class="board-body">
                     <div class="content markdown-wrap" markdown="true">@pull.body</div>
                 </div>
@@ -183,9 +183,9 @@
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
                     <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.id)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
                     }
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
+                }
+                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
                     <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.id)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
-                    }
                 }
                 @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
                     <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.id)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>

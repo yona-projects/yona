@@ -1,6 +1,7 @@
 package controllers;
 
 import models.User;
+import models.enumeration.UserState;
 import org.junit.*;
 
 import java.util.*;
@@ -105,7 +106,7 @@ public class UserAppTest {
                 user.name = "racoon";
                 user.password = "somefakepassword";
                 user.createdDate = JodaDateUtil.now();
-                user.isLocked = true;
+                user.state = UserState.LOCKED;
                 user.save();
 
                 Map<String, String> data = new HashMap<>();

@@ -88,7 +88,7 @@ public class AccessControl {
         // Temporary attachments are allowed only for the user who uploads them.
         if (resource.getType() == ResourceType.ATTACHMENT
                 && resource.getContainer().getType() == ResourceType.USER) {
-            return user.id.equals(resource.getContainer().getId());
+            return user.id.toString().equals(resource.getContainer().getId());
         }
 
         if (operation == Operation.READ) {
@@ -105,7 +105,7 @@ public class AccessControl {
         switch(resource.getType()){
         case USER:
         case USER_AVATAR:
-            return user.id.equals(resource.getId());
+            return user.id.toString().equals(resource.getId());
         case PROJECT:
             return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
         case SIMPLE_COMMENT:
@@ -174,13 +174,10 @@ public class AccessControl {
                         (project.isPublic && isEditableAsAuthor(user, project, resource));
             }
         case ACCEPT:
+            return ProjectUser.isMember(user.id, project.id);
         case REJECT:
         case REOPEN:
-            if (ProjectUser.isMember(user.id, project.id)) {
-                return true;
-            } else {
-                return false;
-            }
+            return ProjectUser.isMember(user.id, project.id) || isEditableAsAuthor(user,project, resource);
         default:
             // undefined
             return false;
