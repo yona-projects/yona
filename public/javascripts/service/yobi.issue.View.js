@@ -91,6 +91,7 @@
                 "fOnLoad": function(){
                     welTarget.attr("data-watching", !bWatched);
                     welTarget.html(Messages(!bWatched ? "project.unwatch" : "project.watch"));
+                    $yobi.notify(Messages(bWatched ? "issue.unwatch.start" : "issue.watch.start"), 3000);
                 }
             });
         }
