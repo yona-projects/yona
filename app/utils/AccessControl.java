@@ -174,13 +174,10 @@ public class AccessControl {
                         (project.isPublic && isEditableAsAuthor(user, project, resource));
             }
         case ACCEPT:
+            return ProjectUser.isMember(user.id, project.id);
         case REJECT:
         case REOPEN:
-            if (ProjectUser.isMember(user.id, project.id)) {
-                return true;
-            } else {
-                return false;
-            }
+            return ProjectUser.isMember(user.id, project.id) || isEditableAsAuthor(user,project, resource);
         default:
             // undefined
             return false;
