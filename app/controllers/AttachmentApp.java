@@ -131,12 +131,18 @@ public class AttachmentApp extends Controller {
             return forbidden();
         }
 
+        String ifNoneMatchValue = request().getHeader("If-None-Match");
+        if(ifNoneMatchValue != null && ifNoneMatchValue.equals(attachment.hash)) {
+            return status(NOT_MODIFIED);
+        }
+
         File file = attachment.getFile();
 
         String filename = HttpUtil.encodeContentDisposition(attachment.name);
 
         response().setHeader("Content-Type", attachment.mimeType);
         response().setHeader("Content-Disposition", "attachment; " + filename);
+        response().setHeader("ETag", attachment.hash);
 
         return ok(file);
     }
