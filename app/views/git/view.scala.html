@@ -92,7 +92,7 @@
                 </div>
 
                 <div class="board-body">
-                    <div class="content markdown-wrap" markdown="true">@pull.body</div>
+                    <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
                 </div>
 
                 @if(pull.isOpen()){
@@ -232,7 +232,7 @@
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                         <a class="pull-right close" href="@routes.SimpleCommentApp.deleteComment(comment.id)">&times;</a>
                         }
-                        <div class="comment-body markdown-wrap" markdown="true">@comment.contents</div>
+                        <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                         <p class="commenter">
                             <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                             <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
