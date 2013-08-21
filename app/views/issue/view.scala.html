@@ -8,6 +8,8 @@
 @import java.security.MessageDigest
 @import utils.TemplateHelper._
 @import utils.AccessControl._
+@import java.net._
+@import utils.Config
 
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
@@ -16,6 +18,8 @@
 	@** Messages(title) **@
 }
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
+
+@urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString) }
 
 @main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
@@ -181,7 +185,7 @@
 
 	<div class="board-footer board-actrow">
         <div class="pull-left">
-            <a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>       
+            <a href="@urlToIssues" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>
             <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
         </div>
 

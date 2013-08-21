@@ -5,6 +5,8 @@
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
+@urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString) }
+
 @main(post.title, project, utils.MenuType.BOARD){
 
 <div class="page board-view">
@@ -46,7 +48,7 @@
 	</div>
 	<div class="board-footer board-actrow">
 	    <div class="pull-left">
-            <a href="@routes.BoardApp.posts(project.owner, project.name)" class="nbtn medium">@Messages("button.list")</a>
+            <a href="@urlToPostings" class="nbtn medium">@Messages("button.list")</a>
             <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("post.write")</a>
 	    </div>
 	    
