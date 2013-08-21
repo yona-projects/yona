@@ -327,7 +327,7 @@ public class BoardApp extends AbstractPostingApp {
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {
-            return badRequest(views.html.error.badrequest.render(commentForm.errors().toString(), project));
+            return badRequest(views.html.error.badrequest.render("error.validation", project));
         }
 
         if (!AccessControl.isProjectResourceCreatable(

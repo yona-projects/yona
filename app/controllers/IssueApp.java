@@ -372,7 +372,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         if (issueForm.hasErrors()) {
-            return badRequest(create.render(issueForm.errors().toString(), issueForm, project));
+            return badRequest(create.render("error.validation", issueForm, project));
         }
 
         final Issue newIssue = issueForm.get();
@@ -663,7 +663,7 @@ public class IssueApp extends AbstractPostingApp {
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {
-            return badRequest(ErrorViews.BadRequest.render(commentForm.errors().toString(), project));
+            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
 
         if (!AccessControl.isProjectResourceCreatable(

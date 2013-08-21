@@ -435,6 +435,7 @@ title.contentSearchResult = 検索結果
 #Vaildation
 error.required = 必須項目です
 error.wrong.format = 不正な形式の値です。
+error.validation = 入力値検証チェックエラー
 
 #Code
 code.files = ファイル
