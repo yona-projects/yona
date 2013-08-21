@@ -283,6 +283,11 @@ yobi.Label = (function(htOptions){
 	function _onClickLabel(weEvt){
         var welTarget = $(weEvt.target || weEvt.srcElement || weEvt.originalTarget);
         welTarget.toggleClass("active");
+
+        if (htVar.bRefresh) {
+            htElement.welForm.submit();
+        }
+
         return false;
 	}
 	
