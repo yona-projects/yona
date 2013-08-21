@@ -155,7 +155,16 @@
                                     <i class="ico ico-gray-arrow-right"></i>
                                 </a>
                             </td>
-                            <td class="messages">@commit.getMessage()</td>
+                            <td class="messages">
+                                @defining(CodeComment.count(pull.fromProject, commit.getId)){ numOfComment =>
+                                    @if(numOfComment > 0) {
+                                    <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
+                                    }
+                                }
+                                <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                                    @commit.getMessage()
+                                </a>
+                            </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
