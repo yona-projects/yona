@@ -184,9 +184,7 @@ yobi.Markdown = function(htOptions){
      * @param {Wrapped Element} welTarget is not <textarea> or <input>
      */
     function _setViewer(welTarget) {
-        welTarget.html(_renderMarkdown(welTarget.text()))
-          .addClass('markdown-view')
-          .removeClass('markdown-before');
+        welTarget.html(_renderMarkdown(welTarget.text())).removeClass('markdown-before');
     }
     
     /**
