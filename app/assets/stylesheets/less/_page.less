@@ -478,6 +478,156 @@
         .activity-streams {
             margin: 0;
 
+            .notification-stream {
+                clear:both;
+                color:#DDD;
+                padding-left:50px;
+                position:relative;
+                padding-bottom:15px;
+
+                &:before {
+                    position:absolute;
+                    top:0px;
+                    left:17px;
+                    content:' ';
+                    border-left:1px solid #d2d2d2;
+                    width: 1px;
+                    height: 100%;
+                }
+
+               
+
+                &:first-child  {
+                    &:before { top:20px }
+                }
+
+                &:last-child  {
+                    &:before { height:30px; }
+                }
+
+                .stream-type {
+                    width:26px;
+                    height:26px;
+                    padding:4px;
+                    border: 1px solid #d2d2d2;
+                    border-radius : 50%;
+                    background: #FFF;
+                    position:absolute;
+                    top:12px; 
+                    left:0;
+                    color:#fdfdfd;
+
+                    &.exclamation { border: 1px solid #ff9933;}
+                    &.user {border: 1px solid #51aacc;}
+                    &.comments { border:1px solid #6ACF6A;}
+                    &.code-fork {border:1px solid #4A4AE0;}
+                    &.map-marker {border:1px solid #000;}
+                    &.bullhorn {border:1px solid #B535CE;}
+
+                    span { 
+                        background:#d2d2d2;
+                        width:26px;
+                        height:26px;
+                        border-radius : 50%;
+                        display:inline-block;
+                        font-size:15px;
+                        text-align : center;
+
+                        &.exclamation { background:#ff9933;}
+                        &.user {background:#51aacc;}
+                        &.comments { background: #6ACF6A;}
+                        &.code-fork {background:#4A4AE0;}
+                        &.map-marker {background:#000;}
+                        &.bullhorn {background:#B535CE;}
+
+                        i { vertical-align:middle;width:auto;height:auto;}
+                    }
+
+                }
+
+                .stream-desc {
+                    border:1px solid #E0E0E0;
+                    border-radius : 5px;
+                    padding:4px 7px 7px 7px;
+                    cursor:pointer;
+                    background:#F8F8F8;
+
+                    &:hover {
+                        background:#F8FBFC;
+
+                        &:before {
+                            background:#F8FBFC;
+                        }
+                    }
+
+                    &:before {
+                        position:absolute;
+                        top:24px;
+                        left:45px;
+                        content:' ';
+                        border:1px solid #E0E0E0;
+                        width: 9px;
+                        height: 9px;
+                        border-width: 0 0 1px 1px;
+                        border-style: solid;
+                        border-color: #e5e5e5;
+                        background: #F8F8F8;
+                        .rotate(45deg);
+                    }   
+
+                    
+                    .stream-info {
+                        
+                        .avatar-wrap { float:left; margin-top:3px;}
+
+                        .meta { 
+                            font-size:12px;
+                            padding-left:50px;
+                            color:#bbb;
+                            .author { 
+                                color:#666;
+                                font-weight:bold;
+                                &:hover {color:@link-hover-color;}
+
+                            }
+                            .project { margin-left:5px; color: #666; }
+                            
+                        }
+
+                        .title {
+                            color:#51aacc;
+                            font-size:13px;
+                            padding-left:50px;
+                            margin-top:3px;
+                            font-weight:bold;
+
+                        }
+
+                        .message-wrap {
+                            margin-top:3px;
+                            font-size:12px;
+                            color:#888;
+                            padding-left:50px;   
+                            overflow:hidden;
+                            max-height:40px;
+                            .transition(all 0.3s ease);
+
+                            .message {
+                                word-break : break-all;
+                            }
+                        }
+
+                        .learn-more {
+                            margin-top:5px;
+                            font-size:13px;
+                            color:#bbb;
+                            padding-left:50px;
+                        }
+                    }
+                }
+
+            }
+
             .activity-stream {
                 padding: 1px 0;
                 margin-bottom:6px; padding-bottom:6px;
