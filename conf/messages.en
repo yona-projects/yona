@@ -562,6 +562,7 @@ fork.original = Forked from
 pullRequest = PullRequest
 pullRequest.menu.overview = Overview
 pullRequest.menu.commit = Commits
+pullRequest.menu.changes = Changes
 pullRequest.is.empty = Threre are no pull requests
 already.existing.fork.alert = Moved to existing fork project
 fork.go = Go

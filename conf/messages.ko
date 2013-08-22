@@ -562,6 +562,7 @@ fork.original = 원본 프로젝트
 pullRequest = 코드 보내기
 pullRequest.menu.overview = 개요
 pullRequest.menu.commit = 커밋
+pullRequest.menu.changes = 변경 내역
 pullRequest.is.empty = 코드 주고 받을 내용이 없습니다.
 already.existing.fork.alert = 이전에 만들어둔 포크 프로젝트로 이동합니다.
 fork.go = 바로가기

@@ -1159,6 +1159,61 @@ public class GitRepository implements PlayRepository {
         }
     }
 
+    public static String getPatch(Repository repository, String fromBranch, String toBranch) {
+        TreeWalk treeWalk = new TreeWalk(repository);
+        RevWalk walk = new RevWalk(repository);
+        try {
+            ObjectId from = repository.resolve(fromBranch);
+            ObjectId to = repository.resolve(toBranch);
+            RevTree fromTree = walk.parseTree(from);
+            RevTree toTree = walk.parseTree(to);
+
+            treeWalk.addTree(toTree);
+            treeWalk.addTree(fromTree);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DiffFormatter diffFormatter = new DiffFormatter(out);
+            diffFormatter.setRepository(repository);
+            treeWalk.setRecursive(true);
+            diffFormatter.format(DiffEntry.scan(treeWalk));
+
+            String patch = out.toString("UTF-8");
+            return patch;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            walk.dispose();
+        }
+    }
+
+    public static String getPatch(PullRequest pullRequest) {
+        if(pullRequest.mergedCommitIdFrom == null || pullRequest.mergedCommitIdTo == null) {
+            return "";
+        }
+
+        Repository repo = null;
+        RevWalk walk = null;
+        try {
+            repo = buildGitRepository(pullRequest.toProject);
+            ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
+            if(untilId == null) {
+                return "";
+            }
+            ObjectId sinceId = repo.resolve(pullRequest.mergedCommitIdFrom);
+            if(sinceId == null) {
+                return "";
+            }
+
+            return getPatch(repo, untilId.getName(), sinceId.getName());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(walk != null) {
+                walk.dispose();
+            }
+        }
+    }
+
     /**
      * Clone과 Fetch 이후 작업에 필요한 정보를 담을 객체로 사용한다.
      */

@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts)
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -77,6 +77,7 @@
         <ul class="nav nav-tabs nm">
             <li class="active"><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
             <li><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
+            <li><a href="#changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
         <div class="tab-content">
             <div id="info" class="tab-pane active">
@@ -185,6 +186,12 @@
                     </table>
                 </div>
             </div>
+
+            <div id="changes" class="tab-pane">
+                <pre>
+@patch
+                </pre>
+            </div>
         </div>
         <div class="board-footer board-actrow">
             @if(pull.isOpen()){
@@ -262,6 +269,7 @@
 @views.html.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
     $(document).ready(function() {

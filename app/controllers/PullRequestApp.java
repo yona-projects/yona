@@ -338,6 +338,7 @@ public class PullRequestApp extends Controller {
         final boolean[] isSafe = {false};
         final List<GitCommit> commits = new ArrayList<>();
         final GitConflicts[] conflicts = {null};
+        final String[] fetch = new String[1];
         if(!pullRequest.isClosed()) {
             GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
                 public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
@@ -352,6 +353,9 @@ public class PullRequestApp extends Controller {
 
                     // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
                     GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
+
+                    fetch[0] = GitRepository.getPatch(clonedRepository,
+                            cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
 
                     // 코드를 보낸 브랜치의 코드를 merge 한다.
                     MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
@@ -369,6 +373,7 @@ public class PullRequestApp extends Controller {
             for(GitCommit commit : commitList) {
                 commits.add(commit);
             }
+            fetch[0] = GitRepository.getPatch(pullRequest);
         }
 
         boolean canDeleteBranch = false;
@@ -380,7 +385,7 @@ public class PullRequestApp extends Controller {
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0]));
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0]));
     }
 
     /**
