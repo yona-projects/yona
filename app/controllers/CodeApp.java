@@ -1,6 +1,5 @@
 package controllers;
 
-import models.CodeComment;
 import models.Project;
 import models.User;
 import models.enumeration.Operation;

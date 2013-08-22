@@ -35,7 +35,7 @@
 				</p>
 			</div>
 		</div>
-		<div class="content markdown-wrap" markdown="true">@post.body</div>
+		<div class="content markdown-wrap markdown-before" markdown="true">@post.body</div>
 		<div class="attachments" resourceType="@ResourceType.BOARD_POST" resourceId="@post.id">
 		    @**<!--
 		      <ul class="attaches wm">
@@ -78,7 +78,7 @@
 					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
 						<a href="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="pull-right close">&times;</a>
 					}
-                    <div class="comment-body markdown-wrap" markdown="true">@comment.contents</div>
+                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
 					<p class="commenter">
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                         <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>

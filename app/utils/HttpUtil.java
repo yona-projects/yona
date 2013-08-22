@@ -56,7 +56,7 @@ public class HttpUtil {
     public static String addQueryString(String url, String ... encodedPairs) throws
             URISyntaxException {
         URI aURI = new URI(url);
-        String query = aURI.getQuery();
+        String query = (aURI.getQuery() != null) ? aURI.getQuery() : "";
         query += (query.length() > 0 ? "&" : "") + StringUtils.join(encodedPairs, "&");
 
         return new URI(aURI.getScheme(), aURI.getAuthority(), aURI.getPath(), query,
@@ -79,8 +79,13 @@ public class HttpUtil {
             URISyntaxException, UnsupportedEncodingException {
         URI aURI = new URI(url);
 
+        if (aURI.getQuery() == null) {
+            return url;
+        }
+
         List<String> pairStrings = new ArrayList<>();
         Set<String> keySet = new HashSet<>(Arrays.asList(keys));
+
         for (String pairString : aURI.getQuery().split("&")) {
             String[] pair = pairString.split("=");
             if (pair.length == 0) {

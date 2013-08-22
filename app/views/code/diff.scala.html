@@ -101,7 +101,7 @@
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                     <a class="pull-right close" href="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)">&times;</a>
                     }
-                    <div class="comment-body" markdown="true">@comment.contents</div>
+                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                     <p class="commenter">
                         <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                         <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
