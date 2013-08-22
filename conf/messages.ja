@@ -597,6 +597,7 @@ notification.will.help = プロジェクトを見守ると次のイベントの�
 notification.help.new = 新しいスレッドやイシューが投稿された時
 notification.help.new.comment = スレッド,イシュー, コードに新しいコメントが投稿された時
 notification.help.update.issue= イシュー状態や担当者が変更される時
+notification.help.update.pullrequest = Update pull-request's state
 
 # Reset secret
 secret.welcome = ようこそ!
@@ -621,6 +622,9 @@ notification.issue.reopened = 未決に成る
 notification.issue.closed  = 解決
 notification.issue.assigned = {0}が担当者に成る
 notification.issue.unassigned = もう担当者無し
+notification.pullrequest.closed = Merged
+notification.pullrequest.rejected = Rejected
+notification.pullrequest.reopened = 未決に成る
 
 # Grouping
 project.group = プロジェクトグループ

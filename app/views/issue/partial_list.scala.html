@@ -11,7 +11,7 @@
 
 @for(issue <- issueList){
 <div class="row-fluid issue-item">
-    <div class="span10">
+    <div class="span9">
         @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
 	    <label for="issue-@issue.id" class="mass-update-check pull-left">
 	       <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id" class="checkbox">
@@ -55,7 +55,7 @@
         </label>
     </div>
     
-    <div class="span2 mt4">
+    <div class="span3 mt4">
 	    <div class="empty-avatar-space pull-right">
 	        @if(issue.assigneeName != null) {
 	            <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap img-rounded " data-toggle="tooltip" data-placement="top" title="@Messages("issue.assignee"): @issue.assigneeName">

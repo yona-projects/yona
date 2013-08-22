@@ -546,7 +546,7 @@ error.internalServerError = 서버 오류가 발생하여 서비스를 이용할
 #PullReqeust
 pullRequest.is.safe = 코드를 안전하게 자동으로 병합할 수 있습니다.
 pullRequest.is.not.safe = 코드를 자동으로 병합할 때 충돌이 발생합니다. 자동으로 코드를 병합할 수 없습니다.
-pullRequest.accept = 수락
+pullRequest.accept = 코드 받기
 pullRequest.reject = 보류
 pullRequest.cancel = 취소
 pullRequest.reopen = 다시 열기
@@ -562,6 +562,7 @@ fork.original = 원본 프로젝트
 pullRequest = 코드 보내기
 pullRequest.menu.overview = 개요
 pullRequest.menu.commit = 커밋
+pullRequest.menu.changes = 변경 내역
 pullRequest.is.empty = 코드 주고 받을 내용이 없습니다.
 already.existing.fork.alert = 이전에 만들어둔 포크 프로젝트로 이동합니다.
 fork.go = 바로가기
@@ -614,9 +615,10 @@ you.are.watching = {0} 프로젝트를 지켜보는 중입니다.
 you.are.not.watching = {0} 프로젝트를 지켜보고 있지 않습니다.
 notification.help = 다음 이벤트가 발생할 때 알림 메시지를 받습니다.
 notification.will.help = 프로젝트를 지켜보면 다음 이벤트가 발생할 때 알림 메시지를 받습니다.
-notification.help.new = 새글과 이슈가 등록되었을 때
+notification.help.new = 새 글, 이슈, 코드 요청, 코드 요청에 댓글이 등록되었을 때
 notification.help.new.comment = 글, 이슈, 코드에 새 댓글이 등록되었을 때
 notification.help.update.issue= 이슈 상태가 변경되거나 담당자가 변경될 때
+notification.help.update.pullrequest = 보낸 코드의 상태가 변경 될 때
 
 # Reset secret
 secret.welcome = 환영합니다!
@@ -640,7 +642,10 @@ cancel.enrollment = 멤버 등록 요청 취소하기
 notification.issue.reopened = 다시 열림
 notification.issue.closed  = 닫힘
 notification.issue.assigned = {0}에게 할당됨
-notification.issue.unassigned = 이제 담당자 없음
+notification.issue.unassigned = 이제 담당자
+notification.pullrequest.closed = 보낸 코드 잘 받았음
+notification.pullrequest.rejected = 보낸 코드 거절
+notification.pullrequest.reopened = 다시 열림
 
 # Grouping
 project.group = 프로젝트 분류
