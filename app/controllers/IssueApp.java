@@ -490,13 +490,19 @@ public class IssueApp extends AbstractPostingApp {
      */
     public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
-        final Issue issue = issueForm.get();
-        setMilestone(issueForm, issue);
 
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
+        
+        if (issueForm.hasErrors()) {
+            return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
+        }
+        
+        final Issue issue = issueForm.get();
+        setMilestone(issueForm, issue);
+        
         final Issue originalIssue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
