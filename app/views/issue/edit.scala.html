@@ -20,7 +20,7 @@
         <div class="span12">
             <dl>
                 <dt>
-                    <label for="title"><strong class="secondary-txt">#@issue.id</strong><!--@Messages("post.new.title")--></label>
+                    <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong><!--@Messages("post.new.title")--></label>
                 </dt>
                 <dd>
                     <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title" maxlength="250" tabindex="1" placeholder="@Messages("post.new.title")">

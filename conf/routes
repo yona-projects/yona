@@ -190,9 +190,6 @@ GET     /:user/:project/commit/:id                      controllers.CodeHistoryA
 POST    /:user/:project/commit/:commitId/comments       controllers.CodeHistoryApp.newComment(user, project, commitId)
 GET    /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeHistoryApp.deleteComment(user, project, commitId, id: Long)
 
-# Search
-GET     /:user/:project/search                          controllers.SearchApp.contentsSearch(user, project, page: Int ?= 0)
-
 # Help
 GET     /help                                           controllers.HelpApp.help()
 
