@@ -46,6 +46,6 @@ public enum ResourceType {
                 return resourceType;
             }
         }
-        return ResourceType.ISSUE_POST;
+        throw new IllegalArgumentException("No matching resource type found for [" + value + "]");
     }
 }

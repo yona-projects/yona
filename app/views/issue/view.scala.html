@@ -62,7 +62,7 @@
                 </p>
             </div>
             <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
-            <div class="attachments" resourceType="@ResourceType.ISSUE_POST" resourceId="@issue.id"></div>
+            <div class="attachments" data-resourceType="@ResourceType.ISSUE_POST" data-resourceId="@issue.id"></div>
         </div>
         
         <div class="span2 mb20">
@@ -226,7 +226,7 @@
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                         <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
 					</p>
-					<div class="attachments" resourceType="@ResourceType.ISSUE_COMMENT" resourceId="@comment.id"></div>
+					<div class="attachments" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
 				</div>
 			</li>
             }
@@ -245,18 +245,6 @@
     <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
 	--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
 </script>
-
-@**<!--
-<div class="board-footer">
-  @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-	<a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.id)" class="nbtn orange medium">@Messages("button.edit")</a>
-  }
-  @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-	<a href="#deleteConfirm" data-toggle="modal" class="nbtn medium black">@Messages("button.delete")</a>
-  }
-	<a href="@routes.IssueApp.issues(project.owner, project.name,"open")" class="nbtn medium">@Messages("button.list")</a>
-</div>
- -->**@
 
 @** Confirm to delete post **@
 <div id="deleteConfirm" class="modal hide fade">

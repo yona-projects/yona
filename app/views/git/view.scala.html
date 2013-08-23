@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts)
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -77,6 +77,7 @@
         <ul class="nav nav-tabs nm">
             <li class="active"><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
             <li><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
+            <li><a href="#changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
         <div class="tab-content">
             <div id="info" class="tab-pane active">
@@ -155,7 +156,16 @@
                                     <i class="ico ico-gray-arrow-right"></i>
                                 </a>
                             </td>
-                            <td class="messages">@commit.getMessage()</td>
+                            <td class="messages">
+                                @defining(CodeComment.count(pull.fromProject, commit.getId)){ numOfComment =>
+                                    @if(numOfComment > 0) {
+                                    <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
+                                    }
+                                }
+                                <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                                    @commit.getMessage()
+                                </a>
+                            </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
@@ -176,8 +186,21 @@
                     </table>
                 </div>
             </div>
+
+            <div id="changes" class="tab-pane">
+                <pre>
+@patch
+                </pre>
+            </div>
         </div>
         <div class="board-footer board-actrow">
+            <button id="watch-button" type="button" class="nbtn medium blue @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
+                @if(pull.getWatchers.contains(UserApp.currentUser())) {
+                    @Messages("project.unwatch")
+                } else {
+                    @Messages("project.watch")
+                }
+            </button>
             @if(pull.isOpen()){
                 @if(isSafe){
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
@@ -208,13 +231,15 @@
         <div class="alert alert-info">
             <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
             <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
-            @if(canDeleteBranch) {
+            @if(UserApp.currentUser().equals(pull.contributor)) {
+                @if(canDeleteBranch) {
                 <code>@pull.fromBranch</code> @Messages("delete.frombranch.message")
                 <a class="nbtn black medium pull-right" href="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.id)">@Messages("delete.branch")</a>
-            }
-            @if(canRestoreBranch) {
+                }
+                @if(canRestoreBranch) {
                 <code>@pull.fromBranch</code> @Messages("restore.frombranch.message")
                 <a class="nbtn orange medium pull-right" href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)">@Messages("restore.branch")</a>
+                }
             }
         </div>
         }
@@ -251,10 +276,13 @@
 @views.html.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {
+            "sWatchUrl"     : "@routes.WatchApp.watch(pull.asResource.asParameter)",
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(pull.asResource.asParameter)",
             "sFilesURL" : "@routes.AttachmentApp.getFileList",
             "sUploadURL": "@routes.AttachmentApp.uploadFile"
         });
