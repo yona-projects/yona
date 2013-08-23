@@ -172,7 +172,7 @@ public class CodeHistoryApp extends Controller {
         }
 
         if (codeCommentForm.hasErrors()) {
-            return badRequest(ErrorViews.BadRequest.render(codeCommentForm.errors().toString(), project));
+            return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
 
         if (RepositoryService.getRepository(project).getCommit(commitId) == null) {
