@@ -25,7 +25,7 @@ import java.util.*;
  * Project.
  */
 @Entity
-public class Project extends Model {
+public class Project extends Model implements LabelOwner {
     private static final long serialVersionUID = 1L;
     public static final Finder <Long, Project> find = new Finder<>(Long.class, Project.class);
 
@@ -458,6 +458,7 @@ public class Project extends Model {
      *
      * @return the resource
      */
+    @Override
     public Resource asResource() {
         return new Resource() {
 
@@ -792,6 +793,11 @@ public class Project extends Model {
         copyProject.owner = user.loginId;
         copyProject.isPublic = project.isPublic;
         return copyProject;
+    }
+
+    @Override
+    public Set<Label> getLabels() {
+        return labels;
     }
 
 }
