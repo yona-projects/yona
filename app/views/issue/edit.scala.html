@@ -20,7 +20,7 @@
         <div class="span12">
             <dl>
                 <dt>
-                    <label for="title"><strong class="secondary-txt">#@issue.id</strong><!--@Messages("post.new.title")--></label>
+                    <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong><!--@Messages("post.new.title")--></label>
                 </dt>
                 <dd>
                 	@defining(issueForm.errors().get("title")) { errors =>

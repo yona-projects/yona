@@ -197,7 +197,7 @@ public class CodeHistoryApp extends Controller {
 
         addNotificationEventForNewComment(project, codeComment, toView);
 
-        return redirect(toView);
+        return redirect(toView + "#comment-" + codeComment.id);
     }
 
     private static void addNotificationEventForNewComment(Project project, CodeComment codeComment, Call toView) throws IOException, SVNException, ServletException {

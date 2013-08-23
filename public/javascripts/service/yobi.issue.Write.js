@@ -95,16 +95,15 @@
 		 * initialize fileUploader
 		 */
 		function _initFileUploader(){
-		    /**/
-		    yobi.FileUploader.init({
-                "sMode"       : htVar.sMode,
-                "sAction"     : htVar.sUploaderAction,
-                "sTplFileItem": htVar.sTplFileItem,
-			  	"elContainer" : htElement.welUploader,
-			  	"elTextarea"  : htElement.welTextarea
-			});
-			/**/
-			/*yobi.Files.setUploader(htElement.welUploader, htElement.welTextarea);*/
+            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var sUploaderId = oUploader.attr("data-namespace");
+            
+            (new yobi.Attachments({
+                "elContainer"  : htElement.welUploader,
+                "elTextarea"   : htElement.welTextarea,
+                "sTplFileItem" : htVar.sTplFileItem,
+                "sUploaderId"  : sUploaderId
+            }));
 		}
 		
 		/**

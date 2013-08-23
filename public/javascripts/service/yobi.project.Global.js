@@ -50,8 +50,12 @@
             htElement.welBtnClone   = $("#btnClone");
             htElement.welForkedFrom = $("#forkedFrom");
 
-            htElement.welShowRepoURL = $("#showRepoURL");
-            _placeShowRepoURL();
+            // 프로젝트 페이지에서만.
+            // project.Global 은 프로필 페이지에서도 공유합니다
+            if(htElement.welBtnClone.length > 0){
+                htElement.welShowRepoURL = $("#showRepoURL");
+                _placeShowRepoURL();
+            }
         }
 
         /**
@@ -67,7 +71,7 @@
                 "top" : (nBtnHeight + 15) + "px"
             });
         }
-        
+
         /**
          * 이벤트 핸들러 초기화
          * attach event handlers
@@ -81,21 +85,14 @@
                 "html"   : true
             });
 
-            htElement.welBtnClone.click(_onClickBtnClone);
-            
-            // 주소 복사 버튼
-            htElement.welShowRepoURL.find(".copy-url").zclip({
-                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                "copy": function() {
-                    return htVar.sRepoURL;
-                }
-            });
-            // 주소 표시 영역
-            htElement.welShowRepoURL.find(".repo-url").click(function(){
-                $(this).select();
-            });
-            
-            $(window).on("resize", _placeShowRepoURL);
+            // 저장소 URL 표시 관련
+            if(htElement.welBtnClone.length > 0){
+                htElement.welBtnClone.click(_onClickBtnClone);
+                htElement.welShowRepoURL.find(".repo-url").click(function(){
+                    $(this).select();
+                });
+                $(window).on("resize", _placeShowRepoURL);
+            }
         }
 
         /**
@@ -143,6 +140,16 @@
          */
         function _onClickBtnClone(){
             htElement.welShowRepoURL.toggle();
+            
+            if (!htVar.bInitClipboard) {
+                // 주소 복사 버튼
+                htElement.welShowRepoURL.find(".copy-url").zclip({
+                    "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                    "copy": htVar.sRepoURL
+                });
+
+                htVar.bInitClipboard = true;                
+            }
         }
 
         /**
@@ -150,7 +157,6 @@
          */
         function _initAffix(){
             htElement.welProjectMenu.height(htElement.welProjectMenuWrap.height());
-
             htElement.welProjectMenuWrap.affix({
                 "offset": htElement.welProjectMenuWrap.offset()
             });

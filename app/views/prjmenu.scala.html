@@ -21,7 +21,7 @@
 <div class="project-menu">
     <div class="project-menu-wrap">
         <div class="project-menu-container main">
-            <div class="actrow">              
+            <div class="actrow">
                 <!-- repo URL -->
                 <button id="btnClone" type="button" class="nbtn medium">
                     <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
@@ -37,7 +37,7 @@
                     </div>
                 </div>
                 <!-- // -->
-                
+
                 <!-- watch project -->
                 <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){
@@ -60,7 +60,8 @@
                             <ul class="icons-ul">
                                 <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new")</li>
                                 <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue") </li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue")</li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
                             </ul>
                         </div>
                         <div class="brow">
@@ -76,7 +77,8 @@
                             <ul class="icons-ul">
                                 <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new")</li>
                                 <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue") </li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue")</li>
+                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
                             </ul>
                         </div>
                         <div class="brow">
@@ -88,7 +90,7 @@
                     </div>
                 </div>
                 <!-- // -->
-                
+
                 <!-- fork project -->
                 @if(project.vcs.equals("GIT")){
                 <div class="btn-group dbtn-group">
@@ -99,7 +101,7 @@
                     </a>
                     <button class="btn dropdown-toggle small white" data-toggle="dropdown" style="padding:0">
                         <div class="d-caret"><span class="caret"></span></div>
-                    </button>                    
+                    </button>
                     <ul class="dropdown-menu">
                         <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
                         @for(fork <- project.forkingProjects) {
@@ -113,7 +115,7 @@
                 </div>
                 }
                 <!-- // -->
-                
+
                 @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
                 <div class="btn-group dbtn-group">
                     @if(User.enrolled(project)){
@@ -186,7 +188,7 @@
                     <a href="@getPullRequestURL(project)" data-toggle="tooltip" class="menu-item">
                         <i class="icon-large icon-code-fork"></i>
                         <span class="menu-title">@Messages("menu.pullRequest")</span>
-                        @if(PullRequest.countOpenedPullRequests(project) > 0){ 
+                        @if(PullRequest.countOpenedPullRequests(project) > 0){
                         <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
                         }
                     </a>

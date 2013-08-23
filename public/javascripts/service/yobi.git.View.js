@@ -3,15 +3,15 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
 (function(ns){
-    
+
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
-        
+
         var htVar = {};
         var htElement = {};
 
@@ -35,8 +35,10 @@
             htVar.sFilesURL = htOptions.sFilesURL;
             htVar.sUploadURL = htOptions.sUploadURL;
             htVar.sTplFileItem = $('#tplAttachedFile').text();
+            htVar.sWatchUrl = htOptions.sWatchUrl;
+            htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
         }
-        
+
         /**
          * initialize HTML Element variables
          */
@@ -44,10 +46,11 @@
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
             htElement.welAttachments = $("#attachments");
+            htElement.welBtnWatch = $('#watch-button');
 
             htElement.welBtnHelp = $('#helpBtn');
             htElement.welMsgHelp = $('#helpMessage');
-            
+
             // tooltip
             $('span[data-toggle="tooltip"]').tooltip({
                 placement : "bottom"
@@ -62,33 +65,46 @@
                 e.preventDefault();
                 htElement.welMsgHelp.toggle();
             });
+
+            htElement.welBtnWatch.click(function(weEvt) {
+                var welTarget = $(weEvt.target);
+                var bWatched = welTarget.hasClass("active");
+
+                $yobi.sendForm({
+                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                    "fOnLoad": function(){
+                        welTarget.toggleClass("active");
+                        welTarget.html(Messages(welTarget.hasClass("active") ? "project.unwatch" : "project.watch"));
+                    }
+                });
+            });
         }
-        
+
         /**
          * initialize fileUploader
          */
         function _initFileUploader(){
-            yobi.FileUploader.init({
-                "elContainer" : htElement.welUploader,
-                "elTextarea"  : htElement.welTextarea,
-                "sTplFileItem": htVar.sTplFileItem,
-                "sAction"     : htVar.sUploadURL
-            });
+            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            var sUploaderId = oUploader.attr("data-namespace");
+            
+            (new yobi.Attachments({
+                "elContainer"  : htElement.welUploader,
+                "elTextarea"   : htElement.welTextarea,
+                "sTplFileItem" : htVar.sTplFileItem,
+                "sUploaderId"  : sUploaderId
+            }));
         }
-        
+
         /**
          * initialize fileDownloader
          */
         function _initFileDownloader(){
-            htElement.welAttachments.each(function(n, el){
-                (new yobi.FileDownloader({
-                    "elTarget": htElement.welAttachments,
-                    "sAction" : htVar.sFilesURL
-                }));
+            htElement.welAttachments.each(function(n, elContainer){
+                (new yobi.Attachments({"elContainer": elContainer}));
             });
         }
 
         _init(htOptions || {});
     };
-    
+
 })("yobi.git.View");

@@ -19,9 +19,12 @@ import play.mvc.Call;
 import play.mvc.Result;
 
 import jxl.write.WriteException;
+
 import org.apache.tika.Tika;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Query;
+import com.avaje.ebean.QueryResultVisitor;
 
 import javax.persistence.Transient;
 import java.io.IOException;
@@ -98,8 +101,11 @@ public class IssueApp extends AbstractPostingApp {
             }
 
             if (labelIds != null) {
-                for (Long labelId : labelIds) {
-                    el.idIn(el.query().copy().where().eq("labels.id", labelId).findIds());
+                List<Object> issueIds = findIssueIds(el.query(), labelIds);
+                if (issueIds.isEmpty()) {
+                    el.isNull("id");
+                } else {
+                    el.idIn(issueIds);
                 }
             }
 
@@ -109,6 +115,36 @@ public class IssueApp extends AbstractPostingApp {
 
             return el;
         }
+    }
+
+    /*
+     * query 에 저장되어 있는 검색 조건을 만족하면서,
+     * labelIds 에 해당되는 라벨을 모두 가지고 있는 이슈들의 ID를 찾는다.
+     * 조건을 만족하는 이슈가 없을 경우 빈 List 가 반환된다.
+     */
+    private static List<Object> findIssueIds(final Query<Issue> query, final Set<Long> labelIds) {
+        final List<Object> issueIds = new ArrayList<>();
+        query.copy().findVisit(new QueryResultVisitor<Issue>() {
+            @Override
+            public boolean accept(Issue issue) {
+                if (issueHasLabels(issue, labelIds)) {
+                    issueIds.add(issue.id);
+                }
+                return true;
+            }
+        });
+        return issueIds;
+    }
+
+    /*
+     * issue 가 labelIds 에 해당하는 모든 라벨을 가지고 있는지 확인한다.
+     */
+    private static boolean issueHasLabels(final Issue issue, final Set<Long> labelIds) {
+        Set<Long> issueLabelIds = new HashSet<>();
+        for (IssueLabel issueLabel : issue.labels) {
+            issueLabelIds.add(issueLabel.id);
+        }
+        return issueLabelIds.containsAll(labelIds);
     }
 
     /**
