@@ -230,6 +230,8 @@ issue.list.all = 全体 イシュー
 issue.list.assignedToMe = 私が担当しているイシュー
 issue.list.authoredByMe = 私が作成したイシュー
 issue.assignToMe = 私が担当する
+issue.watch.start = 今後このイシューに関するお知らせを受けることになります
+issue.unwatch.start = 今後このイシューに関するお知らせを受けません
 
 #Post
 post.new = スレッド投稿
@@ -255,6 +257,8 @@ post.error.emptyTitle = タイトルを入力してください
 post.error.emptyBody = 内容を入力してください
 post.error.beforeunload = まだこのイシューはセーブされていません。このままほかのページに変更しますか？
 post.notice = お知らせ
+post.watch.start = 今後このスレッドに関するお知らせを受けることになります
+post.unwatch.start = 今後このスレッドに関するお知らせを受けません
 
 #Project
 project.myproject = 私のプロジェクト

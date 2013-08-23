@@ -230,6 +230,8 @@ issue.list.all = 전체 이슈
 issue.list.assignedToMe = 나에게 할당된 이슈
 issue.list.authoredByMe = 내가 작성한 이슈
 issue.assignToMe = 나에게 할당하기
+issue.watch.start = 이제 이 이슈에 관한 알림을 받습니다
+issue.unwatch.start = 이제 이 이슈에 관한 알림을 받지 않습니다
 
 #Post
 post.new = 새글
@@ -255,6 +257,8 @@ post.error.emptyTitle = 글 제목을 입력해주세요
 post.error.emptyBody = 글 내용을 입력해주세요
 post.error.beforeunload = 아직 글을 저장하지 않았습니다. 저장하지 않은 채로 다른 페이지로 가시겠어요?
 post.notice = 공지
+post.watch.start = 이제 이 글에 관한 알림을 받습니다
+post.unwatch.start = 이제 이 글에 관한 알림을 받지 않습니다
 
 #Project
 project.myproject = 내 프로젝트

@@ -67,7 +67,7 @@
                 "top" : (nBtnHeight + 15) + "px"
             });
         }
-        
+
         /**
          * 이벤트 핸들러 초기화
          * attach event handlers
@@ -83,13 +83,7 @@
 
             htElement.welBtnClone.click(_onClickBtnClone);
             
-            // 주소 복사 버튼
-            htElement.welShowRepoURL.find(".copy-url").zclip({
-                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                "copy": function() {
-                    return htVar.sRepoURL;
-                }
-            });
+            
             // 주소 표시 영역
             htElement.welShowRepoURL.find(".repo-url").click(function(){
                 $(this).select();
@@ -142,7 +136,18 @@
          * Clone 버튼 클릭시 이벤트 핸들러
          */
         function _onClickBtnClone(){
+            
             htElement.welShowRepoURL.toggle();
+            
+            if (!htVar.bInitClipboard) {
+                // 주소 복사 버튼
+                htElement.welShowRepoURL.find(".copy-url").zclip({
+                    "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                    "copy": htVar.sRepoURL
+                });
+
+                htVar.bInitClipboard = true;                
+            }
         }
 
         /**

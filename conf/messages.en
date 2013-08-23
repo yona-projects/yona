@@ -230,6 +230,8 @@ issue.list.all = All Issues
 issue.list.assignedToMe = Assigned to me
 issue.list.authoredByMe = Created by me
 issue.assignToMe = Assign to me
+issue.watch.start = You will receive notifications of this issue
+issue.unwatch.start = Notifications of this issue has muted
 
 #Post
 post.new = New
@@ -255,6 +257,8 @@ post.error.emptyTitle = Title is required
 post.error.emptyBody = a Post with empty body cannot be created
 post.error.beforeunload = a Post have not saved yet. Would you like to exit this page without saving?
 post.notice = notice
+post.watch.start = You will receive notifications of this post
+post.unwatch.start = Notifications of this post has muted
 
 #Project
 project.myproject = My Projects
