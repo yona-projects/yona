@@ -28,7 +28,7 @@
             </dl>
         </div>
         <div class="row-fluid">
-            <div class="span10">
+            <div class="span9">
                 <dl>
                     <dd style="position: relative;">
                         <a href="#" class="go-zen"><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
@@ -44,12 +44,12 @@
                 @** end of fileUploader **@
             </div>
             
-            <div class="span2">
+            <div class="span3">
                 @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
                 <dl class="issue-option">
                     <dt>@Messages("issue.state")</dt>
                     <dd>
-                        <div id="state" class="btn-group" data-name="state">
+                        <div id="state" class="btn-group auto" data-name="state">
                             <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                 <span class="d-label">@Messages("issue.state")</span>
                                 <span class="d-caret"><span class="caret"></span></span>
@@ -67,7 +67,7 @@
                 <dl class="issue-option">
                      <dt>@Messages("issue.new.detailInfo.assignee")</dt>
                      <dd>
-                        <div id="assignee" class="btn-group" data-name="assignee.user.id">
+                        <div id="assignee" class="btn-group auto" data-name="assignee.user.id">
                             <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                 <span class="d-label">@Messages("issue.new.selectDefault.assignee")</span>
                                 <span class="d-caret"><span class="caret"></span></span>
@@ -92,7 +92,7 @@
                             <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
                             <i class="icon-refresh"></i>
                         } else {
-                            <div id="milestoneId" class="btn-group" data-name="milestoneId">
+                            <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
                                 <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                     <span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
                                     <span class="d-caret"><span class="caret"></span></span>
@@ -125,7 +125,7 @@
         </div>
     </div>
     <div class="row-fluid">
-    	<div class="span10 actrow right-txt">
+    	<div class="span9 actrow right-txt">
     	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
     	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
     	</div>

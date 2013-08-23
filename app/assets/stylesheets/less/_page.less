@@ -4,12 +4,10 @@
     width: 123px; height: 55px;
     overflow:hidden;
     background-size:123px 55px;
-    font-family: tahoma;
+    font-family: @base-font-family;/*tahoma;*/
     font-weight: bold;
     text-decoration: none;
     a:hover { text-decoration: none}
-    &.orange {
-    }
 }
 
 .gnb-outer {
@@ -189,19 +187,21 @@
             .logo {
                 background:transparent !important;
                 color:@primary !important;
-                width:107px;
+                width:auto;/*107px;*/
+               
+                &:hover {text-decoration:none;}
 
                 span {
-                    width: 123px;
+                    width: auto;/*123px;*/
                     height: 55px;
                     display: block;
                     background-size:123px 55px;
-                    color: @primary;
-                    text-decoration: none;
-                    &a:hover {text-decoration:none;}
+                    padding-right: 15px;
                     padding-left: 15px;
-                    font-family: tahoma;
+                    color: @primary;
+                    font-family: @base-font-family;
                     font-weight: bold;
+                    text-decoration: none;
                 }
             }
 
@@ -358,8 +358,7 @@
             .tag-line {
                 color: #7C7C7C;
                 font-size: 14px;
-                /*font-family: "DIN Medium";*/
-                /*letter-spacing: -1px;*/
+
                 span {
                     color: #535353;
                 }
@@ -380,7 +379,8 @@
                 color: @orange;
                 font-weight:300;
             }
-            font-family:'Myriad Pro Light', 'Droid Sans', Tahoma, sans-serif;
+            /*font-family:'Myriad Pro Light', 'Droid Sans', Tahoma, sans-serif;*/
+           font-family:@base-font-family;
         }
         .tag-line {
             font-size: 1.2em; /*16px;*/
@@ -2048,8 +2048,8 @@
         /*margin-bottom: 34px;*/
         padding:15px 0 0 10px;
         
-        dl { margin-bottom:10px; }
-        dl.author { height:50px; }
+        dl { margin-bottom:20px; }
+        dl.author { height:50px; overflow:hidden; }
         p {
             margin-bottom: 5px;
             line-height: 14px;
@@ -3159,7 +3159,7 @@ div.markdown-preview {
             }
             .eml {
                 display:block;
-                font-size:11px; font-family:Tahoma;
+                font-size:11px; font-family:@base-font-family;/*Tahoma;*/
                 margin-left:2px;
                 .opacity(80);
             }
@@ -3573,7 +3573,7 @@ div.markdown-preview {
       .form-search{
         margin-top:13px;
         input[type=text]{height:25px;padding:0 0 0 10px;font-size:11px;line-height:25px}
-        .btn{width:91px;height:27px;margin:0 0 0 -5px;padding:0;font-family:Tahoma;font-size:10px;line-height:27px}
+        .btn{width:91px;height:27px;margin:0 0 0 -5px;padding:0;font-family:@base-font-family;/*Tahoma;*/font-size:10px;line-height:27px}
       }
     }
 

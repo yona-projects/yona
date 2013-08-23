@@ -48,7 +48,7 @@
 	@** Content body **@
 	<!--board-body-->
     <div class="board-body row-fluid">
-        <div class="span10">
+        <div class="span9">
             <div class="pull-right" style="padding:20px;">
                 @**<!-- labels -->**@
                 <p class="labels-wrap">
@@ -61,7 +61,7 @@
             <div class="attachments" data-resourceType="@ResourceType.ISSUE_POST" data-resourceId="@issue.id"></div>
         </div>
         
-        <div class="span2 mb20">
+        <div class="span3 mb20">
             <div class="author-info">
                 <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post" class="frm-wrap">
                     <input type="hidden" name="issues[0].id" value="@issue.id" /> 
@@ -104,8 +104,8 @@
                         <dt>@Messages("issue.assignee")</dt>
                         <dd>
                         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                            <div id="assignee" class="btn-group" data-name="assignee.id">
-                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                            <div id="assignee" class="btn-group auto" data-name="assignee.id">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                     @if(issue.assigneeName != null){
                                     <span class="d-label">@issue.assignee.user.loginId (@issue.assigneeName)</span>
                                     } else {
@@ -145,8 +145,8 @@
                         <dt>@Messages("milestone")</dt>
                         <dd>
                         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-                            <div id="milestone" class="btn-group" data-name="milestone.id">
-                                <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                            <div id="milestone" class="btn-group auto" data-name="milestone.id">
+                                <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                     @if(issue.milestone != null) {
                                     <span class="d-label">@issue.milestone.title</span>
                                     } else {
