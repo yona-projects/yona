@@ -3,7 +3,6 @@ package models;
 import static org.fest.assertions.Assertions.assertThat;
 
 import controllers.AbstractPostingApp;
-import controllers.SearchApp;
 import models.enumeration.Direction;
 
 import models.enumeration.Matching;
@@ -107,20 +106,4 @@ public class PostingTest extends ModelTest<Posting> {
         // Then
         assertThat(result).isEqualTo(true);
     }
-
-	@Test
-	public void findNonIssues() {
-		// Given
-		SearchApp.ContentSearchCondition condition = new SearchApp.ContentSearchCondition();
-		condition.filter = "많은";
-		condition.page = 1;
-		condition.pageSize = 10;
-		Project project = Project.find.byId(1l);
-
-		// When
-		Page<Posting> postPage = Posting.find(Posting.finder, project, condition);
-
-		// Then
-		assertThat(postPage.getList().size()).isEqualTo(1);
-	}
 }

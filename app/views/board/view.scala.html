@@ -36,7 +36,7 @@
 			</div>
 		</div>
 		<div class="content markdown-wrap markdown-before" markdown="true">@post.body</div>
-		<div class="attachments" resourceType="@ResourceType.BOARD_POST" resourceId="@post.id">
+		<div class="attachments" data-resourceType="@ResourceType.BOARD_POST" data-resourceId="@post.id">
 		    @**<!--
 		      <ul class="attaches wm">
 		        <li class="attach"><i class="ico ico-clip"></i>K23.png (11KB)</li>
@@ -83,7 +83,7 @@
 						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                         <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
 					</p>
-					<div class="attachments" resourceType="@ResourceType.NONISSUE_COMMENT" resourceId="@comment.id"></div>
+					<div class="attachments" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
 				</div>
 			</li>
 	    }
@@ -123,9 +123,8 @@
 <script type="text/javascript">
 	$(document).ready(function(){
 		$yobi.loadModule("board.View", {
-			"sAction": "@routes.AttachmentApp.uploadFile",
-            "sWatchUrl"     : "@routes.WatchApp.watch(post.asResource.asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(post.asResource.asParameter)"
+            "sWatchUrl"  : "@routes.WatchApp.watch(post.asResource.asParameter)",
+            "sUnwatchUrl": "@routes.WatchApp.unwatch(post.asResource.asParameter)"
 		});
 		
         // yobi.ShortcutKey
@@ -136,11 +135,12 @@
            ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
             }
         });
+        
+        // yobi.Mention
         yobi.Mention({
-            target:'comment-editor',
-            url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType().resource()).toString())"
+            "target": "comment-editor",
+            "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType().resource()).toString())"
         });
-
 	});	
 </script>
 }

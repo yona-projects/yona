@@ -10,10 +10,10 @@
  * yobi.Files
  * 첨부 파일 관리자
  * 
- * - 파일 업로드(.uploadFile, .uploadFiles)
- * - 파일 삭제(.deleteFile)
+ * - 파일 업로드(.uploadFile)
+ * - 파일 삭제  (.deleteFile)
  * - 첨부 목록 수신(.getList)
- * - 컨테이너 영역에 이벤트 핸들러 설정(.wrap)
+ * - 업로더 영역 설정(.setUploader)
  * - 커스텀 이벤트 핸들러(.attach)
  *     - beforeUpload  : 업로드 시작
  *     - uploadProgress: 업로드 진행
@@ -22,29 +22,29 @@
  */
 yobi.Files = (function(){
     
-	var htVar = {};
-	var htElements = {};
-	var htHandlers = {};
-	
-	/**
-	 * 파일 관리자 초기화 함수
+    var htVar = {};
+    var htElements = {};
+    var htHandlers = {};
+    
+    /**
+     * 파일 관리자 초기화 함수
      * initialize fileUploader
-	 * 
-	 * @param {Hash Table} htOptions
-	 * @param {String} htOptions.sListURL   파일 목록 URL
-	 * @param {String} htOptions.sUploadURL 파일 전송 URL
-	 */
-	function _init(htOptions){
-		htOptions = htOptions || {};
-		
+     * 
+     * @param {Hash Table} htOptions
+     * @param {String} htOptions.sListURL   파일 목록 URL
+     * @param {String} htOptions.sUploadURL 파일 전송 URL
+     */
+    function _init(htOptions){
+        htOptions = htOptions || {};
+        
         htVar.sListURL     = htOptions.sListURL;
         htVar.sUploadURL   = htOptions.sUploadURL;
         htVar.htUploadOpts = {"dataType": "json"} || htOptions.htUploadOpts;
         
-        htVar.bXHR2 = (typeof FormData != "undefined");
-        htVar.bDroppable = (typeof window.ondrop != "undefined");
-        htVar.bPastable = (typeof document.onpaste != "undefined");
-	}
+        htVar.bXHR2 = (typeof FormData != "undefined"); // XMLHttpRequest 2 required
+        htVar.bDroppable = (typeof window.File != "undefined"); // HTML5 FileAPI required
+        htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2; // onpaste & XHR2 required        
+    }
 
     /**
      * Returns Environment information
@@ -58,14 +58,15 @@ yobi.Files = (function(){
      * Upload files
      * 
      * @param {Variant} oFiles FileList or File Object, HTMLInputElement(IE)
+     * @param {String} sNamespace (Optional)
      */
-    function _uploadFile(oFiles){
+    function _uploadFile(oFiles, sNamespace){
         if(oFiles && oFiles.length){
             for(var i = 0; i < oFiles.length; i++){
-                _uploadSingleFile(oFiles[i], _getSubmitId());
+                _uploadSingleFile(oFiles[i], _getSubmitId(), sNamespace);
             }
         } else {
-            _uploadSingleFile(oFiles, _getSubmitId());
+            _uploadSingleFile(oFiles, _getSubmitId(), sNamespace);
         }
     }
 
@@ -74,8 +75,9 @@ yobi.Files = (function(){
      * 
      * @param {File} oFile
      * @param {Number} nSubmitId
+     * @param {String} sNamespace (Optional)
      */
-    function _uploadSingleFile(oFile, nSubmitId){
+    function _uploadSingleFile(oFile, nSubmitId, sNamespace){
         // append file on list
         if(oFile){
             oFile.nSubmitId = nSubmitId || _getSubmitId();
@@ -85,23 +87,24 @@ yobi.Files = (function(){
         var bEventResult = _fireEvent("beforeUpload", {
             "oFile": oFile,
             "nSubmitId": oFile ? oFile.nSubmitId : nSubmitId
-        });
+        }, sNamespace);
         if(bEventResult === false){ // upload cancel by event handler
             return false;
         }
         
-        return htVar.bXHR2 ? _uploadFileXHR(nSubmitId, oFile) : _uploadFileForm(nSubmitId, oFile);
+        return htVar.bXHR2 ? _uploadFileXHR(nSubmitId, oFile, sNamespace) : _uploadFileForm(nSubmitId, oFile, sNamespace);
     }
 
     /**
      * Upload file with XHR2
      * available in IE 10+, FF4+, Chrome7+, Safari5+
-     * http://caniuse.com/xhr2
+     * Reference: http://caniuse.com/xhr2
      * 
      * @param {Number} nSubmitId
      * @param {File} oFile
+     * @param {String} sNamespace
      */
-    function _uploadFileXHR(nSubmitId, oFile){
+    function _uploadFileXHR(nSubmitId, oFile, sNamespace){
         var oData = new FormData();
         oData.append("filePath", oFile, oFile.name);
 
@@ -113,14 +116,14 @@ yobi.Files = (function(){
             "processData": false,
             "contentType": false,
             "success": function(oRes){
-                _onSuccessSubmit(nSubmitId, oRes);
+                _onSuccessSubmit(nSubmitId, oRes, sNamespace);
             },
             "error": function(oRes){
-                _onErrorSubmit(nSubmitId, oRes);
+                _onErrorSubmit(nSubmitId, oRes, sNamespace);
             },
             "xhrFields": {"onprogress": function(weEvt){
                 if(weEvt.lengthComputable){
-                    _onUploadProgress(nSubmitId, Math.ceil(weEvt.loaded / weEvt.total));
+                    _onUploadProgress(nSubmitId, Math.ceil(weEvt.loaded / weEvt.total), sNamespace);
                 }
             }}
         });
@@ -129,24 +132,27 @@ yobi.Files = (function(){
     /**
      * Upload file with $.ajaxForm
      * available in almost browsers, except Safari on OSX.
-     * http://malsup.com/jquery/form/
+     * Reference: http://malsup.com/jquery/form/
      * 
      * @param {Number} nSubmitId
      * @param {HTMLElement} elFile
+     * @param {String} sNamespace
      */
-    function _uploadFileForm(nSubmitId, elFile){
+    function _uploadFileForm(nSubmitId, elFile, sNamespace){
+        var htElement = htElements[sNamespace];
+        
         // FileForm 이용한 업로드는 input[type=file] 이 반드시 필요하다
-        if(!htElements.welInputFile && !elFile){
+        if(!htElement.welInputFile && !elFile){
             return false;
         }
         
-        var welInputFile = htElements.welInputFile || $(elFile); // 원래의 file input
+        var welInputFile = htElement.welInputFile || $(elFile); // 원래의 file input
         var welInputFileClone = welInputFile.clone();            // 새로 끼워넣을 복제품.
         var welForm = $('<form method="post" enctype="multipart/form-data" style="display:none">');
 
         welInputFileClone.insertAfter(welInputFile); // 예전 input 뒤에 끼워넣고
         welInputFileClone.change(_onChangeFile);     // 이벤트 핸들러
-        htElements.welInputFile = welInputFileClone; // 레퍼런스 교체
+        htElement.welInputFile = welInputFileClone; // 레퍼런스 교체
 
         welForm.attr('action', htVar.sUploadURL);
         welForm.append(welInputFile).appendTo(document.body);
@@ -161,17 +167,17 @@ yobi.Files = (function(){
         // 폼 이벤트 핸들러 설정: nSubmitId 가 필요한 부분만
         var htUploadOpts = htVar.htUploadOpts;
         htUploadOpts.success = function(oRes){
-            _onSuccessSubmit(nSubmitId, oRes);
+            _onSuccessSubmit(nSubmitId, oRes, sNamespace);
             fClear();
             fClear = null;
         };
         htUploadOpts.uploadProgress = function(oEvent, nPos, nTotal, nPercentComplete){
-            _onUploadProgress(nSubmitId, nPercentComplete);
+            _onUploadProgress(nSubmitId, nPercentComplete, sNamespace);
             fClear();
             fClear = null;
         };
         htUploadOpts.error = function(oRes){
-            _onErrorSubmit(nSubmitId, oRes);
+            _onErrorSubmit(nSubmitId, oRes, sNamespace);
             fClear();
             fClear = null;
         };
@@ -187,47 +193,48 @@ yobi.Files = (function(){
      * @param {Object} oEvent
      * @param {Number} nPercentComplete
      */
-    function _onUploadProgress(nSubmitId, nPercentComplete){
+    function _onUploadProgress(nSubmitId, nPercentComplete, sNamespace){
         _fireEvent("uploadProgress", {
             "nSubmitId": nSubmitId,
             "nPercentComplete": nPercentComplete
-        });
+        }, sNamespace);
     }
 
-	/**
-	 * 첨부 파일 전송에 성공시 이벤트 핸들러
-	 * On success to submit temporary form created in onChangeFile()
-	 * 
-	 * @param {Hash Table} htData
-	 * @return
-	 */
-	function _onSuccessSubmit(nSubmitId, oRes){
-		// Validate server response
-		if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
-		    return _onErrorSubmit(nSubmitId, oRes);
-		}
+    /**
+     * 첨부 파일 전송에 성공시 이벤트 핸들러
+     * On success to submit temporary form created in onChangeFile()
+     * 
+     * @param {Hash Table} htData
+     * @return
+     */
+    function _onSuccessSubmit(nSubmitId, oRes, sNamespace){
+        // Validate server response
+        if(!(oRes instanceof Object) || !oRes.name || !oRes.url){
+            return _onErrorSubmit(nSubmitId, oRes);
+        }
 
-		// fireEvent: onSuccessSubmit
+        // fireEvent: onSuccessSubmit
+        htElements[sNamespace].welInputFile.val("");
         _fireEvent("successUpload", {
             "nSubmitId": nSubmitId,
             "oRes": oRes
-        });
-	}
+        }, sNamespace);
+    }
 
     /**
-	 * 파일 전송에 실패한 경우
-	 * On error to submit temporary form created in onChangeFile().
-	 * 
-	 * @param {Number} nSubmitId
-	 * @param {Object} oRes
-	 */
-	function _onErrorSubmit(nSubmitId, oRes){
-	    // fireEvent: onError
-	    _fireEvent("errorUpload", {
-	        "nSubmitId": nSubmitId,
-	        "oRes": oRes
-	    });
-	}
+     * 파일 전송에 실패한 경우
+     * On error to submit temporary form created in onChangeFile().
+     * 
+     * @param {Number} nSubmitId
+     * @param {Object} oRes
+     */
+    function _onErrorSubmit(nSubmitId, oRes, sNamespace){
+        // fireEvent: onError
+        _fireEvent("errorUpload", {
+            "nSubmitId": nSubmitId,
+            "oRes": oRes
+        }, sNamespace);
+    }
 
     /**
      * 파일 삭제 요청
@@ -277,71 +284,102 @@ yobi.Files = (function(){
     /**
      * 지정한 컨테이너 영역에 이벤트 핸들러를 설정해서
      * input[type=file] 이나 드래그앤드롭 등의 파일 첨부 기능을 활성화 시켜준다
+     * 래핑된 컨테이너 엘리먼트에 이벤트 구분을 위한 네임스페이스ID 를 부여해서 반환
      * 
      * @param {HTMLElement} elContainer
      * @param {HTMLTextareaElement} elTextarea (Optional)
+     * @return {Wrapped Element}
      */
-    function _setUploader(elContainer, elTextarea){
-        _initElement(elContainer, elTextarea);
-        _attachEvent();
+    function _getUploader(elContainer, elTextarea, sNamespace){
+        sNamespace = sNamespace || _getSubmitId();
+        
+        _initElement({
+            "elContainer": elContainer, 
+            "elTextarea" : elTextarea,
+            "sNamespace" : sNamespace
+        });
+        _attachEvent(sNamespace);
+        
+        return htElements[sNamespace].welContainer;
     }
     
     /**
      * 엘리먼트 변수 설정
      * 
-     * @param {HTMLElement} elContainer
-     * @param {HTMLTextareaElement} elTextarea (Optional)
+     * @param {Hash Table} htOptions
+     * @param {HTMLElement} htOptions.elContainer
+     * @param {HTMLTextareaElement} htOptions.elTextarea (Optional)
+     * @param {String} sNamespace
      */
-    function _initElement(elContainer, elTextarea){
-        htElements.welContainer = $(elContainer);
-        htElements.welTextarea  = $(elTextarea);
-        htElements.welInputFile = htElements.welContainer.find("input[type=file]");
+    function _initElement(htOptions){
+        var sNamespace = htOptions.sNamespace;
+
+        htElements[sNamespace] = {};
+        htElements[sNamespace].welContainer = $(htOptions.elContainer);
+        htElements[sNamespace].welTextarea  = $(htOptions.elTextarea);
+        htElements[sNamespace].welInputFile = htElements[sNamespace].welContainer.find("input[type=file]");
+        htElements[sNamespace].welContainer.attr("data-namespace", sNamespace);
     }
     
     /**
      * 컨테이너 영역에 이벤트 설정
+     * 
+     * @param {String} sNamespace
      */
-    function _attachEvent(){
-        htElements.welInputFile.change(_onChangeFile);
+    function _attachEvent(sNamespace){
+        var htElement = htElements[sNamespace];
+        htElement.welInputFile.change(function(weEvt){
+            _onChangeFile(sNamespace, weEvt);
+        });
 
         // Upload by Drag & Drop
         if(htVar.bDroppable){
-            htElements.welContainer.bind("dragover", function(weEvt){
+            htElement.welContainer.bind("dragover", function(weEvt){
                 weEvt.preventDefault();
                 return false;
             });
             
-            if(htElements.welTextarea){
-                htElements.welTextarea.bind("drop", _onDropFile);
+            if(htElement.welTextarea){
+                htElement.welTextarea.bind("drop", function(weEvt){
+                    _onDropFile(sNamespace, weEvt);
+                });
             }
-            htElements.welContainer.bind("drop", _onDropFile);
+            htElement.welContainer.bind("drop", function(weEvt){
+                _onDropFile(sNamespace, weEvt);
+            });
         }
         
         // Upload by paste
-        if(htVar.bPastable && htElements.welTextarea){
-            htElements.welTextarea.bind("paste", _onPasteFile);
+        if(htVar.bPastable && htElement.welTextarea){
+            htElement.welTextarea.bind("paste", function(weEvt){
+                _onPasteFile(sNamespace, weEvt);
+            });
         }
     }
     
     /**
      * 파일 선택시 이벤트 핸들러
      * change event handler on input[type="file"]
+     * 
+     * @param {String} sNamespace
      */
-    function _onChangeFile(){
-        var sFileName = _getBasename(htElements.welInputFile.val());
+    function _onChangeFile(sNamespace){
+        var htElement = htElements[sNamespace];
+        var sFileName = _getBasename(htElement.welInputFile.val());
         if(!sFileName || sFileName === ""){
             return;
         }
 
-        _uploadFile(htElements.welInputFile[0].files);
+        _uploadFile(htElement.welInputFile[0].files, sNamespace);
     }
 
     /**
      * 이미지 데이터를 클립보드에서 붙여넣었을 때 이벤트 핸들러
      * 
+     * @param {String} sNamespace
      * @param {Wrapped Event} weEvt
      */
-    function _onPasteFile(weEvt){
+    function _onPasteFile(sNamespace, weEvt){
         if(!weEvt.originalEvent.clipboardData || !weEvt.originalEvent.clipboardData.items || !weEvt.originalEvent.clipboardData.items[0]){
             return;
         }
@@ -361,14 +399,15 @@ yobi.Files = (function(){
     /**
      * 파일을 드래그앤드롭해서 가져왔을 때 이벤트 핸들러
      * 
+     * @param {String} sNamespace
      * @param {Wrapped Event} weEvt
      */
-    function _onDropFile(weEvt){
+    function _onDropFile(sNamespace, weEvt){
         var oFiles = weEvt.originalEvent.dataTransfer.files;
         if(!oFiles || oFiles.length === 0){
             return;
         }
-        _uploadFile(oFiles);
+        _uploadFile(oFiles, sNamespace);
 
         weEvt.stopPropagation();
         weEvt.preventDefault();
@@ -402,16 +441,26 @@ yobi.Files = (function(){
      * 
      * @param {String} sEventName
      * @param {Function} fHandler
+     * @param {String} sNamespace
+     * @example
+     * yobi.Files.attach("eventName", function(){}, "namespace");
+     * // or
+     * yobi.Files.attach({
+     *    "event1st": function(){},
+     *    "event2nd": function(){}
+     * }, "namespace");
      */
-    function _attachCustomEvent(sEventName, fHandler){
+    function _attachCustomEvent(sEventName, fHandler, sNamespace){
         if(typeof sEventName === "object"){
+            sNamespace = fHandler ? (fHandler+".") : "";
             for(var sKey in sEventName){
-                htHandlers[sKey] = htHandlers[sKey] || [];
-                htHandlers[sKey].push(sEventName[sKey]);
+                htHandlers[sNamespace + sKey] = htHandlers[sNamespace + sKey] || [];
+                htHandlers[sNamespace + sKey].push(sEventName[sKey]);
             }
         } else {
-            htHandlers[sEventName] = htHandlers[sEventName] || [];
-            htHandlers[sEventName].push(fHandler);
+            sNamespace = sNamespace ? (sNamespace+".") : "";
+            htHandlers[sNamespace + sEventName] = htHandlers[sNamespace + sEventName] || [];
+            htHandlers[sNamespace + sEventName].push(fHandler);
         }
     }
     
@@ -420,17 +469,20 @@ yobi.Files = (function(){
      * clears all handler of sEventName when fHandler is empty
      * 
      * @param {String} sEventName
-     * @param {Function} fHandler 
+     * @param {Function} fHandler
+     * @param {String} sNamespace
      */
-    function _detachCustomEvent(sEventName, fHandler){
+    function _detachCustomEvent(sEventName, fHandler, sNamespace){
+        sNamespace = sNamespace ? (sNamespace+".") : "";
+        
         if(!fHandler){
-            htHandlers[sEventName] = [];
+            htHandlers[sNamespace + sEventName] = [];
             return;
         }
         
-        var nIndex = htHandlers[sEventName].indexOf(fHandler);
+        var nIndex = htHandlers[sNamespace + sEventName].indexOf(fHandler);
         if(nIndex > -1){
-            htHandlers[sEventName].splice(nIndex, 1);
+            htHandlers[sNamespace + sEventName].splice(nIndex, 1);
         }
     }
     
@@ -439,9 +491,11 @@ yobi.Files = (function(){
      * 
      * @param {String} sEventName
      * @param {Object} oData
+     * @param {String} sNamespace
      */
-    function _fireEvent(sEventName, oData){
-        var aHandlers = htHandlers[sEventName];
+    function _fireEvent(sEventName, oData, sNamespace){
+        sNamespace = sNamespace ? (sNamespace+".") : "";
+        var aHandlers = htHandlers[sNamespace + sEventName];
         if((aHandlers instanceof Array) === false){
             return;
         }
@@ -455,14 +509,15 @@ yobi.Files = (function(){
     }
 
     // public interface
-	return {
-	    "init"       : _init,
-	    "getEnv"     : _getEnv,
-	    "setUploader": _setUploader,
-	    "attach"     : _attachCustomEvent,
-	    "detach"     : _detachCustomEvent,
-	    "getList"    : _getFileList,
-		"uploadFile" : _uploadFile,
-		"deleteFile" : _deleteFile
-	};
+    return {
+        "init"       : _init,
+        "getEnv"     : _getEnv,
+        "setUploader": _getUploader,
+        "getUploader": _getUploader,
+        "attach"     : _attachCustomEvent,
+        "detach"     : _detachCustomEvent,
+        "getList"    : _getFileList,
+        "uploadFile" : _uploadFile,
+        "deleteFile" : _deleteFile
+    };
 })();
