@@ -50,6 +50,9 @@
             htElement.welInputOldPassword  = $('#oldPassword');
             htElement.welInputPassword  = $('#password');
             htElement.welInputRetypedPassword = $('#retypedPassword');
+
+            // 알림 설정
+            htElement.welChkNotiSwtich = $(".notiUpdate");
         }
 
         /**
@@ -70,6 +73,9 @@
                 "uploadProgress": _onAvatarUploading
             });
             yobi.Files.setUploader(".avatar-frm");
+
+            // 알림 설정 변경
+            htElement.welChkNotiSwtich.change(_onChangeNotiSwitch);
         }
 
         /**
@@ -86,7 +92,27 @@
                 return false;
             }
         }
-        
+
+        /**
+         * 알림 On/Off 스위치 변경
+         */
+        function _onChangeNotiSwitch(){
+            var welTarget  = $(this);
+            var bChecked   = welTarget.prop("checked");
+            var url        = $(this).attr("data-href");
+
+            $.ajax(url, {
+                "method" : "post",
+                "success": function(data){
+                    welTarget.prop("checked", bChecked);
+                },
+                "error"  : function(){
+                    welTarget.prop("checked", !bChecked);
+                    $yobi.alert(Messages("error.internalServerError"));
+                }
+            })
+        }
+
         /**
          * 아바타 이미지 업로드가 완료된 후
          * ajaxForm 의 success 이벤트 핸들러
