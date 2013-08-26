@@ -70,7 +70,7 @@
 	        @**<!--@Messages("issue.state." + issue.state.toString.toLowerCase)-->**@
             @if(issue.milestone != null) {
                 <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)" data-toggle="tooltip" data-placement="top" title="@Messages("milestone")">
-                    <code class="milestone-title">@issue.milestone.title</code>
+                    <span class="milestone-title">@issue.milestone.title</span>
                 </a>
             }
 	    </div>
