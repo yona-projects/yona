@@ -145,7 +145,7 @@ public class AbstractPostingApp extends Controller {
     private static void addNotificationEventFromNewComment(Comment comment, Call toView) {
         AbstractPosting post = comment.getParent();
         Set<User> watchers = post.getWatchers();
-        watchers.addAll(getMentionedUsers(comment.contents));
+        watchers.addAll(NotificationEvent.getMentionedUsers(comment.contents));
         watchers.remove(UserApp.currentUser());
 
         NotificationEvent notiEvent = new NotificationEvent();
