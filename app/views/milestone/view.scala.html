@@ -58,15 +58,15 @@
 
 	<div class="issues">
 	    <div class="filter-wrap">
-		@issue.partial_massupdate(project, IssueApp.SearchCondition.emptySearchCondition)
+		@issue.partial_massupdate(project, new IssueApp.SearchCondition())
 		</div>
         @{
 	        if(issueState == State.OPEN) {
-	        	issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+			issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new IssueApp.SearchCondition(),0,0)
 	        } else if(issueState == State.CLOSED) {
-	        	issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+			issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new IssueApp.SearchCondition(),0,0)
 	        } else {
-	        	issue.partial_list(project, milestone.sortedByNumberOfIssue(), IssueApp.SearchCondition.emptySearchCondition,0,0)
+			issue.partial_list(project, milestone.sortedByNumberOfIssue(), new IssueApp.SearchCondition(),0,0)
 	        }
         }
 

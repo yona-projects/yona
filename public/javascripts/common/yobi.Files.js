@@ -393,7 +393,7 @@ yobi.Files = (function(){
         }
         
         oFile.name = nSubmitId + ".png"; // works in Chrome
-        _uploadSingleFile(oFile, nSubmitId);
+        _uploadSingleFile(oFile, nSubmitId, sNamespace);
     }
 
     /**
