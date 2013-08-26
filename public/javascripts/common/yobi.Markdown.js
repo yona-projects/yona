@@ -77,7 +77,7 @@ yobi.Markdown = function(htOptions){
                 rIgnoreRules = /<code>[^<]*<\/code>|<img[^<]+src=[^>]+\/?>|<a [^<]*href[^>]*>[^<]+<\/a>/igm,
                 aIgnores,
                 sIgnore,
-                aChecker;
+                nIgnoreIndex;
                 
             if(sType=='code') return sSrc;
 
@@ -90,9 +90,9 @@ yobi.Markdown = function(htOptions){
             sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) { 
                 if(aIgnores = sSrc.match(rIgnoreRules)) {
                     while(sIgnore = aIgnores.shift()) {
-                        if(aChecker = new RegExp(sIgnore.replace(/\//g,'\/'),'ig').exec(sSrc)) {
-                            if(nMatchIndex > aChecker.index && nMatchIndex < aChecker.index+aChecker[0].length) return sMatch;  
-                        }
+                        nIgnoreIndex = sSrc.indexOf(sIgnore);                        
+                        
+                        if(nMatchIndex > nIgnoreIndex && nMatchIndex < nIgnoreIndex + sIgnore.length) return sMatch;  
                     }
                 }    
 
