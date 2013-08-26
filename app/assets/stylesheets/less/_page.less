@@ -2381,21 +2381,17 @@ div.markdown-preview {
 }
 
 .issue-item  {
-    padding:5px 0;
+    padding:10px 0;
     border-bottom:1px solid #ddd;
 
-    label {
-        display:block;
-    }
+    label { display:block; }
 
     .mass-update-check {
         width:40px; margin-top:10px;
         vertical-align: middle; text-align:center;
     }
 
-    .avatar-wrap {
-        margin-right:10px;
-    }
+    .avatar-wrap { margin-right:10px; }
 
     .title {
         overflow: hidden;
@@ -2454,6 +2450,22 @@ div.markdown-preview {
         margin-right:5px;
         margin-top:5px;
     }
+}
+/** pullRequest **/
+.pullRequest-branch {
+    display:inline-block;
+
+    code {
+        border:none;
+        background: #f7f7f7;
+        color: @secondary;
+        padding: 3px 10px;
+        text-shadow: 1px 1px rgba(255,255,255,0.5);
+        .box-shadow(1px 1px 1px rgba(0,0,0,0.15));
+        a { color: #1a4797; }
+        i { color: #1a4797; }
+    }
+    i.icon-arrow-right { font-size:12px; margin:0 5px; color: #1a4797;}
 }
 
 .issue-list, .board-list{
