@@ -49,6 +49,12 @@ public abstract class Resource {
             case CODE_COMMENT:
                 finder = CodeComment.find;
                 break;
+            case PULL_REQUEST:
+                finder = PullRequest.finder;
+                break;
+            case SIMPLE_COMMENT:
+                finder = SimpleComment.find;
+                break;
             case COMMIT:
                 try {
                     String[] pair = id.split(":");
@@ -113,6 +119,10 @@ public abstract class Resource {
             case CODE_COMMENT:
                 resource = CodeComment.find.byId(longId).asResource();
                 break;
+            case PULL_REQUEST:
+                return PullRequest.finder.byId(longId).asResource();
+            case SIMPLE_COMMENT:
+                return SimpleComment.find.byId(longId).asResource();
             case COMMIT:
                 return Commit.getAsResource(resourceId);
             default:

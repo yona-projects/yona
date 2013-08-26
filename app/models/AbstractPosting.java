@@ -1,7 +1,6 @@
 package models;
 
 import com.avaje.ebean.Page;
-import controllers.SearchApp;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
@@ -132,26 +131,6 @@ abstract public class AbstractPosting extends Model {
     public void update() {
         numOfComments = computeNumOfComments();
         super.update();
-    }
-
-    /**
-     * 특정 {@link Project}에 속한 {@link AbstractPosting} 중에서
-     * title과 body에 특정한 값을 포함하고 있는 것들을 반환한다.
-     *
-     * when: {@link SearchApp#contentsSearch(String, String, int)}에서
-     * 특정 프로젝트에 속한 이슈와 글을 검색할 때 사용한다.
-     *
-     * @param finder
-     * @param project
-     * @param condition
-     * @param <T>
-     * @return
-     */
-    public static <T> Page<T> find(Finder<Long, T> finder, Project project, SearchApp.ContentSearchCondition condition) {
-        String filter = condition.filter;
-        return finder.where().eq("project.id", project.id)
-                .or(contains("title", filter), contains("body", filter))
-                .findPagingList(condition.pageSize).getPage(condition.page - 1);
     }
 
     public static <T> T findByNumber(Finder<Long, T> finder, Project project, Long number) {

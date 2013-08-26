@@ -1,14 +1,12 @@
 package controllers;
 
 import models.*;
-import models.enumeration.Operation;
-import models.enumeration.ResourceType;
-import models.enumeration.RoleType;
-import models.enumeration.State;
+import models.enumeration.*;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import play.api.mvc.Call;
 import play.data.Form;
 import play.i18n.Messages;
 import play.libs.Json;
@@ -25,8 +23,10 @@ import views.html.git.create;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
@@ -238,7 +238,30 @@ public class PullRequestApp extends Controller {
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
-        return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id));
+        Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id);
+        addNewPullRequestNotification(pullRequestCall, pullRequest);
+        return redirect(pullRequestCall);
+    }
+
+    private static void addNewPullRequestNotification(Call pullRequestCall, PullRequest pullRequest) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(pullRequest.contributor);
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = pullRequestCall.absoluteURL(request());
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.type = NotificationType.NEW_PULL_REQUEST;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = pullRequest.body;
+
+        NotificationEvent.add(notiEvent);
     }
 
     private static void validateForm(Form<PullRequest> form) {
@@ -338,6 +361,7 @@ public class PullRequestApp extends Controller {
         final boolean[] isSafe = {false};
         final List<GitCommit> commits = new ArrayList<>();
         final GitConflicts[] conflicts = {null};
+        final String[] fetch = new String[1];
         if(!pullRequest.isClosed()) {
             GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
                 public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
@@ -352,6 +376,9 @@ public class PullRequestApp extends Controller {
 
                     // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
                     GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
+
+                    fetch[0] = GitRepository.getPatch(clonedRepository,
+                            cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
 
                     // 코드를 보낸 브랜치의 코드를 merge 한다.
                     MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
@@ -369,6 +396,7 @@ public class PullRequestApp extends Controller {
             for(GitCommit commit : commitList) {
                 commits.add(commit);
             }
+            fetch[0] = GitRepository.getPatch(pullRequest);
         }
 
         boolean canDeleteBranch = false;
@@ -380,7 +408,7 @@ public class PullRequestApp extends Controller {
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0]));
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0]));
     }
 
     /**
@@ -426,7 +454,30 @@ public class PullRequestApp extends Controller {
 
         pullRequest.merge();
 
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
+        return redirect(call);
+    }
+
+    private static void addPullRequestUpdateNotification(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = pullRequestCall.absoluteURL(request());
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.type = NotificationType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = newState.state();
+
+        NotificationEvent.add(notiEvent);
     }
 
 
@@ -450,11 +501,11 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        pullRequest.state = State.REJECTED;
-        pullRequest.received = JodaDateUtil.now();
-        pullRequest.receiver = UserApp.currentUser();
-        pullRequest.update();
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+        pullRequest.reject();
+
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.REJECTED);
+        return redirect(call);
     }
 
     /**
@@ -476,11 +527,10 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        pullRequest.state = State.OPEN;
-        pullRequest.received = JodaDateUtil.now();
-        pullRequest.receiver = UserApp.currentUser();
-        pullRequest.update();
-        return redirect(routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId));
+        pullRequest.reopen();
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestId);
+        addPullRequestUpdateNotification(call, pullRequest, State.REJECTED, State.OPEN);
+        return redirect(call);
     }
 
     /**
@@ -598,6 +648,14 @@ public class PullRequestApp extends Controller {
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
     }
 
+    /**
+     * {@code pullRequestId}에 해당한느 코드 보내기 요청의 {@link PullRequest#fromBranch} 브랜치를 복구한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestId
+     * @return
+     */
     public static Result restoreFromBranch(String userName, String projectName, Long pullRequestId) {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         Project toProject = pullRequest.toProject;

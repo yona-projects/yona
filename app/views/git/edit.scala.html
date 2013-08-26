@@ -123,53 +123,36 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
-var memebrList = {
-    emptyQuery: true,
-    typeaheadOpts: {
-        items: 15
-    },
-    users: []
-}
-
-var prevWhich;
-
-$(function(){
-    function _findUserList(){
-        $.ajax({
-            type: "GET",
-            contentType: 'application/json',
-            url: "@routes.ProjectApp.mentionList(project.owner, project.name)",
-            dataType: "json"
-        }).done(function( data ) {
-            memebrList.users = data;
-            $("#body").mention(memebrList);
-        });
-    }
-
-    $("#contents" ).keypress(function(event){
-        if( event.which == 64 ){ // 64 = at
-            _findUserList();
+    var memebrList = {
+        "emptyQuery": true,
+        "typeaheadOpts": {"items": 15},
+        "users": []
+    };
+    
+    var prevWhich;
+    
+    $(function(){
+        function _findUserList(){
+            $.ajax({
+                "type"       : "GET",
+                "dataType"   : "json",
+                "contentType": "application/json",
+                "url"        : "@routes.ProjectApp.mentionList(project.owner, project.name)"
+            }).done(function( data ) {
+                memebrList.users = data;
+                $("#body").mention(memebrList);
+            });
         }
+    
+        $("#contents").keypress(function(event){
+            if(event.which === 64){ // 64 = at
+                _findUserList();
+            }
+        });
     });
-})
 
-</script>
-<script type="text/javascript">
-	$(document).ready(function() {
-        $('#helpMessage').hide();
-        $('#helpBtn').click(function(e){
-            e.preventDefault();
-            $('#helpMessage').toggle();
-        });
-
-        $yobi.loadModule("pullRequest.Write");
-
-        yobi.FileUploader.init({
-            "elContainer" : $("#upload"),
-            "elTextarea"  : $("#body"),
-            "sTplFileItem": $('#tplAttachedFile').text(),
-            "sAction": "@routes.AttachmentApp.uploadFile"
-        });
+	$(document).ready(function(){
+        $yobi.loadModule("git.Write");
 	});
-	</script>
+</script>
 }

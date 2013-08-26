@@ -6,6 +6,7 @@ import play.i18n.Messages
 import controllers.routes
 import java.security.MessageDigest
 import views.html._
+import java.net.URI
 
 object TemplateHelper {
 
@@ -69,5 +70,24 @@ object TemplateHelper {
 
   def getJSPath(): String = {
 	routes.Assets.at("javascripts/").toString
+  }
+
+  def nullOrEquals(a: String, b: String) = (a == null || b == null) ||  a.equals(b)
+
+  def equals(a: String, b: String) = (a == b) || a.equals(b)
+
+  // Whether the given uris are pointing the same resource.
+  def resourceEquals(a: URI, b: URI) =
+    nullOrEquals(a.getAuthority, b.getAuthority) && equals(a.getPath, b.getPath)
+
+  // Get the url to return to the list page from the view page.
+  // Return the referrer if the it is the uri for the list page, an/ return the
+  // default uri if not.
+  def urlToList(referrer: String, defaultURI: String) = {
+    def fullURI(u: String) = Config.createFullURI(u).normalize
+    referrer match {
+      case (uri: String) if resourceEquals(fullURI(uri), fullURI(defaultURI)) => uri
+      case (_) => defaultURI
+    }
   }
 }

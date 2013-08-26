@@ -230,6 +230,8 @@ issue.list.all = 全体 イシュー
 issue.list.assignedToMe = 私が担当しているイシュー
 issue.list.authoredByMe = 私が作成したイシュー
 issue.assignToMe = 私が担当する
+issue.watch.start = 今後このイシューに関するお知らせを受けることになります
+issue.unwatch.start = 今後このイシューに関するお知らせを受けません
 
 #Post
 post.new = スレッド投稿
@@ -255,6 +257,8 @@ post.error.emptyTitle = タイトルを入力してください
 post.error.emptyBody = 内容を入力してください
 post.error.beforeunload = まだこのイシューはセーブされていません。このままほかのページに変更しますか？
 post.notice = お知らせ
+post.watch.start = 今後このスレッドに関するお知らせを受けることになります
+post.unwatch.start = 今後このスレッドに関するお知らせを受けません
 
 #Project
 project.myproject = 私のプロジェクト
@@ -435,6 +439,7 @@ title.contentSearchResult = 検索結果
 #Vaildation
 error.required = 必須項目です
 error.wrong.format = 不正な形式の値です。
+error.validation = 入力値検証チェックエラー
 
 #Code
 code.files = ファイル
@@ -597,6 +602,7 @@ notification.will.help = プロジェクトを見守ると次のイベントの�
 notification.help.new = 新しいスレッドやイシューが投稿された時
 notification.help.new.comment = スレッド,イシュー, コードに新しいコメントが投稿された時
 notification.help.update.issue= イシュー状態や担当者が変更される時
+notification.help.update.pullrequest = Update pull-request's state
 
 # Reset secret
 secret.welcome = ようこそ!
@@ -621,6 +627,9 @@ notification.issue.reopened = 未決に成る
 notification.issue.closed  = 解決
 notification.issue.assigned = {0}が担当者に成る
 notification.issue.unassigned = もう担当者無し
+notification.pullrequest.closed = Merged
+notification.pullrequest.rejected = Rejected
+notification.pullrequest.reopened = 未決に成る
 
 # Grouping
 project.group = プロジェクトグループ

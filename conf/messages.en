@@ -230,6 +230,8 @@ issue.list.all = All Issues
 issue.list.assignedToMe = Assigned to me
 issue.list.authoredByMe = Created by me
 issue.assignToMe = Assign to me
+issue.watch.start = You will receive notifications of this issue
+issue.unwatch.start = Notifications of this issue has muted
 
 #Post
 post.new = New
@@ -255,6 +257,8 @@ post.error.emptyTitle = Title is required
 post.error.emptyBody = a Post with empty body cannot be created
 post.error.beforeunload = a Post have not saved yet. Would you like to exit this page without saving?
 post.notice = notice
+post.watch.start = You will receive notifications of this post
+post.unwatch.start = Notifications of this post has muted
 
 #Project
 project.myproject = My Projects
@@ -437,6 +441,7 @@ title.contentSearchResult = Content Search Result
 #Validation
 error.required = Mandatory field is empty
 error.wrong.format = Wrong format
+error.validation = Input validation check error
 
 #Code
 code.files = Files
@@ -562,6 +567,7 @@ fork.original = Forked from
 pullRequest = PullRequest
 pullRequest.menu.overview = Overview
 pullRequest.menu.commit = Commits
+pullRequest.menu.changes = Changes
 pullRequest.is.empty = Threre are no pull requests
 already.existing.fork.alert = Moved to existing fork project
 fork.go = Go
@@ -614,9 +620,10 @@ you.are.watching = You are watching {0} project.
 you.are.not.watching = You are not watching {0} project.
 notification.help = You are receiving next notifications.
 notification.will.help = You can receive next notifications.
-notification.help.new = New issue and posts
+notification.help.new = New issue, posts, code comment, pull-request, pull-request's comment
 notification.help.new.comment = New comments
 notification.help.update.issue= Update issue's state or assignee.
+notification.help.update.pullrequest = Update pull-request's state
 
 # Reset secret
 secret.welcome = Welcome!
@@ -641,6 +648,9 @@ notification.issue.reopened = Re-opened
 notification.issue.closed  = Closed
 notification.issue.assigned = Assigned to {0}
 notification.issue.unassigned = Unassigned
+notification.pullrequest.closed = Merged
+notification.pullrequest.rejected = Rejected
+notification.pullrequest.reopened = Re-opened
 
 # Grouping
 project.group = Project Gorups

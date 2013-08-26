@@ -15,7 +15,16 @@
 				<label for="title">@Messages("post.new.title")</label>
 			</dt>
 			<dd>
-				@helper.inputText(form("title"), 'class->"zen-mode text title", 'maxlength -> "250", 'tabindex -> 1)
+				@defining(form.errors().get("title")) { errors =>
+				<input type="text" id="title" name="title" value="@posting.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" />
+					@if(errors != null) {
+						<div class="message">
+						@for(error <- errors) {
+							<div>@Messages(error.message)</div>				
+						}
+						</div>
+					}
+				}
 			</dd>
 
 		    <dd style="position: relative;">

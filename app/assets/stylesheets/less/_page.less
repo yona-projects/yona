@@ -1961,7 +1961,6 @@
             }
         }
         .readme-body {
-            display:none;
             padding: 25px;
             font-size: 14px;
 
@@ -2201,7 +2200,9 @@ div.markdown-preview {
 // -- new attach files //
 .upload-wrap {
     padding:10px !important;
-    
+
+    .help { display:none; }
+
     .attach-wrap {
         text-align:center;
 
@@ -2209,7 +2210,7 @@ div.markdown-preview {
             display:inline-block !important;
             margin:0 5px; vertical-align:top;
         }
-        span {
+        .plain {
             display:inline-block;
             line-height:30px;
         }
@@ -2286,10 +2287,6 @@ div.markdown-preview {
             }
         }
     }
-
-    .help { display:none !important; }
-    .help-droppable { display:none !important; }
-    .help-pastable  { display:none !important; }
 }
 // -- //
 
@@ -2329,7 +2326,18 @@ div.markdown-preview {
     .title {
         margin-bottom: 15px;
         font-size:18px;
+        
+	}
+	.error {
+		margin-bottom: 5px;        	
     }
+        
+	.message {
+		margin-bottom: 15px;
+		color:red;
+		font-weight:bold;
+	}
+        	
     .content {
         height:190px; /*320px;*/
         background-color: #F9F9F9;

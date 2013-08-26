@@ -20,10 +20,19 @@
         <div class="span12">
             <dl>
                 <dt>
-                    <label for="title"><strong class="secondary-txt">#@issue.id</strong><!--@Messages("post.new.title")--></label>
+                    <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong><!--@Messages("post.new.title")--></label>
                 </dt>
                 <dd>
-                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title" maxlength="250" tabindex="1" placeholder="@Messages("post.new.title")">
+                	@defining(issueForm.errors().get("title")) { errors =>
+                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("post.new.title")">
+	                    @if(errors != null) {
+							<div class="message">
+							@for(error <- errors) {
+								<div>@Messages(error.message)</div>				
+							}
+							</div>
+						}
+					}
                 </dd>
             </dl>
         </div>

@@ -127,7 +127,7 @@ yobi.Markdown = function(htOptions){
             // #Num #123
             sRef = [sOwner, sProject, 'issue', sIssue].join("/");
             sTitle = sMatch;
-        } else if(sProjectGroup && sUserName && sShar1 && !sProjectPath && !sAt) {
+        } else if(sShar1 && !sAt) {
             // SHA1 be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sOwner, sProject, 'commit' , sMatch].join("/");
             sTitle = sMatch.slice(0,7);
@@ -184,9 +184,7 @@ yobi.Markdown = function(htOptions){
      * @param {Wrapped Element} welTarget is not <textarea> or <input>
      */
     function _setViewer(welTarget) {
-        welTarget.html(_renderMarkdown(welTarget.text()))
-          .addClass('markdown-view')
-          .removeClass('markdown-before');
+        welTarget.html(_renderMarkdown(welTarget.text())).removeClass('markdown-before');
     }
     
     /**

@@ -1,5 +1,7 @@
 package utils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.List;
 
