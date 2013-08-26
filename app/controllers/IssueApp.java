@@ -44,9 +44,6 @@ public class IssueApp extends AbstractPostingApp {
         public String authorLoginId;
         public Long assigneeId;
 
-        @Transient
-        public static SearchCondition emptySearchCondition = new SearchCondition();
-
         public SearchCondition() {
             super();
             milestoneId = null;
