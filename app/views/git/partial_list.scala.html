@@ -23,31 +23,36 @@
                         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
                         <span class="date ml10">@agoString(req.createdAgo())</span>
                         @defining(SimpleComment.countByResourceKey(req.getResourceKey())) { count =>
-                            @if(count > 0) {
-                            <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.id)#comments">
-                                <i class="ico icon-comments"></i><span class="num">@count</span>
-                            </a>
-                            }
+                        @if(count > 0) {
+                        <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.id)#comments" class="comment-wrap">
+                            <i class="icon icon-comments"></i>
+                            <span class="num">@count</span>
+                        </a>
                         }
-                        <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
-                            <code>
-                                @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {
-                                <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a>/<!--
-                             --><a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>:
-                                }
-                                <i class="icon-code-fork"></i> @branchName(req.fromBranch)
-                            </code>
-                        </span>
-                        <span style="margin:0 10px;"><i class="icon-arrow-right" style="font-size:12px;"></i></span>
-                        <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
-                            <code>
-                                @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
-                                <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a>/<!--
-                             --><a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>:
-                                }
-                                <i class="icon-code-fork"></i> @branchName(req.toBranch)
-                            </code>
-                        </span>
+                        }
+                        <div class="pullRequest-branch ml20">
+                            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                                <code class="from">
+                                    <i class="icon-code-fork"></i>
+                                    @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {
+                                    <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a>/<!--
+                                 --><a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>:
+                                    }
+                                    @branchName(req.fromBranch)
+                                </code>
+                            </span>
+                            <i class="icon-arrow-right"></i>
+                            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                                <code class="to">
+                                    <i class="icon-code-fork"></i> 
+                                    @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
+                                    <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a>/<!--
+                                 --><a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>:
+                                    }
+                                    @branchName(req.toBranch)
+                                </code>
+                            </span>                        
+                        </div>                        
                     </div>
                 </label>
             </div>

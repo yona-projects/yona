@@ -441,6 +441,7 @@ title.contentSearchResult = Content Search Result
 #Validation
 error.required = Mandatory field is empty
 error.wrong.format = Wrong format
+error.validation = Input validation check error
 
 #Code
 code.files = Files

@@ -43,21 +43,25 @@
                 </a>
                 @Messages("merge.requested")
 
-                <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
-                    <code>
-                        <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a>/<!--
-                     --><a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a> :
-                        @branchName(pull.fromBranch)
-                    </code>
-                </span>
-                <span style="margin:0 10px;"><i class="icon-arrow-right" style="font-size:12px;"></i></span>
-                <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
-                    <code>
-                        <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a>/<!--
-                     --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a> :
-                        @branchName(pull.toBranch)
-                    </code>
-                </span>
+                <div class="pullRequest-branch ml10">
+                    <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                        <code class="from">
+                            <i class="icon-code-fork"></i>
+                            <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a>/<!--
+                         --><a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>:
+                            @branchName(pull.fromBranch)
+                        </code>
+                    </span>
+                    <i class="icon-arrow-right"></i>
+                    <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                        <code class="to">
+                            <i class="icon-code-fork"></i> 
+                            <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a>/<!--
+                         --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>:
+                            @branchName(pull.toBranch)
+                        </code>
+                    </span>                        
+                </div>                
             </div>
             <div id="helpMessage" class="well" style="display:none;">
                 <div class="row-fluid">

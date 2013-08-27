@@ -145,6 +145,7 @@ public class AbstractPostingApp extends Controller {
     private static void addNotificationEventFromNewComment(Comment comment, Call toView) {
         AbstractPosting post = comment.getParent();
         Set<User> watchers = post.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(comment.contents));
         watchers.remove(UserApp.currentUser());
 
         NotificationEvent notiEvent = new NotificationEvent();
@@ -248,7 +249,7 @@ public class AbstractPostingApp extends Controller {
      */
     protected static Result editPosting(AbstractPosting original, AbstractPosting posting, Form<? extends AbstractPosting> postingForm, Call redirectTo, Runnable updatePosting) {
         if (postingForm.hasErrors()) {
-            return badRequest(ErrorViews.BadRequest.render(postingForm.errors().toString(), original.project));
+            return badRequest(ErrorViews.BadRequest.render("error.validation", original.project));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), original.asResource(), Operation.UPDATE)) {

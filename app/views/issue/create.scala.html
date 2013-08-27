@@ -21,7 +21,16 @@
                     <label for="title">@Messages("post.new.title")</label>
                 </dt>
                 <dd>
-                    <input type="text" id="title" name="title" value="" class="text title zen-mode" maxlength="250" tabindex="1">
+                	@defining(issueForm.errors().get("title")) { errors =>
+                    <input type="text" id="title" name="title" value="" class="text title zen-mode @if(errors != null) {error}" maxlength="250" tabindex="1">
+	                    @if(errors != null) {
+							<div class="message">
+							@for(error <- errors) {
+								<div>@Messages(error.message)</div>				
+							}
+							</div>
+						}
+					}
                 </dd>
             </dl>
         </div>

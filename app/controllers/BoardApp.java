@@ -129,8 +129,8 @@ public class BoardApp extends AbstractPostingApp {
 
         if (postForm.hasErrors()) {
             boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
-            return badRequest(create.render(postForm.errors().toString(), postForm, project, isAllowedToNotice));
-        }
+            return badRequest(create.render("error.validation", postForm, project, isAllowedToNotice));
+        }  
 
         final Posting post = postForm.get();
         post.createdDate = JodaDateUtil.now();
@@ -264,6 +264,12 @@ public class BoardApp extends AbstractPostingApp {
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
+        
+        if (postForm.hasErrors()) {
+            boolean isAllowedToNotice = ProjectUser.isAllowedToNotice(UserApp.currentUser(), project);
+            return badRequest(edit.render("error.validation", postForm, Posting.findByNumber(project, number), number, project, isAllowedToNotice));
+        }
+        
         final Posting post = postForm.get();
         final Posting original = Posting.findByNumber(project, number);
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
@@ -327,7 +333,7 @@ public class BoardApp extends AbstractPostingApp {
                 .bindFromRequest();
 
         if (commentForm.hasErrors()) {
-            return badRequest(views.html.error.badrequest.render(commentForm.errors().toString(), project));
+            return badRequest(views.html.error.badrequest.render("error.validation", project));
         }
 
         if (!AccessControl.isProjectResourceCreatable(
