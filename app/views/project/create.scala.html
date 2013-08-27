@@ -1,5 +1,6 @@
 @(title:String, newProjectForm:Form[Project])
 
+@import utils.TemplateHelper._
 @import playRepository.RepositoryService
 
 @home(title, utils.MenuType.NEW_PROJECT){
@@ -102,6 +103,7 @@
         </div>
     </div>
 
+<script type="text/javascript" src="@getJSLink("lib/spin")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
     	$yobi.loadModule("project.New", {
