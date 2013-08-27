@@ -155,7 +155,7 @@
                         @for(commit <- commits.iterator()) {
                         <tr>
                             <td class="commit-id">
-                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.id, commit.getId())">
+                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getId())">
                                     @commit.getShortId()
                                     <i class="ico ico-gray-arrow-right"></i>
                                 </a>
@@ -166,7 +166,7 @@
                                     <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                     }
                                 }
-                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.id, commit.getId())">
+                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getId())">
                                     @commit.getMessage()
                                 </a>
                             </td>

@@ -674,9 +674,9 @@ public class PullRequestApp extends Controller {
     /**
      * {@code pullRequestId}에 해당하는 코드 보내기 요청의 {@code commitId}의 Diff를 보여준다.
      *
-     * @param ownerName
+     * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @param commitId
      * @return
      * @throws IOException
@@ -684,8 +684,10 @@ public class PullRequestApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
-    public static Result commitView(String ownerName, String projectName, Long pullRequestId, String commitId) throws IOException, ServletException, GitAPIException, SVNException {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+    public static Result commitView(String userName, String projectName, Long pullRequestNumber, String commitId) throws IOException, ServletException, GitAPIException, SVNException {
+        Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
+
         Project project = pullRequest.fromProject;
 
         if (project == null) {
