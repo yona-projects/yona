@@ -370,7 +370,7 @@ yobi.Files = (function(){
             return;
         }
 
-        _uploadFile(htElement.welInputFile[0].files, sNamespace);
+        _uploadFile(htElement.welInputFile[0].files || htElement.welInputFile[0], sNamespace);
     }
 
     /**
