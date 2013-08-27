@@ -77,7 +77,6 @@
 
 		/**
 		 * handler for validation errors.
-		 * callback should return an appropriate message for the given error
 		 */
 		function _onFormValidate(aErrors){
 			if(aErrors.length > 0){
