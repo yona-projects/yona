@@ -4,6 +4,7 @@ import static com.avaje.ebean.Expr.icontains;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
+import controllers.IssueApp;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
@@ -171,34 +172,11 @@ public class Issue extends AbstractPosting {
      * {@code projectId} 프로젝트에서 인자 조건에 따른 이슈 개수를 반환한다.
      *
      * @param projectId
-     * @param state
-     * @param assigneeId
-     * @param authorId
-     * @param milestoneId
-     * @param query
+     * @param cond
      * @return
      */
-    public static int countIssuesBy(Long projectId, State state, Long assigneeId, Long authorId, Long milestoneId, String query) {
-        ExpressionList<Issue> exl = finder.where();
-        exl = exl.eq("project.id", projectId);
-
-        if (state != State.ALL){
-            exl = exl.eq("state", state);
-        }
-        if (assigneeId != null && assigneeId >= 0){
-            exl = exl.eq("assignee.user.id", assigneeId);
-        }
-        if (authorId != null && authorId >= 0){
-            exl = exl.eq("authorId", authorId);
-        }
-        if (milestoneId != null && milestoneId >= 0){
-            exl = exl.eq("milestone.id", milestoneId);
-        }
-        if (!StringUtils.isEmpty(query)) {
-            exl = exl.or(icontains("title", query), icontains("body", query));
-        }
-
-        return exl.findRowCount();
+    public static int countIssuesBy(Long projectId, IssueApp.SearchCondition cond) {
+        return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
 
     /**

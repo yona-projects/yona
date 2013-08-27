@@ -6,27 +6,20 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
+import org.tmatesoft.svn.core.SVNException;
 import play.api.mvc.Call;
 import play.data.Form;
 import play.i18n.Messages;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import playRepository.GitCommit;
-import playRepository.GitConflicts;
-import playRepository.GitRepository;
-import playRepository.RepositoryService;
+import playRepository.*;
 import utils.*;
 import views.html.git.*;
-import views.html.git.create;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 프로젝트 복사(포크)와 코드 주고받기(풀리퀘) 기능을 다루는 컨트롤러
@@ -667,6 +660,44 @@ public class PullRequestApp extends Controller {
         pullRequest.restoreFromBranch();
 
         return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestId));
+    }
+
+    /**
+     * {@code pullRequestId}에 해당하는 코드 보내기 요청의 {@code commitId}의 Diff를 보여준다.
+     *
+     * @param ownerName
+     * @param projectName
+     * @param pullRequestId
+     * @param commitId
+     * @return
+     * @throws IOException
+     * @throws ServletException
+     * @throws GitAPIException
+     * @throws SVNException
+     */
+    public static Result commitView(String ownerName, String projectName, Long pullRequestId, String commitId) throws IOException, ServletException, GitAPIException, SVNException {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        Project project = pullRequest.fromProject;
+
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
+        String patch = RepositoryService.getRepository(project).getPatch(commitId);
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+
+        if (patch == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+        }
+
+        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+                commitId).eq("project.id", project.id).findList();
+
+        return ok(diff.render(pullRequest, commit, patch, comments));
     }
 
 
