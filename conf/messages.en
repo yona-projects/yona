@@ -662,6 +662,7 @@ daysAgo.suffix=days ago
 # Importing git project
 import.error.empty.url = Please input Git repository URL.
 import.error.wrong.url = Wrong Git repository URL.
+import.error.transport = Failed to access the Git repository. Check the url or your permission.
 import.from.git = Import a Git repository.
 import.or = Or
 git.repository.url = Git repository URL
