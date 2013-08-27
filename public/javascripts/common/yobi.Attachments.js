@@ -284,7 +284,14 @@ yobi.Attachments = function(htOptions) {
      */
     function _onErrorUpload(htData){
         $("#" + htData.nSubmitId).remove();
-        $yobi.notify(Messages("attach.error"));
+        
+        // 항목이 없으면 목록 감춤
+        if(htElements.welFileList.children().length === 0){
+            htElements.welFileList.hide();
+            htElements.welFileListHelp.hide();
+        }
+        
+        $yobi.notify(Messages("attach.error", htData.oRes.status, htData.oRes.statusText));
     }
 
     /**

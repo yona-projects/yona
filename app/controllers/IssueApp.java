@@ -40,9 +40,84 @@ public class IssueApp extends AbstractPostingApp {
         public String state;
         public Boolean commentedCheck;
         public Long milestoneId;
-        public Set<Long> labelIds;
+        public Set<Long> labelIds = new HashSet<>();
         public String authorLoginId;
         public Long assigneeId;
+
+        public SearchCondition clone() {
+            SearchCondition one = new SearchCondition();
+            one.orderBy = this.orderBy;
+            one.orderDir = this.orderDir;
+            one.filter = this.filter;
+            one.pageNum = one.pageNum;
+            one.state = this.state;
+            one.commentedCheck = this.commentedCheck;
+            one.milestoneId = this.milestoneId;
+            one.labelIds = new HashSet<Long>(this.labelIds);
+            one.authorLoginId = this.authorLoginId;
+            one.assigneeId = this.assigneeId;
+            return one;
+        }
+
+       public SearchCondition setOrderBy(String orderBy) {
+            this.orderBy = orderBy;
+            return this;
+        }
+
+        public SearchCondition setOrderDir(String orderDir) {
+            this.orderDir = orderDir;
+            return this;
+        }
+
+        public SearchCondition setFilter(String filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public SearchCondition setPageNum(int pageNum) {
+            this.pageNum = pageNum;
+            return this;
+        }
+
+        public SearchCondition setState(String state) {
+            this.state = state;
+            return this;
+        }
+
+        public SearchCondition setState(State state) {
+            this.state = state.state();
+            return this;
+        }
+
+        public SearchCondition setCommentedCheck(Boolean commentedCheck) {
+            this.commentedCheck = commentedCheck;
+            return this;
+        }
+
+        public SearchCondition setMilestoneId(Long milestoneId) {
+            this.milestoneId = milestoneId;
+            return this;
+        }
+
+        public SearchCondition setLabelIds(Set<Long> labelIds) {
+            this.labelIds = labelIds;
+            return this;
+        }
+
+        public SearchCondition addLabelId(Long labelId) {
+            labelIds.add(labelId);
+            return this;
+        }
+
+        public SearchCondition setAuthorLoginId(String authorLoginId) {
+            this.authorLoginId = authorLoginId;
+            return this;
+        }
+
+        public SearchCondition setAssigneeId(Long assigneeId) {
+            this.assigneeId = assigneeId;
+            return this;
+        }
 
         public SearchCondition() {
             super();
@@ -51,7 +126,7 @@ public class IssueApp extends AbstractPostingApp {
             commentedCheck = false;
         }
 
-        private ExpressionList<Issue> asExpressionList(Project project) {
+        public ExpressionList<Issue> asExpressionList(Project project) {
             ExpressionList<Issue> el = Issue.finder.where().eq("project.id", project.id);
 
             if (filter != null) {

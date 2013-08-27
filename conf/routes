@@ -159,6 +159,7 @@ GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestA
 POST    /:ownerName/:project/pullRequest/:id/edit       controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/restorefrombranch   controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/commit/:commitId   controllers.PullRequestApp.commitView(ownerName, project, id: Long, commitId)
 
 # SVN
 HEAD    /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)

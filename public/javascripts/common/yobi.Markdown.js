@@ -72,27 +72,22 @@ yobi.Markdown = function(htOptions){
         };
         
         var hooks = function(sSrc,sType) {
-            
-            var sGfmLinkRules =  '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)',
-                rIgnoreRules = /<code>[^<]*<\/code>|<img[^<]+src=[^>]+\/?>|<a [^<]*href[^>]*>[^<]+<\/a>/igm,
-                aIgnores,
-                sIgnore,
-                nIgnoreIndex;
-                
+
+            var sGfmLinkRules =  '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
             if(sType=='code') return sSrc;
 
             sGfmLinkRules = sGfmLinkRules.replace(/\[user\]/g,htVar.sUserRules)
                 .replace(/\[user\]/g,htVar.sUserRules)
                 .replace(/\[project\]/g,htVar.sProjecRules)
                 .replace(/\[shar1\]/g,htVar.sSha1Rules)
-                .replace(/\[issue\]/g,htVar.sIssueRules);         
+                .replace(/\[issue\]/g,htVar.sIssueRules);
 
             sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) { 
-                while(aIgnores = rIgnoreRules.exec(sSrc)) {
-                  nIgnoreIndex = aIgnores.index;                        
-                  sIgnore = aIgnores[0];
+                var rIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^<]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm,
+                    aIgnores;
 
-                  if(nMatchIndex > nIgnoreIndex && nMatchIndex < nIgnoreIndex + sIgnore.length) return sMatch;  
+                while(aIgnores = rIgnoreRules.exec(sSrc)) {
+                  if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length) return sMatch;
                 }    
 
                 if(/\w/.test(sSrc[nMatchIndex-1]) || /\w/.test(sSrc[nMatchIndex+sMatch.length])) return sMatch;

@@ -9,8 +9,12 @@
 @import models.enumeration._
 @import org.apache.commons.lang.StringUtils
 @import utils.HttpUtil._
+@import controllers.IssueApp.SearchCondition._
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
+@paramForEveryone = @{ new IssueApp.SearchCondition().setState(param.state).setAssigneeId(null).setAuthorLoginId(null) }
+@paramForIssuesAssignedToMe = @{ new IssueApp.SearchCondition().setState(param.state).setAssigneeId(UserApp.currentUser().id).setAuthorLoginId(null) }
+@paramForIssuesAuthoredByMe = @{ new IssueApp.SearchCondition().setState(param.state).setAssigneeId(null).setAuthorLoginId(UserApp.currentUser().loginId) }
 
 @urlAssignedToMe = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", 1)&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
 
@@ -38,18 +42,18 @@
                 <ul class="lst-stacked unstyled">
                     <li @if(param.assigneeId == null && param.authorLoginId == null){class="active"}>
                         <a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), null, null, param.milestoneId, param.filter)</span>
+                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
                         </a>
                     </li>
                     @if(UserApp.currentUser().id != -1l){
                     <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
                         <a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), UserApp.currentUser().id, null, param.milestoneId, param.filter)</span>
+                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAssignedToMe)</span>
                         </a>
                     </li>
                     <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}>
                         <a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, State.getValue(param.state), null, UserApp.currentUser().id, param.milestoneId, param.filter)</span>
+                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAuthoredByMe)</span>
                         </a>
                     </li>
                     }
@@ -161,7 +165,7 @@
                 <li @if(param.state == state.state) { class="active" }>
                     <a href="@getTabLinkByState(state)&filter=@param.filter">
                         @Messages("issue.state." + state.name.toLowerCase())
-                        <span class="num-badge">@Issue.countIssuesBy(project.id, state, param.assigneeId, User.findByLoginId(param.authorLoginId).id, param.milestoneId, param.filter)</span>
+                        <span class="num-badge">@Issue.countIssuesBy(project.id, param.clone.setState(state))</span>
                     </a>
                 </li>
             }
