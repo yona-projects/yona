@@ -26,6 +26,7 @@ import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.HttpUtil;
 import utils.ErrorViews;
+import utils.PullRequestCommit;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.diff;
@@ -194,10 +195,20 @@ public class CodeHistoryApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), codeComment.asResource());
 
         Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
+        toView = backToThePullRequestCommitView(toView);
 
         addNotificationEventForNewComment(project, codeComment, toView);
 
         return redirect(toView + "#comment-" + codeComment.id);
+    }
+
+    private static Call backToThePullRequestCommitView(Call toView) {
+        String referer = request().getHeader("Referer");
+        if(PullRequestCommit.isValid(referer)) {
+            PullRequestCommit prc = new PullRequestCommit(referer);
+            toView = routes.PullRequestApp.commitView(prc.getProjectOwner(), prc.getProjectName(), prc.getPullRequestId(), prc.getCommitId());
+        }
+        return toView;
     }
 
     private static void addNotificationEventForNewComment(Project project, CodeComment codeComment, Call toView) throws IOException, SVNException, ServletException {
@@ -236,6 +247,9 @@ public class CodeHistoryApp extends Controller {
 
         codeComment.delete();
 
-        return redirect(routes.CodeHistoryApp.show(ownerName, projectName, commitId));
+        Call toView = routes.CodeHistoryApp.show(ownerName, projectName, commitId);
+        toView = backToThePullRequestCommitView(toView);
+
+        return redirect(toView);
     }
 }

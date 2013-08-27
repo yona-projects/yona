@@ -534,7 +534,7 @@ admin.resetPasswordEmail.invalidRequest = 잘못된 비밀번호 재 설정 요�
 #Attachment
 attach.attachIfYouSave = 표시된 파일은 글을 저장하면 첨부됩니다.
 attach.clickToPost = 본문에 넣기
-attach.error = 서버 오류로 파일 첨부에 실패했습니다
+attach.error = 파일 첨부에 실패했습니다.<br>{1} ({0})
 attach.drophere = 첨부할 파일을 끌어다 놓거나
 attach.clickbutton = 버튼을 클릭해서 선택하세요
 attach.pastehere = . 클립보드 이미지를 붙여 넣을 수도 있습니다

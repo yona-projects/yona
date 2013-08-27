@@ -534,7 +534,7 @@ admin.resetPasswordEmail.invalidRequest = Invalid Password Reset Request
 #Attachment
 attach.attachIfYouSave = will be attached when you save
 attach.clickToPost = Click to post
-attach.error = Upload failed by server error
+attach.error = Upload failed as<br>{1} ({0})
 attach.drophere = Drop files here or
 attach.clickbutton = click Upload button
 attach.pastehere = , or pasting from the clipboard.

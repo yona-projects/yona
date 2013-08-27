@@ -55,13 +55,13 @@
                     <i class="icon-arrow-right"></i>
                     <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
                         <code class="to">
-                            <i class="icon-code-fork"></i> 
+                            <i class="icon-code-fork"></i>
                             <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a>/<!--
                          --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>:
                             @branchName(pull.toBranch)
                         </code>
-                    </span>                        
-                </div>                
+                    </span>
+                </div>
             </div>
             <div id="helpMessage" class="well" style="display:none;">
                 <div class="row-fluid">
@@ -78,7 +78,7 @@
             </div>
         </div>
 
-        <ul class="nav nav-tabs nm">
+        <ul class="nav nav-tabs nm" id="pull-request-tab">
             <li class="active"><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
             <li><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
             <li><a href="#changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
@@ -155,7 +155,7 @@
                         @for(commit <- commits.iterator()) {
                         <tr>
                             <td class="commit-id">
-                                <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.id, commit.getId())">
                                     @commit.getShortId()
                                     <i class="ico ico-gray-arrow-right"></i>
                                 </a>
@@ -166,7 +166,7 @@
                                     <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                     }
                                 }
-                                <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.id, commit.getId())">
                                     @commit.getMessage()
                                 </a>
                             </td>

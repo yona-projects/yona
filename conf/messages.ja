@@ -532,8 +532,8 @@ admin.resetPasswordEmail.invalidRequest = 間違ったパスワード再設定�
 #Attachment
 attach.attachIfYouSave = 表示されたファイルはセーブしたら添付されます。
 attach.clickToPost = 本文に入れる
-attach.error = サーバエラーでファイル添付に失敗しました
-attach.drophere = 添付するファイルをドラッグしたり
+attach.error = アップロードに失敗しました。<br>{1} ({0})
+attach.drophere = アップロードするファイルをドラッグしたり
 attach.clickbutton = ボタンで選んでください
 attach.pastehere = . クリップボードからの画像を貼り付けることもできます。
 
