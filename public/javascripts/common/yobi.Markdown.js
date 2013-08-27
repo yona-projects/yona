@@ -77,7 +77,7 @@ yobi.Markdown = function(htOptions){
                 rIgnoreRules = /<code>[^<]*<\/code>|<img[^<]+src=[^>]+\/?>|<a [^<]*href[^>]*>[^<]+<\/a>/igm,
                 aIgnores,
                 sIgnore,
-                aChecker;
+                nIgnoreIndex;
                 
             if(sType=='code') return sSrc;
 
@@ -88,12 +88,11 @@ yobi.Markdown = function(htOptions){
                 .replace(/\[issue\]/g,htVar.sIssueRules);         
 
             sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) { 
-                if(aIgnores = sSrc.match(rIgnoreRules)) {
-                    while(sIgnore = aIgnores.shift()) {
-                        if(aChecker = new RegExp(sIgnore.replace(/\//g,'\/'),'ig').exec(sSrc)) {
-                            if(nMatchIndex > aChecker.index && nMatchIndex < aChecker.index+aChecker[0].length) return sMatch;  
-                        }
-                    }
+                while(aIgnores = rIgnoreRules.exec(sSrc)) {
+                  nIgnoreIndex = aIgnores.index;                        
+                  sIgnore = aIgnores[0];
+
+                  if(nMatchIndex > nIgnoreIndex && nMatchIndex < nIgnoreIndex + sIgnore.length) return sMatch;  
                 }    
 
                 if(/\w/.test(sSrc[nMatchIndex-1]) || /\w/.test(sSrc[nMatchIndex+sMatch.length])) return sMatch;
