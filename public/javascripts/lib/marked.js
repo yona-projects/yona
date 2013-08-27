@@ -24,7 +24,8 @@ var block = {
   def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
   table: noop,
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
-  text: /^[^\n]+/
+  text: /^[^\n]+/,
+  pre : /^ *<pre(?:\s+[^>]*)*\s*> *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n+|$)/
 };
 
 block.bullet = /(?:[*+-]|\d+\.)/;
@@ -184,6 +185,16 @@ Lexer.prototype.token = function(src, top) {
         type: 'code',
         lang: cap[2],
         text: cap[3]
+      });
+      continue;
+    }
+
+    // pre
+    if (cap = this.rules.pre.exec(src)) {
+      src = src.substring(cap[0].length);
+      this.tokens.push({
+        type: 'pre',
+        text: cap[2]
       });
       continue;
     }
@@ -880,6 +891,11 @@ Parser.prototype.tok = function() {
         + '>'
         + this.token.text
         + '</code></pre>\n';
+    }
+    case 'pre': {
+      return '<pre>'
+        + escape(this.token.text)
+        + '</pre>\n'
     }
     case 'table': {
       var body = ''
