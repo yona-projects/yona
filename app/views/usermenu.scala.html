@@ -9,11 +9,12 @@
     }
     <div class="usermenu btn-group">
         <button class="btn dropdown-toggle large" data-toggle="dropdown">
-            <div class="d-label">
+            <div class="d-label usf-group">
                 <span class="avatar-wrap smaller">
                     <img src="@User.findByLoginId(session.get("loginId")).avatarUrl" width="20" height="20">
                 </span>
-                <span class="text">@User.findByLoginId(session.get("loginId")).name</span>
+                <strong class="name">@User.findByLoginId(session.get("loginId")).name</strong>
+                <span class="loginid"> <strong>@@</strong>@session.get("loginId")</span>
             </div>
             <span class="d-caret"><span class="caret"></span></span>
         </button>

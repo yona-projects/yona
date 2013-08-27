@@ -73,12 +73,17 @@
                     @**<!-- author  -->**@
                     <dl class="author">
                         <dt>@Messages("issue.author")</dt>
-                        <dd>
-                            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap pull-left small mr10">
-                                <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="32" height="32" alt="@issue.authorName">
-                            </a>
-                            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" @if(issue.assigneeName != null){ class="gray-txt" } style="line-height:26px;">
-                                @if(issue.authorLoginId != null){ @issue.authorLoginId (@issue.authorName) } else { @Messages("issue.noAuthor") }
+                        <dd style="padding:5px 10px;">
+                            <a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="usf-group">
+                                <span class="avatar-wrap smaller">
+                                    <img src="@User.findByLoginId(issue.authorLoginId).avatarUrl" width="20" height="20">
+                                </span>
+                                @if(issue.authorLoginId != null){
+                                <strong class="name">@issue.authorName</strong>
+                                <span class="loginid"> <strong>@@</strong>@issue.authorLoginId</span>
+                                } else {
+                                <strong class="name">@Messages("issue.noAuthor")</strong>
+                                }
                             </a>
                         </dd>
                     </dl>
@@ -106,12 +111,18 @@
                     @**<!-- assignee  -->**@
                     <dl>
                         <dt>@Messages("issue.assignee")</dt>
-                        <dd>
                         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
+                        <dd>
                             <div id="assignee" class="btn-group auto" data-name="assignee.id">
                                 <button class="btn dropdown-toggle auto" data-toggle="dropdown">
                                     @if(issue.assigneeName != null){
-                                    <span class="d-label">@issue.assignee.user.loginId (@issue.assigneeName)</span>
+                                    <span class="d-label usf-group">
+                                        <span class="avatar-wrap smaller">
+                                            <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
+                                        </span>
+                                        <strong class="name">@issue.assignee.user.name</strong>
+                                        <span class="loginid"> <strong>@@</strong>@issue.assignee.user.loginId</span> 
+                                    </span>
                                     } else {
                                     <span class="d-label">@Messages("noAssignee")</span>
                                     }
@@ -124,23 +135,34 @@
                                     }
                                     <li class="divider"></li>
                                     @for(member <- project.members()) {
-                                        <li data-value="@member.user.id" data-id="@member.user.id"><a>@member.user.loginId (@member.user.name)</a></li>
+                                    <li data-value="@member.user.id" data-id="@member.user.id">
+                                        <a class="usf-group">
+                                            <span class="avatar-wrap smaller">
+                                                <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="20" height="20">
+                                            </span>
+                                            <strong class="name">@member.user.name</strong>
+                                            <span class="loginid"> <strong>@@</strong>@member.user.loginId</span> 
+                                        </a>
+                                    </li>
                                     }
                                 </ul>
                             </div>
-                        } else {
-                            @if(issue.assigneeName != null){
-                                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="avatar-wrap pull-left small mr10">
-                                    <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="32" height="32" alt="@issue.assigneeName">
-                                </a>
-                                <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)">
-                                    @issue.assignee.user.loginId (@issue.assigneeName)
-                                </a>
-                            } else {
-                                @Messages("issue.noAssignee")
-                            }
-                        }
                         </dd>
+                        } else {
+                        <dd style="padding:5px 10px;">
+                            <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="usf-group">
+                                <span class="avatar-wrap smaller">
+                                    <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
+                                </span>
+                                @if(issue.assigneeName != null){
+                                <strong class="name">@issue.assigneeName</strong>
+                                <span class="loginid"> <strong>@@</strong>@issue.assignee.user.loginId</span>
+                                } else {
+                                <strong class="name">@Messages("issue.noAssignee")</strong>
+                                }
+                            </a>
+                        </dd>
+                        }
                     </dl>
                     @**<!-- // -->**@
 
@@ -166,6 +188,7 @@
                                 </ul>
                             </div>
                         } else {
+                            <div style="padding:5px 10px;">
                             @if(issue.milestone != null) {
                                 <a href="@routes.MilestoneApp.milestone(project.owner, project.name, issue.milestone.id)">
                                     @issue.milestone.title
@@ -173,6 +196,7 @@
                             } else {
                                 @Messages("noMilestone")
                             }
+                            </div>
                         }
                         </dd>
                     </dl>

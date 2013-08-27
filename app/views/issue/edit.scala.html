@@ -83,8 +83,20 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li data-value="" @if(issue.assignee == null){data-selected="true" class="active"}><a href="javascript:void(0)">@Messages("issue.noAssignee")</a></li>
+                                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
+                                }
+                                <li class="divider"></li>
                                 @for(member <- project.members()) {
-                                <li data-value="@member.user.id" @if(issue.assignee != null && issue.assignee.user.loginId == member.user.loginId){data-selected="true" class="active"}><a href="javascript:void(0)">@member.user.name (@member.user.loginId)</a></li>
+                                <li data-value="@member.user.id" @if(issue.assignee != null && issue.assignee.user.loginId == member.user.loginId){data-selected="true" class="active"}>
+                                    <a href="javascript:void(0)" class="usf-group">
+                                        <span class="avatar-wrap smaller">
+                                            <img src="@User.findByLoginId(member.user.loginId).avatarUrl" width="20" height="20">
+                                        </span>
+                                        <strong class="name">@member.user.name</strong>
+                                        <span class="loginid"> <strong>@@</strong>@member.user.loginId</span>
+                                    </a>
+                                </li>
                                 }
                             </ul>
                         </div>

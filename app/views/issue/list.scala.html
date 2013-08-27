@@ -97,8 +97,20 @@
                                     <ul class="dropdown-menu">
                                         <li data-value=""><a>@Messages("order.all")</a></li>
                                         <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("noAssignee")</a></li>
+                                        @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
+                                            <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
+                                        }
+                                        <li class="divider"></li>
                                         @for(assignee <- project.assignees) {
-                                        <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}><a>@assignee.user.name (@assignee.user.loginId)</a></li>
+                                        <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}>
+                                            <a class="usf-group">
+                                                <span class="avatar-wrap smaller">
+                                                    <img src="@User.findByLoginId(assignee.user.loginId).avatarUrl" width="20" height="20">
+                                                </span>
+                                                <strong class="name">@assignee.user.name</strong>
+                                                <span class="loginid"> <strong>@@</strong>@assignee.user.loginId</span> 
+                                            </a>
+                                        </li>
                                         }
                                     </ul>
                                 </div>
@@ -115,6 +127,7 @@
                                     <ul class="dropdown-menu">
                                         <li data-value=""><a>@Messages("milestone.state.all")</a></li>
                                         <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("noMilestone")</a></li>
+                                        <li class="divider"></li>
                                         @for(milestone <- Milestone.findByProjectId(project.id)) {
                                         <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
                                         }
