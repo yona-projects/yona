@@ -16,7 +16,7 @@ import javax.persistence.*;
 import java.util.*;
 
 @Entity
-public class IssueLabel extends Model {
+public class IssueLabel extends Model implements ResourceConvertible {
 
     /**
      *
@@ -73,6 +73,7 @@ public class IssueLabel extends Model {
         super.delete();
     }
 
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

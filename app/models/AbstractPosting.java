@@ -25,7 +25,7 @@ import static com.avaje.ebean.Expr.contains;
  * {@link Posting}과 {@link Issue}의 공통 속성과 메서드를 모아둔 클래스
  */
 @MappedSuperclass
-abstract public class AbstractPosting extends Model {
+abstract public class AbstractPosting extends Model implements ResourceConvertible {
     public static final int FIRST_PAGE_NUMBER = 0;
     public static final int NUMBER_OF_ONE_MORE_COMMENTS = 1;
 
@@ -145,8 +145,6 @@ abstract public class AbstractPosting extends Model {
     public Duration ago() {
         return JodaDateUtil.ago(this.createdDate);
     }
-
-    abstract public Resource asResource();
 
     public Resource asResource(final ResourceType type) {
         return new Resource() {
