@@ -51,7 +51,7 @@
             
             <div class="meta">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
-                <a href="/@noti.getProject" class="project">@noti.getProject.owner / @noti.getProject.name</a>
+                @** <!-- <a href="/@noti.getProject" class="project">@noti.getProject.owner / @noti.getProject.name</a> -->**@
                 <span class="ago pull-right">@agoString(JodaDateUtil.ago(noti.created))</span>
             </div>   
             <div class="title"><a href="@noti.urlToView">@noti.title</a></div>
