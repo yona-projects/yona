@@ -613,6 +613,7 @@ pullrequest.fromBranch.required = 보낼 코드가 들어있는 브랜치를 선
 pullrequest.toBranch.required = 코드를 받을 브랜치를 선택하세요.
 pullrequest.body.required = 내용을 입력하세요.
 pullrequest.title.required = 제목을 입력하세요.
+back.to.the.pullrequest = 코드 주고받기로 돌아가기
 
 # Notifcation
 notification.watch = 지켜보기
