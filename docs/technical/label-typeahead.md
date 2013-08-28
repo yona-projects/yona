@@ -1,7 +1,7 @@
 소개
 ----
 
-Yobi는 태그에 대한 자동완성 API를 제공한다. URL `/tags`로 요청하면 json 포맷으로 된 태그들의 목록을 돌려받는다.
+Yobi는 라벨에 대한 자동완성 API를 제공한다. URL `/labels`로 요청하면 json 포맷으로 된 라벨들의 목록을 돌려받는다.
 
 요청
 ----
@@ -12,23 +12,19 @@ Yobi는 태그에 대한 자동완성 API를 제공한다. URL `/tags`로 요청
 
 ### URL
 
-    /tags
+    /labels
 
 ### 파라메터
 
-태그를 요청할 때 쿼리 스트링에 다음의 필드를 포함시킬 수 있다. 쿼리 스트링은 [application/x-www-form-urlencoded](http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type)에 따라 인코딩된다.
+라벨를 요청할 때 쿼리 스트링에 다음의 필드를 포함시킬 수 있다. 쿼리 스트링은 [application/x-www-form-urlencoded](http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type)에 따라 인코딩된다.
+
+#### category
+
+라벨이 속한 카테고리에 대한 검색어. 서버는 라벨의 카테고리에 이 `query`의 값이 포함된 라벨를 반환한다. 대소문자를 구분하지 않는다.
 
 #### query
 
-태그에 대한 검색어. 서버는 태그의 카테고리나 이름에 이 `query`의 값이 포함된 태그를 반환한다. 대소문자를 구분하지 않는다.
-
-#### context
-
-태그를 요청하는 상황에 대한 문맥. 예를 들어 `PROJECT_TAGGING_TYPEAHEAD` 라는 값을 넘겨준 경우, 서버는 현재 상황이 Project Overview 페이지에서 태그를 추가시 자동완성을 위해 태그의 목록을 요청한 것으로 이해하고, 상황에 알맞게(현재 프로젝트에 라이선스 태그가 하나도 없다면 라이선스 태그를 우선한다거나) 태그를 정렬하여 돌려준다.
-
-#### project_id
-
-위 `context`에 따라 `project_id` 필드가 필요한 경우가 있다.
+라벨의 이름에 대한 검색어. 서버는 라벨의 이름에 이 `query`의 값이 포함된 라벨를 반환한다. 대소문자를 구분하지 않는다.
 
 #### limit
 
@@ -37,17 +33,7 @@ Yobi는 태그에 대한 자동완성 API를 제공한다. URL `/tags`로 요청
 응답
 ----
 
-응답은 json 형식으로, 문자열의 배열로 반환된다.
-
-배열의 각 요소는 태그의 카테고리와 이름이 ` - `을 구분자로 하여 조합된 문자열이다. 예를 들어 License 카테고리의 Public Domain이라면 다음과 같다.
-
-    License - Public Domain
-
-ABNF로 표현하면 다음과 같다.
-
-    tag = tag-category SP "-" SP tag-name
-
-`-`의 좌우에 SP가 있음에 주의하라. 이것은 보통 엄격하게 검사된다.
+응답은 json 형식으로, 라벨 이름의 배열이 반환된다.
 
 ### Content-Range 헤더
 
@@ -83,8 +69,8 @@ ABNF로 표현하면 다음과 같다.
 
 요청
 
-    GET /tags?context=PROJECT_TAGGING_TYPEAHEAD&limit=8&project_id=1&query=a
+    GET /labels?query=a&category=Language&limit=3
 
 응답
 
-    ["License - Public Domain","Language - @Formula","Language - A# (Axiom)","Language - A# .NET","Language - A+","Language - A++","Language - A-0 System","Language - ABAP"]
+    ["@Formula","A# (Axiom)","A# .NET"]

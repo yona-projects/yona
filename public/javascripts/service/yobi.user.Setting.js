@@ -16,7 +16,7 @@
 
         /**
          * initialize
-         * 
+         *
          * @param {Hash Table} htOptions
          */
         function _init(htOptions){
@@ -44,7 +44,7 @@
             htElement.welBtnUploadFile = $("#btnUploadFile");
             htElement.welBtnSubmitCrop = $("#btnSubmitCrop");
             htElement.welImgCrop = $("#avatarImgCrop");
-            
+
             // 비밀번호 변경
             htElement.welFormPswd = $("#frmPassword");
             htElement.welInputOldPassword  = $('#oldPassword');
@@ -75,7 +75,7 @@
         /**
          * 아바타 이미지 업로드 전 타입/확장자 검사
          * false 를 반환하면 업로드 하지 않는다
-         * 
+         *
          * @param {Hash Table} htData
          * @param {File} htData.oFile 업로드 파일
          * @return {Boolean}
@@ -90,12 +90,12 @@
         /**
          * 아바타 이미지 업로드가 완료된 후
          * ajaxForm 의 success 이벤트 핸들러
-         * 
+         *
          * @param {Hash Table} htData 업로드 된 파일의 정보
          */
         function _onAvatarUploaded(htData){
             var oRes = htData.oRes;
-            
+
             // 업로드 완료한 파일이 이미지가 아니면 오류 처리하고 삭제
             if(oRes.mimeType.indexOf("image/") !== 0){
                 _onAvatarUploadError(Messages("user.avatar.onlyImage"));
@@ -104,7 +104,7 @@
             }
 
             htElement.welAvatarImage.attr("src", oRes.url);
-            
+
             // 설정 폼에 avatarId 설정
             var welAvatarId = htElement.welFormAvatar.find("input[name=avatarId]");
             if(welAvatarId.length === 0){ // 없으면 새로 설정하고
@@ -116,7 +116,7 @@
             } else { // 이미 있으면 값만 수정
                 welAvatarId.attr("value", oRes.id);
             }
-            
+
             _setAvatarProgressBar(100);
 
             // Crop 후에 업로드 인지, 처음 업로드인지 구분
@@ -126,16 +126,16 @@
                 htElement.welFormAvatar.submit();
             }
         }
-        
+
         /**
          * jCrop 설정
-         * 
+         *
          * @param {Object} oRes 파일 정보
          */
         function _setJcrop(oRes){
             htElement.welImgCrop.on("load", function(){
                 htVar.oJcrop = null;
-                
+
                 htElement.welImgCrop.Jcrop({
                     "aspectRatio": 1,
                     "minSize"  : [128, 128],
@@ -152,16 +152,16 @@
             htElement.welImgCrop.attr("src", oRes.url);
 
             // 파일 업로드 버튼은 감추고, 크롭 이미지 전송 버튼 활성화
-            
+
             htElement.welBtnUploadFile.hide();
             htElement.welBtnSubmitCrop.show();
             htElement.welBtnSubmitCrop.click(_sendCroppedImage);
         }
-        
+
         /**
          * jCrop 커스텀 이벤트 핸들러
          * 잘라내기 된 이미지를 미리보기 해주는 역할
-         * 
+         *
          * @param {Hash Table} htData
          */
         function _onAvatarImageCrop(htData){
@@ -170,10 +170,10 @@
             }
             var nRx = 128 / htData.w;
             var nRy = 128 / htData.h;
-            
+
             var nWidth = htElement.welImgCrop.width();
             var nHeight = htElement.welImgCrop.height();
-            
+
             // 미리보기 표시
             htElement.welAvatarImage.css({
                 "width"     : Math.round(nRx * nWidth) + "px",
@@ -181,10 +181,10 @@
                 "marginLeft": "-" + Math.round(nRx * htData.x) + "px",
                 "marginTop" : "-" + Math.round(nRy * htData.y) + "px"
             });
-            
+
             htVar.htLastCrop = htData;
         }
-        
+
         /**
          * jCrop 취소시 이벤트 핸들러
          * 완전하게 취소할 수 없고 늘 128x128 이상의 이미지 영역을 갖도록
@@ -196,7 +196,7 @@
                 htVar.htLastCrop = null;
             }
         }
-        
+
         /**
          * jCrop 의 결과와 canvas 를 이용해서
          * 잘라낸 이미지를 서버에 전송하는 함수
@@ -204,7 +204,7 @@
          */
         function _sendCroppedImage(){
             var elImage = new Image();
-            
+
             // 원본 이미지 크기를 알아내기 위해 새 객체로 불러온다
             // 브라우저 캐시를 사용하므로 네트워크 호출 없음
             elImage.onload = function(){
@@ -212,7 +212,7 @@
                 var htData = htVar.htLastCrop;
                 var nWidth = htElement.welImgCrop.width();
                 var nRealWidth  = elImage.width;
-                var nRw = nRealWidth / nWidth; 
+                var nRw = nRealWidth / nWidth;
                 var htCropData = {
                     "x": (htData.x * nRw),
                     "y": (htData.y * nRw),
@@ -221,13 +221,13 @@
                 };
 
                 var htEnv = yobi.Files.getEnv();
-            
+
                 // blob 전송이 가능한 환경이면 캔버스를 이용해 처리하고
                 if(htEnv.bXHR2){
                     var elCanvas = document.getElementById("avatarCrop"); // canvas
-                    var oContext = elCanvas.getContext("2d");                
+                    var oContext = elCanvas.getContext("2d");
                     oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
-                    
+
                     // canvas-to-blob.js
                     elCanvas.toBlob(function(oFile){
                         yobi.Files.uploadFile(oFile);
@@ -253,7 +253,7 @@
         /**
          * 아바타 이미지 업로드 진행 상태
          * ajaxForm 의 uploadProgress 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event} weEvt
          * @param {Number} nPosition
          * @param {Number}
@@ -265,7 +265,7 @@
 
         /**
          * 아바타 이미지 업로드 진행 상태 표시 함수
-         * 
+         *
          * @param {Number} nPercent
          */
         function _setAvatarProgressBar(nPercent){
@@ -276,7 +276,7 @@
             // 꽉 차면 보이지 않게 하고 다시 0으로 되돌림
             if(nPercent === 100){
                 htElement.welAvatarProgress.css("opacity", 0);
-                
+
                 setTimeout(function(){
                     //htElement.welFormBasic.submit();
                     _setAvatarProgressBar(0);
@@ -311,12 +311,12 @@
 
         /**
          * on validate form
-         * 
+         *
          * @param {Array} aErrors
          */
         function _onFormValidate(aErrors){
             _clearTooltips();
-            
+
             // to avoid bootstrap bug
             if (aErrors.length <= 0) {
                 return _clearTooltips();
@@ -325,7 +325,7 @@
             var welTarget;
             aErrors.forEach(function(htError){
                 welTarget = htElement.welFormPswd.find("input[name=" + htError.name + "]");
-                
+
                 if(welTarget){
                     _showTooltip(welTarget, htError.message);
                 }
@@ -336,7 +336,7 @@
          * Bootstrap toolTip function has some limitation.
          * In this case, toolTip doesn't provide easy way to change title and contents.
          * So, unfortunately I had to change data value in directly.
-         * 
+         *
          * @param {Wrapped Element} welInput
          * @param {String} sMessage
          */
