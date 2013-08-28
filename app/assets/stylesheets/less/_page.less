@@ -121,6 +121,7 @@
                         }
 
                         .dropdown-menu {
+                            width:100%;
                             .divider {
                                 background-color:transparent;
                                 border-bottom:1px solid rgba(0,0,0,0.1);
@@ -1434,6 +1435,8 @@
                 float:right; margin-top:5px;
                 z-index: 777;
 
+                .btnClone { width:84px; }
+                
                 /* 저장소 URL 표시용 popover */
                 .popover, .showRepoURL {
                     width:430px;
@@ -1453,9 +1456,13 @@
                     }
                 }
                 
-                .dropdown-menu li { 
-                    display:block; padding:0;
-                    &.disabled { padding:5px 0 }
+                .dropdown-menu {
+                    margin-top:2px !important;
+                    
+                    li { 
+                        display:block; padding:0;
+                        &.disabled { padding:5px 0 }
+                    }
                 }
             }
         }
