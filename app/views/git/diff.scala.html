@@ -32,7 +32,7 @@
 	<div class="code-browse-wrap">
         <p class="commitInfo">
             <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.id)?activeTab=commits" class="nbtn orange medium">
-                <i class="icon-large icon-backward"></i> 코드 주고받기로 돌아가기
+                <i class="icon-large icon-backward"></i> @Messages("back.to.the.pullrequest")
             </a>
             <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
             @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
