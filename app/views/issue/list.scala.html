@@ -1,230 +1,39 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param
 :IssueApp.SearchCondition, project:Project)
 
-@import helper._
-@import utils.TemplateHelper._
-@import utils.AccessControl._
-@import scala.collection.immutable.Map
-@import scala.collection.mutable.ArrayBuffer
-@import models.enumeration._
-@import org.apache.commons.lang.StringUtils
-@import utils.HttpUtil._
-@import controllers.IssueApp.SearchCondition._
-
-@urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
-@paramForEveryone = @{ new IssueApp.SearchCondition().setState(param.state).setAssigneeId(null).setAuthorLoginId(null) }
-@paramForIssuesAssignedToMe = @{ new IssueApp.SearchCondition().setState(param.state).setAssigneeId(UserApp.currentUser().id).setAuthorLoginId(null) }
-@paramForIssuesAuthoredByMe = @{ new IssueApp.SearchCondition().setState(param.state).setAssigneeId(null).setAuthorLoginId(UserApp.currentUser().loginId) }
-
-@urlAssignedToMe = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", 1)&assigneeId=@User.findByLoginId(session.get("loginId")).id&milestoneId=@param.milestoneId}
-
-@urlAuthoredByMe = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", 1)&authorLoginId=@session.get("loginId")&milestoneId=@param.milestoneId}
-
-@getPageListUrl(pageIndex:Integer) = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", pageIndex + 1)}
-
-@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
-	@if(orderBy.equals(fieldName)) {
-		<a href="@urlToList&orderBy=@fieldName&orderDir=@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
-	} else {
-	    <a href="@urlToList&orderBy=@fieldName&orderDir=asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
-	}
-}
-
-@getTabLinkByState(state:State) = {@routes.IssueApp.issues(project.owner, project.name, state.state)@if(param.assigneeId != null){&assigneeId=@param.assigneeId}@if(param.authorLoginId != null){&authorLoginId=@param.authorLoginId}@if(param.milestoneId != null){&milestoneId=@param.milestoneId}}
-
 @main(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
-
-    <div class="row-fluid issue-list-wrap">
-        <div class="span2 search-wrap">
-            <div class="inner @if(param.authorLoginId != null || param.assigneeId != null || param.milestoneId != null){ advanced }">
-                <ul class="lst-stacked unstyled">
-                    <li @if(param.assigneeId == null && param.authorLoginId == null){class="active"}>
-                        <a href="@urlToList&milestoneId=@param.milestoneId">@Messages("issue.list.all")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForEveryone)</span>
-                        </a>
-                    </li>
-                    @if(UserApp.currentUser().id != -1l){
-                    <li @if(param.assigneeId == UserApp.currentUser().id){ class="active"}>
-                        <a href="@urlAssignedToMe">@Messages("issue.list.assignedToMe")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAssignedToMe)</span>
-                        </a>
-                    </li>
-                    <li @if(param.authorLoginId == UserApp.currentUser().loginId){ class="active"}>
-                        <a href="@urlAuthoredByMe">@Messages("issue.list.authoredByMe")
-                            <span class="num-badge pull-right">@Issue.countIssuesBy(project.id, paramForIssuesAuthoredByMe)</span>
-                        </a>
-                    </li>
-                    }
-                </ul>
-
-                @if(param.milestoneId != null){
-                    @defining(Milestone.findById(param.milestoneId)){ milestone =>
-                        @if(milestone != null){
-                            <hr>
-                            @views.html.milestone.partial_status(milestone, project)
-                        }
-                    }
-                }
-
-                <form id="search" action="@routes.IssueApp.issues(project.owner, project.name, param.state)" method="get">
-                    <input type="hidden" name="orderBy" value="@param.orderBy" class="h-value order">
-                    <input type="hidden" name="state"   value="@param.state">
-
-                    <hr>
-                    <div class="row-fluid srch-input">
-                        <input type="text" name="filter" class="text" value="@param.filter" style="width:100%;">
-                        <button type="submit" class="nbtn medium last">@Messages("issue.search")</button>
-                    </div>
-
-                    <div class="row-fluid right-txt">
-                        <button type="button" class="btn-advanced btn-transparent">
-                            <span class="caret-wrap"><span class="caret down blue"></span></span>
-                            @Messages("issue.advancedSearch")
-                        </button>
-                    </div>
-
-                    <div id="advanced-search-form" class="srch-advanced">
-                        <dl class="issue-option">
-                            <dt>@Messages("author")</dt>
-                            <dd><input type="text" name="authorLoginId" class="input-medium" value="@param.authorLoginId"></dd>
-                        </dl>
-                        <dl class="issue-option">
-                            <dt>@Messages("assignee")</dt>
-                            <dd>
-                                <div class="btn-group" data-name="assigneeId">
-                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("order.all")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("order.all")</a></li>
-                                        <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("noAssignee")</a></li>
-                                        @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                                            <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
-                                        }
-                                        <li class="divider"></li>
-                                        @for(assignee <- project.assignees) {
-                                        <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}>
-                                            <a class="usf-group">
-                                                <span class="avatar-wrap smaller">
-                                                    <img src="@User.findByLoginId(assignee.user.loginId).avatarUrl" width="20" height="20">
-                                                </span>
-                                                <strong class="name">@assignee.user.name</strong>
-                                                <span class="loginid"> <strong>@@</strong>@assignee.user.loginId</span> 
-                                            </a>
-                                        </li>
-                                        }
-                                    </ul>
-                                </div>
-                            </dd>
-                        </dl>
-                        <dl class="issue-option">
-                            <dt>@Messages("milestone")</dt>
-                            <dd>
-                                <div class="btn-group" data-name="milestoneId">
-                                    <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("milestone.state.all")</span>
-                                        <span class="d-caret"><span class="caret"></span></span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("milestone.state.all")</a></li>
-                                        <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("noMilestone")</a></li>
-                                        <li class="divider"></li>
-                                        @for(milestone <- Milestone.findByProjectId(project.id)) {
-                                        <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
-                                        }
-                                    </ul>
-                                </div>
-                            </dd>
-                        </dl>
-                    </div>
-
-                    <hr>
-                    <dl id="labels" class="issue-option labels-wrap">
-                        <dt>
-                            @Messages("label.select")
-                            @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <button id="manage-label-link" type="button" class="btn-transparent"><i class="icon-cog"></i></button>
-                            }
-                        </dt>
-                        <dd>
-                            <fieldset class="labels issue-form-labels"></fieldset>
-                        </dd>
-                    </dl>
-                </form>
-            </div>
-        </div>        
-        <div class="span10">
-            <div class="pull-right">
-                <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
-            </div>
-            <ul class="nav nav-tabs nm">
-            @for(state <- Array(State.OPEN, State.CLOSED)) {
-                <li @if(param.state == state.state) { class="active" }>
-                    <a href="@getTabLinkByState(state)&filter=@param.filter">
-                        @Messages("issue.state." + state.name.toLowerCase())
-                        <span class="num-badge">@Issue.countIssuesBy(project.id, param.clone.setState(state))</span>
-                    </a>
-                </li>
-            }
-            </ul>
-
-        @if(currentPage.getList().size() > 0){
-        	<div class="filter-wrap board">
-                @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
-                    @partial_massupdate(project, param)
-                }
-
-                @if(currentPage.getList().size() > 1){
-        		<div class="filters pull-right">
-        			@makeFilterLink("state", param.orderBy, param.orderDir, Messages("order.state"))
-        			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-        			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
-        		</div>
-        		}
-        	</div>
-
-            @partial_list(project, currentPage.getList, param, currentPage.getPageIndex, currentPage.getTotalPageCount)
-
-            <div class="pull-left" style="padding:10px;">
-
-                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="nbtn white" style="width:100%; padding:6px"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
-            </div>
-            @help.keymap("issueList", project)
-            <div id="pagination"><!-- pagination.js will fill here. --></div>
-        } else {
-            <div class="error-wrap">
-                <i class="ico ico-err1"></i>
-                <p>@Messages("issue.is.empty")</p>
-            </div>
-            @help.keymap("issueList", project)
-        }
-        </div>
-    </div>
+	
+	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>
-
+<div id="spin" style="position: absolute; top:50%; left:50%"></div>
+<script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
 <script type="text/javascript">
     $(document).ready(function(){
-        yobi.Label.init({
-            "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-            "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
-            "bRefresh"     : true
-            @if(param.labelIds != null){
-            , "aSelectedLabels" : [@StringUtils.join(param.labelIds, ",")]
-            }
+        var pjaxOptions = {
+			fragment:"div[pjax-container]",
+			timeout:3000
+        }
+
+        $.pjax.defaults.maxCacheLength = 0;
+        
+        $(document).on('click', 'a[pjax-page]', function(event) {
+            $.pjax.click(event, "div[pjax-container]", pjaxOptions)
         });
-        yobi.ShortcutKey.setKeymapLink({
-           "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
-           @if(currentPage.getPageIndex > 0){
-          ,"A": "@getPageListUrl(currentPage.getPageIndex - 1)"
-           }
-           @if(currentPage.getTotalPageCount > 1 && (currentPage.getPageIndex + 1 != currentPage.getTotalPageCount)){
-          ,"S": "@getPageListUrl(currentPage.getPageIndex + 1)"
-           }
+
+        $(document).on("submit", "form[name='search']", function(event) {
+			$.pjax.submit(event, "div[pjax-container]", pjaxOptions)
+		});
+        
+        $(document).on('pjax:send', function() {
+			var target = document.getElementById('spin');
+			spinner = new Spinner().spin(target);
+        });
+        
+        $(document).on('pjax:complete', function() {
+            spinner.stop();
         });
     });
 </script>
-
 }

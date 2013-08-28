@@ -90,6 +90,11 @@ yobi.Label = (function(htOptions){
 	 * 폼 전송시 라벨 선택도 반영되도록 자동으로 필드 추가
 	 */
 	function _onSubmitForm(){
+
+        $("input[name='labelIds']").each(function(nIndex, elInput) {
+            $(elInput).remove();
+        })
+        
 		var aValues = [];
 		var welButtons = $('fieldset.labels div[data-category] button.active[data-labelId]');
 		
@@ -196,6 +201,7 @@ yobi.Label = (function(htOptions){
 	 * @return {Wrapped Element} 추가된 라벨 버튼 엘리먼트
 	 */
 	function _addLabelIntoCategory(oLabel) {
+
 		// set Label Color
 		_setLabelColor(oLabel);
 		
@@ -358,10 +364,19 @@ yobi.Label = (function(htOptions){
 	    $('.labels button.issue-label[data-labelId="' + sId + '"]').addClass('active');		
 	}
 	
+	function _resetLabel(labelId) {
+	    $("button.issue-label").each(function(nIndex, elLabel) {
+	        $(elLabel).removeClass("active");
+        })
+        
+        _setActiveLabel(labelId);
+
+	}
 	// 인터페이스 반환
 	return {
 		"init": _init,
-		"setActiveLabel": _setActiveLabel
+		"setActiveLabel": _setActiveLabel,
+		"resetLabel": _resetLabel
 	};
 })();
 

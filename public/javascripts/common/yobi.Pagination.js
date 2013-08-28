@@ -122,7 +122,7 @@ yobi.Pagination = (function(window, document) {
 		// previous page exists
 		var welPagePrev;
 		if (options.hasPrev) {
-			linkToPrev = $('<a>').append($('<i class="ico btn-pg-prev">')).append($('<span>').text('PREV'));
+			linkToPrev = $('<a pjax-page>').append($('<i class="ico btn-pg-prev">')).append($('<span>').text('PREV'));
 
 			if (typeof (options.submit) == 'function') {
 				linkToPrev.attr('href', 'javascript: void(0);').click(function(e) {
@@ -163,7 +163,7 @@ yobi.Pagination = (function(window, document) {
 		// next page exists
 		var welPageNext;
 		if (options.hasNext) {
-			linkToNext = $('<a>').append($('<span>').text('NEXT')).append($('<i class="ico btn-pg-next">'));
+			linkToNext = $('<a pjax-page>').append($('<span>').text('NEXT')).append($('<i class="ico btn-pg-next">'));
 
 			if (typeof (options.submit) == 'function') {
 				linkToNext.attr('href', 'javascript: void(0);').click(function(e) { options.submit(options.current + 1);});

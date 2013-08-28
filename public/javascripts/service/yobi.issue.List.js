@@ -12,136 +12,111 @@
     var oNS = $yobi.createNamespace(ns);
     oNS.container[oNS.name] = function(htOptions){
 
-        var htVar = {};
-        var htElement = {};
-        
-        /**
-         * initialize
-         */
-        function _init(htOptions){
-            _initVar(htOptions || {})
-            _initElement(htOptions || {});
-            _attachEvent();
-            _initPagination();
-            _setLabelColor();
-            _setMassUpdateFormAffixed();
-        }
-        
-        /**
-         * initialize variables except element
-         */
-        function _initVar(htOptions){
-            htVar.nTotalPages = htOptions.nTotalPages || 1;
-            htVar.oTypeahead = new yobi.ui.Typeahead("input[name=authorLoginId]", {"sActionURL": "/users"}) || "";
+		var htVar = {};
+		var htElement = {};
+		
+		/**
+		 * initialize
+		 */
+		function _init(htOptions){
+			_initVar(htOptions || {})
+			_initElement(htOptions || {});
+			_attachEvent();
+			_initPagination();
+			_setLabelColor();
+		}
+		
+		/**
+		 * initialize variables except element
+		 */
+		function _initVar(htOptions){
+			htVar.nTotalPages = htOptions.nTotalPages || 1;
             
-            // mass-update-form
-            var htMassUpdate = htOptions.htMassUpdateElements;
-            htVar.oState     = new yobi.ui.Dropdown({"elContainer": htMassUpdate.welState});
-            htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htMassUpdate.welAssignee});
-            htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htMassUpdate.welMilestone});
-            htVar.oAttachingLabel = new yobi.ui.Dropdown({"elContainer": htMassUpdate.welAttachingLabel});
-            htVar.oDetachingLabel = new yobi.ui.Dropdown({"elContainer": htMassUpdate.welDetachingLabel});            
-            htVar.sIssueCheckBoxesSelector = htMassUpdate.sIssueCheckBoxesSelector;
-        }
-        
-        /**
-         * initialize element
-         */
-        function _initElement(htOptions){
-            htElement.welContainer  = $(".inner");
-            htElement.welBtnAdvance = $(".btn-advanced");        
-            htElement.welPagination = $(htOptions.elPagination || "#pagination");
-            htElement.waLabels    = $("a.issue-label[data-color]"); // 목록 > 라벨
+            htVar.oSearchAuthor    = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAuthor});
+            htVar.oSearchAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchAssignee});
+            htVar.oSearchMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welSearchMilestone});
 
-            // mass-update-form
-            var htMassUpdate = htOptions.htMassUpdateElements;
-            htElement.welMassUpdateForm    = htMassUpdate.welForm;
-            htElement.welMassUpdateButtons = htMassUpdate.welButtons;
-            htElement.waCheckboxes  = $(htVar.sIssueCheckBoxesSelector);
-            htElement.weAllCheckbox = $('#check-all');
-        }
-        
-        /**
-         * attach event handlers
-         */
-        function _attachEvent(){
-            htElement.welBtnAdvance.click(_onClickBtnAdvance);
+		}
+		
+		/**
+		 * initialize element
+		 */
+		function _initElement(htOptions){
+		    
+		    htElement.welSearchForm = htOptions.welSearchForm;
+		    htElement.welFilter = htOptions.welFilter;
 
-            // massUpdate dropdowns 
-            htVar.oState.onChange(_onChangeUpdateField);
-            htVar.oMilestone.onChange(_onChangeUpdateField);
-            htVar.oAssignee.onChange(_onChangeUpdateField);
-            htVar.oAttachingLabel.onChange(_onChangeUpdateField);
-            htVar.oDetachingLabel.onChange(_onChangeUpdateField);
+		    htElement.welSearchOrder = htOptions.welSearchOrder;
+		    htElement.welSearchState = htOptions.welSearchState;
+		    
+			htElement.welContainer  = $(".inner");
+			htElement.welBtnAdvance = $(".btn-advanced");		
+			htElement.welPagination = $(htOptions.elPagination || "#pagination");
 
-            // massUpdate checkboxes
-            htElement.waCheckboxes.change(_onCheckIssue);            
-            yobi.ShortcutKey.attach("CTRL+A", function(htInfo){
-                htInfo.weEvt.preventDefault();
-                $(htElement.weAllCheckbox).trigger('click');
-                return false; 
+			htElement.waLabels      = $("a.issue-label[data-color]"); // 목록 > 라벨
+
+            htElement.welMassUpdateForm = htOptions.welMassUpdateForm;
+            htElement.welMassUpdateButtons = htOptions.welMassUpdateButtons;
+            htElement.welDeleteButton = htOptions.welDeleteButton;
+            htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
+
+            htElement.weAllCheckbox = $('#check-all');      
+		}
+
+		/**
+		 * attach event handlers
+		 */
+		function _attachEvent(){
+		    htVar.oSearchAuthor.onChange(_onChangeSearchField);
+		    htVar.oSearchAssignee.onChange(_onChangeSearchField);
+		    htVar.oSearchMilestone.onChange(_onChangeSearchField);
+
+		    htElement.welSearchOrder.each(function(i, el) {
+		        $(el).click(_onChangeSearchOrder);
+		    });
+		    
+		    htElement.welSearchState.each(function(i, el) {
+                $(el).click(_onChangeSearchState);
             });
-            
-            if($(htVar.sIssueCheckBoxesSelector + ':checked').length > 0){
-                _onCheckIssue();
-            }
+		    
+		    htElement.waLabels.each(function(i, el) {
+		        $(el).click(_onChangeSearchLabel);
+		    });
+		    
+		    htElement.welFilter.each(function(i, el) {
+		        $(el).click(_onClickSearchFilter);
+		    });
+		}
+		function _onChangeSearchOrder(event) {
+		    event.preventDefault();
+		    $("input[name=orderBy]").val($(this).attr("orderBy"));
+		    $("input[name=orderDir]").val($(this).attr("orderDir"));
+		    htElement.welSearchForm.submit();
+		}
+		
+		function _onChangeSearchState(event) {
+		    event.preventDefault();
+		    $("input[name=state]").val($(this).attr("state"));
+		    htElement.welSearchForm.submit();
+		}
+		
+		function _onChangeSearchLabel(event) {
+		    event.preventDefault();
+		    yobi.Label.resetLabel($(this).attr('data-labelId'));
+            htElement.welSearchForm.submit();
+		}
+		
+		function _onChangeSearchField() {
+		    htElement.welSearchForm.submit();
+	    }
 
-            $(htElement.weAllCheckbox).on('click' , function() {
-                var checkedStatus = this.checked;
-                $(htVar.sIssueCheckBoxesSelector).prop('checked', checkedStatus);
-                    _onCheckIssue();
-            });
-        }
-
-        /**
-         * Add a hidden input element into the given form.
-         */
-        function _addFormField(welForm, sName, sValue) {
-            $('<input>').attr({
-                'type': 'hidden',
-                'name': sName,
-                'value': sValue
-            }).appendTo(welForm);
-        }
-
-        /**
-         * When check an issue, enable Mass Update dropdowns if only one or
-         * more issues are checked, otherwise disable them.
-         */
-        function _onCheckIssue() {
-            htElement.welMassUpdateButtons.attr('disabled', true);
-            $(htVar.sIssueCheckBoxesSelector + ':checked').each(function() {
-                htElement.welMassUpdateButtons.removeAttr('disabled');
-            });
-        }
-
-        /**
-         * When change the value of any field in the Mass Update form, submit
-         * the form and request to update issues.
-         */
-        function _onChangeUpdateField() {
-            var nCnt = 0;
-            var welForm = htElement.welMassUpdateForm;
-            var fAddCheckedIssueId = function() {
-                _addFormField(
-                    welForm,
-                    'issues[' + (nCnt++) + '].id',
-                    $(this).data('issue-id')
-                );
-            }
-
-            $(htVar.sIssueCheckBoxesSelector + ':checked')
-                .each(fAddCheckedIssueId);
-
-            welForm.submit();
-        }
-
-        /**
-         * 상세검색 영역 토글
-         */
-        function _onClickBtnAdvance(){
-            htElement.welContainer.toggleClass("advanced");
-        }
+		function _onClickSearchFilter(event) {
+		    event.preventDefault();
+		    htVar.oSearchAuthor.selectByValue($(this).attr("authorId"));
+		    htVar.oSearchAssignee.selectByValue($(this).attr("assigneeId"));
+            htVar.oSearchMilestone.selectByValue($(this).attr("milestoneId"));
+            htElement.welSearchForm.submit();
+		}
 
         /**
          * update Pagination
@@ -165,21 +140,6 @@
             });
             
             welLabel = sColor = null;
-        }
-
-        /**
-         * 일괄 업데이트 폼이 스크롤해도 계속 따라다니도록 설정하는 함수
-         */
-        function _setMassUpdateFormAffixed(){
-            htVar.nMassUpdateTop = htElement.welMassUpdateForm.offset().top + (htElement.welMassUpdateForm.height() / 2);
-
-            $(window).on("scroll", function(){
-                if($(window).scrollTop() > htVar.nMassUpdateTop){
-                    htElement.welMassUpdateForm.addClass("fixed");
-                } else {
-                    htElement.welMassUpdateForm.removeClass("fixed");
-                }
-            });
         }
 
         _init(htOptions);
