@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String)
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String, activeTab: String)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -78,13 +78,13 @@
             </div>
         </div>
 
-        <ul class="nav nav-tabs nm" id="pull-request-tab">
-            <li class="active"><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
-            <li><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
-            <li><a href="#changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
+        <ul class="nav nav-tabs nm">
+            <li @if(activeTab == "info"){ class="active" }><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
+            <li @if(activeTab == "commits"){ class="active" }><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
+            <li @if(activeTab == "changes"){ class="active" }><a href="#changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
         <div class="tab-content">
-            <div id="info" class="tab-pane active">
+            <div id="info" class="tab-pane @if(activeTab == "info"){ active }">
                 @**<!-- Pull Request Info -->**@
                 <div class="board-header issue" style="border-top:none;">
                     <div class="title pull-left">
@@ -140,7 +140,7 @@
                 <div id="attachments" class="attachments" resourceType="@ResourceType.PULL_REQUEST" resourceId="@pull.id"></div>
             </div>
 
-            <div id="commits" class="code-browse-wrap tab-pane">
+            <div id="commits" class="code-browse-wrap tab-pane @if(activeTab == "commits"){ active }">
                 <div id="history" class="commit-wrap mt20">
                     <table class="code-table commits">
                         <thead class="thead">
@@ -191,7 +191,7 @@
                 </div>
             </div>
 
-            <div id="changes" class="tab-pane">
+            <div id="changes" class="tab-pane @if(activeTab == "changes"){ active }">
                 <pre>
 @patch
                 </pre>
