@@ -63,7 +63,7 @@ public class NotificationEvent extends Model {
     public NotificationMail notificationMail;
 
     public static String formatReplyTitle(Project project, Commit commit) {
-        return String.format("Re: [%s] %s (#%s)",
+        return String.format("Re: [%s] %s (%s)",
                 project.name, commit.getShortMessage(), commit.getShortId());
     }
 
