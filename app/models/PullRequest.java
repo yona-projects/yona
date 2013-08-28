@@ -364,4 +364,28 @@ public class PullRequest extends Model {
         }
         return finder.where().eq("toProject", toProject).eq("number", number).findUnique();
     }
+
+    /**
+     * #number가 null인 PullRequest가 있을 때 number 초기화 작업을 진행합니다.
+     *
+     * when: Global의 onStart가 실행될 때 호출됩니다.
+     */
+    @Transactional
+    public static void regulateNumbers() {
+        int nullNumberPullRequestCount = finder.where().eq("number", null).findRowCount();
+
+        if(nullNumberPullRequestCount > 0) {
+            List<Project> projects = Project.find.all();
+            for(Project project : projects) {
+                List<PullRequest> pullRequests = PullRequest.findByToProject(project);
+                for(PullRequest pullRequest : pullRequests) {
+                    if(pullRequest.number == null) {
+                        pullRequest.number = project.nextPullRequestNumber();
+                        pullRequest.update();
+                    }
+                }
+                project.update();
+            }
+        }
+    }
 }
