@@ -51,7 +51,7 @@ public class NotificationEvent extends Model {
     public String resourceId;
 
     @Enumerated(EnumType.STRING)
-    public NotificationType type;
+    public NotificationType notificationType;
 
     @Lob
     public String oldValue;
@@ -108,7 +108,7 @@ public class NotificationEvent extends Model {
             return message;
         }
 
-        switch (type) {
+        switch (notificationType) {
         case ISSUE_STATE_CHANGED:
             if (newValue.equals(State.CLOSED.state())) {
                 return Messages.get("notification.issue.closed");
@@ -181,7 +181,7 @@ public class NotificationEvent extends Model {
                 .orderBy("id desc").setMaxRows(1).findUnique();
 
         if (lastEvent != null) {
-            if (lastEvent.type.equals(event.type)) {
+            if (lastEvent.notificationType.equals(event.notificationType)) {
                 String oldValue = lastEvent.getOldValue();
 
                 if (event.senderId.equals(lastEvent.senderId)) {

@@ -3,7 +3,6 @@ package controllers;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.enumeration.NotificationType;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import play.Logger;
 import play.db.ebean.Model;
@@ -17,7 +16,6 @@ import models.enumeration.ResourceType;
 import models.enumeration.UserState;
 
 import play.data.Form;
-import play.libs.Akka;
 import play.mvc.*;
 import utils.AccessControl;
 
@@ -28,7 +26,6 @@ import utils.ErrorViews;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.Iterator;
 
 /**
@@ -156,7 +153,7 @@ public class AbstractPostingApp extends Controller {
         notiEvent.urlToView = toView.absoluteURL(request());
         notiEvent.resourceId = comment.id.toString();
         notiEvent.resourceType = comment.asResource().getType();
-        notiEvent.type = NotificationType.NEW_COMMENT;
+        notiEvent.notificationType = NotificationType.NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
 

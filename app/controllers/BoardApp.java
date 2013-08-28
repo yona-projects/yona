@@ -162,7 +162,7 @@ public class BoardApp extends AbstractPostingApp {
         notiEvent.urlToView = toPost.absoluteURL(request());
         notiEvent.resourceId = post.id.toString();
         notiEvent.resourceType = post.asResource().getType();
-        notiEvent.type = NotificationType.NEW_POSTING;
+        notiEvent.notificationType = NotificationType.NEW_POSTING;
         notiEvent.oldValue = null;
         notiEvent.newValue = post.body;
         NotificationEvent.add(notiEvent);

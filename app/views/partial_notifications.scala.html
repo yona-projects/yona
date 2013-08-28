@@ -34,8 +34,8 @@
 @for(noti <- notifications(from, from + limit)){
 <li class="notification-stream">
     @defining(User.find.byId(noti.senderId)){ user =>
-    <div class="stream-type @notifycationIcon(noti.getType,noti.newValue)">
-        <span class="@notifycationIcon(noti.getType,noti.newValue)"><i class="icon-@notifycationIcon(noti.getType,noti.newValue)"></i></span>
+    <div class="stream-type @notifycationIcon(noti.notificationType,noti.newValue)">
+        <span class="@notifycationIcon(noti.notificationType,noti.newValue)"><i class="icon-@notifycationIcon(noti.notificationType,noti.newValue)"></i></span>
     </div>
     <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
         <div class="stream-info">
