@@ -1,5 +1,5 @@
 /**
- * @(#)yobi.issue.List.js 2013.03.13
+ * @(#)yobi.issue.MassUpdate.js 2013.08.29
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -23,8 +23,6 @@
             _initElement(htOptions || {});
             _attachEvent();
             _setMassUpdateFormAffixed();
-            //_initPagination();
-            //_setLabelColor();
         }
         
         /**
@@ -178,8 +176,6 @@
                 }
             });
         }
-
-        _init(htOptions);
 
         _init(htOptions);
     };
