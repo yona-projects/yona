@@ -111,7 +111,7 @@
                         @if(conflicts != null) {
                         <div>
                             <h5>@Messages("pullRequest.conflict.files")</h5>
-                            <ul class="unstyled">
+                            <ul class="unstyled conflict-files">
                                 @for(file <- conflicts.conflictFiles) {
                                 <li><i class="icon-file"></i> @file</li>
                                 }
