@@ -507,9 +507,10 @@ public class ProjectApp extends Controller {
                 .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
         for (SimpleComment codeComment : comments) {
             final User commenter = User.findByLoginId(codeComment.authorLoginId);
-            if(!userList.contains(commenter)){
-                userList.add(commenter);
+            if(userList.contains(commenter)) {
+                userList.remove(commenter);
             }
+            userList.add(commenter);
         }
         Collections.reverse(userList);
     }
@@ -520,9 +521,10 @@ public class ProjectApp extends Controller {
 
         for (CodeComment codeComment : comments) {
             User commentAuthor = User.findByLoginId(codeComment.authorLoginId);
-            if( !userList.contains(commentAuthor) ){
-                userList.add(commentAuthor);
+            if( userList.contains(commentAuthor) ) {
+                userList.remove(commentAuthor);
             }
+            userList.add(commentAuthor);
         }
         Collections.reverse(userList);
     }
@@ -557,16 +559,17 @@ public class ProjectApp extends Controller {
         if(posting != null) {
             for(Comment comment: posting.getComments()) {
                 User commentUser = User.findByLoginId(comment.authorLoginId);
-                if (!userList.contains(commentUser)) {
-                    userList.add(commentUser);
+                if (userList.contains(commentUser)) {
+                    userList.remove(commentUser);
                 }
+                userList.add(commentUser);
             }
+            Collections.reverse(userList); // recent commenter first!
             User postAuthor = User.findByLoginId(posting.authorLoginId);
             if( !userList.contains(postAuthor) ) {
                 userList.add(postAuthor);
             }
         }
-        Collections.reverse(userList);
     }
 
     private static void collectedUsersToMap(List<Map<String, String>> users, List<User> userList) {
