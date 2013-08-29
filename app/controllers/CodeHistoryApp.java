@@ -225,7 +225,7 @@ public class CodeHistoryApp extends Controller {
         notiEvent.urlToView = toView.absoluteURL(request());
         notiEvent.resourceId = codeComment.id.toString();
         notiEvent.resourceType = codeComment.asResource().getType();
-        notiEvent.type = NotificationType.NEW_COMMENT;
+        notiEvent.notificationType = NotificationType.NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = codeComment.contents;
 

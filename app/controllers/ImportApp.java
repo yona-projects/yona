@@ -14,6 +14,9 @@ import utils.Constants;
 import utils.FileUtil;
 import views.html.project.importing;
 
+import org.eclipse.jgit.api.errors.*;
+import java.io.IOException;
+
 import java.io.File;
 
 import static play.data.Form.form;
@@ -41,7 +44,7 @@ public class ImportApp extends Controller {
      * @return
      */
     @Transactional
-    public static Result newProject() {
+    public static Result newProject() throws GitAPIException, IOException {
         if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
             return forbidden("'" + UserApp.currentUser().name + "' has no permission");
         }
@@ -68,17 +71,28 @@ public class ImportApp extends Controller {
 
         Project project = filledNewProjectForm.get();
         project.owner = UserApp.currentUser().loginId;
+        String errorMessageKey = null;
         try {
             GitRepository.cloneRepository(gitUrl, project);
             Long projectId = Project.create(project);
             ProjectUser.assignRole(UserApp.currentUser().id, projectId, RoleType.MANAGER);
-        } catch (Exception e) {
-            flash(Constants.WARNING, "import.error.wrong.url");
-            FileUtil.rm_rf(new File(GitRepository.getGitDirectory(project)));
-            return badRequest(importing.render("title.newProject", filledNewProjectForm));
+        } catch (InvalidRemoteException e) {
+            // It is not an url.
+            errorMessageKey = "import.error.wrong.url";
+        } catch (JGitInternalException e) {
+            // The url seems that does not locate a git repository.
+            errorMessageKey = "import.error.wrong.url";
+        } catch (TransportException e) {
+            errorMessageKey = "import.error.transport";
         }
 
-        return redirect(routes.ProjectApp.project(project.owner, project.name));
+        if (errorMessageKey != null) {
+            flash(Constants.WARNING, errorMessageKey);
+            FileUtil.rm_rf(new File(GitRepository.getGitDirectory(project)));
+            return badRequest(importing.render("title.newProject", filledNewProjectForm));
+        } else {
+            return redirect(routes.ProjectApp.project(project.owner, project.name));
+        }
     }
 
 }

@@ -227,15 +227,15 @@ $yobi = yobi.Common = (function(){
         
         // send form
         welForm.ajaxForm({
-            "success" : function(oRes){
+            "success" : function(){
                 if(typeof htOptions.fOnLoad === "function"){
-                    htOptions.fOnLoad(oRes);
+                    htOptions.fOnLoad.apply(this, arguments);
                 }
                 welForm.remove();
             },
-            "error"   : function(oRes){
+            "error"   : function(){
                 if(typeof htOptions.fOnError === "function"){
-                    htOptions.fOnError(oRes);
+                    htOptions.fOnError.apply(this, arguments);
                 }
                 welForm.remove();
             },
