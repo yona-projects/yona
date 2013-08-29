@@ -49,7 +49,7 @@
                         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
                         @if(!project.isPublic){ <i class="ico ico-lock"></i> }
                         @for(label <- project.labels) {
-                            <span class="project-label @label.category.toLowerCase()">@label.name</span>
+                            <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
                         }
                     </div>
                     <div class="desc">
