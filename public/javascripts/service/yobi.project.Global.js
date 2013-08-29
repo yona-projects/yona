@@ -26,7 +26,6 @@
             _attachEvent();
 
             _initShortcutKey(htOptions.htKeyMap);
-            _initAffix();
         }
 
         /**
@@ -150,16 +149,6 @@
 
                 htVar.bInitClipboard = true;                
             }
-        }
-
-        /**
-         * 프로젝트 메뉴 영역에 bootstrap-affix 적용
-         */
-        function _initAffix(){
-            htElement.welProjectMenu.height(htElement.welProjectMenuWrap.height());
-            htElement.welProjectMenuWrap.affix({
-                "offset": htElement.welProjectMenuWrap.offset()
-            });
         }
 
         _init(htOptions || {});

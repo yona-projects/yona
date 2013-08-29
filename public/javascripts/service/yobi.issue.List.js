@@ -24,6 +24,7 @@
             _attachEvent();
             _initPagination();
             _setLabelColor();
+            _setMassUpdateFormAffixed();
         }
         
         /**
@@ -140,7 +141,7 @@
          */
         function _onClickBtnAdvance(){
             htElement.welContainer.toggleClass("advanced");
-           }
+        }
 
         /**
          * update Pagination
@@ -164,6 +165,21 @@
             });
             
             welLabel = sColor = null;
+        }
+
+        /**
+         * 일괄 업데이트 폼이 스크롤해도 계속 따라다니도록 설정하는 함수
+         */
+        function _setMassUpdateFormAffixed(){
+            htVar.nMassUpdateTop = htElement.welMassUpdateForm.offset().top + (htElement.welMassUpdateForm.height() / 2);
+
+            $(window).on("scroll", function(){
+                if($(window).scrollTop() > htVar.nMassUpdateTop){
+                    htElement.welMassUpdateForm.addClass("fixed");
+                } else {
+                    htElement.welMassUpdateForm.removeClass("fixed");
+                }
+            });
         }
 
         _init(htOptions);
