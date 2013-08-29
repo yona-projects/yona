@@ -13,7 +13,7 @@ import java.util.Set;
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"category", "name"}))
-public class Label extends Model {
+public class Label extends Model implements ResourceConvertible {
 
     /**
      *
@@ -95,6 +95,7 @@ public class Label extends Model {
      *
      * @return {@link Resource}로서의 라벨
      */
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

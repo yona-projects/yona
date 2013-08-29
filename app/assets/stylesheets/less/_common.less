@@ -18,6 +18,11 @@ a {
     &:hover { outline: none !important; color: @link-hover-color; text-decoration: underline; }
     &:focus { outline: none !important; color: @link-hover-color; text-decoration: underline; }
 }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
 .btn-transparent { border: 0; padding: 0; background: transparent; }
 .d-link { color: @blue; }
