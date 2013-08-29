@@ -481,7 +481,7 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.urlToView = issueCall.absoluteURL(request());
         notiEvent.resourceId = newIssue.id.toString();
         notiEvent.resourceType = newIssue.asResource().getType();
-        notiEvent.notificationType = NotificationType.NEW_ISSUE;
+        notiEvent.eventType = EventType.NEW_ISSUE;
         notiEvent.oldValue = null;
         notiEvent.newValue = newIssue.body;
 
@@ -641,7 +641,7 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.urlToView = urlToView;
         notiEvent.resourceId = updatedIssue.id.toString();
         notiEvent.resourceType = updatedIssue.asResource().getType();
-        notiEvent.notificationType = NotificationType.ISSUE_STATE_CHANGED;
+        notiEvent.eventType = EventType.ISSUE_STATE_CHANGED;
 
         NotificationEvent.add(notiEvent);
     }
@@ -678,7 +678,7 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.urlToView = urlToView;
         notiEvent.resourceId = updatedIssue.id.toString();
         notiEvent.resourceType = updatedIssue.asResource().getType();
-        notiEvent.notificationType = NotificationType.ISSUE_ASSIGNEE_CHANGED;
+        notiEvent.eventType = EventType.ISSUE_ASSIGNEE_CHANGED;
 
         NotificationEvent.add(notiEvent);
     }

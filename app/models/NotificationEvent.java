@@ -1,6 +1,6 @@
 package models;
 
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
@@ -52,7 +52,7 @@ public class NotificationEvent extends Model {
     public String resourceId;
 
     @Enumerated(EnumType.STRING)
-    public NotificationType notificationType;
+    public EventType eventType;
 
     @Lob
     public String oldValue;
@@ -109,7 +109,7 @@ public class NotificationEvent extends Model {
             return message;
         }
 
-        switch (notificationType) {
+        switch (eventType) {
         case ISSUE_STATE_CHANGED:
             if (newValue.equals(State.CLOSED.state())) {
                 return Messages.get("notification.issue.closed");
@@ -182,7 +182,7 @@ public class NotificationEvent extends Model {
                 .orderBy("id desc").setMaxRows(1).findUnique();
 
         if (lastEvent != null) {
-            if (lastEvent.notificationType == event.notificationType &&
+            if (lastEvent.eventType == event.eventType &&
                     event.senderId.equals(lastEvent.senderId)) {
                 // If the last event is A -> B and the current event is B -> C,
                 // they are merged into the new event A -> C.

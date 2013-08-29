@@ -14,17 +14,17 @@
     }
 }
 
-@notifycationIcon(notifytype: NotificationType, msg: String) = @{
+@notifycationIcon(notifytype: EventType, msg: String) = @{
 
     notifytype match {
-        case NotificationType.NEW_COMMENT => { "comments"}
-        case NotificationType.NEW_ISSUE => {"exclamation"}
-        case NotificationType.ISSUE_STATE_CHANGED => {"map-marker"}
-        case NotificationType.ISSUE_ASSIGNEE_CHANGED => { "user" }
-        case NotificationType.NEW_POSTING => { "bullhorn" }
-        case NotificationType.NEW_PULL_REQUEST => { "code-fork" }
-        case NotificationType.NEW_SIMPLE_COMMENT => { "comments" }
-        case NotificationType.PULL_REQUEST_STATE_CHANGED => { "code-fork" }
+        case EventType.NEW_COMMENT => { "comments"}
+        case EventType.NEW_ISSUE => {"exclamation"}
+        case EventType.ISSUE_STATE_CHANGED => {"map-marker"}
+        case EventType.ISSUE_ASSIGNEE_CHANGED => { "user" }
+        case EventType.NEW_POSTING => { "bullhorn" }
+        case EventType.NEW_PULL_REQUEST => { "code-fork" }
+        case EventType.NEW_SIMPLE_COMMENT => { "comments" }
+        case EventType.PULL_REQUEST_STATE_CHANGED => { "code-fork" }
         case _ => {"info"}
     }
 }
@@ -34,8 +34,8 @@
 @for(noti <- notifications(from, from + limit)){
 <li class="notification-stream">
     @defining(User.find.byId(noti.senderId)){ user =>
-    <div class="stream-type @notifycationIcon(noti.notificationType,noti.newValue)">
-        <span class="@notifycationIcon(noti.notificationType,noti.newValue)"><i class="icon-@notifycationIcon(noti.notificationType,noti.newValue)"></i></span>
+    <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
+        <span class="@notifycationIcon(noti.eventType,noti.newValue)"><i class="icon-@notifycationIcon(noti.eventType,noti.newValue)"></i></span>
     </div>
     <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
         <div class="stream-info">

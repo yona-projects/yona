@@ -4,7 +4,7 @@ import play.i18n.Messages;
 
 import java.util.*;
 
-public enum NotificationType {
+public enum EventType {
 
     NEW_ISSUE("notification.type.new.issue", 1),
     NEW_POSTING("notification.type.new.posting", 2),

@@ -8,7 +8,7 @@ import java.util.Set;
 import javax.servlet.ServletException;
 
 import models.*;
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import models.enumeration.Operation;
 
 import models.enumeration.ResourceType;
@@ -225,7 +225,7 @@ public class CodeHistoryApp extends Controller {
         notiEvent.urlToView = toView.absoluteURL(request());
         notiEvent.resourceId = codeComment.id.toString();
         notiEvent.resourceType = codeComment.asResource().getType();
-        notiEvent.notificationType = NotificationType.NEW_COMMENT;
+        notiEvent.eventType = EventType.NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = codeComment.contents;
 

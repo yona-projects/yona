@@ -250,7 +250,7 @@ public class PullRequestApp extends Controller {
         notiEvent.urlToView = pullRequestCall.absoluteURL(request());
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.notificationType = NotificationType.NEW_PULL_REQUEST;
+        notiEvent.eventType = EventType.NEW_PULL_REQUEST;
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
 
@@ -476,7 +476,7 @@ public class PullRequestApp extends Controller {
         notiEvent.urlToView = pullRequestCall.absoluteURL(request());
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.notificationType = NotificationType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
         notiEvent.oldValue = oldState.state();
         notiEvent.newValue = newState.state();
 

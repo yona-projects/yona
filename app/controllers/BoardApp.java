@@ -5,7 +5,7 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
 import models.*;
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
@@ -162,7 +162,7 @@ public class BoardApp extends AbstractPostingApp {
         notiEvent.urlToView = toPost.absoluteURL(request());
         notiEvent.resourceId = post.id.toString();
         notiEvent.resourceType = post.asResource().getType();
-        notiEvent.notificationType = NotificationType.NEW_POSTING;
+        notiEvent.eventType = EventType.NEW_POSTING;
         notiEvent.oldValue = null;
         notiEvent.newValue = post.body;
         NotificationEvent.add(notiEvent);

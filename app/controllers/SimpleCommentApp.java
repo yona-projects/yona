@@ -4,7 +4,7 @@ import models.NotificationEvent;
 import models.PullRequest;
 import models.SimpleComment;
 import models.User;
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import play.data.Form;
@@ -75,7 +75,7 @@ public class SimpleCommentApp extends Controller {
         notiEvent.urlToView = url;
         notiEvent.resourceId = simpleComment.id.toString();
         notiEvent.resourceType = simpleComment.asResource().getType();
-        notiEvent.notificationType = NotificationType.NEW_SIMPLE_COMMENT;
+        notiEvent.eventType = EventType.NEW_SIMPLE_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = simpleComment.contents;
 

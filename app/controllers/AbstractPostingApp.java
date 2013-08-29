@@ -1,7 +1,7 @@
 package controllers;
 
 import info.schleichardt.play2.mailplugin.Mailer;
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.mail.HtmlEmail;
 import play.Logger;
@@ -153,7 +153,7 @@ public class AbstractPostingApp extends Controller {
         notiEvent.urlToView = toView.absoluteURL(request());
         notiEvent.resourceId = comment.id.toString();
         notiEvent.resourceType = comment.asResource().getType();
-        notiEvent.notificationType = NotificationType.NEW_COMMENT;
+        notiEvent.eventType = EventType.NEW_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = comment.contents;
 
