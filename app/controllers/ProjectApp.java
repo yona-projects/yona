@@ -511,7 +511,7 @@ public class ProjectApp extends Controller {
                 userList.add(commenter);
             }
         }
-        Collections.sort(userList, Collections.reverseOrder());
+        Collections.reverse(userList);
     }
 
     private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {
@@ -524,7 +524,7 @@ public class ProjectApp extends Controller {
                 userList.add(commentAuthor);
             }
         }
-        Collections.sort(userList, Collections.reverseOrder());
+        Collections.reverse(userList);
     }
 
     private static void addCommitAuthor(Commit commit, List<User> userList) {
@@ -566,7 +566,7 @@ public class ProjectApp extends Controller {
                 userList.add(postAuthor);
             }
         }
-        Collections.sort(userList, Collections.reverseOrder());
+        Collections.reverse(userList);
     }
 
     private static void collectedUsersToMap(List<Map<String, String>> users, List<User> userList) {
