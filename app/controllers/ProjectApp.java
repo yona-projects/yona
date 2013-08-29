@@ -2,8 +2,11 @@ package controllers;
 
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
+
 import models.*;
 import models.enumeration.*;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -22,6 +25,7 @@ import utils.AccessControl;
 import utils.Constants;
 import utils.HttpUtil;
 import utils.ErrorViews;
+import utils.LabelSearchUtil;
 import views.html.project.*;
 
 import javax.servlet.ServletException;
@@ -738,6 +742,12 @@ public class ProjectApp extends Controller {
         } else if (stateType == Project.State.PRIVATE) {
             el.eq("isPublic", false);
         }
+
+        Set<Long> labelIds = LabelSearchUtil.getLabelIds(request());
+        if (CollectionUtils.isNotEmpty(labelIds)) {
+            el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
+        }
+
         el.orderBy("createdDate desc");
         Page<Project> projects = el.findPagingList(PROJECT_COUNT_PER_PAGE).getPage(pageNum - 1);
 
