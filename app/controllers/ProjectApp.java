@@ -399,13 +399,13 @@ public class ProjectApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
 
-        Set<User> userSet = new HashSet<>();
-        collectAuthorAndCommenter(project, number, userSet, resourceType);
-        addProjectMemberList(project, userSet);
-        userSet.remove(UserApp.currentUser());
+        List<User> userList = new ArrayList<>();
+        collectAuthorAndCommenter(project, number, userList, resourceType);
+        addProjectMemberList(project, userList);
+        userList.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userSet);
+        collectedUsersToMap(mentionList, userList);
         return ok(toJson(mentionList));
     }
 
@@ -442,14 +442,14 @@ public class ProjectApp extends Controller {
 
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
 
-        Set<User> userSet = new HashSet<>();
-        addCommitAuthor(commit, userSet);
-        addCodeCommenters(commitId, project.id, userSet);
-        addProjectMemberList(project, userSet);
-        userSet.remove(UserApp.currentUser());
+        List<User> userList = new ArrayList<>();
+        addCommitAuthor(commit, userList);
+        addCodeCommenters(commitId, project.id, userList);
+        addProjectMemberList(project, userList);
+        userList.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userSet);
+        collectedUsersToMap(mentionList, userList);
         return ok(toJson(mentionList));
     }
 
@@ -487,53 +487,59 @@ public class ProjectApp extends Controller {
         }
 
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        Set<User> userSet = new HashSet<>();
+        List<User> userList = new ArrayList<>();
 
-        addCommentAuthors(pullRequestId, userSet);
-        addProjectMemberList(project, userSet);
+        addCommentAuthors(pullRequestId, userList);
+        addProjectMemberList(project, userList);
         if(!commitId.isEmpty()) {
-            addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userSet);
+            addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userList);
         }
-        userSet.add(pullRequest.contributor);
-        userSet.remove(UserApp.currentUser());
+        userList.add(pullRequest.contributor);
+        userList.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
-        collectedUsersToMap(mentionList, userSet);
+        collectedUsersToMap(mentionList, userList);
         return ok(toJson(mentionList));
     }
 
-    private static void addCommentAuthors(Long pullRequestId, Set<User> userSet) {
+    private static void addCommentAuthors(Long pullRequestId, List<User> userList) {
         List<SimpleComment> comments = SimpleComment
                 .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
         for (SimpleComment codeComment : comments) {
-            userSet.add(User.findByLoginId(codeComment.authorLoginId));
-        }
-    }
-
-    private static void addCodeCommenters(String commitId, Long projectId, Set<User> userSet) {
-        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
-                commitId).eq("project.id", projectId).findList();
-
-        for (CodeComment codeComment : comments) {
-            userSet.add(User.findByLoginId(codeComment.authorLoginId));
-        }
-    }
-
-    private static void addCommitAuthor(Commit commit, Set<User> userSet) {
-        if(!commit.getAuthor().isAnonymous()) {
-            userSet.add(commit.getAuthor());
-        }
-
-        //fallback: additional search by email id
-        if (commit.getAuthorEmail() != null){
-            User author = User.findByLoginId(commit.getAuthorEmail().substring(0, commit.getAuthorEmail().lastIndexOf("@")));
-            if(!author.isAnonymous()) {
-                userSet.add(author);
+            final User commenter = User.findByLoginId(codeComment.authorLoginId);
+            if(!userList.contains(commenter)){
+                userList.add(commenter);
             }
         }
     }
 
-    private static void collectAuthorAndCommenter(Project project, Long number, Set<User> userSet, String resourceType) {
+    private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {
+        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+                commitId).eq("project.id", projectId).findList();
+
+        for (CodeComment codeComment : comments) {
+            User commentAuthor = User.findByLoginId(codeComment.authorLoginId);
+            if( !userList.contains(commentAuthor) ){
+                userList.add(commentAuthor);
+            }
+        }
+    }
+
+    private static void addCommitAuthor(Commit commit, List<User> userList) {
+        if(!commit.getAuthor().isAnonymous() && !userList.contains(commit.getAuthor())) {
+            userList.add(commit.getAuthor());
+        }
+
+        //fallback: additional search by email id
+        if (commit.getAuthorEmail() != null){
+            User authorByEmail = User.findByLoginId(commit.getAuthorEmail().substring(0, commit.getAuthorEmail().lastIndexOf("@")));
+            if(!authorByEmail.isAnonymous() && !userList.contains(authorByEmail)) {
+                userList.add(authorByEmail);
+            }
+        }
+    }
+
+    private static void collectAuthorAndCommenter(Project project, Long number, List<User> userList, String resourceType) {
         AbstractPosting posting = null;
         switch (ResourceType.getValue(resourceType)) {
             case ISSUE_POST:
@@ -547,15 +553,21 @@ public class ProjectApp extends Controller {
         }
 
         if(posting != null) {
-            userSet.add(User.findByLoginId(posting.authorLoginId));
             for(Comment comment: posting.getComments()) {
-                userSet.add(User.findByLoginId(comment.authorLoginId));
+                User commentUser = User.findByLoginId(comment.authorLoginId);
+                if (!userList.contains(commentUser)) {
+                    userList.add(commentUser);
+                }
+            }
+            User postAuthor = User.findByLoginId(posting.authorLoginId);
+            if( !userList.contains(postAuthor) ) {
+                userList.add(postAuthor);
             }
         }
     }
 
-    private static void collectedUsersToMap(List<Map<String, String>> users, Set<User> userSet) {
-        for(User user: userSet) {
+    private static void collectedUsersToMap(List<Map<String, String>> users, List<User> userList) {
+        for(User user: userList) {
             Map<String, String> projectUserMap = new HashMap<>();
             if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
                 projectUserMap.put("username", user.loginId);
@@ -566,9 +578,11 @@ public class ProjectApp extends Controller {
         }
     }
 
-    private static void addProjectMemberList(Project project, Set<User> userSet) {
+    private static void addProjectMemberList(Project project, List<User> userList) {
         for(ProjectUser projectUser: project.projectUser) {
-            userSet.add(projectUser.user);
+            if(!userList.contains(projectUser.user)){
+                userList.add(projectUser.user);
+            }
         }
     }
 
