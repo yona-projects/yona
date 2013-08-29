@@ -400,8 +400,8 @@ public class ProjectApp extends Controller {
         }
 
         Set<User> userSet = new HashSet<>();
-        addProjectMemberList(project, userSet);
         collectAuthorAndCommenter(project, number, userSet, resourceType);
+        addProjectMemberList(project, userSet);
         userSet.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
@@ -443,9 +443,9 @@ public class ProjectApp extends Controller {
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
 
         Set<User> userSet = new HashSet<>();
-        addProjectMemberList(project, userSet);
         addCommitAuthor(commit, userSet);
         addCodeCommenters(commitId, project.id, userSet);
+        addProjectMemberList(project, userSet);
         userSet.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
