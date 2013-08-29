@@ -75,7 +75,7 @@ public class SimpleCommentApp extends Controller {
         notiEvent.urlToView = url;
         notiEvent.resourceId = simpleComment.id.toString();
         notiEvent.resourceType = simpleComment.asResource().getType();
-        notiEvent.type = NotificationType.NEW_SIMPLE_COMMENT;
+        notiEvent.notificationType = NotificationType.NEW_SIMPLE_COMMENT;
         notiEvent.oldValue = null;
         notiEvent.newValue = simpleComment.contents;
 

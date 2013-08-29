@@ -213,8 +213,12 @@ yobi.Files = (function(){
             return _onErrorSubmit(nSubmitId, oRes);
         }
 
-        // fireEvent: onSuccessSubmit
-        htElements[sNamespace].welInputFile.val("");
+        // clear inputFile
+        if(sNamespace && htElements[sNamespace].welInputFile){
+            htElements[sNamespace].welInputFile.val("");
+        }
+
+        // fireEvent: onSuccessSubmit        
         _fireEvent("successUpload", {
             "nSubmitId": nSubmitId,
             "oRes": oRes
@@ -495,7 +499,11 @@ yobi.Files = (function(){
      */
     function _fireEvent(sEventName, oData, sNamespace){
         sNamespace = sNamespace ? (sNamespace+".") : "";
-        var aHandlers = htHandlers[sNamespace + sEventName];
+
+        var aGlobalHandlers = htHandlers[sEventName] || [];
+        var aLocalHandlers = htHandlers[sNamespace + sEventName] || [];
+        var aHandlers = aGlobalHandlers.concat(aLocalHandlers);
+        
         if((aHandlers instanceof Array) === false){
             return;
         }

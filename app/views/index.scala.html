@@ -81,6 +81,24 @@
             if(localStorage.getItem("yobi-intro") != "false"){
                 $(".page").removeClass("on-fold-intro");
             }
+            
+            $('.notification-stream').on('click','[data-toggle="learnmore"]',function(event) {
+                var sTargetId = $(this).data('target'),
+                    welMessage = $('#'+sTargetId),
+                    nHeight;
+
+                if(event.target.localName =='a' || event.target.localName =='img') {
+                    return ;
+                }    
+
+                welMessage.toggleClass('nowrap');
+
+                nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+
+                $(welMessage).css('max-height',nHeight);
+               
+            });
+           
         });
     </script>
 }

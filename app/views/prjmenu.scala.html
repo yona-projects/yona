@@ -23,8 +23,8 @@
         <div class="project-menu-container main">
             <div class="actrow">
                 <!-- repo URL -->
-                <button id="btnClone" type="button" class="nbtn medium">
-                    <i class="icon-link icon-large vmiddle"></i> @Messages("code.repoUrl")
+                <button id="btnClone" type="button" class="nbtn medium btnClone" data-toggle="tooltip" title="@Messages("code.repoUrl")">
+                    <i class="icon-link icon-large vmiddle"></i> 
                 </button>
                 <div id="showRepoURL" class="popover bottom">
                     <div class="arrow"></div>
@@ -41,12 +41,12 @@
                 <!-- watch project -->
                 <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){
-                    <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last watchBtn">
-                        <i class="icon-eye-open icon-large"></i> @Messages("notification.watch")
+                    <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last watchBtn" data-toggle="tooltip" title="@Messages("project.unwatch")">
+                        <i class="icon-eye-open icon-large"></i> 
                     </a>
                     } else {
-                    <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white last watchBtn">
-                        <i class="icon-eye-open icon-large"></i> @Messages("notification.watch")
+                    <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white last watchBtn" data-toggle="tooltip" title="@Messages("project.watch")">
+                        <i class="icon-eye-open icon-large"></i> 
                     </a>
                     }
                     <button class="btn dropdown-toggle small @if(User.isWatching(project)){blue}" data-toggle="dropdown" style="padding:0">
@@ -94,15 +94,14 @@
                 <!-- fork project -->
                 @if(project.vcs.equals("GIT")){
                 <div class="btn-group dbtn-group">
-                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium white last">
+                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium white last" data-toggle="tooltip" title="@Messages("fork")">
                         <i class="icon-code-fork icon-large"></i>
-                        @Messages("fork")
                         <span class="num-badge">@project.forkingProjects.size()</span>
                     </a>
                     <button class="btn dropdown-toggle small white" data-toggle="dropdown" style="padding:0">
                         <div class="d-caret"><span class="caret"></span></div>
                     </button>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu pull-right">
                         <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
                         @for(fork <- project.forkingProjects) {
                         <li>
@@ -123,8 +122,8 @@
                         <i class="icon-user icon-large"></i>
                     </a>
                     } else {
-                    <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn">
-                        <i class="icon-user icon-large"></i> @Messages("member.enrollment.request")
+                    <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn" data-toggle="tooltip" title="@Messages("member.enrollment.request")">
+                        <i class="icon-user icon-large"></i> 
                     </a>
                     }
                     <button class="btn dropdown-toggle small" data-toggle="dropdown" style="padding:0">

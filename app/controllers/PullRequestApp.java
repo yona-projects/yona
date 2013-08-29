@@ -250,7 +250,7 @@ public class PullRequestApp extends Controller {
         notiEvent.urlToView = pullRequestCall.absoluteURL(request());
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.type = NotificationType.NEW_PULL_REQUEST;
+        notiEvent.notificationType = NotificationType.NEW_PULL_REQUEST;
         notiEvent.oldValue = null;
         notiEvent.newValue = pullRequest.body;
 
@@ -392,6 +392,11 @@ public class PullRequestApp extends Controller {
             fetch[0] = GitRepository.getPatch(pullRequest);
         }
 
+        String activeTab = request().getQueryString("activeTab");
+        if(activeTab == null && !isValid(activeTab)) {
+            activeTab = "info";
+        }
+
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
         if(pullRequest.isClosed()) {
@@ -401,7 +406,12 @@ public class PullRequestApp extends Controller {
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0]));
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0], activeTab));
+    }
+
+    private static boolean isValid(String activeTab) {
+        List<String> validTabs = Arrays.asList("info", "commits", "changes");
+        return validTabs.contains(activeTab);
     }
 
     /**
@@ -466,7 +476,7 @@ public class PullRequestApp extends Controller {
         notiEvent.urlToView = pullRequestCall.absoluteURL(request());
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.type = NotificationType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.notificationType = NotificationType.PULL_REQUEST_STATE_CHANGED;
         notiEvent.oldValue = oldState.state();
         notiEvent.newValue = newState.state();
 

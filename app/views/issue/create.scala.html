@@ -50,8 +50,12 @@
                     @fileUploader(ResourceType.ISSUE_POST, null)
                 }
                 @** end of fileUploader **@
-            </div>
 
+                <div class="actrow right-txt">
+                    <button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
+                 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+                </div>
+            </div>
             <div class="span3">
                 @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_ASSIGNEE)) {
                 <dl class="issue-option">
@@ -120,15 +124,7 @@
             </div>                    
         </div>
     </div>
-    
-    <div class="row-fluid">
-        <div class="span9 actrow right-txt">
-    	 	<button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
-    	 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
-    	</div>
-	</div>
-
-	} @** end of form **@
+    } @** end of form **@
 	</div>
 </div>
 
