@@ -19,7 +19,7 @@ import java.util.*;
  * 이슈 혹은 게시글의, 댓글
  */
 @MappedSuperclass
-abstract public class Comment extends Model {
+abstract public class Comment extends Model implements TimelineItem {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -116,5 +116,9 @@ abstract public class Comment extends Model {
                 return o1.createdDate.compareTo(o2.createdDate);
             }
         };
+    }
+
+    public Date getDate() {
+        return createdDate;
     }
 }

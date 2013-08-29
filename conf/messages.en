@@ -232,6 +232,10 @@ issue.list.authoredByMe = Created by me
 issue.assignToMe = Assign to me
 issue.watch.start = You will receive notifications of this issue
 issue.unwatch.start = Notifications of this issue has muted
+issue.event.open = {0} reopened this issue
+issue.event.closed = {0} closed this issue
+issue.event.assigned = {0} assigned this issue to {1}
+issue.event.unassigned = {0} unassinged this issue
 
 #Post
 post.new = New

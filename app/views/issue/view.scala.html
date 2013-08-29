@@ -8,6 +8,7 @@
 @import java.security.MessageDigest
 @import utils.TemplateHelper._
 @import utils.AccessControl._
+@import utils.JodaDateUtil
 @import java.net._
 @import utils.Config
 
@@ -20,6 +21,17 @@
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 
 @urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString) }
+
+@avatarByLoginId(loginId: String) = {
+    <img src="@User.findByLoginId(loginId).avatarUrl" class="avatar-wrap smaller" alt="@loginId">
+}
+
+@linkToUser(loginId: String, showAvatar: Boolean = false) = {
+    @loginId match {
+    case (loginId: String) => { <a href="@routes.UserApp.userInfo(loginId)" class="usf-group">@if(showAvatar){@avatarByLoginId(loginId)}<strong>@loginId</strong></a> }
+    case _ => { Anonymous }
+    }
+}
 
 @main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
@@ -236,9 +248,11 @@
     <div id="comments" class="board-comment-wrap">
         <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 
-        @if(issue.comments.size > 0) {
+        @if(issue.comments.size + issue.events.size > 0) {
         <ul class="comments">
-        @for(comment <- issue.comments){
+        @for(item <- issue.getTimeline){
+            @item match {
+            case (comment: Comment) => {
             <li class="comment" id="comment-@comment.id">
                 <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
                     <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
@@ -256,6 +270,29 @@
                 </div>
             </li>
             }
+            case (event: IssueEvent) => {
+            <li class="event" id="event-@event.id">
+                @event.eventType match {
+                case EventType.ISSUE_STATE_CHANGED => {
+                <span class="label @if(event.newValue.equals("open")){label-info}">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(event.senderLoginId)))
+                <!-- @Html(Messages("issue.event." + event.newValue, linkToUser(event.senderLoginId))) -->
+                }
+                case EventType.ISSUE_ASSIGNEE_CHANGED => {
+                @Html(Messages(
+                event.newValue match {
+                case assignee: String => "issue.event.assigned"
+                case _ => "issue.event.unassigned"
+                }, linkToUser(event.senderLoginId), linkToUser(event.newValue, true)))
+                }
+                case _ => {
+                    @event.newValue by @linkToUser(event.senderLoginId)
+                }
+                }
+                <span class="date"><a href="#event-@event.id">@utils.TemplateHelper.agoString(JodaDateUtil.ago(event.getDate()))</a></span>
+            </li>
+            }
+            }
+        }
         </ul>
         }
 

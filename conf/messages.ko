@@ -232,6 +232,10 @@ issue.list.authoredByMe = 내가 작성한 이슈
 issue.assignToMe = 나에게 할당하기
 issue.watch.start = 이제 이 이슈에 관한 알림을 받습니다
 issue.unwatch.start = 이제 이 이슈에 관한 알림을 받지 않습니다
+issue.event.open = {0}님이 이 이슈를 다시 열었습니다.
+issue.event.closed = {0}님이 이 이슈를 닫았습니다.
+issue.event.assigned = {0}님이 {1}님을 이 이슈의 담당자로 지정하였습니다.
+issue.event.unassigned = {0}님이 이 이슈의 담당자를 "없음"으로 설정하였습니다.
 
 #Post
 post.new = 새글

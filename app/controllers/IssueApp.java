@@ -644,6 +644,8 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.eventType = EventType.ISSUE_STATE_CHANGED;
 
         NotificationEvent.add(notiEvent);
+
+        IssueEvent.addFromNotificationEvent(notiEvent, updatedIssue, UserApp.currentUser().loginId);
     }
 
     /**
@@ -681,6 +683,8 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.eventType = EventType.ISSUE_ASSIGNEE_CHANGED;
 
         NotificationEvent.add(notiEvent);
+
+        IssueEvent.addFromNotificationEvent(notiEvent, updatedIssue, UserApp.currentUser().loginId);
     }
 
     /*

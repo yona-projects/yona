@@ -71,6 +71,9 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @OneToMany(cascade = CascadeType.ALL, mappedBy="issue")
     public List<IssueComment> comments;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy="issue")
+    public List<IssueEvent> events;
+
     /**
      * @return
      * @see models.AbstractPosting#computeNumOfComments()
@@ -429,5 +432,27 @@ public class Issue extends AbstractPosting implements LabelOwner {
     @Override
     public Set<IssueLabel> getLabels() {
         return labels;
+    }
+
+    /**
+     * 이 이슈의 타임라인을 얻는다.
+     *
+     * 타임라인이란 어떤 이슈에 대한 댓글들과 변경 내역(상태 변경, 담당자 변경)들의 시간순으로 정렬된 목록이다.
+     *
+     * when: 이슈 하나의 내용을 보여줄 때
+     *
+     * @return 타임라인
+     */
+    public List<TimelineItem> getTimeline() {
+        List<TimelineItem> timelineItems = new ArrayList<>();
+        timelineItems.addAll(comments);
+        timelineItems.addAll(events);
+        Collections.sort(timelineItems, new Comparator<TimelineItem>() {
+            @Override
+            public int compare(TimelineItem o1, TimelineItem o2) {
+                return o1.getDate().compareTo(o2.getDate());
+            }
+        });
+        return timelineItems;
     }
 }
