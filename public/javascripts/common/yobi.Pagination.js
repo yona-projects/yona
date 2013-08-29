@@ -155,7 +155,7 @@ yobi.Pagination = (function(window, document) {
 		}
 
 		// page input box
-		var elInput = $('<input name="pageNum" type="text" pattern="[0-9]*" min="1" max="' + totalPages + '" class="input-mini" value="' + options.current + '">').keydown(keydownOnInput);
+		var elInput = $('<input name="pageNum" type="number" pattern="[0-9]*" min="1" max="' + totalPages + '" class="input-mini" value="' + options.current + '">').keydown(keydownOnInput);
 		var welPageInputContainer = $('<li class="page-num">').append(elInput);
 		var welDelimiter = $('<li class="page-num delimiter">').text('/');
 		var welTotalPages = $('<li class="page-num">').text(totalPages);
