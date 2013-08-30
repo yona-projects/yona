@@ -353,9 +353,21 @@ public class PullRequest extends Model {
 
     @Transactional
     public void saveWithNumber() {
-        this.number = toProject.nextPullRequestNumber();
+        this.number = nextPullRequestNumber(toProject);
         this.save();
-        toProject.update();
+    }
+
+    public static long nextPullRequestNumber(Project project) {
+        PullRequest maxNumberedPullRequest = PullRequest.finder.where()
+                .eq("toProject", project)
+                .order().desc("number")
+                .setMaxRows(1).findUnique();
+
+        if(maxNumberedPullRequest == null || maxNumberedPullRequest.number == null) {
+            return 1;
+        } else {
+            return ++maxNumberedPullRequest.number;
+        }
     }
 
     public static PullRequest findOne(Project toProject, long number) {
@@ -380,11 +392,10 @@ public class PullRequest extends Model {
                 List<PullRequest> pullRequests = PullRequest.findByToProject(project);
                 for(PullRequest pullRequest : pullRequests) {
                     if(pullRequest.number == null) {
-                        pullRequest.number = project.nextPullRequestNumber();
+                        pullRequest.number = nextPullRequestNumber(project);
                         pullRequest.update();
                     }
                 }
-                project.update();
             }
         }
     }
