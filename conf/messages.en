@@ -75,7 +75,7 @@ label.addNewLabel = Add new label
 
 order.all = All
 order.date = Date
-order.state = State
+order.updatedDate = Updated Date
 order.comments = Comments
 order.completionRate = Completion Rate
 order.dueDate = Due Date

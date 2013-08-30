@@ -134,6 +134,7 @@ public class BoardApp extends AbstractPostingApp {
 
         final Posting post = postForm.get();
         post.createdDate = JodaDateUtil.now();
+        post.updatedDate = JodaDateUtil.now();
         post.setAuthor(UserApp.currentUser());
         post.project = project;
         

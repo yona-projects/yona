@@ -44,6 +44,10 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date createdDate;
+    
+    @Constraints.Required
+    @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
+    public Date updatedDate;
 
     public Long authorId;
     public String authorLoginId;
@@ -70,6 +74,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
     public AbstractPosting() {
         this.createdDate = JodaDateUtil.now();
+        this.updatedDate = JodaDateUtil.now();
     }
 
     protected abstract Finder<Long, ? extends AbstractPosting> getFinder();

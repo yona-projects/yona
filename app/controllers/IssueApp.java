@@ -6,7 +6,6 @@ import models.enumeration.*;
 import play.mvc.Http;
 import views.html.issue.edit;
 import views.html.issue.partial_search;
-import views.html.issue.partial_list;
 import views.html.issue.view;
 import views.html.issue.list;
 import views.html.issue.create;
@@ -398,6 +397,7 @@ public class IssueApp extends AbstractPostingApp {
                 issue.labels.remove(issueMassUpdate.detachingLabel);
             }
 
+            issue.updatedDate = JodaDateUtil.now();
             issue.update();
             updatedItems++;
 
@@ -453,6 +453,7 @@ public class IssueApp extends AbstractPostingApp {
 
         final Issue newIssue = issueForm.get();
         newIssue.createdDate = JodaDateUtil.now();
+        newIssue.updatedDate = JodaDateUtil.now();
         newIssue.setAuthor(UserApp.currentUser());
         newIssue.project = project;
 

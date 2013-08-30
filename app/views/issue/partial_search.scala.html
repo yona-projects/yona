@@ -25,7 +25,7 @@
 	@if(orderBy.equals(fieldName)) {
 		<a href="#" orderBy="@orderBy" orderDir="@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
 	} else {
-	    <a href="#" orderBy="@fieldName" orderDir="asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
+	    <a href="#" orderBy="@fieldName" orderDir="desc" class="filter"><i class="ico btn-gray-arrow down"></i>@fieldText</a>
 	}
 }
 
@@ -195,6 +195,7 @@
 
                 @if(currentPage.getList().size() > 1){
         		<div class="filters pull-right">
+        			@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("order.updatedDate"))
         			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
         			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
         		</div>

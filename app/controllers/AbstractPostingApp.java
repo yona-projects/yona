@@ -22,6 +22,7 @@ import utils.AccessControl;
 import utils.Config;
 import utils.Constants;
 import utils.ErrorViews;
+import utils.JodaDateUtil;
 
 import java.io.IOException;
 import java.util.Date;
@@ -255,6 +256,7 @@ public class AbstractPostingApp extends Controller {
 
         posting.id = original.id;
         posting.createdDate = original.createdDate;
+        posting.updatedDate = JodaDateUtil.now();
         posting.authorId = original.authorId;
         posting.authorLoginId = original.authorLoginId;
         posting.authorName = original.authorName;

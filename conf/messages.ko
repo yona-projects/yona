@@ -75,7 +75,7 @@ label.addNewLabel = 새 라벨 추가
 
 order.all = 전체
 order.date = 날짜순
-order.state = 상태순
+order.updatedDate = 변경순
 order.comments = 댓글순
 order.completionRate = 완료율순
 order.dueDate = 완료일순

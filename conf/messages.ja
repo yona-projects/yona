@@ -75,7 +75,7 @@ label.addNewLabel = ラベル追加
 
 order.all = 全部
 order.date = 更新順
-order.state = 状態順
+order.updatedDate = ビョンギョンスン
 order.comments = コメント順
 order.completionRate = 完了率順
 order.dueDate = 完了日時順
