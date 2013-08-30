@@ -62,7 +62,7 @@ public class UserProjectNotification extends Model {
      * @param notiType
      * @return
      */
-    public static boolean isAllowed(Map<Project, Map<NotificationType, Boolean>> notiMap, Project project, NotificationType notiType) {
+    public static boolean isEnabledNotiType(Map<Project, Map<NotificationType, Boolean>> notiMap, Project project, NotificationType notiType) {
         if(!notiMap.containsKey(project)) {
             return true;
         }
@@ -83,7 +83,7 @@ public class UserProjectNotification extends Model {
                 .findUnique();
     }
 
-    public void change() {
+    public void toggle() {
         if(this.allowed == false) {
             this.allowed = true;
         } else {
@@ -92,7 +92,7 @@ public class UserProjectNotification extends Model {
         update();
     }
 
-    public static void saveNewOff(User user, Project project, NotificationType notiType) {
+    public static void unwatchExplictly(User user, Project project, NotificationType notiType) {
         UserProjectNotification newOne = new UserProjectNotification();
         newOne.user = user;
         newOne.project = project;

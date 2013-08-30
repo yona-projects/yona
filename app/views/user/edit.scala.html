@@ -101,7 +101,7 @@
                                         <th>@notiType.getDescr()</th>
                                         <td>
                                             <div class="switch" data-on-label="On" data-off-label="Off">
-                                                <input class="notiUpdate" data-href="@routes.WatchProjectApp.change(project.id, notiType.name())" type="checkbox" data-toggle="switch" @if(UserProjectNotification.isAllowed(notiMap, project, notiType)){ checked="checked" }>
+                                                <input class="notiUpdate" data-href="@routes.WatchProjectApp.toggle(project.id, notiType.name())" type="checkbox" data-toggle="switch" @if(UserProjectNotification.isEnabledNotiType(notiMap, project, notiType)){ checked="checked" }>
                                             </div>
                                         </td>
                                     </tr>

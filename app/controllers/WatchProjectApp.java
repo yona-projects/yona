@@ -52,7 +52,7 @@ public class WatchProjectApp extends Controller {
         return redirect(request().getHeader(Http.HeaderNames.REFERER));
     }
 
-    public static Result change(Long projectId, String notificationType) {
+    public static Result toggle(Long projectId, String notificationType) {
         NotificationType notiType = NotificationType.valueOf(notificationType);
         Project project = Project.find.byId(projectId);
         User user = UserApp.currentUser();
@@ -64,9 +64,9 @@ public class WatchProjectApp extends Controller {
 
         UserProjectNotification upn = UserProjectNotification.findOne(user, project, notiType);
         if(upn == null) { // make the NotificationType OFF, because default is ON.
-            UserProjectNotification.saveNewOff(user, project, notiType);
+            UserProjectNotification.unwatchExplictly(user, project, notiType);
         } else {
-            upn.change();
+            upn.toggle();
         }
 
         return ok();

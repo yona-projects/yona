@@ -23,7 +23,7 @@ GET     /import                                         controllers.ImportApp.im
 POST    /import                                         controllers.ImportApp.newProject()
 
 # Notification
-POST    /noti/change/:projectId/:notiType               controllers.WatchProjectApp.change(projectId: Long, notiType)
+POST    /noti/toggle/:projectId/:notiType               controllers.WatchProjectApp.toggle(projectId: Long, notiType)
 
 # User
 GET     /users                                          controllers.UserApp.users(query: String ?= "")

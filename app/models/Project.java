@@ -27,7 +27,7 @@ import java.util.*;
 @Entity
 public class Project extends Model implements LabelOwner {
     private static final long serialVersionUID = 1L;
-    public static final Finder <Long, Project> find = new Finder<>(Long.class, Project.class);
+    public static final play.db.ebean.Model.Finder <Long, Project> find = new Finder<>(Long.class, Project.class);
 
     @Id
     public Long id;
