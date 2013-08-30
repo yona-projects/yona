@@ -231,7 +231,7 @@ public class PullRequestApp extends Controller {
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
-        Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.id);
+        Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
         addNewPullRequestNotification(pullRequestCall, pullRequest);
         return redirect(pullRequestCall);
     }
