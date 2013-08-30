@@ -77,20 +77,3 @@
     </div>
 </div>
 }
-
-<script type="text/javascript">
-    $(document).ready(function(){
-	    //issueList
-        $yobi.loadModule("issue.MassUpdate", {
-            "welMassUpdateForm": $('#mass-update-form'),
-		    "welMassUpdateButtons": $('#mass-update-form button'),
-		    "welState": $("#state"),
-		    "welMilestone": $("#milestone"),
-		    "welAssignee": $("#assignee"),
-		    "welAttachingLabel": $("#attaching-label"),
-		    "welDetachingLabel": $("#detaching-label"),
-		    "welDeleteButton": $("#delete"),
-		    "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]",
-        });
-    });
-</script>
