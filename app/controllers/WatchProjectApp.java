@@ -55,10 +55,13 @@ public class WatchProjectApp extends Controller {
     public static Result toggle(Long projectId, String notificationType) {
         NotificationType notiType = NotificationType.valueOf(notificationType);
         Project project = Project.find.byId(projectId);
+        if(project == null) {
+            return notFound(ErrorViews.NotFound.render("No project matches given id '" + projectId + "'"));
+        }
+
         User user = UserApp.currentUser();
 
-        Watch watch = Watch.findBy(user, ResourceType.PROJECT, "" + project.id);
-        if(watch == null) {
+        if(!WatchService.isWatching(user, project.asResource())) {
             return badRequest(Messages.get("error.notfound.watch"));
         }
 
