@@ -235,12 +235,12 @@
             <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
             @if(UserApp.currentUser().equals(pull.contributor)) {
                 @if(canDeleteBranch) {
-                    <code>@pull.fromBranch</code> @Messages("delete.frombranch.message")
-                    <a class="nbtn black medium pull-right" href="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("delete.branch")</a>
+                <code>@pull.fromBranch</code> @Messages("delete.frombranch.message")
+                <button class="nbtn black medium pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.id)">@Messages("delete.branch")</button>
                 }
                 @if(canRestoreBranch) {
-                    <code>@pull.fromBranch</code> @Messages("restore.frombranch.message")
-                    <a class="nbtn orange medium pull-right" href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.number)">@Messages("restore.branch")</a>
+                <code>@pull.fromBranch</code> @Messages("restore.frombranch.message")
+                <a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="nbtn orange medium pull-right">@Messages("restore.branch")</a>
                 }
             }
         </div>

@@ -46,9 +46,9 @@ POST    /sites/mail                                     controllers.SiteApp.send
 GET     /sites/massmail                                 controllers.SiteApp.massMail()
 POST    /sites/mailList                                 controllers.SiteApp.mailList()
 GET     /sites/userList                                 controllers.SiteApp.userList(pageNum: Int ?= 0, loginId: String ?= null)
-GET     /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
+DELETE  /sites/user/delete                              controllers.SiteApp.deleteUser(userId: Long)
 GET     /sites/projectList                              controllers.SiteApp.projectList(filter:String ?= "", pageNum: Int ?=0)
-GET     /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
+DELETE  /sites/project/delete/:projectId                controllers.SiteApp.deleteProject(projectId:Long)
 GET     /sites/toggleAccountLock/:loginId               controllers.SiteApp.toggleAccountLock(loginId: String)
 GET     /lostPassword                                   controllers.PasswordResetApp.lostPassword
 POST    /lostPassword                                   controllers.PasswordResetApp.requestResetPasswordEmail()
@@ -68,7 +68,7 @@ POST    /files/:id                            			controllers.AttachmentApp.delet
 
 # Simple Comments
 POST    /comment/:resourceKey                           controllers.SimpleCommentApp.newComment(resourceKey)
-GET     /comment/:id/delete                             controllers.SimpleCommentApp.deleteComment(id: Long)
+DELETE  /comment/:id/delete                             controllers.SimpleCommentApp.deleteComment(id: Long)
 
 # Boards
 GET     /:user/:project/posts                           controllers.BoardApp.posts(user, project, pageNum: Int ?= 1)
@@ -76,10 +76,10 @@ GET     /:user/:project/postform                        controllers.BoardApp.new
 POST    /:user/:project/posts                           controllers.BoardApp.newPost(user, project)
 GET     /:user/:project/post/:number                        controllers.BoardApp.post(user, project, number:Long)
 POST    /:user/:project/post/:number/comment/new            controllers.BoardApp.newComment(user, project, number:Long)
-GET     /:user/:project/post/:number/delete                 controllers.BoardApp.deletePost(user, project, number:Long)
+DELETE  /:user/:project/post/:number/delete                 controllers.BoardApp.deletePost(user, project, number:Long)
 GET     /:user/:project/post/:number/editform               controllers.BoardApp.editPostForm(user, project, number:Long)
 POST    /:user/:project/post/:number/edit                   controllers.BoardApp.editPost(user, project, number:Long)
-GET     /:user/:project/post/:number/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, number:Long, commentId:Long)
+DELETE  /:user/:project/post/:number/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, number:Long, commentId:Long)
 
 # Labels
 GET    /labels                                          controllers.LabelApp.labels(query: String ?= "", category: String ?= "", limit: Integer ?= null)
@@ -99,25 +99,24 @@ GET     /:user/:project                                 controllers.ProjectApp.p
 GET     /:user/:project/settingform                     controllers.ProjectApp.settingForm(user, project)
 POST    /:user/:project/setting                         controllers.ProjectApp.settingProject(user, project)
 GET     /:user/:project/deleteform                      controllers.ProjectApp.deleteForm(user, project)
-GET     /:user/:project/delete                          controllers.ProjectApp.deleteProject(user, project)
+DELETE  /:user/:project/delete                          controllers.ProjectApp.deleteProject(user, project)
 GET     /:user/:project/mentionList                     controllers.ProjectApp.mentionList(user, project, number:Long ?= -1, resourceType:String ?= "")
-GET     /:user/:project/mentionListAtCommitDiff             controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "", pullRequestId:Long ?= -1)
-GET     /:user/:project/mentionListAtPullRequest             controllers.ProjectApp.mentionListAtPullRequest(user, project, commitId:String ?= "", pullRequestId:Long)
+GET     /:user/:project/mentionListAtCommitDiff         controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "", pullRequestId:Long ?= -1)
+GET     /:user/:project/mentionListAtPullRequest        controllers.ProjectApp.mentionListAtPullRequest(user, project, commitId:String ?= "", pullRequestId:Long)
 GET     /:user/:project/members                         controllers.ProjectApp.members(user, project)
 POST    /:user/:project/members                         controllers.ProjectApp.newMember(user, project)
 POST    /:user/:project/member/:id/edit                 controllers.ProjectApp.editMember(user, project, id:Long)
-GET     /:user/:project/member/:id/delete               controllers.ProjectApp.deleteMember(user, project, id:Long)
+DELETE  /:user/:project/member/:id/delete               controllers.ProjectApp.deleteMember(user, project, id:Long)
 
 # Milestones
 GET     /:user/:project/milestones                      controllers.MilestoneApp.milestones(user, project)
-#GET    /:user/:project/milestones/manage               controllers.MilestoneApp.manageMilestones(user, project)
 GET     /:user/:project/newMilestoneForm                controllers.MilestoneApp.newMilestoneForm(user, project)
 POST    /:user/:project/milestones                      controllers.MilestoneApp.newMilestone(user, project)
 GET     /:user/:project/milestone/:id/editform          controllers.MilestoneApp.editMilestoneForm(user, project, id: Long)
 POST    /:user/:project/milestone/:id/edit              controllers.MilestoneApp.editMilestone(user, project, id: Long)
-GET     /:user/:project/milestone/:id/delete            controllers.MilestoneApp.deleteMilestone(user, project, id: Long)
-GET     /:user/:project/milestone/:id/open              controllers.MilestoneApp.open(user, project, id: Long)
-GET     /:user/:project/milestone/:id/close             controllers.MilestoneApp.close(user, project, id: Long)
+DELETE  /:user/:project/milestone/:id/delete            controllers.MilestoneApp.deleteMilestone(user, project, id: Long)
+POST    /:user/:project/milestone/:id/open              controllers.MilestoneApp.open(user, project, id: Long)
+POST    /:user/:project/milestone/:id/close             controllers.MilestoneApp.close(user, project, id: Long)
 GET     /:user/:project/milestone/:id                   controllers.MilestoneApp.milestone(user, project, id: Long)
 
 # Issues
@@ -128,10 +127,10 @@ POST    /:user/:project/issues/latest                   controllers.IssueApp.new
 GET     /:user/:project/issue/$number<[0-9]+>                       controllers.IssueApp.issue(user, project, number:Long)
 GET     /:user/:project/issue/$number<[0-9]+>/editform              controllers.IssueApp.editIssueForm(user, project, number:Long)
 POST    /:user/:project/issue/$number<[0-9]+>/edit                  controllers.IssueApp.editIssue(user, project, number:Long)
-GET    /:user/:project/issue/$number<[0-9]+>/nextstate                  controllers.IssueApp.nextState(user, project, number:Long)
-GET     /:user/:project/issue/$number<[0-9]+>/delete                controllers.IssueApp.deleteIssue(user, project, number:Long)
+GET     /:user/:project/issue/$number<[0-9]+>/nextstate             controllers.IssueApp.nextState(user, project, number:Long)
+DELETE  /:user/:project/issue/$number<[0-9]+>/delete                controllers.IssueApp.deleteIssue(user, project, number:Long)
 POST    /:user/:project/issue/$number<[0-9]+>/comments              controllers.IssueApp.newComment(user, project, number:Long)
-GET     /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
+DELETE  /:user/:project/issue/$number<[0-9]+>/comment/:commentId/delete         controllers.IssueApp.deleteComment(user, project, number:Long, commentId:Long)
 
 # Issue Labels
 GET     /:user/:project/issue/labels                        controllers.IssueLabelApp.labels(user, project)
@@ -160,8 +159,8 @@ GET     /:ownerName/:project/pullRequest/:id/cancel     controllers.PullRequestA
 GET     /:ownerName/:project/pullRequest/:id/open       controllers.PullRequestApp.open(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestApp.editPullRequestForm(ownerName, project, id: Long)
 POST    /:ownerName/:project/pullRequest/:id/edit       controllers.PullRequestApp.editPullRequest(ownerName, project, id: Long)
-GET     /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
-GET     /:ownerName/:project/pullRequest/:id/restorefrombranch   controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
+DELETE  /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.PullRequestApp.deleteFromBranch(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/restorefrombranch  controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/commit/:commitId   controllers.PullRequestApp.commitView(ownerName, project, id: Long, commitId)
 
 # SVN
@@ -192,7 +191,7 @@ GET     /:user/:project/commits                         controllers.CodeHistoryA
 GET     /:user/:project/commits/:branch                 controllers.CodeHistoryApp.history(user, project, branch:String)
 GET     /:user/:project/commit/:id                      controllers.CodeHistoryApp.show(user, project, id:String)
 POST    /:user/:project/commit/:commitId/comments       controllers.CodeHistoryApp.newComment(user, project, commitId)
-GET    /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeHistoryApp.deleteComment(user, project, commitId, id: Long)
+DELETE  /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeHistoryApp.deleteComment(user, project, commitId, id: Long)
 
 # Help
 GET     /help                                           controllers.HelpApp.help()

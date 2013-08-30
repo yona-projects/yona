@@ -99,7 +99,7 @@
                 </a>
                 <div class="media-body">
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                    <a class="pull-right close" href="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)">&times;</a>
+                    <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)">&times;</button>
                     }
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                     <p class="commenter">

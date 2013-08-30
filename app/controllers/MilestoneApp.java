@@ -7,6 +7,7 @@ import play.mvc.*;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
+import utils.HttpUtil;
 import views.html.milestone.*;
 
 import java.util.*;
@@ -231,6 +232,12 @@ public class MilestoneApp extends Controller {
         }
         milestone.delete();
 
+        // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
+        if(HttpUtil.isRequestedWithXHR(request())){
+            response().setHeader("Location", routes.MilestoneApp.milestones(userName, projectName).toString());
+            return status(204);            
+        }
+        
         return redirect(routes.MilestoneApp.milestones(userName, projectName));
     }
 

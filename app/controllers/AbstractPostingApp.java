@@ -23,12 +23,12 @@ import utils.Config;
 import utils.Constants;
 import utils.ErrorViews;
 import utils.JodaDateUtil;
+import utils.HttpUtil;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 import java.util.Iterator;
-
 /**
  * {@link BoardApp}과 {@link IssueApp}에서 공통으로 사용하는 기능을 담고 있는 컨트롤러 클래스
  */
@@ -226,6 +226,12 @@ public class AbstractPostingApp extends Controller {
 
         target.delete();
 
+        // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
+        if(HttpUtil.isRequestedWithXHR(request())){
+            response().setHeader("Location", redirectTo.absoluteURL(request()));
+            return status(204);            
+        }
+        
         return redirect(redirectTo);
     }
 

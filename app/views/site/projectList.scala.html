@@ -24,11 +24,12 @@
             <td>@project.name</td>
             <td>@project.owner</td>
             <td>
-              <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion@project.id">@Messages("button.delete")</a>
+                <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion@project.id">@Messages("button.delete")</a>
             </td>
           </tr>
 
-          <div class="modal hide" id="alertDeletion@project.id">
+          @** Confirm to delete project **@
+          <div id="alertDeletion@project.id" class="modal hide">
               <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal">×</button>
                   <h3>@Messages("site.project.delete")</h3>
@@ -37,10 +38,11 @@
                   <p>@Messages("site.project.deleteConfirm")</p>
               </div>
               <div class="modal-footer">
-                  <a href="#" class="btn" data-dismiss="modal">@Messages("button.no")</a>
-                  <a href="@routes.SiteApp.deleteProject(project.id)" class="btn btn-danger">@Messages("button.yes")</a>
+                  <button type="button" class="btn btn-danger" data-request-method="delete" data-request-uri="@routes.SiteApp.deleteProject(project.id)">@Messages("button.yes")</button>
+                  <button type="button" class="btn" data-dismiss="modal">@Messages("button.no")</button>
               </div>
           </div>
+          @** // **@
         }
       </tbody>
     </table>

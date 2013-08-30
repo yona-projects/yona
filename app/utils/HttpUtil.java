@@ -99,4 +99,19 @@ public class HttpUtil {
         return new URI(aURI.getScheme(), aURI.getAuthority(), aURI.getPath(),
                 StringUtils.join(pairStrings, "&"), aURI.getFragment()).toString();
     }
+    
+    /**
+     * 주어진 Http.Request 에서 X-Requested-With 헤더가 존재하며 
+     * 그 값이 XMLHttpRequest 인지의 여부를 Boolean 으로 반환한다.
+     * 
+     * jQuery, prototype, JindoJS 등 대부분의 JavaScript framework 에서
+     * XHR 호출시 이 헤더에 이 값을 설정하여 전송한다.
+     * 
+     * @param request
+     * @return Boolean
+     */
+    public static Boolean isRequestedWithXHR(Http.Request request){
+        String requestedWith = request.getHeader("X-Requested-With");
+        return (requestedWith != null && requestedWith.toLowerCase().equals("xmlhttprequest"));
+    }
 }

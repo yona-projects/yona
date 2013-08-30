@@ -78,7 +78,7 @@
 				</a>
 				<div class="media-body">
 					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-						<a href="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="pull-right close">&times;</a>
+						<button type="button" data-request-method="delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="btn-transparent pull-right close">&times;</button>
 					}
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
 					<p class="commenter">
@@ -113,8 +113,8 @@
 		<p>@Messages("post.delete.confirm")</p>
 	</div>
 	<div class="modal-footer">
-		<a class="btn btn-danger med" href="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</a>
-		<a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
+		<button type="button" class="nbtn medium red" data-request-method="delete" data-request-uri="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</button>
+		<button type="button" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</button>
 	</div>
 </div>
 

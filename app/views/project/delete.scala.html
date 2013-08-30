@@ -23,7 +23,7 @@
          --><i class="ico ico-delete-small"></i>@Messages("project.delete.this")</a>
     </div>
 
-
+    @** Confirm to delete project **@
 	<div id="alertDeletion" class="modal hide">
 	    <div class="modal-header">
 	        <button type="button" class="close" data-dismiss="modal">×</button>
@@ -34,10 +34,11 @@
 	        <p> @Messages("project.delete.reaccept") </p>
 	    </div>
 	    <div class="modal-footer">
-	        <a href="#" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</a>
-	        <a href="@routes.ProjectApp.deleteProject(project.owner, project.name)" class="nbtn medium orange">@Messages("button.yes")</a>
+	        <button type="button" class="nbtn medium red" data-request-method="delete" data-request-uri="@routes.ProjectApp.deleteProject(project.owner, project.name)">@Messages("button.yes")</button>
+            <button type="button" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</button>
 	    </div>
 	</div>
+	@** // -- // **@
 </div>
 	
 <script type="text/javascript">

@@ -74,15 +74,15 @@
 
     <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-        <a href="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium red pull-left">@Messages("milestone.delete")</a>
+        <button type="button" data-request-method="delete" data-request-uri="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium red pull-left">@Messages("milestone.delete")</button>
         }
 
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
             @if(milestone.state == State.OPEN) {
-                <a href="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("milestone.close")</a>
+                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("milestone.close")</button>
             }
             @if(milestone.state == State.CLOSED) {
-                <a href="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium white">@Messages("milestone.open")</a>
+                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium white">@Messages("milestone.open")</button>
             }
             <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
         }
