@@ -8,6 +8,7 @@ import models.resource.Resource;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import play.db.ebean.Transactional;
 import playRepository.GitRepository;
 import utils.AccessControl;
 import utils.Constants;
@@ -99,6 +100,11 @@ public class PullRequest extends Model {
      * #mergedCommitIdFrom < 추가된 커밋 ID 목록 <= #mergedCommitIdTo
      */
     public String mergedCommitIdTo;
+
+    /**
+     * #toProject 마다 순차적으로 유일한 수를 가진다.
+     */
+    public Long number;
 
     @Override
     public String toString() {
@@ -339,5 +345,58 @@ public class PullRequest extends Model {
         this.received = JodaDateUtil.now();
         this.receiver = UserApp.currentUser();
         this.update();
+    }
+
+    public static List<PullRequest> findByToProject(Project project) {
+        return finder.where().eq("toProject", project).order().asc("created").findList();
+    }
+
+    @Transactional
+    public void saveWithNumber() {
+        this.number = nextPullRequestNumber(toProject);
+        this.save();
+    }
+
+    public static long nextPullRequestNumber(Project project) {
+        PullRequest maxNumberedPullRequest = PullRequest.finder.where()
+                .eq("toProject", project)
+                .order().desc("number")
+                .setMaxRows(1).findUnique();
+
+        if(maxNumberedPullRequest == null || maxNumberedPullRequest.number == null) {
+            return 1;
+        } else {
+            return ++maxNumberedPullRequest.number;
+        }
+    }
+
+    public static PullRequest findOne(Project toProject, long number) {
+        if(toProject == null || number <= 0) {
+            return null;
+        }
+        return finder.where().eq("toProject", toProject).eq("number", number).findUnique();
+    }
+
+    /**
+     * #number가 null인 PullRequest가 있을 때 number 초기화 작업을 진행합니다.
+     *
+     * when: Global의 onStart가 실행될 때 호출됩니다.
+     */
+    @Transactional
+    public static void regulateNumbers() {
+        int nullNumberPullRequestCount = finder.where().eq("number", null).findRowCount();
+
+        if(nullNumberPullRequestCount > 0) {
+            List<Project> projects = Project.find.all();
+            for(Project project : projects) {
+                List<PullRequest> pullRequests = PullRequest.findByToProject(project);
+                for(PullRequest pullRequest : pullRequests) {
+                    if(pullRequest.number == null) {
+                        pullRequest.number = nextPullRequestNumber(project);
+                        pullRequest.update();
+                    }
+                }
+            }
+        }
     }
 }

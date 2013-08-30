@@ -79,6 +79,8 @@ public class Global extends GlobalSettings {
             insertTestData();
         }
 
+        PullRequest.regulateNumbers();
+
         NotificationMail.startSchedule();
     }
 
