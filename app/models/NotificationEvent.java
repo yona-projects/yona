@@ -4,6 +4,7 @@ import models.enumeration.NotificationType;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import play.Configuration;
 import play.db.ebean.Model;
@@ -181,17 +182,16 @@ public class NotificationEvent extends Model {
                 .orderBy("id desc").setMaxRows(1).findUnique();
 
         if (lastEvent != null) {
-            if (lastEvent.notificationType.equals(event.notificationType)) {
-                String oldValue = lastEvent.getOldValue();
+            if (lastEvent.notificationType == event.notificationType &&
+                    event.senderId.equals(lastEvent.senderId)) {
+                // If the last event is A -> B and the current event is B -> C,
+                // they are merged into the new event A -> C.
+                event.oldValue = lastEvent.oldValue;
+                lastEvent.delete();
 
-                if (event.senderId.equals(lastEvent.senderId)) {
-                    lastEvent.delete();
-                }
-
-                if ((event.newValue == null && oldValue == null)
-                        || event.newValue.equals(oldValue)) {
-                    // No need to add this event because the event just cancels the last event
-                    // which has just been deleted.
+                // If the last event is A -> B and the current event is B -> A,
+                // they are removed.
+                if (StringUtils.equals(event.oldValue, event.newValue)) {
                     return;
                 }
             }

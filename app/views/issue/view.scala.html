@@ -14,8 +14,8 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @getTitle(issue:Issue, project:Project) = {
-	#@issue.getNumber @issue.title
-	@** Messages(title) **@
+    #@issue.getNumber @issue.title
+    @** Messages(title) **@
 }
 @isFirstState(state:State) = {@if(issue.state.state == Issue.availableStates.get(0).state()){dirty}}
 
@@ -23,14 +23,14 @@
 
 @main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
-	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+    @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
-	@** Post Info **@
-	<div class="board-header issue">
-		<div class="title pull-left">
-		    <strong class="board-id">#@issue.getNumber</strong> @issue.title
+    @** Post Info **@
+    <div class="board-header issue">
+        <div class="title pull-left">
+            <strong class="board-id">#@issue.getNumber</strong> @issue.title
         </div>
-		<div class="pull-right">
+        <div class="pull-right">
             <div class="date">@agoString(issue.ago)</div>
             <div class="switch @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){ deactivate }" data-on-label="@Messages("issue.state.open")" data-off-label="@Messages("issue.state.closed")">
                 <input id="issueOpen" type="checkbox" data-toggle="switch" @if(issue.state == State.OPEN){ checked="checked" } @if(!isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)){disabled="disabled"}>
@@ -46,11 +46,11 @@
             }
             </div>
             -->**@
-		</div>
-	</div>
+        </div>
+    </div>
 
-	@** Content body **@
-	<!--board-body-->
+    @** Content body **@
+    <!--board-body-->
     <div class="board-body row-fluid">
         <div class="span9">
             <div class="pull-right" style="padding:20px;">
@@ -203,11 +203,11 @@
                     @**<!-- // -->**@
                     
                 </form>
-            </div>	            
+            </div>
         </div>        
     </div>
 
-	<div class="board-footer board-actrow">
+    <div class="board-footer board-actrow">
         <div class="pull-left">
             <a href="@urlToIssues" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>
             <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
@@ -228,61 +228,61 @@
                 @Messages("project.watch")
             }
         </button>
-	</div>
+    </div>
 
-	@** Comment **@
-	<div id="comments" class="board-comment-wrap">
-		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
+    @** Comment **@
+    <div id="comments" class="board-comment-wrap">
+        <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 
-	    @if(issue.comments.size > 0) {
-		<ul class="comments">
-		@for(comment <- issue.comments){
-			<li class="comment" id="comment-@comment.id">
-				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
-		        	<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-	        	</a>
-				<div class="media-body">
-					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-					<a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)">&times;</a>
-					}
+        @if(issue.comments.size > 0) {
+        <ul class="comments">
+        @for(comment <- issue.comments){
+            <li class="comment" id="comment-@comment.id">
+                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
+                    <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                </a>
+                <div class="media-body">
+                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                    <a class="pull-right close" href="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)">&times;</a>
+                    }
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-					<p class="commenter">
-						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
+                    <p class="commenter">
+                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
                         <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
-					</p>
-					<div class="attachments" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
-				</div>
-			</li>
+                    </p>
+                    <div class="attachments" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
+                </div>
+            </li>
             }
-		</ul>
-	    }
+        </ul>
+        }
 
         @views.html.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
     </div>
-	@** // Comment **@
+    @** // Comment **@
 
     @help.keymap("issueDetail", project)
 </div>
 
 <script type="text/x-jquery-tmpl" id="tplAttachedFile"><!--
-	--><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
+    --><li class="attached-file" data-name="${fileName}" data-href="${fileHref}" data-mime="${mimeType}" data-size="${fileSize}">
     <strong>${fileName}(${fileSizeReadable})${notice}</strong><!--
-	--><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
+    --><a class="attached-delete"><i class="ico btn-delete"></i></a></li>
 </script>
 
 @** Confirm to delete post **@
 <div id="deleteConfirm" class="modal hide fade">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
-		<h3>@Messages("issue.delete")</h3>
-	</div>
-	<div class="modal-body">
-		<p>@Messages("post.delete.confirm")</p>
-	</div>
-	<div class="modal-footer">
-		<a class="btn btn-danger med" href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.getNumber)">@Messages("button.yes")</a>
-		<a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
-	</div>
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>@Messages("issue.delete")</h3>
+    </div>
+    <div class="modal-body">
+        <p>@Messages("post.delete.confirm")</p>
+    </div>
+    <div class="modal-footer">
+        <a class="btn btn-danger med" href="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.getNumber)">@Messages("button.yes")</a>
+        <a href="#" class="btn med" data-dismiss="modal">@Messages("button.no")</a>
+    </div>
 </div>
 
 @markdown(project)
@@ -290,30 +290,30 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-		// yobi.Label
-		var htOptLabel = {
-			"bEditable"    : false,
-			"sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-			"sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
-		};
+    $(document).ready(function(){
+        // yobi.Label
+        var htOptLabel = {
+            "bEditable"    : false,
+            "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
+            "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
+        };
 
-		// yobi.issue.View
-		$yobi.loadModule("issue.View", {
+        // yobi.issue.View
+        $yobi.loadModule("issue.View", {
             "htOptLabel"    : htOptLabel,
-			"sUploadUrl"    : "@routes.AttachmentApp.uploadFile",
-			"sFilesUrl"     : "@routes.AttachmentApp.getFileList",
+            "sUploadUrl"    : "@routes.AttachmentApp.uploadFile",
+            "sFilesUrl"     : "@routes.AttachmentApp.getFileList",
             "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
-    		"sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",
-    		"sIssueId"      : "@issue.id",
+            "sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",
+            "sIssueId"      : "@issue.id",
             "welMilestone"  : $("#milestone"),
             "welAssignee"   : $("#assignee"),
             "welIssueUpdateForm": $("#issueUpdateForm"),
             "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]"
-		});
+        });
 
-	    // yobi.ShortcutKey
+        // yobi.ShortcutKey
         yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
             "L": "@routes.IssueApp.issues(project.owner, project.name,"open")"
@@ -328,7 +328,7 @@
             target:'comment-editor',
             url : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, issue.getNumber, issue.asResource().getType().resource()).toString())"
         });
-	});
+    });
 </script>
 
 }
