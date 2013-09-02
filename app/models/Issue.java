@@ -30,7 +30,7 @@ import java.util.*;
  */
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "number"}))
-public class Issue extends AbstractPosting {
+public class Issue extends AbstractPosting implements LabelOwner {
     /**
      * @param id              이슈 ID
      * @param title           이슈 제목
@@ -175,6 +175,7 @@ public class Issue extends AbstractPosting {
      * @param cond
      * @return
      */
+
     public static int countIssuesBy(Long projectId, IssueApp.SearchCondition cond) {
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
@@ -258,6 +259,7 @@ public class Issue extends AbstractPosting {
 	    return this.state == State.CLOSED;
 	}
 
+    @Override
     public Resource asResource() {
         return asResource(ResourceType.ISSUE_POST);
     }
@@ -422,5 +424,10 @@ public class Issue extends AbstractPosting {
         this.state = nextState();
         super.update();
         return this.state;
+    }
+
+    @Override
+    public Set<IssueLabel> getLabels() {
+        return labels;
     }
 }

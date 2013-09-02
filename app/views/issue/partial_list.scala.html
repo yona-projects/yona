@@ -6,7 +6,7 @@
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
 
 @makeLabelLink(project:Project, searchCondition:IssueApp.SearchCondition, label:IssueLabel) = {
-    <a href="@urlToList&orderBy=@searchCondition.orderBy&filter=@searchCondition.filter&labelIds=@label.id" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
+    <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 
 @for(issue <- issueList){
@@ -77,22 +77,3 @@
     </div>
 </div>
 }
-
-<script type="text/javascript">
-    $(document).ready(function(){
-        $yobi.loadModule("issue.List", {
-            "elPagination": $("#pagination"),
-            "htMassUpdateElements":{
-                "welForm"          : $('#mass-update-form'),
-                "welButtons"       : $('#mass-update-form button'),
-                "welState"         : $("#state"),
-                "welMilestone"     : $("#milestone"),
-                "welAssignee"      : $("#assignee"),
-                "welAttachingLabel": $("#attaching-label"),
-                "welDetachingLabel": $("#detaching-label"),
-                "sIssueCheckBoxesSelector": "[type=checkbox][name=checked-issue]"
-            },
-            "nTotalPages" : @totalPageCount
-        });
-    });
-</script>

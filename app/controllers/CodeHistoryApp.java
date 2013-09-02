@@ -206,7 +206,7 @@ public class CodeHistoryApp extends Controller {
         String referer = request().getHeader("Referer");
         if(PullRequestCommit.isValid(referer)) {
             PullRequestCommit prc = new PullRequestCommit(referer);
-            toView = routes.PullRequestApp.commitView(prc.getProjectOwner(), prc.getProjectName(), prc.getpullRequestNumber(), prc.getCommitId());
+            toView = routes.PullRequestApp.commitView(prc.getProjectOwner(), prc.getProjectName(), prc.getPullRequestNumber(), prc.getCommitId());
         }
         return toView;
     }

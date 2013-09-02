@@ -24,7 +24,7 @@ public class PullRequestCommitTest {
         PullRequestCommit prc = new PullRequestCommit(url);
         assertThat(prc.getProjectName()).isEqualTo("meme2");
         assertThat(prc.getProjectOwner()).isEqualTo("admin");
-        assertThat(prc.getPullRequestId()).isEqualTo(897);
+        assertThat(prc.getPullRequestNumber()).isEqualTo(897);
         assertThat(prc.getCommitId()).isEqualTo("c098727fc0c16ab7637435e56a82c8580b7a0f5f");
     }
 }

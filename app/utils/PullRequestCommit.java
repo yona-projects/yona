@@ -36,7 +36,7 @@ public class PullRequestCommit {
         return projectName;
     }
 
-    public Long getpullRequestNumber() {
+    public Long getPullRequestNumber() {
         return pullRequestNumber;
     }
 

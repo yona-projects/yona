@@ -5,6 +5,8 @@ import models.enumeration.*;
 
 import play.mvc.Http;
 import views.html.issue.edit;
+import views.html.issue.partial_search;
+import views.html.issue.partial_list;
 import views.html.issue.view;
 import views.html.issue.list;
 import views.html.issue.create;
@@ -13,6 +15,7 @@ import utils.AccessControl;
 import utils.JodaDateUtil;
 import utils.HttpUtil;
 import utils.ErrorViews;
+import utils.LabelSearchUtil;
 
 import play.data.Form;
 import play.mvc.Call;
@@ -20,18 +23,17 @@ import play.mvc.Result;
 
 import jxl.write.WriteException;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.tika.Tika;
+
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.QueryResultVisitor;
 
-import javax.persistence.Transient;
 import java.io.IOException;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
-import static play.data.Form.form;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
@@ -40,8 +42,10 @@ public class IssueApp extends AbstractPostingApp {
         public String state;
         public Boolean commentedCheck;
         public Long milestoneId;
+
         public Set<Long> labelIds = new HashSet<>();
-        public String authorLoginId;
+        public Long authorId;
+
         public Long assigneeId;
 
         public SearchCondition clone() {
@@ -54,12 +58,12 @@ public class IssueApp extends AbstractPostingApp {
             one.commentedCheck = this.commentedCheck;
             one.milestoneId = this.milestoneId;
             one.labelIds = new HashSet<Long>(this.labelIds);
-            one.authorLoginId = this.authorLoginId;
+            one.authorId = this.authorId;
             one.assigneeId = this.assigneeId;
             return one;
         }
 
-       public SearchCondition setOrderBy(String orderBy) {
+        public SearchCondition setOrderBy(String orderBy) {
             this.orderBy = orderBy;
             return this;
         }
@@ -109,8 +113,8 @@ public class IssueApp extends AbstractPostingApp {
             return this;
         }
 
-        public SearchCondition setAuthorLoginId(String authorLoginId) {
-            this.authorLoginId = authorLoginId;
+        public SearchCondition setAuthorId(Long authorId) {
+            this.authorId = authorId;
             return this;
         }
 
@@ -132,17 +136,12 @@ public class IssueApp extends AbstractPostingApp {
             if (filter != null) {
                 el.or(icontains("title", filter), icontains("body", filter));
             }
-
-            if (authorLoginId != null && !authorLoginId.isEmpty()) {
-                User user = User.findByLoginId(authorLoginId);
-                if (!user.isAnonymous()) {
-                    el.eq("authorId", user.id);
+           
+            if (authorId != null) {
+                if (authorId == User.anonymous.id) {
+                    el.isNull("authorId");
                 } else {
-                    List<Long> ids = new ArrayList<>();
-                    for (User u : User.find.where().icontains("loginId", authorLoginId).findList()) {
-                        ids.add(u.id);
-                    }
-                    el.in("authorId", ids);
+                    el.eq("authorId", authorId);
                 }
             }
 
@@ -172,13 +171,8 @@ public class IssueApp extends AbstractPostingApp {
                 el.eq("state", st);
             }
 
-            if (labelIds != null) {
-                List<Object> issueIds = findIssueIds(el.query(), labelIds);
-                if (issueIds.isEmpty()) {
-                    el.isNull("id");
-                } else {
-                    el.idIn(issueIds);
-                }
+            if (CollectionUtils.isNotEmpty(labelIds)) {
+                el.add(LabelSearchUtil.createLabelSearchExpression(el.query(), labelIds));
             }
 
             if (orderBy != null) {
@@ -187,36 +181,6 @@ public class IssueApp extends AbstractPostingApp {
 
             return el;
         }
-    }
-
-    /*
-     * query 에 저장되어 있는 검색 조건을 만족하면서,
-     * labelIds 에 해당되는 라벨을 모두 가지고 있는 이슈들의 ID를 찾는다.
-     * 조건을 만족하는 이슈가 없을 경우 빈 List 가 반환된다.
-     */
-    private static List<Object> findIssueIds(final Query<Issue> query, final Set<Long> labelIds) {
-        final List<Object> issueIds = new ArrayList<>();
-        query.copy().findVisit(new QueryResultVisitor<Issue>() {
-            @Override
-            public boolean accept(Issue issue) {
-                if (issueHasLabels(issue, labelIds)) {
-                    issueIds.add(issue.id);
-                }
-                return true;
-            }
-        });
-        return issueIds;
-    }
-
-    /*
-     * issue 가 labelIds 에 해당하는 모든 라벨을 가지고 있는지 확인한다.
-     */
-    private static boolean issueHasLabels(final Issue issue, final Set<Long> labelIds) {
-        Set<Long> issueLabelIds = new HashSet<>();
-        for (IssueLabel issueLabel : issue.labels) {
-            issueLabelIds.add(issueLabel.id);
-        }
-        return issueLabelIds.containsAll(labelIds);
     }
 
     /**
@@ -238,6 +202,9 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
+       
+        String pjax = request().getHeader("X-PJAX");
+        
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -255,12 +222,7 @@ public class IssueApp extends AbstractPostingApp {
             searchCondition.orderBy = "createdDate";
         }
 
-        String[] labelIds = request().queryString().get("labelIds");
-        if (labelIds != null) {
-            for (String labelId : labelIds) {
-                searchCondition.labelIds.add(Long.valueOf(labelId));
-            }
-        }
+        searchCondition.labelIds.addAll(LabelSearchUtil.getLabelIds(request()));
 
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
 
@@ -277,7 +239,14 @@ public class IssueApp extends AbstractPostingApp {
             Page<Issue> issues = el
                 .findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
 
-            return ok(list.render("title.issueList", issues, searchCondition, project));
+            boolean isPjax = Boolean.parseBoolean(pjax);
+
+            
+            if (isPjax) {
+                return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+            } else {
+                return ok(list.render("title.issueList", issues, searchCondition, project));            
+            }
         }
     }
 
