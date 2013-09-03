@@ -33,7 +33,7 @@
     @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="content-wrap frm-wrap">
-        @helper.form(action=routes.PullRequestApp.editPullRequest(project.owner, project.name, pull.id), 'enctype -> "multipart/form-data", 'class->"nm"){
+        @helper.form(action=routes.PullRequestApp.editPullRequest(pull.toProject.owner, pull.toProject.name, pull.number), 'enctype -> "multipart/form-data", 'class->"nm"){
             <legend>
                 @Messages(title)
                 <span class="pull-right">
@@ -128,9 +128,9 @@
         "typeaheadOpts": {"items": 15},
         "users": []
     };
-    
+
     var prevWhich;
-    
+
     $(function(){
         function _findUserList(){
             $.ajax({
@@ -143,7 +143,7 @@
                 $("#body").mention(memebrList);
             });
         }
-    
+
         $("#contents").keypress(function(event){
             if(event.which === 64){ // 64 = at
                 _findUserList();

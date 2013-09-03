@@ -567,27 +567,29 @@ public class PullRequestApp extends Controller {
     /**
      * 코드 요청 수정 폼으로 이동한다.
      *
-     * @param userName 코드를 보낸 프로젝트(fromProject)의 owner
-     * @param projectName 코드를 보낸 프로젝트(fromProject)의 project name
-     * @param pullRequestId
+     * @param userName
+     * @param projectName
+     * @param pullRequestNumber
      * @return
      * @throws IOException
      * @throws ServletException
      */
-    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestId) throws IOException, ServletException {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        Project project = pullRequest.fromProject;
+    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, ServletException {
+        Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
+        Project fromProject = pullRequest.fromProject;
+
         User user = UserApp.currentUser();
 
         if(!AccessControl.isAllowed(user, pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), fromProject));
         }
 
         Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
         List<String> fromBranches = RepositoryService.getRepository(pullRequest.fromProject).getBranches();
         List<String> toBranches = RepositoryService.getRepository(pullRequest.toProject).getBranches();
 
-        return ok(edit.render("title.editPullRequest", editForm, project, fromBranches, toBranches, pullRequest));
+        return ok(edit.render("title.editPullRequest", editForm, fromProject, fromBranches, toBranches, pullRequest));
     }
 
     /**
@@ -598,12 +600,12 @@ public class PullRequestApp extends Controller {
      *
      * @param userName
      * @param projectName
-     * @param pullRequestId
+     * @param pullRequestNumber
      * @return
      */
-    public static Result editPullRequest(String userName, String projectName, Long pullRequestId) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        Project toProject = pullRequest.toProject;
+    public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
+        Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
@@ -619,7 +621,7 @@ public class PullRequestApp extends Controller {
             PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(updatedPullRequest);
             if(sentRequest != null) {
                 flash(Constants.WARNING, "pullRequest.duplicated");
-                return redirect(routes.PullRequestApp.editPullRequestForm(fromProject.owner, fromProject.name, pullRequestId));
+                return redirect(routes.PullRequestApp.editPullRequestForm(fromProject.owner, fromProject.name, pullRequestNumber));
             }
         }
 
