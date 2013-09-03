@@ -522,6 +522,7 @@ userinfo.editProfile = Edit Profile
 userinfo.changePassword = Change Password
 userinfo.changeAvatar = Change Avatar
 userinfo.changeAvatarHelp = Uploaded image will be applied<br>after click 'Edit Profile' button
+userinfo.changeNotifications = You are not watching the project
 userinfo.since = Member Since
 userinfo.leaveProject = Leave
 userinfo.leaveProject.confirm = Are you sure to leave {0}?
@@ -547,6 +548,7 @@ error.forbidden = You need access Control!
 error.unauthorized = Login required
 error.badrequest = The request cannot be fulfilled due to bad syntax
 error.internalServerError = Server error occurred and the service is not available
+error.notfound.watch = Watch not found
 
 # Fork & PullRequest
 pullRequest.is.safe = This pull request can be merged safely.
@@ -652,6 +654,14 @@ notification.issue.unassigned = Unassigned
 notification.pullrequest.closed = Merged
 notification.pullrequest.rejected = Rejected
 notification.pullrequest.reopened = Re-opened
+notification.type.new.issue = New Issue
+notification.type.new.posting = New Posting
+notification.type.pull.request.state.changed = Changed Pull-Request'ss State
+notification.type.issue.assignee.changed = Changed Issue's Assignee
+notification.type.new.comment = New Comment on a Posting or a Issue
+notification.type.new.pull.request = New Pull-Request
+notification.type.new.simple.comment = New Comment on a Pull-Request
+notification.type.issue.state.changed = Changed Issue's State
 
 # Grouping
 project.group = Project Gorups

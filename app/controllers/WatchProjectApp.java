@@ -2,6 +2,13 @@ package controllers;
 
 import models.Project;
 import models.User;
+import models.UserProjectNotification;
+import models.Watch;
+import models.enumeration.NotificationType;
+import models.enumeration.ResourceType;
+import org.codehaus.jackson.node.ObjectNode;
+import play.i18n.Messages;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -43,6 +50,29 @@ public class WatchProjectApp extends Controller {
         WatchService.unwatch(project.asResource());
 
         return redirect(request().getHeader(Http.HeaderNames.REFERER));
+    }
+
+    public static Result toggle(Long projectId, String notificationType) {
+        NotificationType notiType = NotificationType.valueOf(notificationType);
+        Project project = Project.find.byId(projectId);
+        if(project == null) {
+            return notFound(ErrorViews.NotFound.render("No project matches given id '" + projectId + "'"));
+        }
+
+        User user = UserApp.currentUser();
+
+        if(!WatchService.isWatching(user, project.asResource())) {
+            return badRequest(Messages.get("error.notfound.watch"));
+        }
+
+        UserProjectNotification upn = UserProjectNotification.findOne(user, project, notiType);
+        if(upn == null) { // make the NotificationType OFF, because default is ON.
+            UserProjectNotification.unwatchExplictly(user, project, notiType);
+        } else {
+            upn.toggle();
+        }
+
+        return ok();
     }
 
     private static Result badProject(String userName, String projectName) {

@@ -14,8 +14,9 @@
         <li class="active"><a href="#profile" data-toggle="tab">@Messages("userinfo.editProfile")</a></li>
         <li><a href="#changePassword" data-toggle="tab">@Messages("userinfo.changePassword")</a></li>
         <li><a href="#avatar" data-toggle="tab">@Messages("userinfo.changeAvatar")</a></li>
+        <li><a href="#watch" data-toggle="tab">@Messages("userinfo.changeNotifications")</a></li>
     </ul>
-    
+
     <div class="tab-content">
         <div id="profile" class="tab-pane active">
             @helper.form(action=routes.UserApp.editUserInfo(), 'id->"frmBasic"){
@@ -47,7 +48,7 @@
             </dl>
             }
         </div>
-        
+
         <div id="avatar" class="tab-pane">
             @helper.form(action=routes.UserApp.editUserInfo(), 'id->"frmAvatar"){
             <input type="hidden" name="name" value="@user.name">
@@ -70,9 +71,49 @@
                     <button id="btnSubmitCrop" type="button" class="nbtn medium orange" style="display:none; padding:4px 29px;">@Messages("userinfo.changeAvatar")</button>
                 </div>
             </div>
-            
+
             }
             <canvas id="avatarCrop" width="128" height="128" style="display:none;"></canvas>
+        </div>
+
+        <div id="watch" class="tab-pane">
+            @defining(UserProjectNotification.getProjectNotifications(user)) { notiMap =>
+            <ul class="unstyled lst-stacked span3" style="margin-right: 20px;">
+                @defining(Watch.findBy(user, ResourceType.PROJECT)) { watches =>
+                    @if(watches.size > 0) {
+                        @for(i <- 0 until watches.size) {
+                            @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
+                                <li @if(i == 0){class="active"}><a href="#@project.id" data-toggle="tab">@project.owner / @project.name</a></li>
+                            }
+                        }
+                    }
+                }
+            </ul>
+            <div class="tab-content">
+                @defining(Watch.findBy(user, ResourceType.PROJECT)) { watches =>
+                    @if(watches.size > 0) {
+                        @for(i <- 0 until watches.size) {
+                            @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
+                            <div class="tab-pane @if(i == 0){active}" id="@project.id">
+                                <table class="table table-striped table-bordered">
+                                @for(notiType <- models.enumeration.NotificationType.notiTypes) {
+                                    <tr>
+                                        <th>@notiType.getDescr()</th>
+                                        <td>
+                                            <div class="switch" data-on-label="On" data-off-label="Off">
+                                                <input class="notiUpdate" data-href="@routes.WatchProjectApp.toggle(project.id, notiType.name())" type="checkbox" data-toggle="switch" @if(UserProjectNotification.isEnabledNotiType(notiMap, project, notiType)){ checked="checked" }>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                </table>
+                            </div>
+                            }
+                        }
+                    }
+                }
+            </div>
+            }
         </div>
     </div>
 </div>

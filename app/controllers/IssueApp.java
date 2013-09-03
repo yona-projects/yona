@@ -5,6 +5,8 @@ import models.enumeration.*;
 
 import play.mvc.Http;
 import views.html.issue.edit;
+import views.html.issue.partial_search;
+import views.html.issue.partial_list;
 import views.html.issue.view;
 import views.html.issue.list;
 import views.html.issue.create;
@@ -22,17 +24,16 @@ import play.mvc.Result;
 import jxl.write.WriteException;
 
 import org.apache.commons.collections.CollectionUtils;
+
 import org.apache.tika.Tika;
 
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
-import javax.persistence.Transient;
 import java.io.IOException;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.icontains;
-import static play.data.Form.form;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
@@ -41,8 +42,10 @@ public class IssueApp extends AbstractPostingApp {
         public String state;
         public Boolean commentedCheck;
         public Long milestoneId;
+
         public Set<Long> labelIds = new HashSet<>();
-        public String authorLoginId;
+        public Long authorId;
+
         public Long assigneeId;
 
         public SearchCondition clone() {
@@ -55,12 +58,12 @@ public class IssueApp extends AbstractPostingApp {
             one.commentedCheck = this.commentedCheck;
             one.milestoneId = this.milestoneId;
             one.labelIds = new HashSet<Long>(this.labelIds);
-            one.authorLoginId = this.authorLoginId;
+            one.authorId = this.authorId;
             one.assigneeId = this.assigneeId;
             return one;
         }
 
-       public SearchCondition setOrderBy(String orderBy) {
+        public SearchCondition setOrderBy(String orderBy) {
             this.orderBy = orderBy;
             return this;
         }
@@ -110,8 +113,8 @@ public class IssueApp extends AbstractPostingApp {
             return this;
         }
 
-        public SearchCondition setAuthorLoginId(String authorLoginId) {
-            this.authorLoginId = authorLoginId;
+        public SearchCondition setAuthorId(Long authorId) {
+            this.authorId = authorId;
             return this;
         }
 
@@ -133,17 +136,12 @@ public class IssueApp extends AbstractPostingApp {
             if (filter != null) {
                 el.or(icontains("title", filter), icontains("body", filter));
             }
-
-            if (authorLoginId != null && !authorLoginId.isEmpty()) {
-                User user = User.findByLoginId(authorLoginId);
-                if (!user.isAnonymous()) {
-                    el.eq("authorId", user.id);
+           
+            if (authorId != null) {
+                if (authorId == User.anonymous.id) {
+                    el.isNull("authorId");
                 } else {
-                    List<Long> ids = new ArrayList<>();
-                    for (User u : User.find.where().icontains("loginId", authorLoginId).findList()) {
-                        ids.add(u.id);
-                    }
-                    el.in("authorId", ids);
+                    el.eq("authorId", authorId);
                 }
             }
 
@@ -204,6 +202,9 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
+       
+        String pjax = request().getHeader("X-PJAX");
+        
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -238,7 +239,14 @@ public class IssueApp extends AbstractPostingApp {
             Page<Issue> issues = el
                 .findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
 
-            return ok(list.render("title.issueList", issues, searchCondition, project));
+            boolean isPjax = Boolean.parseBoolean(pjax);
+
+            
+            if (isPjax) {
+                return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+            } else {
+                return ok(list.render("title.issueList", issues, searchCondition, project));            
+            }
         }
     }
 

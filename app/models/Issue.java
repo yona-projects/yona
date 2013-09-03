@@ -175,6 +175,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @param cond
      * @return
      */
+
     public static int countIssuesBy(Long projectId, IssueApp.SearchCondition cond) {
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }

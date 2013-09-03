@@ -22,6 +22,9 @@ GET		/UIKit											controllers.Application.UIKit()
 GET     /import                                         controllers.ImportApp.importForm()
 POST    /import                                         controllers.ImportApp.newProject()
 
+# Notification
+POST    /noti/toggle/:projectId/:notiType               controllers.WatchProjectApp.toggle(projectId: Long, notiType)
+
 # User
 GET     /users                                          controllers.UserApp.users(query: String ?= "")
 GET     /users/loginform                                controllers.UserApp.loginForm()

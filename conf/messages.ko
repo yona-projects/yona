@@ -522,6 +522,7 @@ userinfo.editProfile = 프로필 수정
 userinfo.changePassword = 비밀번호 변경
 userinfo.changeAvatar = 아바타 변경
 userinfo.changeAvatarHelp = 프로필 수정 버튼을 누르면<br>새 아바타가 반영됩니다
+userinfo.changeNotifications = 알림 설정
 userinfo.since = 가입일
 userinfo.leaveProject = 탈퇴
 userinfo.leaveProject.confirm = 정말 {0} 프로젝트에서 탈퇴하시겠습니까?
@@ -547,6 +548,7 @@ error.forbidden = 권한이 없습니다
 error.unauthorized = 로그인 해야 합니다
 error.badrequest = 잘못된 요청입니다
 error.internalServerError = 서버 오류가 발생하여 서비스를 이용할 수 없습니다
+error.notfound.watch = 존재하지 않는 알림 정보입니다.
 
 #PullReqeust
 pullRequest.is.safe = 코드를 안전하게 자동으로 병합할 수 있습니다.
@@ -652,6 +654,14 @@ notification.issue.unassigned = 이제 담당자 없음
 notification.pullrequest.closed = 보낸 코드가 반영됨(merged)
 notification.pullrequest.rejected = 보낸 코드 거절
 notification.pullrequest.reopened = 다시 열림
+notification.type.new.issue = 새 이슈 등록
+notification.type.new.posting = 새 게시물 등록
+notification.type.pull.request.state.changed = 코드-보내기 상태 변경
+notification.type.issue.assignee.changed = 이슈 담당자 변경
+notification.type.new.comment = 게시물과 이슈 새 댓글 등록
+notification.type.new.pull.request = 새 코드-보내기 등록
+notification.type.new.simple.comment = 코드-보내기 새 댓글 등록
+notification.type.issue.state.changed = 이슈 상태 변경
 
 # Grouping
 project.group = 프로젝트 분류
