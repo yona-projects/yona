@@ -6,6 +6,7 @@ import play.mvc.Http;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
 public class Config {
 
@@ -37,7 +38,12 @@ public class Config {
         if (context != null) {
             return getHostport(context.request().host());
         } else {
-            return getHostport("localhost");
+            try {
+                return getHostport(java.net.InetAddress.getLocalHost().getHostAddress());
+            } catch (UnknownHostException e) {
+                play.Logger.warn("Failed to get the host address", e);
+                return getHostport("localhost");
+            }
         }
     }
 

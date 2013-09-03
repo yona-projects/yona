@@ -104,9 +104,9 @@ public class CodeApp extends Controller {
         if (project == null) {
             return null;
         } else if (RepositoryService.VCS_GIT.equals(project.vcs)) {
-            return utils.Url.create(Arrays.asList(project.owner, project.name), request().host());
+            return utils.Url.create(Arrays.asList(project.owner, project.name));
         } else if (RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
-            return utils.Url.create(Arrays.asList("svn", project.owner, project.name), request().host());
+            return utils.Url.create(Arrays.asList("svn", project.owner, project.name));
         } else {
             return null;
         }
