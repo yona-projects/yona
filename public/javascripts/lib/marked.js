@@ -366,7 +366,7 @@ Lexer.prototype.token = function(src, top) {
           ? 'paragraph'
           : 'html',
         pre: cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style',
-        text: cap[0]
+        text: (cap[1]=='script' && this.options.script==false ? escape(cap[0]) : cap[0])
       });
       continue;
     }
@@ -1012,6 +1012,7 @@ Parser.prototype.tok = function() {
  */
 
 function escape(html, encode) {
+
   return html
     .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -1151,6 +1152,7 @@ marked.defaults = {
   tables: true,
   breaks: false,
   pedantic: false,
+  script : false,
   sanitize: false,
   smartLists: false,
   silent: false,
