@@ -79,12 +79,12 @@
         </div>
 
         <ul class="nav nav-tabs nm">
-            <li @if(activeTab == "info"){ class="active" }><a href="#info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
-            <li @if(activeTab == "commits"){ class="active" }><a href="#commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
-            <li @if(activeTab == "changes"){ class="active" }><a href="#changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
+            <li @if(activeTab == "info"){ class="active" }><a href="#__info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
+            <li @if(activeTab == "commits"){ class="active" }><a href="#__commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
+            <li @if(activeTab == "changes"){ class="active" }><a href="#__changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
         <div class="tab-content">
-            <div id="info" class="tab-pane @if(activeTab == "info"){ active }">
+            <div id="__info" class="tab-pane @if(activeTab == "info"){ active }">
                 @**<!-- Pull Request Info -->**@
                 <div class="board-header issue" style="border-top:none;">
                     <div class="title pull-left">
@@ -140,7 +140,7 @@
                 <div id="attachments" class="attachments" resourceType="@ResourceType.PULL_REQUEST" resourceId="@pull.id"></div>
             </div>
 
-            <div id="commits" class="code-browse-wrap tab-pane @if(activeTab == "commits"){ active }">
+            <div id="__commits" class="code-browse-wrap tab-pane @if(activeTab == "commits"){ active }">
                 <div id="history" class="commit-wrap mt20">
                     <table class="code-table commits">
                         <thead class="thead">
@@ -191,7 +191,7 @@
                 </div>
             </div>
 
-            <div id="changes" class="tab-pane @if(activeTab == "changes"){ active }">
+            <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
                 <pre>
 @patch
                 </pre>
