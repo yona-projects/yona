@@ -137,12 +137,16 @@ yobi.Attachments = function(htOptions) {
 
         aFiles.forEach(function(oFile) {
             welItem = _getFileItem(oFile, htData.bTemporary);
-            
+
             if(typeof oFile.id !== "undefined" && oFile.id !== ""){ 
                 // 서버의 첨부 목록에서 가져온 경우
                 welItem.addClass("complete");
-                welItem.click(_onClickListItem);
-            } else { 
+                
+                // textarea 가 있는 경우에만 클릭 이벤트 핸들러 추가
+                if(htElements.welTextarea.length > 0){
+                    welItem.click(_onClickListItem);
+                }
+            } else {
                 // 전송하기 전의 임시 항목인 경우
                 welItem.attr("id", oFile.nSubmitId);
                 welItem.css("opacity", "0.2");
@@ -320,7 +324,7 @@ yobi.Attachments = function(htOptions) {
      */
     function _insertLinkToTextarea(welItem){
         var welTextarea = htElements.welTextarea;
-        if(!welTextarea){
+        if(welTextarea.length === 0){
             return false;
         }
         
@@ -386,7 +390,7 @@ yobi.Attachments = function(htOptions) {
      */
     function _clearLinkInTextarea(welItem){
         var welTextarea = htElements.welTextarea;
-        if(!welTextarea){
+        if(welTextarea.length === 0){
             return false;
         }
         
