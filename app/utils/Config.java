@@ -2,6 +2,7 @@
 package utils;
 
 import play.Configuration;
+import play.mvc.Http;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,7 +32,13 @@ public class Config {
     }
 
     public static String getHostport() {
-        return getHostport("localhost");
+        Http.Context context = Http.Context.current.get();
+
+        if (context != null) {
+            return getHostport(context.request().host());
+        } else {
+            return getHostport("localhost");
+        }
     }
 
     public static String getScheme(String defaultValue) {
@@ -51,7 +58,18 @@ public class Config {
     }
 
     public static String getScheme() {
-        return getScheme("http");
+        Http.Context context = Http.Context.current.get();
+
+        if (context != null) {
+            try {
+                return Config.getScheme(new URI(context.request().uri()).getScheme());
+            } catch (URISyntaxException e) {
+                play.Logger.warn("Failed to get the scheme part from the request-uri", e);
+                return getScheme("http");
+            }
+        } else {
+            return getScheme("http");
+        }
     }
 
     public static String getEmailFromSmtp() {
