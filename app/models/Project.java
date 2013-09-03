@@ -800,4 +800,24 @@ public class Project extends Model implements LabelOwner {
         return labels;
     }
 
+    /**
+     * {@code loginId} 가 owner 가 아니고 멤버로 있는 프로젝트 갯수를 반환한다.
+     *
+     * @param loginId loginId
+     * @return {@code loginId} 가 owner 가 아니고 멤버로 있는 프로젝트 갯수
+     */
+    public static int countProjectsJustMemberAndNotOwner(String loginId) {
+        return find.where().eq("projectUser.user.loginId", loginId)
+                .ne("owner", loginId).findRowCount();
+    }
+
+    /**
+     * {@code loginId} 가 생성한 프로젝트 갯수를 반환한다.
+     *
+     * @param loginId loginId
+     * @return {@code loginId} 가 생성한 프로젝트 갯수
+     */
+    public static int countProjectsCreatedByUser(String loginId) {
+        return find.where().eq("owner", loginId).findRowCount();
+    }
 }
