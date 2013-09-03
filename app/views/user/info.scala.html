@@ -45,14 +45,14 @@
 
             <ul class="unstyled lst-stacked" style="margin-top:20px;">
                 <li @if(groupNames.contains("own")){class="active"}>
-                <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")</a>
+                <a href="@routes.UserApp.userInfo(user.loginId, "own")">@Messages("project.createdByMe")<span class="num-badge pull-right">@Project.countProjectsCreatedByUser(user.loginId)</span></a>
                 </li>
                 <li @if(groupNames.contains("member")){class="active"}>
-                <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")</a>
+                <a href="@routes.UserApp.userInfo(user.loginId, "member")">@Messages("project.default.group.member")<span class="num-badge pull-right">@Project.countProjectsJustMemberAndNotOwner(user.loginId)</span></a>
                 </li>
                 @if(user.loginId == session.get("loginId")){
                     <li @if(groupNames.contains("watching")){class="active"}>
-                    <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")</a>
+                    <a href="@routes.UserApp.userInfo(user.loginId, "watching")">@Messages("project.default.group.watching")<span class="num-badge pull-right">@user.getWatchingProjects.size</span></a>
                     </li>
                 }
             </ul>

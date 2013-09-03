@@ -39,7 +39,6 @@
     </div>
     <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
         <div class="stream-info">
-            <div class="title"><a href="@noti.urlToView">@noti.title</a></div>
             @if(user != null){
             <a class="avatar-wrap mlarge" href="@routes.UserApp.userInfo(user.loginId)">
                 <img src="@user.avatarUrl" >
@@ -49,13 +48,13 @@
                 <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
             </div>    
             }
-            <div class="meta">
-                <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
-                @** <!-- <a href="/@noti.getProject" class="project">@noti.getProject.owner / @noti.getProject.name</a> -->**@
-                <span class="ago pull-right">@agoString(JodaDateUtil.ago(noti.created))</span>
-            </div>   
+            <div class="title"><a href="@noti.urlToView">@noti.title</a></div>
             <div class="message-wrap nowrap" id="message-@noti.id">
                 <div class="message">@noti.getMessage</div> 
+            </div> 
+            <div class="meta">
+                <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
+                <span class="ago pull-right">@agoString(JodaDateUtil.ago(noti.created))</span>
             </div> 
         </div>    
     </div>

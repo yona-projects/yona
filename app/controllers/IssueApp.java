@@ -341,7 +341,6 @@ public class IssueApp extends AbstractPostingApp {
 
         for (Issue issue : issueMassUpdate.issues) {
             issue.refresh();
-
             if (issueMassUpdate.delete == true) {
                 if (AccessControl.isAllowed(UserApp.currentUser(), issue.asResource(),
                         Operation.DELETE)) {
@@ -458,8 +457,8 @@ public class IssueApp extends AbstractPostingApp {
         newIssue.project = project;
 
         newIssue.state = State.OPEN;
-        addLabels(newIssue.labels, request());
-
+        
+        addLabels(newIssue, request());
         setMilestone(issueForm, newIssue);
 
         newIssue.save();
@@ -590,7 +589,7 @@ public class IssueApp extends AbstractPostingApp {
             @Override
             public void run() {
                 issue.comments = originalIssue.comments;
-                addLabels(issue.labels, request());
+                addLabels(issue, request());
             }
         };
 
@@ -800,7 +799,11 @@ public class IssueApp extends AbstractPostingApp {
      * @param labels 이슈 라벨을 저장할 대상
      * @param request 요청 정보 (이슈라벨 ID를 추출하여 사용한다)
      */
-    public static void addLabels(Set<IssueLabel> labels, Http.Request request) {
+    public static void addLabels(Issue issue, Http.Request request) {
+        if (issue.labels == null) {
+            issue.labels = new HashSet<IssueLabel>();
+        }
+        
         Http.MultipartFormData multipart = request.body().asMultipartFormData();
         Map<String, String[]> form;
         if (multipart != null) {
@@ -811,7 +814,7 @@ public class IssueApp extends AbstractPostingApp {
         String[] labelIds = form.get("labelIds");
         if (labelIds != null) {
             for (String labelId : labelIds) {
-                labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
+                issue.labels.add(IssueLabel.finder.byId(Long.parseLong(labelId)));
             }
         }
     }

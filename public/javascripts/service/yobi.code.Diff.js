@@ -529,9 +529,12 @@
                 } else {
                     switch (aLine[i].substr(0, 2)) {
                     case '--':
+                        htDiff.sPath = aLine[i].substr(5);
                         break;
                     case '++':
-                        htDiff.sPath = aLine[i].substr(5);
+                        if (aLine[i].substr(5) != 'dev/null') {
+                            htDiff.sPath = aLine[i].substr(5);
+                        }
                         _flushChangedLines(welTable, htDiff);
                         _appendFileHeader(welTable, htDiff.sPath);
                         break;
