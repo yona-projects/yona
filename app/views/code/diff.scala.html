@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, patch: String, comments:List[CodeComment])
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -47,7 +47,7 @@
             }
             </ul>
         </div>
-           
+
 	    <ul class="nav nav-tabs" style="margin-bottom:20px;">
 	        <li>
                 <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
@@ -62,7 +62,7 @@
             case (user: User, _, _) if !user.isAnonymous => {
                 <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
                     <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
-                </a> 
+                </a>
                 <strong>@commit.getAuthor.name</strong>
             }
             case (_, email, name) if email != null => {
@@ -117,9 +117,9 @@
 	</div>
 
     <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
-	
+
 	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
-	
+
 </div>
 
 @markdown(project)
@@ -148,7 +148,9 @@
             "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
             "bCommentable": bCommentable,
             "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)"
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
+            "sParentCommitId" : "@parentCommit.getId",
+            "sCommitId"       : "@commit.getId"
         });
 
         yobi.Mention({
