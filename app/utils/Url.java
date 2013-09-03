@@ -20,7 +20,7 @@ public class Url {
         try {
             return create(pathSegments, java.net.InetAddress.getLocalHost().getHostAddress());
         } catch (UnknownHostException e) {
-            return create(pathSegments, "localhost");
+            return create(pathSegments, Config.getHostport());
         }
     }
     
@@ -36,7 +36,7 @@ public class Url {
      * 
      */
     public static String create(List<String> pathSegments, String defaultHostport) {
-        return create(pathSegments, defaultHostport, "http");
+        return create(pathSegments, defaultHostport, Config.getScheme());
     }
     
     /**
