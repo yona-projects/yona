@@ -4,7 +4,7 @@ import models.Project;
 import models.User;
 import models.UserProjectNotification;
 import models.Watch;
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import org.codehaus.jackson.node.ObjectNode;
 import play.i18n.Messages;
@@ -53,7 +53,7 @@ public class WatchProjectApp extends Controller {
     }
 
     public static Result toggle(Long projectId, String notificationType) {
-        NotificationType notiType = NotificationType.valueOf(notificationType);
+        EventType notiType = EventType.valueOf(notificationType);
         Project project = Project.find.byId(projectId);
         if(project == null) {
             return notFound(ErrorViews.NotFound.render("No project matches given id '" + projectId + "'"));
@@ -66,7 +66,7 @@ public class WatchProjectApp extends Controller {
         }
 
         UserProjectNotification upn = UserProjectNotification.findOne(user, project, notiType);
-        if(upn == null) { // make the NotificationType OFF, because default is ON.
+        if(upn == null) { // make the EventType OFF, because default is ON.
             UserProjectNotification.unwatchExplictly(user, project, notiType);
         } else {
             upn.toggle();

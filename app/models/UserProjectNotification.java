@@ -1,6 +1,6 @@
 package models;
 
-import models.enumeration.NotificationType;
+import models.enumeration.EventType;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
@@ -31,16 +31,16 @@ public class UserProjectNotification extends Model {
     public Project project;
 
     @Enumerated(EnumType.STRING)
-    public NotificationType notificationType;
+    public EventType notificationType;
 
     public boolean allowed;
 
-    public static Map<Project, Map<NotificationType, Boolean>> getProjectNotifications(User user) {
-        Map<Project, Map<NotificationType, Boolean>> result = new HashMap<>();
+    public static Map<Project, Map<EventType, Boolean>> getProjectNotifications(User user) {
+        Map<Project, Map<EventType, Boolean>> result = new HashMap<>();
         List<UserProjectNotification> list = find.where().eq("user", user).findList();
         for(UserProjectNotification noti : list) {
             Project notiProject = noti.project;
-            Map<NotificationType, Boolean> pn = result.get(notiProject);
+            Map<EventType, Boolean> pn = result.get(notiProject);
             if(pn == null) {
                 pn = new HashMap<>();
                 result.put(notiProject, pn);
@@ -62,12 +62,12 @@ public class UserProjectNotification extends Model {
      * @param notiType
      * @return
      */
-    public static boolean isEnabledNotiType(Map<Project, Map<NotificationType, Boolean>> notiMap, Project project, NotificationType notiType) {
+    public static boolean isEnabledNotiType(Map<Project, Map<EventType, Boolean>> notiMap, Project project, EventType notiType) {
         if(!notiMap.containsKey(project)) {
             return true;
         }
 
-        Map<NotificationType, Boolean> projectNoti = notiMap.get(project);
+        Map<EventType, Boolean> projectNoti = notiMap.get(project);
         if(!projectNoti.containsKey(notiType)) {
             return true;
         } else {
@@ -75,7 +75,7 @@ public class UserProjectNotification extends Model {
         }
     }
 
-    public static UserProjectNotification findOne(User user, Project project, NotificationType notificationType) {
+    public static UserProjectNotification findOne(User user, Project project, EventType notificationType) {
         return find.where()
                 .eq("user", user)
                 .eq("project", project)
@@ -92,7 +92,7 @@ public class UserProjectNotification extends Model {
         update();
     }
 
-    public static void unwatchExplictly(User user, Project project, NotificationType notiType) {
+    public static void unwatchExplictly(User user, Project project, EventType notiType) {
         UserProjectNotification newOne = new UserProjectNotification();
         newOne.user = user;
         newOne.project = project;

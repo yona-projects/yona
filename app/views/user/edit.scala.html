@@ -96,7 +96,7 @@
                             @defining(Project.find.byId(watches.get(i).resourceId.toLong)) { project =>
                             <div class="tab-pane @if(i == 0){active}" id="@project.id">
                                 <table class="table table-striped table-bordered">
-                                @for(notiType <- models.enumeration.NotificationType.notiTypes) {
+                                @for(notiType <- models.enumeration.EventType.notiTypes) {
                                     <tr>
                                         <th>@notiType.getDescr()</th>
                                         <td>

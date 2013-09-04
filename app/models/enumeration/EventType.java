@@ -19,7 +19,7 @@ public enum EventType {
 
     private int order;
 
-    NotificationType(String messageKey, int order) {
+    EventType(String messageKey, int order) {
         this.descr = Messages.get(messageKey);
         this.order = order;
     }
@@ -32,13 +32,13 @@ public enum EventType {
         return order;
     }
 
-    public static final List<NotificationType> notiTypes;
+    public static final List<EventType> notiTypes;
 
     static {
-        notiTypes = Arrays.asList(NotificationType.values());
-        Collections.sort(notiTypes, new Comparator<NotificationType>() {
+        notiTypes = Arrays.asList(EventType.values());
+        Collections.sort(notiTypes, new Comparator<EventType>() {
             @Override
-            public int compare(NotificationType o1, NotificationType o2) {
+            public int compare(EventType o1, EventType o2) {
                 return o1.getOrder() - o2.getOrder();
             }
         });
