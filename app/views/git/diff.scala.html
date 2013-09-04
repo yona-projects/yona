@@ -125,7 +125,7 @@
 
         yobi.Mention({
             target:'comment-editor',
-            url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString)"
+            url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(pull.toProject.owner, pull.toProject.name, commit.getId).toString)"
         });
 
 	});
