@@ -14,6 +14,8 @@ import java.util.Date;
 
 @Entity
 public class IssueEvent extends Model implements TimelineItem {
+    private static final long serialVersionUID = 4029013291153199185L;
+
     @Id
     public Long id;
 
