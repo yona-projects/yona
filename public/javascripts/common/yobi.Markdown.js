@@ -35,6 +35,8 @@ yobi.Markdown = function(htOptions){
         htVar.sProjecRules = '[a-z0-9_\\-]';
         htVar.sIssueRules = '\\d';
         htVar.sSha1Rules = '[a-f0-9]{7,40}';
+        htVar.htFilter = new Filter();
+
     }
     
     /**
@@ -97,8 +99,8 @@ yobi.Markdown = function(htOptions){
         };
 
         htMarkedOption.hook = hooks;
-
-        return marked(sText,htMarkedOption);
+      
+        return htVar.htFilter.sanitize(marked(sText,htMarkedOption)).xss();
     }
 
     function _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt,sShar1,sMention) {
