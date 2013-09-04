@@ -101,7 +101,7 @@ POST    /:user/:project/setting                         controllers.ProjectApp.s
 GET     /:user/:project/deleteform                      controllers.ProjectApp.deleteForm(user, project)
 GET     /:user/:project/delete                          controllers.ProjectApp.deleteProject(user, project)
 GET     /:user/:project/mentionList                     controllers.ProjectApp.mentionList(user, project, number:Long ?= -1, resourceType:String ?= "")
-GET     /:user/:project/mentionListAtCommitDiff             controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "")
+GET     /:user/:project/mentionListAtCommitDiff             controllers.ProjectApp.mentionListAtCommitDiff(user, project, commitId:String ?= "", pullRequestId:Long ?= -1)
 GET     /:user/:project/mentionListAtPullRequest             controllers.ProjectApp.mentionListAtPullRequest(user, project, commitId:String ?= "", pullRequestId:Long)
 GET     /:user/:project/members                         controllers.ProjectApp.members(user, project)
 POST    /:user/:project/members                         controllers.ProjectApp.newMember(user, project)

@@ -427,7 +427,7 @@ public class ProjectApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
-    public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId)
+    public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
@@ -440,11 +440,18 @@ public class ProjectApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+        PullRequest pullRequest = null;
+        Project fromProject = project;
+        if( pullRequestId != -1 ){
+            pullRequest = PullRequest.findById(pullRequestId);
+            if( pullRequest != null) fromProject = pullRequest.fromProject;
+        }
+
+        Commit commit = RepositoryService.getRepository(fromProject).getCommit(commitId);
 
         List<User> userList = new ArrayList<>();
         addCommitAuthor(commit, userList);
-        addCodeCommenters(commitId, project.id, userList);
+        addCodeCommenters(commitId, fromProject.id, userList);
         addProjectMemberList(project, userList);
         userList.remove(UserApp.currentUser());
 
