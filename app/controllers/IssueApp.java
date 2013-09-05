@@ -745,6 +745,9 @@ public class IssueApp extends AbstractPostingApp {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         final Issue issue = Issue.findByNumber(project, number);
+        if (issue == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
         Form<IssueComment> commentForm = new Form<>(IssueComment.class)
                 .bindFromRequest();

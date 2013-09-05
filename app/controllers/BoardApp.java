@@ -329,6 +329,9 @@ public class BoardApp extends AbstractPostingApp {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         final Posting posting = Posting.findByNumber(project, number);
+        if (posting == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
         Call redirectTo = routes.BoardApp.post(project.owner, project.name, number);
         Form<PostingComment> commentForm = new Form<>(PostingComment.class)
                 .bindFromRequest();
