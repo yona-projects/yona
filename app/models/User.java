@@ -287,7 +287,7 @@ public class User extends Model {
      * @return
      */
     public boolean isAnonymous() {
-        return this.id.equals(anonymous.id);
+        return id == null || id.equals(anonymous.id);
     }
 
     /**
