@@ -1,10 +1,6 @@
 package models;
 
-import static com.avaje.ebean.Expr.icontains;
-
 import com.avaje.ebean.Ebean;
-import com.avaje.ebean.ExpressionList;
-import controllers.IssueApp;
 import jxl.Workbook;
 import jxl.format.Alignment;
 import jxl.format.Border;
@@ -15,6 +11,7 @@ import jxl.write.*;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+import models.support.SearchCondition;
 import utils.JodaDateUtil;
 
 import javax.persistence.*;
@@ -179,7 +176,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
      * @return
      */
 
-    public static int countIssuesBy(Long projectId, IssueApp.SearchCondition cond) {
+    public static int countIssuesBy(Long projectId, SearchCondition cond) {
         return cond.asExpressionList(Project.find.byId(projectId)).findRowCount();
     }
 
@@ -342,10 +339,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return super.getWatchers(baseWatchers);
     }
 
-
-    public boolean assigneeEquals(Assignee otherAssignee) {
-        return (assignee == otherAssignee) ||
-               (assignee != null && assignee.equals(otherAssignee));
+    public boolean assignedUserEquals(Assignee otherAssignee) {
+        if (assignee == null || assignee.user == null || assignee.user.isAnonymous()) {
+            return otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous();
+        } else {
+            return assignee.equals(otherAssignee) || assignee.user.equals(otherAssignee.user);
+        }
     }
 
     /**

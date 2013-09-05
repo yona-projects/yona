@@ -87,8 +87,8 @@
 
             $(htElement.weAllCheckbox).on('click' , function() {
                 var checkedStatus = this.checked;
-                $(htVar.sIssueCheckBoxesSelector).prop('checked', checkedStatus);
-                    _onCheckIssue();
+                $(htVar.sIssueCheckBoxesSelector).prop('checked', checkedStatus).change();
+                _onCheckIssue();
             });
             
         }

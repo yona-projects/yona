@@ -2,6 +2,7 @@
 @import scala.collection.immutable._
 @import utils.TemplateHelper._
 @import utils.AccessControl._
+@import models.support.SearchCondition
 
 @urlToList = {@routes.MilestoneApp.milestones(project.owner, project.name)}
 
@@ -50,7 +51,7 @@
         <li @if(issueState == state) { class="active" }>
             <a href="@getTabLinkByState(state)">
                 @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@Issue.countIssuesBy(project.id, new IssueApp.SearchCondition().setState(state).setMilestoneId(milestone.id))</span>
+                <span class="num-badge">@Issue.countIssuesBy(project.id, new SearchCondition().setState(state).setMilestoneId(milestone.id))</span>
             </a>
         </li>
     }
@@ -58,15 +59,15 @@
 
 	<div class="issues">
 	    <div class="filter-wrap">
-		@issue.partial_massupdate(project, new IssueApp.SearchCondition())
+		@issue.partial_massupdate(project, new SearchCondition())
 		</div>
         @{
 	        if(issueState == State.OPEN) {
-			issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new IssueApp.SearchCondition(),0,0)
+			issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new SearchCondition(),0,0)
 	        } else if(issueState == State.CLOSED) {
-			issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new IssueApp.SearchCondition(),0,0)
+			issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new SearchCondition(),0,0)
 	        } else {
-			issue.partial_list(project, milestone.sortedByNumberOfIssue(), new IssueApp.SearchCondition(),0,0)
+			issue.partial_list(project, milestone.sortedByNumberOfIssue(), new SearchCondition(),0,0)
 	        }
         }
 
