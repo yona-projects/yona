@@ -9,12 +9,14 @@
     <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 
+@issueLabels(issue:Issue) = {@for(label <- issue.labels.toList.sortBy(r => (r.category, r.name))) {@label.category,@label.id,@label.name|}}
+
 @for(issue <- issueList){
 <div class="row-fluid issue-item" id="issue-item-@issue.id">
     <div class="span9">
         @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
         <label for="issue-@issue.id" class="mass-update-check pull-left">
-           <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id" data-toggle="issue-checkbox" class="checkbox">
+            <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-toggle="issue-checkbox" data-issue-id="@issue.id" data-issue-labels="@issueLabels(issue)">
         </label>
         }
         @**<!--<a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge pull-left">

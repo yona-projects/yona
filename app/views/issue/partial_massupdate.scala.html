@@ -1,5 +1,27 @@
 @(project:Project, param:models.support.SearchCondition)
 
+@labelList(project:Project) = {
+    @IssueLabel.findByProject(project).groupBy(_.category).map {
+        case (category, labels) => {
+            <li class="disabled" data-category="@category"><span>@category</span></li>
+            @labels.map { label =>
+            <li data-value="@label.id" data-category="@category">
+            <a>
+                <span class="issue-label active" data-labelId="@label.id">@label.name</span>
+            </a>
+            </li>
+            }
+            <li class="divider" data-category="@category"></li>
+        }
+    }
+}
+
+<script type="text/x-jquery-tmpl" id="labelListItem">
+<li data-value="${id}" data-category="${category}">
+    <a><span class="issue-label active" data-labelId="${id}">${name}</span></a>
+</li>
+</script>
+
 <form id="mass-update-form" class="mass-update-form pull-left" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post">
     <div class="btn-group check-all">
         <label for="check-all">
@@ -52,10 +74,8 @@
             <span class="d-label">@Messages("issue.update.attachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu" id="attach-label-list">
-        @for(label <- IssueLabel.findByProject(project)) {
-            <li data-value="@label.id"><a>@label</a></li>
-        }
+        <ul id="attach-label-list" class="dropdown-menu">
+            @labelList(project)
         </ul>
     </div>
 
@@ -64,13 +84,12 @@
             <span class="d-label">@Messages("issue.update.detachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu" id="delete-label-list">
-        @for(label <- IssueLabel.findByProject(project)) {
-            <li data-value="@label.id"><a>@label</a></li>
-        }
+        <ul id="delete-label-list" class="dropdown-menu">
+            @labelList(project)
         </ul>
     </div>
 </form>
+
 <script type="text/javascript">
     $(document).ready(function(){
 	    //issueList
