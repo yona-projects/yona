@@ -1,4 +1,4 @@
-@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:IssueApp.SearchCondition, project:Project)
+@(title: String, currentPage: com.avaje.ebean.Page[Issue], param:models.support.SearchCondition, project:Project)
 
 @import helper._
 @import utils.TemplateHelper._
@@ -8,7 +8,6 @@
 @import models.enumeration._
 @import org.apache.commons.lang.StringUtils
 @import utils.HttpUtil._
-@import controllers.IssueApp.SearchCondition._
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, param.state, "html", currentPage.getPageIndex + 1)}
 @paramForEveryone = @{ param.clone().setState(param.state).setAssigneeId(null).setAuthorId(null) }

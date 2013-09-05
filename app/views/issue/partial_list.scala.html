@@ -1,11 +1,11 @@
-@(project:Project, issueList:Collection[Issue], searchCondition:IssueApp.SearchCondition, pageIndex:Int, totalPageCount:Int)
+@(project:Project, issueList:Collection[Issue], searchCondition:models.support.SearchCondition, pageIndex:Int, totalPageCount:Int)
 @import java.util
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 
 @urlToList = {@routes.IssueApp.issues(project.owner, project.name, searchCondition.state, "html", pageIndex + 1)}
 
-@makeLabelLink(project:Project, searchCondition:IssueApp.SearchCondition, label:IssueLabel) = {
+@makeLabelLink(project:Project, searchCondition:models.support.SearchCondition, label:IssueLabel) = {
     <a href="#" class="label issue-label list-label" data-labelId="@label.id" data-color="@label.color" style="background:@label.color">@label.name</a>
 }
 
