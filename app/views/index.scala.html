@@ -43,7 +43,7 @@
         <div class="row-fluid content-container">
             @if(session.contains("userId")){
 	        <div class="span9 main-stream">
-                <ul class="activity-streams unstyled">
+                <ul class="activity-streams notification-wrap unstyled">
                     @views.html.partial_notifications(0, 20)
                 </ul>
 	        </div>
@@ -82,7 +82,7 @@
                 $(".page").removeClass("on-fold-intro");
             }
             
-            $('.notification-stream').on('click','[data-toggle="learnmore"]',function(event) {
+            $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
                 var sTargetId = $(this).data('target'),
                     welMessage = $('#'+sTargetId),
                     nHeight;
