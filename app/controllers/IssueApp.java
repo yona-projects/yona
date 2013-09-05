@@ -220,7 +220,7 @@ public class IssueApp extends AbstractPostingApp {
                 } else {
                     newAssignee = Assignee.add(issueMassUpdate.assignee.id, project.id);
                 }
-                assigneeChanged = !issue.assigneeEquals(newAssignee);
+                assigneeChanged = !issue.assignedUserEquals(newAssignee);
                 issue.assignee = newAssignee;
             }
 
@@ -447,7 +447,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Result result = editPosting(originalIssue, issue, issueForm, redirectTo, updateIssueBeforeSave);
 
-        if(!originalIssue.assigneeEquals(issue.assignee)) {
+        if(!originalIssue.assignedUserEquals(issue.assignee)) {
             Issue updatedIssue = Issue.finder.byId(originalIssue.id);
             User oldAssignee = null;
             if(originalIssue.assignee != null) {

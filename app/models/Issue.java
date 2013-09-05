@@ -339,10 +339,12 @@ public class Issue extends AbstractPosting implements LabelOwner {
         return super.getWatchers(baseWatchers);
     }
 
-
-    public boolean assigneeEquals(Assignee otherAssignee) {
-        return (assignee == otherAssignee) ||
-               (assignee != null && assignee.equals(otherAssignee));
+    public boolean assignedUserEquals(Assignee otherAssignee) {
+        if (assignee == null || assignee.user == null || assignee.user.isAnonymous()) {
+            return otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous();
+        } else {
+            return assignee.equals(otherAssignee) || assignee.user.equals(otherAssignee.user);
+        }
     }
 
     /**
