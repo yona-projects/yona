@@ -26,7 +26,9 @@
 		    
             // initialize branches
             if (htVar.oBranch.getValue() === "") {
-                htVar.oBranch.selectByValue("HEAD");
+                if (!htVar.oBranch.selectByValue("HEAD")) {
+                    htVar.oBranch.selectItem("li:first-child");
+                }
             }
             htVar.sRootPath = "code/" + getBranch() + "/!/"; // dynaTree
 
