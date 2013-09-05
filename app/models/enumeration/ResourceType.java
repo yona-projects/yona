@@ -28,7 +28,8 @@ public enum ResourceType {
     CODE_COMMENT("code_comment"),
     PULL_REQUEST("pull_request"),
     SIMPLE_COMMENT("simple_comment"),
-    COMMIT("commit");
+    COMMIT("commit"),
+    NOT_A_RESOURCE("");
 
     private String resource;
 
