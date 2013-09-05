@@ -10,11 +10,11 @@
 }
 
 @for(issue <- issueList){
-<div class="row-fluid issue-item">
+<div class="row-fluid issue-item" id="issue-item-@issue.id">
     <div class="span9">
         @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
         <label for="issue-@issue.id" class="mass-update-check pull-left">
-           <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id" class="checkbox">
+           <input id="issue-@issue.id" type="checkbox" name="checked-issue" data-issue-id="@issue.id" data-toggle="issue-checkbox" class="checkbox">
         </label>
         }
         @**<!--<a href="@routes.UserApp.userInfo(issue.authorLoginId)" class="avatar-wrap mlarge pull-left">

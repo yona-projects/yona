@@ -60,7 +60,7 @@
             htElement.welDeleteButton = htOptions.welDeleteButton;
             htElement.waCheckboxes = $(htVar.sIssueCheckBoxesSelector);
 
-            htElement.weAllCheckbox = $('#check-all');      
+            htElement.welIssueWrap = $('.issue-list-wrap');   
 		}
 
 		/**
@@ -86,7 +86,17 @@
 		    htElement.welFilter.each(function(i, el) {
 		        $(el).click(_onClickSearchFilter);
 		    });
+
+            htElement.welIssueWrap.on('change','[data-toggle="issue-checkbox"]',_onChangeIssueCheckBox);
+
 		}
+
+        function _onChangeIssueCheckBox() {
+            var welItemWrap = $('#issue-item-'+$(this).data('issueId'));
+            if($(this).is(':checked')) welItemWrap.addClass('active');
+            else welItemWrap.removeClass('active');
+        }
+
 		function _onChangeSearchOrder(event) {
 		    event.preventDefault();
 		    $("input[name=orderBy]").val($(this).attr("orderBy"));
