@@ -240,8 +240,8 @@ public class IssueApp extends AbstractPostingApp {
 
             boolean isPjax = Boolean.parseBoolean(pjax);
 
-            
             if (isPjax) {
+                response().setHeader("Cache-Control", "no-cache, no-store");
                 return ok(partial_search.render("title.issueList", issues, searchCondition, project));
             } else {
                 return ok(list.render("title.issueList", issues, searchCondition, project));            
