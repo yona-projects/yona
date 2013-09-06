@@ -144,12 +144,20 @@
         } else {
         var bCommentable = false;
         }
+
+        @if(parentCommit != null) {
+            var parentCommitId = "@parentCommit.getId";
+        } else {
+            var parentCommitId = "";
+        }
+
+
         $yobi.loadModule("code.Diff", {
             "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
             "bCommentable": bCommentable,
             "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
-            "sParentCommitId" : "@parentCommit.getId",
+            "sParentCommitId" : parentCommitId,
             "sCommitId"       : "@commit.getId"
         });
 

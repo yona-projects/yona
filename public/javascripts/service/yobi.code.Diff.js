@@ -36,9 +36,11 @@
                 var secondLineNum = children[1];
                 var fileName = $($(children[2]).children("span")[0]).text();
 
-                $(firstLineNum).append(
-                    '<a class="pull-left fileView" data-id="' + htVar.sParentCommitId + '" data-content="' + fileName + '">View</a>'
-                );
+                if(htVar.sParentCommitId) {
+                    $(firstLineNum).append(
+                        '<a class="pull-left fileView" data-id="' + htVar.sParentCommitId + '" data-content="' + fileName + '">View</a>'
+                    );
+                }
 
                 $(secondLineNum).append(
                     '<a class="pull-left fileView" data-id="' + htVar.sCommitId + '" data-content="' + fileName + '">View</a>'
