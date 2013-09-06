@@ -100,4 +100,23 @@ public class UserProjectNotification extends Model {
         newOne.allowed = false;
         newOne.save();
     }
+
+    /**
+     * {@code user}가 {@code project}의 {@code notificationType}에 해당하는 알림을 받고 있는지 확인한다.
+     *
+     * {@code project}의 {@code notiType}에 대한 정보가 없다면
+     * 기본적으로 알림을 받는 중으로 인식한다.
+     *
+     * @param user
+     * @param project
+     * @param eventType
+     * @return
+     */
+    public static boolean isEnabledNotiType(User user, Project project, EventType eventType) {
+        UserProjectNotification notification = findOne(user, project, eventType);
+        if (notification == null) {
+            return true;
+        }
+        return notification.allowed;
+    }
 }

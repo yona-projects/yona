@@ -1,8 +1,8 @@
 @(project:Project)
 @** 프로젝트 설정 서브메뉴 **@
 
-@makeSubMenu(call:Call, name:String) = {
-    <li class="@isActiveSubMenu(call)"><a href="@call">@name</a></li>
+@makeSubMenu(call:Call, name:String, count:Integer) = {
+    <li class="@isActiveSubMenu(call)"><a href="@call">@name@if(count>0){<span class="num-badge">@count</span>}</a></li>
 }
 
 @isActiveSubMenu(calls: Call*) = @{
@@ -16,7 +16,7 @@
 }
 
 <ul class="nav nav-tabs">
-    @makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"))
-    @makeSubMenu(routes.ProjectApp.members(project.owner, project.name),      Messages("project.member"))
-    @makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"))
+    @makeSubMenu(routes.ProjectApp.settingForm(project.owner, project.name),  Messages("project.setting"), 0)
+    @makeSubMenu(routes.ProjectApp.members(project.owner, project.name),      Messages("project.member"), project.enrolledUsers.size)
+    @makeSubMenu(routes.ProjectApp.deleteForm(project.owner, project.name),   Messages("project.delete"), 0)
 </ul>

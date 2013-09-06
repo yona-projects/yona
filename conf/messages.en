@@ -658,6 +658,9 @@ notification.issue.unassigned = Unassigned
 notification.pullrequest.closed = Merged
 notification.pullrequest.rejected = Rejected
 notification.pullrequest.reopened = Re-opened
+notification.member.enroll.request = Received a request for joining your project.
+notification.member.enroll.cancel = The request for joining your project has been canceled.
+notification.member.enroll.accept = Joined as a member.
 notification.type.new.issue = New Issue
 notification.type.new.posting = New Posting
 notification.type.pull.request.state.changed = Changed Pull-Request'ss State
@@ -666,6 +669,7 @@ notification.type.new.comment = New Comment on a Posting or a Issue
 notification.type.new.pull.request = New Pull-Request
 notification.type.new.simple.comment = New Comment on a Pull-Request
 notification.type.issue.state.changed = Changed Issue's State
+notification.type.member.enroll = Requests for joining projects
 
 # Grouping
 project.group = Project Gorups

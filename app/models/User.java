@@ -467,4 +467,19 @@ public class User extends Model {
 
         return User.find.setRawSql(rawSql).where().eq("issue.project_id", projectId).findList();
     }
+
+    /**
+     * {@code projectId} 에 해당하는 프로젝트에서 {@code roleType} 역할을 가지고 있는
+     * 사용자 목록을 조회한다.
+     *
+     * @param projectId
+     * @param roleType
+     * @return
+     */
+    public static List<User> findUsersByProject(Long projectId, RoleType roleType) {
+        return find.where().eq("projectUser.project.id", projectId)
+                .eq("projectUser.role.id", roleType.roleType())
+                .orderBy().asc("name")
+                .findList();
+    }
 }

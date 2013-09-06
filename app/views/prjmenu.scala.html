@@ -219,6 +219,9 @@
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" class="menu-item">
                         <i class="yobicon-websitebuilder"></i>
                         <span class="menu-title">@Messages("menu.admin")</span>
+                        @if(project.enrolledUsers.size > 0){
+                        <span class="num-badge">@project.enrolledUsers.size</span>
+                        }
                     </a>
                 </li>
                 }

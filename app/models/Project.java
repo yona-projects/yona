@@ -5,6 +5,10 @@ import com.avaje.ebean.Page;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
 
+import controllers.EnrollProjectApp;
+import controllers.ProjectApp;
+import controllers.routes;
+import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
@@ -678,6 +682,9 @@ public class Project extends Model implements LabelOwner {
         }
         for(User user : acceptedUsers) {
             user.cancelEnroll(this);
+            EnrollProjectApp
+                    .addNotificationEvent(this, user, RequestState.ACCEPT,
+                            routes.ProjectApp.project(owner, name));
         }
     }
 

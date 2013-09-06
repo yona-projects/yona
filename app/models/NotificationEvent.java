@@ -1,6 +1,7 @@
 package models;
 
 import models.enumeration.EventType;
+import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
@@ -78,6 +79,10 @@ public class NotificationEvent extends Model {
                 posting.project.name, posting.title, posting.getNumber());
     }
 
+    public static String formatReplyTitle(Project project, User user) {
+        return String.format("Re: [%s] @%s wants to join your project", project.name, user.loginId);
+    }
+
     public static String formatNewTitle(AbstractPosting posting) {
         return String.format("[%s] %s (#%d)",
                 posting.project.name, posting.title, posting.getNumber());
@@ -86,6 +91,10 @@ public class NotificationEvent extends Model {
     public static String formatNewTitle(PullRequest pullRequest) {
         return String.format("[%s] %s (#%d)",
                 pullRequest.toProject.name, pullRequest.title, pullRequest.id);
+    }
+
+    public static String formatNewTitle(Project project, User user) {
+        return String.format("[%s] @%s wants to join your project", project.name, user.loginId);
     }
 
     public String getOldValue() {
@@ -135,6 +144,14 @@ public class NotificationEvent extends Model {
                 return Messages.get("notification.pullrequest.rejected");
             } else {
                 return Messages.get("notification.pullrequest.reopened");
+            }
+        case MEMBER_ENROLL_REQUEST:
+            if (RequestState.REQUEST.name().equals(newValue)) {
+                return Messages.get("notification.member.enroll.request");
+            } else  if (RequestState.ACCEPT.name().equals(newValue)) {
+                return Messages.get("notification.member.enroll.accept");
+            } else {
+                return Messages.get("notification.member.enroll.cancel");
             }
         default:
             return null;
