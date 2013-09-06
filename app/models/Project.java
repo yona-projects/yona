@@ -2,6 +2,9 @@ package models;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
+
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;

@@ -21,6 +21,9 @@ import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
 import com.avaje.ebean.Page;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
+
 import utils.WatchService;
 
 /**
@@ -453,5 +456,15 @@ public class User extends Model {
         }
 
         update();
+    }
+
+    public static List<User> findIssueAuthorsByProjectId(long projectId) {
+        String sql = "select user.id, user.avatar_url, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id group by issue.author_id";
+        RawSql rawSql = RawSqlBuilder.parse(sql)
+                        .columnMapping("user.avatar_url", "avatarUrl")
+                        .columnMapping("user.login_id", "loginId")
+                        .create();
+
+        return User.find.setRawSql(rawSql).where().eq("issue.project_id", projectId).findList();
     }
 }

@@ -89,14 +89,15 @@
                                             <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.authoredByMe")</a></li>
                                         }
                                         <li class="divider"></li>
-                                        @for(member <- project.members()) {
-                                        <li data-value="@member.user.id" @if(param.authorId != null && param.authorId == member.user.id){data-selected="true" class="active"}>
+                                        @for(author <- User.findIssueAuthorsByProjectId(project.id)) {
+                                        <li data-value="@author.id" @if(param.authorId != null && param.authorId == author.id){data-selected="true" class="active"}>
 	                                        <a class="usf-group">
                                                 <span class="avatar-wrap smaller">
-                                                    <img src="@member.user.avatarUrl" width="20" height="20">
+                                                    <img src="@author.avatarUrl" width="20" height="20">
                                                 </span>
-                                                <strong class="name">@member.user.name</strong>
-                                                <span class="loginid"> <strong>@{"@"}</strong>@member.user.loginId</span>
+
+                                                <strong class="name">@author.name</strong>
+                                                <span class="loginid"> <strong>@@</strong>@author.loginId</span> 
                                             </a>
                                         </li>
                                         }
@@ -120,14 +121,15 @@
                                             <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
                                         }
                                         <li class="divider"></li>
-                                        @for(assignee <- project.assignees) {
-                                        <li data-value="@assignee.user.id" @if(param.assigneeId != null && param.assigneeId == assignee.user.id){data-selected="true" class="active"}>
+                                        @for(member <- project.members) {
+                                        <li data-value="@member.user.id" @if(param.assigneeId != null && param.assigneeId == member.user.id){data-selected="true" class="active"}>
                                             <a class="usf-group">
                                                 <span class="avatar-wrap smaller">
-                                                    <img src="@User.findByLoginId(assignee.user.loginId).avatarUrl" width="20" height="20">
+                                                    <img src="@member.user.avatarUrl" width="20" height="20">
                                                 </span>
-                                                <strong class="name">@assignee.user.name</strong>
-                                                <span class="loginid"> <strong>@{"@"}</strong>@assignee.user.loginId</span>
+
+                                                <strong class="name">@member.user.name</strong>
+                                                <span class="loginid"> <strong>@@</strong>@member.user.loginId</span> 
                                             </a>
                                         </li>
                                         }
