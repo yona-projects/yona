@@ -160,15 +160,25 @@
                                     <i class="ico ico-gray-arrow-right"></i>
                                 </a>
                             </td>
+
                             <td class="messages">
                                 @defining(CodeComment.count(pull.fromProject, commit.getId)){ numOfComment =>
                                     @if(numOfComment > 0) {
                                     <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
                                     }
                                 }
-                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getId())">
-                                    @commit.getMessage()
+
+								@defining(commit.getMessage()){ commitMsg =>
+	                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getId())">
+	                                    @commitMsg.split("\n")(0)
+	                                </a>
+
+									@if(commitMsg.split("\n").length > 1){
+									<button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>
+									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+									}
                                 </a>
+                                }
                             </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
@@ -297,6 +307,11 @@
                 url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, commits.get(0).getId, pull.id).toString)"
             }
         });
+
+		$("button.more").click(function(){
+		    $(this).next("pre").toggleClass("hidden");
+		});
+
     });
 </script>
 }
