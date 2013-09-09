@@ -92,7 +92,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     &.orange { background:darken(@orange, 5%); }
 }
 .dropdown-menu {
-    padding:0; width:inherit;
+    padding:0; width:inherit; overflow:hidden;
     border:1px solid rgba(0,0,0,0.2);
     .box-shadow(-2px 2px 1px rgba(0,0,0,0.1));
     .border-radius(2px);
@@ -120,6 +120,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
     padding-left:10px;
     font-weight:bold; color:@darkgray;
 }
+.dropdown-menu li:last-of-type.divider { display:none; }
 .btn-group.auto {
     width:100%;
 }

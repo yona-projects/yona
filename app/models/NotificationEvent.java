@@ -186,7 +186,7 @@ public class NotificationEvent extends Model {
                     event.senderId.equals(lastEvent.senderId)) {
                 // If the last event is A -> B and the current event is B -> C,
                 // they are merged into the new event A -> C.
-                event.oldValue = lastEvent.oldValue;
+                event.oldValue = lastEvent.getOldValue();
                 lastEvent.delete();
 
                 // If the last event is A -> B and the current event is B -> A,

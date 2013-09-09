@@ -54,20 +54,32 @@
 		 */
 		function _attachEvent(){
 			// 동적 list 추가 삭제 처리를 위한 event delegation
-			htElement.welContainer.on('click','.dropdown-menu  > li' , _onClickItem);
+			// 각 <li> 항목에 이벤트 핸들러를 설정하는 것 보다 
+			// ul.dropdown-menu 전체에 설정하는 것이 메모리 절약
+			
+			htElement.welContainer.on('click', '.dropdown-menu', _onClickItem);
 		}
 	
 		/**
 		 * 항목 선택시 이벤트 핸들러
+		 * 
+		 * @param {Wrapped Event} weEvt
 		 */
-		function _onClickItem(){
-			var welTarget = $(this);
-			
-			_setItemSelected(welTarget);	// display
-			_setFormValue(welTarget);		// form value
-	
-			_onChange();
-			
+		function _onClickItem(weEvt){
+		    // set welTarget to <li> item
+		    var welCurrent = $(weEvt.target);
+			var welTarget = (weEvt.target.tagName === "LI") ? welCurrent : $(welCurrent.parents("li")[0]);
+
+			// if click disabled item
+			if(welTarget.hasClass("disabled")){
+			    weEvt.stopPropagation();
+			    weEvt.preventDefault();
+			    return false;
+			}
+
+			_setItemSelected(welTarget); // display
+			_setFormValue(welTarget);    // set form value
+			_onChange(); // fireEvent
 		}
 		
 		/**

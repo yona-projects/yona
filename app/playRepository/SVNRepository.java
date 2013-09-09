@@ -345,4 +345,20 @@ public class SVNRepository implements PlayRepository {
         return src.renameTo(dest);
 
     }
+
+    /**
+     * {@code #revNumber}의 이전 리비전에 해당하는 커밋 정보를 번환한다.
+     *
+     * @param revNumber
+     * @return
+     */
+    @Override
+    public Commit getParentCommitOf(String revNumber) {
+        Long rev = Long.parseLong(revNumber) - 1;
+        try {
+            return getCommit(rev.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -1,4 +1,4 @@
-@(pull: PullRequest, commit:playRepository.Commit, patch: String, comments:List[CodeComment])
+@(pull: PullRequest, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -116,18 +116,26 @@
         } else {
         var bCommentable = false;
         }
+
+        @if(parentCommit != null) {
+            var parentCommitId = "@parentCommit.getId";
+        } else {
+            var parentCommitId = "";
+        }
+
         $yobi.loadModule("code.Diff", {
             "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
             "bCommentable": bCommentable,
             "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)"
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
+            "sParentCommitId" : parentCommitId,
+            "sCommitId"       : "@commit.getId"
         });
 
         yobi.Mention({
             target:'comment-editor',
             url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(pull.toProject.owner, pull.toProject.name, commit.getId, pull.id).toString)"
         });
-
 	});
 </script>
 }

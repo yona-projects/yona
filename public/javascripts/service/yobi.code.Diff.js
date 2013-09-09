@@ -26,6 +26,26 @@
             _initFileUploader();
             _initFileDownloader();
             _initToggleCommentsButton();
+            _initFileViewButton();
+        }
+
+        function _initFileViewButton(){
+            $.each($('tr.file'), function(index, value) {
+                var children = $(value).children("td");
+                var firstLineNum = children[0];
+                var secondLineNum = children[1];
+                var fileName = $($(children[2]).children("span")[0]).text();
+
+                if(htVar.sParentCommitId) {
+                    $(firstLineNum).append(
+                        '<a class="pull-left fileView" data-id="' + htVar.sParentCommitId + '" data-content="' + fileName + '">View</a>'
+                    );
+                }
+
+                $(secondLineNum).append(
+                    '<a class="pull-left fileView" data-id="' + htVar.sCommitId + '" data-content="' + fileName + '">View</a>'
+                );
+            });
         }
 
         /**
@@ -36,6 +56,8 @@
             htVar.bCommentable = htOptions.bCommentable;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
+            htVar.sParentCommitId = htOptions.sParentCommitId;
+            htVar.sCommitId = htOptions.sCommitId;
         }
 
         /**
@@ -98,7 +120,7 @@
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader($("#upload"), $("#comment-editor"));
             var sUploaderId = oUploader.attr("data-namespace");
-            
+
             (new yobi.Attachments({
                 "elContainer"  : $("#upload"),
                 "elTextarea"   : $("#comment-editor"),

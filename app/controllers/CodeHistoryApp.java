@@ -150,6 +150,7 @@ public class CodeHistoryApp extends Controller {
 
         String patch = RepositoryService.getRepository(project).getPatch(commitId);
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
+        Commit parentCommit = RepositoryService.getRepository(project).getParentCommitOf(commitId);
 
         if (patch == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
@@ -158,7 +159,7 @@ public class CodeHistoryApp extends Controller {
         List<CodeComment> comments = CodeComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).findList();
 
-        return ok(diff.render(project, commit, patch, comments));
+        return ok(diff.render(project, commit, parentCommit, patch, comments));
     }
 
     public static Result newComment(String ownerName, String projectName, String commitId)
