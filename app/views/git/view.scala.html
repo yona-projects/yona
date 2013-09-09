@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, canDeleteBranch: Boolean, canRestoreBranch: Boolean, activeTab: String)
+@(project: Project, pull: PullRequest, comments: List[PullRequestComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, activeTab: String)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -207,7 +207,7 @@
 		            <ul class="comments" id="comments">
 			        @for((item, index) <- pull.getTimelineComments.zipWithIndex) {
 			            @item match {
-				            case (comment: SimpleComment) => {
+				            case (comment: PullRequestComment) => {
 								<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
 					                <div class="comment-avatar">
 					                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
@@ -225,7 +225,7 @@
 					                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
 					                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
 					                        <span class="edit pull-right">
-					                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.SimpleCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
+					                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
 					                        </span>
 					                        }
 					                    </div>
@@ -327,7 +327,7 @@
 					}
 					</ul>
 					}
-					@common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())			
+					@common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.PullRequestCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())
 				</div>
             </div>
 

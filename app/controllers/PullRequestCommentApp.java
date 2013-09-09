@@ -2,7 +2,7 @@ package controllers;
 
 import models.NotificationEvent;
 import models.PullRequest;
-import models.SimpleComment;
+import models.PullRequestComment;
 import models.User;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
@@ -18,26 +18,26 @@ import java.util.Date;
 import java.util.Set;
 
 /**
- * {@link models.SimpleComment} CRUD 컨트롤러
+ * {@link models.PullRequestComment} CRUD 컨트롤러
  *
  */
-public class SimpleCommentApp extends Controller {
+public class PullRequestCommentApp extends Controller {
 
     public static Result newComment(String resourceKey) {
         String referer = request().getHeader("Referer");
 
-        Form<SimpleComment> commentForm = new Form<>(SimpleComment.class).bindFromRequest();
+        Form<PullRequestComment> commentForm = new Form<>(PullRequestComment.class).bindFromRequest();
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "post.comment.empty");
             return redirect(referer);
         }
 
-        if (!AccessControl.isCreatable(UserApp.currentUser(), ResourceType.SIMPLE_COMMENT)) {
+        if (!AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PULL_REQUEST_COMMENT)) {
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.comment"));
         }
 
 
-        SimpleComment newComment = commentForm.get();
+        PullRequestComment newComment = commentForm.get();
         newComment.resourceKey = resourceKey;
         newComment.authorInfos(UserApp.currentUser());
         newComment.save();
@@ -47,7 +47,7 @@ public class SimpleCommentApp extends Controller {
         return redirect(url);
     }
 
-    private static void addNewCommentNotification(String resourceKey, SimpleComment newComment, String url) {
+    private static void addNewCommentNotification(String resourceKey, PullRequestComment newComment, String url) {
         if(resourceKey.startsWith(ResourceType.PULL_REQUEST.resource())) {
             String prefix = ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM;
             String idString = resourceKey.substring(prefix.length());
@@ -58,14 +58,14 @@ public class SimpleCommentApp extends Controller {
 
             String title = NotificationEvent.formatReplyTitle(pullRequest);
             Set<User> watchers = pullRequest.getWatchers();
-            addSimpleCommentNotificationEvent(title, watchers, newComment, url);
+            addPullRequestCommentNotificationEvent(title, watchers, newComment, url);
         }
 
     }
 
-    private static void addSimpleCommentNotificationEvent(String title, Set<User> watchers, SimpleComment simpleComment, String url) {
-        watchers.addAll(NotificationEvent.getMentionedUsers(simpleComment.contents));
-        watchers.remove(User.findByLoginId(simpleComment.authorLoginId));
+    private static void addPullRequestCommentNotificationEvent(String title, Set<User> watchers, PullRequestComment pullRequestComment, String url) {
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequestComment.contents));
+        watchers.remove(User.findByLoginId(pullRequestComment.authorLoginId));
 
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
@@ -73,24 +73,24 @@ public class SimpleCommentApp extends Controller {
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
         notiEvent.urlToView = url;
-        notiEvent.resourceId = simpleComment.id.toString();
-        notiEvent.resourceType = simpleComment.asResource().getType();
-        notiEvent.eventType = EventType.NEW_SIMPLE_COMMENT;
+        notiEvent.resourceId = pullRequestComment.id.toString();
+        notiEvent.resourceType = pullRequestComment.asResource().getType();
+        notiEvent.eventType = EventType.NEW_PULL_REQUEST_COMMENT;
         notiEvent.oldValue = null;
-        notiEvent.newValue = simpleComment.contents;
+        notiEvent.newValue = pullRequestComment.contents;
 
         NotificationEvent.add(notiEvent);
     }
 
     public static Result deleteComment(Long id) {
-        SimpleComment simpleComment = SimpleComment.findById(id);
-        if(simpleComment == null) {
+        PullRequestComment pullRequestComment = PullRequestComment.findById(id);
+        if(pullRequestComment == null) {
             notFound();
         }
-        if (!AccessControl.isAllowed(UserApp.currentUser(), simpleComment.asResource(), Operation.DELETE)) {
+        if (!AccessControl.isAllowed(UserApp.currentUser(), pullRequestComment.asResource(), Operation.DELETE)) {
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
         }
-        simpleComment.delete();
+        pullRequestComment.delete();
         String backPageUrl = request().getHeader("Referer");
         return redirect(backPageUrl);
     }

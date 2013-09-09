@@ -15,10 +15,10 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-public class SimpleComment extends Model implements ResourceConvertible, TimelineItem {
+public class PullRequestComment extends Model implements ResourceConvertible, TimelineItem  {
 
     private static final long serialVersionUID = 1L;
-    public static final Finder<Long, SimpleComment> find = new Finder<>(Long.class, SimpleComment.class);
+    public static final Finder<Long, PullRequestComment> find = new Finder<>(Long.class, PullRequestComment.class);
 
     @Id
     public Long id;
@@ -44,7 +44,7 @@ public class SimpleComment extends Model implements ResourceConvertible, Timelin
      */
     public String resourceKey;
 
-    public SimpleComment() {
+    public PullRequestComment() {
         createdDate = new Date();
     }
 
@@ -60,7 +60,7 @@ public class SimpleComment extends Model implements ResourceConvertible, Timelin
 
     @Override
     public String toString() {
-        return "SimpleComment{" +
+        return "PullRequestComment{" +
                 "id=" + id +
                 ", contents='" + contents + '\'' +
                 ", createdDate=" + createdDate +
@@ -71,7 +71,7 @@ public class SimpleComment extends Model implements ResourceConvertible, Timelin
                 '}';
     }
 
-    public static List<SimpleComment> findByResourceKey(String resourceKey) {
+    public static List<PullRequestComment> findByResourceKey(String resourceKey) {
         return find.where()
                 .eq("resourceKey", resourceKey)
                 .orderBy().asc("createdDate")
@@ -99,7 +99,7 @@ public class SimpleComment extends Model implements ResourceConvertible, Timelin
 
             @Override
             public ResourceType getType() {
-                return ResourceType.SIMPLE_COMMENT;
+                return ResourceType.PULL_REQUEST_COMMENT;
             }
 
             @Override
@@ -109,7 +109,7 @@ public class SimpleComment extends Model implements ResourceConvertible, Timelin
         };
     }
 
-    public static SimpleComment findById(Long id) {
+    public static PullRequestComment findById(Long id) {
         return find.byId(id);
     }
 

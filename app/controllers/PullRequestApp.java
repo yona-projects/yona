@@ -439,7 +439,9 @@ public class PullRequestApp extends Controller {
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
 
-        return ok(view.render(project, pullRequest, canDeleteBranch, canRestoreBranch, activeTab));
+        List<PullRequestComment> comments = PullRequestComment.findByResourceKey(pullRequest.getResourceKey());
+
+        return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch, activeTab));
     }
 
     private static boolean isValid(String activeTab) {

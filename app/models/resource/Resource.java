@@ -3,13 +3,10 @@ package models.resource;
 import models.*;
 import models.enumeration.ResourceType;
 import play.db.ebean.Model;
-import play.libs.F;
-import play.mvc.QueryStringBindable;
 import playRepository.Commit;
 import playRepository.RepositoryService;
 
 import java.util.EnumSet;
-import java.util.Map;
 
 public abstract class Resource {
     public static boolean exists(ResourceType type, String id) {
@@ -52,8 +49,8 @@ public abstract class Resource {
             case PULL_REQUEST:
                 finder = PullRequest.finder;
                 break;
-            case SIMPLE_COMMENT:
-                finder = SimpleComment.find;
+            case PULL_REQUEST_COMMENT:
+                finder = PullRequestComment.find;
                 break;
             case COMMIT:
                 try {
@@ -125,8 +122,8 @@ public abstract class Resource {
                 break;
             case PULL_REQUEST:
                 return PullRequest.finder.byId(longId).asResource();
-            case SIMPLE_COMMENT:
-                return SimpleComment.find.byId(longId).asResource();
+            case PULL_REQUEST_COMMENT:
+                return PullRequestComment.find.byId(longId).asResource();
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }

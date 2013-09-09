@@ -13,7 +13,7 @@ public enum EventType {
     ISSUE_ASSIGNEE_CHANGED("notification.type.issue.assignee.changed", 5),
     PULL_REQUEST_STATE_CHANGED("notification.type.pull.request.state.changed", 6),
     NEW_COMMENT("notification.type.new.comment", 7),
-    NEW_SIMPLE_COMMENT("notification.type.new.simple.comment", 8),
+    NEW_PULL_REQUEST_COMMENT("notification.type.new.simple.comment", 8),
     MEMBER_ENROLL_REQUEST("notification.type.member.enroll", 9),
     PULL_REQUEST_MERGED("notification.type.pull.request.merged", 10),
     ISSUE_REFERRED("notification.type.issue.referred", 11),

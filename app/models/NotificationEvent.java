@@ -144,7 +144,7 @@ public class NotificationEvent extends Model {
         case NEW_POSTING:
         case NEW_COMMENT:
         case NEW_PULL_REQUEST:
-        case NEW_SIMPLE_COMMENT:
+        case NEW_PULL_REQUEST_COMMENT:
             return newValue;
         case PULL_REQUEST_STATE_CHANGED:
             if(newValue.equals(State.CLOSED.state())) {

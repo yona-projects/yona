@@ -399,7 +399,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         Set<User> actualWatchers = new HashSet<>();
 
         actualWatchers.add(this.contributor);
-        for (SimpleComment c : getComments()) {
+        for (PullRequestComment c : getComments()) {
             User user = User.find.byId(c.authorId);
             if (user != null) {
                 actualWatchers.add(user);
@@ -424,8 +424,8 @@ public class PullRequest extends Model implements ResourceConvertible {
      * pull request에 대한 코멘트 목록을 반환한다.
      * @return
      */
-    public List<SimpleComment> getComments() {
-        return SimpleComment.findByResourceKey(this.getResourceKey());
+    public List<PullRequestComment> getComments() {
+        return PullRequestComment.findByResourceKey(this.getResourceKey());
     }
 
     public void reject() {
@@ -616,7 +616,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      */
     @Transient
     public List<TimelineItem> getTimelineComments() {
-        List<SimpleComment> comments = getComments();
+        List<PullRequestComment> comments = getComments();
         List<CodeComment> codeComments = getCodeComments();
         
         List<TimelineItem> timelineComments = new ArrayList<>();
