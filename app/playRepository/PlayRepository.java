@@ -118,4 +118,12 @@ public interface PlayRepository {
      * @return 코드저장소 이름 변경성공시 true / 실패시 false
      */
     public abstract boolean renameTo(String projectName);
+
+    /**
+     * {@code #commitId}의 부모 커밋이나 부모 리비전에 해당하는 커밋을 반환한다.
+     *
+     * @param commitId
+     * @return
+     */
+    Commit getParentCommitOf(String commitId);
 }

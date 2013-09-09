@@ -1290,4 +1290,27 @@ public class GitRepository implements PlayRepository {
         return src.renameTo(dest);
     }
 
+    /**
+     * {@code #commitIdString}에 해당하는 커밋의 부모 커밋 정보를 반환하다.
+     *
+     * @param commitIdString
+     * @return
+     */
+    @Override
+    public Commit getParentCommitOf(String commitIdString) {
+        try {
+            ObjectId commitId = repository.resolve(commitIdString);
+            RevWalk revWalk = new RevWalk(repository);
+            RevCommit commit = revWalk.parseCommit(commitId);
+            if(commit.getParentCount() > 0) {
+                ObjectId parentId = commit.getParent(0).getId();
+                return new GitCommit(revWalk.parseCommit(parentId));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return null;
+    }
+
 }
