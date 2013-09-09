@@ -4512,3 +4512,60 @@ div#commit.show-comments tr.comments {
     padding:10px;
     .border-radius(2px);
 }
+
+.beta {
+  font-size: 10px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 3px;
+  padding: 2px;
+  margin: 0px;
+  color: @primary;
+}
+
+.diff-body {
+    font-family: "monospace", Consolas, Tahoma;
+
+    table {
+        border: 1px solid #eee;
+        width: 100%;
+    }
+    td {
+        border-width: 0px 1px;
+        border-color: #e5e5e5;
+        border-style: solid;
+    }
+    td.linenum {
+        text-align: right;
+        color: rgba(0, 0, 0, 0.3);
+        white-space: nowrap;
+    }
+    span {
+        white-space: pre;
+    }
+    span.add {
+        background-color: #aaffaa;
+    }
+    span.remove {
+        background-color: #ffaaaa;
+    }
+    tr.add {
+        background-color: #eeffcc;
+    }
+    tr.remove {
+        background-color: #fdd;
+    }
+    tr.file {
+        background-color: #eee;
+        border:1px solid #bbb;
+        height:30px;
+        font-weight: bold;
+    }
+    tr.range {
+        color: #999;
+        background-color: #f8f8ff;
+    }
+    .icon-comment {
+        visibility: hidden;
+        opacity: 0.6;
+    }
+}

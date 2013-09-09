@@ -519,8 +519,7 @@ public class ProjectApp extends Controller {
     }
 
     private static void addCommentAuthors(Long pullRequestId, List<User> userList) {
-        List<PullRequestComment> comments = PullRequestComment
-                .findByResourceKey(ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM + pullRequestId);
+        List<PullRequestComment> comments = PullRequest.findById(pullRequestId).comments;
         for (PullRequestComment codeComment : comments) {
             final User commenter = User.findByLoginId(codeComment.authorLoginId);
             if(userList.contains(commenter)) {

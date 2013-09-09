@@ -66,8 +66,8 @@ GET     /files/:id/?                                    controllers.AttachmentAp
 POST    /files/:id/?                            		controllers.AttachmentApp.deleteFile(id: Long)
 POST    /files/:id                            			controllers.AttachmentApp.deleteFile(id: Long)
 
-# Simple Comments
-POST    /comment/:resourceKey                           controllers.PullRequestCommentApp.newComment(resourceKey)
+# Pull Request Comment
+POST    /:ownerName/:project/pullRequest/:pullRequestId/comments   controllers.PullRequestCommentApp.newComment(ownerName, project, pullRequestId: Long)
 DELETE  /comment/:id/delete                             controllers.PullRequestCommentApp.deleteComment(id: Long)
 
 # Boards

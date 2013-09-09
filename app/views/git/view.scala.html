@@ -202,7 +202,7 @@
 		        </div>
 		        }
 		        <div class="board-comment-wrap">
-		            <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.getComments.size() + pull.getCodeComments.size()}</strong></div>
+		            <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.comments.size() + pull.getCodeComments.size()}</strong></div>
 		            @if(pull.getTimelineComments.size > 0) {
 		            <ul class="comments" id="comments">
 			        @for((item, index) <- pull.getTimelineComments.zipWithIndex) {
@@ -327,7 +327,7 @@
 					}
 					</ul>
 					}
-					@common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.PullRequestCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())
+					@common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
 				</div>
             </div>
 
@@ -393,9 +393,7 @@
             </div>
 
             <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
-                <pre>
-@pull.getPatch
-                </pre>
+                <div id="pull-request-changes" class="diff-body show-comments">@pull.getPatch</div>
             </div>
         </div>
     </div>

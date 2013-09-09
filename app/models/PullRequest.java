@@ -164,6 +164,9 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public String conflictFiles;
 
+    @OneToMany(mappedBy = "pullRequest")
+    public List<PullRequestComment> comments;
+
     @Override
     public String toString() {
         return "PullRequest{" +
@@ -399,7 +402,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         Set<User> actualWatchers = new HashSet<>();
 
         actualWatchers.add(this.contributor);
-        for (PullRequestComment c : getComments()) {
+        for (PullRequestComment c : comments) {
             User user = User.find.byId(c.authorId);
             if (user != null) {
                 actualWatchers.add(user);
@@ -418,14 +421,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         return allowedWatchers;
-    }
-
-    /**
-     * pull request에 대한 코멘트 목록을 반환한다.
-     * @return
-     */
-    public List<PullRequestComment> getComments() {
-        return PullRequestComment.findByResourceKey(this.getResourceKey());
     }
 
     public void reject() {

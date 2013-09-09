@@ -180,9 +180,10 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
+            "welDiff": $("#commit"),
             "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.CODE_COMMENT)){true}else{false},
-            "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
-            "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
+            "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)"
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
             "sCommitId"      : "@commit.getId",
             "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",

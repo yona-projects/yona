@@ -1,19 +1,21 @@
 package controllers;
 
-import models.NotificationEvent;
-import models.PullRequest;
-import models.PullRequestComment;
-import models.User;
+import models.*;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
+import org.eclipse.jgit.blame.BlameGenerator;
+import org.eclipse.jgit.blame.BlameResult;
+import org.eclipse.jgit.lib.Repository;
 import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Result;
+import playRepository.GitRepository;
 import utils.AccessControl;
 import utils.Constants;
 import utils.ErrorViews;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 
@@ -23,7 +25,13 @@ import java.util.Set;
  */
 public class PullRequestCommentApp extends Controller {
 
-    public static Result newComment(String resourceKey) {
+    public static Result newComment(String ownerName, String projectName, Long pullRequestId) throws IOException {
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+
+        if (pullRequest == null) {
+            return notFound();
+        }
+
         String referer = request().getHeader("Referer");
 
         Form<PullRequestComment> commentForm = new Form<>(PullRequestComment.class).bindFromRequest();
@@ -37,31 +45,28 @@ public class PullRequestCommentApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.comment"));
         }
 
-
         PullRequestComment newComment = commentForm.get();
-        newComment.resourceKey = resourceKey;
         newComment.authorInfos(UserApp.currentUser());
+        newComment.pullRequest = pullRequest;
+
         newComment.save();
 
         String url = referer + "#comment-" + newComment.id;
-        addNewCommentNotification(resourceKey, newComment, url);
+        addNewCommentNotification(pullRequestId, newComment, url);
         return redirect(url);
     }
 
-    private static void addNewCommentNotification(String resourceKey, PullRequestComment newComment, String url) {
-        if(resourceKey.startsWith(ResourceType.PULL_REQUEST.resource())) {
-            String prefix = ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM;
-            String idString = resourceKey.substring(prefix.length());
-            PullRequest pullRequest = PullRequest.findById(Long.parseLong(idString));
-            if(pullRequest == null) {
-                return;
-            }
-
-            String title = NotificationEvent.formatReplyTitle(pullRequest);
-            Set<User> watchers = pullRequest.getWatchers();
-            addPullRequestCommentNotificationEvent(title, watchers, newComment, url);
+    private static void addNewCommentNotification(Long pullRequestId,
+                                                  PullRequestComment newComment, String url) {
+        String prefix = ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM;
+        PullRequest pullRequest = PullRequest.findById(pullRequestId);
+        if(pullRequest == null) {
+            return;
         }
 
+        String title = NotificationEvent.formatReplyTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        addPullRequestCommentNotificationEvent(title, watchers, newComment, url);
     }
 
     private static void addPullRequestCommentNotificationEvent(String title, Set<User> watchers, PullRequestComment pullRequestComment, String url) {

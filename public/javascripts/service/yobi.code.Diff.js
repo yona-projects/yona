@@ -48,6 +48,9 @@
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+
+            htVar.sCommitA = htOptions.sCommitA;
+            htVar.sCommitB = htOptions.sCommitB;
         }
 
         /**
@@ -56,11 +59,13 @@
         function _initElement(htOptions){
             var welHidden = $('<input>').attr('type', 'hidden');
 
-            htElement.welDiff = $('#commit');
+            htElement.welDiff = htOptions.welDiff || $('#commit');
             htElement.welEmptyCommentForm = $('#comment-form')
                 .append(welHidden.clone().attr('name', 'path'))
                 .append(welHidden.clone().attr('name', 'line'))
-                .append(welHidden.clone().attr('name', 'side'));
+                .append(welHidden.clone().attr('name', 'side'))
+                .append(welHidden.clone().attr('name', 'commitA'))
+                .append(welHidden.clone().attr('name', 'commitB'));
             htElement.welComments = $('ul.comments');
 
             if (htVar.bCommentable) {
@@ -90,6 +95,10 @@
          * attach event handler
          */
         function _attachEvent(){
+            if (htElement.welBtnWatch == null) {
+                return;
+            }
+
             htElement.welBtnWatch.click(function(weEvt) {
                 var welTarget = $(weEvt.target);
                 var bWatched = welTarget.hasClass("active");
@@ -197,10 +206,10 @@
          * @param {Object|String} vContent
          */
         function _appendLine(
-                welTable, sClass, sPath, nLineA, nLineB, vContent) {
+                welTable, sClass, sPath, nLineA, nLineB, sBlobA, sBlobB, vContent) {
             var welTr = $('<tr>').addClass(sClass);
 
-            _setPropertiesOnLine(welTr, sPath, nLineA, nLineB);
+            _setPropertiesOnLine(welTr, sPath, nLineA, nLineB, sBlobA, sBlobB);
             _prependLineNumberOnLine(welTr, nLineA, nLineB);
 
             var welBody = ((typeof vContent) == 'string') ? $('<td>').append($("<span>").text(vContent)) : vContent;
@@ -223,7 +232,7 @@
          * @param {Object} sHunkHeader
          */
         function _appendFileHeader(welTable, sFileHeader) {
-            _appendLine(welTable, "file", sFileHeader, "", "", sFileHeader);
+            _appendLine(welTable, "file", sFileHeader, "", "", null, null, sFileHeader);
         }
 
         /**
@@ -233,7 +242,7 @@
          * @param {Object} sHunkHeader
          */
         function _appendHunkHeader(welTable, sPath, sHunkHeader) {
-            _appendLine(welTable, "range", sPath, "...", "...", sHunkHeader);
+            _appendLine(welTable, "range", sPath, "...", "...", null, null, sHunkHeader);
         }
 
         /**
@@ -248,9 +257,10 @@
          * @param {Number} nLineA
          * @param {Number} nLineB
          */
-        function _setPropertiesOnLine(welTr, sPath, nLineA, nLineB) {
+        function _setPropertiesOnLine(welTr, sPath, nLineA, nLineB, sBlobA, sBlobB) {
             welTr.data('line', nLineA || nLineB);
             welTr.data('path', sPath);
+
             if (nLineA && nLineB) {
                 welTr.data('side', 'base');
             } else if (nLineA && !nLineB) {
@@ -332,7 +342,7 @@
             var welTd = $('<td colspan=3>')
                 .data("line", welTr.data("line"))
                 .data("side", welTr.data("side"))
-                .data("path", welTr.data("path"));
+                .data("path", welTr.data("path"))
 
             if (htVar.bCommentable) {
                 var welCloseButton = htElement.welEmptyCommentButton.clone()
@@ -379,6 +389,8 @@
             htElement.welEmptyCommentForm.find('[name=path]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=line]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
+            htElement.welEmptyCommentForm.find('[name=commitA]').removeAttr('value');
+            htElement.welEmptyCommentForm.find('[name=commitB]').removeAttr('value');
             htElement.welComments.after(htElement.welEmptyCommentForm);
             _updateMiniMap();
         }
@@ -440,9 +452,9 @@
                 }
             }
 
-            _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++, "",
+            _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++, "", htDiff.sBlobA, htDiff.sBlobB,
                     welRemoved);
-            _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++,
+            _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++, htDiff.sBlobA, htDiff.sBlobB,
                     welAdded);
         }
 
@@ -456,12 +468,12 @@
          */
         function _appendChangedLinesWithoutWordHighlight(welTable, htDiff) {
             for (var i = 0; i < htDiff.aRemoved.length; i++) {
-                _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++,
-                        "", htDiff.aRemoved[i]);
+                _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++, "", htDiff.sBlobA, htDiff.sBlobB,
+                        htDiff.aRemoved[i]);
             }
 
             for (var i = 0; i < htDiff.aAdded.length; i++) {
-                _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++,
+                _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++, htDiff.sBlobA, htDiff.sBlobB,
                         htDiff.aAdded[i]);
             }
         }
@@ -480,16 +492,19 @@
             var welUl = $('<ul>').addClass("comments");
 
             for(var i = 0; i < waComments.length; i++) {
-               var welComment = $(waComments[i]);
-               var linenum = welComment.data('line');
-               var side = welComment.data('side');
-               var path = welComment.data('path');
+                var welComment = $(waComments[i]);
+                var linenum = welComment.data('line');
+                var side = welComment.data('side');
+                var path = welComment.data('path');
+                var sOutdated = welComment.data('outdated')
 
-               if (welTr.data('path') == welComment.data('path')
-                       && welTr.data('line') == welComment.data('line')
-                       && welTr.data('side') == welComment.data('side')) {
+                if (welComment.data('outdated') == false
+                    && welTr.data('path') == welComment.data('path')
+                    && welTr.data('line') == welComment.data('line')
+                    && welTr.data('side') == welComment.data('side')) {
                     welUl.append(welComment);
-               }
+                    welComment.find('.outdated-message').hide();
+                }
             }
 
             return welUl;
@@ -522,6 +537,8 @@
             welCommentTr.find('[name=path]').attr('value', welTr.data('path'));
             welCommentTr.find('[name=line]').attr('value', welTr.data('line'));
             welCommentTr.find('[name=side]').attr('value', welTr.data('side'));
+            welCommentTr.find('[name=commitA]').attr('value', htVar.sCommitA);
+            welCommentTr.find('[name=commitB]').attr('value', htVar.sCommitB);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();
@@ -547,6 +564,7 @@
                 sPath: ""
             };
             var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
+            var rxBlobHeader = /index\s+(\S+)\.\.(\S+)\s+100644/
             var bAddedOrRemoved;
             var aHunkRange;
             var nLastLineA = 0;
@@ -569,7 +587,7 @@
                     case ' ':
                         _flushChangedLines(welTable, htDiff);
                         _appendLine(welTable, "", htDiff.sPath, htDiff.nLineA++,
-                                htDiff.nLineB++, aLine[i]);
+                                htDiff.nLineB++, htDiff.sBlobA, htDiff.sBlobB, aLine[i]);
                         break;
                     default:
                         break;
@@ -613,6 +631,14 @@
                             bInHunk = true;
                         }
                         break;
+                    case 'in':
+                        // index 09d25fa..2ff9757 100644
+                        aMatch = aLine[i].match(rxBlobHeader);
+                        if (aMatch != null) {
+                            htDiff.sBlobA = aMatch[1].toLowerCase();
+                            htDiff.sBlobB = aMatch[2].toLowerCase();
+                        }
+                        break
                     default:
                         break;
                     }
