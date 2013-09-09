@@ -29,7 +29,7 @@
                 @post.title
             </a>
             @if(Attachment.findByContainer(post.asResource).size > 0){
-            <i class="ico ico-clip icon-middle"></i>
+            <i class="yobicon-paperclip yobicon-middle"></i>
             }
         </p>
         <p class="infos nm">
@@ -40,7 +40,7 @@
     <div class="right-panel">
         <div class="comment-wrap">
             @if(post.numOfComments > 0){
-            <i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
+            <i class="yobicon-comments"></i><span class="num">@post.numOfComments</span>
             }
         </div>
     </div>

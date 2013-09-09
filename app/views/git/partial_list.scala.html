@@ -27,7 +27,7 @@
                         @defining(SimpleComment.countByResourceKey(req.getResourceKey())) { count =>
                             @if(count > 0) {
                             <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="comment-wrap">
-                                <i class="icon icon-comments"></i>
+                                <i class="icon yobicon-comments"></i>
                                 <span class="num">@count</span>
                             </a>
                             }
@@ -35,7 +35,7 @@
                         <div class="pullRequest-branch ml20">
                             <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
                                 <code class="from">
-                                    <i class="icon-code-fork"></i>
+                                    <i class="yobicon-branch"></i>
                                     @if(!project.owner.equals(req.fromProject.owner) || !project.name.equals(req.fromProject.name)) {
                                     <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a>/<!--
                                  --><a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>:
@@ -43,10 +43,10 @@
                                     @branchName(req.fromBranch)
                                 </code>
                             </span>
-                            <i class="icon-arrow-right"></i>
+                            <i class="yobicon-right"></i>
                             <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
                                 <code class="to">
-                                    <i class="icon-code-fork"></i>
+                                    <i class="yobicon-branch"></i>
                                     @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
                                     <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a>/<!--
                                  --><a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>:

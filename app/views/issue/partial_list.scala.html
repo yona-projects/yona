@@ -29,7 +29,7 @@
                     
                     @issue.title
                     @if(Attachment.findByContainer(issue.asResource).size > 0){
-                        <i class="icon icon-paper-clip vmiddle"></i>
+                        <i class="icon yobicon-paperclip vmiddle"></i>
                     }
                 </a>
             </div>
@@ -44,7 +44,7 @@
                 
                 @if(issue.comments.size()>0){
                     <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="comment-wrap">
-                        <i class="icon icon-comments"></i><span class="num">@issue.comments.size()</span>
+                        <i class="icon yobicon-comments"></i><span class="num">@issue.comments.size()</span>
                     </a>
                 }
                 

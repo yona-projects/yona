@@ -59,7 +59,7 @@
 	                    </p>
 	                } else {
 	                    <div class="readme-wrap">
-	                        <header><i class="ico ico-readme-book"></i><strong>@project.getReadmeFileName</strong></header>
+	                        <header><i class="yobicon-book-open"></i><strong> @project.getReadmeFileName</strong></header>
 	                        <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
 	                    </div>
 	                }
@@ -104,7 +104,7 @@
 		        <div class="inner logo" style="background-image:url('@projectLogoImage');">
 		            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
 		            <div class="edit">
-		                <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="icon-edit icon-white"></i> @Messages("project.setting")</a>
+		                <a href="@routes.ProjectApp.settingForm(project.owner, project.name)"><i class="yobicon-edit"></i> @Messages("project.setting")</a>
 		            </div>
 		            }
 		        </div>
@@ -143,7 +143,7 @@
 
 		            <script id="plus-button-template" type="text/x-jquery-tmpl">
                 <button class="nbtn small white">
-                    <i class="ico ico-plus-blue"></i>
+                    <i class="yobicon-plus"></i>
                 </button>
             </script>
 

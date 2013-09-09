@@ -66,7 +66,7 @@
 							<td class="messages">
                                 @defining(CodeComment.count(project, commit.getId)){ numOfComment =>
                                 @if(numOfComment > 0) {
-                                <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
+                                <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                 }
                                 }
 
@@ -96,7 +96,7 @@
                                 }
 
                                 @if(commitMsg.split("\n").length > 1){
-                                    <button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>
+                                    <button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
                                     <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
                                 }
                                 }

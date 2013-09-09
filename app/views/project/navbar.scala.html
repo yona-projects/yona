@@ -11,12 +11,12 @@
 		<h1 class="page-title">
 			<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /</span><!--
 	 	--> <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
-	 			@if(!project.isPublic){  <i class="icon icon-lock small-lock"></i> }
+	 			@if(!project.isPublic){  <i class="icon yobicon-lock small-lock"></i> }
 		</h1>
 
         @if(project.isFork()){
         <div class="forked">
-            <i id="forkedFrom" class="icon-code-fork icon-2x vmiddle" data-content="@Messages("fork.original") <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'><strong>@project.originalProject.owner / @project.originalProject.name</strong></a>"></i>
+            <i id="forkedFrom" class="yobicon-split yobicon-large" data-content="@Messages("fork.original") <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'><strong>@project.originalProject.owner / @project.originalProject.name</strong></a>"></i>
         </div>
         }
 

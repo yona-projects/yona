@@ -20,7 +20,7 @@
                    data-provider="typeahead" autocomplete="off"
                    placeholder="@Messages("project.members.addMember")"
                    pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!--
-         --><button type="submit" class="nbtn medium white"><i class="ico ico-plus-blue"></i>@Messages("button.add")</button>
+         --><button type="submit" class="nbtn medium white"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
         </form>
     </div>
 
@@ -55,9 +55,9 @@
 
                         <p class="btns">
                             <a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn small"><!--
-                             --><i class="ico ico-delete-small"></i>@Messages("button.delete")</a>
+                             --><i class="yobicon-removefriend"></i> @Messages("button.delete")</a>
                             <a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn small orange"><!--
-                             --><i class="ico ico-apply-small"></i>@Messages("button.apply")</a>
+                             --><i class="yobicon-publish"></i> @Messages("button.apply")</a>
                         </p>
                         } else {
                             <p style="height:55px;">@Messages("role." + member.role.name)</p>
@@ -102,7 +102,7 @@
             <div class="pull-left" style="width: 60px;">
                 <span><a href="@routes.UserApp.userInfo(user.loginId)"><strong>@user.name</strong></a></span>
                 <span>(@user.loginId)</span>
-                <button type="button" class="nbtn small blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="icon-plus"></i> @Messages("button.add")</button>
+                <button type="button" class="nbtn small blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="yobicon-user-add"></i> @Messages("button.add")</button>
             </div>
         </div>
         } @** -- end for -- **@

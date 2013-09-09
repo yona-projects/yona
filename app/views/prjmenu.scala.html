@@ -24,7 +24,7 @@
             <div class="actrow">
                 <!-- repo URL -->
                 <button id="btnClone" type="button" class="nbtn medium btnClone" data-toggle="tooltip" title="@Messages("code.repoUrl")">
-                    <i class="icon-link icon-large vmiddle"></i> 
+                    <i class="yobicon-link vmiddle"></i> 
                 </button>
                 <div id="showRepoURL" class="popover bottom">
                     <div class="arrow"></div>
@@ -42,11 +42,11 @@
                 <div class="btn-group dbtn-group">
                     @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium blue last watchBtn" data-toggle="tooltip" title="@Messages("project.unwatch")">
-                        <i class="icon-eye-open icon-large"></i> 
+                        <i class="yobicon-eye yobicon-large"></i> 
                     </a>
                     } else {
                     <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium white last watchBtn" data-toggle="tooltip" title="@Messages("project.watch")">
-                        <i class="icon-eye-open icon-large"></i> 
+                        <i class="yobicon-eye yobicon-large"></i> 
                     </a>
                     }
                     <button class="btn dropdown-toggle small @if(User.isWatching(project)){blue}" data-toggle="dropdown" style="padding:0">
@@ -58,15 +58,15 @@
                             <h5>@Messages("you.are.watching", project.name)</h5>
                             <p>@Messages("notification.help")</p>
                             <ul class="icons-ul">
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
                             </ul>
                         </div>
                         <div class="brow">
                             <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn medium mint watchBtn">
-                                <i class="icon-eye-close icon-large"></i> @Messages("project.unwatch")
+                                <i class="yobicon-eye-close yobicon-large"></i> @Messages("project.unwatch")
                             </a>
                         </div>
                         }
@@ -75,15 +75,15 @@
                             <h5>@Messages("you.are.not.watching", project.name)</h5>
                             <p>@Messages("notification.will.help")</p>
                             <ul class="icons-ul">
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.issue")</li>
-                                <li><i class="icon-li icon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
+                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
                             </ul>
                         </div>
                         <div class="brow">
                             <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn medium blue watchBtn">
-                                <i class="icon-eye-open icon-large"></i> @Messages("project.watch")
+                                <i class="yobicon-eye-open yobicon-large"></i> @Messages("project.watch")
                             </a>
                         </div>
                         }
@@ -95,14 +95,14 @@
                 @if(project.vcs.equals("GIT")){
                 <div class="btn-group dbtn-group">
                     <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="nbtn medium white last" data-toggle="tooltip" title="@Messages("fork")">
-                        <i class="icon-code-fork icon-large"></i>
+                        <i class="yobicon-split yobicon-large"></i>
                         <span class="num-badge">@project.forkingProjects.size()</span>
                     </a>
                     <button class="btn dropdown-toggle small white" data-toggle="dropdown" style="padding:0">
                         <div class="d-caret"><span class="caret"></span></div>
                     </button>
                     <ul class="dropdown-menu pull-right">
-                        <li class="disabled"><span><i class="icon icon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
+                        <li class="disabled"><span><i class="icon yobicon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
                         @for(fork <- project.forkingProjects) {
                         <li>
                             <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
@@ -119,11 +119,11 @@
                 <div class="btn-group dbtn-group">
                     @if(User.enrolled(project)){
                     <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium blue last enrollBtn">
-                        <i class="icon-user icon-large"></i>
+                        <i class="yobicon-user yobicon-large"></i>
                     </a>
                     } else {
                     <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn" data-toggle="tooltip" title="@Messages("member.enrollment.request")">
-                        <i class="icon-user icon-large"></i> 
+                        <i class="yobicon-user yobicon-large"></i> 
                     </a>
                     }
                     <button class="btn dropdown-toggle small" data-toggle="dropdown" style="padding:0">
@@ -137,7 +137,7 @@
                         </div>
                         <div class="brow">
                             <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium mint enrollBtn">
-                                <i class="icon-user icon-large"></i> @Messages("cancel.enrollment")
+                                <i class="yobicon-user yobicon-large"></i> @Messages("cancel.enrollment")
                             </a>
                         </div>
 
@@ -148,7 +148,7 @@
                         </div>
                         <div class="brow">
                             <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium blue enrollBtn">
-                                <i class="icon-user icon-large"></i> @Messages("new.enrollment")
+                                <i class="yobicon-user yobicon-large"></i> @Messages("new.enrollment")
                             </a>
                         </div>
                         }
@@ -160,15 +160,15 @@
             <ul class="unstyled menu-list">
                 <li @isActiveMenu(MenuType.PROJECT_HOME)>
                     <a href="@routes.ProjectApp.project(project.owner, project.name)" class="menu-item">
-                        <i class="icon-large icon-home"></i>
-                        <span class="menu-title">@Messages("title.projectHome")</span>
+                        <i class="yobicon-home"></i>
+                        <span class="menu-title"> @Messages("title.projectHome")</span>
                     </a>
                 </li>
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.BOARD)>
                     <a href="@routes.BoardApp.posts(project.owner, project.name)" class="menu-item">
-                        <i class="icon-large icon-bullhorn"></i>
-                        <span class="menu-title">@Messages("menu.board")</span>
+                        <i class="yobicon-notes"></i>
+                        <span class="menu-title"> @Messages("menu.board")</span>
                         @if(Posting.countPostings(project) > 0){
                         <span class="counter">@Posting.countPostings(project)</span>
                         }
@@ -177,16 +177,16 @@
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.CODE)>
                     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="menu-item">
-                        <i class="icon-large icon-code"></i>
-                        <span class="menu-title">@Messages("menu.code")</span>
+                        <i class="yobicon-html"></i>
+                        <span class="menu-title"> @Messages("menu.code")</span>
                     </a>
                 </li>
                 @if(project.vcs.equals("GIT")){
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.PULL_REQUEST)>
                     <a href="@getPullRequestURL(project)" data-toggle="tooltip" class="menu-item">
-                        <i class="icon-large icon-code-fork"></i>
-                        <span class="menu-title">@Messages("menu.pullRequest")</span>
+                        <i class="yobicon-merge"></i>
+                        <span class="menu-title"> @Messages("menu.pullRequest")</span>
                         @if(PullRequest.countOpenedPullRequests(project) > 0){
                         <span class="counter">@PullRequest.countOpenedPullRequests(project)</span>
                         }
@@ -196,8 +196,8 @@
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.ISSUE)>
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="menu-item">
-                        <i class="icon-large icon-exclamation-sign"></i>
-                        <span class="menu-title">@Messages("menu.issue")</span>
+                        <i class="yobicon-reliability"></i>
+                        <span class="menu-title"> @Messages("menu.issue")</span>
                         @if(Issue.countIssues(project.id, State.OPEN) > 0){
                         <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
                         }
@@ -206,7 +206,7 @@
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.MILESTONE)>
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="menu-item">
-                        <i class="icon-large icon-pushpin"></i>
+                        <i class="yobicon-tasks"></i>
                         <span class="menu-title">@Messages("project.milestone")</span>
                         @if(Milestone.countOpened(project) > 0){
                         <span class="counter">@Milestone.countOpened(project)</span>
@@ -217,7 +217,7 @@
     			<li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.PROJECT_SETTING)>
                     <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" class="menu-item">
-                        <i class="icon-large icon-cogs"></i>
+                        <i class="yobicon-websitebuilder"></i>
                         <span class="menu-title">@Messages("menu.admin")</span>
                     </a>
                 </li>

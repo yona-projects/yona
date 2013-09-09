@@ -161,7 +161,7 @@
                         <dt>
                             @Messages("label.select")
                             @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                            <button id="manage-label-link" type="button" class="btn-transparent"><i class="icon-cog"></i></button>
+                            <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
                             }
                         </dt>
                         <dd>
@@ -205,7 +205,7 @@
 
             <div class="pull-left" style="padding:10px;">
 
-                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="nbtn white" style="width:100%; padding:6px"><i class="ico ico-download"></i>@Messages("issue.downloadAsExcel")</a>
+                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="nbtn white" style="width:100%; padding:6px"><i class="yobicon-download"></i> @Messages("issue.downloadAsExcel")</a>
             </div>
             @help.keymap("issueList", project)
             <div id="pagination"><!-- pagination.js will fill here. --></div>

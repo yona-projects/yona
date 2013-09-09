@@ -38,7 +38,7 @@
                 </div>
                 @if(user != null && session != null && user.loginId == session.get("loginId")){
                 <div class="edit">
-                    <a href="@routes.UserApp.editUserInfoForm()"><i class="icon-edit icon-white"></i> @Messages("userinfo.editProfile")</a>
+                    <a href="@routes.UserApp.editUserInfoForm()"><i class="yobicon-edit"></i> @Messages("userinfo.editProfile")</a>
                 </div>
                 }
             </div>
@@ -67,7 +67,7 @@
             @if(user != null && session != null && user.loginId == session.get("loginId")){
             <div class="pull-right">
                 <a href="@routes.ProjectApp.newProjectForm()" class="nbtn medium orange last">
-                    <i class="ico ico-pencil"></i> @Messages("title.newProject")
+                    <i class="yobicon-database-add"></i> @Messages("title.newProject")
                 </a>
             </div>
             }

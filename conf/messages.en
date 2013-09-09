@@ -330,7 +330,7 @@ project.wrongName = Project name is wrong
 project.tags = Tags
 project.license = License
 project.codeLanguage = Programming Language
-project.onmember = <i class="icon-user icon-middle"></i><strong>{0}</strong>
+project.onmember = <i class="yobicon-friends yobicon-middle"></i><strong>{0}</strong>
 project.onwatching = <strong>{0}</strong>
 project.lastUpdate = Last Update
 project.createdByMe = Create

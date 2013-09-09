@@ -249,7 +249,7 @@ var fileUploader = function(htOptions) {
 var fileDownloader = function(target, urlToGetFileList) {
 	var createFileItem = function(file) {
 		var link = $('<a>').prop('href', file.url).append(
-				$('<i>').addClass('icon-download')).append(
+				$('<i>').addClass('yobicon-download')).append(
 				$('<div>').text(file.name).html());
 
 		return $('<li>').append(link);

@@ -326,7 +326,7 @@ project.wrongName = プロジェクト名が正しくありません
 project.tags = タッグ
 project.license = ライセンス
 project.codeLanguage = 言語
-project.onmember = &lt;i class="icon-user icon-middle"&gt;&lt;/i&gt;&lt;strong&gt;{0}&lt;/strong&gt;
+project.onmember = &lt;i class="yobicon-user yobicon-middle"&gt;&lt;/i&gt;&lt;strong&gt;{0}&lt;/strong&gt;
 project.onwatching = &lt;strong&gt;{0}&lt;/strong&gt;
 project.lastUpdate = 最新コミット
 project.createdByMe = 作成したプロジェクト

@@ -12,7 +12,7 @@
                         <a href="@routes.UserApp.userInfo(fork.owner)">
                             <img src="@User.findByLoginId(fork.owner).avatarUrl" alt="@User.findByLoginId(fork.owner).name">
                         </a>&nbsp;
-                        @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
+                        @if(!fork.isPublic){ <i class="yobicon-lock"></i> }
                         @for(label <- fork.labels) {
                         <span class="project-label @label.category.toLowerCase()">@label.name</span>
                         }
@@ -20,7 +20,7 @@
                     <div style="float:left">
                         <div class="header">
                             <a href="@routes.ProjectApp.project(fork.owner, fork.name)" class="black">@fork.name</a>
-                            @if(!fork.isPublic){ <i class="ico ico-lock"></i> }
+                            @if(!fork.isPublic){ <i class="yobicon-lock"></i> }
                             @for(label <- fork.labels) {
                             <span class="project-label @label.category.toLowerCase()">@label.name</span>
                             }
@@ -47,7 +47,7 @@
                         </ul>
                         <p>
                             @Html(Messages("project.onmember", User.findUsersByProject(fork.id).length))
-                            <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", fork.watchingCount))
+                            <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", fork.watchingCount))
                         </p>
                     </div>
                     }

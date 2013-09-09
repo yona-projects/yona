@@ -39,7 +39,7 @@
                     <a href="@routes.UserApp.userInfo(project.owner)">
                         <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name">
                     </a>&nbsp;
-                    @if(!project.isPublic){ <i class="ico ico-lock"></i> }
+                    @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
                     @for(label <- project.labels) {
                         <span class="project-label @label.category.toLowerCase()">@label.name</span>
                     }
@@ -47,7 +47,7 @@
                 <div style="float:left">
                     <div class="header">
                         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
-                        @if(!project.isPublic){ <i class="ico ico-lock"></i> }
+                        @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
                         @for(label <- project.labels) {
                             <a class="project-label @label.category.toLowerCase()" href="@routes.ProjectApp.projects()?labelIds=@label.id">@label.name</a>
                         }
@@ -76,7 +76,7 @@
                     </ul>
                     <p>
                         @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))
-                        <i class="icon-star icon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
+                        <i class="yobicon-eye yobicon-middle"></i> @Html(Messages("project.onwatching", project.watchingCount))
                     </p>
                 </div>
                 }

@@ -50,7 +50,7 @@ yobi.Attachments = function(htOptions) {
      */
     function _initVar(htOptions){
         htVar.sTplFileList = htOptions.sTplFileList || '<ul class="attaches wm">';
-        htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach"><a href="${fileHref}"><i class="ico ico-clip"></i>${fileName} (${fileSizeReadable})</a></li>';
+        htVar.sTplFileItem = htOptions.sTplFileItem || '<li class="attach"><a href="${fileHref}"><i class="yobicon-paperclip"></i>${fileName} (${fileSizeReadable})</a></li>';
         htVar.sResourceId = htOptions.sResourceId; // ResId: Optional
         htVar.sResourceType = htOptions.sResourceType; // ResType: Required
     }

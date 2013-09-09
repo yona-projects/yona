@@ -91,7 +91,7 @@
                         @defining(Milestone.options(project.id)) { milestones =>
                             @if(milestones.isEmpty()) {
                                 <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
-                                <i class="icon-refresh"></i>
+                                <i class="yobicon-refresh"></i>
                             } else {
                                 <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
                                     <button class="btn dropdown-toggle auto" data-toggle="dropdown">
@@ -114,7 +114,7 @@
                     <dt>
                         @Messages("label.select")
                         @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.ISSUE_LABEL)){
-                        <button id="manage-label-link" type="button" class="btn-transparent"><i class="icon-cog"></i></button>
+                        <button id="manage-label-link" type="button" class="btn-transparent"><i class="yobicon-cog"></i></button>
                         }
                     </dt>
                     <dd>
@@ -145,7 +145,7 @@
 		$yobi.loadModule("issue.Write", {
 			"sMode"			 : "new",
 			"elTextarea"	 : $("#body"),
-            "elMilestoneRefresh": $("#milestoneOption .icon-refresh"),
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
             "sIssueFormURL"  : "@routes.IssueApp.newIssueForm(project.owner, project.name)",
 			"sUploaderAction": "@routes.AttachmentApp.uploadFile"
 		});

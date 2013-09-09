@@ -22,11 +22,11 @@
         <div class="pull-left" style="margin-left: 10px;">
             <div class="header">
                 <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-                @if(!project.isPublic){ <i class="ico ico-lock"></i> }
+                @if(!project.isPublic){ <i class="yobicon-lock"></i> }
             </div>
             @if(project.isFork()){
             <div class="forked label">
-                <i class="icon-retweet icon-white vmiddle"></i>
+                <i class="yobicon-split yobicon-white vmiddle"></i>
                 @Messages("fork.original")
                 <span>/ <a href="@routes.UserApp.userInfo(project.originalProject.owner)">@project.originalProject.owner</a> / </span>
                 <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)">@project.originalProject.name</a>
@@ -65,14 +65,14 @@
             @if(session.get("loginId") != project.owner ){
                 @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn blue medium watchBtn">
-                        <i class="icon-eye-open icon-middle icon-white"></i>
+                        <i class="yobicon-eye-open yobicon-middle yobicon-white"></i>
                         @Messages("notification.watch")
                         <span class="num-badge">@project.watchingCount</span>
                     </a>
                 }
                 @if(!User.isWatching(project) && project.isPublic) {
                     <a href="@routes.WatchProjectApp.watch(project.owner, project.name)" class="nbtn  medium watchBtn">
-                        <i class="icon-eye-close icon-middle icon-white"></i>
+                        <i class="yobicon-eye-close yobicon-middle yobicon-white"></i>
                         @Messages("notification.watch")
                         <span class="num-badge">@project.watchingCount</span>
                     </a>
@@ -81,7 +81,7 @@
 
             @if(user.loginId != project.owner && user.loginId == session.get("loginId") ){
             <a href="@routes.UserApp.leave(project.owner, project.name)" data-projectName="@project.name" class="nbtn black medium last leaveProject">
-                <i class="ico ico-delete-small"></i>@Messages("userinfo.leaveProject")
+                <i class="yobicon-trash"></i> @Messages("userinfo.leaveProject")
             </a>
             }
 

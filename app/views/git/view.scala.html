@@ -31,7 +31,7 @@
         <div class="pullreq-info">
             <div class="pull-right">
                 <button id="helpBtn" class="nbtn small gray mt5">
-                    <i class="icon-question-sign icon-large"></i> @Messages("title.help")
+                    <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
                 </button>
             </div>
             <div>
@@ -46,16 +46,16 @@
                 <div class="pullRequest-branch ml10">
                     <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
                         <code class="from">
-                            <i class="icon-code-fork"></i>
+                            <i class="yobicon-branch"></i>
                             <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a>/<!--
                          --><a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>:
                             @branchName(pull.fromBranch)
                         </code>
                     </span>
-                    <i class="icon-arrow-right"></i>
+                    <i class="yobicon-right"></i>
                     <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
                         <code class="to">
-                            <i class="icon-code-fork"></i>
+                            <i class="yobicon-branch"></i>
                             <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a>/<!--
                          --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>:
                             @branchName(pull.toBranch)
@@ -113,7 +113,7 @@
                             <h5>@Messages("pullRequest.conflict.files")</h5>
                             <ul class="unstyled conflict-files">
                                 @for(file <- conflicts.conflictFiles) {
-                                <li><i class="icon-file"></i> @file</li>
+                                <li><i class="yobicon-file"></i> @file</li>
                                 }
                             </ul>
                         </div>
@@ -157,14 +157,14 @@
                             <td class="commit-id">
                                 <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getId())">
                                     @commit.getShortId()
-                                    <i class="ico ico-gray-arrow-right"></i>
+                                    <i class="yobicon-right"></i>
                                 </a>
                             </td>
 
                             <td class="messages">
                                 @defining(CodeComment.count(pull.fromProject, commit.getId)){ numOfComment =>
                                     @if(numOfComment > 0) {
-                                    <span class="number-of-comments"><i class="ico ico-comment-bubble"></i> @numOfComment</span>
+                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                     }
                                 }
 
@@ -174,7 +174,7 @@
 	                                </a>
 
 									@if(commitMsg.split("\n").length > 1){
-									<button type="button" class="more"><i class="icon-ellipsis-horizontal"></i></button>
+									<button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
 									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
 									}
                                 </a>

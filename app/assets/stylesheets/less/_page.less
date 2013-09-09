@@ -211,15 +211,15 @@
                 line-height:56px; /*color:#fff;*/ font-weight:normal;
                 a { vertical-align:top; }
 
-                .icon-lock {
+                .yobicon-lock {
                     font-size:15px;
-                    color:#CECECE;
+                    cursor:pointer;
                 }
             }
 
             .forked {
                 line-height:56px;
-                i { margin-left:10px; cursor:pointer; }
+                i { margin-left:10px; cursor:pointer; vertical-align:middle;}
 
                 .popover {
                     color:#111;
@@ -510,7 +510,7 @@
                     width:26px;
                     height:26px;
                     padding:4px;
-                    border: 1px solid #d2d2d2;
+                    border: 1px solid #27AE60;
                     border-radius : 50%;
                     background: #FFF;
                     position:absolute;
@@ -518,15 +518,11 @@
                     left:0;
                     color:#fdfdfd;
 
-                    &.exclamation { border: 1px solid #FFD85E;}
-                    &.user {border: 1px solid #CE6868;}
-                    &.comments { border:1px solid #51aacc;}
-                    &.code-fork {border:1px solid #6ACF6A;}
-                    &.map-marker {border:1px solid #000;}
-                    &.bullhorn {border:1px solid #B535CE;}
-
+                    &.closed {border: 1px solid #C0392B;}
+                    &.changed {border: 1px solid #2980B9;}
+                    &.rejected {border: 1px solid #F39C12;}
                     span { 
-                        background:#d2d2d2;
+                        background:#27AE60;
                         width:26px;
                         height:26px;
                         border-radius : 50%;
@@ -534,12 +530,9 @@
                         font-size:15px;
                         text-align : center;
 
-                        &.exclamation { background:#FFD85E;}
-                        &.user {background:#CE6868;}
-                        &.comments { background: #51aacc;}
-                        &.code-fork {background: #6ACF6A;}
-                        &.map-marker {background:#000;}
-                        &.bullhorn {background:#B535CE;}
+                        &.closed {background:  #C0392B;}
+                        &.changed {background: #2980B9;}
+                        &.rejected {background: #F39C12;}
 
                         i { vertical-align:middle;width:auto;height:auto;}
                     }
@@ -1557,7 +1550,7 @@
                         display:block; padding:10px 10px;
                         font-weight:bold; font-size:12px;
                         -webkit-transition-duration:0.3s;
-                        .icon-large { margin-right:5px; vertical-align:middle; }
+                        i { margin-right:5px; vertical-align:middle; font-size:13px;}
                     }
                     .menu-title { display:inline; }
 
@@ -1972,7 +1965,7 @@
                 color:#fff; text-shadow:1px 1px #000;
                 padding:5px 10px;
                 font-weight:bold;
-                i { vertical-align:top; margin-top:2px; }
+                i { vertical-align:middle; }
             }
         }
 
@@ -2630,7 +2623,7 @@ div.markdown-preview {
         a { color: #1a4797; }
         i { color: #1a4797; }
     }
-    i.icon-arrow-right { font-size:12px; margin:0 5px; color: #1a4797;}
+    i.icon-right { font-size:12px; margin:0 5px; color: #1a4797;}
 }
 
 .issue-list, .board-list{
@@ -2956,7 +2949,7 @@ div.markdown-preview {
                 color: #999;
                 background-color: #f8f8ff;
             }
-            .icon-comment {
+            .icon-comments {
                 visibility: hidden;
                 opacity: 0.6;
             }

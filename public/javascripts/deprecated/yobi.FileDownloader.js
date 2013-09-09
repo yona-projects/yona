@@ -37,7 +37,7 @@ yobi.FileDownloader = function(htOptions) {
 	 */
 	function _initVar(htOptions){
 		htVar.sAction = htOptions.sAction;
-		htVar.sTplItem = '<li class="attach"><a href="${url}"><i class="ico ico-clip"></i>${name} (${fileSize})</a></li>';
+		htVar.sTplItem = '<li class="attach"><a href="${url}"><i class="yobicon-paperclip"></i>${name} (${fileSize})</a></li>';
 		
 		htVar.sResourceId = htElement.welTarget.attr('resourceId');
 		htVar.sResourceType = htElement.welTarget.attr('resourceType');		

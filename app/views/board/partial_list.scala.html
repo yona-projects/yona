@@ -13,7 +13,7 @@
                 @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
                 @post.title
                 @if(Attachment.findByContainer(post.asResource).size > 0){
-                    <i class="ico ico-clip vmiddle"></i>
+                    <i class="yobyobicon-paperclip vmiddle"></i>
                 }
             </a>
         </p>
@@ -25,7 +25,7 @@
     <div class="right-panel">
         <div class="comment-wrap">
             @if(post.numOfComments > 0){
-            <i class="ico ico-comment-bubble"></i><span class="num">@post.numOfComments</span>
+            <i class="yobyobicon-comments"></i><span class="num">@post.numOfComments</span>
             }
         </div>
     </div>

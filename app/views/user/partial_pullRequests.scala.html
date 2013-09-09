@@ -33,7 +33,7 @@
             </div>
             <div class="infos nm">
                 <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
-                <span class="date"><i class="icon-calendar"></i> @agoString(req.createdAgo())</span>
+                <span class="date"><i class="yobicon-calendar"></i> @agoString(req.createdAgo())</span>
                 <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
                 <code>
                     <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
@@ -42,7 +42,7 @@
                 </code>
                 </span>
                         <span style="margin-left: 3px;">
-                            <i class="icon-long-arrow-right icon-large"></i>
+                            <i class="yobicon-long-arrow-right yobicon-large"></i>
                         </span>
                 <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
                 <code>
