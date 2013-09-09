@@ -81,7 +81,7 @@
 
             // selectAll
             $(htElement.weAllCheckbox).on('click', function(){
-                $(htVar.sIssueCheckBoxesSelector).prop('checked', this.checked);
+                $(htVar.sIssueCheckBoxesSelector).prop('checked', this.checked).change();
                 _onCheckIssue();
             });
             yobi.ShortcutKey.attach("CTRL+A", function(htInfo){
