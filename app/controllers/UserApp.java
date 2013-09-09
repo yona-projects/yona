@@ -633,6 +633,8 @@ public class UserApp extends Controller {
         User.create(user);
         if (isUseSignUpConfirm()) {
             user.changeState(UserState.LOCKED);
+        } else {
+            user.changeState(UserState.ACTIVE);
         }
         return user;
     }
