@@ -274,7 +274,7 @@
             <li class="event" id="event-@event.id">
                 @event.eventType match {
                 case EventType.ISSUE_STATE_CHANGED => {
-                <span class="label @if(event.newValue.equals("open")){label-info}">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(event.senderLoginId)))
+                <span class="label @if(event.newValue.equals("closed")){label-success} @if(event.newValue.equals("open")){label-info}">@Messages("issue.state." + event.newValue)</span> @Html(Messages("issue.event." + event.newValue, linkToUser(event.senderLoginId)))
                 <!-- @Html(Messages("issue.event." + event.newValue, linkToUser(event.senderLoginId))) -->
                 }
                 case EventType.ISSUE_ASSIGNEE_CHANGED => {
