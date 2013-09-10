@@ -39,7 +39,8 @@ object ApplicationBuild extends Build {
       "commons-lang" % "commons-lang" % "2.6",
       "org.apache.tika" % "tika-core" % "1.2",
       "commons-io" % "commons-io" % "2.4",
-      "com.github.julienrf" %% "play-jsmessages" % "1.4.1"
+      "com.github.julienrf" %% "play-jsmessages" % "1.4.1",
+      "commons-collections" % "commons-collections" % "3.2.1"
   )
 
     val projectSettings = Seq(
