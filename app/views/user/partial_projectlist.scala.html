@@ -22,7 +22,7 @@
         <div class="pull-left" style="margin-left: 10px;">
             <div class="header">
                 <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-                @if(!project.isPublic){ <i class="yobicon-lock"></i> }
+                @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
             </div>
             @if(project.isFork()){
             <div class="forked label">
