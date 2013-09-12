@@ -2220,13 +2220,10 @@
 
 .board-comment-wrap {
     display:block; clear:both;
-    background-color: #f5f5f5;
-
-    .border-radius(10px);
+    
     .comment-header {
-        padding: 0 20px;
         color: #222;
-        font-size: 14px;
+        font-size: 16px;
         line-height: 40px;
     }
 
@@ -2236,33 +2233,80 @@
         list-style: none;
         .comment {
             padding: 10px 20px;
+            position: relative;
+
+            .comment-avatar {
+                position:absolute;
+                top:10px;
+                left:25px;
+            }
 
             .media-body {
-                padding-left: 17px;
-              .commenter {
-                    line-height: 1.3;
-                    font-size: 12px; font-weight:bold;
-                    /*color: #646464;*/
-                    .name {
-                        font-size: 11px;
-                    }
-                    .date {
-                        font-size: 11px;
-                        color: #aaa;
-                    }
+
+                margin-left:52px;
+                border:1px solid #BDC3C7;
+                .border-radius(3px);
+
+                &:before {
+                    position:absolute;
+                    top:23px;
+                    left:67px;
+                    content:' ';
+                    width: 9px;
+                    height: 9px;
+                    border-width: 0 0 1px 1px;
+                    border-style: solid;
+                    border-color: #BDC3C7;
+                    background-color: #d9edf7;
+                    .rotate(45deg);
+                }   
+
+                .meta-info {
+                    height:22px;
+                    padding:5px 15px;
+                    background-color:#d9edf7;
+                    border-bottom:1px solid #BDC3C7;
+
+                    .yobicon-comment {vertical-align: middle;}
+                    .comment_author {font-size:13px; margin-right:5px; }   
+                    .ago { color:#7F8C8D;}
+                    .edit { color: #7F8C8D;}
                 }
+                
                 .attach {
                     color: #4489A4;
+                    padding:10px;
+                    background-color:#d9edf7;
+                    border-top:1px solid #BDC3C7;
+                    border-left:1px solid #BDC3C7;
+                    .border-radius(3px);
+
+                    .yobicon-paperclip {vertical-align:middle;margin-top: 4px;}
+
+
                 }
                 .comment-body {
-                    /*color: #333;*/
                   font-size: 12px;
 		          a { font-weight:bold; border-bottom:1px dotted; }
+                  padding:0 15px;
                 }
+
+
             }
             .attach-preview-wrap {
                 margin-top: 10px;
             }
+
+            &.author {
+                .media-body {
+                    &:before { background-color: #f8f8f8; }   
+                }
+
+                .meta-info { background-color:#f8f8f8; }
+
+                .attach { background-color:#f8f8f8; }
+            }        
+
         }
 
         .event {
@@ -2270,10 +2314,6 @@
             margin-left: 70px;
             margin-right: 20px;
             margin-top: 5px;
-            border-bottom: 1px solid #fff;
-            border-top: 1px solid #ddd;
-            background-color: #e7e7e7;
-            border-radius: 5px;
             .date {
                 font-size: 11px;
                 color: #aaa;

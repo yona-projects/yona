@@ -7,6 +7,9 @@
 
 @urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString) }
 
+@isAuthorComment(commentId: String) = @{
+    if(commentId == UserApp.currentUser().loginId) {"author"}   
+}
 @main(post.title, project, utils.MenuType.BOARD){
 
 <div class="page board-view">
@@ -72,22 +75,33 @@
 
 	    <ul class="comments">
 	    @for(comment <-post.comments){
-			<li class="comment" id="comment-@comment.id">
-				<a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
-					<img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-				</a>
-				<div class="media-body">
-					@if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-						<button type="button" data-request-method="delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)" class="btn-transparent pull-right close">&times;</button>
-					}
+			<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+                <div class="comment-avatar">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                </div>    
+                <div class="media-body">
+                    <div class="meta-info">
+                        <span class="comment_author pull-left">
+                            <i class="yobicon-comment"></i> 
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                <strong>@comment.authorLoginId </strong>
+                            </a>
+                        </span>
+                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                        <span class="edit pull-right">
+                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)"><i class="yobicon-trash"></i></button>
+                        </span>
+                        }
+                    </div>
+                    
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-					<p class="commenter">
-						<a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-                        <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
-					</p>
-					<div class="attachments" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
-				</div>
-			</li>
+                    
+                    <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
+                </div>
+            </li>
 	    }
 		</ul>
 

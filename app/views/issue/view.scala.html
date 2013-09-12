@@ -33,6 +33,10 @@
     }
 }
 
+@isAuthorComment(commentId: String) = @{
+    if(commentId == UserApp.currentUser().loginId) {"author"}   
+}
+
 @main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
     @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
@@ -246,27 +250,38 @@
 
     @** Comment **@
     <div id="comments" class="board-comment-wrap">
-        <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
-
+        <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
+        <hr class="nm">
         @if(issue.comments.size + issue.events.size > 0) {
         <ul class="comments">
         @for(item <- issue.getTimeline){
             @item match {
             case (comment: Comment) => {
-            <li class="comment" id="comment-@comment.id">
-                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left mt20">
-                    <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                </a>
+            <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+                <div class="comment-avatar">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                </div>    
                 <div class="media-body">
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                    <button type="button" class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)">&times;</button>
-                    }
+                    <div class="meta-info">
+                        <span class="comment_author pull-left">
+                            <i class="yobicon-comment"></i> 
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                <strong>@comment.authorLoginId </strong>
+                            </a>
+                        </span>
+                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                        <span class="edit pull-right">
+                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)"><i class="yobicon-trash"></i></button>
+                        </span>
+                        }
+                    </div>
+                    
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                    <p class="commenter">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-                        <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(comment.ago())</a></span>
-                    </p>
-                    <div class="attachments" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
+                    
+                    <div class="attachments pull-right" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
                 </div>
             </li>
             }
@@ -280,13 +295,13 @@
                 case EventType.ISSUE_ASSIGNEE_CHANGED => {
                 @Html(Messages(
                 event.newValue match {
-                case assignee: String => "issue.event.assigned"
-                case _ => "issue.event.unassigned"
+                    case assignee: String => "issue.event.assigned"
+                    case _ => "issue.event.unassigned"
                 }, linkToUser(event.senderLoginId), linkToUser(event.newValue, true)))
                 }
-                case _ => {
-                    @event.newValue by @linkToUser(event.senderLoginId)
-                }
+                    case _ => {
+                        @event.newValue by @linkToUser(event.senderLoginId)
+                    }
                 }
                 <span class="date"><a href="#event-@event.id">@utils.TemplateHelper.agoString(JodaDateUtil.ago(event.getDate()))</a></span>
             </li>

@@ -113,7 +113,7 @@
 .yobicon-wallet:before {
     content: "\e018";
 }
-.yobicon-uniF470:before {
+.yobicon-delete:before {
     content: "\e019";
 }
 .yobicon-uniF471:before {
@@ -1902,7 +1902,7 @@
 .yobicon-bluetooth:before {
     content: "\e272";
 }
-.yobicon-comment:before {
+.yobicon-comment-2:before {
     content: "\e273";
 }
 .yobicon-comment2:before {
@@ -3634,7 +3634,7 @@
 .yobicon-comments:before {
     content: "\e4b7";
 }
-.yobicon-comment-2:before {
+.yobicon-comment:before {
     content: "\e4b8";
 }
 .yobicon-home:before {
