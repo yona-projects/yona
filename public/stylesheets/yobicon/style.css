@@ -34,6 +34,10 @@
     font-size:1.3333333333333333333em;
 }
 
+.yobicon-small {
+    font-size:0.7em;
+}
+
 .yobicon-pilcrow:before {
     content: "\e000";
 }
