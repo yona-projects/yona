@@ -137,6 +137,12 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         numOfComments = computeNumOfComments();
         super.update();
     }
+    
+    
+    public void updateNumber() {
+        number = increaseNumber();
+        super.update();
+    }
 
     public static <T> T findByNumber(Finder<Long, T> finder, Project project, Long number) {
         return finder.where().eq("project.id", project.id).eq("number", number).findUnique();
