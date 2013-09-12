@@ -2310,10 +2310,30 @@
         }
 
         .event {
-            padding: 10px 20px 10px 10px;
-            margin-left: 70px;
-            margin-right: 20px;
-            margin-top: 5px;
+            
+            padding:15px 0 15px 75px;
+            font-size:14px;
+            line-height:14px;
+
+            .state { 
+                color:#FFF;
+                padding: 6px 0;
+                text-align:center;
+                display:inline-block;
+                width:90px;
+
+                font-weight:bold;
+                .border-radius(5px);
+                margin-right:10px;
+                
+                i {margin-right:3px;}
+                
+                &.closed { background-color: #C0392B;}
+                &.open { background-color : #27AE60;}
+                &.changed { background-color : #2980B9;}
+             }
+
+             em { font-size:12px; color:#7F8C8D; margin-right:5px;}
             .date {
                 font-size: 11px;
                 color: #aaa;

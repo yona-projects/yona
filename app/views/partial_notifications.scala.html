@@ -22,7 +22,7 @@
             if(msg==Messages("notification.issue.closed")) "reliability closed"
             else "reliability"
         }
-        case EventType.ISSUE_ASSIGNEE_CHANGED => { "target changed" }
+        case EventType.ISSUE_ASSIGNEE_CHANGED => { "ftpaccounts changed" }
         case EventType.NEW_POSTING => { "notes" }
         case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_STATE_CHANGED => { 
             if(msg==Messages("notification.pullrequest.closed")) "merge closed"

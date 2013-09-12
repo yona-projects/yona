@@ -10,6 +10,7 @@
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}   
 }
+
 @main(post.title, project, utils.MenuType.BOARD){
 
 <div class="page board-view">
