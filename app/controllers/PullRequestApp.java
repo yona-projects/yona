@@ -418,7 +418,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
-    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
+    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) throws IOException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 

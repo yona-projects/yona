@@ -1,0 +1,113 @@
+@(fileDiffs: List[playRepository.FileDiff], comments:List[CommonComment])
+
+@import playRepository.DiffLineType
+@import org.eclipse.jgit.diff.DiffEntry
+
+@render(fileDiffs: List[playRepository.FileDiff], comments:List[CodeComment]) = {
+    render2(fileDiffs, comments map { [comment.path, comment.line, comment.side] => comment })
+}
+
+@writeLine(klass: String, prefix: String, numA: Integer, numB: Integer, content: String) = {
+    @writeCodeLine(klass, prefix, numA, numB, content)
+    @writeComment(comment)
+}
+
+@writeLine(klass: String, prefix: String, numA: Integer, numB: Integer, content: String, comment: CodeComment) = {
+    @writeCodeLine(klass, prefix, numA, numB, content)
+}
+
+@writeCodeLine(klass: String, prefix: String, numA: Integer, numB: Integer, content: String, comment: CodeComment) = { <tr class="@klass" data-line="@Option(numA).getOrElse(numB)" data-type="@klass"><td class="linenum"><i class="icon-comment"></i>@Option(numA).getOrElse("")</td><td class="linenum">@Option(numB).getOrElse("")</td><td><span>@prefix</span>@content</td></tr>
+}
+
+@writeComment(comment: CodeComment) = {
+    <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+        <div class="comment-avatar">
+            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+            </a>
+        </div>
+        <div class="media-body">
+            <div class="meta-info">
+                <span class="comment_author pull-left">
+                    <i class="yobicon-comment"></i>
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <strong>@comment.authorLoginId </strong>
+                    </a>
+                </span>
+                <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
+                @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                <span class="edit pull-right">
+                    <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
+                </span>
+                }
+            </div>
+
+            <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+
+            <div class="attachments" resourceType="@ResourceType.CODE_COMMENT" resourceId="@comment.id"></div>
+        </div>
+    </li>
+}
+
+@renderHunks(hunks: List[Hunk], comments: List[CodeComment]) = {
+    @for(hunk <- diff.getHunks) {
+        <tr class="range"><td>...</td><td>...</td><td>-@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB)</td></tr>
+        @for(line <- hunk.lines){
+            @line.kind match {
+            case DiffLineType.ADD => { @writeLine(line.kind.toString.toLowerCase, "+", null, line.numB + 1, line.content, comments(List(diff.pathB, "add", line.numB + 1)) }
+            case DiffLineType.REMOVE => { @writeLine(line.kind.toString.toLowerCase, "-", line.numA + 1, null, line.content, comments(List(diff.pathA, "remove", line.numA + 1))) }
+            case _ => { @writeLine(line.kind.toString.toLowerCase, " ", line.numA + 1, line.numB + 1, line.content, comments(List(diff.pathA, "base", line.numA + 1))) }
+            }
+        }
+    }
+}
+
+@render2(fileDiffs: List[playRepository.FileDiff], comments:Map[List, CodeComment]) = {
+@for(diff <- fileDiffs) {
+    @diff.changeType match {
+    case DiffEntry.ChangeType.MODIFY => {
+        <table class="diff-body" data-path="@diff.pathB"><tbody>
+        <tr class="file">
+            <td colspan=3>@diff.pathB</td>
+        </tr>
+        @renderHunks(diff.getHunks, comments)
+        </tbody></table>
+    }
+    case DiffEntry.ChangeType.ADD => {
+        <table class="diff-body" data-path="@diff.pathB"><tbody>
+        <tr class="file">
+            <td colspan=3>@diff.pathB (Added)</td>
+        </tr>
+        @for(i <- 0 until diff.b.size) {
+            @writeLine("add", "+", null, i + 1, diff.b.getString(i))
+        }
+        </tbody></table>
+    }
+    case DiffEntry.ChangeType.DELETE => {
+        <table class="diff-body" data-path="@diff.pathA"><tbody>
+        <tr class="file">
+            <td colspan=3>@diff.pathA (Deleted)</td>
+        </tr>
+        @for(i <- 0 until diff.a.size) {
+            @writeLine("remove", "-", null, i + 1, diff.a.getString(i))
+        }
+        </tbody></table>
+    }
+    case DiffEntry.ChangeType.RENAME => {
+        <table class="diff-body" data-path="@diff.pathB"><tbody>
+        <tr class="file">
+            <td colspan=3>@diff.pathB -> @diff.pathB</td>
+        </tr>
+        @renderHunks(diff.getHunks, comments)
+        </tbody></table>
+    }
+    case DiffEntry.ChangeType.COPY => {
+        <table class="diff-body" data-path="@diff.pathB"><tbody>
+        <tr class="file">
+            <td colspan=3>Copy @diff.pathA to @diff.pathB</td>
+        </tr>
+        </tbody></table>
+    }
+    }
+}
+}

@@ -21,6 +21,7 @@ import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.Commit;
+import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
@@ -148,9 +149,15 @@ public class CodeHistoryApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        String patch = RepositoryService.getRepository(project).getPatch(commitId);
-        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
-        Commit parentCommit = RepositoryService.getRepository(project).getParentCommitOf(commitId);
+        PlayRepository repository = RepositoryService.getRepository(project);
+        List<FileDiff> fileDiffs = repository.getDiff(commitId);
+        String patch = repository.getPatch(commitId);
+        Commit commit = repository.getCommit(commitId);
+        Commit parentCommit = repository.getParentCommitOf(commitId);
+
+        if (fileDiffs == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+        }
 
         if (patch == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
@@ -161,7 +168,7 @@ public class CodeHistoryApp extends Controller {
 
         String selectedBranch = request().getQueryString("branch");
         
-        return ok(diff.render(project, commit, parentCommit, patch, comments, selectedBranch));
+        return ok(diff.render(project, commit, parentCommit, patch, comments, selectedBranch, fileDiffs));
     }
 
     public static Result newComment(String ownerName, String projectName, String commitId)

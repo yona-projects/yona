@@ -114,17 +114,50 @@
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
             $(window).on("resize", _resizeMergely);
+            $('tr .linenum:first-child').click(_onClickLineNumA);
+
+            _attachCommentBoxToggleEvent();
         }
 
         /**
          * Render diff and comments
          */
         function _render() {
-            var sDiff = htElement.welDiff.text();
+            //var sDiff = htElement.welDiff.text();
 
-            htElement.welDiff.text("");
-            htElement.welDiff.append(_renderDiff(sDiff));
-            htElement.welDiff.show();
+            //htElement.welDiff.text("");
+            //htElement.welDiff.append(_renderDiff(sDiff));
+            //htElement.welDiff.show();
+
+            var waComments = htElement.welComments.children('li.comment');
+            var aComment = [];
+
+            for(var i = 0; i < waComments.length; i++) {
+                var welComment = $(waComments[i]);
+                var linenum = welComment.data('line');
+                var side = welComment.data('side');
+                var path = welComment.data('path');
+                var sSelector;
+                var welCommentList;
+
+                if (welComment.data('outdated') == false && welComment.data('path')) {
+                    sSelector = 'table[data-path="' + welComment.data('path') + '"] tr[data-line="' + welComment.data('line') + '"][data-type="' + welComment.data('side') + '"]'
+                    if (aComment[sSelector] == undefined) {
+                        aComment[sSelector] = [];
+                    }
+                    aComment[sSelector].push(welComment);
+                }
+            }
+
+            for (var sSelector in aComment) {
+                welCommentList = $('<ul>').addClass("comments");
+                for (var j = 0; j < aComment[sSelector].length; j++) {
+                    welCommentList.append(aComment[sSelector][j]);
+                }
+
+                _appendCommentToggle($(sSelector), welCommentList);
+            }
+
             htElement.welComments.show(); // Show the remain comments
             
             // Diff 중에서 특정 파일을 #path 로 지정한 경우
@@ -171,7 +204,7 @@
          */
         function _initToggleCommentsButton() {
             $('#toggle-comments').click(function() {
-                $('#commit').toggleClass('show-comments');
+                $('.diff-body').toggleClass('show-comments');
                 $("#minimap").toggle();
             });
         }
@@ -194,55 +227,6 @@
 
             htDiff.aRemoved = [];
             htDiff.aAdded = [];
-        }
-
-        /**
-         * welTable에 새 row를 추가한다.
-         *
-         * @param {Object} welTable
-         * @param {String} sClass
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         * @param {Object|String} vContent
-         */
-        function _appendLine(
-                welTable, sClass, sPath, nLineA, nLineB, sBlobA, sBlobB, vContent) {
-            var welTr = $('<tr>').addClass(sClass);
-
-            _setPropertiesOnLine(welTr, sPath, nLineA, nLineB, sBlobA, sBlobB);
-            _prependLineNumberOnLine(welTr, nLineA, nLineB);
-
-            var welBody = ((typeof vContent) == 'string') ? $('<td>').append($("<span>").text(vContent)) : vContent;
-            welBody.addClass("line-body");
-            welTr.append(welBody);
-            
-            if(sClass === "file"){
-                welTr.attr("id", sPath.substr(1));
-                welBody.find("span").addClass("filename");
-            }
-            welTable.append(welTr);
-
-            _appendCommentThreadOnLine(welTr); // Append comments
-        }
-
-        /**
-         * diff에서 얻은 특정 파일의 header를 welTable에 새 row로 추가한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} sHunkHeader
-         */
-        function _appendFileHeader(welTable, sFileHeader) {
-            _appendLine(welTable, "file", sFileHeader, "", "", null, null, sFileHeader);
-        }
-
-        /**
-         * diff에서 얻은 특정 hunk의 header를 welTable에 새 row로 추가한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} sHunkHeader
-         */
-        function _appendHunkHeader(welTable, sPath, sHunkHeader) {
-            _appendLine(welTable, "range", sPath, "...", "...", null, null, sHunkHeader);
         }
 
         /**
@@ -294,18 +278,6 @@
         }
 
         /**
-         * 현재 줄에 댓글 스레드와 댓글 상자 토글 버튼을 덧붙인다.
-         *
-         * @param {Object} welTr
-         */
-        function _appendCommentThreadOnLine(welTr) {
-            var welUl = _createCommentThreadOnLine(welTr);
-            if (welUl.children().length > 0) {
-                _appendCommentToggle(welTr, welUl);
-            }
-        }
-
-        /**
          * welPrependTo에, welHoverOn에 마우스 호버시 보여질 댓글 아이콘을
          * 붙인다.
          *
@@ -329,53 +301,26 @@
             });
         }
 
-        /**
-         * 댓글의 스레드에 댓글 토글 버튼을 덧붙인다.
-         *
-         * when: 특정 라인에 대한 댓글 스레드를 렌더링하면서 끝에 댓글 토글
-         * 버튼을 붙이려 할 때
-         *
-         * @param {Object} welTr
-         * @param {Object} welUl
-         */
-        function _appendCommentToggle(welTr, welUl) {
-            var welTd = $('<td colspan=3>')
-                .data("line", welTr.data("line"))
-                .data("side", welTr.data("side"))
-                .data("path", welTr.data("path"))
-
+        function _attachCommentBoxToggleEvent() {
             if (htVar.bCommentable) {
-                var welCloseButton = htElement.welEmptyCommentButton.clone()
-                    .text(Messages("code.closeCommentBox"));
-                var welOpenButton = htElement.welEmptyCommentButton.clone()
-                    .text(Messages("code.openCommentBox"));
+                var welCloseButton = $('.close-comment-box');
+                var welOpenButton = $('.open-comment-box');
     
                 var fOnClickAddButton = function(weEvt) {
                     _showCommentBox($(weEvt.target).closest("tr"));
-                    welCloseButton.show();
+                    $(weEvt.target).siblings(".close-comment-box").show();
                     $(weEvt.target).hide();
                 };
     
                 var fOnClickCloseButton = function(weEvt) {
                     _hideCommentBox();
-                    welOpenButton.show();
+                    $(weEvt.target).siblings(".open-comment-box").show();
                     $(weEvt.target).hide();
                 };
     
                 welCloseButton.click(fOnClickCloseButton).hide();
                 welOpenButton.click(fOnClickAddButton);
-    
-                welUl.append(welOpenButton);
-                welUl.append(welCloseButton);
             }
-
-            welTr.after($('<tr>')
-                    .addClass('comments board-comment-wrap')
-                    .data("path", welTr.data("path"))
-                    .data("line", welTr.data("line"))
-                    .data("side", welTr.data("side"))
-                    .append($('<td colspan="3">')
-                        .append(welUl)));
         }
 
         /**
@@ -391,7 +336,7 @@
             htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=commitA]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=commitB]').removeAttr('value');
-            htElement.welComments.after(htElement.welEmptyCommentForm);
+            $('.code-browse-wrap').append(htElement.welEmptyCommentForm);
             _updateMiniMap();
         }
 
@@ -422,95 +367,6 @@
         }
 
         /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
-         *
-         * 단어 단위 하이라이팅을 적용한다.
-         * 삭제된 라인과 추가된 라인이 정확히 1줄씩인 경우임을 가정한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
-         */
-        function _appendChangedLinesWithWordHighlight(welTable, htDiff) {
-            var aDiff = JsDiff.diffWords(
-                    htDiff.aRemoved[0].substr(1), htDiff.aAdded[0].substr(1));
-            var welRemoved = $("<td>");
-            var welAdded = $("<td>");
-
-            welRemoved.append($("<span>").text("-"));
-            welAdded.append($("<span>").text("+"));
-
-            for (var i = 0; i < aDiff.length; i++) {
-                sValue = aDiff[i].value;
-                if (aDiff[i].added) {
-                    welAdded.append($("<span>").addClass("add").text(sValue));
-                } else if (aDiff[i].removed) {
-                    welRemoved.append($("<span>").addClass("remove")
-                            .text(sValue));
-                } else {
-                    welAdded.append($("<span>").text(sValue));
-                    welRemoved.append($("<span>").text(sValue));
-                }
-            }
-
-            _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++, "", htDiff.sBlobA, htDiff.sBlobB,
-                    welRemoved);
-            _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++, htDiff.sBlobA, htDiff.sBlobB,
-                    welAdded);
-        }
-
-        /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
-         *
-         * 단어 단위 하이라이팅을 적용하지 않는다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
-         */
-        function _appendChangedLinesWithoutWordHighlight(welTable, htDiff) {
-            for (var i = 0; i < htDiff.aRemoved.length; i++) {
-                _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++, "", htDiff.sBlobA, htDiff.sBlobB,
-                        htDiff.aRemoved[i]);
-            }
-
-            for (var i = 0; i < htDiff.aAdded.length; i++) {
-                _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++, htDiff.sBlobA, htDiff.sBlobB,
-                        htDiff.aAdded[i]);
-            }
-        }
-
-        /**
-         * 특정 라인에 대한 댓글 스레드를 생성한다.
-         *
-         * 이 커밋에 대한 모든 댓글을 순회하면서, 현재 라인에 대한 댓글이
-         * 존재한다면 현재 라인의 댓글 스레드에 추가한다.
-         *
-         * @param {Object} welTr
-         * @param {Object} welUl
-         */
-        function _createCommentThreadOnLine(welTr) {
-            var waComments = htElement.welComments.children('li.comment');
-            var welUl = $('<ul>').addClass("comments");
-
-            for(var i = 0; i < waComments.length; i++) {
-                var welComment = $(waComments[i]);
-                var linenum = welComment.data('line');
-                var side = welComment.data('side');
-                var path = welComment.data('path');
-                var sOutdated = welComment.data('outdated')
-
-                if (welComment.data('outdated') == false
-                    && welTr.data('path') == welComment.data('path')
-                    && welTr.data('line') == welComment.data('line')
-                    && welTr.data('side') == welComment.data('side')) {
-                    welUl.append(welComment);
-                    welComment.find('.outdated-message').hide();
-                }
-            }
-
-            return welUl;
-        }
-
-        /**
          * welTr 밑에 댓글 상자를 보여준다.
          *
          * when: 특정 줄의, (댓글 상자가 안 나타난 상태에서의) 댓글 아이콘이나,
@@ -521,8 +377,16 @@
         function _showCommentBox(welTr) {
             var welTd = $("<td colspan=3>");
             var welCommentTr;
+            var nLine = parseInt(welTr.data('line'));
+            var sType = welTr.data('type');
+            var sPath = welTr.closest('table').data('path');
 
-            if (isNaN(parseInt(welTr.data('line')))) {
+            if (isNaN(nLine)) {
+                nLine = parseInt(welTr.prev().data('line'));
+                sType = welTr.prev().data('type');
+            }
+
+            if (isNaN(nLine)) {
                 return;
             }
 
@@ -534,132 +398,14 @@
                 .append(welTd.append(htElement.welEmptyCommentForm.width(htElement.welDiff.width())));
 
             welCommentTr = htElement.welCommentTr;
-            welCommentTr.find('[name=path]').attr('value', welTr.data('path'));
-            welCommentTr.find('[name=line]').attr('value', welTr.data('line'));
-            welCommentTr.find('[name=side]').attr('value', welTr.data('side'));
+            welCommentTr.find('[name=path]').attr('value', sPath);
+            welCommentTr.find('[name=line]').attr('value', nLine);
+            welCommentTr.find('[name=side]').attr('value', sType);
             welCommentTr.find('[name=commitA]').attr('value', htVar.sCommitA);
             welCommentTr.find('[name=commitB]').attr('value', htVar.sCommitB);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();
-        }
-
-        /**
-         * Diff 렌더링
-         *
-         * unified diff 형식의 텍스트인 sDiff를 HTML로 렌더링하며, 특정 라인에
-         * 대한 커멘트가 있는 경우 그것도 함께 하께 렌더링한다.
-         *
-         * @param {String} sDiff
-         * @return {Object} 렌더링한 결과로 만들어진 HTML 테이블
-         */
-        function _renderDiff(sDiff) {
-            var aLine = sDiff.split('\n');
-            var welTable = $('<table>');
-            var htDiff = {
-                aRemoved: [],
-                aAdded: [],
-                nLineA: 0,
-                nLineB: 0,
-                sPath: ""
-            };
-            var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
-            var rxBlobHeader = /index\s+(\S+)\.\.(\S+)\s+100644/
-            var bAddedOrRemoved;
-            var aHunkRange;
-            var nLastLineA = 0;
-            var nLastLineB = 0;
-            var bInHunk = false;
-
-            for (var i = 0; i < aLine.length; i++) {
-                bAddedOrRemoved = false;
-
-                if (bInHunk) {
-                    switch (aLine[i][0]) {
-                    case '+':
-                        bAddedOrRemoved = true;
-                        htDiff.aAdded.push(aLine[i]);
-                        break;
-                    case '-':
-                        bAddedOrRemoved = true;
-                        htDiff.aRemoved.push(aLine[i]);
-                        break;
-                    case ' ':
-                        _flushChangedLines(welTable, htDiff);
-                        _appendLine(welTable, "", htDiff.sPath, htDiff.nLineA++,
-                                htDiff.nLineB++, htDiff.sBlobA, htDiff.sBlobB, aLine[i]);
-                        break;
-                    default:
-                        break;
-                    }
-                } else {
-                    switch (aLine[i].substr(0, 2)) {
-                    case '--':
-                        htDiff.sPath = aLine[i].substr(5);
-                        break;
-                    case '++':
-                        if (aLine[i].substr(5) != 'dev/null') {
-                            htDiff.sPath = aLine[i].substr(5);
-                        }
-                        _flushChangedLines(welTable, htDiff);
-                        _appendFileHeader(welTable, htDiff.sPath);
-                        break;
-                    case '@@':
-                        aMatch = aLine[i].match(rxHunkHeader);
-                        aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
-                            return parseInt(sVal, 10);
-                        }) : null;
-                        if (aHunkRange == null || aHunkRange.length < 4) {
-                            if (console instanceof Object) {
-                                console.warn("Failed to parse hunk header");
-                            }
-                        } else {
-                            htDiff.nLineA = aHunkRange[1];
-                            if (isNaN(aHunkRange[2])) {
-                                nLastLineA = htDiff.nLineA + 1;
-                            } else {
-                                nLastLineA = htDiff.nLineA + aHunkRange[2];
-                            }
-                            htDiff.nLineB = aHunkRange[3];
-                            if (isNaN(aHunkRange[4])) {
-                                nLastLineB = htDiff.nLineB + 1;
-                            } else {
-                                nLastLineB = htDiff.nLineB + aHunkRange[4];
-                            }
-                            _flushChangedLines(welTable, htDiff);
-                            _appendHunkHeader(welTable, htDiff.sPath, aLine[i]);
-                            bInHunk = true;
-                        }
-                        break;
-                    case 'in':
-                        // index 09d25fa..2ff9757 100644
-                        aMatch = aLine[i].match(rxBlobHeader);
-                        if (aMatch != null) {
-                            htDiff.sBlobA = aMatch[1].toLowerCase();
-                            htDiff.sBlobB = aMatch[2].toLowerCase();
-                        }
-                        break
-                    default:
-                        break;
-                    }
-                }
-
-                if (htDiff.nLineA > nLastLineA || htDiff.nLineB > nLastLineB) {
-                    if (console instanceof Object) {
-                        console.warn("This hunk has incorrect range.");
-                    }
-                }
-
-                if (htDiff.nLineA + htDiff.aRemoved.length >= nLastLineA
-                        && htDiff.nLineB + htDiff.aAdded.length >= nLastLineB) {
-                    bInHunk = false;
-                    _flushChangedLines(welTable, htDiff);
-                }
-            }
-
-            _flushChangedLines(welTable, htDiff);
-
-            return welTable;
         }
 
         /**

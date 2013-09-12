@@ -6,19 +6,12 @@ import models.resource.ResourceConvertible;
 
 import org.eclipse.jgit.blame.BlameGenerator;
 import org.eclipse.jgit.blame.BlameResult;
-import org.eclipse.jgit.diff.*;
-import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.DepthWalk;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.TreeWalk;
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
+import playRepository.FileDiff;
 import playRepository.GitRepository;
-import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.JodaDateUtil;
 
@@ -162,58 +155,8 @@ public class PullRequestComment extends Model implements ResourceConvertible, Ti
         return !blameResult.getSourceCommit(line - 1).getName().equals(commitB);
     }
 
-    /*
-    public String getCodeDiff() throws IOException {
-        Repository gitRepo = GitRepository.buildGitRepository(pullRequest.fromProject);
-        return GitRepository.getPatch(gitRepo, commitB, commitA); // commitB가 아니라 이 댓글을 남긴 시점에서의
-        // commit id여야 하는 것이 아닌지. commitB는 해당 시점에서 해당 라인의 최종 변경 커밋 id인데...
-    }
-    */
-
-    public class Diff {
-        public RawText a;
-        public RawText b;
-        public EditList editList;
-        public String commitA;
-        public String commitB;
-        public String path;
-    }
-
-    public Diff getCodeDiff() throws IOException {
-        Repository repository = GitRepository.buildGitRepository(pullRequest.fromProject);
-
-        RevTree treeA = new RevWalk(repository).parseTree(repository.resolve(commitA));
-        RevTree treeB = new RevWalk(repository).parseTree(repository.resolve(commitB));
-
-        if (path.length() > 0 && path.charAt(0) == '/') {
-            path = path.substring(1);
-        }
-
-        TreeWalk t1 = TreeWalk.forPath(repository, path, treeA);
-        TreeWalk t2 = TreeWalk.forPath(repository, path, treeB);
-
-        ObjectId blobA = t1.getObjectId(0);
-        ObjectId blobB = t2.getObjectId(0);
-
-        byte[] rawA = repository.open(blobA).getBytes();
-        byte[] rawB = repository.open(blobB).getBytes();
-        RawText a = new RawText(rawA);
-        RawText b = new RawText(rawB);
-
-        DiffAlgorithm diffAlgorithm = DiffAlgorithm.getAlgorithm(
-        repository.getConfig().getEnum(
-            ConfigConstants.CONFIG_DIFF_SECTION, null,
-            ConfigConstants.CONFIG_KEY_ALGORITHM,
-            DiffAlgorithm.SupportedAlgorithm.HISTOGRAM));
-
-        Diff diff = new Diff();
-        diff.a = a;
-        diff.b = b;
-        diff.commitA = commitA;
-        diff.commitB = commitB;
-        diff.path = path;
-        diff.editList = diffAlgorithm.diff(RawTextComparator.DEFAULT, a, b);
-
-        return diff;
+    @Transient
+    public List<FileDiff> getDiff() throws IOException {
+        return pullRequest.getDiff(commitA, commitB);
     }
 }

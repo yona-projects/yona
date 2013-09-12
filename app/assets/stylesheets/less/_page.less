@@ -3431,56 +3431,6 @@ div.markdown-preview {
     }
     .diff-wrap {
         width:100%; overflow:auto; margin-bottom:20px;
-
-        .diff-body {
-            display:none;
-            font-family: "monospace", Consolas, Tahoma;
-
-            table {
-                border: 1px solid #eee;
-                width: 100%;
-            }
-            td {
-                border-width: 0px 1px;
-                border-color: #e5e5e5;
-                border-style: solid;
-            }
-            td.linenum {
-                text-align: right;
-                color: rgba(0, 0, 0, 0.3);
-                white-space: nowrap;
-            }
-            span {
-                white-space: pre;
-            }
-            span.add {
-                background-color: #aaffaa;
-            }
-            span.remove {
-                background-color: #ffaaaa;
-            }
-            tr.add {
-                background-color: #eeffcc;
-            }
-            tr.remove {
-                background-color: #fdd;
-            }
-            tr.file {
-                background-color: #eee;
-                border:1px solid #bbb;
-                height:40px;
-                font-weight: bold;
-            }
-            tr.range {
-                color: #999;
-                background-color: #f8f8ff;
-            }
-            .yobicon-comments {
-                visibility: hidden;
-                opacity: 0.6;
-            }
-            .filename { float:left; line-height:30px; }
-        }
     }
 
     .diff-wrap + ul.comments {
@@ -4490,11 +4440,11 @@ div.markdown-preview {
 }
 
 /** code comments **/
-div#commit tr.comments {
+.diff-body tr.comments {
     display:none;
 }
 
-div#commit.show-comments tr.comments {
+.diff-body.show-comments tr.comments {
     display: table-row;
 }
 
@@ -4524,10 +4474,14 @@ div#commit.show-comments tr.comments {
 
 .diff-body {
     font-family: "monospace", Consolas, Tahoma;
+    overflow:auto;
 
     table {
         border: 1px solid #eee;
         width: 100%;
+    }
+    table {
+        margin-bottom: 20px;
     }
     td {
         border-width: 0px 1px;
@@ -4539,7 +4493,7 @@ div#commit.show-comments tr.comments {
         color: rgba(0, 0, 0, 0.3);
         white-space: nowrap;
     }
-    span {
+    .code {
         white-space: pre;
     }
     span.add {
@@ -4557,15 +4511,34 @@ div#commit.show-comments tr.comments {
     tr.file {
         background-color: #eee;
         border:1px solid #bbb;
-        height:30px;
+        height:30px; /* 40px? */
         font-weight: bold;
     }
     tr.range {
         color: #999;
         background-color: #f8f8ff;
     }
-    .icon-comment {
+    .yobicon-comments {
         visibility: hidden;
         opacity: 0.6;
     }
+    .icon-comment {
+        visibility: hidden;
+        float: left;
+        opacity: 0.6;
+    }
+    tr:hover .icon-comment {
+        visibility: visible;
+    }
+    .linenum:hover .icon-comment {
+        opacity: 1.0;
+    }
+    .linenum {
+        width: 40px;
+    }
+    .filename { float:left; line-height:30px; }
+}
+
+div.diff-body[data-outdated="true"] tr:hover .icon-comment {
+    visibility: hidden;
 }

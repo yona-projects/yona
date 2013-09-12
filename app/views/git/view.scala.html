@@ -393,7 +393,9 @@
             </div>
 
             <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
-                <div id="pull-request-changes" class="diff-body show-comments">@pull.getPatch</div>
+                <div id="pull-request-changes" class="diff-body show-comments">
+                    @views.html.partial_diff(pull.getDiff, comments)
+                </div>
             </div>
         </div>
     </div>

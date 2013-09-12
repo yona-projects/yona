@@ -19,6 +19,14 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 
 import org.joda.time.DateTimeConstants;
+import org.eclipse.jgit.diff.*;
+import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.util.io.NullOutputStream;
 import org.joda.time.Duration;
 
 import com.avaje.ebean.Ebean;
@@ -36,6 +44,7 @@ import play.i18n.Messages;
 
 import playRepository.GitCommit;
 import playRepository.GitConflicts;
+import playRepository.FileDiff;
 import playRepository.GitRepository;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
@@ -62,6 +71,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.io.IOException;
+import java.io.OutputStream;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -490,6 +501,19 @@ public class PullRequest extends Model implements ResourceConvertible {
                 }
             }
         }
+    }
+
+    public List<FileDiff> getDiff() throws IOException {
+        return getDiff(toBranch, fromBranch);
+    }
+
+    @Transient
+    public List<FileDiff> getDiff(String revA, String revB) throws IOException {
+        Repository repositoryA = GitRepository.buildGitRepository(toProject);
+        Repository repositoryB = GitRepository.buildGitRepository(fromProject);
+
+        return GitRepository.getDiff(repositoryA, revA, repositoryB, revB);
+
     }
 
     /**

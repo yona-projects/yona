@@ -17,11 +17,8 @@ import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.diff.DiffFormatter;
-import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.diff.Edit.Type;
-import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -30,9 +27,12 @@ import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.storage.file.ReflogReader;
 import org.eclipse.jgit.storage.file.WindowCache;
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.treewalk.AbstractTreeIterator;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+
+import static org.eclipse.jgit.diff.DiffEntry.ChangeType.*;
 
 /**
  * Git 저장소
@@ -526,6 +528,46 @@ public class GitRepository implements PlayRepository {
         diffFormatter.format(DiffEntry.scan(treeWalk));
 
         return out.toString("UTF-8");
+    }
+
+    /**
+     * {@code rev}에 해당하는 리비전의 변경 내역을 반환한다.
+     *
+     * {@code rev}에 해당하는 커밋의 root tree와 그 이전 커밋의 root tree를 비교한다.
+     * 이전 커밋이 없을 때는 비어있는 트리와 비교한다.
+     *
+     * @param rev
+     * @return
+     * @throws GitAPIException
+     * @throws IOException
+     */
+    public List<FileDiff> getDiff(String rev) throws IOException {
+        return getDiff(repository.resolve(rev));
+    }
+
+    public List<FileDiff> getDiff(ObjectId commitId) throws IOException {
+        if (commitId == null) {
+            return null;
+        }
+
+        // Get the trees, from current commit and its parent, as treeWalk.
+        RevWalk revWalk = new RevWalk(repository);
+        RevCommit commit = revWalk.parseCommit(commitId);
+        ObjectId commitIdA = null;
+        if (commit.getParentCount() > 0) {
+            commitIdA = commit.getParent(0).getId();
+        }
+
+        return getFileDiffs(repository, repository, commitIdA, commitId);
+    }
+
+    public List<FileDiff> getDiff(RevCommit commit) throws IOException {
+        ObjectId commitIdA = null;
+        if (commit.getParentCount() > 0) {
+            commitIdA = commit.getParent(0).getId();
+        }
+
+        return getFileDiffs(repository, repository, commitIdA, commit.getId());
     }
 
     /**
@@ -1326,6 +1368,189 @@ public class GitRepository implements PlayRepository {
                 walk.dispose();
             }
         }
+    }
+
+    public static List<FileDiff> getDiff(final Repository repository, String revA, String revB) throws IOException {
+        return getDiff(repository, revA, repository, revB);
+    }
+
+    public List<FileDiff> getDiff(String revA, String revB) throws IOException {
+        return getDiff(this.repository, revA, revB);
+    }
+
+    public static List<FileDiff> getDiff(final Repository repositoryA, String revA, Repository repositoryB, String revB) throws IOException {
+        ObjectId commitA = repositoryA.resolve(revA);
+        ObjectId commitB = repositoryB.resolve(revB);
+
+        return getFileDiffs(repositoryA, repositoryB, commitA, commitB);
+    }
+
+    private static List<FileDiff> getFileDiffs(final Repository repositoryA, Repository repositoryB, ObjectId commitA, ObjectId commitB) throws IOException {
+        class MultipleRepositoryObjectReader extends ObjectReader {
+            Collection<ObjectReader> readers = new HashSet<>();
+
+            @Override
+            public ObjectReader newReader() {
+                return new MultipleRepositoryObjectReader(readers);
+            }
+
+            public MultipleRepositoryObjectReader(Collection<ObjectReader> readers) {
+                this.readers = readers;
+            }
+
+            public MultipleRepositoryObjectReader() {
+                this.readers = new HashSet<>();
+            }
+
+            public void addObjectReader(ObjectReader reader) {
+                this.readers.add(reader);
+            }
+
+            @Override
+            public Collection<ObjectId> resolve(AbbreviatedObjectId id) throws IOException {
+                Set<ObjectId> result = new HashSet<>();
+                for (ObjectReader reader : readers) {
+                    result.addAll(reader.resolve(id));
+                }
+                return result;
+            }
+
+            @Override
+            public ObjectLoader open(AnyObjectId objectId, int typeHint) throws MissingObjectException, IncorrectObjectTypeException, IOException {
+                for (ObjectReader reader : readers) {
+                    if (reader.has(objectId, typeHint)) {
+                        return reader.open(objectId, typeHint);
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            public Set<ObjectId> getShallowCommits() throws IOException {
+                Set<ObjectId> union = new HashSet<>();
+                for (ObjectReader reader : readers) {
+                    union.addAll(reader.getShallowCommits());
+                }
+                return union;
+            }
+        }
+
+        final MultipleRepositoryObjectReader reader = new MultipleRepositoryObjectReader();
+        reader.addObjectReader(repositoryA.newObjectReader());
+        reader.addObjectReader(repositoryB.newObjectReader());
+
+        Repository fakeRepo = new Repository(new BaseRepositoryBuilder()) {
+
+            @Override
+            public void create(boolean bare) throws IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public ObjectDatabase getObjectDatabase() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public RefDatabase getRefDatabase() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public StoredConfig getConfig() {
+                return repositoryA.getConfig();
+            }
+
+            @Override
+            public void scanForRepoChanges() throws IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void notifyIndexChanged() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public ReflogReader getReflogReader(String refName) throws IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            public ObjectReader newObjectReader() {
+                return reader;
+            }
+        };
+
+        // formatter로 scan해야 rename detection 가능할 듯
+        DiffFormatter formatter = new DiffFormatter(NullOutputStream.INSTANCE);
+        formatter.setRepository(fakeRepo);
+        formatter.setDetectRenames(true);
+
+        AbstractTreeIterator treeParserA, treeParserB;
+        RevTree treeA = null, treeB = null;
+
+        if (commitA != null) {
+            treeA = new RevWalk(repositoryA).parseTree(commitA);
+            treeParserA = new CanonicalTreeParser();
+            ((CanonicalTreeParser) treeParserA).reset(reader, treeA);
+        } else {
+            treeParserA = new EmptyTreeIterator();
+        }
+
+        if (commitB != null) {
+            treeB = new RevWalk(repositoryB).parseTree(commitB);
+            treeParserB = new CanonicalTreeParser();
+            ((CanonicalTreeParser) treeParserB).reset(reader, treeB);
+        } else {
+            treeParserB = new EmptyTreeIterator();
+        }
+
+        List<FileDiff> result = new ArrayList<>();
+
+        for (DiffEntry diff : formatter.scan(treeParserA, treeParserB)) {
+            FileDiff fileDiff = new FileDiff();
+            fileDiff.commitA = commitA.getName();
+            fileDiff.commitB = commitB.getName();
+
+            fileDiff.changeType = diff.getChangeType();
+
+            String pathA = diff.getPath(DiffEntry.Side.OLD);
+            String pathB = diff.getPath(DiffEntry.Side.NEW);
+
+            if (treeA != null
+                    && Arrays.asList(DELETE, MODIFY, RENAME).contains(diff.getChangeType())) {
+                TreeWalk t1 = TreeWalk.forPath(repositoryA, pathA, treeA);
+                ObjectId blobA = t1.getObjectId(0);
+                byte[] rawA = repositoryA.open(blobA).getBytes();
+                RawText a = new RawText(rawA);
+                fileDiff.a = a;
+                fileDiff.pathA = pathA;
+            }
+
+            if (treeB != null
+                    && Arrays.asList(ADD, MODIFY, RENAME).contains(diff.getChangeType())) {
+                TreeWalk t2 = TreeWalk.forPath(repositoryB, pathB, treeB);
+                ObjectId blobB = t2.getObjectId(0);
+                byte[] rawB = repositoryB.open(blobB).getBytes();
+                RawText b = new RawText(rawB);
+                fileDiff.b = b;
+                fileDiff.pathB = pathB;
+            }
+
+            if (Arrays.asList(MODIFY, RENAME).contains(diff.getChangeType())) {
+                DiffAlgorithm diffAlgorithm = DiffAlgorithm.getAlgorithm(
+                        repositoryB.getConfig().getEnum(
+                                ConfigConstants.CONFIG_DIFF_SECTION, null,
+                                ConfigConstants.CONFIG_KEY_ALGORITHM,
+                                DiffAlgorithm.SupportedAlgorithm.HISTOGRAM));
+                fileDiff.editList = diffAlgorithm.diff(RawTextComparator.DEFAULT, fileDiff.a,
+                        fileDiff.b);
+            }
+
+            result.add(fileDiff);
+        }
+
+        return result;
     }
 
     /**

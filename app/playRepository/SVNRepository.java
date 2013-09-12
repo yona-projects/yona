@@ -256,6 +256,11 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
+    public List<FileDiff> getDiff(String commitId) throws GitAPIException, IOException, SVNException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<Commit> getHistory(int page, int limit, String until, String path) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException {
         // Get the repository

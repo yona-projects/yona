@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment], selectedBranch:String)
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment], selectedBranch:String, diff: List[playRepository.FileDiff])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -90,9 +90,9 @@
             }
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
-        <div class="diff-wrap">
-            <div id="commit" class="diff-body show-comments">@patch</div>
-        </div>
+
+        @views.html.partial_diff(diff, comments)
+
         <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
             <h4 class="path">
                 <span></span>
@@ -183,7 +183,7 @@
             "welDiff": $("#commit"),
             "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.CODE_COMMENT)){true}else{false},
             "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)"
+            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
             "sCommitId"      : "@commit.getId",
             "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",
