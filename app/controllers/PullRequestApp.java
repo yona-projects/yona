@@ -2,6 +2,7 @@ package controllers;
 
 import com.avaje.ebean.Page;
 import models.*;
+import models.PullRequestCommit;
 import models.enumeration.*;
 
 import org.codehaus.jackson.node.ObjectNode;
@@ -400,6 +401,63 @@ public class PullRequestApp extends Controller {
             fetch[0] = GitRepository.getPatch(pullRequest);
         }
 
+        List<PullRequestCommit> pullRequestCommits = pullRequest.pullRequestCommits;
+         
+         
+        // pullrequest commit 처리
+        List<PullRequestCommit> commitList = new ArrayList<>();
+        List<PullRequestCommit> showList = new ArrayList<>();
+        List<PullRequestCommit> hideList = new ArrayList<>();
+        
+        if (pullRequestCommits.size() == 0) { // 기존 저장된 pullrequestcommit이 없을때
+            for (GitCommit commit: commits) {
+                PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
+                pullRequestCommit.pullRequest = pullRequest;
+                pullRequestCommit.save();
+
+                showList.add(pullRequestCommit);
+            }
+        } else {        // 있을때
+        
+            for (GitCommit commit: commits) {
+                boolean existCommit = false;
+                for (PullRequestCommit prCommit: pullRequestCommits) {
+                    if(commit.getId().equals(prCommit.commitId)) {
+                        existCommit = true;
+                        showList.add(prCommit);
+                        break;
+                    }
+                }
+                
+                if(!existCommit) {
+                    PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
+                    pullRequestCommit.pullRequest = pullRequest;
+                    
+                    pullRequestCommit.save();
+                    showList.add(pullRequestCommit);
+                }
+            }
+            
+            for (PullRequestCommit prCommit: pullRequestCommits) {
+                boolean existCommit = false;
+                for (GitCommit commit: commits) {
+                    if(commit.getId().equals(prCommit.commitId)) {
+                        existCommit = true;
+                        break;
+                    }
+                }
+
+                if(!existCommit) {
+                    prCommit.state = "HIDE";
+                    prCommit.update();
+                    hideList.add(prCommit);
+                }
+            }
+        }
+
+        commitList.addAll(showList);
+        commitList.addAll(hideList);
+        
         String activeTab = request().getQueryString("activeTab");
         if(activeTab == null && !isValid(activeTab)) {
             activeTab = "info";
@@ -414,7 +472,19 @@ public class PullRequestApp extends Controller {
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0], activeTab));
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0], activeTab, showList, hideList, commitList));
+    }
+
+    private static PullRequestCommit bindPullRequestCommit(GitCommit commit) {
+        PullRequestCommit pullRequestCommit = new PullRequestCommit();
+        pullRequestCommit.commitId = commit.getId();
+        pullRequestCommit.commitShortId = commit.getShortId();
+        pullRequestCommit.commitMessage = commit.getMessage();
+        pullRequestCommit.authorEmail = commit.getAuthorEmail();
+        pullRequestCommit.authorDate = commit.getAuthorDate(); 
+        pullRequestCommit.state = "SHOW";
+        
+        return pullRequestCommit;
     }
 
     private static boolean isValid(String activeTab) {

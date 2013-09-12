@@ -79,6 +79,9 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public State state = State.OPEN;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    public List<PullRequestCommit> pullRequestCommits;
+    
     /**
      * {@link #fromBranch}의 가장 최근 커밋 ID
      *

@@ -13,9 +13,10 @@ import javax.persistence.ManyToOne;
 import javax.validation.constraints.Size;
 import java.beans.Transient;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-public class CodeComment extends Model implements ResourceConvertible {
+public class CodeComment extends Model implements ResourceConvertible, TimelineItem {
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 
@@ -57,6 +58,17 @@ public class CodeComment extends Model implements ResourceConvertible {
                     .eq("commitId", commitId)
                     .findRowCount();
         }
+    }   
+
+    public static int countByCommits(Project project, List<PullRequestCommit> commits) {
+        int count = 0;
+        for(PullRequestCommit commit: commits) {
+            count = count + CodeComment.find.where().eq("project.id", project.id)
+                                .eq("commitId", commit.getCommitId())
+                                .findRowCount();
+        }
+        
+        return count;
     }
 
     @Transient
@@ -89,5 +101,10 @@ public class CodeComment extends Model implements ResourceConvertible {
                 return authorId;
             }
         };
+    }
+
+    @Override
+    public Date getDate() {
+        return createdDate;
     }
 }

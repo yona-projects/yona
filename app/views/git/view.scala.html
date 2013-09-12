@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String, activeTab: String)
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String, activeTab: String, showList: List[models.PullRequestCommit], hideList: List[models.PullRequestCommit], commitListAll: List[models.PullRequestCommit])
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -145,6 +145,65 @@
 
             <div id="__commits" class="code-browse-wrap tab-pane @if(activeTab == "commits"){ active }">
                 <div id="history" class="commit-wrap mt20">
+                	<table class="code-table commits">
+                		@if(hideList.size() > 0) {
+                    	<thead class="thead">
+                        <tr>
+                            <td class="commit-id"><strong>이전@{"@"}</strong></td>
+                            <td class="messages"><strong>이전 @Messages("code.commitMsg")</strong></td>
+                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                            <td class="author"><strong>@Messages("code.author")</strong></td>
+                        </tr>
+                        </thead>
+                        <tbody class="tbody">
+                        @for(commit <- hideList.iterator()) {
+                        <tr>
+                        	<td class="commit-id">
+                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
+                                    @commit.getCommitShortId()
+                                    <i class="yobicon-right"></i>
+                                </a>
+                            </td>
+
+                            <td class="messages">
+                                @defining(CodeComment.count(pull.fromProject, commit.commitId)){ numOfComment =>
+                                    @if(numOfComment > 0) {
+                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
+                                    }
+                                }
+								
+								@defining(commit.commitMessage){ commitMsg =>
+	                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)">
+	                                    @commitMsg.split("\n")(0)
+	                                </a>
+
+									@if(commitMsg.split("\n").length > 1){
+									<button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
+									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+									}
+                                </a>
+                                }
+                            </td>
+                            <td class="date">@agoString(ago(commit.authorDate))</td>
+                            <td class="author @commit.authorEmail">
+                                @defining(User.find.where.eq("email", commit.authorEmail).findUnique) { user =>
+                                @if(user != null) {
+                                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
+                                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                                </a>
+                                } else {
+                                <div class="avatar-wrap">
+                                    <img src="@urlToPicture(commit.authorEmail, 32)" width="32" height="32"/>
+                                </div>
+                                }
+                                }
+                            </td>
+                            </td>
+                        </tr>
+                        }
+                        </tbody>
+                        }
+					</table>
                     <table class="code-table commits">
                         <thead class="thead">
                         <tr>
@@ -182,7 +241,7 @@
 									}
                                 }
                             </td>
-                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                            <td class="date">commit.getAuthorDate(), @agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
                                 @if(user != null) {
