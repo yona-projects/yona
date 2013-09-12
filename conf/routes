@@ -56,7 +56,7 @@ GET     /resetPassword                                  controllers.PasswordRese
 POST    /resetPassword                                  controllers.PasswordResetApp.resetPassword()
 GET     /sites/postList                                 controllers.SiteApp.postList(pageNum: Int ?= 1)
 GET     /sites/issueList                                controllers.SiteApp.issueList(pageNum: Int ?= 1)
-
+GET		/sites/updatePostNumber							controllers.SiteApp.updatePostNumber()
 
 # Attachments
 GET     /files                                          controllers.AttachmentApp.getFileList()
@@ -80,6 +80,7 @@ DELETE  /:user/:project/post/:number/delete                 controllers.BoardApp
 GET     /:user/:project/post/:number/editform               controllers.BoardApp.editPostForm(user, project, number:Long)
 POST    /:user/:project/post/:number/edit                   controllers.BoardApp.editPost(user, project, number:Long)
 DELETE  /:user/:project/post/:number/comment/:commentId/delete     controllers.BoardApp.deleteComment(user, project, number:Long, commentId:Long)
+
 
 # Labels
 GET    /labels                                          controllers.LabelApp.labels(query: String ?= "", category: String ?= "", limit: Integer ?= null)
