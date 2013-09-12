@@ -38,11 +38,7 @@
                 <div class="owner-avatar-wrap">
                     <a href="@routes.UserApp.userInfo(project.owner)">
                         <img src="@User.findByLoginId(project.owner).avatarUrl" alt="@User.findByLoginId(project.owner).name">
-                    </a>&nbsp;
-                    @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
-                    @for(label <- project.labels) {
-                        <span class="project-label @label.category.toLowerCase()">@label.name</span>
-                    }
+                    </a>
                 </div>
                 <div style="float:left">
                     <div class="header">
