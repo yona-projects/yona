@@ -1,7 +1,13 @@
 package playRepository;
 
+import actors.ConflictCheckActor;
+import akka.actor.Props;
 import controllers.ProjectApp;
+import controllers.UserApp;
+import models.ConflictCheckMessage;
 import models.Project;
+import models.User;
+
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
@@ -10,13 +16,17 @@ import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PacketLineOut;
+import org.eclipse.jgit.transport.PostReceiveHook;
+import org.eclipse.jgit.transport.ReceiveCommand;
 import org.eclipse.jgit.transport.ReceivePack;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
 import org.eclipse.jgit.transport.UploadPack;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
+
 import play.Logger;
+import play.libs.Akka;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
@@ -25,10 +35,13 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.io.*;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 저장소 관련 서비스를 제공하는 클래스
@@ -318,7 +331,6 @@ public class RepositoryService {
      */
     public static PipedInputStream gitRpc(final Project project, String service, Request request, Response response) {
         response.setContentType("application/x-" + service + "-result");
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
         // FIXME 스트림으로..
         RawBuffer raw = request.body().asRaw();
@@ -336,21 +348,14 @@ public class RepositoryService {
             }
 
             Repository repository = GitRepository.createGitRepository(project);
-
-            Runnable updateLastPushedDate = new Runnable() {
-                @Override
-                public void run() {
-                    project.lastPushedDate = new Date();
-                    project.save();
-                }
-            };
-
             PipedInputStream responseStream = new PipedInputStream();
+
             if (service.equals("git-upload-pack")) {
                 uploadPack(requestStream, repository, new PipedOutputStream(responseStream));
             } else if (service.equals("git-receive-pack")) {
+                PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
                 receivePack(requestStream, repository, new PipedOutputStream(responseStream),
-                        updateLastPushedDate);
+                        postReceiveHook);
                 // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
             } else {
                 requestStream.close();
@@ -367,17 +372,75 @@ public class RepositoryService {
         }
     }
 
+    /*
+     * receive-pack 후처리 객체 생성
+     * project 의 lastPushedDate 업데이트
+     * 변경된 branch 와 관련된 pull-request 들 충돌 검사
+     */
+    private static PostReceiveHook createPostReceiveHook(
+            final User currentUser, final Project project, final Request request) {
+        return new PostReceiveHook() {
+            @Override
+            public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
+                updateLastPushedDate();
+                conflictCheck(commands);
+            }
+
+            /*
+             * project 가 마지막 업데이트된 시점 저장
+             */
+            private void updateLastPushedDate() {
+                project.lastPushedDate = new Date();
+                project.save();
+            }
+
+            /*
+             * 성공한 ReceiveCommand 로 영향받은 branch 에 대해서
+             * 관련 있는 코드-보내기 요청을 찾아 충돌이 발생했는지 검사한다.
+             */
+            private void conflictCheck(Collection<ReceiveCommand> commands) {
+                Set<String> branches = getBranches(commands);
+                for (String branch : branches) {
+                    ConflictCheckMessage message = new ConflictCheckMessage(currentUser, request, project, branch);
+                    Akka.system().actorOf(new Props(ConflictCheckActor.class)).tell(message, null);
+                }
+            }
+
+            /*
+             * ReceiveCommand 중, branch update 에 해당하는 것들의 참조 branch set 을 구한다.
+             */
+            private Set<String> getBranches(
+                    Collection<ReceiveCommand> commands) {
+                Set<String> branches = new HashSet<>();
+                for (ReceiveCommand command : commands) {
+                    if (isUpdateCommand(command)) {
+                        branches.add(command.getRefName());
+                    }
+                }
+                return branches;
+            }
+
+            /*
+             * command 가 update type 인지 판별한다.
+             */
+            private boolean isUpdateCommand(ReceiveCommand command) {
+                return command.getType() == ReceiveCommand.Type.UPDATE
+                        || command.getType() == ReceiveCommand.Type.UPDATE_NONFASTFORWARD;
+            }
+        };
+    }
+
     private static void receivePack(final InputStream input, Repository repository,
                                     final OutputStream output,
-                                    final Runnable updateLastPushedDate) {
+                                    final PostReceiveHook postReceiveHook) {
         final ReceivePack receivePack = new ReceivePack(repository);
         receivePack.setBiDirectionalPipe(false);
         new Thread() {
             @Override
             public void run() {
                 try {
+                    receivePack.setPostReceiveHook(postReceiveHook);
                     receivePack.receive(input, output, null);
-                    updateLastPushedDate.run();
                 } catch (IOException e) {
                     Logger.error("receivePack failed", e);
                 }

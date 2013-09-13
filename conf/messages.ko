@@ -661,6 +661,7 @@ notification.pullrequest.reopened = 다시 열림
 notification.member.enroll.request = 멤버 등록 요청을 받음
 notification.member.enroll.cancel = 멤버 등록 요청이 취소됨
 notification.member.enroll.accept = 멤버로 등록됨
+notification.pullrequest.conflicts = 충돌이 발생
 notification.type.new.issue = 새 이슈 등록
 notification.type.new.posting = 새 게시물 등록
 notification.type.pull.request.state.changed = 코드-보내기 상태 변경
@@ -670,6 +671,7 @@ notification.type.new.pull.request = 새 코드-보내기 등록
 notification.type.new.simple.comment = 코드-보내기 새 댓글 등록
 notification.type.issue.state.changed = 이슈 상태 변경
 notification.type.member.enroll = 멤버 등록 요청
+notification.type.pull.request.conflicts = 코드-보내기 충돌
 
 # Grouping
 project.group = 프로젝트 분류

@@ -2,14 +2,19 @@ package controllers;
 
 import models.*;
 import models.enumeration.*;
+
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.tmatesoft.svn.core.SVNException;
+
+import actors.ConflictCheckActor;
+import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
 import play.i18n.Messages;
+import play.libs.Akka;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -459,6 +464,11 @@ public class PullRequestApp extends Controller {
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
+
+        ConflictCheckMessage message = new ConflictCheckMessage(
+                UserApp.currentUser(), request(), project, pullRequest.toBranch);
+        Akka.system().actorOf(new Props(ConflictCheckActor.class)).tell(message, null);
+
         return redirect(call);
     }
 

@@ -145,6 +145,9 @@ public class NotificationEvent extends Model {
             } else {
                 return Messages.get("notification.pullrequest.reopened");
             }
+        case PULL_REQUEST_CONFLICTS:
+            return Messages.get("notification.pullrequest.conflicts") + "\n"
+                    + newValue;
         case MEMBER_ENROLL_REQUEST:
             if (RequestState.REQUEST.name().equals(newValue)) {
                 return Messages.get("notification.member.enroll.request");

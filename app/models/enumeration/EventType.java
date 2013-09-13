@@ -14,7 +14,8 @@ public enum EventType {
     PULL_REQUEST_STATE_CHANGED("notification.type.pull.request.state.changed", 6),
     NEW_COMMENT("notification.type.new.comment", 7),
     NEW_SIMPLE_COMMENT("notification.type.new.simple.comment", 8),
-    MEMBER_ENROLL_REQUEST("notification.type.member.enroll", 9);
+    MEMBER_ENROLL_REQUEST("notification.type.member.enroll", 9),
+    PULL_REQUEST_CONFLICTS("notification.type.pull.request.conflicts", 10);
 
     private String descr;
 

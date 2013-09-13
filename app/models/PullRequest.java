@@ -6,6 +6,9 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
 import org.joda.time.Duration;
+
+import com.avaje.ebean.Expr;
+
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -223,6 +226,27 @@ public class PullRequest extends Model {
                 .eq("toProject", project)
                 .eq("state", State.OPEN)
                 .findRowCount();
+    }
+
+    /**
+     * 보내거나 받는 쪽에
+     * {@code project} 의 {@code branch} 를 가지고 있는 pull-request 목록 조회
+     *
+     * @param project
+     * @param branch
+     * @return
+     */
+    public static List<PullRequest> findRelatedPullRequests(Project project, String branch) {
+        return finder.where()
+                .or(
+                        Expr.and(
+                                Expr.eq("fromProject", project),
+                                Expr.eq("fromBranch", branch)),
+                        Expr.and(
+                                Expr.eq("toProject", project),
+                                Expr.eq("toBranch", branch)))
+                .eq("state", State.OPEN)
+                .findList();
     }
 
     public Resource asResource() {
