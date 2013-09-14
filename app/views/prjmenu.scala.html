@@ -119,11 +119,11 @@
                 <div class="btn-group dbtn-group">
                     @if(User.enrolled(project)){
                     <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium blue last enrollBtn">
-                        <i class="yobicon-user yobicon-large"></i>
+                        <i class="yobicon-removefriend yobicon-large"></i>
                     </a>
                     } else {
                     <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn" data-toggle="tooltip" title="@Messages("member.enrollment.request")">
-                        <i class="yobicon-user yobicon-large"></i> 
+                        <i class="yobicon-addfriend yobicon-large"></i> 
                     </a>
                     }
                     <button class="btn dropdown-toggle small" data-toggle="dropdown" style="padding:0">
@@ -137,7 +137,7 @@
                         </div>
                         <div class="brow">
                             <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium mint enrollBtn">
-                                <i class="yobicon-user yobicon-large"></i> @Messages("cancel.enrollment")
+                                <i class="yobicon-removefriend yobicon-large"></i> @Messages("cancel.enrollment")
                             </a>
                         </div>
 
@@ -148,7 +148,7 @@
                         </div>
                         <div class="brow">
                             <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium blue enrollBtn">
-                                <i class="yobicon-user yobicon-large"></i> @Messages("new.enrollment")
+                                <i class="yobicon-addfriend yobicon-large"></i> @Messages("new.enrollment")
                             </a>
                         </div>
                         }
@@ -177,7 +177,7 @@
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.CODE)>
                     <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" class="menu-item">
-                        <i class="yobicon-html"></i>
+                        <i class="yobicon-code"></i>
                         <span class="menu-title"> @Messages("menu.code")</span>
                     </a>
                 </li>
@@ -196,7 +196,7 @@
                 <li class="sp-line">|</li>
                 <li @isActiveMenu(MenuType.ISSUE)>
                     <a href="@routes.IssueApp.issues(project.owner, project.name, "open")" class="menu-item">
-                        <i class="yobicon-reliability"></i>
+                        <i class="yobicon-science"></i>
                         <span class="menu-title"> @Messages("menu.issue")</span>
                         @if(Issue.countIssues(project.id, State.OPEN) > 0){
                         <span class="counter">@Issue.countIssues(project.id, State.OPEN)</span>
