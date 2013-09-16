@@ -281,6 +281,16 @@ var hljs = function(value, language_name) {
   }
 
   var language = hljs.LANGUAGES[language_name];
+  
+  if(!language) {
+    return {
+      language: language_name,
+      relevance: 0,
+      keyword_count: 0,
+      value: hljs.escape(value)
+    };
+  }
+
   var modes = [language.defaultMode];
   var relevance = 0;
   var keyword_count = 0;
