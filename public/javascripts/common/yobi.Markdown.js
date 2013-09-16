@@ -66,6 +66,7 @@ yobi.Markdown = function(htOptions){
           smartLists: true,
           langPrefix: '',
           highlight: function(code, lang) {
+            if(!lang) return code;
             return hljs(code,lang).value;
           }
         };
