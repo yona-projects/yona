@@ -39,14 +39,10 @@ public class Config {
             return getHostport(context.request().host());
         } else {
             try {
-                return getHostport(java.net.InetAddress.getLocalHost().getHostAddress());
+                return java.net.InetAddress.getLocalHost().getHostAddress();
             } catch (UnknownHostException e) {
                 play.Logger.warn("Failed to get the host address", e);
-                try {
-                    return java.net.InetAddress.getLocalHost().getHostAddress();
-                } catch (UnknownHostException e1) {
-                    return getHostport("localhost");
-                }
+                return "localhost";
             }
         }
     }
