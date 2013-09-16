@@ -42,7 +42,11 @@ public class Config {
                 return getHostport(java.net.InetAddress.getLocalHost().getHostAddress());
             } catch (UnknownHostException e) {
                 play.Logger.warn("Failed to get the host address", e);
-                return getHostport("localhost");
+                try {
+                    return java.net.InetAddress.getLocalHost().getHostAddress();
+                } catch (UnknownHostException e1) {
+                    return getHostport("localhost");
+                }
             }
         }
     }

@@ -17,11 +17,7 @@ public class Url {
      * @return <code>String</code> containing the created URL
      */
     public static String create(List<String> pathSegments) {
-        try {
-            return create(pathSegments, java.net.InetAddress.getLocalHost().getHostAddress());
-        } catch (UnknownHostException e) {
-            return create(pathSegments, Config.getHostport());
-        }
+        return create(pathSegments, Config.getHostport());
     }
     
     /**
