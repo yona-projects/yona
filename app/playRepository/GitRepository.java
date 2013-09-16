@@ -900,7 +900,7 @@ public class GitRepository implements PlayRepository {
      * @param pullRequest
      * @param operation
      */
-    public static void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
+    public static synchronized void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
         Repository cloneRepository = null;
         try {
             cloneRepository = buildCloneRepository(pullRequest);
