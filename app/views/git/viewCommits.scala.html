@@ -13,14 +13,14 @@
                 <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
                 <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>
             </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch)" class="label label-success">@pull.fromBranch</a>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch, "")" class="label label-success">@pull.fromBranch</a>
 
             @Messages("pullRequest.to")
             <span class="label label-info">
                 <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
                 <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
             </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch)" class="label label-success">@pull.toBranch</a>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch, "")" class="label label-success">@pull.toBranch</a>
         </p>
 
         <ul class="nav nav-tabs yobi-tabs">

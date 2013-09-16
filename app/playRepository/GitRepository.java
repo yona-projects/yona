@@ -266,17 +266,19 @@ public class GitRepository implements PlayRepository {
 
         ObjectNode result = Json.newObject();
         long commitTime = commit.getCommitTime() * 1000L;
+        PersonIdent commitAuthor = commit.getAuthorIdent();
+        String emailAddress = commitAuthor.getEmailAddress();
+        User user = User.findByEmail(emailAddress);
+        
         result.put("type", "file");
         result.put("msg", commit.getShortMessage());
-        result.put("author", commit.getAuthorIdent().getName());
-        String emailAddress = commit.getAuthorIdent().getEmailAddress();
-        User user = User.findByEmail(emailAddress);
+        result.put("author", commitAuthor.getName());
         result.put("avatar", getAvatar(user));
         result.put("userName", user.name);
         result.put("userLoginId", user.loginId);
         result.put("createdDate", commitTime);
         result.put("commitMessage", commit.getShortMessage());
-        result.put("commiter", commit.getAuthorIdent().getName());
+        result.put("commiter", commitAuthor.getName());
         result.put("commitDate", commitTime);
         ObjectLoader file = repository.open(treeWalk.getObjectId(0));
         result.put("size", file.getSize());

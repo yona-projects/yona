@@ -23,7 +23,7 @@
                 <ul class="dropdown-menu">
                     @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
                         @for(branch <- branches){
-                            @partial_branchitem(branch, project)
+                            @partial_branchitem(project, branch, "history", "")
                         }
                     }
                 </ul>
