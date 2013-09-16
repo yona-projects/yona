@@ -1,7 +1,5 @@
 package models.enumeration;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public enum State {
     ALL("all"), OPEN("open"), CLOSED("closed"), REJECTED("rejected");

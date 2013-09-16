@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String, activeTab: String, showList: List[models.PullRequestCommit], hideList: List[models.PullRequestCommit], commitListAll: List[models.PullRequestCommit])
+@(project: Project, pull: PullRequest, isSafe: Boolean, commits: List[playRepository.GitCommit], comments: List[SimpleComment], canDeleteBranch: Boolean, canRestoreBranch: Boolean, conflicts: playRepository.GitConflicts, patch: String, activeTab: String, priorList: List[models.PullRequestCommit], timelineList: List[TimelineItem], totalCommentCount: Integer)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -141,22 +141,172 @@
                 }
 
                 <div id="attachments" class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
+                
+                <div class="board-footer board-actrow">
+		            <button id="watch-button" type="button" class="nbtn medium blue @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
+		                @if(pull.getWatchers.contains(UserApp.currentUser())) {
+		                    @Messages("project.unwatch")
+		                } else {
+		                    @Messages("project.watch")
+		                }
+		            </button>
+		            @if(pull.isOpen()){
+		                @if(isSafe && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
+		                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
+		                }
+		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
+		                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
+		                }
+		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+		                }
+		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+		                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="nbtn gray medium">@Messages("button.edit")</a>
+		                }
+		            }
+		
+		            @if(pull.isRejected()){
+		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
+		                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
+		                }
+		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+		                }
+		            }
+		        </div>
+		        
+		        @if(pull.isClosed()) {
+		        <div class="alert alert-info">
+		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
+		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
+		            @if(UserApp.currentUser().equals(pull.contributor)) {
+		                @if(canDeleteBranch) {
+						<code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
+		                <button class="nbtn black medium pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>		                
+		                }
+		                @if(canRestoreBranch) {
+						<code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
+						<a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="nbtn orange medium pull-right">@Messages("pullRequest.restore.branch")</a>		                
+		                }
+		            }
+		        </div>
+		        }
+		        <div class="board-comment-wrap">
+		            <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@totalCommentCount</strong></div>
+		            @if(timelineList.size > 0) {
+		            <ul class="comments" id="comments">
+			        @for(item <- timelineList){
+			            @item match {
+				            case (comment: SimpleComment) => {
+								<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+					                <div class="comment-avatar">
+					                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+					                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+					                    </a>
+					                </div>    
+					                <div class="media-body">
+					                    <div class="meta-info">
+					                        <span class="comment_author pull-left">
+					                            <i class="yobicon-comment"></i> 
+					                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+					                                <strong>@comment.authorLoginId </strong>
+					                            </a>
+					                        </span>
+					                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+					                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+					                        <span class="edit pull-right">
+					                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.SimpleCommentApp.deleteComment(comment.id))"><i class="yobicon-trash"></i></button>
+					                        </span>
+					                        }
+					                    </div>
+					                    
+					                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+					                    
+					                    <div class="attachments pull-right" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@comment.id"></div>
+					                </div>
+					            </li>				            
+				            
+				            }
+				            case (comment: CodeComment) => {
+				            	@defining(PullRequestCommit.getStateByCommitId(comment.commitId)) { state =>
+				            		@if(state.equals("PRIOR")) {
+				            		<li class="event" id="comment-@comment.id">
+									<a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">
+					                <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+					                </a>
+					                <span class="date"><a href="#comment-@comment.id">commented on @comment.commitId @comment.path:L@comment.line @utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
+					            	</li>
+				            		} else {
+				            		
+
+									<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+						                <div class="comment-avatar">
+						                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+						                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+						                    </a>
+						                </div>    
+						                <div class="media-body">
+						                    <div class="meta-info">
+						                        <span class="comment_author pull-left">
+						                            <i class="yobicon-comment"></i> 
+						                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+						                                <strong>@comment.authorLoginId </strong>
+						                            </a>
+						                        </span>
+						                        <span class="ago">@utils.TemplateHelper.agoString(ago(comment.createdDate)) - Commented on <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)">@comment.commitId</a> <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@comment.path:L@comment.line</a></span>
+						                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+						                        <span class="edit pull-right">
+						                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, comment.commitId, comment.id)"><i class="yobicon-trash"></i></button>
+						                        </span>
+						                        }
+						                    </div>
+						                    
+						                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+						                    
+						                    <div class="attachments pull-right" data-resourceType="@ResourceType.CODE_COMMENT" data-resourceId="@comment.id"></div>
+						                </div>
+						            </li>
+
+				            		}
+				            	} 
+				            }
+				            case (event: PullRequestEvent) => {
+				            
+				            	@event.eventType match {
+				            		case EventType.PULL_REQUEST_STATE_CHANGED => {
+					            	<li class="event" id="comment-@event.id">
+					            		<span class="state @event.newValue">@event.newValue</span>
+						                <span class="date"><a href="#event-@event.id">@event.senderLoginId @event.oldValue @event.newValue @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
+					            	</li>
+				            		}
+				            		case _ => {
+                        			}
+				            	}
+				            }
+				        }
+					}
+					</ul>
+					}
+					@views.html.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())			
+				</div>
             </div>
 
             <div id="__commits" class="code-browse-wrap tab-pane @if(activeTab == "commits"){ active }">
                 <div id="history" class="commit-wrap mt20">
+                	@if(priorList.size() > 0) {
+                	<a id="toggle" href="#"><strong>Show outdated commits(@priorList.size())</strong></a>
+                	<div id="outdatedCommits" style="display:none;">
                 	<table class="code-table commits">
-                		@if(hideList.size() > 0) {
                     	<thead class="thead">
                         <tr>
-                            <td class="commit-id"><strong>이전@{"@"}</strong></td>
+                            <td class="commit-id"><strong>@{"@"}</strong></td>
                             <td class="messages"><strong>이전 @Messages("code.commitMsg")</strong></td>
                             <td class="date"><strong>@Messages("code.commitDate")</strong></td>
                             <td class="author"><strong>@Messages("code.author")</strong></td>
                         </tr>
                         </thead>
                         <tbody class="tbody">
-                        @for(commit <- hideList.iterator()) {
+                        @for(commit <- priorList.iterator()) {
                         <tr>
                         	<td class="commit-id">
                                 <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
@@ -202,8 +352,9 @@
                         </tr>
                         }
                         </tbody>
-                        }
 					</table>
+					</div>
+					}
                     <table class="code-table commits">
                         <thead class="thead">
                         <tr>
@@ -241,7 +392,7 @@
 									}
                                 }
                             </td>
-                            <td class="date">commit.getAuthorDate(), @agoString(ago(commit.getAuthorDate()))</td>
+                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
                                 @if(user != null) {
@@ -267,94 +418,6 @@
 @patch
                 </pre>
             </div>
-        </div>
-        <div class="board-footer board-actrow">
-            <button id="watch-button" type="button" class="ybtn ybtn-info @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
-                @if(pull.getWatchers.contains(UserApp.currentUser())) {
-                    @Messages("project.unwatch")
-                } else {
-                    @Messages("project.watch")
-                }
-            </button>
-            @if(pull.isOpen()){
-                @if(isSafe && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
-                }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
-                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
-                }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn ybtn-dnager">@Messages("pullRequest.cancel")</a>
-                }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
-                }
-            }
-
-            @if(pull.isRejected()){
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
-                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
-                }
-                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn ybtn-danger">@Messages("pullRequest.cancel")</a>
-                }
-            }
-        </div>
-        @if(pull.isClosed()) {
-        <div class="alert alert-info">
-            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
-            @if(UserApp.currentUser().equals(pull.contributor)) {
-                @if(canDeleteBranch) {
-                <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
-                <button class="ybtn ybtn-dnager pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>
-                }
-                @if(canRestoreBranch) {
-                <code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
-                <a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="ybtn-info pull-right">@Messages("pullRequest.restore.branch")</a>
-                }
-            }
-        </div>
-        }
-
-        <div class="board-comment-wrap">
-            <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@comments.size</strong></div>
-            <hr class="nm">
-            @if(comments.size > 0) {
-            <ul class="comments" id="comments">
-                @for(comment <- comments){
-                <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
-                    <div class="comment-avatar">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                        </a>
-                    </div>
-                    <div class="media-body">
-                        <div class="meta-info">
-                            <span class="comment_author pull-left">
-                                <i class="yobicon-comment"></i>
-                                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                    <strong>@comment.authorLoginId </strong>
-                                </a>
-                            </span>
-                            <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
-                            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                            <span class="edit pull-right">
-                                <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.SimpleCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
-                            </span>
-                            }
-                        </div>
-
-                        <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-
-                        <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
-                    </div>
-                </li>
-                }
-            </ul>
-            }
-
-            @common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())
         </div>
     </div>
 
@@ -385,6 +448,10 @@
 		    $(this).next("pre").toggleClass("hidden");
 		});
 
+		$("a#toggle").click(function(event) {
+		    event.preventDefault();
+			$("#outdatedCommits").toggle(); 
+		})
     });
 </script>
 }

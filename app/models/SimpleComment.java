@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-public class SimpleComment extends Model implements ResourceConvertible {
+public class SimpleComment extends Model implements ResourceConvertible, TimelineItem {
 
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, SimpleComment> find = new Finder<>(Long.class, SimpleComment.class);
@@ -111,5 +111,10 @@ public class SimpleComment extends Model implements ResourceConvertible {
 
     public static SimpleComment findById(Long id) {
         return find.byId(id);
+    }
+
+    @Override
+    public Date getDate() {
+        return createdDate;
     }
 }

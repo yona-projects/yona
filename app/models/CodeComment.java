@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.validation.constraints.Size;
 import java.beans.Transient;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,7 +64,7 @@ public class CodeComment extends Model implements ResourceConvertible, TimelineI
     public static int countByCommits(Project project, List<PullRequestCommit> commits) {
         int count = 0;
         for(PullRequestCommit commit: commits) {
-            count = count + CodeComment.find.where().eq("project.id", project.id)
+            count += CodeComment.find.where().eq("project.id", project.id)
                                 .eq("commitId", commit.getCommitId())
                                 .findRowCount();
         }
@@ -106,5 +107,13 @@ public class CodeComment extends Model implements ResourceConvertible, TimelineI
     @Override
     public Date getDate() {
         return createdDate;
+    }
+
+    public static List<CodeComment> findByCommits(Project project, List<PullRequestCommit> commits) {
+        List<CodeComment> list = new ArrayList<>();
+        for(PullRequestCommit commit: commits) {
+            list.addAll(CodeComment.find.where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).findList());
+        }
+        return list;
     }
 }

@@ -1,3 +1,4 @@
+# --- !Ups
 create table pull_request_commit (
   id                        bigint not null,
   pull_request_id			bigint,

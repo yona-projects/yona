@@ -240,11 +240,13 @@ public class PullRequestApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
-        addNewPullRequestNotification(pullRequestCall, pullRequest);
+        NotificationEvent notiEvent = addNewPullRequestNotification(pullRequestCall, pullRequest);
+        
+        PullRequestEvent.addEvent(notiEvent, pullRequest, UserApp.currentUser().loginId);
         return redirect(pullRequestCall);
     }
 
-    private static void addNewPullRequestNotification(Call pullRequestCall, PullRequest pullRequest) {
+    private static NotificationEvent addNewPullRequestNotification(Call pullRequestCall, PullRequest pullRequest) {
         String title = NotificationEvent.formatNewTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
@@ -264,6 +266,8 @@ public class PullRequestApp extends Controller {
         notiEvent.newValue = pullRequest.body;
 
         NotificationEvent.add(notiEvent);
+        
+        return notiEvent;
     }
 
     private static void validateForm(Form<PullRequest> form) {
@@ -403,60 +407,13 @@ public class PullRequestApp extends Controller {
 
         List<PullRequestCommit> pullRequestCommits = pullRequest.pullRequestCommits;
          
-         
         // pullrequest commit 처리
         List<PullRequestCommit> commitList = new ArrayList<>();
-        List<PullRequestCommit> showList = new ArrayList<>();
-        List<PullRequestCommit> hideList = new ArrayList<>();
-        
-        if (pullRequestCommits.size() == 0) { // 기존 저장된 pullrequestcommit이 없을때
-            for (GitCommit commit: commits) {
-                PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
-                pullRequestCommit.pullRequest = pullRequest;
-                pullRequestCommit.save();
+        List<PullRequestCommit> currentList = getCurrentCommits(pullRequest, commits, pullRequestCommits);
+        List<PullRequestCommit> priorList = getPriorCommits(commits, pullRequestCommits);
 
-                showList.add(pullRequestCommit);
-            }
-        } else {        // 있을때
-        
-            for (GitCommit commit: commits) {
-                boolean existCommit = false;
-                for (PullRequestCommit prCommit: pullRequestCommits) {
-                    if(commit.getId().equals(prCommit.commitId)) {
-                        existCommit = true;
-                        showList.add(prCommit);
-                        break;
-                    }
-                }
-                
-                if(!existCommit) {
-                    PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
-                    pullRequestCommit.pullRequest = pullRequest;
-                    
-                    pullRequestCommit.save();
-                    showList.add(pullRequestCommit);
-                }
-            }
-            
-            for (PullRequestCommit prCommit: pullRequestCommits) {
-                boolean existCommit = false;
-                for (GitCommit commit: commits) {
-                    if(commit.getId().equals(prCommit.commitId)) {
-                        existCommit = true;
-                        break;
-                    }
-                }
-
-                if(!existCommit) {
-                    prCommit.state = "HIDE";
-                    prCommit.update();
-                    hideList.add(prCommit);
-                }
-            }
-        }
-
-        commitList.addAll(showList);
-        commitList.addAll(hideList);
+        commitList.addAll(currentList);
+        commitList.addAll(priorList);
         
         String activeTab = request().getQueryString("activeTab");
         if(activeTab == null && !isValid(activeTab)) {
@@ -471,8 +428,67 @@ public class PullRequestApp extends Controller {
         }
 
         List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
+        List<CodeComment> codeComments = CodeComment.findByCommits(pullRequest.fromProject, commitList);
+        List<PullRequestEvent> events = PullRequestEvent.findByPullRequest(pullRequest);
+        
+        List<TimelineItem> timeLineCommentList = new ArrayList<>();
+        timeLineCommentList.addAll(comments);
+        timeLineCommentList.addAll(codeComments);
+        timeLineCommentList.addAll(events);
 
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0], activeTab, showList, hideList, commitList));
+        Collections.sort(timeLineCommentList, new Comparator<TimelineItem>() {
+            @Override
+            public int compare(TimelineItem o1, TimelineItem o2) {
+                return o1.getDate().compareTo(o2.getDate());
+            }
+            
+        });
+        
+        int totalCommentCount = comments.size() + codeComments.size();
+        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0], activeTab, priorList, timeLineCommentList, totalCommentCount));
+    }
+
+    private static List<PullRequestCommit> getPriorCommits(final List<GitCommit> commits, List<PullRequestCommit> pullRequestCommits) {
+        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
+        for (PullRequestCommit prCommit: pullRequestCommits) {
+            boolean existCommit = false;
+            for (GitCommit commit: commits) {
+                if(commit.getId().equals(prCommit.commitId)) {
+                    existCommit = true;
+                    break;
+                }
+            }
+
+            if(!existCommit) {
+                prCommit.state = PullRequestCommit.State.PRIOR;
+                prCommit.update();
+                list.add(prCommit);
+            }
+        }
+        return list;
+    }
+
+    private static List<PullRequestCommit> getCurrentCommits(final PullRequest pullRequest, final List<GitCommit> commits, List<PullRequestCommit> pullRequestCommits) {
+        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
+        for (GitCommit commit: commits) {       
+            boolean existCommit = false;
+            for (PullRequestCommit prCommit: pullRequestCommits) {
+                if(commit.getId().equals(prCommit.commitId)) {  // 저장된 커밋과 같은 커밋이 있는지 체크
+                    existCommit = true;
+                    list.add(prCommit);
+                    break;
+                }
+            }
+            
+            if(!existCommit) {  // 같은 커밋이 없으면 추가
+                PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
+                pullRequestCommit.pullRequest = pullRequest;
+                
+                pullRequestCommit.save();
+                list.add(pullRequestCommit);
+            }
+        }
+        return list;
     }
 
     private static PullRequestCommit bindPullRequestCommit(GitCommit commit) {
@@ -481,8 +497,9 @@ public class PullRequestApp extends Controller {
         pullRequestCommit.commitShortId = commit.getShortId();
         pullRequestCommit.commitMessage = commit.getMessage();
         pullRequestCommit.authorEmail = commit.getAuthorEmail();
-        pullRequestCommit.authorDate = commit.getAuthorDate(); 
-        pullRequestCommit.state = "SHOW";
+        pullRequestCommit.authorDate = commit.getAuthorDate();
+        pullRequestCommit.created = JodaDateUtil.now(); 
+        pullRequestCommit.state = PullRequestCommit.State.CURRENT;
         
         return pullRequestCommit;
     }
@@ -536,16 +553,19 @@ public class PullRequestApp extends Controller {
         pullRequest.merge();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
+
+        NotificationEvent notiEvent = addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
 
         ConflictCheckMessage message = new ConflictCheckMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
         Akka.system().actorOf(new Props(ConflictCheckActor.class)).tell(message, null);
 
+        PullRequestEvent.addEvent(notiEvent, pullRequest, UserApp.currentUser().loginId);
+                
         return redirect(call);
     }
 
-    private static void addPullRequestUpdateNotification(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
+    private static NotificationEvent addPullRequestUpdateNotification(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
         String title = NotificationEvent.formatNewTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
@@ -564,6 +584,8 @@ public class PullRequestApp extends Controller {
         notiEvent.newValue = newState.state();
 
         NotificationEvent.add(notiEvent);
+        
+        return notiEvent;
     }
 
     /**
@@ -588,7 +610,10 @@ public class PullRequestApp extends Controller {
         pullRequest.reject();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.REJECTED);
+        NotificationEvent notiEvent = addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.REJECTED);
+        
+        PullRequestEvent.addEvent(notiEvent, pullRequest, UserApp.currentUser().loginId);
+        
         return redirect(call);
     }
 
@@ -613,7 +638,9 @@ public class PullRequestApp extends Controller {
 
         pullRequest.reopen();
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addPullRequestUpdateNotification(call, pullRequest, State.REJECTED, State.OPEN);
+        NotificationEvent notiEvent = addPullRequestUpdateNotification(call, pullRequest, State.REJECTED, State.OPEN);
+        
+        PullRequestEvent.addEvent(notiEvent, pullRequest, UserApp.currentUser().loginId);
         return redirect(call);
     }
 
