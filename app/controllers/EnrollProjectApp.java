@@ -8,7 +8,6 @@ import java.util.Set;
 import models.NotificationEvent;
 import models.Project;
 import models.User;
-import models.UserProjectNotification;
 import models.enumeration.EventType;
 import models.enumeration.RequestState;
 import models.enumeration.RoleType;
@@ -123,25 +122,16 @@ public class EnrollProjectApp extends Controller {
 
     /*
      * 멤버 등록 관련 알림을 받을 대상자 추출
-     * - 해당 프로젝트의 매니저이면서 멤버 등록 알림을 수신하고 있는 사용자들
+     * - 해당 프로젝트의 매니저이면서 지켜보기를 켜둔 사용자들
      */
     private static Set<User> getReceivers(Project project) {
         Set<User> receivers = new HashSet<User>();
         List<User> managers = User.findUsersByProject(project.id, RoleType.MANAGER);
         for (User manager : managers) {
-            if (isWatchingMemberEnrollRequest(manager, project)) {
+            if (WatchService.isWatching(manager, project.asResource())) {
                 receivers.add(manager);
             }
         }
         return receivers;
-    }
-
-    /*
-     * 멤버 등록 요청에 대해 알림을 받고 있는지 확인
-     */
-    private static boolean isWatchingMemberEnrollRequest(User user, Project project) {
-        return WatchService.isWatching(user, project.asResource())
-                && UserProjectNotification.isEnabledNotiType(user, project,
-                        EventType.MEMBER_ENROLL_REQUEST);
     }
 }
