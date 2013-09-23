@@ -453,7 +453,7 @@ code.commits = 커밋
 code.newer = 이전
 code.older = 다음
 code.repoUrl = 저장소 URL
-code.nohead = <div class="alert alert-block"> <h4>저장소가 비어있습니다!</h4> 로컬에 Git 저장소를 만들고 Yobi에 코드를 올리는 방법은 다음과 같습니다.</div>
+code.nohead = <div class="alert alert-block"> <h4>저장소가 비어있습니다!</h4></div>
 code.nohead.clone = Yobi에 생성된 Git 저장소를 clone 받아서 로컬에 Git 저장소를 만들고 README.md 파일을 Yobi에 올릴 수 있습니다.
 code.nohead.init = 또는, 로컬에서 Git 저장소를 만들고 remote로 Yobi에 생성된 Git 저장소를 직접 추가하고 README.md 파일을 Yobi에 올릴 수 있습니다.
 code.nohead.remote = 로컬에 이미 만들어둔 Git 저장소가 있다면 Yobi에 생성된 Git 저장소만 remote로 추가하고 코드를 올릴 수 있습니다.

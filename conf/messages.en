@@ -453,7 +453,7 @@ code.commits = Commits
 code.newer = Newer
 code.older = Older
 code.repoUrl = URL
-code.nohead = <div class="alert alert-block"> <h4>The repository is empty!</h4> Follow below instructions to make local Git repository and push REAMDME.md file to Yobi.</div>
+code.nohead = <div class="alert alert-block"><h4>The repository is empty!</h4></div>
 code.nohead.clone = Create new local repository by cloning the repository created on Yobi, and push README.md file.
 code.nohead.init = Or, create new local repository by yourself and add a remote that indicate the Yobi repository and push README.md file.
 code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
