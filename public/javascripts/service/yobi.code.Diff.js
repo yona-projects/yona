@@ -321,13 +321,13 @@
                 _showCommentBox($(weEvt.target).closest("tr"));
                 welCloseButton.show();
                 $(weEvt.target).hide();
-            }
+            };
 
             var fOnClickCloseButton = function(weEvt) {
                 _hideCommentBox();
                 welOpenButton.show();
                 $(weEvt.target).hide();
-            }
+            };
 
             welCloseButton.click(fOnClickCloseButton).hide();
             welOpenButton.click(fOnClickAddButton);
@@ -336,11 +336,11 @@
             welUl.append(welCloseButton);
 
             welTr.after($('<tr>')
-                    .addClass('comments')
+                    .addClass('comments board-comment-wrap')
                     .data("path", welTr.data("path"))
                     .data("line", welTr.data("line"))
                     .data("side", welTr.data("side"))
-                    .append($('<td colspan=3>')
+                    .append($('<td colspan="3">')
                         .append(welUl)));
         }
 
