@@ -4274,3 +4274,9 @@
 .yobicon-exit:before {
     content: "\e538";
 }
+.yobicon-ellipsis-horizontal:before {
+    content: "\f141";
+}
+.yobicon-ellipsis-vertical:before {
+    content: "\f142";
+}
