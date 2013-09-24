@@ -1,6 +1,7 @@
 @(project:Project, branches:List[String], recursiveData:List[org.codehaus.jackson.node.ObjectNode], branch:String, path:String)
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
+@import java.net.URLEncoder
 
 @fieldText(obj:org.codehaus.jackson.JsonNode, field:String) = @{
     if(obj.get(field) != null){
@@ -156,7 +157,7 @@
 
 @main(Messages("menu.code"), project, utils.MenuType.CODE){
 <div class="page">
-	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
     <div class="code-browse-wrap">
         <div id="breadcrumbs" class="code-browse-header">
@@ -180,8 +181,12 @@
             <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
             } else {
             <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path)">@Messages("code.files")</a></li>
-	        }
-	        <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+            }
+            @if(branch.eq("HEAD")){
+            <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+            } else {
+            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@Messages("code.commits")</a></li>
+            }
         </ul>
         
         <div class="code-viewer-wrap">

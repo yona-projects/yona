@@ -38,7 +38,7 @@
 		    ){url =>
 		    <ul class="nav nav-tabs" style="margin-bottom:20px;">
 		        <li>
-		            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+		            <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")">@Messages("code.files")</a>
 		        </li>
 		        <li class="active">
 		            <a href="@url">@Messages("code.commits")</a>
