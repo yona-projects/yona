@@ -2899,6 +2899,41 @@ div.markdown-preview {
     margin: 15px 0 17px;
 }
 
+.minimap-outer {
+    display: none;
+    position: fixed;
+    width: 15px; height: 400px;
+    right: 0.5%; top:192px;
+    border: 1px solid rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    overflow: hidden;
+
+    .minimap-wrap {
+        position: relative;
+        width:100%; height: 400px;
+
+        .minimap-curr {
+            position:absolute;
+            width:100%; height:10px;
+            background: rgba(255,255,255,0.6);
+            z-index: 10;
+        }
+        .minimap-links {
+            position:relative;
+            width:100%; height:400px;
+            
+            a {
+                position:absolute;
+                width:100%; min-height:2px;
+                background: rgb(255,224,0);
+                text-indent:-1000px;
+                z-index: 11;
+            }
+        }
+    }
+}
+
 .code-browse-wrap {
     .code-browse-header {
         /*float:right;*/

@@ -31,9 +31,9 @@
 
 <div class="page">
 
-	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
-	<div class="code-browse-wrap">
+    <div class="code-browse-wrap">
         <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
             <button class="btn dropdown-toggle large" data-toggle="dropdown">
                 <span class="d-label"></span>
@@ -48,14 +48,14 @@
             </ul>
         </div>
 
-	    <ul class="nav nav-tabs" style="margin-bottom:20px;">
-	        <li>
+        <ul class="nav nav-tabs" style="margin-bottom:20px;">
+            <li>
                 <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
-	        </li>
-	        <li class="active">
+            </li>
+            <li class="active">
                 <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
-	        </li>
-	    </ul>
+            </li>
+        </ul>
 
         <p class="commitInfo">
             @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
@@ -134,12 +134,18 @@
             @views.html.commentForm(project, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
         </div>
         @** // Comment **@        
-	</div>
+    </div>
 
     <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
 
-	<a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
+    <a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
 
+    <div id="minimap" class="minimap-outer">
+        <div class="minimap-wrap">
+            <div class="minimap-curr"></div>
+            <div class="minimap-links"></div>
+        </div>
+    </div>
 </div>
 
 @markdown(project)
@@ -158,34 +164,19 @@
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript" src="@getJSLink("lib/diff")"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-        @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.CODE_COMMENT)){
-        var bCommentable = true;
-        } else {
-        var bCommentable = false;
-        }
-
-        @if(parentCommit != null) {
-            var parentCommitId = "@parentCommit.getId";
-        } else {
-            var parentCommitId = "";
-        }
-
-
+    $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
-            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
-            "bCommentable": bCommentable,
-            "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
-            "sParentCommitId" : parentCommitId,
-            "sCommitId"       : "@commit.getId"
+            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.CODE_COMMENT)){true}else{false},
+            "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
+            "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
+            "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
+            "sCommitId"      : "@commit.getId"
         });
 
         yobi.Mention({
             target:'comment-editor',
             url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(project.owner, project.name, commit.getId).toString)"
         });
-
-	});
+    });
 </script>
 }

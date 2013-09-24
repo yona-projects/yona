@@ -1,5 +1,5 @@
 /**
- * @(#)yobi.code.History.js 2013.04.04
+ * @(#)yobi.code.Diff.js 2013.04.04
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -23,41 +23,27 @@
             _initElement(htOptions);
             _attachEvent();
             _render();
+            
             _initFileUploader();
             _initFileDownloader();
             _initToggleCommentsButton();
             _initFileViewButton();
-        }
-
-        function _initFileViewButton(){
-            $.each($('tr.file'), function(index, value) {
-                var children = $(value).children("td");
-                var firstLineNum = children[0];
-                var secondLineNum = children[1];
-                var fileName = $($(children[2]).children("span")[0]).text();
-
-                if(htVar.sParentCommitId) {
-                    $(firstLineNum).append(
-                        '<a class="pull-left fileView" data-id="' + htVar.sParentCommitId + '" data-content="' + fileName + '">View</a>'
-                    );
-                }
-
-                $(secondLineNum).append(
-                    '<a class="pull-left fileView" data-id="' + htVar.sCommitId + '" data-content="' + fileName + '">View</a>'
-                );
-            });
+            _initMiniMap();
         }
 
         /**
          * initialize variables except element
          */
         function _initVar(htOptions) {
-            htVar.sAttachmentAction = htOptions.sAttachmentAction;
             htVar.bCommentable = htOptions.bCommentable;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
+            
+            // 미니맵
+            htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
+            htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
         }
 
         /**
@@ -76,13 +62,17 @@
             if (htVar.bCommentable) {
                 htElement.welIcon = $('#comment-icon-template').tmpl();
             }
+            htElement.welEmptyLineNumColumn = $('#linenum-column-template').tmpl();
+            htElement.welEmptyCommentButton = $('#comment-button-template').tmpl();
 
-            htElement.welEmptyLineNumColumn =
-                $('#linenum-column-template').tmpl();
-            htElement.welEmptyCommentButton =
-                $('#comment-button-template').tmpl();
-
+            // 지켜보기
             htElement.welBtnWatch = $('#watch-button');
+            
+            // 미니맵
+            htElement.welMiniMap = $("#minimap"); // .minimap-outer
+            htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
+            htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
+            htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
         }
 
         /**
@@ -100,6 +90,9 @@
                     }
                 });
             });
+            
+            $(window).on("resize", _initMiniMap);
+            $(window).on("scroll", _updateMiniMapCurr);
         }
 
         /**
@@ -115,6 +108,7 @@
         }
 
         /**
+         * 댓글 폼 파일 업로더 초기화
          * initialize fileUploader
          */
         function _initFileUploader(){
@@ -130,6 +124,7 @@
         }
 
         /**
+         * 첨부파일 표시
          * initialize fileDownloader
          */
         function _initFileDownloader(){
@@ -139,11 +134,13 @@
         }
 
         /**
+         * 댓글 표시하기 토글
          * initialize toggle comments button
          */
         function _initToggleCommentsButton() {
             $('#toggle-comments').click(function() {
                 $('#commit').toggleClass('show-comments');
+                $("#minimap").toggle();
             });
         }
 
@@ -312,28 +309,30 @@
                 .data("side", welTr.data("side"))
                 .data("path", welTr.data("path"));
 
-            var welCloseButton = htElement.welEmptyCommentButton.clone()
-                .text(Messages("code.closeCommentBox"));
-            var welOpenButton = htElement.welEmptyCommentButton.clone()
-                .text(Messages("code.openCommentBox"));
-
-            var fOnClickAddButton = function(weEvt) {
-                _showCommentBox($(weEvt.target).closest("tr"));
-                welCloseButton.show();
-                $(weEvt.target).hide();
-            };
-
-            var fOnClickCloseButton = function(weEvt) {
-                _hideCommentBox();
-                welOpenButton.show();
-                $(weEvt.target).hide();
-            };
-
-            welCloseButton.click(fOnClickCloseButton).hide();
-            welOpenButton.click(fOnClickAddButton);
-
-            welUl.append(welOpenButton);
-            welUl.append(welCloseButton);
+            if (htVar.bCommentable) {
+                var welCloseButton = htElement.welEmptyCommentButton.clone()
+                    .text(Messages("code.closeCommentBox"));
+                var welOpenButton = htElement.welEmptyCommentButton.clone()
+                    .text(Messages("code.openCommentBox"));
+    
+                var fOnClickAddButton = function(weEvt) {
+                    _showCommentBox($(weEvt.target).closest("tr"));
+                    welCloseButton.show();
+                    $(weEvt.target).hide();
+                };
+    
+                var fOnClickCloseButton = function(weEvt) {
+                    _hideCommentBox();
+                    welOpenButton.show();
+                    $(weEvt.target).hide();
+                };
+    
+                welCloseButton.click(fOnClickCloseButton).hide();
+                welOpenButton.click(fOnClickAddButton);
+    
+                welUl.append(welOpenButton);
+                welUl.append(welCloseButton);
+            }
 
             welTr.after($('<tr>')
                     .addClass('comments board-comment-wrap')
@@ -356,6 +355,7 @@
             htElement.welEmptyCommentForm.find('[name=line]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
             htElement.welComments.after(htElement.welEmptyCommentForm);
+            _updateMiniMap();
         }
 
         /**
@@ -499,6 +499,7 @@
             welCommentTr.find('[name=side]').attr('value', welTr.data('side'));
 
             welTr.after(htElement.welCommentTr);
+            _updateMiniMap();
         }
 
         /**
@@ -610,7 +611,94 @@
             return welTable;
         }
 
+        /**
+         * 부모/현재 CommitId 의 파일을 보기 위한 버튼을 만든다
+         */
+        function _initFileViewButton(){
+            $('tr.file').each(function(index, value) {
+                var children = $(value).children("td");
+                var firstLineNum = children[0];
+                var secondLineNum = children[1];
+                var fileName = $($(children[2]).children("span")[0]).text();
+
+                if(htVar.sParentCommitId) {
+                    $(firstLineNum).append(
+                        '<a class="pull-left fileView" data-id="' + htVar.sParentCommitId + '" data-content="' + fileName + '">View</a>'
+                    );
+                }
+
+                $(secondLineNum).append(
+                    '<a class="pull-left fileView" data-id="' + htVar.sCommitId + '" data-content="' + fileName + '">View</a>'
+                );
+            });
+        }
+
+        /**
+         * 댓글 미니맵 초기화
+         * 모듈 로딩시(_init)와 창 크기 변경시(_attachEvent:window.resize) 호출됨
+         */
+        function _initMiniMap(){
+            _setMiniMapRatio();
+            _updateMiniMap();
+            _resizeMiniMapCurr();
+        }
+        
+        /**
+         * 미니맵 비율을 설정한다
+         * 비율 = 미니맵 높이 / 문서 전체 높이
+         */
+        function _setMiniMapRatio(){
+            var nDocumentHeight = $(document).height();
+            var nMapHeight = htElement.welMiniMapWrap.height();
+            
+            htVar.nMiniMapRatio = nMapHeight / nDocumentHeight;
+        }
+        
+        /**
+         * 현재 스크롤 위치에 맞추어 minimap-curr 의 위치도 움직인다
+         */
+        function _updateMiniMapCurr(){
+            htElement.welMiniMapCurr.css("top", Math.ceil($(document.body).scrollTop() * htVar.nMiniMapRatio) + "px");
+        }
+        
+        /**
+         * 미니맵 스크롤 위치 표시기(minimap-curr)의 높이를
+         * 비율에 맞추어 조정한다
+         */
+        function _resizeMiniMapCurr(){
+            htElement.welMiniMapCurr.css("height", Math.ceil(window.innerHeight * htVar.nMiniMapRatio) + "px");
+        }
+        
+        /**
+         * tr.comments 의 위치, 높이를 기준으로 미니맵을 표시한다
+         * 
+         * 화면 크기 변경(window.resize)이나 화면 내용 변동시(_initMiniMap)
+         * 이미 생성한 DOM을 일일히 제어하는 것 보다 HTML을 새로 그리는 것이 빠르다
+         * 
+         * 표시할 항목이 없다면 미니맵은 감춤
+         */
+        function _updateMiniMap(){
+            var aLinks = [];
+            var welTarget, nTop;
+            var waTargets = $(htVar.sQueryMiniMap);
+
+            if(waTargets.length > 0){
+                waTargets.each(function(i, el){
+                    welTarget = $(el);
+
+                    aLinks.push($yobi.tmpl(htVar.sTplMiniMapLink, {
+                        "id"    : welTarget.attr("id"),
+                        "top"   : Math.ceil(welTarget.offset().top * htVar.nMiniMapRatio),
+                        "height": Math.ceil(welTarget.height() * htVar.nMiniMapRatio)
+                    }));
+                });
+                htElement.welMiniMapLinks.html(aLinks.join(""));
+                htElement.welMiniMap.show();
+            } else {
+                htElement.welMiniMap.hide();
+            }
+        }
+        
         _init(htOptions || {});
     };
-
 })("yobi.code.Diff");
