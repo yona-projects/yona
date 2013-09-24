@@ -510,7 +510,7 @@
                     width:26px;
                     height:26px;
                     padding:4px;
-                    border: 1px solid #27AE60;
+                    border: 1px solid @state-open;
                     border-radius : 50%;
                     background: #FFF;
                     position:absolute;
@@ -518,13 +518,13 @@
                     left:0;
                     color:#fdfdfd;
 
-                    &.closed {border: 1px solid #C0392B;}
-                    &.changed {border: 1px solid #2980B9;}
-                    &.rejected {border: 1px solid #F39C12;}
-                    &.warning {border : 1px solid #F1C40F;}
+                    &.closed {border: 1px solid @state-closed;}
+                    &.changed {border: 1px solid @state-changed;}
+                    &.rejected {border: 1px solid @state-rejected;}
+                    &.warning {border : 1px solid @state-warning;}
 
                     span { 
-                        background:#27AE60;
+                        background:@state-open;
                         width:26px;
                         height:26px;
                         border-radius : 50%;
@@ -532,10 +532,10 @@
                         font-size:15px;
                         text-align : center;
 
-                        &.closed {background:  #C0392B;}
-                        &.changed {background: #2980B9;}
-                        &.rejected {background: #F39C12;}
-                        &.warning {background : #F1C40F;}
+                        &.closed {background:  @state-closed;}
+                        &.changed {background: @state-changed;}
+                        &.rejected {background: @state-rejected;}
+                        &.warning {background : @state-warning;}
 
                         i { vertical-align:middle;width:auto;height:auto;}
                     }
@@ -2188,14 +2188,20 @@
     }
     .badge { color:#fff; }
 }
+
 .badge {
-    font-size:11px;
-    text-shadow:none;
-    .border-radius(2px);
+    margin-right:25px;
+    font-weight:bold;
+    color:#FFF;
+    padding:5px 15px;
+    line-height:20px;
+    .border-radius(15px);
+
+    &.badge-issue-open { background-color:@state-open; }
+    &.badge-issue-closed { background-color : @state-closed;}
+    &.badge-issue-rejected { background-color : @state-rejected;}
 }
-.badge-issue-open {
-    background-color:@secondary;
-}
+
 
 .board-body {
     /*padding: 20px 0;*/
@@ -2341,9 +2347,9 @@
                 
                 i {margin-right:3px;}
                 
-                &.closed { background-color: #C0392B;}
-                &.open { background-color : #27AE60;}
-                &.changed { background-color : #2980B9;}
+                &.closed { background-color: @state-closed;}
+                &.open { background-color : @state-open;}
+                &.changed { background-color : @state-changed;}
              }
 
              em { font-size:12px; color:#7F8C8D; margin-right:5px;}
@@ -2670,12 +2676,16 @@ div.markdown-preview {
     }
 
     .state {
-        margin-top:12px;
+        margin-top:8px;
         margin-right:25px;
         font-weight:bold;
-        color:#999;
+        color:#FFF;
+        padding:5px 15px;
+        .border-radius(15px);
 
-        &.open { color:@secondary; }
+        &.open { background-color: @state-open; }
+        &.closed { background-color : @state-closed;}
+        &.rejected { background-color : @state-rejected;}
     }
 
     .empty-avatar-space {
@@ -3932,18 +3942,25 @@ div.markdown-preview {
         }
     }
 }
-.milestone-title{
-    font-size:11px;
-    font-family:@base-font-family;
-    border: none;
-    white-space: nowrap;
-    background: #f7f7f7;
-    color: darken(@secondary, 10%);
-    padding: 3px 10px;
-    text-shadow: 1px 1px rgba(255, 255, 255, 0.5);
-    .box-shadow(1px 1px 1px rgba(0, 0, 0, 0.15));
-    .border-radius(2px);
+.mileston-tag {
+    margin-top:12px;
+    margin-right: 25px;
+    font-weight: bold;
+
+    .milestone-title{
+        font-size:11px;
+        font-family:@base-font-family;
+        border: none;
+        white-space: nowrap;
+        color: darken(@secondary, 10%);
+        padding: 3px 10px;
+        background: #f7f7f7;
+        text-shadow: 1px 1px rgba(255, 255, 255, 0.5);
+        .box-shadow(1px 1px 1px rgba(0, 0, 0, 0.15));
+        .border-radius(2px);
+    } 
 }
+
 
 // -- keymap
 .keymap-help {
