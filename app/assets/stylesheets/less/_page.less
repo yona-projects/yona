@@ -1305,13 +1305,24 @@
         &:last-of-type {
             border-bottom:none;
         }
+
+        .question-wrap, .answer-wrap {
+            i {
+                font-size:2em;
+                vertical-align:middle;
+                font-weight:bold;
+                &.q { color:#f36c22; }
+                &.a { color:#000; margin-right:30px;}
+            }
+        }
+
         .question-wrap {
             line-height: 1.2;
             display: table;
             padding: 0 15px; /*10px;*/
             margin-bottom: 14px;
             width:100%;
-            .ico  { margin-right: 10px;  }
+            
             .icor {
                 margin:17px !important;
                 .ico-qa-plus;
@@ -1328,7 +1339,7 @@
         }
         .answer-wrap {
             display: none;
-            padding: 15px; /*19px 20px;*/
+            padding: 15px 15px; /*19px 20px;*/
             border-top: 1px solid #DCDCDC;
             background-color: #F3F3F3;
             .ico {
