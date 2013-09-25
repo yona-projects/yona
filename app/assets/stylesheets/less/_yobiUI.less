@@ -288,6 +288,7 @@ button.nbtn {
         .opacity(70);
     }
 }
+.dropdown-menu .issue-label:hover { .opacity(100); }
 
 /** project label */
 .project-label {
@@ -576,8 +577,8 @@ button.nbtn {
     left: -63%;
 }
 .has-switch > div.switch-off label {
-    background-color: #7f8c9a;
-    border-color: #bdc3c7;
+    background-color: #FFF;
+    border-color: @state-closed;
     -webkit-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
     -moz-box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
     box-shadow: -1px 0 0 rgba(255, 255, 255, 0.5);
@@ -616,24 +617,24 @@ button.nbtn {
 }
 .has-switch span.switch-left {
     border-radius: 30px 0 0 30px;
-    background-color: @secondary;
+    background-color: @state-open;
     color: #fff;
     border-left: 1px solid transparent;
     &:hover {
-        background-color:darken(@secondary, 10%);
+        background-color:darken(@state-open, 10%);
     }
 }
 .has-switch span.switch-right {
     border-radius: 0 30px 30px 0;
-    background-color: #bdc3c7;
-    color: #555;/*#ffffff;*/
+    background-color: @state-closed;
+    color: #FFF;/*#ffffff;*/
     text-indent: 5px;
     &:hover {
-        background-color:darken(#bdc3c7, 10%);
+        background-color:darken(@state-closed, 10%);
     }
 }
 .has-switch label {
-    border: 4px solid @secondary;
+    border: 4px solid @state-open;
     border-radius: 50%;
     float: left;
     height: 21px;
