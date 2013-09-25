@@ -2,6 +2,7 @@
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
+@import java.net.URLEncoder
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
@@ -51,7 +52,7 @@
                     @for(commit <- commits.iterator()) {
                     <tr>
                         <td class="commit-id">
-                            <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                            <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())?branch=@URLEncoder.encode(pull.fromBranch, "UTF-8")">
                                 @commit.getShortId()
                                 <i class="yobicon-right"></i>
                             </a>

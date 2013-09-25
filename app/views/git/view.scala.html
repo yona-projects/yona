@@ -177,10 +177,9 @@
 	                                </a>
 
 									@if(commitMsg.split("\n").length > 1){
-									<button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
+									<button type="button" class="more">&hellip;</button>
 									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
 									}
-                                </a>
                                 }
                             </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>

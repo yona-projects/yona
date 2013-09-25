@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment])
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment], selectedBranch:String)
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -36,7 +36,7 @@
 	<div class="code-browse-wrap">
         <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
             <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                <span class="d-label"></span>
+                <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu">

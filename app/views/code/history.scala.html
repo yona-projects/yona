@@ -8,13 +8,28 @@
 @import org.joda.time.Duration
 @import controllers.CodeApp
 
+@getFilesURL = @{
+    if(selectedBranch){
+        routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")
+    } else {
+        routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "HEAD", "")
+    }
+}
+@getHistoryURL = @{
+    if(selectedBranch){
+        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
+    } else {
+        routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
+    }
+}
+
 @main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
     @if(history.size() > 0) {
-	<div class="bubble-wrap dark-gray repo-wrap">
-		<div class="code-browse-wrap">
+    <div class="bubble-wrap dark-gray repo-wrap">
+        <div class="code-browse-wrap">
             <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
                 <button class="btn dropdown-toggle large" data-toggle="dropdown">
                     <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
@@ -29,41 +44,34 @@
                 </ul>
             </div>
 
-		    @defining(
-		        if(selectedBranch) {
-		            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"))
-		        } else {
-		            routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
-		        }
-		    ){url =>
-		    <ul class="nav nav-tabs" style="margin-bottom:20px;">
-		        <li>
-		            <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")">@Messages("code.files")</a>
-		        </li>
-		        <li class="active">
-		            <a href="@url">@Messages("code.commits")</a>
-		        </li>
-		    </ul>
+            <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                <li>
+                    <a href="@getFilesURL">@Messages("code.files")</a>
+                </li>
+                <li class="active">
+                    <a href="@getHistoryURL">@Messages("code.commits")</a>
+                </li>
+            </ul>
 
-			<div id="history" class="commit-wrap">
-				<table class="code-table commits">
-					<thead class="thead">
-						<tr>
-							<td class="commit-id"><strong>@@</strong></td>
-							<td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-							<td class="date"><strong>@Messages("code.commitDate")</strong></td>
-							<td class="author"><strong>@Messages("code.author")</strong></td>
-						</tr>
-					</thead>
-					<tbody class="tbody">
-						@for(commit <- history.iterator()) {
-						<tr>
-							<td class="commit-id">
-								<a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
-									@commit.getShortId()
-								</a>
-							</td>
-							<td class="messages">
+            <div id="history" class="commit-wrap">
+                <table class="code-table commits">
+                    <thead class="thead">
+                        <tr>
+                            <td class="commit-id"><strong>@@</strong></td>
+                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                            <td class="author"><strong>@Messages("code.author")</strong></td>
+                        </tr>
+                    </thead>
+                    <tbody class="tbody">
+                        @for(commit <- history.iterator()) {
+                        <tr>
+                            <td class="commit-id">
+                                <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())@if(selectedBranch){?branch=@URLEncoder.encode(selectedBranch, "UTF-8")}">
+                                    @commit.getShortId()
+                                </a>
+                            </td>
+                            <td class="messages">
                                 @defining(CodeComment.count(project, commit.getId)){ numOfComment =>
                                 @if(numOfComment > 0) {
                                 <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
@@ -74,7 +82,7 @@
                                 @if(commitMsg.startsWith("Merge pull request")) {
                                     @defining(commitMsg.split(" ")(3)) { pullRequestIdPart =>
                                         @defining(pullRequestIdPart.replace("#", "").toLong) { pullRequestId =>
-                                        <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+                                        <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())@if(selectedBranch){?branch=@URLEncoder.encode(selectedBranch, "UTF-8")}">
                                             @defining(commitMsg.indexOf(" #")) { indexOfPullRequestStart =>
                                                 @commitMsg.split("\n")(0).substring(0, indexOfPullRequestStart)
                                             }
@@ -82,7 +90,7 @@
                                         <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pullRequestId)" class="secondary-txt">
                                             #@pullRequestId
                                         </a>
-                                        <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+                                        <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())@if(selectedBranch){?branch=@URLEncoder.encode(selectedBranch, "UTF-8")}">
                                             @defining(commitMsg.indexOf(commitMsg.split(" ")(3)) + commitMsg.split(" ")(3).length) { indexOfPullRequestIdEnd =>
                                             @commitMsg.split("\n")(0).substring(indexOfPullRequestIdEnd)
                                             }
@@ -90,18 +98,18 @@
                                         }
                                     }
                                 } else {
-                                    <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())">
+                                    <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())@if(selectedBranch){?branch=@URLEncoder.encode(selectedBranch, "UTF-8")}">
                                         @commitMsg.split("\n")(0)
                                     </a>
                                 }
 
                                 @if(commitMsg.split("\n").length > 1){
-                                    <button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
+                                    <button type="button" class="more">&hellip;</button>
                                     <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
                                 }
                                 }
-							</td>
-							<td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                            </td>
+                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
@@ -129,27 +137,25 @@
                                     <span>@User.anonymous.name</span>
                                 }
                                 }
-							</td>
-						</tr>
-						}
-					</tbody>
-				</table>
-			</div>
-		</div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <div class="actrow margin-top-20">
             @if(page > 0) {
-            <a href="@url?page=@(page - 1)" class="nbtn medium pull-left">@Messages("code.newer")</a>
+            <a href="@getHistoryURL?page=@(page - 1)" class="nbtn medium pull-left">@Messages("code.newer")</a>
             }
 
             @if(history.get(history.size() - 1).getParentCount() > 0) {
-            <a href="@url?page=@(page + 1)" class="nbtn medium pull-left">@Messages("code.older")</a>
+            <a href="@getHistoryURL?page=@(page + 1)" class="nbtn medium pull-left">@Messages("code.older")</a>
             }
         </div>
-
+    </div>
     } @** end of if(history.size) **@
-
-  } @** end of defining url **@
 </div>
 
 <script type="text/javascript">
@@ -157,6 +163,17 @@ $(document).ready(function(){
     $("button.more").click(function(){
         $(this).next("pre").toggleClass("hidden");
     });
+    
+    var htKeyMap = {};
+    @if(page > 0){
+    htKeyMap.A = "@getHistoryURL?page=@(page - 1)";
+    }
+    @if(history.get(history.size() - 1).getParentCount() > 0) {
+    htKeyMap.S = "@getHistoryURL?page=@(page + 1)";
+    }
+    if(htKeyMap.A || htKeyMap.S){
+        yobi.ShortcutKey.setKeymapLink(htKeyMap);
+    }
 });
 </script>
 }
