@@ -104,12 +104,11 @@
          */
         function _initDepthedList(){
             var waFileWrap = $("div.list-wrap[data-listpath]");
-            var welList, sListPath, welTarget;
             
             waFileWrap.each(function(i, elList){
-                welList = $(elList);
-                sListPath = welList.data("listpath");
-                welTarget = $('[data-path="' + sListPath + '"]');
+                var welList = $(elList);
+                var sListPath = welList.data("listpath");
+                var welTarget = $('[data-path="' + sListPath + '"]');
                 
                 welList.data("content", sListPath); // 목록이 표시하고 있는 경로
                 welList.data("depth", i+1);         // indent 정보
@@ -120,7 +119,6 @@
                 welTarget.after(welList);
             });
             $(".list-wrap").show();
-            waFileWrap = welList = welTarget = null;
 
             // 현재 페이지 주소와 일치하는 항목을 강조표시
             _setCurrentPathBold(htVar.sPath);
