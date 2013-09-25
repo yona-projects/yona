@@ -174,7 +174,7 @@ public class RepositoryService {
 
     /**
      * {@code userName}의 {@code projectName}에 해당하는 프로젝트의 저장소에서
-     * {@code branch}의 {@code path}에 해당하는 파일을 읽어온다.
+     * {@code revision}의 {@code path}에 해당하는 파일을 읽어온다.
      * <p/>
      * when: {@link controllers.CodeApp#showRawFile(String, String, String)}과
      * {@link controllers.CodeApp#showImageFile(String, String, String)}에서 파일 내용을 화면에 보여줄 때 사용한다.
@@ -184,6 +184,7 @@ public class RepositoryService {
      *
      * @param userName
      * @param projectName
+     * @param revision
      * @param path
      * @return
      * @throws ServletException
@@ -195,11 +196,11 @@ public class RepositoryService {
      * @throws SVNException
      * @see {@link PlayRepository#getRawFile(String)}
      */
-    public static byte[] getFileAsRaw(String userName, String projectName, String path)
+    public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
             throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException,
             UnsupportedOperationException, IOException, ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
-        return RepositoryService.getRepository(project).getRawFile(path);
+        return RepositoryService.getRepository(project).getRawFile(revision, path);
     }
 
     /**

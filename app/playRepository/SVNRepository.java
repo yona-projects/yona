@@ -55,10 +55,11 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public byte[] getRawFile(String path) throws SVNException {
+    public byte[] getRawFile(String revision, String path) throws SVNException {
+        Long revId = (revision.equals("HEAD") ? -1l : Long.parseLong(revision));
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        repository.getFile(path, -1l, null, baos);
+        repository.getFile(path, revId, null, baos); // revId=-1l
         return baos.toByteArray();
     }
 

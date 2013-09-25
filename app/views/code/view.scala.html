@@ -58,7 +58,7 @@
             </a>
         </div>
         <div class="span5 commitMsg"><span>@fieldText(file, "msg")</span></div>
-        <div class="span1 commitDate">@getFileDate(file)</div>
+        <div class="span1 commitDate">@getFileDate(file, "createdDate")</div>
         <div class="span1 author">@getAvatar(file)</div>
     </div>
     }
@@ -91,8 +91,8 @@
         }
     }
 }
-@getFileDate(file:org.codehaus.jackson.JsonNode) = @{
-    agoString(JodaDateUtil.ago(file.get("createdDate").getLongValue))
+@getFileDate(file:org.codehaus.jackson.JsonNode, field:String) = @{
+    agoString(JodaDateUtil.ago(file.get(field).getLongValue))
 }
 @getCorrectedPath(filePath:String, fileName:String) = @{
     if((filePath != "") && (filePath.substring(filePath.length() - 1) == "/")){
@@ -101,20 +101,34 @@
         filePath + "/" + fileName
     }
 }
+@getFileRev(file:org.codehaus.jackson.JsonNode) = @{
+    project.vcs match {
+        case "GIT" => {
+            fieldText(file,"commitId").substring(0,7)
+        }
+        case "Subversion" => {
+            "Revision " + fieldText(file, "revisionNo")
+        }
+        case _ => {
+            ""
+        }
+    }
+}
 @showFileView(files:org.codehaus.jackson.node.ObjectNode) = {
     @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
-    @defining(routes.CodeApp.showRawFile(project.owner, project.name, path)) { filePath =>
+    @defining(getFileRev(files)) { revId=> 
+    @defining(routes.CodeApp.showRawFile(project.owner, project.name, revId, path)) { filePath =>
 <div class="file-wrap" data-type="file">
     <div class="file-header nm">
         <div id="fileInfo" class="file-info">
-            <span id="commiter" class="commiter"></span>
-            <span id="commitDate" class="commitDate"></span>
-            <span id="revisionNo" class="revision"></span>
-            <span id="commitMessage" calss="commitMsg"></span>
+            <span id="commiter" class="commiter">@fieldText(files,"commiter")</span>
+            <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
+            <span id="revisionNo" class="revision">@revId</span>
+            <span id="commitMessage" class="commitMsg">@fieldText(files,"commitMessage")</span>
         </div>
         <div class="pull-right actrow">
             @if(!files.get("isBinary").getBooleanValue()){
-            <a id="rawCode" class="nbtn medium">
+            <a href="@filePath" class="nbtn medium">
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
             }
@@ -139,6 +153,7 @@
         <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
     }
 </div>
+    }
     }
     }
 }

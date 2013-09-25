@@ -155,12 +155,13 @@ public class CodeApp extends Controller {
      * 
      * @param userName
      * @param projectName
+     * @param revision
      * @param path
      */
-    public static Result showRawFile(String userName, String projectName, String path) throws Exception{
-        byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, path);
-        if(fileAsRaw == null) {
-            return redirect(routes.CodeApp.codeBrowser(userName, projectName) + "#/" + path);
+    public static Result showRawFile(String userName, String projectName, String revision, String path) throws Exception{
+        byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
+        if(fileAsRaw == null){
+            return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, revision, path));
         }
         return ok(fileAsRaw).as("text/plain");
     }
@@ -172,8 +173,8 @@ public class CodeApp extends Controller {
      * @param projectName
      * @param path
      */
-    public static Result showImageFile(String userName, String projectName, String path) throws Exception{
-        final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, path);
+    public static Result showImageFile(String userName, String projectName, String revision, String path) throws Exception{
+        final byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, revision, path);
         String mimeType = tika.detect(fileAsRaw);
         return ok(fileAsRaw).as(mimeType);
     }

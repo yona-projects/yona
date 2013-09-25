@@ -46,14 +46,15 @@ public interface PlayRepository {
     public abstract ObjectNode findFileInfo(String path) throws IOException, GitAPIException, SVNException;
 
     /**
-     * {@code path}에 해당하는 파일을 반환한다.
+     * {@code revision}의 {@code path}에 해당하는 파일을 반환한다.
      *
+     * @param revision
      * @param path
      * @return
      * @throws IOException
      * @throws SVNException
      */
-    public abstract byte[] getRawFile(String path) throws IOException, SVNException;
+    public abstract byte[] getRawFile(String revision, String path) throws IOException, SVNException;
 
     /**
      * 저장소를 삭제한다.

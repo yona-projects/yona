@@ -280,6 +280,7 @@ public class GitRepository implements PlayRepository {
         result.put("commitMessage", commit.getShortMessage());
         result.put("commiter", commitAuthor.getName());
         result.put("commitDate", commitTime);
+        result.put("commitId", untilCommitId.getName());
         ObjectLoader file = repository.open(treeWalk.getObjectId(0));
         result.put("size", file.getSize());
 
@@ -425,13 +426,14 @@ public class GitRepository implements PlayRepository {
     /**
      * {@link Constants#HEAD}에서 {@code path}에 해당하는 파일을 반환한다.
      *
+     * @param revision
      * @param path
      * @return {@code path}가 디렉토리일 경우에는 null, 아닐때는 해당 파일
      * @throws IOException
      */
     @Override
-    public byte[] getRawFile(String path) throws IOException {
-        RevTree tree = new RevWalk(repository).parseTree(repository.resolve(Constants.HEAD));
+    public byte[] getRawFile(String revision, String path) throws IOException {
+        RevTree tree = new RevWalk(repository).parseTree(repository.resolve(revision));
         TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
         if (treeWalk.isSubtree()) {
             return null;

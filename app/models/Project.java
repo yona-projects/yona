@@ -349,7 +349,7 @@ public class Project extends Model implements LabelOwner {
     public String readme() {
         try {
             return new String(RepositoryService.getRepository(this).getRawFile
-                    (getReadmeFileName()), "UTF-8");
+                    ("HEAD", getReadmeFileName()), "UTF-8");
         } catch (Exception e) {
             return null;
         }

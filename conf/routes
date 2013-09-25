@@ -185,8 +185,8 @@ GET     /:user/:project/code/:branch/!/*path            controllers.CodeApp.ajax
 GET     /:user/:project/code                            controllers.CodeApp.codeBrowser(user, project)
 GET     /:user/:project/code/:branch/                   controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String, path="")
 GET     /:user/:project/code/:branch/*path              controllers.CodeApp.codeBrowserWithBranch(user, project, branch:String, path:String)
-GET     /:user/:project/rawcode/*path                   controllers.CodeApp.showRawFile(user, project, path:String)
-GET     /:user/:project/image/*path                     controllers.CodeApp.showImageFile(user, project, path:String)
+GET     /:user/:project/rawcode/:rev/*path              controllers.CodeApp.showRawFile(user, project, rev:String, path:String)
+GET     /:user/:project/image/:rev/*path                controllers.CodeApp.showImageFile(user, project, rev:String, path:String)
 
 # Commits
 GET     /:user/:project/commits                         controllers.CodeHistoryApp.historyUntilHead(user, project)
