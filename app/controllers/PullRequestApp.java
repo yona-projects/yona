@@ -159,6 +159,7 @@ public class PullRequestApp extends Controller {
             result.put(url, routes.ProjectApp.project(forkProject.owner, forkProject.name).url());
             return ok(result);
         } catch (Exception e) {
+            play.Logger.error(MessageFormat.format("Failed to fork \"{0}\"", originalProject), e);
             result.put(status, failed);
             result.put(url, routes.PullRequestApp.pullRequests(originalProject.owner, originalProject.name).url());
             return ok(result);
