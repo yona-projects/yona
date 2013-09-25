@@ -32,6 +32,8 @@ import play.libs.Json;
 import utils.FileUtil;
 import utils.GravatarUtil;
 
+import org.joda.time.*;
+import org.joda.time.format.*;
 
 public class SVNRepository implements PlayRepository {
 
@@ -187,7 +189,11 @@ public class SVNRepository implements PlayRepository {
         }
         String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
         User user = User.findByLoginId(author);
-
+        
+        String commitDate = prop.getStringValue(SVNProperty.COMMITTED_DATE);
+        DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime();
+        Long commitTime = dateFormatter.parseMillis(commitDate);
+        
         ObjectNode result = Json.newObject();
         result.put("type", "file");
         result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
@@ -195,7 +201,7 @@ public class SVNRepository implements PlayRepository {
         result.put("avatar", getAvatar(user));
         result.put("userName", user.name);
         result.put("userLoginId", user.loginId);
-        result.put("createdDate", prop.getStringValue(SVNProperty.COMMITTED_DATE));
+        result.put("createdDate", commitTime);
         result.put("size", size);
         result.put("isBinary", isBinary);
         result.put("mimeType", mimeType);
