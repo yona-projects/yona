@@ -14,6 +14,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import playRepository.RepositoryService;
+import playRepository.PlayRepository;
 import utils.AccessControl;
 import utils.ErrorViews;
 import views.html.code.view;
@@ -24,10 +25,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Iterator;
 import java.util.ArrayList;
-import org.codehaus.jackson.JsonNode;
 
 public class CodeApp extends Controller {
     public static String hostName;
@@ -80,40 +78,21 @@ public class CodeApp extends Controller {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
-        ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
+        PlayRepository repository = RepositoryService.getRepository(project);
+        ObjectNode findFileInfo = repository.findFileInfo(branch, path);
         findFileInfo.put("path", path);
 
         List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
-        List<String> branches = RepositoryService.getRepository(project).getBranches();
+        List<String> branches = repository.getBranches();
         
         /** 해당 경로가 폴더이고 최상위가 아니면, 최상위 경로부터 순서대로 정보를 추가한다 **/
         if(findFileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
-            recursiveData.addAll(getMetaDataFromRoot(userName, projectName, branch, path));
+            recursiveData.addAll(RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path));
         }
         recursiveData.add(findFileInfo);
         
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
-	
-	public static List<ObjectNode> getMetaDataFromRoot(String userName, String projectName, String branch, String path)
-        throws Exception {
-	    
-	    List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
-	    
-        String partialPath = "";            
-        String[] pathArray = path.split("/");
-        Integer pathLength = pathArray.length;
-        ObjectNode metaData;
-        
-        for(int i = 0; i < pathLength; i++){
-            metaData = RepositoryService.getMetaDataFrom(userName, projectName, partialPath, branch);
-            metaData.put("path", partialPath);
-            partialPath = (partialPath.equals("")) ? pathArray[i] : partialPath + "/" + pathArray[i];
-            recursiveData.add(metaData);
-        }
-        
-        return recursiveData;
-	}
 	
 	/**
 	 * AJAX 호출로 지정한 프로젝트 지정한 경로의 정보를 얻고자 할 때 사용된다
@@ -123,7 +102,9 @@ public class CodeApp extends Controller {
 	 * @param path 파일 또는 폴더의 경로
 	 */
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
-        ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path);
+        PlayRepository repository = RepositoryService.getRepository(userName, projectName);
+        ObjectNode findFileInfo = repository.findFileInfo(path);
+
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {
@@ -142,7 +123,9 @@ public class CodeApp extends Controller {
     public static Result ajaxRequestWithBranch(String userName, String projectName, String branch, String path)
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
-        ObjectNode findFileInfo = RepositoryService.getMetaDataFrom(userName, projectName, path, branch);
+        PlayRepository repository = RepositoryService.getRepository(userName, projectName);
+        ObjectNode findFileInfo = repository.findFileInfo(branch, path);
+
         if(findFileInfo != null) {
             return ok(findFileInfo);
         } else {
