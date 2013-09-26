@@ -2,19 +2,12 @@ package actors;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
-import controllers.routes;
-
-import play.mvc.Http.Request;
 import playRepository.GitCommit;
 import playRepository.GitConflicts;
 import playRepository.GitRepository;
@@ -24,15 +17,12 @@ import utils.JodaDateUtil;
 
 import models.ConflictCheckMessage;
 import models.NotificationEvent;
-import models.Project;
 import models.PullRequest;
 import models.PullRequestCommit;
 import models.PullRequestEvent;
 import models.PullRequestMergeResult;
-import models.User;
 import models.enumeration.EventType;
 import models.enumeration.State;
-import models.resource.Resource;
 import akka.actor.UntypedActor;
 
 /**
@@ -57,15 +47,15 @@ public class PullRequestEventActor extends UntypedActor {
             PullRequestMergeResult mergeResult = getMergeResult(pullRequest);
 
             if (mergeResult.commitChanged()) {
-                addCommitChangedNotification(message.getSender(), pullRequest, message.getRequest(), mergeResult);
+                NotificationEvent.addCommitChange(message.getSender(), pullRequest, message.getRequest(), mergeResult);
                 PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getCommits());
             }
             
             GitConflicts conflicts = mergeResult.getConflicts();
             
             if (conflicts != null) {
-                NotificationEvent notiEvent = addConflictsNotification(message.getSender(),
-                        pullRequest, conflicts, message.getRequest());
+                NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
+                        pullRequest, conflicts, message.getRequest(), State.CONFLICT);
                 
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
                 
@@ -74,8 +64,8 @@ public class PullRequestEventActor extends UntypedActor {
                 
             } else if (pullRequest.isConflict != null && pullRequest.isConflict) {
                 
-                NotificationEvent notiEvent = addConflictsResolvedNotification(message.getSender(),
-                        pullRequest, conflicts, message.getRequest());
+                NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
+                        pullRequest, conflicts, message.getRequest(), State.RESOLVED);
             
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
                 pullRequest.isConflict = false;
@@ -155,98 +145,5 @@ public class PullRequestEventActor extends UntypedActor {
         
         return pullRequestCommit;
     }
-    
-    private NotificationEvent addConflictsNotification(User sender,
-            PullRequest pullRequest, GitConflicts conflicts, Request request) {
-        
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Resource resource = pullRequest.asResource();
-        Set<User> receivers = new HashSet<>();
-        receivers.add(pullRequest.contributor);
-        Project toProject = pullRequest.toProject;
 
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = sender.id;
-        notiEvent.receivers = receivers;
-        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
-                request);
-        notiEvent.resourceId = resource.getId();
-        notiEvent.resourceType = resource.getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
-        notiEvent.newValue = State.CONFLICT.state();
-        notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
-
-        NotificationEvent.add(notiEvent);
-        
-        return notiEvent;
-    }
-    
-    private NotificationEvent addConflictsResolvedNotification(User sender, PullRequest pullRequest,
-            GitConflicts conflicts, Request request) {
-            
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Resource resource = pullRequest.asResource();
-        Set<User> receivers = new HashSet<>();
-        receivers.add(pullRequest.contributor);
-        Project toProject = pullRequest.toProject;
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = sender.id;
-        notiEvent.receivers = receivers;
-        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
-                request);
-        notiEvent.resourceId = resource.getId();
-        notiEvent.resourceType = resource.getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
-        notiEvent.newValue = State.RESOLVED.state();
-
-        NotificationEvent.add(notiEvent);
-        
-        return notiEvent;
-    }
-
-
-    private NotificationEvent addCommitChangedNotification(User sender, PullRequest pullRequest, Request request,
-            PullRequestMergeResult mergeResult) {
-            
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Resource resource = pullRequest.asResource();
-        Set<User> watchers = pullRequest.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
-        watchers.remove(pullRequest.contributor);
-        
-        Project toProject = pullRequest.toProject;
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = sender.id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
-                request);
-        notiEvent.resourceId = resource.getId();
-        notiEvent.resourceType = resource.getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_COMMIT_CHANGED;
-        notiEvent.oldValue = makeCommitList(pullRequest.pullRequestCommits);
-        notiEvent.newValue = makeCommitList(mergeResult.getCommits());
-        
-        NotificationEvent.add(notiEvent);
-        
-        return notiEvent;
-    }
-
-    private String makeCommitList(List<PullRequestCommit> commits) {
-        StringBuilder sb = new StringBuilder();
-        for (PullRequestCommit commit : commits) {
-            sb.append(commit.commitShortId).append(": ").append(commit.commitMessage).append("\n");
-        }
-        return sb.toString();
-    }
 }

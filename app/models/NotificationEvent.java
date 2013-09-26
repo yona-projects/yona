@@ -7,14 +7,23 @@ import models.enumeration.State;
 import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+
+import controllers.UserApp;
+import controllers.routes;
 import play.Configuration;
+import play.api.mvc.Call;
 import play.db.ebean.Model;
 import play.i18n.Messages;
+import play.mvc.Http;
+import play.mvc.Http.Request;
 import playRepository.Commit;
+import playRepository.GitConflicts;
+import playRepository.GitRepository;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -242,4 +251,153 @@ public class NotificationEvent extends Model {
         }
     }
 
+    /**
+     * 신규로 코드를 보냈을때의 알림 설정
+     * @param pullRequestCall
+     * @param pullRequest
+     * @return
+     */
+    public static NotificationEvent addNewPullRequest(Call pullRequestCall, Http.Request request, PullRequest pullRequest) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
+        watchers.remove(pullRequest.contributor);
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = pullRequestCall.absoluteURL(request);
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.eventType = EventType.NEW_PULL_REQUEST;
+        notiEvent.oldValue = null;
+        notiEvent.newValue = pullRequest.body;
+
+        NotificationEvent.add(notiEvent);
+        
+        return notiEvent;
+    }
+        
+    /**
+     * 보낸코드의 상태가 변경되었을때의 알림 설정
+     * 
+     * @param pullRequestCall
+     * @param request
+     * @param pullRequest
+     * @param oldState
+     * @param newState
+     * @return
+     */
+    public static NotificationEvent addPullRequestUpdate(Call pullRequestCall, Http.Request request, PullRequest pullRequest, State oldState, State newState) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(UserApp.currentUser());
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = UserApp.currentUser().id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = pullRequestCall.absoluteURL(request);
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = newState.state();
+
+        add(notiEvent);
+        
+        return notiEvent;
+    }
+    
+    /**
+     * 보낸 코드의 병합 결과 알림 설정
+     * @param sender
+     * @param pullRequest
+     * @param conflicts
+     * @param request
+     * @param state
+     * @return
+     */
+    public static NotificationEvent addPullRequestMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, Request request, State state) {
+        
+        String title = NotificationEvent.formatReplyTitle(pullRequest);
+        Resource resource = pullRequest.asResource();
+        Set<User> receivers = new HashSet<>();
+        receivers.add(pullRequest.contributor);
+        Project toProject = pullRequest.toProject;
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = sender.id;
+        notiEvent.receivers = receivers;
+        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
+                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
+                request);
+        notiEvent.resourceId = resource.getId();
+        notiEvent.resourceType = resource.getType();
+        notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
+        notiEvent.newValue = state.state();
+        notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
+
+        add(notiEvent);
+        
+        return notiEvent;
+    }
+    
+    /**
+     * 보낸 코드의 커밋 변경시 알림 설정
+     * @param sender
+     * @param pullRequest
+     * @param request
+     * @param mergeResult
+     * @return
+     */
+    public static NotificationEvent addCommitChange(User sender, PullRequest pullRequest, Request request,
+            PullRequestMergeResult mergeResult) {
+            
+        String title = NotificationEvent.formatReplyTitle(pullRequest);
+        Resource resource = pullRequest.asResource();
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(pullRequest.contributor);
+        
+        Project toProject = pullRequest.toProject;
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = sender.id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
+                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
+                request);
+        notiEvent.resourceId = resource.getId();
+        notiEvent.resourceType = resource.getType();
+        notiEvent.eventType = EventType.PULL_REQUEST_COMMIT_CHANGED;
+        notiEvent.oldValue = makeCommitMessage(pullRequest.pullRequestCommits);
+        notiEvent.newValue = makeCommitMessage(mergeResult.getCommits());
+        
+        add(notiEvent);
+        
+        return notiEvent;
+    }
+
+    /**
+     * 알림용 커밋메세지를 생성
+     * @param commits
+     * @return
+     */
+    private static String makeCommitMessage(List<PullRequestCommit> commits) {
+        StringBuilder sb = new StringBuilder();
+        for (PullRequestCommit commit : commits) {
+            sb.append(commit.commitShortId).append(": ").append(commit.commitMessage).append("\n");
+        }
+        return sb.toString();
+    }
 }

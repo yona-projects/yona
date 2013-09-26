@@ -240,35 +240,11 @@ public class PullRequestApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
-        NotificationEvent notiEvent = addNewPullRequestNotification(pullRequestCall, pullRequest);
+        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
         
         PullRequestEvent.addEvent(notiEvent, pullRequest);
         
         return redirect(pullRequestCall);
-    }
-
-    private static NotificationEvent addNewPullRequestNotification(Call pullRequestCall, PullRequest pullRequest) {
-        String title = NotificationEvent.formatNewTitle(pullRequest);
-        Set<User> watchers = pullRequest.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
-        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
-        watchers.remove(pullRequest.contributor);
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.absoluteURL(request());
-        notiEvent.resourceId = pullRequest.id.toString();
-        notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.eventType = EventType.NEW_PULL_REQUEST;
-        notiEvent.oldValue = null;
-        notiEvent.newValue = pullRequest.body;
-
-        NotificationEvent.add(notiEvent);
-        
-        return notiEvent;
     }
 
     private static void validateForm(Form<PullRequest> form) {
@@ -570,8 +546,9 @@ public class PullRequestApp extends Controller {
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
 
-        NotificationEvent notiEvent = addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.CLOSED);
+        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, State.OPEN, State.CLOSED);
 
+        // merge이후 관련 pullRequest의 상태를 체크한다. 
         ConflictCheckMessage message = new ConflictCheckMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
         Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
@@ -579,29 +556,6 @@ public class PullRequestApp extends Controller {
         PullRequestEvent.addEvent(notiEvent, pullRequest);
                 
         return redirect(call);
-    }
-
-    private static NotificationEvent addPullRequestUpdateNotification(Call pullRequestCall, PullRequest pullRequest, State oldState, State newState) {
-        String title = NotificationEvent.formatNewTitle(pullRequest);
-        Set<User> watchers = pullRequest.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
-        watchers.remove(UserApp.currentUser());
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.absoluteURL(request());
-        notiEvent.resourceId = pullRequest.id.toString();
-        notiEvent.resourceType = pullRequest.asResource().getType();
-        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
-        notiEvent.oldValue = oldState.state();
-        notiEvent.newValue = newState.state();
-
-        NotificationEvent.add(notiEvent);
-        
-        return notiEvent;
     }
 
     /**
@@ -626,8 +580,8 @@ public class PullRequestApp extends Controller {
         pullRequest.reject();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        NotificationEvent notiEvent = addPullRequestUpdateNotification(call, pullRequest, State.OPEN, State.REJECTED);
-        
+        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, State.OPEN, State.REJECTED);
+
         PullRequestEvent.addEvent(notiEvent, pullRequest);
         
         return redirect(call);
@@ -654,7 +608,7 @@ public class PullRequestApp extends Controller {
 
         pullRequest.reopen();
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        NotificationEvent notiEvent = addPullRequestUpdateNotification(call, pullRequest, State.REJECTED, State.OPEN);
+        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, State.REJECTED, State.OPEN);
         
         PullRequestEvent.addEvent(notiEvent, pullRequest);
         return redirect(call);
