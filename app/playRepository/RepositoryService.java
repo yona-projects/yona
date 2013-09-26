@@ -1,7 +1,8 @@
 package playRepository;
 
 import actors.CommitCheckActor;
-import actors.ConflictCheckActor;
+
+import actors.PullRequestEventActor;
 import akka.actor.Props;
 import controllers.ProjectApp;
 import controllers.UserApp;
@@ -407,7 +408,7 @@ public class RepositoryService {
                 Set<String> branches = getBranches(commands);
                 for (String branch : branches) {
                     ConflictCheckMessage message = new ConflictCheckMessage(currentUser, request, project, branch);
-                    Akka.system().actorOf(new Props(ConflictCheckActor.class)).tell(message, null);
+                    Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
                 }
             }
 

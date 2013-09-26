@@ -15,8 +15,9 @@ public enum EventType {
     NEW_COMMENT("notification.type.new.comment", 7),
     NEW_SIMPLE_COMMENT("notification.type.new.simple.comment", 8),
     MEMBER_ENROLL_REQUEST("notification.type.member.enroll", 9),
-    PULL_REQUEST_CONFLICTS("notification.type.pull.request.conflicts", 10),
-    ISSUE_REFERRED("notification.type.issue.referred", 11);
+    PULL_REQUEST_MERGED("notification.type.pull.request.merged", 10),
+    ISSUE_REFERRED("notification.type.issue.referred", 11),
+    PULL_REQUEST_COMMIT_CHANGED("notification.type.pull.request.commit.changed", 12);
 
     private String descr;
 

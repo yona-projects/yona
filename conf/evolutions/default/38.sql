@@ -14,7 +14,11 @@ create sequence pull_request_event_seq;
 
 alter table pull_request_event add constraint fk_pull_request_event_1 foreign key (pull_request_id) references pull_request(id) on delete restrict on update restrict;
 
+ALTER TABLE pull_request ADD COLUMN is_conflict boolean;
+
 # --- !Downs
 drop table if exists pull_request_event;
 
 drop sequence if exists pull_request_event_seq;
+
+ALTER TABLE pull_request DROP COLUMN is_conflict;

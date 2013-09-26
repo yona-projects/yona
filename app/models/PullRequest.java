@@ -78,9 +78,14 @@ public class PullRequest extends Model implements ResourceConvertible {
     public Date received;
 
     public State state = State.OPEN;
+    
+    public Boolean isConflict;
 
     @OneToMany(cascade = CascadeType.ALL)
     public List<PullRequestCommit> pullRequestCommits;
+    
+    @OneToMany(cascade = CascadeType.ALL)
+    public List<PullRequestEvent> pullRequestEvents;
     
     /**
      * {@link #fromBranch}의 가장 최근 커밋 ID
@@ -254,7 +259,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                         Expr.and(
                                 Expr.eq("toProject", project),
                                 Expr.eq("toBranch", branch)))
-                .eq("state", State.OPEN)
+                .ne("state", State.CLOSED)
                 .findList();
     }
 

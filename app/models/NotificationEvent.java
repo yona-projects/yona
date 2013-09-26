@@ -145,9 +145,10 @@ public class NotificationEvent extends Model {
             } else {
                 return Messages.get("notification.pullrequest.reopened");
             }
-        case PULL_REQUEST_CONFLICTS:
-            return Messages.get("notification.pullrequest.conflicts") + "\n"
-                    + newValue;
+        case PULL_REQUEST_COMMIT_CHANGED:
+            return newValue;
+        case PULL_REQUEST_MERGED:
+            return Messages.get("notification.type.pull.request.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
         case MEMBER_ENROLL_REQUEST:
             if (RequestState.REQUEST.name().equals(newValue)) {
                 return Messages.get("notification.member.enroll.request");
@@ -240,7 +241,5 @@ public class NotificationEvent extends Model {
             event.delete();
         }
     }
-
-
 
 }

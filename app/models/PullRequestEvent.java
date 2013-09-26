@@ -1,5 +1,6 @@
 package models;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,12 +14,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import models.enumeration.EventType;
+import models.enumeration.State;
 import play.Configuration;
 import play.db.ebean.Model;
 
 @Entity
 public class PullRequestEvent extends Model implements TimelineItem {
-
+    
+    public static final String COMMIT_ID_DELIMITER = ",";
     private static final long serialVersionUID = 1981361242582594128L;
     public static Finder<Long, PullRequestEvent> finder = new Finder<Long, PullRequestEvent>(Long.class, PullRequestEvent.class); 
     
@@ -72,10 +75,10 @@ public class PullRequestEvent extends Model implements TimelineItem {
         event.save();
     }
     
-    public static void addEvent(NotificationEvent notiEvent, PullRequest pullRequest, String senderLoginId) {
+    public static void addEvent(NotificationEvent notiEvent, PullRequest pullRequest) {
         PullRequestEvent event = new PullRequestEvent();
         event.created = notiEvent.created;
-        event.senderLoginId = senderLoginId;
+        event.senderLoginId = notiEvent.getSender().loginId;
         event.pullRequest = pullRequest;
         event.eventType = notiEvent.eventType;
         event.oldValue = notiEvent.oldValue;
@@ -83,8 +86,50 @@ public class PullRequestEvent extends Model implements TimelineItem {
         
         add(event);
     }
+    
+    public static void addMergeEvent(User sender, EventType eventType, State state, PullRequest pullRequest) {
+        PullRequestEvent event = new PullRequestEvent();
+        event.created = new Date();
+        event.senderLoginId = sender.loginId;
+        event.pullRequest = pullRequest;
+        event.eventType = eventType;
+        event.newValue = state.state();
+        
+        add(event);
+    }
 
+    
+    public static void addCommitEvents(User sender, PullRequest pullRequest, List<PullRequestCommit> commits) {
+        Date createdDate = new Date();
+        PullRequestEvent event = new PullRequestEvent();
+        event.created = createdDate;
+        event.senderLoginId = sender.loginId;
+        event.pullRequest = pullRequest;
+        event.eventType = EventType.PULL_REQUEST_COMMIT_CHANGED;
+        event.newValue = StringUtils.EMPTY;
+
+        for (int i = 0; i < commits.size(); i++) {
+            event.newValue += commits.get(i).id;            
+            if (i != commits.size() - 1) {
+                event.newValue += PullRequestEvent.COMMIT_ID_DELIMITER;
+            }
+        }
+        
+        event.save();
+    }
+ 
     public static List<PullRequestEvent> findByPullRequest(PullRequest pullRequest) {
         return finder.where().eq("pullRequest", pullRequest).findList();
+    }
+    
+    public List<PullRequestCommit> getPullRequestCommits() {
+        List<PullRequestCommit> commits = new ArrayList<PullRequestCommit>();
+        
+        String[] commitIds = this.newValue.split(COMMIT_ID_DELIMITER);
+        for (String commitId: commitIds) {
+            commits.add(PullRequestCommit.findById(commitId));
+        }
+        
+        return commits;
     }
 }
