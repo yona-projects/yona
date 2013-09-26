@@ -7,6 +7,7 @@ import models.*;
 import models.enumeration.*;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -764,11 +765,16 @@ public class ProjectApp extends Controller {
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
 
-        ExpressionList<Project> el = Project.find.where().disjunction()
-                .icontains("owner", query)
-                .icontains("name", query)
-                .icontains("overview", query)
-                .endJunction();
+        ExpressionList<Project> el = Project.find.where();
+
+        if (StringUtils.isNotBlank(query)) {
+            el.disjunction()
+            .icontains("owner", query)
+            .icontains("name", query)
+            .icontains("overview", query)
+            .idIn(Project.find.where().icontains("labels.name", query).findIds())
+            .endJunction();
+        }
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {
