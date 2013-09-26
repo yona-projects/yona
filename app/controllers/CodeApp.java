@@ -84,7 +84,11 @@ public class CodeApp extends Controller {
     }
 
     public static Result showRawFile(String userName, String projectName, String path) throws Exception{
-        return ok(RepositoryService.getFileAsRaw(userName, projectName, path));
+        byte[] fileAsRaw = RepositoryService.getFileAsRaw(userName, projectName, path);
+        if(fileAsRaw == null) {
+            return redirect(routes.CodeApp.codeBrowser(userName, projectName) + "#/" + path);
+        }
+        return ok(fileAsRaw);
     }
 
     public static Result showImageFile(String userName, String projectName, String path) throws Exception{
