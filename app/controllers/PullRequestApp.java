@@ -247,6 +247,7 @@ public class PullRequestApp extends Controller {
         String title = NotificationEvent.formatNewTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
         watchers.remove(pullRequest.contributor);
 
         NotificationEvent notiEvent = new NotificationEvent();
