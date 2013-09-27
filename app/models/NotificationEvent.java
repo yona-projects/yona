@@ -217,6 +217,18 @@ public class NotificationEvent extends Model {
             }
         }
 
+        // 특정 알림 유형에 대해 설정을 꺼둔 사용자가 있을 경우 수신인에서 제외
+        Resource resource = Resource.get(event.resourceType, event.resourceId);
+        Set<User> receivers = event.receivers;
+        for (User receiver : receivers) {
+            if (!UserProjectNotification.isEnabledNotiType(receiver, resource.getProject(), event.eventType)) {
+                receivers.remove(receiver);
+            }
+        }
+        if (receivers.isEmpty()) {
+            return;
+        }
+
         event.save();
     }
 

@@ -24,7 +24,6 @@ import models.NotificationEvent;
 import models.Project;
 import models.PullRequest;
 import models.User;
-import models.UserProjectNotification;
 import models.enumeration.EventType;
 import models.resource.Resource;
 import akka.actor.UntypedActor;
@@ -70,10 +69,6 @@ public class ConflictCheckActor extends UntypedActor {
 
     private void addPullRequestConflictsNotification(User sender,
             PullRequest pullRequest, GitConflicts conflicts, Request request) {
-        if (!UserProjectNotification.isEnabledNotiType(pullRequest.contributor,
-                pullRequest.toProject, EventType.PULL_REQUEST_CONFLICTS)) {
-            return;
-        }
         String title = NotificationEvent.formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = new HashSet<>();

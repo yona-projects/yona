@@ -86,6 +86,10 @@ public abstract class Resource {
     public static Resource get(ResourceType resourceType, String resourceId) {
         Resource resource = null;
 
+        if (resourceType.equals(ResourceType.COMMIT)) {
+            return Commit.getAsResource(resourceId);
+        }
+
         Long longId = Long.valueOf(resourceId);
 
         switch(resourceType) {
@@ -123,8 +127,6 @@ public abstract class Resource {
                 return PullRequest.finder.byId(longId).asResource();
             case SIMPLE_COMMENT:
                 return SimpleComment.find.byId(longId).asResource();
-            case COMMIT:
-                return Commit.getAsResource(resourceId);
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }

@@ -109,7 +109,11 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         ExpressionList<Issue> el = Issue.finder.where().eq("project.id", project.id);
 
         if (filter != null) {
-            el.or(icontains("title", filter), icontains("body", filter));
+            el.disjunction()
+            .icontains("title", filter)
+            .icontains("body", filter)
+            .idIn(Issue.finder.where().icontains("comments.contents", filter).findIds())
+            .endJunction();
         }
 
         if (authorId != null) {

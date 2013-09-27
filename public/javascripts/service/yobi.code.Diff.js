@@ -60,7 +60,7 @@
             htElement.welComments = $('ul.comments');
 
             if (htVar.bCommentable) {
-                htElement.welIcon = $('#comment-icon-template').tmpl();
+                htElement.welIcon = $('#comment-icon-template').tmpl().css('visibility', 'hidden');
             }
             htElement.welEmptyLineNumColumn = $('#linenum-column-template').tmpl();
             htElement.welEmptyCommentButton = $('#comment-button-template').tmpl();

@@ -40,6 +40,14 @@
     }
 }
 
+@assginedMesssage(newValue: String, user:User) = @{
+    val LoginId = user.loginId
+    newValue match {
+        case LoginId => "issue.event.assignedToMe"
+        case _: String => "issue.event.assigned"
+        case _ => "issue.event.unassigned"
+    }
+}
 @isAuthorComment(commentId: String) = @{
     if(commentId == UserApp.currentUser().loginId) {"author"}   
 }
@@ -279,7 +287,6 @@
                 <div class="media-body">
                     <div class="meta-info">
                         <span class="comment_author pull-left">
-                            <i class="yobicon-comment"></i> 
                             <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                                 <strong>@comment.authorLoginId </strong>
                             </a>
@@ -308,11 +315,7 @@
                         }
                         case EventType.ISSUE_ASSIGNEE_CHANGED => {
                             <span class="state changed"><i class="yobicon-ftpaccounts"></i> @Messages("issue.state.assigned")</span>
-                            @Html(Messages(
-                            event.newValue match {
-                                case assignee: String => "issue.event.assigned"
-                                case _ => "issue.event.unassigned"
-                            }, linkToUser(user.loginId, user.name), linkToUser(event.newValue,user.name, true)))
+                            @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,user.name, true)))
                         }
                         case _ => {
                             @event.newValue by @linkToUser(user.loginId, user.name)
