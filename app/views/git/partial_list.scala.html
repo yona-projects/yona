@@ -1,12 +1,12 @@
-@(project: Project, pullRequests: List[PullRequest])
+@(project: Project, page: com.avaje.ebean.Page[PullRequest])
 @import utils.TemplateHelper._
 
 @branchName(branch:String) = @{
     branch.replace("refs/heads/", "")
 }
 
-@if(pullRequests.length > 0){
-    @for(req <- pullRequests.iterator()) {
+@if(page.getList().size()> 0){
+    @for(req <- page.getList().iterator()) {
         <div class="row-fluid issue-item">
             <div class="span10">
                 <div class="num pull-left number-id">
@@ -72,6 +72,7 @@
             </div>
         </div>
     }
+    <div id="pagination"><!-- pagination.js will fill here. --></div>
 } else {
 <div class="row-fluid">
     <ul class="thumbnails">
@@ -111,5 +112,7 @@
         $('span[data-toggle="tooltip"]').tooltip({
             placement : "bottom"
         });
+        var welPagination = $("#pagination");
+        yobi.Pagination.update(welPagination, @page.getTotalPageCount());
     });
 </script>

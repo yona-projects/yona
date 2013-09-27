@@ -1,5 +1,6 @@
 package models;
 
+import com.avaje.ebean.Page;
 import controllers.UserApp;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
@@ -31,6 +32,8 @@ public class PullRequest extends Model {
     private static final long serialVersionUID = 1L;
 
     public static final Finder<Long, PullRequest> finder = new Finder<>(Long.class, PullRequest.class);
+
+    public static final int ITEMS_PER_PAGE = 15;
 
     @Id
     public Long id;
@@ -424,4 +427,20 @@ public class PullRequest extends Model {
         }
     }
 
+    public static Page<PullRequest> findPagingList(State state, Project project, int pageNum) {
+        return finder.where()
+                .eq("toProject", project)
+                .eq("state", state)
+                .order().desc("created")
+                .findPagingList(ITEMS_PER_PAGE)
+                .getPage(pageNum);
+    }
+
+    public static Page<PullRequest> findSentPullRequests(Project project, int pageNum) {
+        return finder.where()
+                .eq("fromProject", project)
+                .order().desc("created")
+                .findPagingList(ITEMS_PER_PAGE)
+                .getPage(pageNum);
+    }
 }
