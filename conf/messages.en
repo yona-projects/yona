@@ -235,6 +235,7 @@ issue.unwatch.start = Notifications of this issue has muted
 issue.event.open = {0} reopened this issue
 issue.event.closed = {0} closed this issue
 issue.event.assigned = {0} assigned this issue to {1}
+issue.event.assignedToMe = {0} assigned this issue to her/himself
 issue.event.unassigned = {0} unassinged this issue
 
 #Post

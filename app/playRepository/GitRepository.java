@@ -701,7 +701,7 @@ public class GitRepository implements PlayRepository {
         Project fromProject = pullRequest.fromProject;
         new Git(cloneRepository).commit()
                 .setAmend(true).setAuthor(user.name, user.email)
-                .setMessage("Merge pull request #" + pullRequest.id +
+                .setMessage("Merge pull request #" + pullRequest.number +
                         " from " + fromProject.owner + "/" + fromProject.name + " " + pullRequest.fromBranch)
                 .setCommitter(user.name, user.email)
                 .call();

@@ -24,6 +24,7 @@ import views.html.git.*;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -159,6 +160,7 @@ public class PullRequestApp extends Controller {
             result.put(url, routes.ProjectApp.project(forkProject.owner, forkProject.name).url());
             return ok(result);
         } catch (Exception e) {
+            play.Logger.error(MessageFormat.format("Failed to fork \"{0}\"", originalProject), e);
             result.put(status, failed);
             result.put(url, routes.PullRequestApp.pullRequests(originalProject.owner, originalProject.name).url());
             return ok(result);
@@ -703,8 +705,8 @@ public class PullRequestApp extends Controller {
 
         Project project = pullRequest.fromProject;
 
-        if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        if(project == null) {
+            return notFound(("No project matches given parameters '" + userName + "' and project_name '" + projectName + "'"));
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
@@ -748,9 +750,10 @@ public class PullRequestApp extends Controller {
             return redirect(routes.UserApp.loginForm());
         }
 
-        if(project == null ) {
-            return badRequestForNullProject(userName, projectName);
+        if(project == null) {
+            return notFound(("No project matches given parameters '" + userName + "' and project_name '" + projectName + "'"));
         }
+
         if(!project.isFork()) {
             return badRequest(ErrorViews.BadRequest.render("Only fork project is allowed this request", project));
         }
@@ -791,11 +794,11 @@ public class PullRequestApp extends Controller {
     private static Result validatePullRequest(Project project, PullRequest pullRequest,
                                               String userName, String projectName, long pullRequestNumber) {
         if(project == null) {
-            return badRequestForNullProject(userName, projectName);
+            return notFound(("No project matches given parameters '" + userName + "' and project_name '" + projectName + "'"));
         }
 
         if(pullRequest == null) {
-            return badRequest(ErrorViews.BadRequest.render("No pull_request matches given pull_request_number '" + pullRequestNumber + "'", project));
+            return notFound(ErrorViews.NotFound.render("No pullrequest matches given parameter '" + pullRequestNumber + "'", project));
         }
 
         Project toProject = pullRequest.toProject;
