@@ -29,7 +29,7 @@
         </a>
         <label>
             <div class="title">
-                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, req.id)" class="title-link">@req.title</a>
+                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, req.number)" class="title-link">@req.title</a>
             </div>
             <div class="infos nm">
                 <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
