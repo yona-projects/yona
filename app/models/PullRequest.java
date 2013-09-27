@@ -427,6 +427,16 @@ public class PullRequest extends Model {
         }
     }
 
+    /**
+     * {@code project}에서 {@code state}에 해당하는 풀리퀘 목록 중 한 페이지를 가져온다.
+     *
+     * {@code pageNum}은 0부터 시작하고, 한 페이지당 {@code ITEMS_PER_PAGE} 만큼 가져온다.
+     *
+     * @param state
+     * @param project
+     * @param pageNum
+     * @return
+     */
     public static Page<PullRequest> findPagingList(State state, Project project, int pageNum) {
         return finder.where()
                 .eq("toProject", project)
@@ -436,6 +446,15 @@ public class PullRequest extends Model {
                 .getPage(pageNum);
     }
 
+    /**
+     * {@code project}에서 보낸 풀리퀘 목록 중 한 페이지를 가져온다.
+     *
+     * {@code pageNum}은 0부터 시작하고, 한 페이지당 {@code ITEMS_PER_PAGE} 만큼 가져온다.
+     *
+     * @param project
+     * @param pageNum
+     * @return
+     */
     public static Page<PullRequest> findSentPullRequests(Project project, int pageNum) {
         return finder.where()
                 .eq("fromProject", project)
