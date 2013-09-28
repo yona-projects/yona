@@ -2,6 +2,8 @@ package models;
 
 import com.avaje.ebean.Page;
 import controllers.UserApp;
+import controllers.routes;
+import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
@@ -15,6 +17,7 @@ import com.avaje.ebean.Expr;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import playRepository.GitRepository;
 import utils.AccessControl;
 import utils.Constants;
@@ -23,10 +26,8 @@ import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -289,6 +290,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         this.fromBranch = newPullRequest.fromBranch;
         this.title = newPullRequest.title;
         this.body = newPullRequest.body;
+        updateIssueEvents();
         update();
     }
 
@@ -382,9 +384,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     @Transactional
-    public void saveWithNumber() {
+    @Override
+    public void save() {
         this.number = nextPullRequestNumber(toProject);
-        this.save();
+        super.save();
+        addNewIssueEvents();
     }
 
     public static long nextPullRequestNumber(Project project) {
@@ -465,4 +469,59 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .findPagingList(ITEMS_PER_PAGE)
                 .getPage(pageNum);
     }
+
+    /**
+     * 새로운 풀리퀘가 저장될때 풀리퀘의 제목과 본문에서 참조한 이슈에 이슈 이벤트를 생성한다.
+     */
+    private void addNewIssueEvents() {
+        List<Issue> referredIsseus = IssueEvent.findReferredIssue(this.title + this.body, this.toProject);
+        String newValue = getNewEventValue();
+        for(Issue issue : referredIsseus) {
+            IssueEvent issueEvent = new IssueEvent();
+            issueEvent.issue = issue;
+            issueEvent.senderLoginId = this.contributor.loginId;
+            issueEvent.newValue = newValue;
+            issueEvent.created = new Date();
+            issueEvent.eventType = EventType.ISSUE_REFERRED;
+            issueEvent.save();
+        }
+    }
+
+    private String getNewEventValue() {
+        return Messages.get("issue.event.referred.from.pullrequest",
+                this.contributor.loginId, this.fromBranch, this.toBranch,
+                routes.PullRequestApp.pullRequest(this.toProject.owner, this.toProject.name, this.number));
+    }
+
+    /**
+     * 풀리퀘가 수정될 때 기존의 모든 이슈 이벤트를 삭제하고 새로 추가한다.
+     */
+    public void updateIssueEvents() {
+        deleteIssueEvents();
+        addNewIssueEvents();
+    }
+
+    /**
+     * 풀리퀘가 삭제될 때 관련있는 모든 이슈 이벤트를 삭제한다.
+     */
+    public void deleteIssueEvents() {
+        String newValue = getNewEventValue();
+
+        List<IssueEvent> oldEvents = IssueEvent.find.where()
+                .eq("newValue", newValue)
+                .eq("senderLoginId", this.contributor.loginId)
+                .eq("eventType", EventType.ISSUE_REFERRED)
+                .findList();
+
+        for(IssueEvent event : oldEvents) {
+            event.delete();
+        }
+    }
+
+    @Override
+    public void delete() {
+        deleteIssueEvents();
+        super.delete();
+    }
+
 }

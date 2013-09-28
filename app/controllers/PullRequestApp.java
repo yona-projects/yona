@@ -235,7 +235,7 @@ public class PullRequestApp extends Controller {
             return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, sentRequest.number));
         }
 
-        pullRequest.saveWithNumber();
+        pullRequest.save();
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 

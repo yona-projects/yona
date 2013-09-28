@@ -29,8 +29,8 @@
 }
 
 @linkToUser(loginId: String, loginName: String, showAvatar: Boolean = true) = {
-    @loginId match { 
-    case (loginId: String) => { 
+    @loginId match {
+    case (loginId: String) => {
         @if(showAvatar){ @avatarByLoginId(loginId, loginName) }
         <a href="@routes.UserApp.userInfo(loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@loginName">
             <strong>@loginId</strong>
@@ -49,7 +49,7 @@
     }
 }
 @isAuthorComment(commentId: String) = @{
-    if(commentId == UserApp.currentUser().loginId) {"author"}   
+    if(commentId == UserApp.currentUser().loginId) {"author"}
 }
 
 @getissueStateIcons(state: String) = @{
@@ -101,11 +101,11 @@
             <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
             <div class="attachments" data-resourceType="@ResourceType.ISSUE_POST" data-resourceId="@issue.id"></div>
         </div>
-        
+
         <div class="span3 mb20">
             <div class="author-info">
                 <form id="issueUpdateForm" action="@routes.IssueApp.massUpdate(project.owner, project.name)" method="post" class="frm-wrap">
-                    <input type="hidden" name="issues[0].id" value="@issue.id" /> 
+                    <input type="hidden" name="issues[0].id" value="@issue.id" />
 
                     @**<!-- author  -->**@
                     <dl class="author">
@@ -125,7 +125,7 @@
                         </dd>
                     </dl>
                     @**<!-- // -->**@
-                    
+
                     @**<!-- state  -->**@
                     <!--
                     <dl>
@@ -144,7 +144,7 @@
                         </dd>
                     </dl>
                     -->
-                    
+
                     @**<!-- assignee  -->**@
                     <dl>
                         <dt>@Messages("issue.assignee")</dt>
@@ -191,7 +191,7 @@
                             <a href="@routes.UserApp.userInfo(issue.assignee.user.loginId)" class="usf-group">
                                 <span class="avatar-wrap smaller">
                                     <img src="@User.findByLoginId(issue.assignee.user.loginId).avatarUrl" width="20" height="20">
-                                </span>                                
+                                </span>
                                 <strong class="name">@issue.assigneeName</strong>
                                 <span class="loginid"> <strong>@{"@"}</strong>@issue.assignee.user.loginId</span>
                             </a>
@@ -240,10 +240,10 @@
                         </dd>
                     </dl>
                     @**<!-- // -->**@
-                    
+
                 </form>
             </div>
-        </div>        
+        </div>
     </div>
 
     <div class="board-footer board-actrow">
@@ -258,8 +258,9 @@
         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
         <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
         }
-        
+
         <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+
             @if(issue.getWatchers.contains(UserApp.currentUser())) {
                 @Messages("project.unwatch")
             } else {
@@ -282,7 +283,7 @@
                     <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                         <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
                     </a>
-                </div>    
+                </div>
                 <div class="media-body">
                     <div class="meta-info">
                         <span class="comment_author pull-left">
@@ -297,9 +298,9 @@
                         </span>
                         }
                     </div>
-                    
+
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                    
+
                     <div class="attachments pull-right" data-resourceType="@ResourceType.ISSUE_COMMENT" data-resourceId="@comment.id"></div>
                 </div>
             </li>
@@ -315,6 +316,9 @@
                         case EventType.ISSUE_ASSIGNEE_CHANGED => {
                             <span class="state changed"><i class="yobicon-ftpaccounts"></i> @Messages("issue.state.assigned")</span>
                             @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,user.name, true)))
+                        }
+                        case EventType.ISSUE_REFERRED => {
+                            @Html(event.newValue) by @linkToUser(user.loginId, user.name)
                         }
                         case _ => {
                             @event.newValue by @linkToUser(user.loginId, user.name)

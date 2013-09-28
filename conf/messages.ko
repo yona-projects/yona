@@ -20,7 +20,7 @@
 # - user
 # - userinfo
 # - validation
-# 
+#
 app.description = Make it better and simpler!
 app.name = Yobi
 app.restart.notice = 서버를 재시작해야합니다.
@@ -154,6 +154,8 @@ issue.event.assignedToMe = {0}님이 자신을 이슈의 담당자로 지정하�
 issue.event.closed = {0}님이 이 이슈를 닫았습니다.
 issue.event.open = {0}님이 이 이슈를 다시 열었습니다.
 issue.event.unassigned = {0}님이 이 이슈의 담당자를 "없음"으로 설정하였습니다.
+issue.event.referred.from.pullrequest = {0}님이 <a href="{3}">{1}에서 {2}로 보내는 코드</a>에서 이 이슈를 언급했습니다.
+issue.event.referred.from.commit = {0}님이 <a href="{2}">{1}</a>에서 이 이슈를 언급했습니다.
 issue.is.empty = 등록된 이슈가 없습니다.
 issue.list.all = 전체 이슈
 issue.list.assignedToMe = 나에게 할당된 이슈
@@ -228,6 +230,7 @@ issue.update.detachLabel = 라벨 제거
 issue.update.milestone = 마일스톤 변경
 issue.update.state = 상태 변경
 issue.watch.start = 이제 이 이슈에 관한 알림을 받습니다
+<<<<<<< HEAD
 label = 라벨
 label.add = 라벨 추가
 label.addNewCategory = 새 분류 추가

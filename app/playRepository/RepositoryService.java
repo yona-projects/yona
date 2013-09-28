@@ -1,20 +1,28 @@
 package playRepository;
 
+import actors.CommitCheckActor;
 import actors.ConflictCheckActor;
 import akka.actor.Props;
 import controllers.ProjectApp;
 import controllers.UserApp;
+import models.CommitCheckMessage;
 import models.ConflictCheckMessage;
 import models.Project;
 import models.User;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
 import org.eclipse.jgit.transport.PacketLineOut;
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
@@ -35,15 +43,8 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.io.*;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 /**
  * 저장소 관련 서비스를 제공하는 클래스
@@ -382,6 +383,12 @@ public class RepositoryService {
             public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
                 updateLastPushedDate();
                 conflictCheck(commands);
+                commitCheck(commands);
+            }
+
+            private void commitCheck(Collection<ReceiveCommand> commands) {
+                CommitCheckMessage message = new CommitCheckMessage(commands, project);
+                Akka.system().actorOf(new Props(CommitCheckActor.class)).tell(message, null);
             }
 
             /*

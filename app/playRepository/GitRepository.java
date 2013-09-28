@@ -120,9 +120,13 @@ public class GitRepository implements PlayRepository {
      * @return
      * @throws IOException
      */
-    public static Repository buildGitRepository(String ownerName, String projectName) throws IOException {
-        return new RepositoryBuilder().setGitDir(
-                new File(getGitDirectory(ownerName, projectName))).build();
+    public static Repository buildGitRepository(String ownerName, String projectName) {
+        try {
+            return new RepositoryBuilder().setGitDir(
+                    new File(getGitDirectory(ownerName, projectName))).build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -133,7 +137,7 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      * @see #buildGitRepository(String, String)
      */
-    public static Repository buildGitRepository(Project project) throws IOException {
+    public static Repository buildGitRepository(Project project) {
         return buildGitRepository(project.owner, project.name);
     }
 
