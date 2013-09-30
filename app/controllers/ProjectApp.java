@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
@@ -768,12 +769,15 @@ public class ProjectApp extends Controller {
         ExpressionList<Project> el = Project.find.where();
 
         if (StringUtils.isNotBlank(query)) {
-            el.disjunction()
-            .icontains("owner", query)
+            Junction<Project> junction = el.disjunction();
+            junction.icontains("owner", query)
             .icontains("name", query)
-            .icontains("overview", query)
-            .idIn(Project.find.where().icontains("labels.name", query).findIds())
-            .endJunction();
+            .icontains("overview", query);
+            List<Object> ids = Project.find.where().icontains("labels.name", query).findIds();
+            if (!ids.isEmpty()) {
+                junction.idIn(ids);
+            }
+            junction.endJunction();
         }
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
