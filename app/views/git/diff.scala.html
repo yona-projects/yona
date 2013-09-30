@@ -32,7 +32,7 @@
     <div class="code-browse-wrap">
         <div class="actrow">
             <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="nbtn medium orange">
-                <i class="yobicon-arrow-right"></i> @Messages("back.to.the.pullrequest")
+                <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
             </a>
             
             <div class="pull-right">
@@ -145,11 +145,20 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
+<<<<<<< HEAD
             "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, pull.fromProject, ResourceType.CODE_COMMENT)){true}else{false},
             "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
             "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
             "sCommitId"      : "@commit.getId"
+=======
+            "bCommentable"     : bCommentable,
+            "sParentCommitId"  : parentCommitId,
+            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
+            "sWatchUrl"        : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
+            "sUnwatchUrl"      : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
+            "sCommitId"        : "@commit.getId"
+>>>>>>> remove unused/duplicated messages
         });
 
         yobi.Mention({

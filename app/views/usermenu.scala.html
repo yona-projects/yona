@@ -4,7 +4,7 @@
 @if(session.contains("loginId")){
     @if(project != null){
     <div class="member-role">
-        @Messages("role." + ProjectUser.roleOf(session.get("loginId"), project))
+        @Messages("user.role." + ProjectUser.roleOf(session.get("loginId"), project))
     </div>
     }
     <div class="usermenu btn-group">

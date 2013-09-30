@@ -20,11 +20,11 @@
         <div class="span12">
             <dl>
                 <dt>
-                    <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong><!--@Messages("post.new.title")--></label>
+                    <label for="title"><strong class="secondary-txt">#@issue.getNumber</strong><!--@Messages("title")--></label>
                 </dt>
                 <dd>
                 	@defining(issueForm.errors().get("title")) { errors =>
-                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("post.new.title")">
+                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")">
 	                    @if(errors != null) {
 							<div class="message">
 							@for(error <- errors) {
@@ -79,7 +79,7 @@
     
                 @if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
                 <dl class="issue-option">
-                     <dt>@Messages("issue.new.detailInfo.assignee")</dt>
+                     <dt>@Messages("issue.assignee")</dt>
                      <dd>
                         <div id="assignee" class="btn-group auto" data-name="assignee.user.id">
                             <button class="btn dropdown-toggle auto" data-toggle="dropdown">
@@ -111,7 +111,7 @@
     
                 @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
                 <dl id="milestoneOption" class="issue-option">
-                    <dt>@Messages("issue.new.detailInfo.milestone")</dt>
+                    <dt>@Messages("milestone")</dt>
                     <dd>
                     @defining(Milestone.options(project.id)){ milestones =>
                         @if(milestones.isEmpty()) {
@@ -120,7 +120,7 @@
                         } else {
                             <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
                                 <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                    <span class="d-label">@Messages("issue.new.selectDefault.milestone")</span>
+                                    <span class="d-label">@Messages("issue.milestone.selectDefault")</span>
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
