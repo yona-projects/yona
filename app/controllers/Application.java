@@ -16,19 +16,8 @@ import java.util.List;
 public class Application extends Controller {
 
     public static Result index() {
-    	UserApp.isRememberMe();
-
-        String orderString = request().getQueryString("order");
-
-        if (session().containsKey(UserApp.SESSION_LOGINID)) {
-        	String userId = session().get("userId");
-        	if(StringUtils.isNumber(userId)) {
-        		List<Project> projects = Project.findProjectsByMemberWithFilter(Long.parseLong(userId), orderString);
-        		return ok(index.render(projects, orderString));
-        	}
-        }
-
-        return ok(index.render(null, null));
+        UserApp.isRememberMe();
+        return ok(index.render(UserApp.currentUser()));
     }
 
     public static Result removeTrailer(String paths){
@@ -69,7 +58,7 @@ public class Application extends Controller {
     }
 
     public static Result navi() {
-    	return ok(index.render(null, null));
+        return ok(index.render(UserApp.currentUser()));
     }
 
     public static Result UIKit(){

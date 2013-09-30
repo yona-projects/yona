@@ -1,4 +1,4 @@
-@(projects:List[Project], orderString:String)
+@(currentUser:models.User)
 
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
@@ -14,7 +14,7 @@
 	                <span>Issue</span> Tracker. 
 	            </p>
 	        </div>
-            <ul class="intros @if(!session.contains("userId")){ index }">
+            <ul class="intros@if(currentUser == User.anonymous){ index}">
 				<li class="project">
 					<strong>프로젝트</strong>
 					
@@ -41,7 +41,7 @@
         </div>
         
         <div class="row-fluid content-container">
-            @if(session.contains("userId")){
+            @if(currentUser != User.anonymous){
 	        <div class="span9 main-stream">
                 <ul class="activity-streams notification-wrap unstyled">
                     @views.html.partial_notifications(0, 20)
@@ -50,11 +50,10 @@
 	       
 	       <div class="span3">
                 <div class="projects-wrap">
-                    @myProjectList(projects, orderString)
-
                     <div class="btn-wrap">
                         <a href="@routes.ProjectApp.newProjectForm()"><i class="yobicon-database-add"></i> @Messages("button.newProject")</a>
                     </div>
+                    @myProjectList(currentUser)
                 </div>
 	       </div>
 

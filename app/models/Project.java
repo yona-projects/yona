@@ -1,6 +1,7 @@
 package models;
 
 import com.avaje.ebean.Ebean;
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
@@ -12,6 +13,8 @@ import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
 import models.resource.Resource;
+
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
@@ -229,14 +232,30 @@ public class Project extends Model implements LabelOwner {
     }
 
     /**
-     * {@code userId} 가 owner가 아니고 멤버로 있는 프로젝트 목록을 반환한다.
+     * {@code user} 가 owner가 아니고 멤버로 있는 프로젝트 목록을 반환한다.
      *
-     * @param userId the user id
-     * @return {@code userId}의 프로젝트 목록
+     * @param user 사용자
+     * @return {@code user}의 프로젝트 목록
      */
     public static List<Project> findProjectsJustMemberAndNotOwner(User user) {
-        return find.where().eq("projectUser.user.id", user.id)
-                .ne("owner", user.loginId).findList();
+        return findProjectsJustMemberAndNotOwner(user, null);
+    }
+
+    /**
+     * {@code user} 가 owner가 아니고 멤버로 있는 프로젝트 목록을 반환한다.
+     * 반환되는 목록을 {@code orderString} 을 이용해서 정렬한다.
+     *
+     * @param user 사용자
+     * @param orderString 정렬 정보
+     * @return {@code user}의 프로젝트 목록
+     */
+    public static List<Project> findProjectsJustMemberAndNotOwner(User user, String orderString) {
+        ExpressionList<Project> el = find.where()
+                .eq("projectUser.user.id", user.id).ne("owner", user.loginId);
+        if (StringUtils.isNotBlank(orderString)) {
+            el.orderBy(orderString);
+        }
+        return el.findList();
     }
 
 
