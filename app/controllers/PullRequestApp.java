@@ -228,6 +228,8 @@ public class PullRequestApp extends Controller {
         pullRequest.contributor = UserApp.currentUser();
         pullRequest.fromProject = project;
         pullRequest.toProject = originalProject;
+        pullRequest.isMerging = true;
+        pullRequest.isConflict = false;
 
         // 동일한 브랜치로 주고 받으며, Open 상태의 PullRequest가 이미 존재한다면 해당 PullRequest로 이동한다.
         PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(pullRequest);
@@ -240,9 +242,13 @@ public class PullRequestApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
-        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
         
+        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
+ 
+        PullRequestEventMessage message = new PullRequestEventMessage(
+                UserApp.currentUser(), request(), pullRequest.toProject, pullRequest.toBranch);
+        Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
         
         return redirect(pullRequestCall);
     }
@@ -325,8 +331,6 @@ public class PullRequestApp extends Controller {
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온 {@code pullRequestId}에 해당하는 코드 요청을 조회한다.
      *
-     * 해당 코드 요청이 열려 있는 상태일 경우에는 자동으로 merge해도 안전한지 확인한다.
-     *
      * @param userName
      * @param projectName
      * @param pullRequestNumber
@@ -334,166 +338,27 @@ public class PullRequestApp extends Controller {
      */
     public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
-        if(result != null) {
+        if (result != null) {
             return result;
         }
 
-        final boolean[] isSafe = {false};
-        final List<GitCommit> commits = new ArrayList<>();
-        final GitConflicts[] conflicts = {null};
-        final String[] fetch = new String[1];
-        if(!pullRequest.isClosed()) {
-            GitRepository.cloneAndFetch(pullRequest, new GitRepository.AfterCloneAndFetchOperation() {
-                public void invoke(GitRepository.CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                    Repository clonedRepository = cloneAndFetch.getRepository();
-
-                    // merge할 커밋 확인.(merge하기 전에 확인해야 한다.)
-                    List<GitCommit> commitList = GitRepository.diffCommits(clonedRepository,
-                            cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
-                    for(GitCommit commit : commitList) {
-                        commits.add(commit);
-                    }
-
-                    // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
-                    GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
-
-                    fetch[0] = GitRepository.getPatch(clonedRepository,
-                            cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
-
-                    // 코드를 보낸 브랜치의 코드를 merge 한다.
-                    MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
-
-                    // merge 결과 확인
-                    isSafe[0] = mergeResult.getMergeStatus().isSuccessful();
-
-                    if(mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
-                        conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
-                    }
-                }
-            });
-        } else {
-            List<GitCommit> commitList = GitRepository.diffCommits(pullRequest);
-            for(GitCommit commit : commitList) {
-                commits.add(commit);
-            }
-            fetch[0] = GitRepository.getPatch(pullRequest);
-        }
-
-        // add pullRequest commit changed event
-        if(pullRequest.pullRequestCommits == null || pullRequest.pullRequestCommits.size() == 0) {
-            PullRequestEvent.addCommitEvents(UserApp.currentUser(), pullRequest, getNewCommits(pullRequest, commits));        
-        }
-        
-        // pullrequest commit 처리
-        List<PullRequestCommit> commitList = new ArrayList<>();
-        List<PullRequestCommit> currentList = getCurrentCommits(pullRequest, commits);
-        List<PullRequestCommit> priorList = getPriorCommits(pullRequest, commits);
-
-        commitList.addAll(currentList);
-        commitList.addAll(priorList);
-        
         String activeTab = request().getQueryString("activeTab");
         if(activeTab == null && !isValid(activeTab)) {
             activeTab = "info";
         }
-
+        
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
-        if(pullRequest.isClosed()) {
+        
+        if (pullRequest.isClosed()) {
             canDeleteBranch = GitRepository.canDeleteFromBranch(pullRequest);
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
 
-        List<SimpleComment> comments = SimpleComment.findByResourceKey(pullRequest.getResourceKey());
-        List<CodeComment> codeComments = CodeComment.findByCommits(pullRequest.fromProject, commitList);
-        List<PullRequestEvent> events = PullRequestEvent.findByPullRequest(pullRequest);
-        
-        List<TimelineItem> timeLineCommentList = new ArrayList<>();
-        timeLineCommentList.addAll(comments);
-        timeLineCommentList.addAll(codeComments);
-        timeLineCommentList.addAll(events);
-
-        Collections.sort(timeLineCommentList, new Comparator<TimelineItem>() {
-            @Override
-            public int compare(TimelineItem o1, TimelineItem o2) {
-                return o1.getDate().compareTo(o2.getDate());
-            }
-            
-        });
-        
-        int totalCommentCount = comments.size() + codeComments.size();
-        return ok(view.render(project, pullRequest, isSafe[0], commits, comments, canDeleteBranch, canRestoreBranch, conflicts[0], fetch[0], activeTab, timeLineCommentList, totalCommentCount));
-    }
-
-    private static List<PullRequestCommit> getPriorCommits(final PullRequest pullRequest, final List<GitCommit> commits) {
-        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
-        for (PullRequestCommit prCommit: PullRequestCommit.find.where().eq("pullRequest", pullRequest).findList()) {
-            boolean existCommit = false;
-            for (GitCommit commit: commits) {
-                if(commit.getId().equals(prCommit.commitId)) {
-                    existCommit = true;
-                    break;
-                }
-            }
-
-            if(!existCommit) {
-                prCommit.state = PullRequestCommit.State.PRIOR;
-                prCommit.update();
-                list.add(prCommit);
-            }
-        }
-        return list;
-    }
-
-    private static List<PullRequestCommit> getCurrentCommits(final PullRequest pullRequest, final List<GitCommit> commits) {
-        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
-        for (GitCommit commit: commits) {       
-            boolean existCommit = false;
-            for (PullRequestCommit prCommit: PullRequestCommit.find.where().eq("pullRequest", pullRequest).findList()) {
-                if(commit.getId().equals(prCommit.commitId)) {  // 저장된 커밋과 같은 커밋이 있는지 체크
-                    existCommit = true;
-                    list.add(prCommit);
-                    break;
-                }
-            }
-            
-            if(!existCommit) {  // 같은 커밋이 없으면 추가
-                PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
-                pullRequestCommit.pullRequest = pullRequest;
-                
-                pullRequestCommit.save();
-                list.add(pullRequestCommit);
-            }
-        }
-        return list;
-    }
-    
-    private static List<PullRequestCommit> getNewCommits(final PullRequest pullRequest, final List<GitCommit> commits) {
-        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
-        for (GitCommit commit: commits) {
-            PullRequestCommit pullRequestCommit = bindPullRequestCommit(commit);
-            pullRequestCommit.pullRequest = pullRequest;           
-            pullRequestCommit.save();
-            list.add(pullRequestCommit);       
-        }
-        return list;
-    }
-    
-
-    private static PullRequestCommit bindPullRequestCommit(GitCommit commit) {
-        PullRequestCommit pullRequestCommit = new PullRequestCommit();
-        pullRequestCommit.commitId = commit.getId();
-        pullRequestCommit.commitShortId = commit.getShortId();
-        pullRequestCommit.commitMessage = commit.getMessage();
-        pullRequestCommit.authorEmail = commit.getAuthorEmail();
-        pullRequestCommit.authorDate = commit.getAuthorDate();
-        pullRequestCommit.created = JodaDateUtil.now(); 
-        pullRequestCommit.state = PullRequestCommit.State.CURRENT;
-        
-        return pullRequestCommit;
+        return ok(view.render(project, pullRequest, canDeleteBranch, canRestoreBranch, activeTab));
     }
 
     private static boolean isValid(String activeTab) {
@@ -549,7 +414,7 @@ public class PullRequestApp extends Controller {
         NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, State.OPEN, State.CLOSED);
 
         // merge이후 관련 pullRequest의 상태를 체크한다. 
-        ConflictCheckMessage message = new ConflictCheckMessage(
+        PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
         Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
 

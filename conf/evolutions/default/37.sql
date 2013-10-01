@@ -16,7 +16,6 @@ create sequence pull_request_commit_seq;
 
 alter table pull_request_commit add constraint fk_pull_request_commit_1 foreign key (pull_request_id) references pull_request(id) on delete restrict on update restrict;
 
-
 # --- !Downs
 drop table if exists pull_request_commit;
 

@@ -1242,7 +1242,12 @@ public class GitRepository implements PlayRepository {
         Repository repo = null;
         RevWalk walk = null;
         try {
-            repo = buildGitRepository(pullRequest.toProject);
+            if(pullRequest.isClosed()) {
+                repo = buildGitRepository(pullRequest.toProject);            
+            } else {
+                repo = buildGitRepository(pullRequest.fromProject);
+            }
+            
             ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
             if(untilId == null) {
                 return commits;
@@ -1302,7 +1307,14 @@ public class GitRepository implements PlayRepository {
         Repository repo = null;
         RevWalk walk = null;
         try {
-            repo = buildGitRepository(pullRequest.toProject);
+        
+            if (pullRequest.isClosed()) {
+                repo = buildGitRepository(pullRequest.toProject);
+            } else {
+                repo = buildGitRepository(pullRequest.fromProject);
+            }
+            
+            
             ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
             if(untilId == null) {
                 return "";

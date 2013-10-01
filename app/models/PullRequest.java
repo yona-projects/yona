@@ -10,15 +10,33 @@ import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+
 import org.joda.time.Duration;
 
+import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Expr;
+import com.avaje.ebean.RawSql;
+import com.avaje.ebean.RawSqlBuilder;
+import com.avaje.ebean.SqlQuery;
+import com.avaje.ebean.SqlRow;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+
 import play.i18n.Messages;
+
+import playRepository.GitCommit;
+import playRepository.GitConflicts;
 import playRepository.GitRepository;
+import playRepository.GitRepository.AfterCloneAndFetchOperation;
+import playRepository.GitRepository.CloneAndFetch;
 import utils.AccessControl;
 import utils.Constants;
 import utils.JodaDateUtil;
@@ -26,14 +44,26 @@ import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+
 import java.util.*;
 import java.util.regex.Matcher;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String DELIMETER = ",";
     public static final Finder<Long, PullRequest> finder = new Finder<>(Long.class, PullRequest.class);
 
     public static final int ITEMS_PER_PAGE = 15;
@@ -80,12 +110,16 @@ public class PullRequest extends Model implements ResourceConvertible {
     public State state = State.OPEN;
     
     public Boolean isConflict;
-
+    public Boolean isMerging;
+    
     @OneToMany(cascade = CascadeType.ALL)
     public List<PullRequestCommit> pullRequestCommits;
     
     @OneToMany(cascade = CascadeType.ALL)
     public List<PullRequestEvent> pullRequestEvents;
+    
+    @Lob
+    public String patch;
     
     /**
      * {@link #fromBranch}의 가장 최근 커밋 ID
@@ -123,6 +157,8 @@ public class PullRequest extends Model implements ResourceConvertible {
      */
     public Long number;
 
+    public String conflictFiles;
+
     @Override
     public String toString() {
         return "PullRequest{" +
@@ -141,7 +177,15 @@ public class PullRequest extends Model implements ResourceConvertible {
                 ", state=" + state +
                 '}';
     }
-
+    
+    public void setPatch(String patch) {
+        this.patch = patch;
+    }
+    
+    public String getPatch() {
+        return this.patch;
+    }
+    
     public Duration createdAgo() {
         return JodaDateUtil.ago(this.created);
     }
@@ -149,7 +193,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public Duration receivedAgo() {
         return JodaDateUtil.ago(this.received);
     }
-
+    
     public boolean isOpen() {
         return this.state == State.OPEN;
     }
@@ -245,6 +289,8 @@ public class PullRequest extends Model implements ResourceConvertible {
     /**
      * 보내거나 받는 쪽에
      * {@code project} 의 {@code branch} 를 가지고 있는 pull-request 목록 조회
+     * 
+     * 병합(Closed)되지 않은 모든 보낸코드를 조회한다.
      *
      * @param project
      * @param branch
@@ -369,6 +415,10 @@ public class PullRequest extends Model implements ResourceConvertible {
         return allowedWatchers;
     }
 
+    /**
+     * pull request에 대한 코멘트 목록을 반환한다.
+     * @return
+     */
     public List<SimpleComment> getComments() {
         return SimpleComment.findByResourceKey(this.getResourceKey());
     }
@@ -531,5 +581,217 @@ public class PullRequest extends Model implements ResourceConvertible {
         deleteIssueEvents();
         super.delete();
     }
+    
+    @Transient
+    public String[] getConflictFiles() {
+        return StringUtils.split(this.conflictFiles, ",");
+    }
 
+    /**
+     * 코드 코멘트를 반환한다.
+     * @return
+     */
+    @Transient
+    public List<CodeComment> getCodeComments() {
+        return CodeComment.findByCommits(fromProject, pullRequestCommits);
+    }
+    
+    /**
+     * 현재 커밋목록을 반환한다.
+     * @return
+     */
+    @Transient
+    public List<PullRequestCommit> getCurrentCommits() {
+        return PullRequestCommit.getCurrentCommits(this);
+    }
+    
+    /**
+     * pull request의 모든 코멘트 정보를 가져오고 시간순으로 정렬 후 반환한다. (코멘트 + 코드코멘트 + 이벤트 )
+     * @return
+     */
+    @Transient
+    public List<TimelineItem> getTimelineComments() {
+        List<SimpleComment> comments = getComments();
+        List<CodeComment> codeComments = getCodeComments();
+        
+        List<TimelineItem> timelineComments = new ArrayList<>();
+        timelineComments.addAll(comments);
+        timelineComments.addAll(codeComments);
+        timelineComments.addAll(pullRequestEvents);
+
+        Collections.sort(timelineComments, new Comparator<TimelineItem>() {
+            @Override
+            public int compare(TimelineItem o1, TimelineItem o2) {
+                return o1.getDate().compareTo(o2.getDate());
+            }
+            
+        });
+        
+        return timelineComments;
+    }
+
+
+    /**
+     * 보낸 코드를 병합해보고 결과 정보를 반환한다.
+     * 
+     * @param pullRequest
+     * @return
+     */
+    public PullRequestMergeResult attemptPullRequestMerge() {
+        final GitConflicts[] conflicts = {null};
+        final List<GitCommit> commits = new ArrayList<>();
+        final PullRequest pullRequest = this;
+        
+        GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
+            @Override
+            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
+                Repository clonedRepository = cloneAndFetch.getRepository();
+                
+                List<GitCommit> commitList = GitRepository.diffCommits(clonedRepository,
+                    cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
+
+                for (GitCommit gitCommit : commitList) {
+                    commits.add(gitCommit);
+                }
+                
+                GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
+                
+                pullRequest.setPatch(GitRepository.getPatch(clonedRepository,
+                    cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName()));
+                    
+                MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
+                if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
+                    conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
+                }
+            }
+        });
+        
+        List<PullRequestCommit> currentList = saveCurrentCommits(commits);
+        updatePriorCommits(commits);
+        
+        PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
+        pullRequestMergeResult.setCommits(currentList);
+        pullRequestMergeResult.setGitConflicts(conflicts[0]);
+        pullRequestMergeResult.setPullRequest(pullRequest);
+        
+        return pullRequestMergeResult;
+    }
+
+    /**
+     * 현재 커밋을 저장하고 목록을 반환한다.
+     * 
+     * 코드저장소의 커밋이 DB에 저장되어 있지 않으면 현재커밋으로 판단하고 저장한다. 
+     * 
+     * @param pullRequest
+     * @param commits
+     * @return
+     */
+    private List<PullRequestCommit> saveCurrentCommits(List<GitCommit> commits) {
+        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
+        for (GitCommit commit: commits) {
+            boolean existCommit = false;
+            for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", this).findList()) {
+                if(commit.getId().equals(pullRequestCommit.commitId)) {  
+                    existCommit = true;
+                    break;
+                }
+            }
+            
+            if (!existCommit) {
+                PullRequestCommit pullRequestCommit = PullRequestCommit.bindPullRequestCommit(commit, this);
+                
+                pullRequestCommit.save();
+                list.add(pullRequestCommit);
+            }
+        }
+        return list;
+    }
+    
+    /**
+     * 이전 커밋을 업데이트하고 목록을 반환한다.
+     * 
+     * DB의 커밋이 코드저장소의 커밋에 존재하지 않으면 이전커밋으로 판단하고 업데이트 한다.
+     * 
+     * @param pullRequest
+     * @param commits
+     * @return
+     */
+    private List<PullRequestCommit> updatePriorCommits(List<GitCommit> commits) {
+        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
+        for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", this).findList()) {
+            boolean existCommit = false;
+            for (GitCommit commit: commits) {
+                if(commit.getId().equals(pullRequestCommit.commitId)) {
+                    existCommit = true;
+                    break;
+                }
+            }
+
+            if (!existCommit) {
+                pullRequestCommit.state = PullRequestCommit.State.PRIOR;
+                pullRequestCommit.update();
+                list.add(pullRequestCommit);
+            }
+        }
+        return list;
+    }
+
+
+    /**
+     * pull request의 커밋정보를 초기화한다.
+     * 
+     * pull request의 커밋정보를 DB에 저장하는 것으로 구조가 변경되어 기존 pull request의 커밋을 모두 저장한다.   
+     */
+    public static void initPullRequestCommit() {
+        
+        String sql = "SELECT pull.id FROM pull_request pull LEFT JOIN pull_request_commit commit ON pull.id = commit.pull_request_id WHERE commit.id IS NULL";
+        SqlQuery sqlQuery = Ebean.createSqlQuery(sql);
+        List<SqlRow> sqlRows = sqlQuery.findList();
+
+        for (SqlRow sqlRow : sqlRows) {
+            PullRequest pullRequest = PullRequest.finder.byId(sqlRow.getLong("id"));
+            if (pullRequest.pullRequestCommits.isEmpty()) {
+                List<GitCommit> commitList = new ArrayList<GitCommit>();
+                if(pullRequest.isClosed()) {
+                    commitList = GitRepository.diffCommits(pullRequest);                
+                } else {
+                    commitList = GitRepository.getPullingCommits(pullRequest);
+                }
+                
+                for(GitCommit commit : commitList) {
+                    PullRequestCommit pullRequestCommit = PullRequestCommit.bindPullRequestCommit(commit, pullRequest);
+                    pullRequestCommit.save();
+                }                
+            }    
+        }
+    }
+    
+    /**
+     * 열려 있는 pull request에 대한 merge 결과를 초기화한다.
+     * 
+     * 유지보수와 관련된 코드로 서버 구동시 한번만 수행되며 DB에 merge 결과가 저장되지 않은 pull request에 대해서만 처리된다.  
+     * 
+     */
+    public static void initPullRequestMergeResult() {
+        List<PullRequest> pullRequests = PullRequest.finder.where().isNull("isConflict").findList();
+
+        for (PullRequest pullRequest : pullRequests) {
+        
+            if (!pullRequest.isClosed()) {
+                PullRequestMergeResult mergeResult = pullRequest.attemptPullRequestMerge();
+                
+                if (mergeResult.getGitConflicts() != null) {
+                    pullRequest.isConflict = true;
+                } else {
+                    pullRequest.isConflict = false;
+                }
+                
+            } else {
+                pullRequest.isConflict = false;
+                pullRequest.setPatch(GitRepository.getPatch(pullRequest));
+            }
+            
+            pullRequest.update();
+        }
+    }
 }

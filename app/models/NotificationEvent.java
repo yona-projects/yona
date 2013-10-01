@@ -343,7 +343,10 @@ public class NotificationEvent extends Model {
         notiEvent.resourceType = resource.getType();
         notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
         notiEvent.newValue = state.state();
-        notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
+        
+        if (conflicts != null) {
+            notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");        
+        }
 
         add(notiEvent);
         

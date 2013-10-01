@@ -3912,6 +3912,11 @@ input[type="submit"].btn.btn-mini {
 .alert-error h4 {
   color: #b94a48;
 }
+.alert-warnning {
+  color: #AD913A;
+  background-color: #F7F1D9;
+  border-color: #F0E7BB;	
+}
 
 .alert-info {
   color: #3a87ad;
