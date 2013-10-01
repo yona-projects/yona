@@ -81,7 +81,7 @@ public class ConflictCheckActor extends UntypedActor {
         notiEvent.senderId = sender.id;
         notiEvent.receivers = receivers;
         notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.id).absoluteURL(
+                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
                 request);
         notiEvent.resourceId = resource.getId();
         notiEvent.resourceType = resource.getType();
