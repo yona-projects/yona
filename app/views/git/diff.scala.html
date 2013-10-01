@@ -29,12 +29,18 @@
 
 @main(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-	<div class="code-browse-wrap">
-        <p class="commitInfo">
-            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="nbtn orange medium">
-                <i class="yobicon-large yobicon-backward"></i> @Messages("back.to.the.pullrequest")
+    <div class="code-browse-wrap">
+        <div class="actrow">
+            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="nbtn medium orange">
+                <i class="yobicon-arrow-right"></i> @Messages("back.to.the.pullrequest")
             </a>
-            <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+            
+            <div class="pull-right">
+                <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+            </div>
+        </div>
+        <hr>
+        <p class="commitInfo">
             @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
             case (user: User, _, _) if !user.isAnonymous => {
                 <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
@@ -58,40 +64,67 @@
             }
             }
             <span class="ago">@agoString(ago(commit.getAuthorDate))</span>
-            @if(comments.size > 0) {<span><input id="toggle-comments" type="checkbox" checked="checked" /> @Messages("code.showcomments")</span>}
             <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
+            @if(comments.size > 0) {
+            <span class="pull-right mt5 mr10">
+                <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
+                <label for="toggle-comments" class="form-label">@Messages("code.showcomments")</label>
+            </span>
+            }
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
 
         <div class="diff-wrap">
-		  <div id="commit" class="diff-body show-comments">@patch</div>
+            <div id="commit" class="diff-body show-comments">@patch</div>
         </div>
+    </div>
 
+    @** Comment **@
+    <div class="board-comment-wrap">
         @if(comments.size > 0) {
-        <ul class="comments" style="display: none">
-        @for(comment <- comments){
-            <li class="comment" id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line">
-                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap pull-left">
-                    <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                </a>
+        <ul class="comments">
+            @for(comment <- comments){
+            <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+                <div class="comment-avatar">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                </div>    
                 <div class="media-body">
-                    @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                    <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)">&times;</button>
-                    }
+                    <div class="meta-info">
+                        <span class="comment_author pull-left">
+                            <i class="yobicon-comment"></i> 
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                <strong>@comment.authorLoginId </strong>
+                            </a>
+                        </span>
+                        <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
+                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                        <span class="edit pull-right">
+                            <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
+                        </span>
+                        }
+                    </div>
+                    
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                    <p class="commenter">
-                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)"><strong>@comment.authorLoginId</strong></a>
-                        <span class="date"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
-                    </p>
+                    
                     <div class="attachments" resourceType="@ResourceType.CODE_COMMENT" resourceId="@comment.id"></div>
                 </div>
             </li>
             }
         </ul>
         }
-
+        
         @views.html.commentForm(pull.fromProject, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
-	</div>
+    </div>
+    @** // Comment **@
+    
+    <div id="minimap" class="minimap-outer">
+        <div class="minimap-wrap">
+            <div class="minimap-curr"></div>
+            <div class="minimap-links"></div>
+        </div>
+    </div>
 </div>
 
 @markdown(pull.fromProject)
@@ -103,39 +136,26 @@
     <td class="linenum"></td>
 </script>
 <script type="text/x-jquery-tmpl" id="comment-button-template">
-    <button class="nbtn medium"></button>
+    <button class="nbtn medium btn-thread"></button>
 </script>
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript" src="@getJSLink("lib/diff")"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-        @if(isProjectResourceCreatable(UserApp.currentUser, pull.fromProject, ResourceType.CODE_COMMENT)){
-        var bCommentable = true;
-        } else {
-        var bCommentable = false;
-        }
-
-        @if(parentCommit != null) {
-            var parentCommitId = "@parentCommit.getId";
-        } else {
-            var parentCommitId = "";
-        }
-
+    $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
-            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
-            "bCommentable": bCommentable,
-            "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
-            "sParentCommitId" : parentCommitId,
-            "sCommitId"       : "@commit.getId"
+            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, pull.fromProject, ResourceType.CODE_COMMENT)){true}else{false},
+            "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
+            "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
+            "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
+            "sCommitId"      : "@commit.getId"
         });
 
         yobi.Mention({
             target:'comment-editor',
             url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(pull.toProject.owner, pull.toProject.name, commit.getId, pull.id).toString)"
         });
-	});
+    });
 </script>
 }
