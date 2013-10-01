@@ -866,8 +866,6 @@ public class GitRepository implements PlayRepository {
                 for(GitCommit commit : commitList) {
                     commits.add(commit);
                 }
-
-                deleteMergingDirectory(pullRequest);
             }
         });
 
@@ -897,7 +895,7 @@ public class GitRepository implements PlayRepository {
         List<GitCommit> commits = new ArrayList<>();
         List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
         for (RevCommit revCommit : revCommits) {
-            commits.add(new GitCommit(revCommit));
+            commits.add(new GitCommit(revCommit));            
         }
         return commits;
     }
@@ -921,8 +919,8 @@ public class GitRepository implements PlayRepository {
                 List<RevCommit> commits = diffRevCommits(repository,
                         cloneAndFetch.destFromBranchName,
                         cloneAndFetch.destToBranchName);
-                for (RevCommit commit : commits) {
-                    findAuthors(commit, repository);
+                for (RevCommit revCommit: commits) {
+                    findAuthors(revCommit, repository);
                 }
             }
 
@@ -1307,13 +1305,7 @@ public class GitRepository implements PlayRepository {
         Repository repo = null;
         RevWalk walk = null;
         try {
-        
-            if (pullRequest.isClosed()) {
-                repo = buildGitRepository(pullRequest.toProject);
-            } else {
-                repo = buildGitRepository(pullRequest.fromProject);
-            }
-            
+            repo = buildGitRepository(pullRequest.toProject);
             
             ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
             if(untilId == null) {
