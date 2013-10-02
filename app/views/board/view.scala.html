@@ -71,7 +71,7 @@
 
 	@** Comment **@
 	<div id="comments" class="board-comment-wrap">
-		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@post.comments.size()</strong></div>
+		<div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@post.comments.size</strong></div>
 	    <hr class="nm" />
 
 	    <ul class="comments">
@@ -90,7 +90,7 @@
                                 <strong>@comment.authorLoginId </strong>
                             </a>
                         </span>
-                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+                        <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                         <span class="edit pull-right">
                             <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)"><i class="yobicon-trash"></i></button>
