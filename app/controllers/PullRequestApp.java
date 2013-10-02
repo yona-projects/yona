@@ -87,7 +87,7 @@ public class PullRequestApp extends Controller {
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, originalProject);
         if(forkedProject != null) {
-            flash(Constants.WARNING, "already.existing.fork.alert");
+            flash(Constants.WARNING, "fork.redirect.exist");
             return redirect(routes.ProjectApp.project(forkedProject.owner, forkedProject.name));
         }
 
@@ -268,10 +268,10 @@ public class PullRequestApp extends Controller {
 
     private static void validateForm(Form<PullRequest> form) {
         Map<String, String> data = form.data();
-        ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullrequest.fromBranch.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullrequest.toBranch.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullrequest.title.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("body"), "pullrequest.body.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullRequest.fromBranch.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullRequest.toBranch.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullRequest.title.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("body"), "pullRequest.body.required");
     }
 
     /**

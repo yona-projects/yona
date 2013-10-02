@@ -27,12 +27,12 @@
         <div class="filters">
             @if(orderString){
 	            @defining(orderString.split(" ")){ order =>
-	                @makeFilterLink("createdDate", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("order.recent"))
-	                @makeFilterLink("name", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("order.name"))
+	                @makeFilterLink("createdDate", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("common.order.recent"))
+	                @makeFilterLink("name", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("common.order.name"))
 	            }
             } else {
-                @makeFilterLink("createdDate", "", "asc", Messages("order.recent"))
-                @makeFilterLink("name", "", "asc", Messages("order.name"))
+                @makeFilterLink("createdDate", "", "asc", Messages("common.order.recent"))
+                @makeFilterLink("name", "", "asc", Messages("common.order.name"))
             }
         </div>
     </div>

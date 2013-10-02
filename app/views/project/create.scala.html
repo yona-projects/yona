@@ -10,13 +10,12 @@
                 <legend>
                     @Messages("title.newProject")
                     <span>
-                        <small>@Messages("import.or") &nbsp </small><a href="@routes.ImportApp.importForm()" class="btn btn-small"><strong>@Messages("import.from.git")</strong></a>
+                        <small>@Messages("project.import.or") &nbsp </small><a href="@routes.ImportApp.importForm()" class="btn btn-small"><strong>@Messages("project.import.from.git")</strong></a>
                     </span>
                 </legend>
             	<dl>
             		<dt>
             			<div class="n-alert" data-errType="name">
-
 		                    <div class="orange-txt">
 		            			@if(flash.get("warning") != null) {
 		            			<span class="warning">@Messages(flash.get("warning"))</span>
@@ -65,35 +64,6 @@
 							<span id="svn" class="note" style="display:none;">@Messages("project.svn.warning")</span>
                         </div>
                     </li>
-
-                    @**
-                    <!--
-                    <li class="option">
-                        <div class="option-label">이용약관 <a href="#agreement" data-toggle="modal"><i class="ico ico-que-mark"></i></a></div>
-                        <div id="agreement" class="modal hide fade">
-                          <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h3>이용약관</h3>
-                          </div>
-                          <div class="modal-body">
-                            <pre>@agreements()</pre>
-                          </div>
-                          <div class="modal-footer">
-                            <a href="#" class="btn" data-dismiss="modal">Close</a>
-                          </div>
-                        </div>
-                        <div class="option-desc">
-	                        <div class="n-alert" data-errType="accept">
-			                    <div class="n-inner orange">
-			                        <span class="msg">@Messages("project.new.agreement.alert")</span>
-			                        <a href="#!/close" class="ico btn-delete"></a>
-			                    </div>
-			                </div>
-                            <input type="checkbox" class="stipulation checkbox checkbox-btn" autocomplete="off" id="stipulation" name="accept"><label for="stipulation" class="bg-checkbox label-agreement">본인은 약관에 대한 안내를 읽었으며 동의 합니다.</label>
-                        </div>
-                    </li>
-                     -->
-                    **@
                 </ul>
                 <div class="actions">
                     <button class="nbtn orange medium"><i class="yobicon-database-add"></i> @Messages("project.create")</button>

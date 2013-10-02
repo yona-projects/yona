@@ -12,7 +12,7 @@
                     <div class="btn-group text-right">
                     @for(state <- Array("all", "public", "private")) {
                         <a href="@routes.ProjectApp.projects(state=state)" class="btn @state @if(listState.equals(state)){ active }">
-                            <span class="desc"><strong>@Messages("project."+state)</strong> @Messages("projects")</span>
+                            <span class="desc"><strong>@Messages("project."+state)</strong> @Messages("project.projects")</span>
                             <span class="num-badge">@Project.countByState(state)</span>
                         </a>
                     }

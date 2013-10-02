@@ -45,7 +45,7 @@
             <span class="d-caret"><span class="caret"></span></span>
         </button>
         <ul class="dropdown-menu">
-            <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
+            <li data-value="@User.anonymous.id"><a>@Messages("issue.noAssignee")</a></li>
             @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                 <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
             }
@@ -62,7 +62,7 @@
             <span class="d-caret"><span class="caret"></span></span>
         </button>
         <ul class="dropdown-menu">
-            <li data-value="@Milestone.NULL_MILESTONE_ID"><a>@Messages("noMilestone")</a></li>
+            <li data-value="@Milestone.NULL_MILESTONE_ID"><a>@Messages("issue.noMilestone")</a></li>
             @for(milestone <- Milestone.findByProjectId(project.id)) {
                 <li data-value="@milestone.id"><a>@milestone.title</a></li>
             }

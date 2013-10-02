@@ -5,23 +5,23 @@
     <h2 class="fl">@Messages(message)</h2>
 </div>
 
-<form method="post" action="@routes.SiteApp.sendMail()" id="mailForm" class="span9 form-horizontal">
+<form id="mailForm" method="post" action="@routes.SiteApp.sendMail()" class="span9 form-horizontal">
     @if(errorMessage) {
     <div class="alert alert-error">
-	    <p>@Messages("mail.fail")</p>
-	    <p>@Html(Messages(errorMessage))</p>
-	</div>
-	}
-	
+        <p>@Messages("site.mail.fail")</p>
+        <p>@Html(Messages(errorMessage))</p>
+    </div>
+    }
+    
     @if(sended) {
     <div class="alert alert-success">
-        @Messages("mail.sended")
+        @Messages("site.mail.sended")
     </div>
     }
 
     @if(notConfiguredItems != null && notConfiguredItems.size() > 0) {
     <div class="alert alert-error">
-        <p>@Html(Messages("mail.notConfigured", "/admin/mailconf"))</p>
+        <p>@Html(Messages("site.mail.notConfigured", "/admin/mailconf"))</p>
         <ul>
         @for(item <- notConfiguredItems.iterator()) {
             <li>@item</li>
@@ -31,28 +31,28 @@
     }
   
     <div class="control-group">
-        <label name="from" class="control-label">@Messages("mail.from")</label>
+        <label name="from" class="control-label">@Messages("site.mail.from")</label>
         <div class="controls">
-            <input type="text" name="from" value="@sender" required="" placeholder="@Messages("mail.fromPlaceholder")">
+            <input type="text" name="from" value="@sender" required="" placeholder="@Messages("site.mail.fromPlaceholder")">
         </div>
     </div>
     
     <div class="control-group">
-        <label name="to" class="control-label">@Messages("mail.to")</label>
+        <label name="to" class="control-label">@Messages("site.mail.to")</label>
         <div class="controls">
-            <input type="text" name="to" required="" placeholder="@Messages("mail.toPlaceholder")">
+            <input type="text" name="to" required="" placeholder="@Messages("site.mail.toPlaceholder")">
         </div>
     </div>
     
-    <div style="margin-right: 10px" class="control-group">
-        <label name="subject" class="control-label">@Messages("mail.subject")</label>
+    <div class="control-group mr10">
+        <label name="subject" class="control-label">@Messages("site.mail.subject")</label>
         <div class="controls">
             <input type="text" name="subject">
         </div>
     </div>
     
-    <div style="margin-right: 10px" class="control-group">
-        <label name="body" class="control-label">@Messages("mail.body")</label>
+    <div class="control-group mr10">
+        <label name="body" class="control-label">@Messages("site.mail.body")</label>
         <div class="controls">
             <textarea id="body" name="body" cols="32" rows="16" class="input-xlarge textbody"></textarea>
         </div>
@@ -60,12 +60,9 @@
 
     <div>
         <button type="submit" class="btn btn-primary">
-            <strong>@Messages("mail.send")</strong>
+            <strong>@Messages("site.mail.send")</strong>
         </button>
     </div>
 </form>
 
-<script type="text/javascript">
-// nforge.require('admin.mail');
-</script>
 }

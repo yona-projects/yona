@@ -28,12 +28,12 @@ public class SimpleCommentApp extends Controller {
 
         Form<SimpleComment> commentForm = new Form<>(SimpleComment.class).bindFromRequest();
         if (commentForm.hasErrors()) {
-            flash(Constants.WARNING, "board.comment.empty");
+            flash(Constants.WARNING, "post.comment.empty");
             return redirect(referer);
         }
 
         if (!AccessControl.isCreatable(UserApp.currentUser(), ResourceType.SIMPLE_COMMENT)) {
-            return forbidden(ErrorViews.Forbidden.render("auth.unauthorized.comment"));
+            return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.comment"));
         }
 
 
@@ -88,7 +88,7 @@ public class SimpleCommentApp extends Controller {
             notFound();
         }
         if (!AccessControl.isAllowed(UserApp.currentUser(), simpleComment.asResource(), Operation.DELETE)) {
-            return forbidden(ErrorViews.Forbidden.render("auth.unauthorized.waringMessage"));
+            return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
         }
         simpleComment.delete();
         String backPageUrl = request().getHeader("Referer");

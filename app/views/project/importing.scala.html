@@ -8,9 +8,9 @@
         <div class="form-wrap new-project">
             <form id="importGit" action="@routes.ImportApp.newProject()" method="post" name="newproject" class="frm-wrap">
                 <legend>
-                    @Messages("import.from.git")
+                    @Messages("project.import.from.git")
                     <span>
-                        <small>@Messages("import.or") &nbsp </small><a href="@routes.ProjectApp.newProjectForm()" class="btn btn-small"><strong>@Messages("title.newProject")</strong></a>
+                        <small>@Messages("project.import.or") &nbsp </small><a href="@routes.ProjectApp.newProjectForm()" class="btn btn-small"><strong>@Messages("title.newProject")</strong></a>
                     </span>
                 </legend>
                 <div class="n-alert" data-errType="name">
@@ -22,27 +22,27 @@
                         <span class="msg wrongName" style="display:none;">@Messages("project.wrongName")</span>
                     </div>
                 </div>
-		<dl>
+        <dl>
                     <dt>
-                        <label>@Messages("git.repository.url")</label>
+                        <label>@Messages("project.git.repository.url")</label>
                     </dt>
                     <dd>
                         <input type="text" name="url" class="text" placeholder="@Messages("git.url.alert")">
                     </dd>
-			<dt>
-				<label for="project-name">@Messages("project.name.placeholder")</label>
-			</dt>
-			<dd>
-				<input id="project-name" type="text" name="name" class="text" placeholder="@Messages("project.name.alert")" maxlength="250">
-			</dd>
+            <dt>
+                <label for="project-name">@Messages("project.name.placeholder")</label>
+            </dt>
+            <dd>
+                <input id="project-name" type="text" name="name" class="text" placeholder="@Messages("project.name.alert")" maxlength="250">
+            </dd>
 
-			<dt>
-						<label for="description">@Messages("project.description.placeholder")</label>
-					</dt>
-					<dd>
-						<textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
-					</dd>
-		</dl>
+            <dt>
+                        <label for="description">@Messages("project.description.placeholder")</label>
+                    </dt>
+                    <dd>
+                        <textarea id="description" name="overview" class="text textarea.span4" style="resize:vertical;"></textarea>
+                    </dd>
+        </dl>
 
                 <ul class="options unstyled">
                     <li class="option">
@@ -71,9 +71,9 @@
 <script type="text/javascript" src="@getJSLink("lib/spin")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
-	$yobi.loadModule("project.New", {
-		"sFormName": "newproject"
-	});
+        $yobi.loadModule("project.New", {
+            "sFormName": "newproject"
+        });
     });
 </script>
 }

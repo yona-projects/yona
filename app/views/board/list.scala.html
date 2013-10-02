@@ -48,9 +48,9 @@
     @if(page.getTotalRowCount > 1){
         <div class="filter-wrap board">
             <div class="filters">
-            	@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("order.updatedDate"))
-                @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-                @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
+            	@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+                @makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+                @makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
             </div>
         </div>
     }

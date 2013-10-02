@@ -171,7 +171,7 @@ public class SiteApp extends Controller {
                 User.find.byId(userId).changeState(UserState.DELETED);
             }
         } else {
-            flash(Constants.WARNING, "auth.unauthorized.waringMessage");
+            flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         }
 
         return redirect(routes.SiteApp.userList(0, null));
@@ -209,7 +209,7 @@ public class SiteApp extends Controller {
         if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
             Project.find.byId(projectId).delete();
         } else {
-            flash(Constants.WARNING, "auth.unauthorized.waringMessage");
+            flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         }
         return redirect(routes.SiteApp.projectList(StringUtils.EMPTY, 0));
     }
@@ -240,7 +240,7 @@ public class SiteApp extends Controller {
             }
             return ok(userList.render("title.siteSetting", User.findUsers(0, null)));
         }
-        flash(Constants.WARNING, "auth.unauthorized.waringMessage");
+        flash(Constants.WARNING, "error.auth.unauthorized.waringMessage");
         return redirect(routes.Application.index());
     }
 
@@ -261,7 +261,7 @@ public class SiteApp extends Controller {
         Set<String> emails = new HashSet<>();
         Map<String, String[]> projects = request().body().asFormUrlEncoded();
         if(!UserApp.currentUser().isSiteManager()) {
-            return forbidden(ErrorViews.Forbidden.render("auth.unauthorized.waringMessage"));
+            return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.waringMessage"));
         }
 
         if (!request().accepts("application/json")) {

@@ -76,15 +76,15 @@
                     <div id="advanced-search-form" class="srch-advanced">
                         
                         <dl class="issue-option">
-                            <dt>@Messages("author")</dt>
+                            <dt>@Messages("issue.author")</dt>
                             <dd>
                                 <div class="btn-group" data-name="authorId">
                                     <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("order.all")</span>
+                                        <span class="d-label">@Messages("common.order.all")</span>
                                         <span class="d-caret"><span class="caret"></span></span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("order.all")</a></li>
+                                        <li data-value=""><a>@Messages("common.order.all")</a></li>
                                         @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                                             <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.authoredByMe")</a></li>
                                         }
@@ -107,16 +107,16 @@
                         </dl>
 
 						<dl class="issue-option">
-                            <dt>@Messages("assignee")</dt>
+                            <dt>@Messages("issue.assignee")</dt>
                             <dd>
                                 <div class="btn-group" data-name="assigneeId">
                                     <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-                                        <span class="d-label">@Messages("order.all")</span>
+                                        <span class="d-label">@Messages("common.order.all")</span>
                                         <span class="d-caret"><span class="caret"></span></span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li data-value=""><a>@Messages("order.all")</a></li>
-                                        <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("noAssignee")</a></li>
+                                        <li data-value=""><a>@Messages("common.order.all")</a></li>
+                                        <li data-value="@User.anonymous.id" @if(param.assigneeId != null && param.assigneeId == User.anonymous.id){data-selected="true" class="active"}><a>@Messages("issue.noAssignee")</a></li>
                                         @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                                             <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.list.assignedToMe")</a></li>
                                         }
@@ -147,7 +147,7 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li data-value=""><a>@Messages("milestone.state.all")</a></li>
-                                        <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("noMilestone")</a></li>
+                                        <li data-value="@Milestone.NULL_MILESTONE_ID" @if(param.milestoneId != null && param.milestoneId == Milestone.NULL_MILESTONE_ID){data-selected="true" class="active"}><a>@Messages("issue.noMilestone")</a></li>
                                         <li class="divider"></li>
                                         @for(milestone <- Milestone.findByProjectId(project.id)) {
                                         <li data-value="@milestone.id" @if(param.milestoneId != null && param.milestoneId == milestone.id){data-selected="true" class="active"}><a>@milestone.title</a></li>
@@ -196,9 +196,9 @@
 
                 @if(currentPage.getList().size() > 1){
         		<div class="filters pull-right">
-        			@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("order.updatedDate"))
-        			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("order.date"))
-        			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("order.comments"))
+        			@makeFilterLink("updatedDate", param.orderBy, param.orderDir, Messages("common.order.updatedDate"))
+        			@makeFilterLink("createdDate", param.orderBy, param.orderDir, Messages("common.order.date"))
+        			@makeFilterLink("numOfComments", param.orderBy, param.orderDir, Messages("common.order.comments"))
         		</div>
         		}
         	</div>

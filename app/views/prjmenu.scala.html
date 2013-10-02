@@ -72,7 +72,7 @@
                         }
                         @if(!User.isWatching(project) && project.isPublic) {
                         <div class="content">
-                            <h5>@Messages("you.are.not.watching", project.name)</h5>
+                            <h5>@Messages("project.you.are.not.watching", project.name)</h5>
                             <p>@Messages("notification.will.help")</p>
                             <ul class="icons-ul">
                                 <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
@@ -102,7 +102,7 @@
                         <div class="d-caret"><span class="caret"></span></div>
                     </button>
                     <ul class="dropdown-menu pull-right">
-                        <li class="disabled"><span><i class="icon yobicon-copy"></i> @Messages("forks") (@project.forkingProjects.size)</span></li>
+                        <li class="disabled"><span><i class="icon yobicon-copy"></i> @Messages("fork.forks") (@project.forkingProjects.size)</span></li>
                         @for(fork <- project.forkingProjects) {
                         <li>
                             <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
@@ -122,7 +122,7 @@
                         <i class="yobicon-removefriend yobicon-large"></i>
                     </a>
                     } else {
-                    <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn" data-toggle="tooltip" title="@Messages("member.enrollment.request")">
+                    <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium white last enrollBtn" data-toggle="tooltip" title="@Messages("project.member.enrollment.request")">
                         <i class="yobicon-addfriend yobicon-large"></i> 
                     </a>
                     }
@@ -132,23 +132,23 @@
                     <div class="dropdown-menu pull-right pop-watch">
                         @if(User.enrolled(project)){
                         <div class="content">
-                            <h5>@Messages("you.want.to.be.a.member", project.name)</h5>
-                            <p>@Messages("member.enrollment.help")</p>
+                            <h5>@Messages("project.you.want.to.be.a.member", project.name)</h5>
+                            <p>@Messages("project.member.enrollment.help")</p>
                         </div>
                         <div class="brow">
                             <a href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" class="nbtn medium mint enrollBtn">
-                                <i class="yobicon-removefriend yobicon-large"></i> @Messages("cancel.enrollment")
+                                <i class="yobicon-removefriend yobicon-large"></i> @Messages("button.cancel.enrollment")
                             </a>
                         </div>
 
                         } else {
                         <div class="content">
-                            <h5>@Messages("you.may.want.to.be.a.member", project.name)</h5>
-                            <p>@Messages("member.enrollment.will.help")</p>
+                            <h5>@Messages("project.you.may.want.to.be.a.member", project.name)</h5>
+                            <p>@Messages("project.member.enrollment.will.help")</p>
                         </div>
                         <div class="brow">
                             <a href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" class="nbtn medium blue enrollBtn">
-                                <i class="yobicon-addfriend yobicon-large"></i> @Messages("new.enrollment")
+                                <i class="yobicon-addfriend yobicon-large"></i> @Messages("button.new.enrollment")
                             </a>
                         </div>
                         }
@@ -207,7 +207,7 @@
                 <li @isActiveMenu(MenuType.MILESTONE)>
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="menu-item">
                         <i class="yobicon-tasks"></i>
-                        <span class="menu-title">@Messages("project.milestone")</span>
+                        <span class="menu-title">@Messages("milestone")</span>
                         @if(Milestone.countOpened(project) > 0){
                         <span class="counter">@Milestone.countOpened(project)</span>
                         }

@@ -27,7 +27,7 @@ public class PasswordResetApp extends Controller {
      */
     public static Result lostPassword(){
         // render(message: String, sender: String, errorMessage: String, isSent: Boolean)
-        return ok(lostPassword.render("admin.resetPasswordEmail.title", null, null, false));
+        return ok(lostPassword.render("site.resetPasswordEmail.title", null, null, false));
     }
 
     /**
@@ -58,9 +58,9 @@ public class PasswordResetApp extends Controller {
            isMailSent = sendPasswordResetMail(targetUser, hashString);
         } else {
             Logger.debug("wrong user: " + loginId);
-            errorMessage = Messages.get("admin.resetPasswordEmail.invalidRequest");
+            errorMessage = Messages.get("site.resetPasswordEmail.invalidRequest");
         }
-        return ok(lostPassword.render("admin.resetPasswordEmail.title", emailAddress, errorMessage, isMailSent));
+        return ok(lostPassword.render("site.resetPasswordEmail.title", emailAddress, errorMessage, isMailSent));
     }
 
     /**
@@ -85,9 +85,9 @@ public class PasswordResetApp extends Controller {
         try {
             SimpleEmail email = new SimpleEmail();
             email.setFrom(sender)
-                 .setSubject(Messages.get("admin.resetPasswordEmail.title"))
+                 .setSubject(Messages.get("site.resetPasswordEmail.title"))
                  .addTo(user.email)
-                 .setMsg(Messages.get("admin.resetPasswordEmail.mailcontents") + "\n\n" + resetPasswordUrl)
+                 .setMsg(Messages.get("site.resetPasswordEmail.mailContents") + "\n\n" + resetPasswordUrl)
                  .setCharset("utf-8");
 
             Logger.debug("password reset mail send: " +Mailer.send(email));
