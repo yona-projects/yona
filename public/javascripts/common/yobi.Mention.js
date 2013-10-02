@@ -8,7 +8,6 @@ yobi.Mention = function(htOptions) {
         _attachEvent();
     }
 
-
     function _initVar(htOptions) {
         htVar = htOptions || {};
 
@@ -19,7 +18,6 @@ yobi.Mention = function(htOptions) {
             },
             users: []
         };
-
     }
 
     function _attachEvent() {
@@ -39,9 +37,9 @@ yobi.Mention = function(htOptions) {
             url: url,
             dataType: "json"
         }).done(function( data ) {
-                htVar.memberList.users = data;
-                $("#"+target).mention(htVar.memberList);
-            });
+            htVar.memberList.users = data;
+            $("#"+target).mention(htVar.memberList);
+        });
     }
 
     _init(htOptions || {});

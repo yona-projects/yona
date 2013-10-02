@@ -9,9 +9,9 @@
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+    @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
-	<div class="content-wrap frm-wrap">
+    <div class="content-wrap frm-wrap">
 
     @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.getNumber), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
     <input type="hidden" name="authorId" value="@issue.authorId">
@@ -24,7 +24,7 @@
                 </dt>
                 <dd>
                 	@defining(issueForm.errors().get("title")) { errors =>
-                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title")">
+                    <input type="text" id="title" name="title" value="@issue.title" class="zen-mode text title @if(errors != null) {error}" maxlength="250" tabindex="1" placeholder="@Messages("title.text")">
 	                    @if(errors != null) {
 							<div class="message">
 							@for(error <- errors) {
@@ -43,6 +43,12 @@
                         <a href="#" class="go-zen"><i class="s s--zen" style="position: absolute; right: 8px; margin-top: 32px;">Edit in Zen Mode</i></a>
                         @help.markdown()
                         <textarea id="body" name="body" markdown="true" class="zen-mode text content" tabindex="2">@issue.body</textarea>
+                        <dl id="relativeIssue" class="relative-issue">
+                            <dt>@Messages("issue.relativeCandidate")</dt>
+                            <dd>
+                                <ul class="unstyled"></ul>
+                            </dd>
+                        </dl>
                     </dd>
                 </dl>
             
@@ -151,48 +157,19 @@
         </div>
     </div>
     } @** end of form **@
-	</div>
+    </div>
 </div>
 
 @markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/x-jquery-tmpl" id="tplRelIssue">
+<li class="issue-item"><a href="${link}" class="title-link" target="_blank"><strong class="issue-id">#${id}</strong> ${title}</a><span class="date">${date}</span></li>
+</script>
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
-var memebrList = {
-    emptyQuery: true,
-    typeaheadOpts: {
-        items: 15
-    },
-    users: []
-}
-
-var prevWhich;
-
-$(function(){
-    function _findUserList(){
-        $.ajax({
-            type: "GET",
-            contentType: 'application/json',
-            url: "@routes.ProjectApp.mentionList(project.owner, project.name)",
-            dataType: "json"
-        }).done(function( data ) {
-            memebrList.users = data;
-            $("#body").mention(memebrList);
-        });
-    }
-
-    $("#body" ).keypress(function(event){
-        if( event.which == 64 ){ // 64 = at
-            _findUserList();
-        }
-    });
-})
-
-</script>
-<script type="text/javascript">
-	$(document).ready(function(){
-		// yobi.Label
+    $(document).ready(function(){
+        // yobi.Label
         yobi.Label.init({
             "sURLLabels": "@routes.IssueLabelApp.labels(project.owner, project.name)",
             "sURLPost"  : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
@@ -204,15 +181,21 @@ $(function(){
             }
         });
 
-		// yobi.issue.Write
-		$yobi.loadModule("issue.Write", {
-			"sMode"			    : "edit",
-			"elTextarea"	    : $("#body"),
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
+        // yobi.issue.Write
+        $yobi.loadModule("issue.Write", {
+            "sMode"             : "edit",
             "sIssueFormURL"     : "@routes.IssueApp.newIssueForm(project.owner, project.name)",
-			"sUploaderAction"   : "@routes.AttachmentApp.uploadFile"
-		});
-	});
+            "sIssueListURL"     : "@routes.IssueApp.issues(project.owner, project.name)",
+            "elTextarea"        : $("#body"),
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
+        });
+        
+        // yobi.Mention
+        yobi.Mention({
+            "target": "body",
+            "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
+        });
+   });
 </script>
 
 }
