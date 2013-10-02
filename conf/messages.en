@@ -230,7 +230,6 @@ issue.update.detachLabel = Detach label
 issue.update.milestone = Update milestone
 issue.update.state = Update state
 issue.watch.start = You will receive notifications of this issue
-<<<<<<< HEAD
 label = Label
 label.add = Add Label
 label.addNewCategory = Add new category

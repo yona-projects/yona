@@ -230,7 +230,6 @@ issue.update.detachLabel = 라벨 제거
 issue.update.milestone = 마일스톤 변경
 issue.update.state = 상태 변경
 issue.watch.start = 이제 이 이슈에 관한 알림을 받습니다
-<<<<<<< HEAD
 label = 라벨
 label.add = 라벨 추가
 label.addNewCategory = 새 분류 추가
