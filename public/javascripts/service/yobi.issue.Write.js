@@ -254,7 +254,7 @@
 
             // 키워드 추출
             sStr.split(" ").forEach(function(s){
-                var sWord = _trimAffix(s);
+                var sWord = _trimKeyword(s).toLowerCase();
 
                 if(sWord.length > 1) {
                     htKeyword[sWord] = htKeyword[sWord] || 0;
@@ -275,20 +275,27 @@
         }
 
         /**
-         * 예상 가능한 접미어를 찾아 제거한다
-         * 일단은 한글만 가능
+         * 검색하기 적당한 키워드로 만든다
+         * - 한국어: 예상 가능한 접미어를 찾아 제거한 단어 반환
+         * - 영  어: 유의미한 검색결과를 얻기 어려운 단어 배제
+         * - 일본어: 미지원
          * 
          * @param {String} sStr
-         * @return {String]}
+         * @return {String}
          */
-        function _trimAffix(sStr) {
+        function _trimKeyword(sStr) {
             var sResult = sStr;
-            htVar.rxKrAffix = htVar.rxKrAffix || /[은|는|이|가|을|를|음|수|할|하기|의|에|께|서|에서|시|도|니다|면|으면|있|었|함|듯|다|으로|로]$/;
- 
-            while(htVar.rxKrAffix.test(sResult)) {
-                sResult = sResult.replace(htVar.rxKrAffix, '');
+            htVar.rxTrimKr = htVar.rxTrimKr || /[은|는|이|가|을|를|음|수|할|하기|의|에|께|서|에서|시|도|니다|면|으면|있|었|함|듯|다|으로|로]$/;
+            htVar.aTrimEn = htVar.aTrimEn || ["of", "as", "it", "a", "an", "or", "for", "while", "on", "at", "in", "this", "that", "is", "are", "were", "by", "you", "the", "and", "to"];
+            
+            // 한국어: 반복적 확인하며 접미어를 깎아나간다
+            while(htVar.rxTrimKr.test(sResult)){
+                sResult = sResult.replace(htVar.rxTrimKr, '');
             }
-
+            
+            // 영어: 유의미한 검색결과를 얻기 어려운 단어는 배제한다
+            sResult = (htVar.aTrimEn.indexOf(sStr.toLowerCase()) > -1) ? '' : sResult;
+            
             return sResult;
         }
 
