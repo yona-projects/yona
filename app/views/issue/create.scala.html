@@ -3,9 +3,9 @@
 @import scala.collection.mutable.Map
 @import models.enumeration.ResourceType
 @import models.enumeration.Operation
-@import controllers.UserApp;
 @import utils.AccessControl._
 @import utils.TemplateHelper._
+@import controllers.UserApp
 
 @main(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
@@ -43,11 +43,15 @@
                         @help.markdown()
                         <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
                         <dl id="relativeIssue" class="relative-issue">
-                            <dt>@Messages("issue.relativeCandidate")</dt>
+                            <dt>
+                                @Messages("issue.relativeCandidate") 
+                                <a href="#experimentalHelp" role="button" class="label vmiddle ml5" data-toggle="modal">@Messages("common.experimental")</a>
+                            </dt>
                             <dd>
                                 <ul class="unstyled"></ul>
                             </dd>
                         </dl>
+                        @help.experimental()
                     </dd>
                 </dl>
 
