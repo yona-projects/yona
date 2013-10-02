@@ -105,6 +105,9 @@ public class Project extends Model implements LabelOwner {
     @ManyToMany(mappedBy = "enrolledProjects")
     public List<User> enrolledUsers;
 
+    @OneToMany(cascade = CascadeType.REMOVE)
+    public List<CodeComment> codeComments;
+
     /**
      * 신규 프로젝트를 생성한다.
      *
