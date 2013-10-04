@@ -2,6 +2,8 @@ package models;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
+
 import org.joda.time.Duration;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -13,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-public class SimpleComment extends Model {
+public class SimpleComment extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, SimpleComment> find = new Finder<>(Long.class, SimpleComment.class);
@@ -82,6 +84,7 @@ public class SimpleComment extends Model {
                 .findRowCount();
     }
 
+    @Override
     public Resource asResource(){
         return new Resource() {
             @Override

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import models.LabelOwner;
-import models.ResourceConvertible;
+import models.resource.ResourceConvertible;
 
 import play.mvc.Http.Request;
 

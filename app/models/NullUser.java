@@ -29,6 +29,7 @@ public class NullUser extends User {
         return true;
     }
 
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

@@ -6,6 +6,8 @@ import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
+
 import org.joda.time.Duration;
 
 import com.avaje.ebean.Expr;
@@ -27,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-public class PullRequest extends Model {
+public class PullRequest extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
 
@@ -252,6 +254,7 @@ public class PullRequest extends Model {
                 .findList();
     }
 
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override
