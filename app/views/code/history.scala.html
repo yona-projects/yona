@@ -57,7 +57,7 @@
                 <table class="code-table commits">
                     <thead class="thead">
                         <tr>
-                            <td class="commit-id"><strong>@@</strong></td>
+                            <td class="commit-id"><strong>@{"@"}</strong></td>
                             <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
                             <td class="date"><strong>@Messages("code.commitDate")</strong></td>
                             <td class="author"><strong>@Messages("code.author")</strong></td>
@@ -74,7 +74,7 @@
                             <td class="messages">
                                 @defining(CodeComment.count(project, commit.getId)){ numOfComment =>
                                 @if(numOfComment > 0) {
-                                <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
+                                <span class="number-of-comments"><i class="yobicon-comments">...</i> @numOfComment</span>
                                 }
                                 }
 
