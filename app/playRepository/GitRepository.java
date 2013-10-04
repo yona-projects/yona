@@ -8,6 +8,8 @@ import models.User;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.codehaus.jackson.node.ObjectNode;
@@ -840,7 +842,8 @@ public class GitRepository implements PlayRepository {
         return commits;
     }
 
-    public static Iterator<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+    @SuppressWarnings("unchecked")
+    public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         RevWalk walk = null;
         try {
             walk = new RevWalk(repository);
@@ -850,7 +853,7 @@ public class GitRepository implements PlayRepository {
             walk.markStart(walk.parseCommit(from));
             walk.markUninteresting(walk.parseCommit(to));
 
-            return walk.iterator();
+            return IteratorUtils.toList(walk.iterator());
         } finally {
             if (walk != null) {
                 walk.dispose();
@@ -860,10 +863,9 @@ public class GitRepository implements PlayRepository {
 
     public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         List<GitCommit> commits = new ArrayList<>();
-        Iterator<RevCommit> iterator = diffRevCommits(repository, fromBranch, toBranch);
-        while (iterator.hasNext()) {
-            RevCommit commit = iterator.next();
-            commits.add(new GitCommit(commit));
+        List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
+        for (RevCommit revCommit : revCommits) {
+            commits.add(new GitCommit(revCommit));
         }
         return commits;
     }
@@ -884,11 +886,11 @@ public class GitRepository implements PlayRepository {
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException,
                     GitAPIException {
                 Repository repository = cloneAndFetch.getRepository();
-                Iterator<RevCommit> commits = diffRevCommits(repository,
+                List<RevCommit> commits = diffRevCommits(repository,
                         cloneAndFetch.destFromBranchName,
                         cloneAndFetch.destToBranchName);
-                while (commits.hasNext()) {
-                    findAuthors(commits.next(), repository);
+                for (RevCommit commit : commits) {
+                    findAuthors(commit, repository);
                 }
             }
 
