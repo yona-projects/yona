@@ -40,6 +40,7 @@
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
+            htVar.sTplFileURL = htOptions.sTplFileURL;
             
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
@@ -185,7 +186,10 @@
             } else {
                 welTr.append(vContent);
             }
-
+            
+            if(sClass === "file"){
+                welTr.attr("id", sPath.substr(1));
+            }
             welTable.append(welTr);
 
             _appendCommentThreadOnLine(welTr); // Append comments
@@ -620,15 +624,21 @@
                 var firstLineNum = children[0];
                 var secondLineNum = children[1];
                 var fileName = $($(children[2]).children("span")[0]).text();
-
+                var sURL = "#", sCommitId="";
+                var sPath = fileName.substr(1);
+                
                 if(htVar.sParentCommitId) {
-                    $(firstLineNum).append(
-                        '<a class="pull-left fileView" data-id="' + htVar.sParentCommitId + '" data-content="' + fileName + '">View</a>'
+                    sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sParentCommitId, "path":sPath});
+                    sCommitId = htVar.sParentCommitId.substr(0, Math.min(7, htVar.sParentCommitId.length));
+                    $(firstLineNum).html(
+                        '<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>'
                     );
                 }
 
-                $(secondLineNum).append(
-                    '<a class="pull-left fileView" data-id="' + htVar.sCommitId + '" data-content="' + fileName + '">View</a>'
+                sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sCommitId, "path":sPath});
+                sCommitId = htVar.sCommitId.substr(0, Math.min(7, htVar.sCommitId.length));
+                $(secondLineNum).html(
+                    '<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>'
                 );
             });
         }
