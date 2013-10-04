@@ -14,12 +14,17 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.Edit;
+import org.eclipse.jgit.diff.Edit.Type;
+import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -29,6 +34,7 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
 import play.Logger;
 import play.libs.Json;
@@ -834,9 +840,7 @@ public class GitRepository implements PlayRepository {
         return commits;
     }
 
-    public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
-        List<GitCommit> commits = new ArrayList<>();
-
+    public static Iterator<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         RevWalk walk = null;
         try {
             walk = new RevWalk(repository);
@@ -846,18 +850,84 @@ public class GitRepository implements PlayRepository {
             walk.markStart(walk.parseCommit(from));
             walk.markUninteresting(walk.parseCommit(to));
 
-            Iterator<RevCommit> iterator = walk.iterator();
-            while (iterator.hasNext()) {
-                RevCommit commit = iterator.next();
-                commits.add(new GitCommit(commit));
-            }
-
-            return commits;
+            return walk.iterator();
         } finally {
-            if(walk != null) {
+            if (walk != null) {
                 walk.dispose();
             }
         }
+    }
+
+    public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+        List<GitCommit> commits = new ArrayList<>();
+        Iterator<RevCommit> iterator = diffRevCommits(repository, fromBranch, toBranch);
+        while (iterator.hasNext()) {
+            RevCommit commit = iterator.next();
+            commits.add(new GitCommit(commit));
+        }
+        return commits;
+    }
+
+    /**
+     * {@code pullRequest} 에 의해서 변경되는 코드의 원작자들을 얻는다.
+     * 원작자는 변경된 line 을 마지막으로 수정한 사람의 email 을 이용해서
+     * yobi 사용자를 찾은 결과이다.
+     *
+     * @param pullRequest
+     * @return
+     * @see playRepository.GitCommit#getAuthor()
+     */
+    public static Set<User> getRelatedAuthors(PullRequest pullRequest) {
+        final Set<User> authors = new HashSet<>();
+        cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
+            @Override
+            public void invoke(CloneAndFetch cloneAndFetch) throws IOException,
+                    GitAPIException {
+                Repository repository = cloneAndFetch.getRepository();
+                Iterator<RevCommit> commits = diffRevCommits(repository,
+                        cloneAndFetch.destFromBranchName,
+                        cloneAndFetch.destToBranchName);
+                while (commits.hasNext()) {
+                    findAuthors(commits.next(), repository);
+                }
+            }
+
+            /*
+             * 하나의 commit 과 그것의 parent commit 들을 비교해서 변경되는 부분을 구하고
+             * 변경된 부분의 이전 author 들을 찾는다.
+             */
+            private void findAuthors(RevCommit commit, Repository repository)
+                    throws IOException, GitAPIException {
+                RevCommit[] parents = commit.getParents();
+                for (RevCommit parent : parents) {
+                    TreeWalk treeWalk = new TreeWalk(repository);
+                    treeWalk.setRecursive(true);
+                    treeWalk.addTree(parent.getTree());
+                    treeWalk.addTree(commit.getTree());
+                    List<DiffEntry> diffs = DiffEntry.scan(treeWalk);
+                    for (DiffEntry diff : diffs) {
+                        DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE);
+                        diffFormatter.setRepository(repository);
+                        FileHeader fileHeader = diffFormatter.toFileHeader(diff);
+                        EditList edits = fileHeader.toEditList();
+                        BlameResult blameResult = new Git(repository).blame()
+                                .setFilePath(diff.getOldPath())
+                                .setFollowFileRenames(true)
+                                .setStartCommit(parent).call();
+                        for (Edit edit : edits) {
+                            if (edit.getType() != Type.INSERT && edit.getType() != Type.EMPTY) {
+                                for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
+                                    PersonIdent personIdent = blameResult.getSourceAuthor(i);
+                                    authors.add(User.findByEmail(personIdent.getEmailAddress()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        authors.remove(User.anonymous);
+        return authors;
     }
 
     /**

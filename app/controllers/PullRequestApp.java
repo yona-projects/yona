@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.Page;
 import models.*;
 import models.enumeration.*;
 
@@ -86,7 +87,7 @@ public class PullRequestApp extends Controller {
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, originalProject);
         if(forkedProject != null) {
-            flash(Constants.WARNING, "already.existing.fork.alert");
+            flash(Constants.WARNING, "fork.redirect.exist");
             return redirect(routes.ProjectApp.project(forkedProject.owner, forkedProject.name));
         }
 
@@ -162,7 +163,7 @@ public class PullRequestApp extends Controller {
         } catch (Exception e) {
             play.Logger.error(MessageFormat.format("Failed to fork \"{0}\"", originalProject), e);
             result.put(status, failed);
-            result.put(url, routes.PullRequestApp.pullRequests(originalProject.owner, originalProject.name).url());
+            result.put(url, routes.PullRequestApp.pullRequests(originalProject.owner, originalProject.name, 1).url());
             return ok(result);
         }
     }
@@ -247,6 +248,7 @@ public class PullRequestApp extends Controller {
         String title = NotificationEvent.formatNewTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.addAll(GitRepository.getRelatedAuthors(pullRequest));
         watchers.remove(pullRequest.contributor);
 
         NotificationEvent notiEvent = new NotificationEvent();
@@ -266,10 +268,10 @@ public class PullRequestApp extends Controller {
 
     private static void validateForm(Form<PullRequest> form) {
         Map<String, String> data = form.data();
-        ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullrequest.fromBranch.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullrequest.toBranch.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullrequest.title.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("body"), "pullrequest.body.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullRequest.fromBranch.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullRequest.toBranch.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullRequest.title.required");
+        ValidationUtils.rejectIfEmpty(flash(), data.get("body"), "pullRequest.body.required");
     }
 
     /**
@@ -279,7 +281,7 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    public static Result pullRequests(String userName, String projectName) {
+    public static Result pullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         if(project == null) {
             return badRequestForNullProject(userName, projectName);
@@ -287,8 +289,8 @@ public class PullRequestApp extends Controller {
         if(!project.vcs.equals("GIT")) {
             return badRequest(ErrorViews.BadRequest.render("Now, only git project is allowed this request.", project));
         }
-        List<PullRequest> pullRequests = PullRequest.findOpendPullRequests(project);
-        return ok(list.render(project, pullRequests, "opened"));
+        Page<PullRequest> page = PullRequest.findPagingList(State.OPEN, project, pageNum - 1);
+        return ok(list.render(project, page, "opened"));
     }
 
     /**
@@ -298,13 +300,13 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    public static Result closedPullRequests(String userName, String projectName) {
+    public static Result closedPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         if(project == null) {
             return badRequestForNullProject(userName, projectName);
         }
-        List<PullRequest> pullRequests = PullRequest.findClosedPullRequests(project);
-        return ok(list.render(project, pullRequests, "closed"));
+        Page<PullRequest> page = PullRequest.findPagingList(State.CLOSED, project, pageNum - 1);
+        return ok(list.render(project, page, "closed"));
     }
 
     /**
@@ -314,13 +316,13 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    public static Result rejectedPullRequests(String userName, String projectName) {
+    public static Result rejectedPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         if(project == null) {
             return badRequestForNullProject(userName, projectName);
         }
-        List<PullRequest> pullRequests = PullRequest.findRejectedPullRequests(project);
-        return ok(list.render(project, pullRequests, "rejected"));
+        Page<PullRequest> page = PullRequest.findPagingList(State.REJECTED, project, pageNum - 1);
+        return ok(list.render(project, page, "rejected"));
     }
 
     /**
@@ -330,13 +332,13 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    public static Result sentPullRequests(String userName, String projectName) {
+    public static Result sentPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         if(project == null) {
             return badRequestForNullProject(userName, projectName);
         }
-        List<PullRequest> pullRequests = PullRequest.findSentPullRequests(project);
-        return ok(list.render(project, pullRequests, "sent"));
+        Page<PullRequest> page = PullRequest.findSentPullRequests(project, pageNum - 1);
+        return ok(list.render(project, page, "sent"));
     }
 
     /**
@@ -573,7 +575,7 @@ public class PullRequestApp extends Controller {
         }
 
         pullRequest.delete();
-        return redirect(routes.PullRequestApp.pullRequests(userName, projectName));
+        return redirect(routes.PullRequestApp.pullRequests(userName, projectName, 1));
     }
 
     /**

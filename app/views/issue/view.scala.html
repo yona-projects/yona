@@ -161,12 +161,12 @@
                                         <span class="loginid"> <strong>@{"@"}</strong>@issue.assignee.user.loginId</span>
                                     </span>
                                     } else {
-                                    <span class="d-label">@Messages("noAssignee")</span>
+                                    <span class="d-label">@Messages("issue.noAssignee")</span>
                                     }
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li data-value="@User.anonymous.id"><a>@Messages("noAssignee")</a></li>
+                                    <li data-value="@User.anonymous.id"><a>@Messages("issue.noAssignee")</a></li>
                                     @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                                         <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
                                     }
@@ -197,7 +197,7 @@
                             </a>
                             } else {
                             <div>
-                               @Messages("noAssignee")
+                               @Messages("issue.noAssignee")
                             </div>
                             }
                         </dd>
@@ -215,12 +215,12 @@
                                     @if(issue.milestone != null) {
                                     <span class="d-label">@issue.milestone.title</span>
                                     } else {
-                                    <span class="d-label">@Messages("noMilestone")</span>
+                                    <span class="d-label">@Messages("issue.noMilestone")</span>
                                     }
                                     <span class="d-caret"><span class="caret"></span></span>
                                 </button>
                                 <ul class="dropdown-menu">
-                                    <li data-value="-1"><a>@Messages("noMilestone")</a></li>
+                                    <li data-value="-1"><a>@Messages("issue.noMilestone")</a></li>
                                     @for(milestone <- Milestone.findByProjectId(project.id)) {
                                         <li data-value="@milestone.id"><a>@milestone.title</a></li>
                                     }
@@ -233,7 +233,7 @@
                                     @issue.milestone.title
                                 </a>
                             } else {
-                                @Messages("noMilestone")
+                                @Messages("issue.noMilestone")
                             }
                             </div>
                         }
@@ -271,7 +271,7 @@
 
     @** Comment **@
     <div id="comments" class="board-comment-wrap">
-        <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("comment")</strong> <strong class="num">@issue.comments.size</strong></div>
+        <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@issue.comments.size</strong></div>
         <hr class="nm">
         @if(issue.comments.size + issue.events.size > 0) {
         <ul class="comments">
@@ -291,7 +291,7 @@
                                 <strong>@comment.authorLoginId </strong>
                             </a>
                         </span>
-                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+                        <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                         <span class="edit pull-right">
                             <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.IssueApp.deleteComment(project.owner, project.name, issue.getNumber, comment.id)"><i class="yobicon-trash"></i></button>

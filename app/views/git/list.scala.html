@@ -1,4 +1,4 @@
-@(project: Project, pullRequests: List[PullRequest], requestType: String)
+@(project: Project, page: com.avaje.ebean.Page[PullRequest], requestType: String)
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
@@ -48,7 +48,7 @@
 
     <div class="tab-content">
         <div id="list" class="row-fluid tab-pane active">
-            @partial_list(project, pullRequests)
+            @partial_list(project, page)
         </div>
     </div>
 </div>

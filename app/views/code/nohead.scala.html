@@ -24,14 +24,14 @@
 		<div class="span12">
 			@Html(Messages("code.nohead"))
 @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
-            <h5>@Messages("code.nohead.clone")</h5>
+            <h5>@Messages("code.nohead.clone", Messages("app.name"))</h5>
 			<pre><code>git clone @getCodeURL(project)
 cd @project.name/
 touch README.md
 git add README.md
 git commit -m "Hello @Messages("app.name")"
 git push origin master</code></pre>
-            <h5>@Messages("code.nohead.init")</h5>
+            <h5>@Messages("code.nohead.init", Messages("app.name"))</h5>
             <pre><code>mkdir @project.name
 cd @project.name/
 touch README.md
@@ -40,7 +40,7 @@ git add README.md
 git commit -m "Hello @Messages("app.name")"
 git remote add origin @getCodeURL(project)
 git push origin master</code></pre>
-            <h5>@Messages("code.nohead.remote")</h5>
+            <h5>@Messages("code.nohead.remote", Messages("app.name"))</h5>
             <pre><code>git remote add origin @getCodeURL(project)
 git push origin master</code></pre>
             <h5>@Messages("code.nohead.pull.push")</h5>

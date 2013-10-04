@@ -28,12 +28,12 @@ object TemplateHelper {
       val sec = duration.getMillis / DateTimeConstants.MILLIS_PER_SECOND
 
       sec match {
-        case x if x >= 86400 => plural("time.day", duration.getStandardDays)
-        case x if x >= 3600 => plural("time.hour", duration.getStandardHours)
-        case x if x >= 60 => plural("time.minute", duration.getStandardMinutes)
-        case x if x > 0 => plural("time.second", duration.getStandardSeconds)
+        case x if x >= 86400 => plural("common.time.day", duration.getStandardDays)
+        case x if x >= 3600 => plural("common.time.hour", duration.getStandardHours)
+        case x if x >= 60 => plural("common.time.minute", duration.getStandardMinutes)
+        case x if x > 0 => plural("common.time.second", duration.getStandardSeconds)
         case x if x == null => ""
-        case _ => Messages.get("time.just")
+        case _ => Messages.get("common.time.just")
       }
     } else {
       ""

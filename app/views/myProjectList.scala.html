@@ -1,57 +1,31 @@
-@(projects:List[Project], orderString:String)
+@(currentUser:models.User)
 @import utils.TemplateHelper._
 
-@countProjectCreated = @{
-    Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()
-}
-
-@countProjectBelongs(projects:List[Project]) = @{
-    projects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()
-}
-
-@urlToList = {@routes.Application.index()}
-
-@makeFilterLink(fieldName:String, orderBy:String, orderDir:String, fieldText:String) = {
-    @if(orderBy.equals(fieldName)) {
-        <a href="@urlToList?order=@fieldName%20@if(orderDir.equals("desc")){asc}else{desc}" class="filter active"><i class="ico btn-gray-arrow @if(orderDir.equals("desc")){ down }"></i>@fieldText</a>
-    } else {
-        <a href="@urlToList?order=@fieldName%20asc" class="filter"><i class="ico btn-gray-arrow"></i>@fieldText</a>
-    }
-}
-
-@if(projects != null){
-
-<div class="my-projects">
-    <div class="filter-wrap">
-        <div class="title">@Messages("title.projectList")</div>
-        <div class="filters">
-            @if(orderString){
-	            @defining(orderString.split(" ")){ order =>
-	                @makeFilterLink("createdDate", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("order.recent"))
-	                @makeFilterLink("name", if(order.length == 0){ "" } else { order(0) }, if(order.length > 1){ order(1) } else { "asc" }, Messages("order.name"))
-	            }
-            } else {
-                @makeFilterLink("createdDate", "", "asc", Messages("order.recent"))
-                @makeFilterLink("name", "", "asc", Messages("order.name"))
-            }
-        </div>
-    </div>
-
-    <ul class="unstyled">
-    @for(project <- projects){
-        <li class="my-project">
-            <div class="project-header">
-                <div class="name-wrap">
-                    <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
-                    <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
-                        <strong>@project.name @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }</strong><!-- 
-                     --><i class="yobicon-angle-right"></i>
-                    </a>
+@displayProjects(title:String, projects:List[Project]) = {
+    @if(projects.length > 0) {
+    <div class="my-projects">
+        <div class="title">@title (@projects.size())</div>
+        <ul class="unstyled">
+        @for(project <- projects){
+            <li class="my-project">
+                <div class="project-header">
+                    <div class="name-wrap">
+                        @if(project.owner != currentUser.loginId) {
+                        <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
+                        }
+                        <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">
+                            <strong>@project.name @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }</strong>
+                        </a>
+                    </div>
                 </div>
-            </div>
-        </li>
+            </li>
+        }
+        </ul>
+    </div>
     }
-    </ul>
-</div>
-
 }
+
+@orderString = @{"createdDate DESC"}
+@displayProjects(Messages("project.default.group.watching"), currentUser.getWatchingProjects(orderString))
+@displayProjects(Messages("project.createdByMe"), Project.findProjectsCreatedByUser(currentUser.loginId, orderString))
+@displayProjects(Messages("project.default.group.member"), Project.findProjectsJustMemberAndNotOwner(currentUser, orderString))

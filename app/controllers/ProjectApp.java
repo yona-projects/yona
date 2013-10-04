@@ -1,5 +1,6 @@
 package controllers;
 
+import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
@@ -7,6 +8,7 @@ import models.*;
 import models.enumeration.*;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -764,11 +766,19 @@ public class ProjectApp extends Controller {
      */
     private static Result getPagingProjects(String query, String state, int pageNum) {
 
-        ExpressionList<Project> el = Project.find.where().disjunction()
-                .icontains("owner", query)
-                .icontains("name", query)
-                .icontains("overview", query)
-                .endJunction();
+        ExpressionList<Project> el = Project.find.where();
+
+        if (StringUtils.isNotBlank(query)) {
+            Junction<Project> junction = el.disjunction();
+            junction.icontains("owner", query)
+            .icontains("name", query)
+            .icontains("overview", query);
+            List<Object> ids = Project.find.where().icontains("labels.name", query).findIds();
+            if (!ids.isEmpty()) {
+                junction.idIn(ids);
+            }
+            junction.endJunction();
+        }
 
         Project.State stateType = Project.State.valueOf(state.toUpperCase());
         if (stateType == Project.State.PUBLIC) {

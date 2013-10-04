@@ -243,11 +243,11 @@ public class Milestone extends Model {
         Duration duration = new Duration(DateTime.now(), new DateTime(dueDate));
         long days = duration.getStandardDays();
         if(days < 0) {
-            return Messages.get("time.before", -days);
+            return Messages.get("common.time.before", -days);
         } else if(days == 0) {
-            return Messages.get("time.today");
+            return Messages.get("common.time.today");
         } else {
-            return Messages.get("time.after", days);
+            return Messages.get("common.time.after", days);
         }
     }
 

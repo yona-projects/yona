@@ -5,7 +5,7 @@
 
 @memberRole(userRole: String) = {
     @for(role <- roles){
-           <li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages("role." + role.name)</a></li>
+           <li data-value="@role.id" @if(role.name.equals(userRole)){ data-selected="true" class="active" }><a href="javascript:void(0)">@Messages("user.role." + role.name)</a></li>
     }
 }
 
@@ -47,7 +47,7 @@
 
                         <div class="btn-group" data-name="roleof-@member.user.loginId">
                             <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                                <span class="d-label">@Messages("role." + member.role.name)</span>
+                                <span class="d-label">@Messages("user.role." + member.role.name)</span>
                                 <span class="d-caret"><span class="caret"></span></span>
                             </button>
                             <ul class="dropdown-menu">@memberRole(member.role.name)</ul>
@@ -60,7 +60,7 @@
                              --><i class="yobicon-publish"></i> @Messages("button.apply")</a>
                         </p>
                         } else {
-                            <p style="height:55px;">@Messages("role." + member.role.name)</p>
+                            <p style="height:55px;">@Messages("user.role." + member.role.name)</p>
                         }
                     </div>
                 </div>

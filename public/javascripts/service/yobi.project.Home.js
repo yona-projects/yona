@@ -53,7 +53,7 @@
             htElement.welInputLabel = $('#label-input-template').tmpl();
             htElement.welSubmitLabel = $('#label-submit-template').tmpl();
             htElement.welInputLabel.keypress(_onKeyPressNewLabel);
-            htElement.welInputLabel.attr('placeholder', Messages('label.addNewLabel'));
+            htElement.welInputLabel.attr('placeholder', Messages('label.new'));
             htElement.welSubmitLabel.click(_submitLabel);
 
             htElement.welInputLabelBox = $('<p>')

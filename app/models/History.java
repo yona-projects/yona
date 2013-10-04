@@ -141,9 +141,9 @@ public class History {
             pullHistory.setWhen(pull.created);
             pullHistory.setWhere(project.name);
             pullHistory.setWhat("pullrequest");
-            pullHistory.setShortTitle("#" + pull.id);
+            pullHistory.setShortTitle("#" + pull.number);
             pullHistory.setHow(pull.title);
-            pullHistory.setUrl("/" + userName + "/" + project.name + "/pullRequest/" + pull.id);
+            pullHistory.setUrl("/" + userName + "/" + project.name + "/pullRequest/" + pull.number);
             histories.add(pullHistory);
         }
     }

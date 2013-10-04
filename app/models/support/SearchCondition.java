@@ -1,14 +1,19 @@
 package models.support;
 
 import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.Junction;
+
 import controllers.AbstractPostingApp;
 import controllers.IssueApp;
 import models.*;
 import models.enumeration.State;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import utils.LabelSearchUtil;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.avaje.ebean.Expr.icontains;
@@ -108,8 +113,17 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public ExpressionList<Issue> asExpressionList(Project project) {
         ExpressionList<Issue> el = Issue.finder.where().eq("project.id", project.id);
 
-        if (filter != null) {
-            el.or(icontains("title", filter), icontains("body", filter));
+        if (StringUtils.isNotBlank(filter)) {
+            Junction<Issue> junction = el.disjunction();
+            junction.icontains("title", filter)
+            .icontains("body", filter);
+            List<Object> ids = Issue.finder.where()
+                    .eq("project.id", project.id)
+                    .icontains("comments.contents", filter).findIds();
+            if (!ids.isEmpty()) {
+                junction.idIn(ids);
+            }
+            junction.endJunction();
         }
 
         if (authorId != null) {

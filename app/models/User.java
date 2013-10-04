@@ -11,6 +11,8 @@ import models.resource.Resource;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 import play.data.format.Formats;
@@ -20,6 +22,7 @@ import play.db.ebean.Transactional;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
+import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
@@ -126,7 +129,7 @@ public class User extends Model {
     public List<Project> enrolledProjects;
 
     @ManyToMany(mappedBy = "receivers")
-    @OrderBy("id DESC")
+    @OrderBy("created DESC")
     public List<NotificationEvent> notificationEvents;
 
     public User(){}
@@ -385,12 +388,19 @@ public class User extends Model {
     }
 
     public List<Project> getWatchingProjects() {
+        return getWatchingProjects(null);
+    }
+
+    public List<Project> getWatchingProjects(String orderString) {
         List<String> projectIds = WatchService.findWatchedResourceIds(this, ResourceType.PROJECT);
         List<Project> projects = new ArrayList<>();
         for (String id : projectIds) {
             projects.add(Project.find.byId(Long.valueOf(id)));
         }
-        return projects;
+        if (StringUtils.isBlank(orderString)) {
+            return projects;
+        }
+        return Ebean.filter(Project.class).sort(orderString).filter(projects);
     }
 
     /**

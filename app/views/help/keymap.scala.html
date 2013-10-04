@@ -8,7 +8,7 @@
     <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
         <div class="row-fluid">
             <div class="span4">
-                <h5>@Messages("projects")</h5>
+                <h5>@Messages("project.projects")</h5>
 	            <span class="nbtn small black">H</span>
 	            <span class="help-inline">@Messages("menu.home")</span><br>
 
@@ -22,7 +22,7 @@
 	            <span class="help-inline">@Messages("menu.code")</span><br>
 
 	            <span class="nbtn small black">M</span>
-	            <span class="help-inline">@Messages("project.milestone")</span><br>
+	            <span class="help-inline">@Messages("milestone")</span><br>
 
                 @if(project.vcs.equals("GIT")){
                 <span class="nbtn small black">F</span>
@@ -40,7 +40,7 @@
 	            
 	            @if(section.indexOf("board") > -1){
                 <span class="nbtn small black">N</span>
-                <span class="help-inline">@Messages("board.write")</span><br>
+                <span class="help-inline">@Messages("post.write")</span><br>
                 }
                 
                 @if(section.indexOf("issue") > -1){
