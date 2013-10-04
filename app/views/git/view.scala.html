@@ -177,10 +177,9 @@
 	                                </a>
 
 									@if(commitMsg.split("\n").length > 1){
-									<button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
+									<button type="button" class="more">&hellip;</button>
 									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
 									}
-                                </a>
                                 }
                             </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
@@ -245,7 +244,7 @@
         @if(pull.isClosed()) {
         <div class="alert alert-info">
             <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
+            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
             @if(UserApp.currentUser().equals(pull.contributor)) {
                 @if(canDeleteBranch) {
                 <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")

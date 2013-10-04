@@ -67,22 +67,22 @@
             var sToBranch = $.trim(htElement.welInputToBranch.val());
 
             if(sTitle.length === 0){
-                $yobi.alert(Messages("pullrequest.title.required"));
+                $yobi.alert(Messages("pullRequest.title.required"));
                 return false;
             }
 
             if(sBody.length === 0){
-                $yobi.alert(Messages("pullrequest.body.required"));
+                $yobi.alert(Messages("pullRequest.body.required"));
                 return false;
             }
 
             if(sFromBranch.length === 0){
-                $yobi.alert(Messages("pullrequest.fromBranch.required"));
+                $yobi.alert(Messages("pullRequest.fromBranch.required"));
                 return false;
             }
 
             if(sToBranch.length === 0){
-                $yobi.alert(Messages("pullrequest.toBranch.required"));
+                $yobi.alert(Messages("pullRequest.toBranch.required"));
                 return false;
             }
 

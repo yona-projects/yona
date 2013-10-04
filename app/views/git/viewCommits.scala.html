@@ -2,6 +2,7 @@
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
+@import java.net.URLEncoder
 
 @main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
@@ -13,14 +14,14 @@
                 <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
                 <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>
             </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch)" class="label label-success">@pull.fromBranch</a>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch, "")" class="label label-success">@pull.fromBranch</a>
 
             @Messages("pullRequest.to")
             <span class="label label-info">
                 <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
                 <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
             </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch)" class="label label-success">@pull.toBranch</a>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch, "")" class="label label-success">@pull.toBranch</a>
         </p>
 
         <ul class="nav nav-tabs yobi-tabs">
@@ -41,7 +42,7 @@
                 <table class="code-table commits">
                     <thead class="thead">
                     <tr>
-                        <td class="commit-id"><strong>@@</strong></td>
+                        <td class="commit-id"><strong>@{"@"}</strong></td>
                         <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
                         <td class="date"><strong>@Messages("code.commitDate")</strong></td>
                         <td class="author"><strong>@Messages("code.author")</strong></td>
@@ -51,7 +52,7 @@
                     @for(commit <- commits.iterator()) {
                     <tr>
                         <td class="commit-id">
-                            <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())">
+                            <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())?branch=@URLEncoder.encode(pull.fromBranch, "UTF-8")">
                                 @commit.getShortId()
                                 <i class="yobicon-right"></i>
                             </a>

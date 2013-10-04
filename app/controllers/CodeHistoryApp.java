@@ -159,7 +159,9 @@ public class CodeHistoryApp extends Controller {
         List<CodeComment> comments = CodeComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).findList();
 
-        return ok(diff.render(project, commit, parentCommit, patch, comments));
+        String selectedBranch = request().getQueryString("branch");
+        
+        return ok(diff.render(project, commit, parentCommit, patch, comments, selectedBranch));
     }
 
     public static Result newComment(String ownerName, String projectName, String commitId)
