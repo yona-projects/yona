@@ -78,12 +78,13 @@ public interface PlayRepository {
      * @param pageNum 조회할 히스토리 페이지
      * @param pageSize 조회할 히스토리 페이지 당 개수
      * @param untilRev 조회할 커밋 중 가장 최근 커밋을 가리키는 리비전, 이 값이 null이면 HEAD
+     * @param path Show only commits that affect the specified path 
      * @return
      * @throws IOException
      * @throws GitAPIException
      * @throws SVNException
      */
-    public abstract List<Commit> getHistory(int pageNum, int pageSize, String untilRev) throws IOException, GitAPIException, SVNException;
+    public abstract List<Commit> getHistory(int pageNum, int pageSize, String untilRev, String path) throws IOException, GitAPIException, SVNException;
 
     public abstract Commit getCommit(String rev) throws IOException, SVNException;
 

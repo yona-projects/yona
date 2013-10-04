@@ -112,7 +112,7 @@ public class ProjectApp extends Controller {
 
         List<Commit> commits = null;
         try {
-			commits = repository.getHistory(COMMIT_HISTORY_PAGE, COMMIT_HISTORY_SHOW_LIMIT, null);
+			commits = repository.getHistory(COMMIT_HISTORY_PAGE, COMMIT_HISTORY_SHOW_LIMIT, null, null);
         } catch (NoHeadException e) {
 		// NOOP
         }

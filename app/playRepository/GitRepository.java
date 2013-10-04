@@ -540,10 +540,13 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      */
     @Override
-    public List<Commit> getHistory(int pageNumber, int pageSize, String untilRevName)
+    public List<Commit> getHistory(int pageNumber, int pageSize, String untilRevName, String path)
             throws IOException, GitAPIException {
         // Get the list of commits from HEAD to the given pageNumber.
         LogCommand logCommand = new Git(repository).log();
+        if (path != null) {
+            logCommand.addPath(path);
+        }
         if (untilRevName != null) {
             ObjectId objectId = repository.resolve(untilRevName);
             if (objectId == null) {

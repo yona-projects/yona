@@ -15,7 +15,7 @@
 @getBranchURL(project:Project, branchName:String, viewType:String) = @{
     viewType match {
         case "history" => {
-            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"))
+            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
         }
         case "code" => {
             routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)

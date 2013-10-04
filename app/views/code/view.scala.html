@@ -66,7 +66,7 @@
 }
 @getDataPath(listPath:String, fileName:String) = @{if(listPath == ""){fileName}else{getCorrectedPath(listPath, fileName)}}
 @getUserLink(userLoginId:String) = @{
-    if(userLoginId != null){
+    if(userLoginId != null && userLoginId != ""){
         "/" + userLoginId
     } else {
         "javascript:void(); return false;"
@@ -104,7 +104,7 @@
 @getFileRev(file:org.codehaus.jackson.JsonNode) = @{
     project.vcs match {
         case "GIT" => {
-            fieldText(file,"commitId").substring(0,7)
+            fieldText(file,"commitId")
         }
         case "Subversion" => {
             "Revision " + fieldText(file, "revisionNo")
@@ -121,17 +121,30 @@
 <div class="file-wrap" data-type="file">
     <div class="file-header nm">
         <div id="fileInfo" class="file-info">
-            <span id="commiter" class="commiter">@fieldText(files,"commiter")</span>
+            <span id="commiter" class="commiter">
+                @getAvatar(files) 
+                <a href="@getUserLink(fieldText(files, "userLoginId"))" class="ml5">@fieldText(files,"commiter")</a>
+            </span>
             <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
-            <span id="revisionNo" class="revision">@revId</span>
+            <span id="revisionNo" class="revision">
+                <a href="@routes.CodeHistoryApp.show(project.owner, project.name, revId)@if(branch){?branch=@URLEncoder.encode(branch, "UTF-8")}#@path">
+                    @revId.substring(0,7)
+                    @defining(CodeComment.count(project, fieldText(files, "commitId"), "/"+path)){ numOfComment =>
+                    @if(numOfComment > 0) {
+                        <span class="number-of-comments ml5"><i class="yobicon-comments"></i> @numOfComment</span>
+                    }
+                    }
+                </a>
+            </span>
             <span id="commitMessage" class="commitMsg">@fieldText(files,"commitMessage")</span>
         </div>
-        <div class="pull-right actrow">
+        <div class="pull-right">
             @if(!files.get("isBinary").getBooleanValue()){
             <a href="@filePath" class="nbtn medium" target="_blank">
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
             }
+            <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)" class="nbtn medium">@Messages("code.history")</a>
         </div>
     </div>
     @** Binary File **@
@@ -158,15 +171,17 @@
     }
 }
 @makeBreadCrumbs(pagePath:String) = @{
-    var basePath = routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "").toString()
-    var partialPath = ""
-    pagePath.split("/").toList.map { p =>
-        if(partialPath == ""){
-            partialPath = p
-        } else {
-            partialPath = partialPath + "/" + p
+    if(pagePath != null){
+        var basePath = routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "").toString()
+        var partialPath = ""
+        pagePath.split("/").toList.map { p =>
+            if(partialPath == ""){
+                partialPath = p
+            } else {
+                partialPath = partialPath + "/" + p
+            }
+            Html("<a href=\"" + getCorrectedPath(basePath, partialPath) + "\">" + p + "</a>")
         }
-        Html("<a href=\"" + getCorrectedPath(basePath, partialPath) + "\">" + p + "</a>")
     }
 }
 
@@ -179,7 +194,7 @@
             <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "")">@project.name</a>
             @makeBreadCrumbs(path)
         </div>
-        <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+        <div id="branches" class="btn-group branches pull-right @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}" data-name="branch" data-activate="manual">
             <button class="btn dropdown-toggle large" data-toggle="dropdown">
                 <span class="d-label">@branch</span>
                 <span class="d-caret"><span class="caret"></span></span>
@@ -191,6 +206,7 @@
             </ul>
         </div>
 
+        @if(fieldText(recursiveData{0}, "type").eq("folder")){
         <ul class="nav nav-tabs">
             @if(path.lastIndexOf("/") > 0){
             <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
@@ -200,9 +216,10 @@
             @if(branch.eq("HEAD")){
             <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
             } else {
-            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@Messages("code.commits")</a></li>
+            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), null)">@Messages("code.commits")</a></li>
             }
         </ul>
+        }
         
         <div class="code-viewer-wrap">
             <div id="spin" style="position:fixed; top:50%; left:50%"></div>

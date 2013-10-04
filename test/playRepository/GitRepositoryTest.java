@@ -141,8 +141,8 @@ public class GitRepositoryTest {
 
         GitRepository gitRepo = new GitRepository(userName, projectName + "/");
 
-        List<Commit> history2 = gitRepo.getHistory(0, 2, "HEAD");
-        List<Commit> history5 = gitRepo.getHistory(0, 5, "HEAD");
+        List<Commit> history2 = gitRepo.getHistory(0, 2, "HEAD", null);
+        List<Commit> history5 = gitRepo.getHistory(0, 5, "HEAD", null);
 
         // then
         assertThat(history2.size()).isEqualTo(2);

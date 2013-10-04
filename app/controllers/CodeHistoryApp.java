@@ -59,7 +59,7 @@ public class CodeHistoryApp extends Controller {
     public static Result historyUntilHead(String ownerName, String projectName) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
-        return history(ownerName, projectName, null);
+        return history(ownerName, projectName, null, null);
     }
 
     /**
@@ -83,7 +83,7 @@ public class CodeHistoryApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
-    public static Result history(String ownerName, String projectName, String branch) throws IOException,
+    public static Result history(String ownerName, String projectName, String branch, String path) throws IOException,
             UnsupportedOperationException, ServletException, GitAPIException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -105,13 +105,13 @@ public class CodeHistoryApp extends Controller {
         }
 
         try {
-            List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch);
+            List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch, path);
 
             if (commits == null) {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
             }
 
-            return ok(history.render(project, commits, page, branch));
+            return ok(history.render(project, commits, page, branch, path));
         } catch (NoHeadException e) {
             return notFound(nohead.render(project));
         }

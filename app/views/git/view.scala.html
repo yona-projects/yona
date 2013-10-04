@@ -165,7 +165,7 @@
                             </td>
 
                             <td class="messages">
-                                @defining(CodeComment.count(pull.fromProject, commit.getId)){ numOfComment =>
+                                @defining(CodeComment.count(pull.fromProject, commit.getId, null)){ numOfComment =>
                                     @if(numOfComment > 0) {
                                     <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                     }

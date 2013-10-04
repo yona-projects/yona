@@ -70,6 +70,7 @@ code.commits = Commits
 code.copyUrl = Copy URL
 code.filename = Filename
 code.files = Files
+code.history = History
 code.newer = Newer
 code.nohead = <div class="alert alert-block"><h4>The repository is empty!</h4></div>
 code.nohead.clone = Create new local repository by cloning the repository created on {0}, and push README.md file.
@@ -81,6 +82,8 @@ code.openCommentBox = Open Comment Box
 code.repoUrl = URL
 code.showcomments = Show Comments
 code.fullDiff = Side-by-side diff
+code.showCommit = View Commit
+code.showCodeAtThisCommit = Browse the code at this point
 common.attach.attachIfYouSave = will be attached when you save
 common.attach.clickbutton = click Upload button
 common.attach.clickToPost = Click to post

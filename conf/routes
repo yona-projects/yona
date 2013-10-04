@@ -190,7 +190,8 @@ GET     /:user/:project/image/:rev/*path                controllers.CodeApp.show
 
 # Commits
 GET     /:user/:project/commits                         controllers.CodeHistoryApp.historyUntilHead(user, project)
-GET     /:user/:project/commits/:branch                 controllers.CodeHistoryApp.history(user, project, branch:String)
+GET     /:user/:project/commits/:branch/                controllers.CodeHistoryApp.history(user, project, branch:String, path=null)
+GET     /:user/:project/commits/:branch/*path           controllers.CodeHistoryApp.history(user, project, branch:String, path:String)
 GET     /:user/:project/commit/:id                      controllers.CodeHistoryApp.show(user, project, id:String)
 POST    /:user/:project/commit/:commitId/comments       controllers.CodeHistoryApp.newComment(user, project, commitId)
 DELETE  /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeHistoryApp.deleteComment(user, project, commitId, id: Long)

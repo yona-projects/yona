@@ -243,7 +243,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public List<Commit> getHistory(int page, int limit, String until) throws AmbiguousObjectException,
+    public List<Commit> getHistory(int page, int limit, String until, String path) throws AmbiguousObjectException,
             IOException, NoHeadException, GitAPIException, SVNException {
         // Get the repository
         SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));

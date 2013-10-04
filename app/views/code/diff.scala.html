@@ -17,12 +17,12 @@
 @makeBranchItem(project:Project, branch:String) = {
     @defining(branch.split('/')){ names =>
         @if(names(0).equals("refs") && names.length == 3){
-            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"))"><!--
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"), null)"><!--
              --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
              -->@names(2)
             </a></li>
         } else {
-            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@branch</a></li>
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), null)">@branch</a></li>
         }
     }
 }

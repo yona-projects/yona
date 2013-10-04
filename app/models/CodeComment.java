@@ -44,11 +44,19 @@ public class CodeComment extends Model implements ResourceConvertible {
         createdDate = new Date();
     }
 
-    public static int count(Project project, String commitId) {
-        return CodeComment.find.where()
-                .eq("project.id", project.id)
-                .eq("commitId", commitId)
-                .findRowCount();
+    public static int count(Project project, String commitId, String path){
+        if(path != null){
+            return CodeComment.find.where()
+                    .eq("project.id", project.id)
+                    .eq("commitId", commitId)
+                    .eq("path", path)
+                    .findRowCount();
+        } else {
+            return CodeComment.find.where()
+                    .eq("project.id", project.id)
+                    .eq("commitId", commitId)
+                    .findRowCount();
+        }
     }
 
     @Transient

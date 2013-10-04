@@ -328,7 +328,7 @@ public class Project extends Model implements LabelOwner {
             List<String> branches = repository.getBranches();
             if (!branches.isEmpty() && repository instanceof GitRepository) {
                 GitRepository gitRepo = new GitRepository(owner, name);
-                List<Commit> history = gitRepo.getHistory(0, 2, "HEAD");
+                List<Commit> history = gitRepo.getHistory(0, 2, "HEAD", null);
                 return history.get(0).getAuthorDate();
             }
         } catch (IOException e) {

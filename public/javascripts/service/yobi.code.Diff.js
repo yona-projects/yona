@@ -43,6 +43,7 @@
             htVar.sCommitId = htOptions.sCommitId;
             htVar.sTplFileURL = htOptions.sTplFileURL;
             htVar.sTplRawURL = htOptions.sTplRawURL;
+            htVar.rxSlashes = /\//g;
             
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
@@ -116,6 +117,17 @@
             htElement.welDiff.append(_renderDiff(sDiff));
             htElement.welDiff.show();
             htElement.welComments.show(); // Show the remain comments
+            
+            // Diff 중에서 특정 파일을 #path 로 지정한 경우
+            // Diff render 완료 후 해당 파일 위치로 스크롤 이동
+            if(document.location.hash){
+                var sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
+                var welTarget = $(document.getElementById(sTargetId));
+                
+                if(welTarget.length > 0){
+                    window.scrollTo(0, welTarget.offset().top);
+                }
+            }
         }
 
         /**

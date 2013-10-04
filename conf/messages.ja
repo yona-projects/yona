@@ -69,6 +69,7 @@ code.commits = コミット
 code.copyUrl = URLコピー
 code.filename = ファイル名
 code.files = ファイル
+code.history = 履歴
 code.newer = 以前
 code.nohead =<div class="alert alert-block"><h4>リポジトリーが空いています!</h4>ローカルにGitリポジトリーを作って{0}にコードを送る方法は：</div>
 code.nohead.clone = {0}に作られたGit リポジトリーをcloneしてローカルにGit リポジトリーを作り、README.md ファイルを{0}にコミットする事が出来ます。
@@ -80,6 +81,8 @@ code.openCommentBox = コメント開ける
 code.repoUrl = リポジトリー URL
 code.showcomments = コメント表示
 code.fullDiff = Side-by-side diff
+code.showCommit = コミット詳細
+code.showCodeAtThisCommit = この時点でのコードを見る
 common.attach.attachIfYouSave = 表示されたファイルはセーブしたら添付されます。
 common.attach.clickbutton = ボタンで選んでください
 common.attach.clickToPost = 本文に入れる
