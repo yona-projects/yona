@@ -244,7 +244,7 @@
         @if(pull.isClosed()) {
         <div class="alert alert-info">
             <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
+            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
             @if(UserApp.currentUser().equals(pull.contributor)) {
                 @if(canDeleteBranch) {
                 <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")

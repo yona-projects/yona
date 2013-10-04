@@ -165,7 +165,7 @@ public class ProjectApp extends Controller {
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
-        return ok(setting.render("title.projectSetting", projectForm, project));
+        return ok(setting.render("menu.admin", projectForm, project));
     }
 
     /**
