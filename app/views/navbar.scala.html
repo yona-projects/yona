@@ -9,20 +9,15 @@
 
 <header class="gnb-outer">
     <div class="gnb-inner">
-        <div class="gnb-menu-wrap">
-            <a href="@routes.Application.index()" class="logo"><span>@Messages("app.name")</span></a>
-            <ul class="gnb-menus unstyled">
-                <li class="menu @isActiveMenu(MenuType.NEW_PROJECT)">
-                    <a href="@routes.ProjectApp.newProjectForm()">@Messages("title.newProject")</a>
-                </li>
-                <li class="menu @isActiveMenu(MenuType.PROJECTS)">
-                    <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
-                </li>
-                <li class="menu @isActiveMenu(MenuType.HELP)">
-                    <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
-                </li>
-            </ul>
-			@usermenu(null)
-        </div>
-    </div>
+        <a href="@routes.Application.index()" class="logo">@Messages("app.name")</a>
+        <ul class="gnb">
+            <li class="@isActiveMenu(MenuType.PROJECTS)">
+                <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
+            </li>
+            <li class="@isActiveMenu(MenuType.HELP)">
+                <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
+            </li>
+        </ul>
+        @usermenu(null)
+    </div>    
 </header>
