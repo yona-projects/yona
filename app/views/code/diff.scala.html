@@ -136,9 +136,9 @@
         @** // Comment **@        
     </div>
 
-    <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+    <button id="watch-button" type="button" class="ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
 
-    <a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
+    <a href="javascript: history.back();" class="ybtn pull-right">@Messages("button.list")</a>
 
     <div id="minimap" class="minimap-outer">
         <div class="minimap-wrap">
@@ -157,7 +157,7 @@
     <td class="linenum"></td>
 </script>
 <script type="text/x-jquery-tmpl" id="comment-button-template">
-    <button class="nbtn medium btn-thread"></button>
+    <button class="ybtn medium btn-thread"></button>
 </script>
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">

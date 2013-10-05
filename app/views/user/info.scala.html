@@ -64,14 +64,6 @@
         </div>
 
         <div class="user-stream-box">
-            @if(user != null && session != null && user.loginId == session.get("loginId")){
-            <div class="pull-right">
-                <a href="@routes.ProjectApp.newProjectForm()" class="nbtn medium orange last">
-                    <i class="yobicon-database-add"></i> @Messages("title.newProject")
-                </a>
-            </div>
-            }
-
             <ul id="user-stream-tabs" class="nav nav-tabs">
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">

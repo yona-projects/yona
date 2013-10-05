@@ -248,19 +248,18 @@
 
     <div class="board-footer board-actrow">
         <div class="pull-left">
-            <a href="@urlToIssues" class="nbtn medium" data-button="historyBack">@Messages("button.list")</a>
-            <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
+            <a href="@urlToIssues" class="ybtn" data-button="historyBack">@Messages("button.list")</a>
         </div>
 
         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.DELETE)) {
-        <a href="#deleteConfirm" data-toggle="modal" class="nbtn medium red">@Messages("button.delete")</a>
+        <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger">@Messages("button.delete")</a>
         }
 
         @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {
-        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
+        <a href="@routes.IssueApp.editIssueForm(project.owner, project.name, issue.getNumber)" class="ybtn">@Messages("button.edit")</a>
         }
         
-        <button id="watch-button" type="button" class="nbtn medium" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+        <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(issue.getWatchers.contains(UserApp.currentUser())){true}else{false}">
             @if(issue.getWatchers.contains(UserApp.currentUser())) {
                 @Messages("project.unwatch")
             } else {
@@ -353,8 +352,8 @@
 		<p>@Messages("post.delete.confirm")</p>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="nbtn medium red" data-request-method="delete" data-request-uri="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.getNumber)">@Messages("button.yes")</button>
-		<button type="button" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</button>
+		<button type="button" class="ybtn ybtn-danger" data-request-method="delete" data-request-uri="@routes.IssueApp.deleteIssue(project.owner, project.name, issue.getNumber)">@Messages("button.yes")</button>
+		<button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
 	</div>
 </div>
 

@@ -62,8 +62,8 @@
                 @** end of fileUploader **@
 
                 <div class="actrow right-txt">
-                    <button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
-                 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+                    <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button><!--
+                 --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                 </div>
             </div>
             <div class="span3">
@@ -100,8 +100,7 @@
                         <dd>
                         @defining(Milestone.options(project.id)) { milestones =>
                             @if(milestones.isEmpty()) {
-                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
-                                <i class="yobicon-refresh"></i>
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
                             } else {
                                 <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
                                     <button class="btn dropdown-toggle auto" data-toggle="dropdown">

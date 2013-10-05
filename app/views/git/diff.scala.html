@@ -31,12 +31,12 @@
 <div class="page">
     <div class="code-browse-wrap">
         <div class="actrow">
-            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="nbtn medium orange">
+            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="ybtn">
                 <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
             </a>
             
             <div class="pull-right">
-                <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+                <button id="watch-button" type="button" class="ybtn ybtn-info @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
             </div>
         </div>
         <hr>
@@ -136,7 +136,7 @@
     <td class="linenum"></td>
 </script>
 <script type="text/x-jquery-tmpl" id="comment-button-template">
-    <button class="nbtn medium btn-thread"></button>
+    <button class="ybtn btn-thread"></button>
 </script>
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
