@@ -3,18 +3,19 @@
 @import utils._
 
 @layout(Messages(title) + " (" + project.name + ")")("prj") {
-<header class="gnb-outer">
+
 @views.html.project.navbar(project)
-</header>
-  
-<div class="container page-wrap">
+
+@views.html.project.header(project)
+
+<div class="project-page-wrap mini"> 
 @content
 </div>
 
 <footer class="page-footer-outer">
-	<div class="page-footer">
-		<span class="provider">Powered by <strong>@Messages("app.name")</strong></span>
-	</div>
+    <div class="page-footer">
+        <span class="provider">Powered by <strong>@Messages("app.name")</strong></span>
+    </div>
 </footer>
 @alert()
 }
