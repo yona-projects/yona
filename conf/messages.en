@@ -403,6 +403,7 @@ project.tags = Tags
 project.unwatch = Unwatch
 project.vcs = Repository Type
 project.watch = Watch
+project.watching = Watching
 project.watchingproject = Watching
 project.wrongName = Project name is wrong
 project.you.are.not.watching = You are not watching {0} project.
