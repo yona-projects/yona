@@ -769,6 +769,110 @@
     }
 }
 
+.site-guide-outer {
+    
+    h3 { 
+        margin:0; 
+        padding:0;
+        font-size: 30px;
+        color:@yobi-primary;
+
+        span {
+            font-size:14px;
+            font-weight:bold;
+            color:#333;
+        }
+    }
+
+    .site-guide-inner {
+        margin-top:15px;
+        padding:0 0 40px;
+
+        .site-guide-title {
+            background-color:@yobi-inverse-light;
+            padding:10px 15px;
+            color:@yobi-white;
+            .border-radius(6px 6px 0 0);
+            font-size:16px;
+            font-weight:bold;
+            line-height: 26px;
+        }
+
+        .guide-wrap {
+            padding:15px;
+            .border-radius(0 0 6px 6px);
+            overflow:hidden;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+
+            ul {
+                list-style : none;
+                margin:0;
+                padding:0;
+                width:100%;
+                .border-radius(6px);
+               
+
+                li {
+                    float: left;
+                    width: 25%;
+                    -webkit-box-sizing: border-box;
+                    -moz-box-sizing: border-box;
+                    -o-box-sizing: border-box;
+                    -ms-box-sizing: border-box;
+                    box-sizing: border-box;
+                    padding:10px 15px;
+                    border: 1px solid rgba(0, 0, 0, 0.15);
+                    overflow:hidden;
+                    position:relative;
+                    text-align:center;
+
+                    .guide-icons {
+                        margin-top:10px;
+                        font-size:35px;
+                         color:@yobi-primary;
+                    }
+
+                    .guide-title {
+                        margin-top:25px;
+                        font-size:16px;
+                        font-weight:bold;
+                        text-align:left;
+                    }
+
+                    .guide-desc {
+                        text-align:left;
+                        font-size:13px;
+                        min-height:80px;
+                    }
+
+                    &:nth-child(odd) {
+                        background-color:@yobi-white-dark;
+
+                    }
+
+                    &:nth-child(even) {
+                        background-color:@yobi-white;
+                    }
+
+                    &:nth-child(1) {
+                        .border-radius(6px 0 0 6px);
+                    }
+
+                    &:nth-child(2) {
+                        border-right: none;
+                        border-left: none;
+                    }
+
+                    &:nth-child(4) {
+                        border-left: none;
+                        .border-radius(0 6px 6px 0);
+                    }
+                }
+            }
+        }
+    }
+}
+
 .content-container {
     .main-stream {
         .activity-streams {
