@@ -1,13 +1,20 @@
 @(title: String, menuType:utils.MenuType)(content: Html)
 
+@import utils._
+
 @layout(Messages(title))(""){
     @navbar(menuType)
+
+    @if(menuType == utils.MenuType.SITE_HOME && !(session.contains("loginId"))) {
+        @views.html.siteintro()
+    } else {
+        <div class="page-wrap">
+            @alert()
+            @content
+        </div>
+    }
     
-    <div class="page-wrap">
-        @alert()
-        @content
-    </div>
-    <footer class="page-footer-outer">
+    <footer class="page-footer-outer">  
         <div class="page-footer">
             <span class="provider">Powered by <strong>@Messages("app.name")</strong></span>
         </div>

@@ -233,7 +233,7 @@
     height:70px;
     position:relative;
     background-position: bottom;
-    background-size : 100% auto;
+    background-size : cover;
     .transition(height .5s ease);
 
     .project-header-toggle {
@@ -495,6 +495,8 @@
     margin-top:30px;
     padding:0 40px 0 160px;
     position: relative;
+    min-height:580px;
+
     &.mini {
         padding-left : 70px;
 
@@ -514,40 +516,19 @@
     }
 }
 
-.intro-wrap {
-    background: url("@{base-image-path}/bg-index-content-960.png") no-repeat top left transparent;
-    height: 375px;
-    text-align: center;
-    width: @base-width;
-
-    .intros {
-        padding: 25px 0 0;
-        font-size: 0;
-        margin: 0;
-
-        .intro {
-            width: 200px;
-            padding: 0 15px;
-            .inline-block;
-        }
-    }
-}
-
 .page-footer-outer {
-    width: @base-width - 40;
-    padding: 10px 20px;
-    text-align: center;
+    padding:10px 40px;
     position: relative;
-    margin-bottom: 30px;
     .center-block;
-
+    background-color:@yobi-white;
     .page-footer {
+        text-align:center;
         line-height: 34px;
     }
     .provider {
-        color: @gray-99;
+        color: @yobi-gray;
         .inline-block;
-        font-size: 11px;
+        font-size: 12px;
     }
 }
 
@@ -645,80 +626,146 @@
     }
 }
 
-.front {
-    display:block; height:238px;
-    background:url('@{base-image-path}/img_front.jpg') no-repeat;
-    position:relative;
-    /*margin-left:84px; margin-top:22px;*/
-    line-height:350px;
+.siteintro {
 
-    /* Button */
-   .btn-wrap {
-        /*margin-left:230px;*/
-       width:252px; margin:0 auto;
+    .siteintro-cover {
+        padding:80px 40px;
+        background-color: @yobi-inverse-dark;
 
-        a {
-            font-size:18px; text-align:center;
-            width:252px; height:56px;
-            background-color:@orange;
-            color:#fff; line-height:56px;
-            border-bottom:1px solid #ae5f54;
-            .border-radius(10px);
-            .inline-block;
+    }
 
-            i { vertical-align:middle; margin-bottom:4px; }
+    .siteintro-wrap {
+        width:960px;
+        margin:0 auto;
+
+        .site-heading {
+            margin:0 ;
+            padding:0;
+            color:@yobi-primary;
+            font-size:56px;
+            line-height:1.3;
+        }
+
+        .site-features {
+            list-style:none;
+            margin:0;
+            padding:0;
+            clear:both;
+            display:block;
+
+            li {
+                display:inline-block;
+                color:#FFF;
+                font-size:20px;
+                line-height:1.5;
+                margin-left:15px;
+
+                &:first-child {
+                    margin:0;
+                }
+
+                strong {
+                    color:@yobi-blue;
+                }
+            }
         }
     }
+
+    .signup-btn {
+        text-align:center;
+        margin-top:30px;
+    }
 }
+.feature {
+    clear:both;
+    padding: 20px 40px 80px;
+    text-align:center;
+    background-color:@yobi-white-dark;
+    h2 {
+        margin:0;
+        padding:50px 0 40px;
 
-//---------- home page.
-.fn-intro-wrap {
-    text-align: center;
-    width: 100%;/*@base-width;*/
+        strong {
+            color:@yobi-primary;
+        }
+    }
 
-    .intros {
-        padding: 16px 10px;
-        padding-bottom:15px;
-
-        margin: 0;
-        font-size: 0;
-        border-bottom:2px solid @gray-f2;
+    .feature-wrap {
+        list-style:none;
+        margin:0;
+        padding:0;
+        overflow: hidden;
+        width:100%;
+        min-width:644px;
 
         li {
-            width: 196px;
-            height:178px;
-            margin-right:73px; /*29px;*/
-            background-image: url('@{base-image-path}/sprite2.png');
-            /*border:1px solid #e3e3e3;*/
-            .inline-block;
-        }
-        li:last-of-type { margin:0; }
+            float: left;
+            width: 33.33333333333333%;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -o-box-sizing: border-box;
+            -ms-box-sizing: border-box;
+            box-sizing: border-box;
+            padding-top: 40px;
+            padding-bottom: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            overflow:hidden;
+            position:relative;
 
-        .project    { background-position:0px 0; }
-        .repository { background-position:-200px 0; }
-        .tasks      { background-position:0px -180px; }
-        .tracker    { background-position:-200px -180px; }
+            &:nth-child(3n+2) {
+                border-right: none;
+                border-left: none;
+            }
 
-        &.closed {
-            height: 0;
-            overflow: hidden;
-            padding: 5px 0 0;
+            &:nth-child(-n+3) {
+                border-bottom: none;
+            }
+
+            .feature-image {
+                color:@yobi-primary;
+                text-align: center;
+                display: block;
+                font-size: 60px;
+                .transition(all .2s ease);
+            }
+
+            .feature-title {
+                margin-top: 30px;
+                padding: 0;
+                font-size: 20px;
+                .transition(all .2s ease);
+            }
+
+            .feature-desc {
+                margin:15px 0;
+                padding:0 35px;
+                font-size:14px;
+                text-align:left;
+                min-height:60px;
+            }
+
+            &:hover {
+                .feature-image {
+                    color:@yobi-green;
+                }
+
+                
+            }
         }
-    }
-    .index {
-        border:none !important;
     }
 }
 
-.page.on-fold-intro {
-    padding-top:0;
-    .tag-line-wrap { display:none; }
-    .intros { display:none; }
+.getting-started {
+    text-align:center;
+    background:@yobi-inverse-light;
+    padding:60px 0px 80px;
 
-    .btn-open-close {
-        width: 54px; height: 12px; vertical-align: top;
-        background-position: -59px -129px !important;
-        &:hover { background-position: -3px -129px !important; }
+    h2 {
+        padding: 0 40px 30px;
+        color:@yobi-white;
+        strong {
+            color:@yobi-primary;
+        }
     }
 }
 

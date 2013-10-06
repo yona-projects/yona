@@ -5,41 +5,6 @@
 
 @home("app.name", utils.MenuType.SITE_HOME) {
     <div class="page on-fold-intro">
-        <div class="fn-intro-wrap">
-	        <div class="tag-line-wrap tag-line-wrap-index">
-	            <h1 class="title"><span class="high-light">Software development platform</span></h1>
-	            <p class="tag-line">
-	                <span>Open Source</span> Project. 
-	                <span>Code</span> Repository. 
-	                <span>Issue</span> Tracker. 
-	            </p>
-	        </div>
-            <ul class="intros@if(currentUser == User.anonymous){ index}">
-				<li class="project">
-					<strong>프로젝트</strong>
-					
-					원하는 이름으로
-					프로젝트를 원하는 만큼 만들어보세요.
-					유일한 한계는 상상력의 한계일 뿐입니다.
-				</li>
-				<li class="repository">
-					<strong>코드 저장소</strong>
-					
-					작성한 코드는
-					모두 이력이 관리되는 형태로 안전하게 서버에 보관됩니다
-				</li>
-				<li class="tracker">
-					<strong>이슈 트래커</strong>
-					
-					팀이 함께 고민하고
-					처리해야 하는 내용들을 적고
-					거친 파도를 합심해 헤쳐나가듯 해결해 나갑니다.
-				</li>
-            </ul>
-            
-            <a href="#" id="toggleIntro"><i class="ico btn-open-close"></i></a>
-        </div>
-        
         <div class="row-fluid content-container">
             @if(currentUser != User.anonymous){
 	        <div class="span9 main-stream">
@@ -53,31 +18,13 @@
                     @myProjectList(currentUser)
                 </div>
 	       </div>
-
-           } else {
-    	
-            <div class="span12 front">
-                <div class="btn-wrap">
-                    <a href="@routes.ProjectApp.newProjectForm()"><i class="yobicon-database-add"></i> @Messages("button.newProject")</a>
-                </div>
-            </div>
-            
-           }
+           } 
         </div>
 
     </div>
     
     <script type="text/javascript">
         $(document).ready(function(){
-            $("#toggleIntro").click(function(){
-                $(".page").toggleClass("on-fold-intro");
-                localStorage.setItem("yobi-intro", !$(".page").hasClass("on-fold-intro"));
-            });
-            
-            if(localStorage.getItem("yobi-intro") != "false"){
-                $(".page").removeClass("on-fold-intro");
-            }
-            
             $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
                 var sTargetId = $(this).data('target'),
                     welMessage = $('#'+sTargetId),

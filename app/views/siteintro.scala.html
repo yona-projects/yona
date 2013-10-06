@@ -1,0 +1,63 @@
+<div class="siteintro">
+    <div class="siteintro-cover">
+        <div class="siteintro-wrap">
+            <h1 class="site-heading">Software Development Platform</h1>
+            <ul class="site-features">
+                <li><strong>Public or Private</strong> Projects.</li>
+                <li><strong>GIT or SVN</strong> Repository.</li>
+                <li>Code Review.</li>
+                <li>Issue Tracker.</li>
+            </ul>
+        </div>
+        <div class="signup-btn">
+            <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success ybtn-maximum">
+                @Messages("button.signup",Messages("app.name"))
+            </a>
+        </div>   
+    </div>     
+</div>
+<div class="feature">
+    <h2>@Messages("title.features")</h2>
+    <ul class="feature-wrap">
+        <li>
+            <div class="feature-image"><i class="yobicon-database-add"></i></div>
+            <h3 class="feature-title">@Messages("title.unlimitedProjects")</h3>
+            <p class="feature-desc">@Messages("site.features.unlimitedProjects")</p>
+               
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-code"></i></div>    
+            <h3 class="feature-title">@Messages("title.codeManagement")</h3>
+            <p class="feature-desc">@Messages("site.features.codeManagement")</p>
+            </dl>    
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-science"></i></div>
+            <h3 class="feature-title">@Messages("title.issueTracker")</h3>
+            <p class="feature-desc">@Messages("site.features.issueTracker")</p>
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-lock"></i></div>
+            <h3 class="feature-title">@Messages("title.privateProject")</h3>
+            <p class="feature-desc">@Messages("site.features.privateRepositories")</p>
+               
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-preview"></i></div>    
+            <h3 class="feature-title">@Messages("title.codeReview")</h3>
+            <p class="feature-desc">@Messages("site.features.codeReview")</p>
+            </dl>    
+        </li>
+        <li>
+            <div class="feature-image"><i class="yobicon-friends"></i></div>
+            <h3 class="feature-title">@Messages("title.workTeam")</h3>
+            <p class="feature-desc">@Messages("site.features.workTeam")</p>
+        </li>
+    </ul>
+</div>
+<div class="getting-started">
+    <h2>@Html(Messages("title.gettingStarted",Messages("app.name")))</h2>
+    <a href="@routes.ProjectApp.newProjectForm()" class="ybtn ybtn-success ybtn-maximum">
+        <i class="yobicon-database-add"></i> @Messages("button.newProject")
+    </a>
+</div>
