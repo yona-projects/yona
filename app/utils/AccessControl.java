@@ -58,7 +58,7 @@ public class AccessControl {
                 case ISSUE_COMMENT:
                 case NONISSUE_COMMENT:
                 case FORK:
-                case CODE_COMMENT:
+                case COMMIT_COMMENT:
                 case PULL_REQUEST_COMMENT:
                     return true;
                 default:
@@ -227,7 +227,7 @@ public class AccessControl {
         case ISSUE_COMMENT:
         case NONISSUE_COMMENT:
         case BOARD_POST:
-        case CODE_COMMENT:
+        case COMMIT_COMMENT:
         case PULL_REQUEST:
         case PULL_REQUEST_COMMENT:
             return resource.getAuthorId().equals(user.id);

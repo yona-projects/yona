@@ -163,7 +163,7 @@ public class CodeHistoryApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
         }
 
-        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+        List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).findList();
 
         String selectedBranch = request().getQueryString("branch");
@@ -173,7 +173,7 @@ public class CodeHistoryApp extends Controller {
 
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
-        Form<CodeComment> codeCommentForm = new Form<>(CodeComment.class)
+        Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
                 .bindFromRequest();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
@@ -191,11 +191,11 @@ public class CodeHistoryApp extends Controller {
         }
 
         if (!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project,
-                ResourceType.CODE_COMMENT)) {
+                ResourceType.COMMIT_COMMENT)) {
             return forbidden(forbidden.render("error.forbidden", project));
         }
 
-        CodeComment codeComment = codeCommentForm.get();
+        CommitComment codeComment = codeCommentForm.get();
         codeComment.project = project;
         codeComment.commitId = commitId;
         codeComment.createdDate = new Date();
@@ -221,7 +221,7 @@ public class CodeHistoryApp extends Controller {
         return toView;
     }
 
-    private static void addNotificationEventForNewComment(Project project, CodeComment codeComment, Call toView) throws IOException, SVNException, ServletException {
+    private static void addNotificationEventForNewComment(Project project, CommitComment codeComment, Call toView) throws IOException, SVNException, ServletException {
         Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
         Set<User> watchers = commit.getWatchers(project);
         watchers.addAll(NotificationEvent.getMentionedUsers(codeComment.contents));
@@ -244,7 +244,7 @@ public class CodeHistoryApp extends Controller {
 
     public static Result deleteComment(String ownerName, String projectName, String commitId,
                                        Long id) {
-        CodeComment codeComment = CodeComment.find.byId(id);
+        CommitComment codeComment = CommitComment.find.byId(id);
 
         if (codeComment == null) {
             return notFound(notfound_default.render(request().path()));

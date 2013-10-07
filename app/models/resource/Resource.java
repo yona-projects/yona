@@ -43,8 +43,8 @@ public abstract class Resource {
             case MILESTONE:
                 finder = Milestone.find;
                 break;
-            case CODE_COMMENT:
-                finder = CodeComment.find;
+            case COMMIT_COMMENT:
+                finder = CommitComment.find;
                 break;
             case PULL_REQUEST:
                 finder = PullRequest.finder;
@@ -117,8 +117,8 @@ public abstract class Resource {
             case MILESTONE:
                 resource = Milestone.find.byId(longId).asResource();
                 break;
-            case CODE_COMMENT:
-                resource = CodeComment.find.byId(longId).asResource();
+            case COMMIT_COMMENT:
+                resource = CommitComment.find.byId(longId).asResource();
                 break;
             case PULL_REQUEST:
                 return PullRequest.finder.byId(longId).asResource();
@@ -140,4 +140,5 @@ public abstract class Resource {
     abstract public ResourceType getType();
     public Resource getContainer() { return null; }
     public Long getAuthorId() { return null; }
+    public void delete() { throw new UnsupportedOperationException(); }
 }

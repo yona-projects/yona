@@ -1,4 +1,4 @@
-@(pull: PullRequest, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment])
+@(pull: PullRequest, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -119,14 +119,14 @@
                     
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                     
-                    <div class="attachments" data-resourceType="@ResourceType.CODE_COMMENT" data-resourceId="@comment.id"></div>
+                    <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
                 </div>
             </li>
             }
         </ul>
         }
         
-        @common.commentForm(pull.fromProject, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+        @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
     </div>
     @** // Comment **@
     
@@ -160,7 +160,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
-            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, pull.fromProject, ResourceType.CODE_COMMENT)){true}else{false},
+            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, pull.fromProject, ResourceType.COMMIT_COMMENT)){true}else{false},
             "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
             "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",

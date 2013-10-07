@@ -24,7 +24,7 @@
                     <div class="infos nm">
                         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
                         <span class="date ml10">@agoString(req.createdAgo())</span>
-                        @defining(PullRequestComment.countByResourceKey(req.getResourceKey()) + CodeComment.countByCommits(req.fromProject, req.pullRequestCommits)) { count =>
+                        @defining(req.comments.size + CommitComment.countByCommits(req.fromProject, req.pullRequestCommits)) { count =>
                             @if(count > 0) {
                             <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)#comments" class="comment-wrap">
                                 <i class="icon yobicon-comments"></i>

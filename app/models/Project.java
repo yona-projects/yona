@@ -3,11 +3,8 @@ package models;
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
 
 import controllers.EnrollProjectApp;
-import controllers.ProjectApp;
 import controllers.routes;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
@@ -19,7 +16,6 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
-import play.Logger;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -109,7 +105,7 @@ public class Project extends Model implements LabelOwner {
     public List<User> enrolledUsers;
 
     @OneToMany(cascade = CascadeType.REMOVE)
-    public List<CodeComment> codeComments;
+    public List<CommitComment> codeComments;
 
     /**
      * 신규 프로젝트를 생성한다.

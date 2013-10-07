@@ -25,7 +25,7 @@ public enum ResourceType {
     LABEL("label"),
     PROJECT_LABELS("project_labels"),
     FORK("fork"),
-    CODE_COMMENT("code_comment"),
+    COMMIT_COMMENT("code_comment"),
     PULL_REQUEST("pull_request"),
     PULL_REQUEST_COMMENT("pull_request_comment"),
     COMMIT("commit"),

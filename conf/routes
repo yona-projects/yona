@@ -219,3 +219,5 @@ POST    /:user/:project/cancel/enroll                   controllers.EnrollProjec
 # remove trailing slash
 GET     /*paths                                         controllers.Application.removeTrailer(paths)
 
+# Comment
+DELETE  /comments/:type/:id                             controllers.CommentApp.delete(type, id)

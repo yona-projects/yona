@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment], selectedBranch:String, diff: List[playRepository.FileDiff])
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment], selectedBranch:String, diff: List[playRepository.FileDiff])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -134,14 +134,14 @@
                         
                         <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                         
-                        <div class="attachments" data-resourceType="@ResourceType.CODE_COMMENT" data-resourceId="@comment.id"></div>
+                        <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
                     </div>
                 </li>
                 }
             </ul>
             }
             
-            @common.commentForm(project, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
+            @common.commentForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
         </div>
         @** // Comment **@        
     </div>
@@ -181,7 +181,7 @@
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
             "welDiff": $("#commit"),
-            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.CODE_COMMENT)){true}else{false},
+            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.COMMIT_COMMENT)){true}else{false},
             "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",

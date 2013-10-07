@@ -327,7 +327,7 @@
 					}
 					</ul>
 					}
-					@common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+					@common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
 				</div>
             </div>
 
@@ -354,7 +354,7 @@
 
                             <td class="messages">
 
-                                @defining(CodeComment.count(pull.fromProject, commit.getCommitId, null)){ numOfComment =>
+                                @defining(CommitComment.count(pull.fromProject, commit.getCommitId, null)){ numOfComment =>
                                     @if(numOfComment > 0) {
                                     <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                     }

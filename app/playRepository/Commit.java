@@ -35,9 +35,9 @@ public abstract class Commit {
         }
 
         // Add every user who comments on this commit
-        List<CodeComment> comments = CodeComment.find.where()
+        List<CommitComment> comments = CommitComment.find.where()
                 .eq("project.id", project.id).eq("commitId", getId()).findList();
-        for (CodeComment c : comments) {
+        for (CommitComment c : comments) {
             User user = User.find.byId(c.authorId);
             if (user != null) {
                 actualWatchers.add(user);

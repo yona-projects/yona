@@ -738,7 +738,7 @@ public class PullRequestApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
         }
 
-        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+        List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).findList();
 
         return ok(diff.render(pullRequest, commit, parentCommit, patch, comments));

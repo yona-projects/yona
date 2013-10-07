@@ -531,10 +531,10 @@ public class ProjectApp extends Controller {
     }
 
     private static void addCodeCommenters(String commitId, Long projectId, List<User> userList) {
-        List<CodeComment> comments = CodeComment.find.where().eq("commitId",
+        List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", projectId).findList();
 
-        for (CodeComment codeComment : comments) {
+        for (CommitComment codeComment : comments) {
             User commentAuthor = User.findByLoginId(codeComment.authorLoginId);
             if( userList.contains(commentAuthor) ) {
                 userList.remove(commentAuthor);

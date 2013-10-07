@@ -113,7 +113,7 @@
                                 </a>
                             </td>
                             <td class="messages">
-                                @defining(CodeComment.count(project, commit.getId, if(path != null){"/"+path}else{null})){ numOfComment =>
+                                @defining(CommitComment.count(project, commit.getId, if(path != null){"/"+path}else{null})){ numOfComment =>
                                 @if(numOfComment > 0) {
                                 <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                 }
