@@ -429,6 +429,7 @@ pullRequest.code.commented = commented on {0}
 pullRequest.conflict.files = コンフリクトが発生したファイル
 pullRequest.delete.branch = ブランチ削除
 pullRequest.delete.frombranch.message = ブランチを削除できます
+pullRequest.diff.noChanges = There are no changes.
 pullRequest.duplicated = 両ブランチのコードがまったく同じです。ほかのブランチを選んでください
 pullRequest.event.closed = Merged
 pullRequest.event.conflict = Conflicts

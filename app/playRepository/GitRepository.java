@@ -870,7 +870,7 @@ public class GitRepository implements PlayRepository {
         });
 
         return commits;
-    }
+    }   
 
     @SuppressWarnings("unchecked")
     public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {

@@ -13,17 +13,25 @@
 
         var htVar = {};
         var htElement = {};
-
+        
         /**
          * initialize
          */
         function _init(htOptions){
-            _initElement(htOptions);
+            _initVar(htOptions || {});
+            _initElement(htOptions || {});
             _attachEvent();
             
             _initFileUploader();
         }
 
+        function _initVar() {
+            htVar.url = htOptions.url;
+            htVar.oFromBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welFromBranch});
+            htVar.oToBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welToBranch});
+            
+        }
+        
         /**
          * initialize element variables
          */
@@ -31,9 +39,11 @@
             htElement.welForm = $("form.nm");
             htElement.welInputTitle = $('#title');
             htElement.welInputBody  = $('#body');
+            
+            
             htElement.welInputFromBranch = $('input[name="fromBranch"]');
             htElement.welInputToBranch = $('input[name="toBranch"]');
-
+            
             htElement.welUploader = $("#upload");
         }
 
@@ -42,14 +52,51 @@
          */
         function _attachEvent(){
             htElement.welForm.submit(_onSubmitForm);
-
+            
+            htVar.oFromBranch.onChange(_reloadNewPullRequest);
+            htVar.oToBranch.onChange(_reloadNewPullRequest);
+            
             $('#helpMessage').hide();
             $('#helpBtn').click(function(e){
                 e.preventDefault();
                 $('#helpMessage').toggle();
             });
+            
+            $('body').on('click','button.more',function(){
+               $(this).next('pre').toggleClass("hidden"); 
+            });
+            
+           
         }
 
+        function _reloadNewPullRequest() {
+            var data = {};
+            data.fromBranch = htVar.oFromBranch.getValue();
+            data.toBranch = htVar.oToBranch.getValue();
+            
+            if(!(data.fromBranch && data.toBranch)) {
+                return;
+            }
+            
+            var target = document.getElementById('spin');
+            spinner = new Spinner().spin(target);
+            
+            $.ajax(htVar.url, {
+                "method" : "get",
+                "data"   : data,
+                "success" : function(response) {
+                    spinner.stop();
+                    $("div[pjax-container]").html(response);
+                   _initElement();
+                   _initFileUploader();
+                },
+                "error"  : function() {
+                    spinner.stop();
+                    $yobi.showAlert(Messages("error.internalServerError"));
+                }
+            });
+        }
+        
         /**
          * on submit form
          */

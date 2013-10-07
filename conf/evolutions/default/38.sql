@@ -19,6 +19,7 @@ ALTER TABLE pull_request ADD COLUMN patch clob;
 ALTER TABLE pull_request ADD COLUMN is_merging boolean;
 ALTER TABLE pull_request ADD COLUMN conflict_files varchar(255);
 UPDATE pull_request SET is_merging = false;
+UPDATE pull_request SET is_conflict = false;
 
 # --- !Downs
 drop table if exists pull_request_event;

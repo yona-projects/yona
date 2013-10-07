@@ -433,6 +433,7 @@ pullRequest.code.commented = commented on {0}
 pullRequest.conflict.files = Conflicted Files
 pullRequest.delete.branch = Delete Branch
 pullRequest.delete.frombranch.message = can be deleted.
+pullRequest.diff.noChanges = There are no changes.
 pullRequest.duplicated = There is already duplicated pull request.
 pullRequest.event.closed = Merged
 pullRequest.event.conflict = Conflicts

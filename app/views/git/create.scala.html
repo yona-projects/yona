@@ -1,4 +1,4 @@
-@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String])
+@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String], mergeResult:models.PullRequestMergeResult, pullRequest:models.PullRequest)
 
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
@@ -13,10 +13,10 @@
     }
 }
 
-@makeBranchItem(branch:String) = {
+@makeBranchItem(branch:String, selectedBranch:String) = {
     @defining(branch.split('/')){ names =>
         @if(names(0).equals("refs")){
-            <li data-value="@branch">
+            <li data-value="@branch" @if(branch.equals(selectedBranch)) { data-selected="true" }>
                 <a href="#">
                     <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
                     @branch.replace("refs/" + names(1) + "/", "")
@@ -28,12 +28,14 @@
     }
 }
 
+
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
     @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="content-wrap frm-wrap">
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
+        	
             <legend>
                 @Messages(title)
                 <span class="pull-right">
@@ -42,7 +44,7 @@
                     </button>
                 </span>
             </legend>
-            <div class="well" id="helpMessage" style="margin-bottom: 10px;">
+            <div class="well" id="helpMessage" style="margin-bottom: 10px; display:none;">
                 <div class="row-fluid">
                     <div class="pull-left">
                         <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/pull-request.jpg")"><br>
@@ -71,7 +73,7 @@
 	                        <ul class="dropdown-menu">
 	                            @for(branch <- fromBranches) {
 	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    @makeBranchItem(branch)
+	                                    @makeBranchItem(branch, pullRequest.fromBranch)
 	                                }
 	                            }
 	                        </ul>
@@ -96,7 +98,7 @@
 	                        <ul class="dropdown-menu">
 	                            @for(branch <- toBranches) {
 	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    @makeBranchItem(branch)
+	                                    @makeBranchItem(branch, pullRequest.toBranch)
 	                                }
 	                            }
 	                        </ul>
@@ -105,24 +107,22 @@
 	            </div>
             </div>
 
-            @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
-            @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
-
-            @common.fileUploader(ResourceType.PULL_REQUEST, null)
-
-            <div class="actions">
-                <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
-                <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
-            </div>
+            <div pjax-container>
+			@views.html.git.partial_diff(form, project, mergeResult, pullRequest)
+			</div>
         }
     </div>
 </div>
 
-@common.markdown(project)
-
+<script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
-    $yobi.loadModule("git.Write");
+    $yobi.loadModule("git.Write", {
+        "url" : "@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)",
+        "welFromBranch": $("div[data-name='fromBranch']"),
+        "welToBranch": $("div[data-name='toBranch']")
+    });
 });
 </script>
+
 }

@@ -164,6 +164,7 @@ DELETE  /:ownerName/:project/pullRequest/:id/deletefrombranch   controllers.Pull
 GET     /:ownerName/:project/pullRequest/:id/restorefrombranch  controllers.PullRequestApp.restoreFromBranch(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/commit/:commitId   controllers.PullRequestApp.commitView(ownerName, project, id: Long, commitId)
 
+
 # SVN
 HEAD    /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)
 GET     /svn/*path                                      controllers.SvnApp.serviceWithPath(path:String)
