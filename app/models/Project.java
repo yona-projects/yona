@@ -74,9 +74,6 @@ public class Project extends Model implements LabelOwner {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     public List<Milestone> milestones;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-    public List<CodeComment> codeComments;
-
     /**
      * 마지막 등록된 이슈 번호
      *

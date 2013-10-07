@@ -2,12 +2,10 @@ package actors;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
-import models.PullRequestEventMessage;
 import models.NotificationEvent;
 import models.PullRequest;
 import models.PullRequestEvent;
+import models.PullRequestEventMessage;
 import models.PullRequestMergeResult;
 import models.enumeration.EventType;
 import models.enumeration.State;
@@ -33,37 +31,35 @@ public class PullRequestEventActor extends UntypedActor {
                 message.getProject(), message.getBranch());
 
         for (PullRequest pullRequest : pullRequests) {
-            PullRequestMergeResult mergeResult = pullRequest.attemptPullRequestMerge();
-
+            PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
+            
             if (mergeResult.commitChanged()) {
+                
+                mergeResult.saveCommits();
+                
                 NotificationEvent.addCommitChange(message.getSender(), pullRequest, message.getRequest(), mergeResult);
-                PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getCommits());
+                PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getNewCommits());
             }
 
-            if (mergeResult.conflicts()) {            
-            
+            if (mergeResult.conflicts()) {
+                
+                mergeResult.setConflictStateOfPullRequest();
+                              
                 NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
                     pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.CONFLICT);
-                
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
-                
-                pullRequest.isConflict = true;
-                pullRequest.conflictFiles = mergeResult.getConflictFilesToString();
-                
+                                
             } else if (mergeResult.resolved()) {
+
+                mergeResult.setResolvedStateOfPullRequest();
             
                 NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
                     pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.RESOLVED);
-                
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
-                
-                pullRequest.isConflict = false;
-                pullRequest.conflictFiles = StringUtils.EMPTY;
-            
+
             }
             
-            pullRequest.isMerging = false;
-            pullRequest.update();
+            mergeResult.save();
         }
     }
 }

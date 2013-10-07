@@ -637,7 +637,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @param pullRequest
      * @return
      */
-    public PullRequestMergeResult attemptPullRequestMerge() {
+    public PullRequestMergeResult attemptMerge() {
         final GitConflicts[] conflicts = {null};
         final List<GitCommit> commits = new ArrayList<>();
         final PullRequest pullRequest = this;
@@ -666,76 +666,13 @@ public class PullRequest extends Model implements ResourceConvertible {
             }
         });
         
-        List<PullRequestCommit> currentList = saveCurrentCommits(commits);
-        updatePriorCommits(commits);
-        
         PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
-        pullRequestMergeResult.setCommits(currentList);
+        pullRequestMergeResult.setGitCommits(commits);
         pullRequestMergeResult.setGitConflicts(conflicts[0]);
         pullRequestMergeResult.setPullRequest(pullRequest);
-        
+
         return pullRequestMergeResult;
     }
-
-    /**
-     * 현재 커밋을 저장하고 목록을 반환한다.
-     * 
-     * 코드저장소의 커밋이 DB에 저장되어 있지 않으면 현재커밋으로 판단하고 저장한다. 
-     * 
-     * @param pullRequest
-     * @param commits
-     * @return
-     */
-    private List<PullRequestCommit> saveCurrentCommits(List<GitCommit> commits) {
-        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
-        for (GitCommit commit: commits) {
-            boolean existCommit = false;
-            for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", this).findList()) {
-                if(commit.getId().equals(pullRequestCommit.commitId)) {  
-                    existCommit = true;
-                    break;
-                }
-            }
-            
-            if (!existCommit) {
-                PullRequestCommit pullRequestCommit = PullRequestCommit.bindPullRequestCommit(commit, this);
-                
-                pullRequestCommit.save();
-                list.add(pullRequestCommit);
-            }
-        }
-        return list;
-    }
-    
-    /**
-     * 이전 커밋을 업데이트하고 목록을 반환한다.
-     * 
-     * DB의 커밋이 코드저장소의 커밋에 존재하지 않으면 이전커밋으로 판단하고 업데이트 한다.
-     * 
-     * @param pullRequest
-     * @param commits
-     * @return
-     */
-    private List<PullRequestCommit> updatePriorCommits(List<GitCommit> commits) {
-        List<PullRequestCommit> list = new ArrayList<PullRequestCommit>();
-        for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", this).findList()) {
-            boolean existCommit = false;
-            for (GitCommit commit: commits) {
-                if(commit.getId().equals(pullRequestCommit.commitId)) {
-                    existCommit = true;
-                    break;
-                }
-            }
-
-            if (!existCommit) {
-                pullRequestCommit.state = PullRequestCommit.State.PRIOR;
-                pullRequestCommit.update();
-                list.add(pullRequestCommit);
-            }
-        }
-        return list;
-    }
-
 
     /**
      * pull request의 커밋정보를 초기화한다.
@@ -778,20 +715,48 @@ public class PullRequest extends Model implements ResourceConvertible {
         for (PullRequest pullRequest : pullRequests) {
         
             if (!pullRequest.isClosed()) {
-                PullRequestMergeResult mergeResult = pullRequest.attemptPullRequestMerge();
+                PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
                 
                 if (mergeResult.getGitConflicts() != null) {
                     pullRequest.isConflict = true;
+                    pullRequest.conflictFiles = mergeResult.getConflictFilesToString();
                 } else {
                     pullRequest.isConflict = false;
                 }
                 
+                mergeResult.save();
+                
             } else {
                 pullRequest.isConflict = false;
                 pullRequest.setPatch(GitRepository.getPatch(pullRequest));
+                pullRequest.update();
             }
             
+        }
+    }
+    
+    /**
+     * project/branch와 연관된 보낸코드들의 상태를 병합중으로 수정한다.  
+     * 
+     * @param project
+     * @param branch
+     */
+    public static void changeStateToMergingRelatedPullRequests(Project project, String branch) {
+        List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
+            
+        for (PullRequest pullRequest : pullRequests) {
+            if (!pullRequest.isClosed()) {
+                pullRequest.startMerge();
+            }
             pullRequest.update();
         }
+    }
+
+    private void startMerge() {
+        isMerging = true;
+    }
+
+    public void endMerge() {
+        this.isMerging = false;
     }
 }

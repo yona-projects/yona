@@ -384,7 +384,7 @@ public class NotificationEvent extends Model {
         notiEvent.resourceType = resource.getType();
         notiEvent.eventType = EventType.PULL_REQUEST_COMMIT_CHANGED;
         notiEvent.oldValue = makeCommitMessage(pullRequest.pullRequestCommits);
-        notiEvent.newValue = makeCommitMessage(mergeResult.getCommits());
+        notiEvent.newValue = makeCommitMessage(mergeResult.getNewCommits());
         
         add(notiEvent);
         

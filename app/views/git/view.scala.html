@@ -182,7 +182,7 @@
 		        @if(pull.isClosed()) {
 		        <div class="alert alert-info">
 		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
+		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
 		            @if(UserApp.currentUser().equals(pull.contributor)) {
 		                @if(canDeleteBranch) {
 						<code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
@@ -196,7 +196,7 @@
 		        </div>
 		        }
 		        <div class="board-comment-wrap">
-		            <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@{pull.getComments.size() + pull.getCodeComments.size()}</strong></div>
+		            <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.getComments.size() + pull.getCodeComments.size()}</strong></div>
 		            @if(pull.getTimelineComments.size > 0) {
 		            <ul class="comments" id="comments">
 			        @for((item, index) <- pull.getTimelineComments.zipWithIndex) {
@@ -321,7 +321,7 @@
 					}
 					</ul>
 					}
-					@views.html.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())			
+					@common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())			
 				</div>
             </div>
 

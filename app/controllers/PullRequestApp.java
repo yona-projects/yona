@@ -410,12 +410,13 @@ public class PullRequestApp extends Controller {
         pullRequest.merge();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-
+        
         NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, State.OPEN, State.CLOSED);
 
         // merge이후 관련 pullRequest의 상태를 체크한다. 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
+        PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
         Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
 
         PullRequestEvent.addEvent(notiEvent, pullRequest);

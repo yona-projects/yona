@@ -388,14 +388,13 @@ public class RepositoryService {
             @Override
             public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
                 updateLastPushedDate();
-                
-                conflictCheck(commands);
                 commitCheck(commands);
             }
 
             private void commitCheck(Collection<ReceiveCommand> commands) {
                 CommitCheckMessage message = new CommitCheckMessage(commands, project);
                 Akka.system().actorOf(new Props(CommitCheckActor.class)).tell(message, null);
+                checkPullRequests(commands);
             }
 
             /*
@@ -410,28 +409,12 @@ public class RepositoryService {
              * 성공한 ReceiveCommand 로 영향받은 branch 에 대해서
              * 관련 있는 코드-보내기 요청을 찾아 충돌이 발생했는지 검사한다.
              */
-            private void conflictCheck(Collection<ReceiveCommand> commands) {
+            private void checkPullRequests(Collection<ReceiveCommand> commands) {
                 Set<String> branches = getBranches(commands);
                 for (String branch : branches) {
                     PullRequestEventMessage message = new PullRequestEventMessage(currentUser, request, project, branch);
-                    changePullRequestState(message);
+                    PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
                     Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
-                }
-            }
-            
-            /**
-             * 백엔드 작업이 남아있는 pull-request의 상태값을 변경한다. 
-             * @param message
-             */
-            private void changePullRequestState(PullRequestEventMessage message) {
-                List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(
-                    message.getProject(), message.getBranch());
-                    
-                for (PullRequest pullRequest : pullRequests) {
-                    if (!pullRequest.isClosed()) {
-                        pullRequest.isMerging = true;
-                    }
-                    pullRequest.update();
                 }
             }
 
