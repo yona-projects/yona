@@ -43,7 +43,7 @@ public interface PlayRepository {
      * @throws GitAPIException
      * @throws SVNException
      */
-    public abstract ObjectNode findFileInfo(String path) throws IOException, GitAPIException, SVNException;
+    public abstract ObjectNode getMetaDataFromPath(String path) throws IOException, GitAPIException, SVNException;
 
     /**
      * {@code revision}의 {@code path}에 해당하는 파일을 반환한다.
@@ -106,7 +106,7 @@ public interface PlayRepository {
      * @throws SVNException
      * @throws GitAPIException
      */
-    public abstract ObjectNode findFileInfo(String branch, String path) throws IOException, SVNException, GitAPIException;
+    public abstract ObjectNode getMetaDataFromPath(String branch, String path) throws IOException, SVNException, GitAPIException;
 
     public abstract Resource asResource();
 

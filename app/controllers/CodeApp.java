@@ -79,17 +79,17 @@ public class CodeApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        ObjectNode findFileInfo = repository.findFileInfo(branch, path);
-        findFileInfo.put("path", path);
+        ObjectNode fileInfo = repository.getMetaDataFromPath(branch, path);
+        fileInfo.put("path", path);
 
         List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
         List<String> branches = repository.getBranches();
         
         /** 해당 경로가 폴더이고 최상위가 아니면, 최상위 경로부터 순서대로 정보를 추가한다 **/
-        if(findFileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
+        if(fileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
             recursiveData.addAll(RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path));
         }
-        recursiveData.add(findFileInfo);
+        recursiveData.add(fileInfo);
         
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
@@ -103,10 +103,10 @@ public class CodeApp extends Controller {
 	 */
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
-        ObjectNode findFileInfo = repository.findFileInfo(path);
+        ObjectNode fileInfo = repository.getMetaDataFromPath(path);
 
-        if(findFileInfo != null) {
-            return ok(findFileInfo);
+        if(fileInfo != null) {
+            return ok(fileInfo);
         } else {
             return notFound();
         }
@@ -124,10 +124,10 @@ public class CodeApp extends Controller {
             throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException{
         CodeApp.hostName = request().host();
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
-        ObjectNode findFileInfo = repository.findFileInfo(branch, path);
+        ObjectNode fileInfo = repository.getMetaDataFromPath(branch, path);
 
-        if(findFileInfo != null) {
-            return ok(findFileInfo);
+        if(fileInfo != null) {
+            return ok(fileInfo);
         } else {
             return notFound();
         }

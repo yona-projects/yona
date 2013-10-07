@@ -107,7 +107,7 @@
             fieldText(file,"commitId")
         }
         case "Subversion" => {
-            "Revision " + fieldText(file, "revisionNo")
+            fieldText(file, "revisionNo")
         }
         case _ => {
             ""
@@ -128,7 +128,7 @@
             <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
             <span id="revisionNo" class="revision">
                 <a href="@routes.CodeHistoryApp.show(project.owner, project.name, revId)@if(branch){?branch=@URLEncoder.encode(branch, "UTF-8")}#@path">
-                    @revId.substring(0,7)
+                    @if(project.vcs.equals("GIT")){ @revId.substring(0,7) } else { Revision @revId }
                     @defining(CodeComment.count(project, fieldText(files, "commitId"), "/"+path)){ numOfComment =>
                     @if(numOfComment > 0) {
                         <span class="number-of-comments ml5"><i class="yobicon-comments"></i> @numOfComment</span>

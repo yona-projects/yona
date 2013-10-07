@@ -188,11 +188,11 @@ public class GitRepository implements PlayRepository {
      * @throws NoHeadException
      * @throws GitAPIException
      * @throws SVNException
-     * @see #findFileInfo(String, String)
+     * @see #getMetaDataFromPath(String, String)
      */
     @Override
-    public ObjectNode findFileInfo(String path) throws IOException, NoHeadException, GitAPIException, SVNException {
-        return findFileInfo(null, path);
+    public ObjectNode getMetaDataFromPath(String path) throws IOException, NoHeadException, GitAPIException, SVNException {
+        return getMetaDataFromPath(null, path);
     }
 
     public boolean isFile(String path, String revStr) throws IOException {
@@ -239,7 +239,7 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      */
     @Override
-    public ObjectNode findFileInfo(String branch, String path) throws IOException, GitAPIException {
+    public ObjectNode getMetaDataFromPath(String branch, String path) throws IOException, GitAPIException {
         ObjectId headCommit;
 
         if (branch == null){

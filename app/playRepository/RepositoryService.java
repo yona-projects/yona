@@ -141,7 +141,7 @@ public class RepositoryService {
         ObjectNode metaData;
         
         for(int i = 0; i < pathLength; i++){
-            metaData = repository.findFileInfo(branch, partialPath);
+            metaData = repository.getMetaDataFromPath(branch, partialPath);
             metaData.put("path", partialPath);
             partialPath = (partialPath.equals("")) ? pathArray[i] : partialPath + "/" + pathArray[i];
             recursiveData.add(metaData);

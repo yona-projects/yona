@@ -66,7 +66,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public ObjectNode findFileInfo(String path) throws SVNException {
+    public ObjectNode getMetaDataFromPath(String path) throws SVNException {
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
@@ -74,21 +74,21 @@ public class SVNRepository implements PlayRepository {
         if(nodeKind == SVNNodeKind.DIR){
             //폴더 내용 출력
             ObjectNode result = Json.newObject();
-
-            result.put("type", "folder");
             ObjectNode listData = Json.newObject();
-
             SVNProperties prop = new SVNProperties();
-
             Collection<SVNDirEntry> entries = repository.getDir(path, -1, prop, SVNDirEntry.DIRENT_ALL, (Collection)null);
 
+            result.put("type", "folder");
+
             Iterator<SVNDirEntry> iterator = entries.iterator( );
-            while ( iterator.hasNext( ) ) {
+            
+            while(iterator.hasNext()){
                 SVNDirEntry entry = iterator.next( );
 
                 ObjectNode data = Json.newObject();
                 String author = entry.getAuthor();
                 User user = User.findByLoginId(author);
+                Long commitTime = entry.getDate().getTime();
 
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
@@ -96,7 +96,12 @@ public class SVNRepository implements PlayRepository {
                 data.put("avatar", getAvatar(user));
                 data.put("userName", user.name);
                 data.put("userLoginId", user.loginId);
-                data.put("createdDate", entry.getDate().getTime());
+                data.put("createdDate", commitTime);
+                data.put("commitMessage", entry.getCommitMessage());
+                data.put("commiter", author);
+                data.put("commitDate", commitTime);
+                data.put("commitId", entry.getRevision());
+                data.put("size", entry.getSize());                
 
                 listData.put(entry.getName(), data);
             }
@@ -122,7 +127,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public ObjectNode findFileInfo(String branch, String path) throws AmbiguousObjectException,
+    public ObjectNode getMetaDataFromPath(String branch, String path) throws AmbiguousObjectException,
             IOException, SVNException {
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
@@ -131,36 +136,40 @@ public class SVNRepository implements PlayRepository {
         if(nodeKind == SVNNodeKind.DIR){
             //폴더 내용 출력
             ObjectNode result = Json.newObject();
-
-            result.put("type", "folder");
             ObjectNode listData = Json.newObject();
-
             SVNProperties prop = new SVNProperties();
-
             Collection<SVNDirEntry> entries = repository.getDir(path, -1, prop, SVNDirEntry.DIRENT_ALL, (Collection)null);
 
-            Iterator<SVNDirEntry> iterator = entries.iterator( );
-            while ( iterator.hasNext( ) ) {
-                SVNDirEntry entry = iterator.next( );
+            result.put("type", "folder");
+
+            Iterator<SVNDirEntry> iterator = entries.iterator();
+            
+            while(iterator.hasNext()){
+                SVNDirEntry entry = iterator.next();
 
                 ObjectNode data = Json.newObject();
                 String author = entry.getAuthor();
                 User user = User.findByLoginId(author);
+                Long commitTime = entry.getDate().getTime();
 
                 data.put("type", entry.getKind() == SVNNodeKind.DIR ? "folder" : "file");
                 data.put("msg", entry.getCommitMessage());
-                data.put("userName", user.name);
-                data.put("userLoginId", user.loginId);
                 data.put("author", author);
                 data.put("avatar", getAvatar(user));
-                data.put("createdDate", entry.getDate().getTime());
+                data.put("userName", user.name);
+                data.put("userLoginId", user.loginId);
+                data.put("createdDate", commitTime);
+                data.put("commitMessage", entry.getCommitMessage());
+                data.put("commiter", author);
+                data.put("commitDate", commitTime);
+                data.put("commitId", entry.getRevision());
+                data.put("size", entry.getSize());
 
                 listData.put(entry.getName(), data);
             }
             result.put("data", listData);
 
             return result;
-
         } else if(nodeKind == SVNNodeKind.FILE) {
             return fileAsJson(path, repository);
         } else {
@@ -176,6 +185,7 @@ public class SVNRepository implements PlayRepository {
         boolean isBinary;
         String mimeType;
         String data = null;
+        
         if (size > MAX_FILE_SIZE_CAN_BE_VIEWED) {
             isBinary = true;
             mimeType = "application/octet-stream";
@@ -187,6 +197,7 @@ public class SVNRepository implements PlayRepository {
             }
             mimeType = new Tika().detect(bytes, path);
         }
+        
         String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
         User user = User.findByLoginId(author);
         
@@ -202,11 +213,13 @@ public class SVNRepository implements PlayRepository {
         result.put("userName", user.name);
         result.put("userLoginId", user.loginId);
         result.put("createdDate", commitTime);
+        //result.put("commitMessage", ""); //TODO: 커밋메시지
+        result.put("commiter", author);
         result.put("size", size);
         result.put("isBinary", isBinary);
         result.put("mimeType", mimeType);
         result.put("data", data);
-
+        
         return result;
     }
 
@@ -251,7 +264,10 @@ public class SVNRepository implements PlayRepository {
 
         // path to get log
         String[] paths = {"/"};
-
+        if(path != null){
+            paths[0] = "/" + path;
+        }
+        
         // Determine revisions
         long startRevision = repository.getLatestRevision() - page * limit;
         long endRevision = startRevision - limit;
