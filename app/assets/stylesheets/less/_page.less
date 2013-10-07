@@ -606,8 +606,8 @@
             .inline-block;
             /*.helvetic-light;*/
             .high-light {
-                color: @orange;
-                font-weight:300;
+                color: @yobi-primary;
+                
             }
             /*font-family:'Myriad Pro Light', 'Droid Sans', Tahoma, sans-serif;*/
            font-family:@base-font-family;
@@ -624,6 +624,10 @@
         margin-top:25px !important;
         margin-bottom:23px !important;
     }
+}
+
+.lost-password {
+    overflow:hidden;
 }
 
 .siteintro {
@@ -1466,12 +1470,24 @@
         }
 
         .srch-input {
-            position:relative;
-            width:100%; height:29px; 
-            border:1px solid #ccc;
-            .border-radius(2px);
-            .text { position:absolute; top:0; left:0; width:100%; border:none; }
-            .nbtn { position:absolute; top:0; right:0; .border-radius(0px); }
+            padding:5px 0;
+
+            .srch-input-inner {
+                display:inline-block;
+                line-height: 20px;
+                padding:2px 5px;
+                border:1px solid rgba(0,0,0, .15);
+                .border-radius(3px);
+
+                input  {
+                    border:none;
+                    width:80%;
+
+                }
+
+                button { outline:0;}
+
+            }
         }
         
         .btn-advanced {
@@ -2427,11 +2443,15 @@
     border-bottom:1px solid #ececec;
 }
 
-.board-header{
-    display:block; clear:both;
-    height:30px; padding: 15px 20px;
-    border-top: 1px solid @gray-d4;
-
+.board-header {
+    display:block; 
+    clear:both;
+    height:30px; 
+    padding: 15px 20px;
+    border:none;
+    background-color:@yobi-white-dark;
+    .border-radius(10px);
+    margin:15px 0;
     .board-id {
         font-size:14px;
         padding-right: 10px;
