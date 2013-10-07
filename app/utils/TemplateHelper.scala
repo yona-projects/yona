@@ -33,7 +33,7 @@ object TemplateHelper {
         case x if x >= 60 => plural("common.time.minute", duration.getStandardMinutes)
         case x if x > 0 => plural("common.time.second", duration.getStandardSeconds)
         case x if x == null => ""
-        case _ => Messages.get("time.just")
+        case _ => Messages.get("common.time.just")
       }
     } else {
       ""

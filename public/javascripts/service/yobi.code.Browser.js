@@ -1,5 +1,5 @@
 /**
- * @(#)yobi.code.Browser1.js 2013.04.09
+ * @(#)yobi.code.Browser.js 2013.09.09
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
@@ -15,55 +15,46 @@
 	    var htVar = {};
         var htElement = {};
 
-		/**
-		 * 코드브라우저 초기화
-		 * @param {Hash Table} htOptions
-		 */
-		function _init(htOptions){
-		    _initVar(htOptions);
-		    _initElement();
-            _attachEvent();
-		    
-            // initialize branches
-            if (htVar.oBranch.getValue() === "") {
-                if (!htVar.oBranch.selectByValue("HEAD")) {
-                    htVar.oBranch.selectItem("li:first-child");
-                }
-            }
-            htVar.sRootPath = "code/" + getBranch() + "/!/"; // dynaTree
-
-	        $(window).trigger('hashchange');
-            //_initDynaTree();
-		}
-
-		/**
-		 * 변수 초기화
-		 * initialize variables
-		 * @param {Hash Table} htOptions
-		 */
-		function _initVar(htOptions){
-		    htVar.sProjectName = htOptions.sProjectName || "";
-		    htVar.sRootPath = "";
-            htVar.htExtMap = null;
-	        htVar.oEditor = null;
-	        htVar.oSession = null;        
-	        htVar.oBranch = new yobi.ui.Dropdown({
-	            "elContainer" : $("#branches")
-	        });
-	        
-	        htVar.rxImg = /\.(jpg|png|gif|tif|bmp|ico|jpeg)$/i;
-	        htVar.rxGetHash = /^#/;
-	        
-	        htVar.bInitTree = false;
-	        htVar.nFontSize = 13;
-	        
-            htVar.sTplListItem = '<tr>\
-                <td><a href="${path}" class="${fileClass}" title="${name}"><span class="dynatree-icon vmiddle"></span>${name}</a></td>\
-                <td class="messages"><span>${msg}</span></td>\
-                <td class="date">${date}</td>\
-                <td class="author">${avatar}</td>\
-                </tr>';
+        /**
+         * 코드브라우저 초기화
+         * 
+         * @param {Hash Table} htOptions
+         */
+        function _init(htOptions){
+            _initVar(htOptions);
+            _initElement(htOptions);
+            
+            if(htElement.welFileView.length > 0){
+                // 파일 보기
+                _initShowFile();
+            } else {
+                // 폴더 목록
+                _initDepthedList();
+                _attachEvent();
                 
+                $(window).trigger("hashchange");
+            }
+        }
+        
+        /**
+         * 변수 초기화
+         * initialize variables
+         * 
+         * @param {Hash Table} htOptions
+         */
+        function _initVar(htOptions){
+            htVar.sProjectName = htOptions.sProjectName;
+            htVar.sMetaInfoURL = htOptions.sMetaInfoURL;
+            htVar.sBasePathURL = htOptions.sBasePathURL;
+            htVar.elStyle = document.styleSheets[0];
+            htVar.sTplListItem = $("#tplFileListItem").text();
+            htVar.rxSub = /text\/x-(.+)-source/;
+            htVar.rxScala = /\.scala\.html$/i;
+            htVar.sPath = htOptions.sInitialPath;
+            htVar.nFontSize = 13;
+            htVar.aPathQueue = [];
+            
+            // Spinner Option
             htVar.htOptSpinner = {
                 lines: 10,    // The number of lines to draw
                 length: 8,    // The length of each line
@@ -71,7 +62,7 @@
                 radius: 8,    // The radius of the inner circle
                 corners: 1,   // Corner roundness (0..1)
                 rotate: 0,    // The rotation offset
-                direction: 1, // 1: clockwise, -1: counterclockwise
+                direction: -1, // 1: clockwise, -1: counterclockwise
                 color: '#000',  // #rgb or #rrggbb
                 speed: 1.5,     // Rounds per second
                 trail: 60,      // Afterglow percentage
@@ -82,319 +73,367 @@
                 top: 'auto', // Top position relative to parent in px
                 left: 'auto' // Left position relative to parent in px
             };
-		}
-		
+        }
+        
         /**
          * 엘리먼트 변수 초기화
          * initialize element variables
          */
-        function _initElement(){
-            htElement.welDynaTree = $("#folderList");
-            htElement.welCodeTree = $(".code-tree");
-            htElement.welCodeViewer = $('.code-viewer');
-            htElement.welCodeViewerWrap = $(".code-viewer-wrap");
-            htElement.welBtnResize = $(".btnResize");
-            
+        function _initElement(htOptions){
+            htElement.welFileView = $(".file-wrap[data-type=file]");
+            htElement.welShowFile = $("#showFile"); // fileInfo
+            htElement.welShowCode = $("#showCode"); // aceEditor
+            htElement.welCodeVal  = $("#codeVal");
             htElement.welBreadCrumbs = $("#breadcrumbs");
-            htElement.welCommiter = $("#commiter");
-            htElement.welCommitMsg = $("#commitMessage");
-            htElement.welCommitRev = $("#revisionNo");
-            htElement.welCommitDate = $("#commitDate");
-            
-            htElement.welShowImage = $("#showImage");
-            htElement.welShowCode  = $("#showCode");
-            htElement.welShowFile  = $("#showFile");
-            
-            htElement.welShowImageSrc = htElement.welShowImage.find("img");
-            htElement.welShowFileName = htElement.welShowFile.find(".filename");
-            htElement.welShowFileSize = htElement.welShowFile.find(".filesize");
-            htElement.welShowFileHref = htElement.welShowFile.find(".filehref");
-            
-            htElement.welFileList = $("#fileList");
-            htElement.welFileView = $("#fileView");
-            htElement.welFileListContent = htElement.welFileList.find(".contents");
-            htElement.welBtnRawCode = $("#rawCode");
-            htElement.welBtnFullScreen = $("#fullScreen");
-            htElement.welBtnFullScreenIcon = htElement.welBtnFullScreen.find("i");
-            
             htElement.elSpinTarget = document.getElementById('spin');
         }
-
-		/**
-		 * 이벤트 초기화
-		 */
-		function _attachEvent(){
-            $(window).on('hashchange', _onHashChange);
-            
-            htVar.oBranch.onChange(function(){
-                _updateDynaTree();
-                $(window).trigger('hashchange');
-            });
-
-            // related with resizeList           
-            $(window).on("resize", _onResizeWindow);
-            $(window).click(function(){ // for IE
-                $(window).off("mousemove", _resizeList);
-            });
-
-            htElement.welBtnResize.on('drag',function(weEvt){
-                _resizeList(weEvt);
-            });
-            // -- end of resizeList -- //
-            
-            htElement.welBtnFullScreen.click(_onClickBtnFullScreen);
-            yobi.ShortcutKey.attach("ALT+ENTER", _onClickBtnFullScreen);
-		}
-
+        
         /**
-         * 어떤 경로 sPath를 입력받아 URI의 path로 사용할 수 있도록 인코딩한다.
-         *
-         * sPath를 '/' 기준으로 자른 뒤 그 path segment 하나하나를 encodeURIComponent로
-         * 각각 인코딩하고 그것들을 '/'를 separator로 하여 다시 이어붙여서 반환한다.
-         *
-         * @param {String} sPath
+         * 첫 페이지 로딩 때 현재 페이지의 list-wrap 목록들을 계층단위로 맞추어 배치하는 함수
+         * code/view.scala.html 에서 상위 경로부터 순서대로 파일 목록을 표시하는 구조임
+         * 목록 페이지 로딩때 처음 한 번만 호출한다
+         * 
+         * 예: app/models/resource 경로를 표현하는 경우
+         * 1. [app] 목록, [app/models] 목록, [app/models/resource] 목록을 각각 만든 뒤
+         * 
+         * 2. [app/models] 목록을 [app] 목록의 
+         *    data-path="app/models" 항목 바로 다음에 위치하도록 만들고
+         * 
+         * 3. [app/models/resource] 목록을 [app/models] 목록의 
+         *    data-path="app/models/resource" 항목 바로 다음에 위치하도록 만드는 것이다
          */
-        function _encodePath(sPath) {
-            var aSegment = sPath.split('/');
-            var aEncodedSegment = [];
+        function _initDepthedList(){
+            var waFileWrap = $("div.list-wrap[data-listpath]");
+            
+            waFileWrap.each(function(i, elList){
+                var welList = $(elList);
+                var sListPath = welList.data("listpath");
+                var welTarget = $('[data-path="' + sListPath + '"]');
+                
+                welList.data("content", sListPath); // 목록이 표시하고 있는 경로
+                welList.data("depth", i+1);         // indent 정보
+                welList.addClass("depth-" + (i+1)); // indent CSS
+                _setIndentByDepth(i+1);              // indent CSS 설정
+                
+                // 목록의 위치 이동
+                welTarget.after(welList);
+            });
+            $(".list-wrap").show();
 
-            for (var i = 0; i < aSegment.length; i++) {
-                aEncodedSegment.push(encodeURIComponent(aSegment[i]));
-            }
-
-            return aEncodedSegment.join('/');
+            // 현재 페이지 주소와 일치하는 항목을 강조표시
+            _setCurrentPathBold(htVar.sPath);
         }
-
-
-		/**
-		 * hashChange 이벤트 핸들러
-		 * 파일 목록 또는 내용을 서버에 요청한다
-		 * @param {Event} e
-		 */
-		function _onHashChange(e){
-            var sPath = getHash().replace(htVar.rxGetHash, "");
-            var sBranch = getBranch();
-
-            if(sPath != ""){
-                _initDynaTree();
-                htVar.bInitTree = true;
-            }
-
-            $.ajax("code/" + sBranch + "/!" + _encodePath(sPath), {
-                "datatype": "json",
-                "success" : _onLoadFiles,
-                "error"   : function(){
-                    $yobi.showAlert("Server Error. Try again later");
-                }
-            });
-		}
-		
-		/**
-		 * Spinner 시작
-		 */
-		function _startSpinner(){
-            htVar.oSpinner = new Spinner(htVar.htOptSpinner)
-            htVar.oSpinner.spin(htElement.elSpinTarget);
-		}
-		
-		/**
-		 * Spinner 종료
-		 */
-		function _stopSpinner(){
-            if(htVar.oSpinner){
-                htVar.oSpinner.stop();
-            }
-            htVar.oSpinner = null;
-		}
-		
+        
         /**
-         * dynaTree 초기화
+         * 이벤트 핸들러 설정
          */
-        function _initDynaTree(){
-            $.ajax({
-                "url": htVar.sRootPath,
-                "success": function(result, textStatus){
-                    treeInit(adaptorForDynatree(result.data));
-                    findTreeNode(getHash(true).substr(1));  // path.substr(1) "/a/b/c" => "a/b/c"
+        function _attachEvent(){
+            $('.code-viewer-wrap').click(_onClickWrap);
+            $(window).on("hashchange", _onHashChange);
+        }
+        
+        /**
+         * 코드 목록 영역을 클릭했을 때의 이벤트 핸들러
+         * - 각 항목에 핸들러를 거는 것 보다 메모리 절약
+         * 
+         * @param {Wrapped Event} weEvt
+         */
+        function _onClickWrap(weEvt){
+            var elTarget = weEvt.target;
+            var welTarget = $(elTarget);
+            
+            /// 폴더 링크 클릭시
+            if(elTarget.tagName.toLowerCase() === 'a' && welTarget.data("type") === "folder"){
+                var sPreviousHash = document.location.hash;
+                var sTargetPath = welTarget.data("targetpath");
+                document.location.hash = sTargetPath;
+                
+                if(document.location.hash === sPreviousHash){
+                    $(window).trigger("hashchange");
+                }
+
+                weEvt.preventDefault();
+                weEvt.stopPropagation();
+                return false;
+            }
+        }
+        
+        /**
+         * HashChange 이벤트 핸들러
+         * 하위 폴더 목록을 동적으로 취급하기 위한 함수
+         */
+        function _onHashChange(){
+            if(document.location.hash.length < 1){
+                return false;
+            }
+            
+            var sTargetPath = document.location.hash.substr(1);
+            var welList = $('[data-listpath="' + sTargetPath + '"]');
+            
+            if(welList.length > 0){ // 이미 리스트를 붙인 상태라면
+                welList.toggle();   // 목록 표시 여부만 토글하고
+                _setCurrentPathBold(sTargetPath);
+            } else {                // 없으면 새로 리스트 만들어서 붙임
+                var sCheckPath = "";
+                htVar.aPathQueue = [];
+                htVar.aWelList = [];
+                
+                // Path 단위로 목록이 필요함
+                sTargetPath.split("/").forEach(function(sPath){
+                    sCheckPath = (sCheckPath === "") ? sPath : (sCheckPath + "/" + sPath);
+                    htVar.aPathQueue.push(sCheckPath);
+                });
+                
+                _updateBreadcrumbs(htVar.aPathQueue);
+                _requestFolderList();
+            }
+        }
+        
+        /**
+         * htVar.aPathQueue 변수를 이용해서
+         * 순서대로 폴더 목록을 가져오기 위해 필요한 함수
+         */
+        function _requestFolderList(){
+            if(htVar.aPathQueue.length === 0){
+                _stopSpinner();
+                htVar.aWelList.forEach(function(welList){
+                    welList.css("display", "block");
+                });
+                return false;
+            }
+            
+            var sTargetPath = htVar.aPathQueue.shift();
+            var welTarget = $('[data-targetpath="' + sTargetPath + '"]');
+            var welList = $('[data-listpath="' + sTargetPath + '"]');
+
+            if(welList.length === 0){
+                // 해당 경로의 목록이 존재하지 않을 때에만 요청하고
+                _appendFolderList(welTarget, sTargetPath);
+            } else {
+                // 이미 있으면 다음 경로순서로 넘어간다
+                _requestFolderList();
+            }
+        }
+        
+        /**
+         * 지정한 경로의 목록을 생성하여 적절한 위치에 붙인다
+         * 
+         * @param {Wrapped Element} welTarget
+         * @param {String} sTargetPath
+         */
+        function _appendFolderList(welTarget, sTargetPath){
+            var sURL = _getCorrectedPath(htVar.sMetaInfoURL, sTargetPath);
+            var nParentDepth = welTarget.closest(".list-wrap").data("depth") || 0; // 부모 경로의 depth
+            var nNewDepth = nParentDepth + 1; // 지정한 경로의 depth 판단
+            _setIndentByDepth(nNewDepth); // CSS Rule 먼저 추가해 놓고
+            
+            // AJAX 호출로 데이터 요청
+            _startSpinner();
+            $.ajax(sURL, {
+                "success": function(oRes){
+                    var aHTML = _getListHTML(oRes.data, sTargetPath);
+                    var welTargetItem = $('.listitem[data-path="' + sTargetPath + '"]');
+                    var welList = $('<div class="list-wrap" data-listPath="' + sTargetPath + '"></div>');
+                    
+                    welList.data("depth", nNewDepth);
+                    welList.addClass("depth-" + nNewDepth);
+                    welList.css("display", "none");
+                    welList.html(aHTML);          // 내용을 채우고
+                    welTargetItem.after(welList); // 목록에 추가
+                    htVar.aWelList.push(welList);
+
+                    if(htVar.aPathQueue.length > 0){
+                        _requestFolderList();
+                    } else {
+                        _setCurrentPathBold(sTargetPath);
+                        htVar.aWelList.forEach(function(welList){
+                            welList.css("display", "block");
+                        });
+                    }
+                    _stopSpinner();
+                },
+                "error"  : function(){
+                    // TODO: #255 서버 응답에 맞는 오류 메시지 보여주기
                     _stopSpinner();
                 }
             });
         }
-
+        
         /**
-         * 파일 목록을 불러온 뒤 이벤트 핸들러
-         * _onHashChange 에서 호출한 AJAX 성공시 실행된다
-         * @param {Object} oData
-         */
-		function _onLoadFiles(oData){
-            _stopSpinner();
-            
-		    // dynaTree 초기화. 최초에 한 번만 호출됨
-		    if(htVar.bInitTree === false){
-		        treeInit(adaptorForDynatree(oData.data));
-		        findTreeNode(getHash(true).substr(1));  // path.substr(1) "/a/b/c" => "a/b/c"
-		        htVar.bInitTree = true;
-		    }
-		    
-		    var sPath = getHash().replace(htVar.rxGetHash, "");
-
-            switch(oData.type){
-                case "file" :
-                    handleFile(sPath, oData);
-                    break;
-                case "folder" :
-                    handleFolder(sPath, oData);
-                    break;
-            }
-
-            _updateBreadcrumbs(sPath);
-            _updateBtnResizeHeight();
-		}
-    
-		/**
-		 * btnResize 높이 조절
-		 */
-		function _updateBtnResizeHeight(){
-            var nHeightBtnResize = Math.max(htElement.welCodeTree.height(), htElement.welCodeViewer.height());
-            htElement.welBtnResize.height(nHeightBtnResize);		    
-		}
-		
-        /**
-         * 파일 내용 표시
-         * _onHashChange 에서 호출
-         * @param {String} sPath
+         * 경로 내 목록 데이터를 템플릿과 결합해서 HTML 문자열을 담은 배열로 반환한다
+         * 
          * @param {Hash Table} htData
+         * @param {String} sTargetPath
+         * @return {Array}
          */
-        function handleFile(sPath, htData){
-            var rxSub, aMime, sType;
-
-            // 커밋 정보 업데이트
-            htElement.welCommiter.text(htData.author || '');
-            htElement.welCommitMsg.text(htData.msg || '');
-            htElement.welCommitRev.text((htData.revisionNo && htData.revisionNo != '') ? "Revision#: " + htData.revisionNo : '');
-            htElement.welCommitDate.text(moment(new Date(htData.createdDate)).fromNow());
-
-            if (htData.isBinary || (htData.size > 0 && !htData.data)) {
-                // If the server didn't send the contents of the file even if
-                // its size is bigger than zero, consider the file is binary.
-
-                aMime = htData.mimeType.split('/');
-                sType = aMime[0];
-
-                if (sType == 'image') {
-                    // The server told this data is an image.
-                    _showImage(sPath);
-                } else {
-                    // The server told this is binary but not an image.
-                    _showFile(sPath, htData);
-                }
-            } else {
-                rxSub = /text\/x-(.+)-source/;
-                aMatch = htData.mimeType.match(rxSub);
-
-                if (aMatch) {
-                    // The server told which language is used to write the
-                    // source code.
-                    _showCode(htData.data, aMatch[1]);
-                } else {
-                    // The server told this is not binary but did't tell which
-                    // language is used, so the client should guess it.
-                    sEditorMode = _getEditorModeByPath(sPath);
-                    _showCode(htData.data, sEditorMode);
-                }
-            }
-
-            htElement.welFileList.hide();
-            htElement.welFileView.show();
-            htElement.welBtnRawCode.attr("href", "rawcode"+ sPath);
-        }
-
-        /**
-         * 지정한 경로의 이미지 표시
-         * handleFile 에서 호출한다
-         * @param {String} sPath
-         */
-        function _showImage(sPath){
-            htElement.welShowImage.show();
-            htElement.welShowCode.hide();
-            htElement.welShowFile.hide();
-
-            htElement.welBtnRawCode.show();
-            htElement.welBtnFullScreen.show();
+        function _getListHTML(htData, sTargetPath){
+            var aHTML = [];
             
-            htElement.welShowImageSrc.attr("src", "./image" + sPath);
+            // 폴더 먼저/ 파일 나중 순으로 만들기
+            var htSortedData = _getSortedList(htData);
+            var aProcessOrder = ["folder", "file"];
+            
+            aProcessOrder.forEach(function(sType){
+                if(htSortedData[sType] instanceof Array){
+                    htSortedData[sType].forEach(function(htFile){
+                        htFile = _getFileInfoForTpl(htFile, sTargetPath);
+                        aHTML.push($yobi.tmpl(htVar.sTplListItem, htFile));
+                    });
+                }
+            });
+           return aHTML;
         }
         
         /**
-         * 코드를 에디터를 이용해 표시한다
-         * handleFile 에서 호출
+         * 목록 데이터를 타입별로 정리해서 반환
+         * 
+         * @param {Hash Table} htData
+         * @return {Hash Table}
+         */
+        function _getSortedList(htData){
+            var sType;
+            var htListByType = {};
+            var htResult = {};
+            
+            // 먼저 타입별로 정리하고
+            for(var sFileName in htData){
+                htFileInfo = htData[sFileName];
+                htFileInfo.fileName = sFileName;
+                sType = htFileInfo.type;
+                
+                htListByType[sType] = htListByType[sType] || [];
+                htListByType[sType].push(sFileName);
+            }
+            
+            // 타입 내에서 알파벳 순으로 정렬
+            for(var sType in htListByType){
+                htResult[sType] = [];
+                htListByType[sType].sort();
+                htListByType[sType].forEach(function(sFileName){
+                    htResult[sType].push(htData[sFileName]);
+                });
+            }
+
+            return htResult;
+        }
+        
+        /**
+         * 템플릿 처리를 위한 파일 정보 가공
+         * _getListHTML 에서 호출한다
+         * 
+         * @param {Hash Table} htFile
+         * @param {String} sTargetPath
+         */
+        function _getFileInfoForTpl(htFile, sTargetPath){
+            var sAuthorURL = (htFile.userLoginId) ? '/'+ htFile.userLoginId : 'javascript:void(0); return false;';
+            
+            htFile.commitDate = (typeof htFile.createdDate !=='undefined') ? (moment(new Date(htFile.createdDate)).fromNow()) : '';
+            htFile.fileClass = (htFile.fileName ==='..') ? 'updir' : (htFile.type === "folder" ? 'dynatree-ico-cf' : 'dynatree-ico-c');
+            htFile.avatarImg = (typeof htFile.avatar !== 'undefined') ? '<a href="'+ sAuthorURL + '" class="avatar-wrap smaller"><img src="' + htFile.avatar + '"></a>' : '';
+            htFile.commitMsg = $yobi.htmlspecialchars(htFile.msg || '');
+            htFile.listPath = sTargetPath;
+            htFile.targetPath = _getCorrectedPath(sTargetPath, htFile.fileName);
+            htFile.path = _getCorrectedPath(htVar.sBasePathURL, htFile.targetPath);
+            
+            if(htFile.type === "folder"){
+                htFile.path += ("#cb-" + sTargetPath + htFile.fileName);
+            }
+
+            return htFile;
+        }
+        
+        /**
+         * 경로 끝에 파일명을 바르게 붙여서 반환해준다
+         * - path//filename 이 아니라 path/filename 이 되도록
+         * 
+         * @param {String} sPath
+         * @param {String} sFileName
+         * @return {String}
+         */
+        function _getCorrectedPath(sPath, sFileName){
+            return sPath + (sPath.substr(-1) === "/" ? "" : "/") + sFileName;
+        }
+        
+        /**
+         * 현재 경로와 일치하는 항목을 강조 표시한다
+         * 
+         * @param {String} sPath
+         */
+        function _setCurrentPathBold(sPath){
+            var welCurrent = $('[data-path="' + sPath + '"]');
+            
+            if(welCurrent.length > 0){
+                $(".currentPath").removeClass("currentPath");
+                welCurrent.addClass("currentPath");
+            }
+        }
+        
+        /**
+         * 지정한 depth 를 표현하는 indent 스타일 규칙을 추가한다
+         * 
+         * @param {Number} nDepth
+         */
+        function _setIndentByDepth(nDepth){
+            nDepth = parseInt(nDepth, 10);
+            htVar.aAddedDepth = htVar.aAddedDepth || [];
+            
+            // 중복 방지용
+            if(htVar.aAddedDepth.indexOf(nDepth) === -1){
+                htVar.aAddedDepth.push(nDepth);
+                htVar.elStyle.addRule('.depth-' + nDepth + ' .filename', 'padding-left:' + (20 * nDepth) + 'px');
+            }
+        }
+        
+        /**
+         * 파일 보기 화면일 경우
+         * _init 에서 호출된다
+         */
+        function _initShowFile(){
+            if(htElement.welShowCode.length > 0){
+                _initCodeView(); // 코드보기
+            } else if(htElement.welShowFile.length > 0){
+                _beautifyFileSize(); // 파일정보
+            }
+        }
+
+        /**
+         * 파일 보기 화면일 때 파일 크기를 읽기 좋게 변환해준다
+         * 
+         * @require humanize.js 
+         */
+        function _beautifyFileSize(){
+            htElement.welShowfile.find(".filesize").each(function(i, el){
+                var welTarget = $(el);
+                welTarget.html(humanize.filesize(welTarget.text()));
+            });
+        }
+
+        /**
+         * 코드 보기 화면일 때 aceEditor 를 이용해 표시한다
+         *
          * @param {String} sCode
          * @param {String} sMode
          */
-        function _showCode(sCode, sMode){
-            htElement.welShowCode.show();
-            htElement.welShowImage.hide();
-            htElement.welShowFile.hide();
-
+        function _initCodeView(){
             if(!htVar.oEditor){
                 htVar.oEditor = _getEditor("showCode");
             }
 
-            htElement.welBtnRawCode.show();
-            htElement.welBtnFullScreen.show();
+            // Use explicit MIME Type if the server told which language is used to write the source code.
+            // or the client should guess it.
+            var sMimeType = htElement.welShowCode.data("mimetype");
+            var aMatch = sMimeType.match(htVar.rxSub);
+            var sMode = aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath);
 
-            if (sMode) {
-                htVar.oSession.setMode("ace/mode/" + sMode);
-            }
-            htVar.oEditor.setValue(sCode, -1);
-            
+            htVar.oSession.setMode("ace/mode/" + sMode);
+            htVar.oSession.setValue(htElement.welCodeVal.text());
             setTimeout(_resizeEditor, 50);
-        }
-        
-        /**
-         * 파일 정보를 표시한다
-         * handleFile 에서 호출
-         * @param {String} sPath
-         * @param {Hash Table} htData
-         */
-        function _showFile(sPath, htData){
-            htElement.welShowFile.show();
-            htElement.welShowCode.hide();
-            htElement.welShowImage.hide();
-
-            htElement.welBtnRawCode.hide();
-            htElement.welBtnFullScreen.hide();
-
-            htElement.welShowFileSize.html(humanize.filesize(htData.size));
-            htElement.welShowFileName.html(basename(sPath));
-            htElement.welShowFileHref.attr("href", "rawcode" + sPath);
-        }
-        
-        /**
-         * aceEditor 높이를 내용에 맞게 키우는 함수
-         * handleFile 에서 파일 내용이 바뀔 때 마다 호출함
-         */
-        function _resizeEditor(){
-            var nLineHeight = htVar.oEditor.renderer.lineHeight;
-            nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
-
-            var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
-            htElement.welShowCode.height(newHeight);
-            htVar.oEditor.resize();
-        }
-      
-        /**
-         * 대소문자 구분없이 정의된 확장자명으로 끝나는지를 검사하여 반환
-         * @param {String} sPathName
-         * @return {Boolean}
-         */
-        function _isImageFile(sPathName){
-            return htVar.rxImg.test(sPathName);
         }
 
         /**
          * aceEditor 객체 초기화해서 반환
          * 에디터 초기화 할 때 한번만 사용
+         * 
          * @param {String} sContainer
          * @return {Object}
          */
@@ -424,6 +463,7 @@
         
         /**
          * 확장자를 aceEditor mode 로 변환
+         * 
          * @param {String} sExt
          * @return {Variant} 지원 가능한 형식이면 해당 모드의 문자열(String), 그 이외에는 false(Boolean)
          */
@@ -475,392 +515,7 @@
             return false;
         }
         
-        /**
-         * 폴더 내용 표시
-         * _onHashChange 에서 호출
-         * @param {String} sPath
-         * @param {Hash Table} htData
-         */
-        function handleFolder(sPath, htData){
-            htData.data = sortData(htData.data);
-
-            // 폴더 목록 업데이트
-            var sHTML = _getFileListHTML(sPath, htData);
-            htElement.welFileListContent.html(sHTML);
-
-            // 완료 후 목록 보여주기
-            htElement.welFileList.show();
-            htElement.welFileView.hide();
-            _updateBtnResizeHeight();
-        }
-
-        /**
-         * 폴더 내의 파일 목록 HTML을 생성하는 함수
-         * handleFolder 에서 호출한다
-         * @param {String} sPath
-         * @param {Hash Table} htData
-         * @return {String}
-         */
-        function _getFileListHTML(sPath, htData){
-            var aResult = [];
-
-            // 하위 폴더인 경우 상위 경로로의 이동링크 표시
-            if(sPath.length > 1) {
-                var aPath = sPath.split("/");
-                    aPath.pop();
-                var sPathUpper = aPath.join("/");
-
-                aResult.push(_getFileListItem({
-                   "name": "..",
-                   "type": "none",
-                   "path": "#" + ((sPathUpper === "/") ? '' : sPathUpper)
-                }));
-            }
-
-            // 파일 목록 생성
-            var htInfo = {};
-            var sHTML = "";
-
-            for(var sName in htData.data){
-                htInfo = htData.data[sName];
-                htInfo.path = "#" + (sPath !== "/" ? sPath : "") + "/" + sName;
-                sHTML = _getFileListItem(htInfo);
-                aResult.push(sHTML);
-            }
-            
-            return aResult.join("\n");
-        }
-        
-        /**
-         * 파일 목록에 추가할 HTML 문자열을 반환하는 함수
-         * @param {Hash Table} htData 파일 정보 객체 
-         * @param {String} htData.name 파일 이름
-         * @param {String} htData.path 파일 경로
-         * @param {String} htData.type 파일 종류
-         * @param {String} htData.msg  커밋 메시지
-         * @param {String} htData.date 커밋 날짜
-         * @param {String} htData.author 작성자 이름
-         * @param {String} htData.avatar 작성자 아바타 이미지 URL
-         * @return {String}
-         * @requires moment.js
-         */
-        function _getFileListItem(htData){
-            htData.date = (typeof htData.createdDate !=='undefined') ? (moment(new Date(htData.createdDate)).fromNow()) : '';
-            //htData.fileClass = (htData.name ==='..') ? 'filename updir' : 'filename';
-            htData.fileClass = (htData.name ==='..') ? 'filename updir' : (htData.type === "folder" ? 'filename dynatree-ico-cf' : 'filename dynatree-ico-c');
-            htAuthLink = (htData.userLoginId ) ? '/'+ htData.userLoginId : 'javascript:void(0); return false;';
-            htData.avatar = (typeof htData.avatar !== 'undefined') ? '<a href="'+ htAuthLink + '" class="avatar-wrap smaller"><img src="' + htData.avatar + '"></a>' : '';
-            htData.msg = htData.msg || '';
-            
-            if(htData.msg.length && htData.msg.length > 70){
-                htData.msg = htData.msg.substr(0, 70) + "...";
-            }
-            htData.msg = $yobi.htmlspecialchars(htData.msg);
-            var sHTML = $yobi.tmpl(htVar.sTplListItem, htData);
-            return sHTML;
-        }
-     
-        /**
-         * 데이터 정렬
-         * @param {Array} target
-         * @requires underscore.js
-         */
-        function sortData(target){
-            var rs = [];
-            var htResult = {};
-              
-            _getObjectKeys(target).sort(lacending).forEach(function(key){
-                target[key].name = key;
-                rs.push(target[key]);
-            });
-
-            rs = _.sortBy(rs, function(elm){
-                return -(elm.type === "folder");
-            });
-
-            rs.forEach(function(o){
-                htResult[o.name] = o;
-            });
-
-            try {
-                return htResult;
-            } finally {
-                rs = null;
-            }
-        }
-
-        /**
-         * 현재 파일/폴더 경로 표시
-         * @param {String} sPath
-         */
-        function _updateBreadcrumbs(sPath){
-            var sHTML;
-            var sLink = "#";
-            var aCrumbs = ['<a href="#/">'+htVar.sProjectName+'</a>'];
-            var aPath = sPath.split("/");
-            aPath.shift();
-            
-            aPath.forEach(function(sName){
-                sLink += "/" + sName;
-                aCrumbs.push('<a href="' + sLink + '">' + sName + '</a>');                
-            });
-
-            sHTML = aCrumbs.join("/");
-            htElement.welBreadCrumbs.html(sHTML);            
-        }
-        
-        /**
-         * Hash 반환 함수
-         * @return {String}
-         */
-    	function getHash() {
-    		return document.location.hash;
-    	}
-
-        /**
-         * Hash 설정 함수
-         * @param {String} hash 
-         */
-    	function setHash(hash) {
-    	    return document.location.hash = hash;
-    	}
-
-        /**
-         * 현재 선택된 브랜치 반환
-         * @return {String}
-         */
-    	function getBranch(){
-    	    return encodeURIComponent(htVar.oBranch.getValue());
-    	}
-
-    	/**
-    	 * 창 크기 자체가 변할 때 welCodeViewer 영역의 너비를 조절하는 함수
-    	 * _attachEvent 에서 초기화 함
-    	 */
-    	function _onResizeWindow(){
-            var nGap = (htElement.welCodeTree.width() > 0) ? htElement.welCodeTree.width() + 3 : 0;
-            htElement.welCodeViewer.width(htElement.welCodeViewerWrap.width() - nGap);    	    
-    	}
-    	
-    	/**
-    	 * dynaTree 영역과 codeView 영역 사이의 크기를 조절하는 함수
-    	 * welBtnResize.on("drag") 이벤트 발생할 때마다 호출되는 핸들러 
-    	 */
-        function _resizeList(weEvt){
-            var htDirectoryOffset = htElement.welCodeTree.position();
-            var nCodeViewerWidth = htElement.welCodeViewerWrap.width();
-            var nCodeTreeWidth = (weEvt.clientX > htDirectoryOffset.left) ? Math.round(weEvt.clientX - htDirectoryOffset.left) : 0;        
-
-            htElement.welCodeTree.width(nCodeTreeWidth);
-            htElement.welCodeViewer.width(nCodeViewerWidth - nCodeTreeWidth -2);
-        }
-
-        /**
-         * 코드 뷰어의 [전체화면] 버튼 클릭시 이벤트 핸들러
-         */
-        function _onClickBtnFullScreen(){
-            _toggleCodeTree();
-            htElement.welBtnFullScreenIcon.toggleClass("icon-resize-small");
-            htElement.welBtnFullScreenIcon.toggleClass("icon-resize-full");
-        }
-        
-        /**
-         * 코드 트리 영역 토글.
-         * 트리 영역의 width 를 0으로 만들거나 다시 복원
-         */
-        function _toggleCodeTree(){
-            // 트리 영역을 감추고 파일 내용으로 가득 채움
-            if(htElement.welCodeTree.width() > 0){
-                htVar.nLastTreeWidth = htElement.welCodeTree.width();
-                htElement.welCodeTree.width(0);
-                htElement.welCodeViewer.width(htElement.welCodeViewerWrap.width());
-            } else { // 트리 영역 크기를 복원
-                htElement.welCodeTree.width(htVar.nLastTreeWidth || "20%");
-                htElement.welCodeViewer.width(htElement.welCodeViewerWrap.width() - htElement.welCodeTree.width() - 2);
-            }
-        }
-        
-    	// adaptorForDynatree adaptor function is used for existed function
-    	// Also, it pass the below tests
-    	//
-    	// it("file & folder combine", function() {
-    	//     //Given
-    	//     var target = {
-    	//         "attachment": {
-    	//             "type": "folder",
-    	//             "msg": "add folders",
-    	//             "author": "doortts",
-    	//             "date": "Mon Jan 28 14:21:07 KST 2013"
-    	//         },
-    	//         "favicon.ico": {
-    	//             "type": "file",
-    	//             "msg": "add folders",
-    	//             "author": "doortts",
-    	//             "date": "Mon Jan 28 14:21:07 KST 2013"
-    	//         }
-    	//     };
-    	//     var expected = [
-    	//         {title: "attachment", isFolder: true, isLazy: true},
-    	//         {title: "favicon.ico"}
-    	//     ];
-    	//     //When
-    	//     var result = adaptorForDynatree(target);
-    	//     //Then
-    	//     assert.deepEqual(result, expected);
-    	// });
-    	function adaptorForDynatree(target){
-    		var rs = [];
-    		var ht = {};
-    		var htResult = {};
-            var value;
-    		
-    		_getObjectKeys(target).sort(lacending).forEach(function(key){
-                ht[key]=target[key];
-    		});
-
-            for(var key in ht){
-                value = ht[key];
-                if(value.type === "folder") {
-                    rs.push({"title": key, "isFolder": true, "isLazy": true});
-                } else {
-                    rs.push({"title": key});
-                }
-            }
-
-    		return _.sortBy(rs, function(elm){
-    		    return -elm.hasOwnProperty("isFolder");
-    		});
-    	}
-    
-    	function findTreeNode(path){
-    	    var root = htElement.welDynaTree.dynatree("getRoot");
-    	    var nodes = path.split("/");  // "a/b/c" => a, b, c
-    	    var currentNode = root;
-    	    var searchTarget;
-    
-            for(var idx in nodes){
-                searchTarget = currentNode.getChildren();
-                for(var jdx in  searchTarget){
-                    if(searchTarget[jdx].data.title === nodes[idx]){
-                        currentNode = searchTarget[jdx];
-                        currentNode.expand();
-                        break;
-                    }
-                }
-            }
-    	}
-    
-    	// Traverse the path of selected tree item
-    	function getTreePath(node){
-    	    var path = "";
-    	    if( node.getParent() && node.getParent().data.title !== null ){
-                path = getTreePath(node.getParent()) + "/" + node.data.title;
-    	    } else {
-                path = node.data.title;
-    	    }
-    	    return path;
-    	}
-    
-    	// updateDynaTree
-    	function _updateDynaTree(){
-    	    var path = getHash(true);
-    	    var branch = getBranch();
-    	    
-    	    htVar.sRootPath = "code/" + branch + "/!/";
-
-    	    $.ajax({
-    	        "url": htVar.sRootPath,
-    	        "success": function(result){
-    	            var oRoot = htElement.welDynaTree.dynatree("getRoot");
-
-    	            if(!(oRoot instanceof jQuery)){
-    	                oRoot.removeChildren(true);
-    	                oRoot.addChild(adaptorForDynatree(result.data));
-    	            }
-    	        }
-    	    });
-    	}
-    	// DynaTree Init function
-    	// see: http://wwwendt.de/tech/dynatree/doc/dynatree-doc.html
-    	function treeInit(initData){
-    	    htElement.welDynaTree.dynatree({
-    	      "debugLevel" : 0,
-    	      "title"      : "/",
-    	      "isLazy"     : true,
-    	      "autoFocus"  : false,
-              "children"   : initData,
-    	      "onLazyRead" : _onLazyRead,
-    	      "onActivate" : function(node) {
-    	          // A DynaTreeNode object is passed to the activation handler
-    	          // Note: we also get this event, if persistence is on, and the page is reloaded.
-    	          window.location = "#/" + getTreePath(node);
-    	      },
-              "fx": {
-                  "height": "toggle", 
-                  "duration": 200    	      
-              }
-    		});
-    	}
-
-        /**
-         * DynaTree lazyRead handler
-         * @param {Object} node dynaTree node
-         */
-    	function _onLazyRead(node){
-    	    $.ajax({
-                "url" : htVar.sRootPath + getTreePath(node),
-                "success" : function(result, textStatus) {
-                    // Called after nodes have been created and the waiting icon
-                    // was removed.
-                    // 'this' is the options for this Ajax request
-                    if (result) {
-                        node.setLazyNodeStatus(DTNodeStatus_Ok);
-                        node.addChild(adaptorForDynatree(result.data));
-                    } else {
-                        // Server returned an error condition: set node status
-                        // accordingly
-                        node.setLazyNodeStatus(DTNodeStatus_Error, {
-                            tooltip : "Loading failed",
-                            info : result
-                        });
-                    }
-                },
-                "error" : function(node, XMLHttpRequest, textStatus, errorThrown) {
-                    // Called on error, after error icon was created.
-                    console.log(node);
-                },
-                "cache" : false
-                // Append random '_' argument to url to prevent caching.
-            });
-    	}
-    	
-    	// 정렬 함수
-    	function lacending(a, b) {
-    	    a = a.toLowerCase();
-    	    b = b.toLowerCase();
-    	    return (a < b) ? -1 : (a > b ? 1 : 0);
-    	}
-    
-    	function ldescending(a, b) {
-    	    a = a.toLowerCase();
-    	    b = b.toLowerCase();
-    	    return (b < a) ? -1 : (b > a ? 1 : 0);
-    	}
-    	
-    	// for IE8 or less.
-    	function _getObjectKeys(obj){
-    	    if(obj.keys){
-    	        return obj.keys;
-    	    }
-    
-    	    var aKeyNames = [];
-    	    for (var sKeyName in obj) {
-    	        aKeyNames.push(sKeyName);
-    	    }
-    	    return aKeyNames;
-    	}
-    	
-        /**
+       /**
          * 경로명에서 파일명만 추출해서 반환
          * @param {String} sPath
          * @return {String}
@@ -871,17 +526,62 @@
         
         /**
          * 파일명에서 확장자만 추출해서 반환
+         * 
          * @param {String} sFilename
          * @return {String}
          */
         function getExt(sFilename){
-            if(sFilename.indexOf("scala.html") > -1){
-                return "scala";
-            }
-            return sFilename.split(".").pop();
+            return htVar.rxScala.test(sFilename) ? "scala" : sFilename.split(".").pop();
         }
         
-    	// 초기화 실행
-    	_init(htOptions);
-	};
+        /**
+         * aceEditor 높이를 내용에 맞게 키우는 함수
+         */
+        function _resizeEditor(){
+            var nLineHeight = htVar.oEditor.renderer.lineHeight;
+            nLineHeight = (nLineHeight === 1) ? (htVar.nFontSize + 4) : nLineHeight;
+
+            var newHeight = (htVar.oSession.getScreenLength() * nLineHeight) + htVar.oEditor.renderer.scrollBar.getWidth();
+            htElement.welShowCode.height(newHeight);
+            htVar.oEditor.resize();
+        }
+        
+        /**
+         * Spinner 시작
+         */
+        function _startSpinner(){
+            htVar.oSpinner = htVar.oSpinner || new Spinner(htVar.htOptSpinner);
+            htVar.oSpinner.spin(htElement.elSpinTarget);
+        }
+        
+        /**
+         * Spinner 종료
+         */
+        function _stopSpinner(){
+            if(htVar.oSpinner){
+                htVar.oSpinner.stop();
+            }
+            htVar.oSpinner = null;
+        }
+
+        /**
+         * 현재 파일/폴더 경로 표시
+         * 
+         * @param {Array} aPathQueue
+         */
+        function _updateBreadcrumbs(aPathQueue){
+            var sLink, sName;
+            var aCrumbs = ['<a href="' + htVar.sBasePathURL + '">' + htVar.sProjectName + '</a>'];
+
+            aPathQueue.forEach(function(sPath){
+                sLink = _getCorrectedPath(htVar.sBasePathURL, sPath);
+                sName = sPath.split("/").pop();
+                aCrumbs.push('<a href="' + sLink + '">' + sName + '</a>');
+            });
+
+            htElement.welBreadCrumbs.html(aCrumbs.join(""));
+        }
+        
+        _init(htOptions || {});
+    };
 })("yobi.code.Browser");

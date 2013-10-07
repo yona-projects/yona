@@ -177,10 +177,9 @@
 	                                </a>
 
 									@if(commitMsg.split("\n").length > 1){
-									<button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
+									<button type="button" class="more">&hellip;</button>
 									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
 									}
-                                </a>
                                 }
                             </td>
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
@@ -245,7 +244,7 @@
         @if(pull.isClosed()) {
         <div class="alert alert-info">
             <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("merged.the.pullrequest")
+            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
             @if(UserApp.currentUser().equals(pull.contributor)) {
                 @if(canDeleteBranch) {
                 <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
@@ -260,7 +259,7 @@
         }
 
         <div class="board-comment-wrap">
-            <div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@comments.size</strong></div>
+            <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@comments.size</strong></div>
             <hr class="nm">
             @if(comments.size > 0) {
             <ul class="comments" id="comments">
@@ -279,7 +278,7 @@
                                     <strong>@comment.authorLoginId </strong>
                                 </a>
                             </span>
-                            <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+                            <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
                             @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                             <span class="edit pull-right">
                                 <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.SimpleCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>

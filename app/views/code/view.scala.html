@@ -1,109 +1,246 @@
-@(project:Project, branches:List[String])
+@(project:Project, branches:List[String], recursiveData:List[org.codehaus.jackson.node.ObjectNode], branch:String, path:String)
+@import utils.JodaDateUtil
+@import utils.TemplateHelper._
+@import java.net.URLEncoder
+
+@fieldText(obj:org.codehaus.jackson.JsonNode, field:String) = @{
+    if(obj.get(field) != null){
+        obj.get(field).getTextValue()
+    } else {
+        ""
+    }
+}
+@parseFileInfo(files:org.codehaus.jackson.node.ObjectNode) = {
+    @fieldText(files, "type") match {
+        case "folder" => {
+            @showFileList(files.get("data"), fieldText(files, "path"))
+        }
+        case "file" => {
+            @showFileView(files)
+        }
+    }
+}
+@showFileList(data:org.codehaus.jackson.JsonNode, listPath:String) = {
+<div class="list-wrap" data-type="folder" @if(listPath != ""){data-listPath="@listPath"}>
+    <div class="row-fluid listhead">
+        <div class="span5 filename"><strong>@Messages("code.filename")</strong></div>
+        <div class="span5 commitMsg"><strong>@Messages("code.commitMsg")</strong></div>
+        <div class="span1 commitDate"><strong>@Messages("code.commitDate")</strong></div>
+        <div class="span1 author"><strong>@Messages("code.author")</strong></div>
+    </div>
+    
+    @** folders **@
+    @for(fileName <- data.getFieldNames()){
+        @defining(data.get(fileName)) { file =>
+            @if(fieldText(file, "type").eq("folder")){
+                @makeFileItem(file, fileName, listPath)
+            }
+        }
+    }
+
+    @** files **@
+    @for(fileName <- data.getFieldNames()){
+        @defining(data.get(fileName)) { file =>
+            @if(!fieldText(file, "type").eq("folder")){
+                @makeFileItem(file, fileName, listPath)
+            }
+        }
+    }
+</div>
+}
+@makeFileItem(file:org.codehaus.jackson.JsonNode, fileName:String, listPath:String) = {
+    @defining(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, listPath).toString()) { filePath =>
+    @defining(fieldText(file, "type")) { fileType =>
+    <div id="cb-@listPath@fileName" class="row-fluid listitem" data-path="@getDataPath(listPath, fileName)">
+        <div class="span5 filename">
+            <a href="@getCorrectedPath(filePath, fileName)@if(fileType.eq("folder")){#cb-@listPath@fileName}" class="@getFileClass(file)" title="@fileName" @if(fileType.eq("folder")){data-type="folder"} data-targetPath="@getDataPath(listPath, fileName)">
+                <span class="dynatree-icon vmiddle"></span>@fileName
+            </a>
+        </div>
+        <div class="span5 commitMsg"><span>@fieldText(file, "msg")</span></div>
+        <div class="span1 commitDate">@getFileDate(file, "createdDate")</div>
+        <div class="span1 author">@getAvatar(file)</div>
+    </div>
+    }
+    }
+}
+@getDataPath(listPath:String, fileName:String) = @{if(listPath == ""){fileName}else{getCorrectedPath(listPath, fileName)}}
+@getUserLink(userLoginId:String) = @{
+    if(userLoginId != null){
+        "/" + userLoginId
+    } else {
+        "javascript:void(); return false;"
+    }
+}
+@getAvatar(file:org.codehaus.jackson.JsonNode) = {
+    @defining(fieldText(file, "avatar")) { avatarURL =>
+        @if(avatarURL != null){
+            <a href="@getUserLink(fieldText(file, "userLoginId"))" class="avatar-wrap smaller">
+                <img src="@avatarURL">
+            </a>
+        }
+    }
+}
+@getFileClass(file:org.codehaus.jackson.JsonNode) = @{
+    if(fieldText(file, "name") == ".."){
+        "updir"
+    } else {
+        fieldText(file, "type") match {
+            case "folder" => { "dynatree-ico-cf" }
+            case _ =>        { "dynatree-ico-c"  }
+        }
+    }
+}
+@getFileDate(file:org.codehaus.jackson.JsonNode, field:String) = @{
+    agoString(JodaDateUtil.ago(file.get(field).getLongValue))
+}
+@getCorrectedPath(filePath:String, fileName:String) = @{
+    if((filePath != "") && (filePath.substring(filePath.length() - 1) == "/")){
+        filePath + fileName
+    } else {
+        filePath + "/" + fileName
+    }
+}
+@getFileRev(file:org.codehaus.jackson.JsonNode) = @{
+    project.vcs match {
+        case "GIT" => {
+            fieldText(file,"commitId").substring(0,7)
+        }
+        case "Subversion" => {
+            "Revision " + fieldText(file, "revisionNo")
+        }
+        case _ => {
+            ""
+        }
+    }
+}
+@showFileView(files:org.codehaus.jackson.node.ObjectNode) = {
+    @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
+    @defining(getFileRev(files)) { revId=> 
+    @defining(routes.CodeApp.showRawFile(project.owner, project.name, revId, path)) { filePath =>
+<div class="file-wrap" data-type="file">
+    <div class="file-header nm">
+        <div id="fileInfo" class="file-info">
+            <span id="commiter" class="commiter">@fieldText(files,"commiter")</span>
+            <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
+            <span id="revisionNo" class="revision">@revId</span>
+            <span id="commitMessage" class="commitMsg">@fieldText(files,"commitMessage")</span>
+        </div>
+        <div class="pull-right actrow">
+            @if(!files.get("isBinary").getBooleanValue()){
+            <a href="@filePath" class="nbtn medium" target="_blank">
+                <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
+            </a>
+            }
+        </div>
+    </div>
+    @** Binary File **@
+    @if(files.get("isBinary").getBooleanValue()){
+        @if(fieldText(files, "mimeType").indexOf("image/") == 0){
+        <div id="showImage" class="image-wrap"><img src="@filePath"></div>
+        } else {
+        <div id="showFile" class="file-wrap">
+            <p>
+                <strong class="filename">@fileName</strong><br>
+                <span class="filesize">@fieldText(files, "size")</span><br>
+                <a href="@filePath" class="filehref nbtn medium"><i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("button.download")</a>
+            </p>
+        </div>
+        }
+    } else {
+    @** Text(Code) **@
+        <div id="codeVal" class="hidden">@if(files.get("data") != null){@fieldText(files, "data")}</div>
+        <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
+    }
+</div>
+    }
+    }
+    }
+}
+@makeBreadCrumbs(pagePath:String) = @{
+    var basePath = routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "").toString()
+    var partialPath = ""
+    pagePath.split("/").toList.map { p =>
+        if(partialPath == ""){
+            partialPath = p
+        } else {
+            partialPath = partialPath + "/" + p
+        }
+        Html("<a href=\"" + getCorrectedPath(basePath, partialPath) + "\">" + p + "</a>")
+    }
+}
 
 @main(Messages("menu.code"), project, utils.MenuType.CODE){
 <div class="page">
-
-	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
 
     <div class="code-browse-wrap">
-        <div id="breadcrumbs" class="code-browse-header"></div>
+        <div id="breadcrumbs" class="code-browse-header">
+            <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "")">@project.name</a>
+            @makeBreadCrumbs(path)
+        </div>
         <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
             <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                <span class="d-label"></span>
+                <span class="d-label">@branch</span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu">
             @for(branch <- branches){
-                @partial_branchitem(branch, null)
+                @partial_branchitem(project, branch, "code", path)
             }
             </ul>
         </div>
 
         <ul class="nav nav-tabs">
-	        <li class="active"><a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a></li>
-	        <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+            @if(path.lastIndexOf("/") > 0){
+            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
+            } else {
+            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path)">@Messages("code.files")</a></li>
+            }
+            @if(branch.eq("HEAD")){
+            <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
+            } else {
+            <li><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"))">@Messages("code.commits")</a></li>
+            }
         </ul>
         
         <div class="code-viewer-wrap">
-            <div id="spin" style="position: absolute; top:50%; left:50%"></div>
-            <div class="code-tree">
-                <!-- codeBrowser.js will fills here (dynaTree) -->
-                <div id="folderList" class="directories"></div>
-            </div>
-	
-            <div class="code-viewer">
-                <div class="btnResize cell">|||</div>
-                <div class="sp-wrap cell"></div>
-                
-                @** 파일 목록 **@
-                <div id="fileList" class="file-wrap cell">
-                    <table class="code-table sources">
-                        <thead class="thead">
-                        <tr>
-                            <td class="filename"><strong>@Messages("code.filename")</strong></td>
-                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
-                            <td class="author"><strong>@Messages("code.author")</strong></td>
-                        </tr>
-                        </thead>
-                        <tbody class="tbody contents"></tbody>
-                    </table>
-                </div>
-                @** // **@
-                
-                @** 파일 보기 **@
-                <div id="fileView" class="file-wrap cell" style="display:none;">
-                    <div class="file-header nm">
-						<div id="fileInfo" class="file-info">
-							<span id="commiter" class="commiter"></span>
-							<span id="commitDate" class="commitDate"></span>
-							<span id="revisionNo" class="revision"></span>
-							<span id="commitMessage" calss="commitMsg"></span>
-						</div>
-						<div class="pull-right actrow">
-                            <a id="rawCode" class="nbtn medium">
-                                <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
-                            </a>
-                            <button id="fullScreen" class="nbtn medium orange">
-                                <i class="yobicon-resize-full yobicon-white vmiddle"></i>
-                            </button>
-                        </div>
-					 </div>
-	                 <div id="showImage" class="image-wrap"><img></div>
-	                 <pre id="showCode" class="code-wrap"></pre>
-	                 <div id="showFile" class="file-wrap">
-	                     <p>
-                             <strong class="filename"></strong><br>
-                             <span class="filesize"></span><br>
-                             <a href="#" class="filehref nbtn medium"><i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("button.download")</a>
-	                     </p>
-	                 </div>
-				</div>
-				@** // **@
-    	   </div>
+            <div id="spin" style="position:fixed; top:50%; left:50%"></div>
+            @for(fileInfo <- recursiveData){
+                @parseFileInfo(fileInfo)
+            }
         </div>
     </div>
 
 </div>
 
-<link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
+<script id="tplFileListItem" type="text/x-jquery-tmpl">
+<div id="cb-${listPath}${fileName}" class="row-fluid listitem" data-path="${targetPath}">
+    <div class="span5 filename">
+        <a href="${path}" class="${fileClass}" title="${fileName}" data-targetPath="${targetPath}" data-type="${type}">
+            <span class="dynatree-icon vmiddle"></span>${fileName}
+        </a>
+    </div>
+    <div class="span5 commitMsg"><span>${commitMsg}</span></div>
+    <div class="span1 commitDate">${commitDate}</div>
+    <div class="span1 author">${avatarImg}</div>
+</div>
+</script>
 
-<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery-ui.custom.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.cookie.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.dynatree.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/jquery/jquery.event.drag-2.2.js"></script>
+<link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
 <script type="text/javascript" src="/assets/javascripts/lib/moment.min.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/underscore.js"></script>
 <script type="text/javascript" src="/assets/javascripts/lib/ace/ace.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/spin.js")"></script>
-
+<script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
 <script type="text/javascript">
-	$(document).ready(function(){
-		$yobi.loadModule("code.Browser", {
-			"sProjectName": "@project.name"
-		});
-	});
+    $(document).ready(function(){
+        $yobi.loadModule("code.Browser", {
+            "sProjectName": "@project.name",
+            "sInitialPath": "@path",
+            "sMetaInfoURL": "@routes.CodeApp.ajaxRequestWithBranch(project.owner, project.name, branch, "")",
+            "sBasePathURL": "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "")"
+        });
+    });
 </script>
 
 }

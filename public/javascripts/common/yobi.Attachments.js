@@ -295,7 +295,7 @@ yobi.Attachments = function(htOptions) {
             htElements.welFileListHelp.hide();
         }
         
-        $yobi.notify(Messages("attach.error", htData.oRes.status, htData.oRes.statusText));
+        $yobi.notify(Messages("common.attach.error", htData.oRes.status, htData.oRes.statusText));
     }
 
     /**

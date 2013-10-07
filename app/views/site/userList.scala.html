@@ -5,12 +5,12 @@
         <h2 class="fl">@Messages("site.sidebar.userList")</h2>
         <form class="form-search fr" action="@routes.SiteApp.userList()">
             <input type="text" class="input-medium search-query input-xlarge" name="loginId" placeholder="@Messages("site.userList.search")">
-            <button type="submit" class="btn">SEARCH</button>
+            <button type="submit" class="btn">@Messages("title.search")</button>
         </form>
     </div>
 
     <div class="section39">
-        @thead(Messages("site.userlist.locked"))
+        @thead(Messages("site.userList.locked"))
         <tbody>
         @for(user <- currentPage.getList()) {
         @if(user.state == UserState.LOCKED){
@@ -22,7 +22,7 @@
     </div>
 
     <div class="section39">
-        @thead(Messages("site.userlist.deleted"))
+        @thead(Messages("site.userList.deleted"))
         <tbody>
         @for(user <- currentPage.getList()) {
             @if(user.state == UserState.DELETED){
@@ -34,7 +34,7 @@
     </div>
 
     <div class="section0">
-        @thead(Messages("site.userlist.unlocked"))
+        @thead(Messages("site.userList.unlocked"))
         <tbody>
         @for(user <- currentPage.getList()) {
         @if(user.state == UserState.ACTIVE){
