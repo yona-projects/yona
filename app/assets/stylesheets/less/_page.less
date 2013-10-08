@@ -881,6 +881,14 @@
     .main-stream {
         .activity-streams {
             margin: 0;
+            .warning {
+                font-size:16px;
+                padding:15px 20px;
+                text-align:center;
+                background-color:@yobi-cyan-dark;
+                color:@yobi-white;
+                .border-radius(6px);
+            }
 
             .notification-stream {
                 clear:both;
@@ -1139,9 +1147,8 @@
 
         .my-projects {
             border:1px solid #ddd;
-            margin:10px 0 0 0; /*border-top:none;*/
+            margin-bottom:10px;
             .title { background:#f7f7f7; padding:10px; display:block; font-weight:bold; border-bottom:1px solid #eee; margin-bottom:10px;}
-
             .my-project {
                 position:relative;
                 padding-left: 15px;

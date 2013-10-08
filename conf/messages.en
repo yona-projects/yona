@@ -280,6 +280,7 @@ notification.issue.unassigned = Unassigned
 notification.member.enroll.accept = Joined as a member.
 notification.member.enroll.cancel = The request for joining your project has been canceled.
 notification.member.enroll.request = Received a request for joining your project.
+notification.none = There is no notification message.
 notification.pullrequest.closed = Merged
 notification.pullrequest.conflicts = Conflicts
 notification.pullrequest.rejected = Rejected

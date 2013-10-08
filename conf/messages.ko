@@ -280,6 +280,7 @@ notification.issue.unassigned = 이제 담당자 없음
 notification.member.enroll.accept = 멤버로 등록됨
 notification.member.enroll.cancel = 멤버 등록 요청이 취소됨
 notification.member.enroll.request = 멤버 등록 요청을 받음
+notification.none = 알림 메시지가 없습니다.
 notification.pullrequest.closed = 보낸 코드가 반영됨(merged)
 notification.pullrequest.conflicts = 충돌이 발생
 notification.pullrequest.rejected = 보낸 코드 거절

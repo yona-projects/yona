@@ -40,6 +40,11 @@
 }
 
 
+    @if(  notifications(from, from + limit).size() == 0){
+        <div class="warning">
+            <i class="yobicon-danger"></i> @Messages("notification.none")
+        </div>
+    }
 
 @for(noti <- notifications(from, from + limit)){
 <li class="notification-stream">
