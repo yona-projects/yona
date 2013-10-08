@@ -16,21 +16,24 @@
 
     > a:hover, a:focus {
         text-decoration:none;
+        line-height:43px;
     }
 
     .logo {
         float:left;
-        margin-top:5px;
         background-color: @yobi-primary;
         font-size:2.0em;
         font-weight:bold;
         z-index:1;
-        line-height:20px;
+        line-height:23px;
         padding:10px 15px;
-        .border-radius(4px);
+        .border-radius(0px 0px 4px 4px);
         margin-right:15px;
         color:#FFF;
         .transition(all 0.2s ease);
+        img {
+          height: 25px;
+        }
     }
 
     .gnb {
@@ -73,7 +76,7 @@
             }
 
             &.active {
-                margin-top: 0px;
+                margin-top: 2px;
                 line-height: 35px;
                 border-bottom: 0px solid #FFF;
                 border-bottom:10px solid #FFF;
@@ -174,9 +177,12 @@
         line-height:40px;
         min-height: 40px;
         padding:0 10px;
+        
         .logo {
             padding:5px 15px;
-            margin:5px 0 0 10px; 
+            margin-left: 10px; 
+            line-height:30px;
+            .border-radius(0 0 4px 4px);
         }
 
         .gnb {
