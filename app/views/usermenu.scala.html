@@ -28,39 +28,43 @@
             </a>
             <ul class="dropdown-menu flat right title">
                 @defining(UserApp.currentUser.getWatchingProjects()){ watchingProjects =>
+                    <li class="title">
+                        @Messages("project.watchingproject") 
+                        <span class="numberic">@watchingProjects.size</span>
+                    </li>
                     @if(watchingProjects.length > 0) {
-                        <li class="title">
-                            @Messages("project.watchingproject") 
-                            <span class="numberic">@watchingProjects.size</span>
-                        </li>
                         @for(project <- watchingProjects){
                             <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                         }
+                    } else {
+                        <li class="empty">@Messages("project.is.empty")</li>
                     }
                 }
-                
+                   
                 @defining(User.findByLoginId(session.get("loginId")).myProjects("name")){ myProjects =>
-                    @if(myProjects.length > 0){
-                        @if(Project.findProjectsCreatedByUser(session.get("loginId"), "name").size() > 0){
-                        <li class="title">
-                            @Messages("project.createdByMe") 
-                            <span class="numberic">@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()</span>
-                        </li>
+                    <li class="title">
+                        @Messages("project.createdByMe") 
+                        <span class="numberic">@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()</span>
+                    </li>
+                    @if(Project.findProjectsCreatedByUser(session.get("loginId"), "name").size() > 0){
                         @for(project <- myProjects){
                             @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
                             <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span></a></li>
                             }
                         }
-                        }
-                         <li class="title">@Messages("project.belongsToMe") 
-                            <span class="numberic">@(myProjects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</span>
-                         </li>
-                        @for(project <- myProjects){
-                            @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
-                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
-                            }
+                    } else {
+                        <li class="empty">@Messages("project.is.empty")</li>        
+                    }
+
+                    <li class="title">@Messages("project.belongsToMe") 
+                        <span class="numberic">@(myProjects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</span>
+                    </li>
+                    @for(project <- myProjects){
+                        @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                         }
                     }
+                    
                 }
             </ul>
         </li>
