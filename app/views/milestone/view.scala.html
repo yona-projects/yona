@@ -16,9 +16,9 @@
 	@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)?state=@state.state
 }
 
-@main(title, project, utils.MenuType.MILESTONE) {
+@projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.MILESTONE, "")
+	@projectMenu(project, utils.MenuType.MILESTONE, "")
     <h4>
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
         <small class="ml10">
@@ -93,6 +93,6 @@
 
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 }

@@ -27,9 +27,9 @@
     if(commentId == UserApp.currentUser().loginId) {"author"}
 }
 
-@main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
-        @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+        @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
         <div class="pullreq-info">
             <div class="pull-right">
@@ -295,11 +295,11 @@
             </ul>
             }
 
-            @views.html.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())
+            @common.commentForm(project, ResourceType.SIMPLE_COMMENT, routes.SimpleCommentApp.newComment(ResourceType.PULL_REQUEST.resource() + "_" + pull.id).toString())
         </div>
     </div>
 
-@views.html.markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 

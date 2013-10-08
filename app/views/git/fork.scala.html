@@ -3,9 +3,9 @@
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main(title, project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     @if(isNew) {
 

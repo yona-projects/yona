@@ -23,9 +23,9 @@
     }
 }
 
-@main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
+@projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 
     @if(history.size() > 0) {
     <div class="bubble-wrap dark-gray repo-wrap">

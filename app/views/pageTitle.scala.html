@@ -1,8 +1,0 @@
-@(project:Project, pageName:String)
-
-<h1 class="page-title">
-	<span class="gray">
-		<a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a>/<!--
-	 --><a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>/<!--
- --></span>@pageName
-</h1>

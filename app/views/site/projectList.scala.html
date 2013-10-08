@@ -1,6 +1,6 @@
 @(message: String, currentPage: com.avaje.ebean.Page[Project], filter:String)
 
-@siteMngMain(message) {
+@siteMngLayout(message) {
     <div class="title_area">
         <h2 class="fl">@Messages("site.sidebar.projectList")</h2>
         <form class="form-search fr" action="@routes.SiteApp.projectList()">
@@ -49,6 +49,6 @@
     </div>
 
     <div class="row-fluid">
-        <center>@paginationForUserList(currentPage, 5, "pagination")</center>
+        <center>@partial_paginationForUserList(currentPage, 5, "pagination")</center>
     </div>
 }

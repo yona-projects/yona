@@ -11,10 +11,10 @@
     if(commentId == UserApp.currentUser().loginId) {"author"}   
 }
 
-@main(post.title, project, utils.MenuType.BOARD){
+@projectLayout(post.title, project, utils.MenuType.BOARD){
 
 <div class="page board-view">
-	@prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
+	@projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
   
 	@** Post Info **@
     <div class="board-header issue">
@@ -105,7 +105,7 @@
 	    }
 		</ul>
 
-        @views.html.commentForm(project, ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
+        @common.commentForm(project, ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
 	</div>
 	
 	@help.keymap("boardDetail", project)
@@ -132,7 +132,7 @@
 	</div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>

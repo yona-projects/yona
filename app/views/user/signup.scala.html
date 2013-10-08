@@ -1,14 +1,13 @@
 @(message: String, newUserForm: Form[User])
 @import utils.TemplateHelper._
 
-@home(message, utils.MenuType.NONE) {
+@siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
 	<div class="center-wrap tag-line-wrap signup">
 		<h1 class="title">
 			Sign Up for <span class="high-light">@Messages("app.name")</span>
 		</h1>
-		<p class="tag-line">Software development platform for Open Source
-			project.</p>
+		<p class="tag-line">Software development platform for Open Source project.</p>
 	</div>
 
 	<div class="signup-form-wrap frm-wrap">

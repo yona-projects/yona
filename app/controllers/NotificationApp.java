@@ -15,6 +15,6 @@ import static play.libs.Json.toJson;
 
 public class NotificationApp extends Controller {
     public static Result notifications(int from, int limit) {
-        return ok(views.html.partial_notifications.render(from, limit));
+        return ok(views.html.index.partial_notifications.render(from, limit));
     }
 }

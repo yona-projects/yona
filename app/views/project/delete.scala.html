@@ -3,9 +3,9 @@
 @import helper._
 @import utils.TemplateHelper._
 
-@main(message, project, utils.MenuType.PROJECT_SETTING) {
+@projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
+	@projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
     @partial_settingmenu(project)
     
     <div class="bubble-wrap gray wp">

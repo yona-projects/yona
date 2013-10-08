@@ -27,7 +27,7 @@
     }
 }
 
-@main(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
+@projectLayout(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
 <div class="page">
     <div class="code-browse-wrap">
         <div class="actrow">
@@ -115,7 +115,7 @@
         </ul>
         }
         
-        @views.html.commentForm(pull.fromProject, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+        @common.commentForm(pull.fromProject, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
     </div>
     @** // Comment **@
     
@@ -127,7 +127,7 @@
     </div>
 </div>
 
-@markdown(pull.fromProject)
+@common.markdown(pull.fromProject)
 
 <script type="text/x-jquery-tmpl" id="comment-icon-template">
     <i class="yobicon-comments"></i>

@@ -1,7 +1,6 @@
 @(message: String, members: List[ProjectUser], project:Project, roles: List[Role])
 
 @import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
 
 @memberRole(userRole: String) = {
     @for(role <- roles){
@@ -9,9 +8,9 @@
     }
 }
 
-@main(message, project, utils.MenuType.PROJECT_SETTING) {
+@projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
+    @projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
     @partial_settingmenu(project)
     
     <div class="inner-bubble">

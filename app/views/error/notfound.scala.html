@@ -28,9 +28,9 @@
     }
 }
 
-@main(title, project, utils.MenuType.NONE) {
+@projectLayout(title, project, utils.MenuType.NONE) {
 <div class="page">
-    @prjmenu(project, getMenuType(targetType), "")
+    @projectMenu(project, getMenuType(targetType), "")
     <div class="error-wrap">
         <i class="ico ico-err2"></i>
         <p>@getMessage(targetType)</p>       

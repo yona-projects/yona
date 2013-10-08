@@ -12,7 +12,7 @@
                 <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {
-                    @fileUploader(resourceType, null)
+                    @common.fileUploader(resourceType, null)
                 }
                 @** end of fileUploader **@
                 <div class="right-txt">

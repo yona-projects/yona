@@ -4,9 +4,9 @@
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main(title, project, utils.MenuType.BOARD) {
+@projectLayout(title, project, utils.MenuType.BOARD) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.BOARD, "main-menu-only")
+	@projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
 
 	<form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
 	<div class="content-wrap frm-wrap">
@@ -43,7 +43,7 @@
 
         @** fileUploader **@
         @if(!UserApp.currentUser.isAnonymous) {
-            @fileUploader(ResourceType.BOARD_POST, null)
+            @common.fileUploader(ResourceType.BOARD_POST, null)
         }
         @** end of fileUploader **@
 
@@ -56,7 +56,7 @@
 	</form>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>

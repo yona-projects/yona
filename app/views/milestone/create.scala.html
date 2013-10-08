@@ -3,9 +3,9 @@
 @import utils.TemplateHelper._
 @import models.enumeration._
 
-@main(title, project, utils.MenuType.MILESTONE) {
+@projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.MILESTONE, "")
+	@projectMenu(project, utils.MenuType.MILESTONE, "")
 
     <div class="form-wrap milestone frm-wrap">
         <form class="nm" action="@routes.MilestoneApp.newMilestone(project.owner, project.name)" method="post">
@@ -51,7 +51,7 @@
     </div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>

@@ -3,7 +3,7 @@
 @import utils.TemplateHelper._
 @import utils.JodaDateUtil
 
-@home("app.name", utils.MenuType.SITE_HOME) {
+@siteLayout("app.name", utils.MenuType.SITE_HOME) {
     @if(currentUser != User.anonymous){
     
     <div class="site-guide-outer hide">
@@ -49,7 +49,7 @@
         <div class="row-fluid content-container">
             <div class="span9 main-stream">
                 <ul class="activity-streams notification-wrap unstyled">
-                    @views.html.partial_notifications(0, 20)
+                    @partial_notifications(0, 20)
                 </ul>
 	        </div>
 	       

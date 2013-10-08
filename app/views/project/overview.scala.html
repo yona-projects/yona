@@ -32,9 +32,9 @@
 @makeHistoryHow(history:History)  = {<a href="@history.getUrl()"><span class="whereis"><code>@history.getShortTitle()</code> @history.getHow()</span></a> }
 @makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat())}
 
-@main(message, project, utils.MenuType.PROJECT_HOME) {
+@projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.PROJECT_HOME, "")
+	@projectMenu(project, utils.MenuType.PROJECT_HOME, "")
 
     <div class="row-fluid">
         <div class="span9">
@@ -63,7 +63,7 @@
 	                        <div class="readme-body markdown-wrap markdown-before" markdown="true">@project.readme</div>
 	                    </div>
 	                }
-	                @markdown(project)
+	                @common.markdown(project)
 	                </div>
 	            </div>
 

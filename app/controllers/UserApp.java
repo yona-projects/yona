@@ -20,7 +20,6 @@ import utils.AccessControl;
 import utils.Constants;
 import utils.ReservedWordsValidator;
 import utils.ErrorViews;
-import views.html.login;
 import views.html.user.*;
 
 import org.codehaus.jackson.node.ObjectNode;

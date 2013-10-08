@@ -28,9 +28,9 @@
     }
 }
 
-@main(title, project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="content-wrap frm-wrap">
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
@@ -108,7 +108,7 @@
             @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
             @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
-            @fileUploader(ResourceType.PULL_REQUEST, null)
+            @common.fileUploader(ResourceType.PULL_REQUEST, null)
 
             <div class="actions">
                 <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
@@ -118,7 +118,7 @@
     </div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <script type="text/javascript">
 $(document).ready(function() {

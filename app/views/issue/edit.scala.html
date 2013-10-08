@@ -7,9 +7,9 @@
 @import utils.AccessControl._
 @import utils.TemplateHelper._
 
-@main(Messages(title), project, utils.MenuType.ISSUE) {
+@projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+    @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
     <div class="content-wrap frm-wrap">
 
@@ -58,7 +58,7 @@
             
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {
-                    @fileUploader(ResourceType.ISSUE_POST, issue.id)
+                    @common.fileUploader(ResourceType.ISSUE_POST, issue.id)
                 }
                 @** end of fileUploader **@
 
@@ -163,7 +163,7 @@
     </div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/x-jquery-tmpl" id="tplRelIssue">

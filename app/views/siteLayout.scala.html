@@ -1,0 +1,39 @@
+@(title: String, menuType:utils.MenuType)(content: Html)
+
+@import utils._
+
+@isActiveMenu(m_type:MenuType) = @{
+    if(m_type == menuType){ "active" }
+}
+
+@layout(Messages(title))(""){
+    <header class="gnb-outer">
+        <div class="gnb-inner">
+            <a href="@routes.Application.index()" class="logo"><img src="@routes.Assets.at("images/yobi_logo.png")"> @Messages("app.name")</a>
+            <ul class="gnb">
+                <li class="@isActiveMenu(MenuType.PROJECTS)">
+                    <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
+                </li>
+                <li class="@isActiveMenu(MenuType.HELP)">
+                    <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
+                </li>
+            </ul>
+            @common.usermenu(null)
+        </div>    
+    </header>
+
+    @if(menuType == utils.MenuType.SITE_HOME && UserApp.currentUser.isAnonymous){
+        @index.partial_intro()
+    } else {
+        <div class="page-wrap">
+            @content
+        </div>
+    }
+    
+    <footer class="page-footer-outer">  
+        <div class="page-footer">
+            <span class="provider">Powered by <strong>@Messages("app.name")</strong></span>
+        </div>
+    </footer>
+    @common.alert()
+}

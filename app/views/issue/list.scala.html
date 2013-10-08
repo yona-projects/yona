@@ -1,9 +1,9 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param:
 models.support.SearchCondition, project:Project)
 
-@main(Messages(title), project, utils.MenuType.ISSUE){
+@projectLayout(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
-	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 	
 	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>

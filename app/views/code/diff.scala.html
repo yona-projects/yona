@@ -27,11 +27,11 @@
     }
 }
 
-@main(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
+@projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
 
 <div class="page">
 
-    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 
     <div class="code-browse-wrap">
         <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
@@ -131,7 +131,7 @@
             </ul>
             }
             
-            @views.html.commentForm(project, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
+            @common.commentForm(project, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
         </div>
         @** // Comment **@        
     </div>
@@ -148,7 +148,7 @@
     </div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <script type="text/x-jquery-tmpl" id="comment-icon-template">
     <i class="yobicon-comments"></i>

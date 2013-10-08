@@ -26,7 +26,7 @@
     @Html(emailAddress.reverse.replace("@","@<span class='z'>"+MD5Util.md5Hex(emailAddress)+"</span>").replace(".", "<span class='z'>"+MD5Util.md5Hex(emailAddress).reverse+"</span>."))
 }
 
-@home(user.loginId, utils.MenuType.USER) {
+@siteLayout(user.loginId, utils.MenuType.USER) {
 
 <div class="page">
     <section class="user-box">

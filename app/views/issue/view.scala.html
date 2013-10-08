@@ -12,8 +12,6 @@
 @import java.net._
 @import utils.Config
 
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render) }
-
 @getTitle(issue:Issue, project:Project) = {
     #@issue.getNumber @issue.title
     @** Messages(title) **@
@@ -58,9 +56,9 @@
     else "timeline"
 }
 
-@main(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
+@projectLayout(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
 <div class="page board-view">
-    @prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+    @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
     @** Post Info **@
     <div class="board-header issue">
@@ -333,7 +331,7 @@
         </ul>
         }
 
-        @views.html.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
+        @common.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
     </div>
     @** // Comment **@
 
@@ -361,7 +359,7 @@
 	</div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
