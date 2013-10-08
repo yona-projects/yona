@@ -2,7 +2,7 @@
 @import utils.TemplateHelper._
 
 @displayProjects(title:String, projects:List[Project]) = {
-    @if(projects.length > 0) {
+
     <div class="my-projects">
         <div class="title">@title (@projects.size())</div>
         <ul class="unstyled">
@@ -22,20 +22,6 @@
         }
         </ul>
     </div>
-    } else {
-    <div class="my-projects">
-        <div class="title">@title</div>
-        <ul class="unstyled">
-            <li class="my-project">
-                <div class="my-project-header">
-                    <div class="name-wrap">
-                       
-                    </div>
-                </div>
-            </li>
-        </ul>
-    </div>
-    }
 }
 
 @orderString = @{"createdDate DESC"}
