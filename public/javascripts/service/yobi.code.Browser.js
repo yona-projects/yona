@@ -423,7 +423,7 @@
             // or the client should guess it.
             var sMimeType = htElement.welShowCode.data("mimetype");
             var aMatch = sMimeType.match(htVar.rxSub);
-            var sMode = aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath);
+            var sMode = (aMatch ? aMatch[1] : _getEditorModeByPath(htVar.sPath)) || "text";
 
             htVar.oSession.setMode("ace/mode/" + sMode);
             htVar.oSession.setValue(htElement.welCodeVal.text());

@@ -49,7 +49,7 @@
 </div>
 }
 @makeFileItem(file:org.codehaus.jackson.JsonNode, fileName:String, listPath:String) = {
-    @defining(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, listPath).toString()) { filePath =>
+    @defining(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), listPath).toString()) { filePath =>
     @defining(fieldText(file, "type")) { fileType =>
     <div id="cb-@listPath@fileName" class="row-fluid listitem" data-path="@getDataPath(listPath, fileName)">
         <div class="span5 filename">
@@ -191,7 +191,7 @@
 
     <div class="code-browse-wrap">
         <div id="breadcrumbs" class="code-browse-header">
-            <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "")">@project.name</a>
+            <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>
             @makeBreadCrumbs(path)
         </div>
         <div id="branches" class="btn-group branches pull-right @if(fieldText(recursiveData{0}, "type").eq("file")){mb10}" data-name="branch" data-activate="manual">
@@ -209,9 +209,9 @@
         @if(fieldText(recursiveData{0}, "type").eq("folder")){
         <ul class="nav nav-tabs">
             @if(path.lastIndexOf("/") > 0){
-            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
+            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path.substring(0, path.lastIndexOf("/")))">@Messages("code.files")</a></li>
             } else {
-            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, path)">@Messages("code.files")</a></li>
+            <li class="active"><a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)">@Messages("code.files")</a></li>
             }
             @if(branch.eq("HEAD")){
             <li><a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a></li>
@@ -254,8 +254,8 @@
         $yobi.loadModule("code.Browser", {
             "sProjectName": "@project.name",
             "sInitialPath": "@path",
-            "sMetaInfoURL": "@routes.CodeApp.ajaxRequestWithBranch(project.owner, project.name, branch, "")",
-            "sBasePathURL": "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branch, "")"
+            "sMetaInfoURL": "@routes.CodeApp.ajaxRequestWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")",
+            "sBasePathURL": "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")"
         });
     });
 </script>
