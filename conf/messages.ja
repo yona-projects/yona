@@ -82,6 +82,7 @@ code.repoUrl = リポジトリー URL
 code.showcomments = コメント表示
 code.fullDiff = Side-by-side diff
 code.showCommit = コミット詳細
+code.showCode = コードを見る
 code.showCodeAtThisCommit = この時点でのコードを見る
 common.attach.attachIfYouSave = 表示されたファイルはセーブしたら添付されます。
 common.attach.clickbutton = ボタンで選んでください

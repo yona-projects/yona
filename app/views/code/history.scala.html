@@ -91,28 +91,26 @@
             }
 
             <div id="history" class="commit-wrap">
-                <table class="code-table commits">
+                <table class="code-table commits@if(path != null){ mt10}">
                     <thead class="thead">
                         <tr>
                             <td class="commit-id"><strong>@{"@"}</strong></td>
                             <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                            @if(path != null){
+                            <td class="browse"></td>
+                            }
                             <td class="date"><strong>@Messages("code.commitDate")</strong></td>
                             <td class="author"><strong>@Messages("code.author")</strong></td>
                         </tr>
                     </thead>
                     <tbody class="tbody">
                         @for(commit <- history.iterator()) {
+                        @defining(getShowCommitURL(project, commit)){ showCommitURL =>
                         <tr>
                             <td class="commit-id">
-                                @if(path != null){
-                                <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, commit.getShortId(), path)" title="@Messages("code.showCodeAtThisCommit")">
+                                <a href="@showCommitURL#@path" title="@Messages("code.showCommit")">
                                     @commit.getShortId()
                                 </a>
-                                } else {
-                                <a href="@routes.CodeHistoryApp.show(project.owner, project.name, commit.getId())@if(selectedBranch){?branch=@URLEncoder.encode(selectedBranch, "UTF-8")}" title="@Messages("code.showCommit")">
-                                    @commit.getShortId()
-                                </a>
-                                }
                             </td>
                             <td class="messages">
                                 @defining(CodeComment.count(project, commit.getId, if(path != null){"/"+path}else{null})){ numOfComment =>
@@ -122,7 +120,6 @@
                                 }
 
                                 @defining(commit.getMessage()){ commitMsg =>
-                                @defining(getShowCommitURL(project, commit)){ showCommitURL =>
                                 @if(commitMsg.startsWith("Merge pull request")){
                                     @defining(commitMsg.split(" ")(3)) { pullRequestIdPart =>
                                         @defining(pullRequestIdPart.replace("#", "").toLong) { pullRequestId =>
@@ -150,8 +147,14 @@
                                     <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
                                 }
                                 }
-                                }
                             </td>
+                            @if(path != null){
+                            <td class="browse">
+                                <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, commit.getShortId(), path)" title="@Messages("code.showCodeAtThisCommit")" class="nbtn medium white">
+                                    @Messages("code.showCode")
+                                </a>
+                            </td>
+                            }
                             <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
@@ -182,6 +185,7 @@
                                 }
                             </td>
                         </tr>
+                        }
                         }
                     </tbody>
                 </table>
