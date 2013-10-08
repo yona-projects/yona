@@ -224,7 +224,7 @@
 .page-wrap {
     background-color: @white;
     .center-block;
-    padding:30px 40px 0;
+    padding:0px 40px;
 }
 
 
@@ -774,7 +774,12 @@
 }
 
 .site-guide-outer {
-    
+    margin-top:30px;
+    &.hide {
+        margin-top:0px;
+        display:none;
+    }
+
     h3 { 
         margin:0; 
         padding:0;
@@ -790,7 +795,6 @@
 
     .site-guide-inner {
         margin-top:15px;
-        padding:0 0 40px;
 
         .site-guide-title {
             background-color:@yobi-inverse-light;
@@ -873,6 +877,26 @@
                     }
                 }
             }
+        }
+    }
+}
+
+.guide-toggle {
+    text-align: center;
+    margin-bottom:20px;
+   
+    
+
+    button {
+        border:1px solid rgba(0,0,0, .1);
+        border-top:none;
+        .border-radius(0 0 6px 6px);
+        color:@yobi-gray;
+        padding:0px 25px;
+        display:inline-block;
+
+        i {
+            font-size:12px;
         }
     }
 }

@@ -6,7 +6,7 @@
 @home("app.name", utils.MenuType.SITE_HOME) {
     @if(currentUser != User.anonymous){
     
-    <div class="site-guide-outer">
+    <div class="site-guide-outer hide">
         <h3>
             <i class="yobicon-emo-wink"></i> 
             @Messages("app.secret.welcome",Messages("app.name"))
@@ -42,6 +42,9 @@
             </div>
         </div>
     </div>
+    <div class="guide-toggle">
+        <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+    </div>
     <div class="page on-fold-intro">
         <div class="row-fluid content-container">
             <div class="span9 main-stream">
@@ -62,6 +65,15 @@
     } 
     <script type="text/javascript">
         $(document).ready(function(){
+            $("#toggleIntro").click(function(){
+                $(".site-guide-outer").toggleClass("hide");
+                localStorage.setItem("yobi-intro", !$(".site-guide-outer").hasClass("hide"));
+            });
+
+            if(localStorage.getItem("yobi-intro") != "false"){
+                $(".site-guide-outer").removeClass("hide");
+            }
+
             $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
                 var sTargetId = $(this).data('target'),
                     welMessage = $('#'+sTargetId),
