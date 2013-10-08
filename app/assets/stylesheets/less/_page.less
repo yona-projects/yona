@@ -16,7 +16,6 @@
 
     > a:hover, a:focus {
         text-decoration:none;
-        line-height:43px;
     }
 
     .logo {
@@ -31,6 +30,11 @@
         margin-right:15px;
         color:#FFF;
         .transition(all 0.2s ease);
+
+        &:hover, &:active {
+            line-height:43px;
+        }
+
         img {
           height: 25px;
         }
@@ -178,13 +182,6 @@
         min-height: 40px;
         padding:0 10px;
         
-        .logo {
-            padding:5px 15px;
-            margin-left: 10px; 
-            line-height:30px;
-            .border-radius(0 0 4px 4px);
-        }
-
         .gnb {
             li {
                 line-height:20px;
@@ -202,6 +199,10 @@
         }
 
         .logo {
+            padding:5px 15px;
+            margin-left: 10px; 
+            line-height:30px;
+            .border-radius(0 0 4px 4px);
             background-color:@yobi-background-gnv;
             color: @primary;
 
@@ -706,7 +707,7 @@
         padding:0;
         overflow: hidden;
         width:100%;
-        min-width:644px;
+        min-width:723px;
 
         li {
             float: left;
@@ -721,7 +722,7 @@
             border: 1px solid rgba(0, 0, 0, 0.15);
             overflow:hidden;
             position:relative;
-
+            
             &:nth-child(3n+2) {
                 border-right: none;
                 border-left: none;
