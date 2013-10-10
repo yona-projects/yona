@@ -46,6 +46,7 @@ button.excelDownload = Excel
 button.list = 목록
 button.login = 로그인
 button.new.enrollment = 멤버 등록 요청하기
+button.newIssue = 새 이슈 등록
 button.newProject = 새 프로젝트 만들기
 button.nextPage = 다음 페이지
 button.no = 아니요

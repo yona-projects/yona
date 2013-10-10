@@ -108,7 +108,9 @@
 		            </div>
 		            }
 		        </div>
-
+                <div class="project-btn-wrap">
+                    <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
+                </div>    
                 @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
                     @if(milestones.length > 0){
                         @views.html.milestone.partial_status(milestones(0), project)

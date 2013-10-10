@@ -46,6 +46,7 @@ button.excelDownload = Excel
 button.list = list
 button.login = Login
 button.new.enrollment = New enrollment.
+button.newIssue = New Issue
 button.newProject = Create your project
 button.nextPage = Next Page
 button.no = No
