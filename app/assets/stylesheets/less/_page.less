@@ -940,7 +940,8 @@
     .main-stream {
         .activity-streams {
             margin: 0;
-            .warning {
+            
+            .warning-none {
                 font-size:16px;
                 padding:15px 20px;
                 text-align:center;
@@ -981,7 +982,7 @@
                     height:26px;
                     padding:4px;
                     border: 1px solid @state-open;
-                    border-radius : 50%;
+                    .border-radius(50%);
                     background: #FFF;
                     position:absolute;
                     top:12px; 
@@ -997,7 +998,7 @@
                         background:@state-open;
                         width:26px;
                         height:26px;
-                        border-radius : 50%;
+                        .border-radius(50%);
                         display:inline-block;
                         font-size:15px;
                         text-align : center;
