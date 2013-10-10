@@ -5,15 +5,18 @@ Yobi
 [![Build Status](https://travis-ci.org/nforge/yobi.png?branch=master)](https://travis-ci.org/nforge/yobi)
 
 
-Yobi, collaborative SW development platform.<br/>(Currently, unversioned - work in progress)
+Yobi, collaborative SW development platform.<br/>(Currently, 0.3 - work in progress)
 
 
 What is Yobi?
 --
 
 Yobi, a brand new version of nFORGE, is a web-based collaborative platform for software development.
-Yobi offers many features to increase productivity and quality of your software: a bug tracker to manage bugs and issues, a wiki to share documents, a configuration management tool to control software version and so on.
+Yobi offers many features to increase productivity and quality of your software: a issue tracker to manage bugs and issue, a wiki style board to share documents, a configuration management tool to control software version and so on.
 
+License
+--
+Copyright 2013 Yobi team(currently, NAVER Labs), Inc under the Apache 2.0 license.
 
 ## Installation
 
@@ -66,7 +69,7 @@ It will downloaded addtional files and compile sources.
 
 If you want to run yobi in production mode, use **start** , not **run**.
 
-### connect by browser
+### connect with browser
 
     http://127.0.0.1:9000
 
@@ -90,13 +93,12 @@ Yobi
 
 Yobi 소개
 --
-Yobi (구 nFORGE)는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다. 버그나 이슈을 관리할 수 있는 버그 트래커, 각종 문서와 정보를 간편하게 공유할 수 있는 위키, 소스코드의 변경내역을 편리하게 관리할 수 있는 형상관리 툴, 일반적인 용도의 게시판, 그리고 최종 작업 결과물을 공유하기 위한 파일 릴리즈 기능 등을 포함하고 있습니다.
+Yobi (구 nFORGE)는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다. 버그나 이슈을 관리할 수 있는 이슈 트래커, 각종 문서와 정보를 간편하게 공유할 수 있는 게시판, 소스코드의 변경내역을 편리하게 관리할 수 있는 형상관리 툴을 비롯하여 팀 개발을 위한 다양한 기능을 포함하고 있습니다.
 
-*개발중인 화면입니다*
 
 라이센스
 --
-Yobi는 GNU GPL v2로 배포되는 오픈소스입니다. (MIT 라이센스로 변경될 예정입니다)
+Yobi는 Apache 2.0 라이선스로 제공됩니다.
 
 ## 설치하기
 
