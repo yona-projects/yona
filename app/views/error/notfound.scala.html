@@ -1,22 +1,18 @@
 @(title:String, project:Project, targetType:String)
 
 @getMenuType(target:String) = @{
-    if(target.equals("issue")) {
-        utils.MenuType.ISSUE
-    } else if(target.equals("post")) {
-        utils.MenuType.BOARD
-    } else {
-        utils.MenuType.PROJECT_HOME
+    target match {
+        case "issues" => utils.MenuType.ISSUE
+        case "post" => utils.MenuType.BOARD
+        case _ => utils.MenuType.PROJECT_HOME
     }
 }
 
 @getReturnURL(target:String) = @{
-    if(target.equals("issue")) {
-        routes.IssueApp.issues(project.owner, project.name, "all")
-    } else if(target.equals("post")) {
-        routes.BoardApp.posts(project.owner, project.name)
-    } else {
-        "javascript:history.back();"
+    target match {
+        case "issues" => routes.IssueApp.issues(project.owner, project.name, "all")
+        case "post" => routes.BoardApp.posts(project.owner, project.name)
+        case _ => "javascript:history.back();"
     }
 }
 
