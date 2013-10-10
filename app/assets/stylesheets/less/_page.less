@@ -33,6 +33,7 @@
 
         &:hover, &:active {
             line-height:43px;
+            background-color:@yobi-orange-dark;
         }
 
         img {
@@ -146,7 +147,7 @@
 
 .gnb {
     li.item {
-        margin:8px 10px ;
+        margin:7px 10px ;
         line-height:20px;
     }
 
@@ -172,7 +173,13 @@
             border-right: 4px solid transparent;
             border-left: 4px solid transparent;
             content: "";
-        }    
+        } 
+
+        li {
+           margin-right:5px;
+           margin-left:5px;
+
+        }   
     }
 }
 
@@ -195,6 +202,13 @@
                 > a {
                     padding:5px 10px;
                 }
+
+                &.item {
+                    padding:0;
+                    margin:0;
+                    margin-top:4px;
+                    margin-right:10px;
+                }
             }
         }
 
@@ -213,7 +227,7 @@
         }
 
         .gnb-search-bar {
-            margin:5px 5px 5px 0;
+            margin:5px 10px 5px 0;
 
             input {
                 height:20px;
@@ -638,11 +652,12 @@
 }
 
 .siteintro {
-
+    background-image:url('/assets/images/img_front.jpg');
+    background-position: bottom;
+    background-size: 100% 240px;
+    background-repeat : no-repeat;
     .siteintro-cover {
-        padding:80px 40px;
-        background-color: @yobi-inverse-dark;
-
+        padding:100px 60px 80px;
     }
 
     .siteintro-wrap {
@@ -652,9 +667,10 @@
         .site-heading {
             margin:0 ;
             padding:0;
-            color:@yobi-primary;
             font-size:56px;
             line-height:1.3;
+            color: #BDBDBD;
+            text-shadow: 1px 1px 2px rgba(0,0,0,.75);
         }
 
         .site-features {
@@ -666,8 +682,7 @@
 
             li {
                 display:inline-block;
-                color:#FFF;
-                font-size:20px;
+                font-size:16.5px;
                 line-height:1.5;
                 margin-left:15px;
 
@@ -689,12 +704,12 @@
 }
 .feature {
     clear:both;
-    padding: 20px 40px 80px;
+    padding: 0 40px 40px;
     text-align:center;
-    background-color:@yobi-white-dark;
+
     h2 {
-        margin:0;
-        padding:50px 0 40px;
+        padding:40px 0 20px;
+        font-size: 40px;
 
         strong {
             color:@yobi-primary;
@@ -722,7 +737,8 @@
             border: 1px solid rgba(0, 0, 0, 0.15);
             overflow:hidden;
             position:relative;
-            
+            background-color:@yobi-cyan-light;
+
             &:nth-child(3n+2) {
                 border-right: none;
                 border-left: none;
@@ -730,6 +746,10 @@
 
             &:nth-child(-n+3) {
                 border-bottom: none;
+            }
+
+            &:nth-child(2n) {
+                background-color:@yobi-white;
             }
 
             .feature-image {
@@ -755,27 +775,34 @@
                 min-height:60px;
             }
 
-            &:hover {
-                .feature-image {
-                    color:@yobi-green;
-                }
-
-                
-            }
         }
     }
 }
 
 .getting-started {
     text-align:center;
-    background:@yobi-inverse-light;
-    padding:60px 0px 80px;
-
+    padding:40px 0 0;
+    border-bottom:1px solid rgba(0,0,0, .15);
+    overflow: hidden;
+    
     h2 {
-        padding: 0 40px 30px;
-        color:@yobi-white;
+        padding: 0 40px 50px;
+        font-size:40px;
+
         strong {
             color:@yobi-primary;
+        }
+    }
+
+    .issue-image {
+        margin-top:60px;
+        padding:0 60px;
+        overflow:hidden;
+        img {
+            .border-radius(6px 6px 0 0);
+            vertical-align:buttom;
+            border:1px solid rgba(0,0,0, .15);
+            border-bottom:none;
         }
     }
 }
@@ -861,7 +888,7 @@
                     }
 
                     &:nth-child(odd) {
-                        background-color:@yobi-white-dark;
+                        background-color:@yobi-cyan-light;
 
                     }
 
@@ -1179,7 +1206,19 @@
         .my-projects {
             border:1px solid #ddd;
             margin-bottom:10px;
-            .title { background:#f7f7f7; padding:10px; display:block; font-weight:bold; border-bottom:1px solid #eee; margin-bottom:10px;}
+            .border-radius(6px 6px 0 0);
+
+            .title { 
+                background-color:@yobi-cyan-light; 
+                padding:10px; 
+                display:block;
+                font-weight:bold;
+                .border-radius(6px 6px 0 0);
+
+                border-bottom:1px solid rgba(0,0,0, .15); 
+                margin-bottom:10px;
+            }
+
             .my-project {
                 position:relative;
                 padding-left: 15px;
@@ -3804,8 +3843,7 @@ div.markdown-preview {
 
         .whoami {
             width:100%; height:50px; left:0;
-            background: rgba(0,0,0,0.85);
-            border-top:5px solid @primary;
+            background: rgba(0,0,0,0.55);
             color:#fff;
             text-shadow:1px 1px #000;
             text-align:left; line-height:120%;

@@ -72,7 +72,7 @@
                 </li>
                 <li>
                     @if(User.isWatching(project)) {
-                    <button class="ybtn ybtn-primary ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
+                    <button class="ybtn ybtn-watching ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
                         <i class="yobicon-eye"></i> @Messages("project.watching")
                     </button>
                     } else {
@@ -111,7 +111,7 @@
                             </ul>
                         </div>
                         <div class="pop-content btn-wrap">
-                            <a class="ybtn ybtn-primary watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
+                            <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
                                 <i class="yobicon-eye"></i>
                                 @Messages("project.watch")   
                             </a>

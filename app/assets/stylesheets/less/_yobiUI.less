@@ -588,7 +588,7 @@ button.nbtn {
         line-height: 16px !important;
     }
 
-    &.ybtn-primary, &.ybtn-success,&.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning, &.ybtn-transparent  {
+    &.ybtn-primary, &.ybtn-success,&.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning, &.ybtn-transparent, &.ybtn-watching  {
         color:@yobi-white;
     }
 
@@ -615,11 +615,11 @@ button.nbtn {
     }
 
     &.ybtn-success {
-        background-color : @yobi-btn-success !important;
-        border:1px solid @yobi-btn-success-hover;
+        background-color : @yobi-btn-primary !important;
+        border:1px solid @yobi-btn-primary-hover; 
 
         &:hover, &:focus, &:active, &:focus { 
-            background-color: @yobi-btn-success-hover !important;  
+            background-color: @yobi-btn-primary-hover !important;  
         }
     }
 
@@ -679,10 +679,10 @@ button.nbtn {
 
     &.ybtn-watching {
         background-color : @yobi-btn-success !important;
-        border:none;
-        color:#FFF;
+        border:1px solid @yobi-btn-success-hover;
+
         &:hover, &:focus { 
-            background-color: @yobi-btn-disabled !important;  
+            background-color: @yobi-btn-success-hover !important;  
         }
     }
 
@@ -717,7 +717,7 @@ button.nbtn {
             }
         }
 
-        &.ybtn-success,&.ybtn-primary, &.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning  {
+        &.ybtn-success,&.ybtn-primary, &.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning,&.ybtn-watching  {
            &:after {
                 border-top: 4px solid @yobi-white !important;
             }
@@ -799,7 +799,7 @@ button.nbtn {
 
         .pop-title {
             .border-radius(3px);
-            background: @yobi-white-dark;
+            background: @yobi-cyan-light;
             padding:3px 0;
             padding: 3px 11px 5px;
             margin:5px 3px;
@@ -837,8 +837,7 @@ button.nbtn {
         }
 
         li {
-
-            margin: 0 4px 2px;
+            margin: 0 5px 2px !important;
             white-space:nowrap;
             float:none !important;
             background-color:@yobi-white;
@@ -879,7 +878,7 @@ button.nbtn {
 
             &.title {
                 .border-radius(3px);
-                background: @yobi-white-dark;
+                background:@yobi-cyan-light;
                 padding:3px 0;
                 padding: 3px 11px 5px;
                 margin:5px 3px;
