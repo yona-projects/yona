@@ -140,11 +140,11 @@
         </div>
         <div class="pull-right">
             @if(!files.get("isBinary").getBooleanValue()){
-            <a href="@filePath" class="nbtn medium" target="_blank">
+            <a href="@filePath" class="ybtn" target="_blank">
                 <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
             </a>
             }
-            <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)" class="nbtn medium">@Messages("code.history")</a>
+            <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)" class="ybtn">@Messages("code.history")</a>
         </div>
     </div>
     @** Binary File **@
@@ -156,7 +156,7 @@
             <p>
                 <strong class="filename">@fileName</strong><br>
                 <span class="filesize">@fieldText(files, "size")</span><br>
-                <a href="@filePath" class="filehref nbtn medium"><i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("button.download")</a>
+                <a href="@filePath" class="filehref ybtn"><i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("button.download")</a>
             </p>
         </div>
         }
