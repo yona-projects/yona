@@ -29,6 +29,7 @@
             _initToggleCommentsButton();
             _initFileViewButton();
             _initMiniMap();
+            _initMergely();
         }
 
         /**
@@ -41,6 +42,7 @@
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
             htVar.sTplFileURL = htOptions.sTplFileURL;
+            htVar.sTplRawURL = htOptions.sTplRawURL;
             
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
@@ -74,6 +76,13 @@
             htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
             htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
             htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
+            
+            // FullDiff (Mergely)
+            htElement.welMergelyWrap = $("#compare");
+            htElement.welMergely = $("#mergely");
+            htElement.welMergelyPathTitle = htElement.welMergelyWrap.find(".path > span");
+            htElement.welMergelyCommitFrom = htElement.welMergelyWrap.find(".compare-from");
+            htElement.welMergelyCommitTo = htElement.welMergelyWrap.find(".compare-to");
         }
 
         /**
@@ -94,6 +103,7 @@
             
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
+            $(window).on("resize", _resizeMergely);
         }
 
         /**
@@ -181,14 +191,13 @@
             _setPropertiesOnLine(welTr, sPath, nLineA, nLineB);
             _prependLineNumberOnLine(welTr, nLineA, nLineB);
 
-            if ((typeof vContent) == 'string') {
-                welTr.append($('<td>').append($("<span>").text(vContent)));
-            } else {
-                welTr.append(vContent);
-            }
+            var welBody = ((typeof vContent) == 'string') ? $('<td>').append($("<span>").text(vContent)) : vContent;
+            welBody.addClass("line-body");
+            welTr.append(welBody);
             
             if(sClass === "file"){
                 welTr.attr("id", sPath.substr(1));
+                welBody.find("span").addClass("filename");
             }
             welTable.append(welTr);
 
@@ -248,9 +257,9 @@
          */
         function _prependLineNumberOnLine(welTr, nLineA, nLineB) {
             var welLineNumA =
-                htElement.welEmptyLineNumColumn.clone().text(nLineA);
+                htElement.welEmptyLineNumColumn.clone().text(nLineA).addClass("linenum-from");
             var welLineNumB =
-                htElement.welEmptyLineNumColumn.clone().text(nLineB);
+                htElement.welEmptyLineNumColumn.clone().text(nLineB).addClass("linenum-to");
 
             welTr.append(welLineNumA);
             welTr.append(welLineNumB);
@@ -619,28 +628,129 @@
          * 부모/현재 CommitId 의 파일을 보기 위한 버튼을 만든다
          */
         function _initFileViewButton(){
-            $('tr.file').each(function(index, value) {
-                var children = $(value).children("td");
-                var firstLineNum = children[0];
-                var secondLineNum = children[1];
-                var fileName = $($(children[2]).children("span")[0]).text();
+            $('tr.file').each(function(index, elTR) {
+                var welTR = $(elTR);
+                var welTo = welTR.find("td.linenum-to");
+                var welFrom = welTR.find("td.linenum-from");
+                var welBody = welTR.find("td.line-body");
+                var sPath = welBody.text().substr(1);
                 var sURL = "#", sCommitId="";
-                var sPath = fileName.substr(1);
                 
+                // 부모 커밋(from)이 있는 경우
                 if(htVar.sParentCommitId) {
                     sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sParentCommitId, "path":sPath});
                     sCommitId = htVar.sParentCommitId.substr(0, Math.min(7, htVar.sParentCommitId.length));
-                    $(firstLineNum).html(
-                        '<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>'
-                    );
+                    welFrom.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
+                    
+                    // 전체비교(fulldiff) 버튼 추가
+                    var welBtnFullDiff = $('<button type="button" class="ybtn pull-right">').text(Messages("code.fullDiff"));
+                    welBtnFullDiff.data({
+                        "path": sPath,
+                        "from": htVar.sParentCommitId,
+                        "to"  : htVar.sCommitId
+                    });
+                    welBtnFullDiff.on("click", _onClickBtnFullDiff);
+                    welBody.append(welBtnFullDiff);
                 }
 
+                // 변경된 새 커밋(to) 표시
                 sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sCommitId, "path":sPath});
                 sCommitId = htVar.sCommitId.substr(0, Math.min(7, htVar.sCommitId.length));
-                $(secondLineNum).html(
-                    '<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>'
-                );
+                welTo.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
+
+                welTR = welTo = welFrom = welBody = null; // gc
             });
+        }
+
+        /**
+         * Mergely 초기화
+         */
+        function _initMergely(){
+            var htWrapSize = _getMergelyWrapSize();
+
+            htElement.welMergely.mergely({
+                "width" : "auto",
+                // "height": "auto",
+                "height": (htWrapSize.nWrapHeight - 100) + "px",
+                "editor_width": ((htWrapSize.nWrapWidth - 92) / 2) + "px",
+                "editor_height": (htWrapSize.nWrapHeight - 100) + "px",
+                "cmsettings":{"readOnly": true, "lineNumbers": true}
+            });
+        }
+        
+        /**
+         * Mergely wrapper 크기 반환
+         */
+        function _getMergelyWrapSize(){
+            return {
+                "nWrapWidth" : window.innerWidth - 100,
+                "nWrapHeight": window.innerHeight - (window.innerHeight * 0.2)
+            };
+        }
+        
+        /**
+         * fullDiff 버튼 클릭시 이벤트 핸들러
+         * 
+         * @param {Wrapped Event} weEvt
+         */
+        function _onClickBtnFullDiff(weEvt){
+            var welTarget = $(weEvt.target);
+            var sToId   = welTarget.data("to");
+            var sFromId = welTarget.data("from");
+            var sPath   = welTarget.data("path");
+            var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sToId, "path": sPath});
+            var sRawURLTo = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sFromId, "path": sPath});
+            
+            // UpdateText
+            htElement.welMergelyPathTitle.text(sPath);
+            htElement.welMergelyCommitFrom.text(sFromId);
+            htElement.welMergelyCommitTo.text(sToId);
+            htElement.welMergelyWrap.modal();
+
+            _resizeMergely();
+            _updateMergely(sRawURLFrom, sRawURLTo);
+        }
+
+        /**
+         * 두 코드를 가져다 fullDiff 에 표시하는 함수
+         * 
+         * @param {String} sRawURLFrom
+         * @param {String} sRawURLTo
+         */
+        function _updateMergely(sRawURLFrom, sRawURLTo){
+            // rhs = from
+            $.get(sRawURLFrom).done(function(sData){
+                htElement.welMergely.mergely("rhs", sData);
+                htElement.welMergely.mergely("resize");
+                htElement.welMergely.mergely("update");
+            });
+            
+            // lhs = to
+            $.get(sRawURLTo).done(function(sData){
+                htElement.welMergely.mergely("lhs", sData);
+                htElement.welMergely.mergely("resize");
+                htElement.welMergely.mergely("update");
+            });
+        }
+        
+        /**
+         * Mergely 영역 크기 조절
+         */
+        function _resizeMergely(){
+            var htWrapSize = _getMergelyWrapSize();
+            var nWidth = ((htWrapSize.nWrapWidth - 92) / 2);
+            var nHeight = (htWrapSize.nWrapHeight - 100);
+            
+            htElement.welMergelyWrap.css({
+                "width" : htWrapSize.nWrapWidth + "px",
+                "height": htWrapSize.nWrapHeight + "px",
+                "margin-left": -(htWrapSize.nWrapWidth / 2) + "px"
+            });
+            htElement.welMergely.mergely("cm", "rhs").setSize(nWidth + "px", nHeight + "px");
+            htElement.welMergely.mergely("cm", "lhs").setSize(nWidth + "px", nHeight + "px");
+            
+            $(".mergely-column").width(nWidth).height(nHeight);
+            $(".CodeMirror").height(nHeight);
         }
 
         /**
