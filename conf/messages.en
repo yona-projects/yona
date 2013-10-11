@@ -80,6 +80,7 @@ code.older = Older
 code.openCommentBox = Open Comment Box
 code.repoUrl = URL
 code.showcomments = Show Comments
+code.fullDiff = Side-by-side diff
 common.attach.attachIfYouSave = will be attached when you save
 common.attach.clickbutton = click Upload button
 common.attach.clickToPost = Click to post

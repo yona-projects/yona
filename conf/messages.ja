@@ -79,6 +79,7 @@ code.older = 次
 code.openCommentBox = コメント開ける
 code.repoUrl = リポジトリー URL
 code.showcomments = コメント表示
+code.fullDiff = Side-by-side diff
 common.attach.attachIfYouSave = 表示されたファイルはセーブしたら添付されます。
 common.attach.clickbutton = ボタンで選んでください
 common.attach.clickToPost = 本文に入れる

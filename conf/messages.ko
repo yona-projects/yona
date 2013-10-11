@@ -80,6 +80,7 @@ code.older = 다음
 code.openCommentBox = 댓글창 열기
 code.repoUrl = 저장소 URL
 code.showcomments = 댓글 표시하기
+code.fullDiff = 전체 비교
 common.attach.attachIfYouSave = 표시된 파일은 글을 저장하면 첨부됩니다.
 common.attach.clickbutton = 버튼을 클릭해서 선택하세요
 common.attach.clickToPost = 본문에 넣기
