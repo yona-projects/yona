@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment])
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CodeComment], selectedBranch:String)
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -36,7 +36,7 @@
     <div class="code-browse-wrap">
         <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
             <button class="btn dropdown-toggle large" data-toggle="dropdown">
-                <span class="d-label"></span>
+                <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
                 <span class="d-caret"><span class="caret"></span></span>
             </button>
             <ul class="dropdown-menu">
@@ -124,7 +124,7 @@
                         
                         <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                         
-                        <div class="attachments" resourceType="@ResourceType.CODE_COMMENT" resourceId="@comment.id"></div>
+                        <div class="attachments" data-resourceType="@ResourceType.CODE_COMMENT" data-resourceId="@comment.id"></div>
                     </div>
                 </li>
                 }
@@ -136,9 +136,9 @@
         @** // Comment **@        
     </div>
 
-    <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+    <button id="watch-button" type="button" class="ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
 
-    <a href="javascript: history.back();" class="nbtn medium pull-right">@Messages("button.list")</a>
+    <a href="javascript: history.back();" class="ybtn pull-right">@Messages("button.list")</a>
 
     <div id="minimap" class="minimap-outer">
         <div class="minimap-wrap">
@@ -157,7 +157,7 @@
     <td class="linenum"></td>
 </script>
 <script type="text/x-jquery-tmpl" id="comment-button-template">
-    <button class="nbtn medium btn-thread"></button>
+    <button class="ybtn medium btn-thread"></button>
 </script>
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">

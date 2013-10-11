@@ -8,9 +8,12 @@ import javax.persistence.*;
 import controllers.UserApp;
 import models.enumeration.*;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 import play.data.format.Formats;
@@ -20,6 +23,7 @@ import play.db.ebean.Transactional;
 import utils.JodaDateUtil;
 import utils.ReservedWordsValidator;
 
+import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.RawSql;
 import com.avaje.ebean.RawSqlBuilder;
@@ -31,7 +35,7 @@ import utils.WatchService;
  */
 @Table(name = "n4user")
 @Entity
-public class User extends Model {
+public class User extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
     public static final Model.Finder<Long, User> find = new Finder<>(Long.class, User.class);
 
@@ -313,6 +317,7 @@ public class User extends Model {
      *
      * @return
      */
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override
@@ -385,12 +390,19 @@ public class User extends Model {
     }
 
     public List<Project> getWatchingProjects() {
+        return getWatchingProjects(null);
+    }
+
+    public List<Project> getWatchingProjects(String orderString) {
         List<String> projectIds = WatchService.findWatchedResourceIds(this, ResourceType.PROJECT);
         List<Project> projects = new ArrayList<>();
         for (String id : projectIds) {
             projects.add(Project.find.byId(Long.valueOf(id)));
         }
-        return projects;
+        if (StringUtils.isBlank(orderString)) {
+            return projects;
+        }
+        return Ebean.filter(Project.class).sort(orderString).filter(projects);
     }
 
     /**

@@ -2,6 +2,7 @@ package models;
 
 import models.enumeration.*;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import models.support.*;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -18,7 +19,7 @@ import java.util.*;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"project_id", "title"}))
-public class Milestone extends Model {
+public class Milestone extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, Milestone> find = new Finder<>(Long.class, Milestone.class);
@@ -251,6 +252,7 @@ public class Milestone extends Model {
         }
     }
 
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

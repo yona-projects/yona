@@ -20,7 +20,7 @@
                    data-provider="typeahead" autocomplete="off"
                    placeholder="@Messages("project.members.addMember")"
                    pattern="^[a-zA-Z0-9-]+([_.][a-zA-Z0-9-]+)*$" title="@Messages("user.wrongloginId.alert")" /><!--
-         --><button type="submit" class="nbtn medium white"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
+         --><button type="submit" class="ybtn ybtn-success"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
         </form>
     </div>
 
@@ -54,9 +54,9 @@
                         </div>
 
                         <p class="btns">
-                            <a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="nbtn small"><!--
+                            <a href="javascript:void(0)" data-action="delete" data-href="@routes.ProjectApp.deleteMember(project.owner, project.name, member.user.id)" class="ybtn ybtn-danger ybtn-mini"><!--
                              --><i class="yobicon-removefriend"></i> @Messages("button.delete")</a>
-                            <a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="nbtn small orange"><!--
+                            <a href="javascript:void(0)" data-action="apply" data-href="@routes.ProjectApp.editMember(project.owner, project.name, member.user.id)" data-loginId="@member.user.loginId" class="ybtn ybtn-info ybtn-mini"><!--
                              --><i class="yobicon-publish"></i> @Messages("button.apply")</a>
                         </p>
                         } else {
@@ -81,15 +81,15 @@
             <p>@Messages("project.member.deleteConfirm")</p>
         </div>
         <div class="modal-footer">
-            <button type="button" class="nbtn medium red" id="deleteBtn">@Messages("button.yes")</button>
-            <button type="button" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</button>
+            <button type="button" class="ybtn ybtn-info ybtn-mini" id="deleteBtn">@Messages("button.yes")</button>
+            <button type="button" class="ybtn ybtn-mini" data-dismiss="modal">@Messages("button.no")</button>
         </div>
     </div>
 
     @** Enrolled Users **@
     @if(project.enrolledUsers.size > 0) {
     <legend>
-        <h3>@Messages("member.enrollment.request") (@project.enrolledUsers.size)</h3>
+        <h3>@Messages("project.member.enrollment.request") (@project.enrolledUsers.size)</h3>
     </legend>
     <div class="row-fluid">
         @for(user <- project.enrolledUsers) {
@@ -102,7 +102,7 @@
             <div class="pull-left" style="width: 60px;">
                 <span><a href="@routes.UserApp.userInfo(user.loginId)"><strong>@user.name</strong></a></span>
                 <span>(@user.loginId)</span>
-                <button type="button" class="nbtn small blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
+                <button type="button" class="ybtn ybtn-info ybtn-mini blue enrollAcceptBtn" data-loginId="@user.loginId"><i class="yobicon-addfriend"></i> @Messages("button.add")</button>
             </div>
         </div>
         } @** -- end for -- **@

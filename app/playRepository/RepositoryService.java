@@ -42,6 +42,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 저장소 관련 서비스를 제공하는 클래스
@@ -114,67 +116,42 @@ public class RepositoryService {
 
     /**
      * {@code userName}의 {@code projectName}에 해당하는 프로젝트의 저장소에서
-     * {@code path}에 해당하는 정보를 JSON으로 읽어온다.
-     * <p/>
-     * when: {@link controllers.CodeApp#ajaxRequest(String, String, String)}에서
-     * 프로젝트의 코드를 조회할 때 사용한다.
-     * <p/>
-     * {@code userName}의 {@code projectName}에 해당하는 {@link Project}의 {@link PlayRepository}를 찾아서
-     * {@link PlayRepository#findFileInfo(String)}를 호출한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param path
-     * @return
-     * @throws NoHeadException
-     * @throws UnsupportedOperationException
-     * @throws IOException
-     * @throws GitAPIException
-     * @throws ServletException
-     * @throws SVNException
-     * @see {@link PlayRepository#findFileInfo(String)}
-     */
-    public static ObjectNode getMetaDataFrom(String userName, String projectName, String path)
-            throws NoHeadException, UnsupportedOperationException, IOException, GitAPIException,
-            ServletException, SVNException {
-        Project project = ProjectApp.getProject(userName, projectName);
-        return RepositoryService.getRepository(project).findFileInfo(path);
-    }
-
-    /**
-     * {@code userName}의 {@code projectName}에 해당하는 프로젝트의 저장소에서
-     * {@code branch}의 {@code path}에 해당하는 정보를 JSON으로 읽어온다.
+     * {@code branch}의 {@code path}의 모든 상위 경로의 정보를 JSON으로 읽어온다.
      * <p/>
      * when: {@link controllers.CodeApp#ajaxRequestWithBranch(String, String, String, String)}에서
-     * 특정 프로젝트의 특정 브랜치에 있는 코드를 조회할 때 사용한다.
+     * 특정 프로젝트의 특정 브랜치, 특정 경로에 있는 코드 정보를 조회할 때 사용한다.
      * <p/>
-     * {@code userName}의 {@code projectName}에 해당하는 {@link Project}의 {@link PlayRepository}를 찾아서
-     * {@link PlayRepository#findFileInfo(String, String)}를 호출한다.
      *
      * @param userName
      * @param projectName
      * @param path
      * @param branch
      * @return
-     * @throws AmbiguousObjectException
-     * @throws NoHeadException
-     * @throws UnsupportedOperationException
-     * @throws IOException
-     * @throws SVNException
-     * @throws GitAPIException
-     * @throws ServletException
-     * @see {@link PlayRepository#findFileInfo(String, String)}
+     * @throws Exception
      */
-    public static ObjectNode getMetaDataFrom(String userName, String projectName, String path, String branch) throws AmbiguousObjectException, NoHeadException, UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
-        // TODO Auto-generated method stub
-        Project project = ProjectApp.getProject(userName, projectName);
-        return RepositoryService.getRepository(project).findFileInfo(branch, path);
+    public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository, String branch, String path)
+        throws Exception {
+            
+        List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
+        
+        String partialPath = "";            
+        String[] pathArray = path.split("/");
+        Integer pathLength = pathArray.length;
+        ObjectNode metaData;
+        
+        for(int i = 0; i < pathLength; i++){
+            metaData = repository.findFileInfo(branch, partialPath);
+            metaData.put("path", partialPath);
+            partialPath = (partialPath.equals("")) ? pathArray[i] : partialPath + "/" + pathArray[i];
+            recursiveData.add(metaData);
+        }
+        
+        return recursiveData;
     }
-
 
     /**
      * {@code userName}의 {@code projectName}에 해당하는 프로젝트의 저장소에서
-     * {@code branch}의 {@code path}에 해당하는 파일을 읽어온다.
+     * {@code revision}의 {@code path}에 해당하는 파일을 읽어온다.
      * <p/>
      * when: {@link controllers.CodeApp#showRawFile(String, String, String)}과
      * {@link controllers.CodeApp#showImageFile(String, String, String)}에서 파일 내용을 화면에 보여줄 때 사용한다.
@@ -184,6 +161,7 @@ public class RepositoryService {
      *
      * @param userName
      * @param projectName
+     * @param revision
      * @param path
      * @return
      * @throws ServletException
@@ -195,11 +173,11 @@ public class RepositoryService {
      * @throws SVNException
      * @see {@link PlayRepository#getRawFile(String)}
      */
-    public static byte[] getFileAsRaw(String userName, String projectName, String path)
+    public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
             throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException,
             UnsupportedOperationException, IOException, ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
-        return RepositoryService.getRepository(project).getRawFile(path);
+        return RepositoryService.getRepository(project).getRawFile(revision, path);
     }
 
     /**
@@ -230,6 +208,26 @@ public class RepositoryService {
         }
     }
 
+    /**
+     * {@code project}의 저장소를 나타내는 {@link PlayRepository}를 반환한다.
+     * <p/>
+     * when:  {@link PlayRepository}를 사용하는 여러 곳에서 이 메서드를 사용하고 있다.
+     * <p/>
+     * Git 프로젝트일 경우에는 {@link GitRepository}를 반환하고 SVN 프로젝트일 경우에는 {@link SVNRepository}를 반환한다.
+     *
+     * @param userName
+     * @param projectName
+     * @return
+     * @throws IOException
+     * @throws ServletException
+     * @throws UnsupportedOperationException
+     */
+    public static PlayRepository getRepository(String userName, String projectName) throws IOException,
+    ServletException, UnsupportedOperationException {
+        Project project = ProjectApp.getProject(userName, projectName);
+        return RepositoryService.getRepository(project);
+    }
+    
     /**
      * {@link DAVServlet}을 생성하고 초기화(init)해서 객체를 반환한다.
      * <p/>

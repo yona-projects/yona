@@ -34,7 +34,7 @@
     <div class="tab-wrap">
         @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
         <div class="pull-right btns">
-            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("milestone.menu.new")</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("milestone.menu.new")</a>
         </div>
         }
 

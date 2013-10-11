@@ -52,26 +52,25 @@
 	</div>
 	<div class="board-footer board-actrow">
 	    <div class="pull-left">
-            <a href="@urlToPostings" class="nbtn medium">@Messages("button.list")</a>
-            <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("post.write")</a>
-	    </div>
+            <a href="@urlToPostings" class="ybtn">@Messages("button.list")</a>
+        </div>
 	    
         @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
-        <a href="#deleteConfirm" class="nbtn medium red" data-toggle="modal">@Messages("button.delete")</a>
+        <a href="#deleteConfirm" class="ybtn ybtn-danger" data-toggle="modal">@Messages("button.delete")</a>
         }
 
         @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.UPDATE)){
-        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="nbtn medium black">@Messages("button.edit")</a>
+        <a href="@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)" class="ybtn">@Messages("button.edit")</a>
         }
 
-        <button id="watch-button" type="button" class="nbtn medium" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
+        <button id="watch-button" type="button" class="ybtn" data-toggle="button" data-watching="@if(post.getWatchers.contains(UserApp.currentUser())){true}else{false}">
             @if(post.getWatchers.contains(UserApp.currentUser())) { @Messages("project.unwatch") } else { @Messages("project.watch") }
         </button>
 	</div>
 
 	@** Comment **@
 	<div id="comments" class="board-comment-wrap">
-		<div class="comment-header"><strong>@Messages("comment")</strong> <strong class="num">@post.comments.size()</strong></div>
+		<div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@post.comments.size</strong></div>
 	    <hr class="nm" />
 
 	    <ul class="comments">
@@ -90,7 +89,7 @@
                                 <strong>@comment.authorLoginId </strong>
                             </a>
                         </span>
-                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
+                        <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
                         @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                         <span class="edit pull-right">
                             <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.BoardApp.deleteComment(project.owner, project.name, post.getNumber, comment.id)"><i class="yobicon-trash"></i></button>
@@ -128,8 +127,8 @@
 		<p>@Messages("post.delete.confirm")</p>
 	</div>
 	<div class="modal-footer">
-		<button type="button" class="nbtn medium red" data-request-method="delete" data-request-uri="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</button>
-		<button type="button" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</button>
+		<button type="button" class="ybtn ybtn-danger" data-request-method="delete" data-request-uri="@routes.BoardApp.deletePost(project.owner, project.name, post.getNumber)">@Messages("button.yes")</button>
+		<button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
 	</div>
 </div>
 

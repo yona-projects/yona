@@ -209,6 +209,17 @@ yobi.Attachments = function(htOptions) {
      */
     function _updateFileItem(nSubmitId, oRes){
         var welItem = $("#" + nSubmitId);
+        var welItemExists = htElements.welFileList.find('[data-id="' + oRes.id + '"]');
+        
+        // 완전히 동일한 파일을 다시 업로드 한 경우
+        // 서버에서는 이미 존재하는 파일 정보로 200 OK 응답한다
+        // 이 때에는 목록에 새 항목으로 추가하지 않는다
+        if(welItemExists.length > 0){
+            welItem.remove();
+            _blinkFileItem(welItemExists); // 이미 목록에 존재하는 항목을 강조 표시
+            return false;
+        }
+        
         welItem.attr({
             "data-id"  : oRes.id,
             "data-href": oRes.url,
@@ -221,6 +232,19 @@ yobi.Attachments = function(htOptions) {
         welItem.find(".size").html(humanize.filesize(oRes.size));
         
         welItem.click(_onClickListItem);
+    }
+
+    function _blinkFileItem(welItem, sBlinkColor){
+        var sBgColor;
+        
+        sBlinkColor = sBlinkColor || "#f36c22";
+        sBgColor = welItem.css("background");
+        welItem.css("background", sBlinkColor);
+        
+        // 500ms 후 원래색으로 복원
+        setTimeout(function(){
+            welItem.css("background", sBgColor);
+        }, 500);
     }
 
     /**
@@ -242,8 +266,9 @@ yobi.Attachments = function(htOptions) {
         }
 
         // 업로드 완료된 뒤 항목 업데이트
-        _updateFileItem(nSubmitId, oRes);
-        _setProgressBar(nSubmitId, 100);
+        if(_updateFileItem(nSubmitId, oRes) !== false){
+            _setProgressBar(nSubmitId, 100);
+        }
     }
 
     /**
@@ -295,7 +320,7 @@ yobi.Attachments = function(htOptions) {
             htElements.welFileListHelp.hide();
         }
         
-        $yobi.notify(Messages("attach.error", htData.oRes.status, htData.oRes.statusText));
+        $yobi.notify(Messages("common.attach.error", htData.oRes.status, htData.oRes.statusText));
     }
 
     /**

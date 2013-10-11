@@ -251,7 +251,7 @@ public class GitRepositoryTest {
         String projectName = "testProject";
         GitRepository repo = new GitRepository(userName, projectName);
         // When
-        repo.getRawFile("readme");
+        repo.getRawFile("HEAD", "readme");
         // Then
     }
 

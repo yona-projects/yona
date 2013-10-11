@@ -64,14 +64,6 @@
         </div>
 
         <div class="user-stream-box">
-            @if(user != null && session != null && user.loginId == session.get("loginId")){
-            <div class="pull-right">
-                <a href="@routes.ProjectApp.newProjectForm()" class="nbtn medium orange last">
-                    <i class="yobicon-database-add"></i> @Messages("title.newProject")
-                </a>
-            </div>
-            }
-
             <ul id="user-stream-tabs" class="nav nav-tabs">
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
@@ -120,7 +112,7 @@
                 <div id="postings" class="tab-pane">
                     @if(postings.size==0){
                         <div class="error-wrap">
-                            <p>@Messages("daysAgo.prefix") @Messages("post.is.empty")</p>
+                            <p>@Messages("userinfo.daysAgo.prefix") @Messages("post.is.empty")</p>
                         </div>
                     }
                     <ul class="board-list unstyled">
@@ -132,7 +124,7 @@
                 <div id="issues" class="tab-pane">
                     @if(issues.size==0){
                         <div class="error-wrap">
-                            <p>@Messages("daysAgo.prefix") @Messages("issue.is.empty")</p>
+                            <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
                         </div>
                     }
                     @for(issue <- issues){
@@ -142,7 +134,7 @@
                 <div id="pullRequests" class="tab-pane">
                     @if(pullRequests.size==0){
                         <div class="error-wrap">
-                            <p>@Messages("daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
+                            <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
                         </div>
                     }
                     @for(pull <- pullRequests){

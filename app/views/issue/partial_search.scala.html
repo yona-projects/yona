@@ -68,9 +68,11 @@
                     <input type="hidden" name="state" value="@param.state">
 
                     <hr>
-                    <div class="row-fluid srch-input">
-                        <input type="text" name="filter" class="text" value="@param.filter" style="width:100%;">
-                        <button type="submit" class="nbtn medium last">@Messages("issue.search")</button>
+                    <div class="srch-input">
+                        <div class="srch-input-inner">
+                            <input type="text" name="filter" class="text" value="@param.filter">
+                            <button type="submit" class="btn-transparent"><i class="yobicon-search"></i></button>
+                        </div>
                     </div>
 
                     <div id="advanced-search-form" class="srch-advanced">
@@ -175,7 +177,7 @@
         </div>        
         <div class="span10" id="span10">
             <div class="pull-right">
-                <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("issue.menu.new")</a>
+                <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("issue.menu.new")</a>
             </div>
             <ul class="nav nav-tabs nm">
             @for(state <- Array(State.OPEN, State.CLOSED)) {
@@ -207,7 +209,7 @@
 
             <div class="pull-left" style="padding:10px;">
 
-                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="nbtn white" style="width:100%; padding:6px"><i class="yobicon-download"></i> @Messages("issue.downloadAsExcel")</a>
+                <a href="@addQueryString(removeQueryString(request.uri, "pageNum"), "format=xls")" class="ybtn small"><i class="yobicon-file-excel"></i> @Messages("issue.downloadAsExcel")</a>
             </div>
             @help.keymap("issueList", project)
             <div id="pagination"><!-- pagination.js will fill here. --></div>

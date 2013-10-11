@@ -8,6 +8,8 @@ import models.User;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.codehaus.jackson.node.ObjectNode;
@@ -297,18 +299,21 @@ public class GitRepository implements PlayRepository {
 
         ObjectNode result = Json.newObject();
         long commitTime = commit.getCommitTime() * 1000L;
+        PersonIdent commitAuthor = commit.getAuthorIdent();
+        String emailAddress = commitAuthor.getEmailAddress();
+        User user = User.findByEmail(emailAddress);
+        
         result.put("type", "file");
         result.put("msg", commit.getShortMessage());
-        result.put("author", commit.getAuthorIdent().getName());
-        String emailAddress = commit.getAuthorIdent().getEmailAddress();
-        User user = User.findByEmail(emailAddress);
+        result.put("author", commitAuthor.getName());
         result.put("avatar", getAvatar(user));
         result.put("userName", user.name);
         result.put("userLoginId", user.loginId);
         result.put("createdDate", commitTime);
         result.put("commitMessage", commit.getShortMessage());
-        result.put("commiter", commit.getAuthorIdent().getName());
+        result.put("commiter", commitAuthor.getName());
         result.put("commitDate", commitTime);
+        result.put("commitId", untilCommitId.getName());
         ObjectLoader file = repository.open(treeWalk.getObjectId(0));
         result.put("size", file.getSize());
 
@@ -454,13 +459,14 @@ public class GitRepository implements PlayRepository {
     /**
      * {@link Constants#HEAD}에서 {@code path}에 해당하는 파일을 반환한다.
      *
+     * @param revision
      * @param path
      * @return {@code path}가 디렉토리일 경우에는 null, 아닐때는 해당 파일
      * @throws IOException
      */
     @Override
-    public byte[] getRawFile(String path) throws IOException {
-        RevTree tree = new RevWalk(repository).parseTree(repository.resolve(Constants.HEAD));
+    public byte[] getRawFile(String revision, String path) throws IOException {
+        RevTree tree = new RevWalk(repository).parseTree(repository.resolve(revision));
         TreeWalk treeWalk = TreeWalk.forPath(repository, path, tree);
         if (treeWalk.isSubtree()) {
             return null;
@@ -861,7 +867,8 @@ public class GitRepository implements PlayRepository {
         return commits;
     }
 
-    public static Iterator<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+    @SuppressWarnings("unchecked")
+    public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         RevWalk walk = null;
         try {
             walk = new RevWalk(repository);
@@ -871,7 +878,7 @@ public class GitRepository implements PlayRepository {
             walk.markStart(walk.parseCommit(from));
             walk.markUninteresting(walk.parseCommit(to));
 
-            return walk.iterator();
+            return IteratorUtils.toList(walk.iterator());
         } finally {
             if (walk != null) {
                 walk.dispose();
@@ -881,10 +888,9 @@ public class GitRepository implements PlayRepository {
 
     public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         List<GitCommit> commits = new ArrayList<>();
-        Iterator<RevCommit> iterator = diffRevCommits(repository, fromBranch, toBranch);
-        while (iterator.hasNext()) {
-            RevCommit commit = iterator.next();
-            commits.add(new GitCommit(commit));
+        List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
+        for (RevCommit revCommit : revCommits) {
+            commits.add(new GitCommit(revCommit));
         }
         return commits;
     }
@@ -905,11 +911,11 @@ public class GitRepository implements PlayRepository {
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException,
                     GitAPIException {
                 Repository repository = cloneAndFetch.getRepository();
-                Iterator<RevCommit> commits = diffRevCommits(repository,
+                List<RevCommit> commits = diffRevCommits(repository,
                         cloneAndFetch.destFromBranchName,
                         cloneAndFetch.destToBranchName);
-                while (commits.hasNext()) {
-                    findAuthors(commits.next(), repository);
+                for (RevCommit commit : commits) {
+                    findAuthors(commit, repository);
                 }
             }
 
