@@ -8,6 +8,7 @@ import javax.persistence.*;
 import controllers.UserApp;
 import models.enumeration.*;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import models.support.FinderTemplate;
 import models.support.OrderParams;
 import models.support.SearchParams;
@@ -34,7 +35,7 @@ import utils.WatchService;
  */
 @Table(name = "n4user")
 @Entity
-public class User extends Model {
+public class User extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
     public static final Model.Finder<Long, User> find = new Finder<>(Long.class, User.class);
 
@@ -316,6 +317,7 @@ public class User extends Model {
      *
      * @return
      */
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

@@ -18,14 +18,10 @@
                     }
                     </div>
 					<input name="state" type="hidden" value="@listState">
-					<input name="filter" class="text" type="text" placeholder="@Messages("site.project.filter")" value="@filter"><!--
-				 --><button type="submit" class="btn search-btn">@Messages("issue.search")</button><!--
-					<a href="#" class=tn-advanced"><i class="ico"></i>Advanced Search</a> -->
-
-					<div class="srch-advanced">
-				<!-- TODO: fill this form -->
-					</div>
-
+					<div class="search-bar">
+                        <input name="filter" class="textbox" type="text" placeholder="@Messages("site.project.filter")" value="@filter">
+                        <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                    </div>    
 				</form>
              </div>
          </div>

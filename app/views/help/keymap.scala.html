@@ -1,7 +1,7 @@
 @(section:String, project:Project)
 
 <div class="pull-right" style="padding:10px;">
-    <a href="#helpKeys" data-toggle="modal" class="bold">
+    <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-info ybtn-mini">
         <i class="yobicon-info-sign"></i> @Messages("title.keymap")
     </a>
     
@@ -9,28 +9,28 @@
         <div class="row-fluid">
             <div class="span4">
                 <h5>@Messages("project.projects")</h5>
-	            <span class="nbtn small black">H</span>
+	            <span class="ybtn ybtn-small">H</span>
 	            <span class="help-inline">@Messages("menu.home")</span><br>
 
-                <span class="nbtn small black">B</span>
+                <span class="ybtn ybtn-small">B</span>
                 <span class="help-inline">@Messages("menu.board")</span><br>
 
-	            <span class="nbtn small black">I</span>
+	            <span class="ybtn ybtn-small">I</span>
 	            <span class="help-inline">@Messages("menu.issue")</span><br>
 
-	            <span class="nbtn small black">C</span>
+	            <span class="ybtn ybtn-small">C</span>
 	            <span class="help-inline">@Messages("menu.code")</span><br>
 
-	            <span class="nbtn small black">M</span>
+	            <span class="ybtn ybtn-small">M</span>
 	            <span class="help-inline">@Messages("milestone")</span><br>
 
                 @if(project.vcs.equals("GIT")){
-                <span class="nbtn small black">F</span>
+                <span class="ybtn ybtn-small">F</span>
                 <span class="help-inline">@Messages("menu.pullRequest")</span><br>
                 }
 
                 @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
-	            <span class="nbtn small black">Q</span>
+	            <span class="ybtn ybtn-small">Q</span>
                 <span class="help-inline">@Messages("project.setting")</span><br>
                 }
             </div>
@@ -39,52 +39,52 @@
 	            <h5>@Messages("title." + section)</h5>
 	            
 	            @if(section.indexOf("board") > -1){
-                <span class="nbtn small black">N</span>
+                <span class="ybtn ybtn-small">N</span>
                 <span class="help-inline">@Messages("post.write")</span><br>
                 }
                 
                 @if(section.indexOf("issue") > -1){
-                <span class="nbtn small black">N</span>
+                <span class="ybtn ybtn-small">N</span>
                 <span class="help-inline">@Messages("issue.menu.new")</span><br>
                 }
 
                 @if(section.indexOf("Detail") > - 1){
-                <span class="nbtn small black">L</span>
+                <span class="ybtn ybtn-small">L</span>
                 <span class="help-inline">@Messages("button.list")</span><br>
 
-	            <span class="nbtn small black">E</span>
+	            <span class="ybtn ybtn-small">E</span>
 	            <span class="help-inline">@Messages("button.edit")</span><br>
 	            }
 	           
 	            @if(section.indexOf("List") > -1){
-	            <span class="nbtn small black">A</span>
+	            <span class="ybtn ybtn-small">A</span>
 	            <span class="help-inline">@Messages("button.prevPage")</span><br>
 	
-	            <span class="nbtn small black">S</span>
+	            <span class="ybtn ybtn-small">S</span>
 	            <span class="help-inline">@Messages("button.nextPage")</span><br>
 	            }
 	            
                 @if(section == "issueList"){
-                <span class="nbtn small black">CTRL</span>+ <span class="nbtn small black">A</span>
+                <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">A</span>
                 <span class="help-inline">@Messages("button.selectAll")</span><br>
                 }
             </div>
 
             <div class="span4">
 	            <h5>@Messages("site")</h5>
-	            <span class="nbtn small black">P</span>
+	            <span class="ybtn ybtn-small">P</span>
 	            <span class="help-inline">@Messages("userinfo.profile")</span><br>
 	            
-                <span class="nbtn small black">ALT</span>+ <span class="nbtn small black">S</span>
+                <span class="ybtn ybtn-small">ALT</span>+ <span class="ybtn ybtn-small">S</span>
                 <span class="help-inline">@Messages("site.search")</span><br>
 
-	            <span class="nbtn small black">CTRL</span>+ <span class="nbtn small black">ENTER</span>
+	            <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">ENTER</span>
 	            <span class="help-inline">@Messages("button.submitForm")</span><br>
             </div>
         </div>
         
         <p class="actrow">
-            <button type="button" class="nbtn medium orange" data-dismiss="modal">@Messages("button.confirm")</button>
+            <button type="button" class="ybtn ybtn-info" data-dismiss="modal">@Messages("button.confirm")</button>
         </p>
     </div>
 </div>

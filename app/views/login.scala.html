@@ -3,7 +3,7 @@
 <div class="page full">
 	<div class="center-wrap tag-line-wrap login">
 		<h1 class="title">
-			<span class="high-light">Log In for</span> @Messages("app.name")
+			Log In for <span class="high-light">@Messages("app.name")</span>
 		</h1>
 		<p class="tag-line">Software development platform for Open Source project.</p>
 	</div>
@@ -30,15 +30,13 @@
 			 --><label for="remember-me" class="bg-checkbox">@Messages("title.rememberMe")</label>
 			  
 			 	<a href="@routes.PasswordResetApp.lostPassword()" class="forgot-password"> 
-					<span class="label">@Messages("title.forgotpassword")</span>
+					<span class="ybtn ybtn-mini ybtn-danger">@Messages("title.forgotpassword")</span>
 			 	</a>
 			</div>
 
 			<div class="btns-row">
-				<button type="submit" class="nbtn orange medium">
-					<i class="yobicon-enter yobicon-large"></i> @Messages("button.login")
-				</button><!--
-			 --><a href="@routes.UserApp.signupForm()" class="nbtn medium"><i class="yobicon-importcontacts yobicon-large"></i> @Messages("title.signup")</a>
+				<button type="submit" class="ybtn"> @Messages("button.login")</button>
+				<a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success"> @Messages("title.signup")</a>
 			</div>
 		</form>
 	</div>

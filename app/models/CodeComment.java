@@ -2,6 +2,7 @@ package models;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -14,7 +15,7 @@ import java.beans.Transient;
 import java.util.Date;
 
 @Entity
-public class CodeComment extends Model {
+public class CodeComment extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 
@@ -57,6 +58,7 @@ public class CodeComment extends Model {
         authorName = user.name;
     }
 
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override
