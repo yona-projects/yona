@@ -13,6 +13,8 @@ import java.util.List;
 import javax.persistence.*;
 
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 
@@ -24,7 +26,7 @@ import play.db.ebean.Model;
 import scalax.file.NotDirectoryException;
 
 @Entity
-public class Attachment extends Model {
+public class Attachment extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 7856282252495067924L;
     public static final Finder<Long, Attachment> find = new Finder<>(Long.class, Attachment.class);
     private static String uploadDirectory = "uploads";
@@ -321,6 +323,7 @@ public class Attachment extends Model {
      *
      * @return 리소스
      */
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

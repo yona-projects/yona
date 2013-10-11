@@ -65,6 +65,7 @@ public class Posting extends AbstractPosting {
         super();
     }
 
+    @Override
     public Resource asResource() {
         return asResource(ResourceType.BOARD_POST);
     }

@@ -4,6 +4,7 @@ import controllers.UserApp;
 import controllers.routes;
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 
 import org.apache.commons.mail.SimpleEmail;
 import org.joda.time.*;
@@ -19,7 +20,7 @@ import java.util.*;
  * 이슈 혹은 게시글의, 댓글
  */
 @MappedSuperclass
-abstract public class Comment extends Model implements TimelineItem {
+abstract public class Comment extends Model implements TimelineItem, ResourceConvertible {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -63,6 +64,7 @@ abstract public class Comment extends Model implements TimelineItem {
      *
      * @return {@link Resource}로서의 댓글
      */
+    @Override
     abstract public Resource asResource();
 
     /**

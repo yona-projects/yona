@@ -26,6 +26,7 @@ public class PostingComment extends Comment {
     /**
      * @see Comment#asResource()
      */
+    @Override
     public Resource asResource() {
         return new Resource() {
             @Override

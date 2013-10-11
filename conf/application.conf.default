@@ -103,7 +103,7 @@ play {
     actor {
       default-dispatcher = {
         fork-join-executor {
-          parallelism-factor = 200
+          parallelism-min = 400
           parallelism-max = 400
         }
       }
