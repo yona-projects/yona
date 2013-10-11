@@ -36,6 +36,7 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.FileUtils;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
 import play.Logger;
@@ -46,6 +47,8 @@ import utils.GravatarUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
@@ -139,6 +142,28 @@ public class GitRepository implements PlayRepository {
      */
     public static Repository buildGitRepository(Project project) {
         return buildGitRepository(project.owner, project.name);
+    }
+
+    /**
+     * 로컬에 있는 Git 저장소를 복제(clone)한다.
+     *
+     * 디스크 공간을 절약하기 위해 우선 object들을 하드링크하는 클론을 시도하고,
+     * 실패한 경우에는 기본 JGit 클론을 한다.
+     *
+     * @param originalProject
+     * @param forkProject
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public static void cloneLocalRepository(Project originalProject, Project forkProject)
+            throws IOException {
+        try {
+            cloneHardLinkedRepository(originalProject, forkProject);
+        } catch (Exception e) {
+            new GitRepository(forkProject).delete();
+            play.Logger.warn(
+                    "Failed to clone a repository using hardlink. Fall back to straight copy", e);
+        }
     }
 
     /**
@@ -1290,6 +1315,57 @@ public class GitRepository implements PlayRepository {
         } finally {
             if(walk != null) {
                 walk.dispose();
+            }
+        }
+    }
+
+    /**
+     * 로컬에 있는 저장소를 복제한다. 디스크 공간을 절약하기 위해, Git object들은 복사하지 않고 대신 하드링크를
+     * 건다.
+     *
+     * @param originalProject
+     * @param forkProject
+     * @throws IOException
+     */
+    protected static void cloneHardLinkedRepository(Project originalProject,
+                                                    Project forkProject) throws IOException {
+        Repository origin = GitRepository.buildGitRepository(originalProject);
+        Repository forked = GitRepository.buildGitRepository(forkProject);
+        forked.create();
+
+        final Path originObjectsPath =
+                Paths.get(new File(origin.getDirectory(), "objects").getAbsolutePath());
+        final Path forkedObjectsPath =
+                Paths.get(new File(forked.getDirectory(), "objects").getAbsolutePath());
+
+        // Hardlink files .git/objects/ directory to save disk space,
+        // but copy .git/info/alternates because the file can be modified.
+        SimpleFileVisitor<Path> visitor =
+                new SimpleFileVisitor<Path>() {
+                    public FileVisitResult visitFile(Path file,
+                                                     BasicFileAttributes attr) throws IOException {
+                        Path newPath = forkedObjectsPath.resolve(
+                                originObjectsPath.relativize(file.toAbsolutePath()));
+                        if (file.equals(forkedObjectsPath.resolve("/info/alternates"))) {
+                            Files.copy(file, newPath);
+                        } else {
+                            FileUtils.mkdirs(newPath.getParent().toFile(), true);
+                            Files.createLink(newPath, file);
+                        }
+                        return java.nio.file.FileVisitResult.CONTINUE;
+                    }
+                };
+        Files.walkFileTree(originObjectsPath, visitor);
+
+        // Import refs.
+        for (Map.Entry<String, Ref> entry : origin.getAllRefs().entrySet()) {
+            RefUpdate updateRef = forked.updateRef(entry.getKey());
+            Ref ref = entry.getValue();
+            if (ref.isSymbolic()) {
+                updateRef.link(ref.getTarget().getName());
+            } else {
+                updateRef.setNewObjectId(ref.getObjectId());
+                updateRef.update();
             }
         }
     }

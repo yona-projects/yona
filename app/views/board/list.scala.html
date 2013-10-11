@@ -24,11 +24,13 @@
 	    <div class="search-wrap board">
 	      <div class="inner">
 	        <form id="option_form" method="get">
-	          <input type="hidden" name="orderBy"  value="@param.orderBy">
-	          <input type="hidden" name="orderDir" value="@param.orderDir">
-	          <input name="filter" class="text" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
-	          <button type="submit" class="ybtn">@Messages("post.menu.search")</button>
-	        </form>
+                <input type="hidden" name="orderBy"  value="@param.orderBy">
+                <input type="hidden" name="orderDir" value="@param.orderDir">
+                <div class="search-bar">
+                    <input name="filter" class="textbox" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
+                    <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
+                </div>   
+            </form>
 	        <div class="actrow"> 
                 <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("post.write")</a>
             </div>
