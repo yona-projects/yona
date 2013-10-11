@@ -47,6 +47,7 @@ button.excelDownload = Excel
 button.list = 目録
 button.login = ログイン
 button.new.enrollment = メンバー追加申請
+button.newIssue = イシュー投稿
 button.newProject = 新プロジェクト作成
 button.nextPage = 次のページ
 button.no = いいえ
