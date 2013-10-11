@@ -77,6 +77,17 @@
         <div class="diff-wrap">
             <div id="commit" class="diff-body show-comments">@patch</div>
         </div>
+        <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
+            <h4 class="path">
+                <span></span>
+                <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
+            </h4>
+            <div class="row-fluid">
+                <div class="span6 compare-from"></div>
+                <div class="span6 compare-to"></div>
+            </div>
+            <div id="mergely" class="mergely-wrap"></div>
+        </div>
     </div>
 
     @** Comment **@
@@ -139,9 +150,13 @@
     <button class="nbtn medium btn-thread"></button>
 </script>
 
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript" src="@getJSLink("lib/diff")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
@@ -150,7 +165,8 @@
             "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(pull.fromProject).asParameter)",
             "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
             "sCommitId"      : "@commit.getId",
-            "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
+            "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")",
+            "sTplRawURL"     : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
         });
 
         yobi.Mention({
