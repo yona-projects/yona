@@ -27,16 +27,16 @@
     }
 }
 
-@main(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
+@projectLayout(Messages("menu.pullRequest"), pull.toProject, utils.MenuType.PULL_REQUEST) {
 <div class="page">
     <div class="code-browse-wrap">
         <div class="actrow">
-            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="nbtn medium orange">
+            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="ybtn">
                 <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
             </a>
             
             <div class="pull-right">
-                <button id="watch-button" type="button" class="nbtn medium blue @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+                <button id="watch-button" type="button" class="ybtn ybtn-info @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
             </div>
         </div>
         <hr>
@@ -119,14 +119,14 @@
                     
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
                     
-                    <div class="attachments" resourceType="@ResourceType.CODE_COMMENT" resourceId="@comment.id"></div>
+                    <div class="attachments" data-resourceType="@ResourceType.CODE_COMMENT" data-resourceId="@comment.id"></div>
                 </div>
             </li>
             }
         </ul>
         }
         
-        @views.html.commentForm(pull.fromProject, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
+        @common.commentForm(pull.fromProject, ResourceType.CODE_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
     </div>
     @** // Comment **@
     
@@ -138,7 +138,7 @@
     </div>
 </div>
 
-@markdown(pull.fromProject)
+@common.markdown(pull.fromProject)
 
 <script type="text/x-jquery-tmpl" id="comment-icon-template">
     <i class="yobicon-comments"></i>
@@ -147,7 +147,7 @@
     <td class="linenum"></td>
 </script>
 <script type="text/x-jquery-tmpl" id="comment-button-template">
-    <button class="nbtn medium btn-thread"></button>
+    <button class="ybtn btn-thread"></button>
 </script>
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">

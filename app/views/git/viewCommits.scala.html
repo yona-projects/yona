@@ -4,9 +4,9 @@
 @import utils.TemplateHelper._
 @import java.net.URLEncoder
 
-@main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
-        @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+        @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
         <p>
             @Messages("pullRequest.from")
@@ -80,5 +80,5 @@
         </div>
     </div>
 
-@views.html.markdown(project)
+@common.markdown(project)
 }

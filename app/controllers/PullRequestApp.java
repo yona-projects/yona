@@ -153,8 +153,7 @@ public class PullRequestApp extends Controller {
 
         // git clone으로 Git 저장소 생성하고 새 프로젝트를 만들고 권한 추가.
         try {
-            String gitUrl = GitRepository.getGitDirectoryURL(originalProject);
-            GitRepository.cloneRepository(gitUrl, forkProject);
+            GitRepository.cloneLocalRepository(originalProject, forkProject);
             Long projectId = Project.create(forkProject);
             ProjectUser.assignRole(currentUser.id, projectId, RoleType.MANAGER);
             result.put(status, "success");
@@ -235,7 +234,7 @@ public class PullRequestApp extends Controller {
             return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, sentRequest.number));
         }
 
-        pullRequest.saveWithNumber();
+        pullRequest.save();
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 

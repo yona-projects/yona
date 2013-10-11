@@ -31,8 +31,8 @@ import utils.AccessLogger;
 import utils.ErrorViews;
 
 import play.data.DynamicForm;
-import views.html.secret;
-import views.html.restart;
+import views.html.welcome.secret;
+import views.html.welcome.restart;
 import static play.data.Form.form;
 
 public class Global extends GlobalSettings {

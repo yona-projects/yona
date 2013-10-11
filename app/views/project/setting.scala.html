@@ -13,9 +13,9 @@
 	}
 }
 
-@main(message, project, utils.MenuType.PROJECT_SETTING) {
+@projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.PROJECT_SETTING, "")
+	@projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
     @partial_settingmenu(project)
     
 	<form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
@@ -76,7 +76,7 @@
         **@
     </div>
     <div class="box-wrap bottom">
-        <button id="save" type="submit" class="nbtn orange medium">@Messages("button.save")</button>
+        <button id="save" type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
     </div>
 	</form>
 </div>

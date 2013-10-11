@@ -1,26 +1,16 @@
 @(project:Project)
-@import utils._
-@import models.enumeration.ResourceType;
-@import utils.TemplateHelper._
-@import utils.AccessControl._
 
-<div class="gnb-inner">
-	<div class="gnb-menu-wrap">
-		<a href="@routes.Application.index()" class="logo"><span>@Messages("app.name")</span></a>
-
-		<h1 class="page-title">
-			<span class="gray">/ <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /</span><!--
-	 	--> <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a>
-	 			@if(!project.isPublic){  <i class="icon yobicon-lock small-lock"></i> }
-		</h1>
-
-        @if(project.isFork()){
-        <div class="forked">
-            <i id="forkedFrom" class="yobicon-split yobicon-large" data-content="@Messages("fork.original") <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'><strong>@project.originalProject.owner / @project.originalProject.name</strong></a>"></i>
-        </div>
-        }
-
-        @usermenu(project)
-	</div>
-</div>
-
+<header class="gnb-outer">
+    <div class="gnb-inner project">
+        <a href="@routes.Application.index()" class="logo">@Messages("app.name")</a>
+       <ul class="gnb">
+            <li>
+                <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
+            </li>
+            <li>
+                <a href="@routes.HelpApp.help()">@Messages("title.help")</a>
+            </li>
+        </ul>
+        @common.usermenu(project)
+    </div>
+</header>

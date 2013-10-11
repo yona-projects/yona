@@ -23,9 +23,9 @@
     }
 }
 
-@main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
+@projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 
     @if(history.size() > 0) {
     <div class="bubble-wrap dark-gray repo-wrap">
@@ -147,11 +147,11 @@
 
         <div class="actrow margin-top-20">
             @if(page > 0) {
-            <a href="@getHistoryURL?page=@(page - 1)" class="nbtn medium pull-left">@Messages("code.newer")</a>
+            <a href="@getHistoryURL?page=@(page - 1)" class="ybtn pull-left">@Messages("code.newer")</a>
             }
 
             @if(history.get(history.size() - 1).getParentCount() > 0) {
-            <a href="@getHistoryURL?page=@(page + 1)" class="nbtn medium pull-left">@Messages("code.older")</a>
+            <a href="@getHistoryURL?page=@(page + 1)" class="ybtn pull-left">@Messages("code.older")</a>
             }
         </div>
     </div>

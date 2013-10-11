@@ -1,6 +1,19 @@
 @(message: String, currentPage: com.avaje.ebean.Page[Posting])
 
-@siteMngMain(message) {
+@import utils.TemplateHelper._
+
+@postlisting(post: models.Posting) = {
+    <tr>
+        <td>@post.project.name</td>
+        <td>@post.authorName</td>
+        <td><a href="@routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber)">@post.title</a></td>
+        <td>@agoString(post.ago())</td>
+        <td>@models.Attachment.countByContainer(post.asResource)</td>
+        <td>@post.numOfComments</td>
+    </tr>
+}
+
+@siteMngLayout(message) {
     <div class="title_area">
         <h2 class="fl">@Messages("site.sidebar.postList")</h2>
     </div>
@@ -26,17 +39,6 @@
     </div>
 
     <div class="row-fluid">
-        <center>@pagination(currentPage, 5, "pagination", "/sites/postList")</center>
+        <center>@partial_pagination(currentPage, 5, "pagination", "/sites/postList")</center>
     </div>
-}
-
-@postlisting(post: models.Posting) = {
-    <tr>
-        <td>@post.project.name</td>
-        <td>@post.authorName</td>
-        <td><a href="@routes.BoardApp.post(post.project.owner, post.project.name, post.getNumber)">@post.title</a></td>
-        <td>@utils.TemplateHelper.agoString(post.ago())</td>
-        <td>@models.Attachment.countByContainer(post.asResource)</td>
-        <td>@post.numOfComments</td>
-    </tr>
 }

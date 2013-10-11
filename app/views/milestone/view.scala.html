@@ -16,9 +16,9 @@
 	@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)?state=@state.state
 }
 
-@main(title, project, utils.MenuType.MILESTONE) {
+@projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.MILESTONE, "")
+	@projectMenu(project, utils.MenuType.MILESTONE, "")
     <h4>
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
         <small class="ml10">
@@ -75,24 +75,24 @@
 
     <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-        <button type="button" data-request-method="delete" data-request-uri="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="nbtn medium red pull-left">@Messages("milestone.delete")</button>
+        <button type="button" data-request-method="delete" data-request-uri="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="ybtn ybtn-danger pull-left">@Messages("milestone.delete")</button>
         }
 
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
             @if(milestone.state == State.OPEN) {
-                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="nbtn medium black">@Messages("milestone.close")</button>
+                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.close")</button>
             }
             @if(milestone.state == State.CLOSED) {
-                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="nbtn medium white">@Messages("milestone.open")</button>
+                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.open")</button>
             }
-            <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="nbtn medium">@Messages("button.edit")</a>
+            <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="ybtn">@Messages("button.edit")</a>
         }
-        <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium orange">@Messages("button.list")</a>
+        <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.list")</a>
     </div>
 
 
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 }

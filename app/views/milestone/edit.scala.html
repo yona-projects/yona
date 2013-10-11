@@ -4,9 +4,9 @@
 @import models.enumeration._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main(title, project, utils.MenuType.MILESTONE) {
+@projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.MILESTONE, "")
+	@projectMenu(project, utils.MenuType.MILESTONE, "")
 
 	<div class="form-wrap milestone frm-wrap">
 		<form class="nm" action="@routes.MilestoneApp.editMilestone(project.owner, project.name, milestoneId)" method="post">
@@ -32,8 +32,8 @@
 			</dl>
 
 			<div class="actions">
-				<button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
-				<a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="nbtn medium">@Messages("button.cancel")</a>
+				<button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
+				<a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
 			</div>
 		</div>
 
@@ -56,7 +56,7 @@
 	</div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>

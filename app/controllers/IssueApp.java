@@ -29,6 +29,8 @@ import com.avaje.ebean.ExpressionList;
 
 import java.io.IOException;
 import java.util.*;
+import org.codehaus.jackson.node.ObjectNode;
+import play.libs.Json;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
@@ -95,7 +97,27 @@ public class IssueApp extends AbstractPostingApp {
                 response().setHeader("Cache-Control", "no-cache, no-store");
                 return ok(partial_search.render("title.issueList", issues, searchCondition, project));
             } else {
-                return ok(list.render("title.issueList", issues, searchCondition, project));            
+                if(HttpUtil.isRequestedWithXHR(request())){ // not pjax but xhr
+                    List<Issue> issueList = el.findList();
+                    ObjectNode listData = Json.newObject();
+                    
+                    if(issueList.size() > 0){
+                        for (int i = 0; i < Math.min(issueList.size(), 3); i++) {
+                            ObjectNode result = Json.newObject();
+                            Issue issue = issueList.get(i);
+                            Long issueId = issue.getNumber();
+                            result.put("id", issueId);
+                            result.put("title", issue.title);
+                            result.put("state", issue.state.toString());
+                            result.put("createdDate", issue.createdDate.toString());
+                            result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
+                        
+                            listData.put(issue.id.toString(), result);
+                        }
+                    }
+                    return ok(listData);
+                }
+                return ok(list.render("title.issueList", issues, searchCondition, project));
             }
         }
     }

@@ -16,9 +16,9 @@
 
 @import utils.AccessControl._
 
-@main(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
+@projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.CODE, "main-menu-only")
+	@projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 
 	<div class="row-fluid">
 		<div class="span12">

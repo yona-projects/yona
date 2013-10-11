@@ -27,14 +27,14 @@
 	)
 }
 
-@main(title, project, utils.MenuType.MILESTONE) {
+@projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.MILESTONE, "")
+	@projectMenu(project, utils.MenuType.MILESTONE, "")
 
     <div class="tab-wrap">
         @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.MILESTONE)) {
         <div class="pull-right btns">
-            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="nbtn medium orange last">@Messages("milestone.menu.new")</a>
+            <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("milestone.menu.new")</a>
         </div>
         }
 
@@ -53,10 +53,10 @@
 
 	@if(milestones == null || milestones.isEmpty()){
 
-		<div class="error-wrap">
-			<i class="ico ico-err1"></i>
-			<p>@Messages("milestone.is.empty")</p>
-		</div>
+	<div class="error-wrap">
+		<i class="ico ico-err1"></i>
+		<p>@Messages("milestone.is.empty")</p>
+	</div>
 
 	} else {
 
@@ -132,9 +132,9 @@
         </li>
         }
     </ul>
+</div>
+}
 
-    }
-    
 <script type="text/javascript">
     $(document).ready(function() {
         yobi.ShortcutKey.setKeymapLink({

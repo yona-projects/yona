@@ -1,14 +1,13 @@
 @(message: String, newUserForm: Form[User])
 @import utils.TemplateHelper._
 
-@home(message, utils.MenuType.NONE) {
+@siteLayout(message, utils.MenuType.NONE) {
 <div class="page full">
 	<div class="center-wrap tag-line-wrap signup">
 		<h1 class="title">
-			<span class="high-light">Sign Up for</span> @Messages("app.name")
+			Sign Up for <span class="high-light">@Messages("app.name")</span>
 		</h1>
-		<p class="tag-line">Software development platform for Open Source
-			project.</p>
+		<p class="tag-line">Software development platform for Open Source project.</p>
 	</div>
 
 	<div class="signup-form-wrap frm-wrap">
@@ -54,7 +53,7 @@
 				@Messages("user.isAlreadySignupUser") <a href="@routes.UserApp.loginForm()" class="go-login">@Messages("title.login")</a>
 			</div>
 			<div class="btns-row">
-				<button type="submit" class="nbtn medium orange">@Messages("user.signupBtn")</button>
+				<button type="submit" class="ybtn ybtn-success">@Messages("user.signupBtn")</button>
 			</div>
 		</form>
 	</div>

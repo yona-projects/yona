@@ -28,16 +28,16 @@
     }
 }
 
-@main(title, project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="content-wrap frm-wrap">
         @helper.form(action=routes.PullRequestApp.editPullRequest(pull.toProject.owner, pull.toProject.name, pull.number), 'enctype -> "multipart/form-data", 'class->"nm"){
             <legend>
                 @Messages(title)
                 <span class="pull-right">
-                    <button id="helpBtn" class="nbtn small gray">
+                    <button id="helpBtn" class="ybtn ybtn-info ybtn-small ">
                         <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
                     </button>
                 </span>
@@ -108,17 +108,17 @@
             @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")
             @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
-            @fileUploader(ResourceType.PULL_REQUEST, null)
+            @common.fileUploader(ResourceType.PULL_REQUEST, null)
 
             <div class="actions">
-                <button type="submit" class="nbtn orange medium">@Messages("button.save")</button>
-                <a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+                <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
+                <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
             </div>
         }
     </div>
 </div>
 
-@views.html.markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>

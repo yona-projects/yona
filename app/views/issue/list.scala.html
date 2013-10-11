@@ -1,13 +1,13 @@
 @(title: String, currentPage: com.avaje.ebean.Page[Issue], param:
 models.support.SearchCondition, project:Project)
 
-@main(Messages(title), project, utils.MenuType.ISSUE){
+@projectLayout(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
-	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 	
 	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>
-<div id="spin" style="position: absolute; top:50%; left:50%"></div>
+<div id="spin" style="position:absolute; top:35%; left:50%"></div>
 <script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
 <script type="text/javascript">
     $(document).ready(function(){

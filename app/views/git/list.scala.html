@@ -1,12 +1,12 @@
 @(project: Project, page: com.avaje.ebean.Page[PullRequest], requestType: String)
 
-@main(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     <div class="pull-right">
         @if(project.isFork){
-        <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="nbtn medium orange last">
+        <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
             <i class="yobicon-merge yobicon-large"></i>
             @Messages("pullRequest")
         </a>

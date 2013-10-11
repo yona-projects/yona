@@ -3,13 +3,13 @@
 @import scala.collection.mutable.Map
 @import models.enumeration.ResourceType
 @import models.enumeration.Operation
-@import controllers.UserApp;
 @import utils.AccessControl._
 @import utils.TemplateHelper._
+@import controllers.UserApp
 
-@main(Messages(title), project, utils.MenuType.ISSUE) {
+@projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
 <div class="page">
-	@prjmenu(project, utils.MenuType.ISSUE, "main-menu-only")
+	@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
 
 	<div class="content-wrap frm-wrap">
 
@@ -42,18 +42,28 @@
                         <a href="#" class="go-zen" style="position: absolute; right: 8px; margin-top: 32px;"><i class="s s--zen">Edit in Zen Mode</i></a>
                         @help.markdown()
                         <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
+                        <dl id="relativeIssue" class="relative-issue">
+                            <dt>
+                                @Messages("issue.relativeCandidate") 
+                                <a href="#experimentalHelp" role="button" class="label vmiddle ml5" data-toggle="modal">@Messages("common.experimental")</a>
+                            </dt>
+                            <dd>
+                                <ul class="unstyled"></ul>
+                            </dd>
+                        </dl>
+                        @help.experimental()
                     </dd>
                 </dl>
-            
+
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {
-                    @fileUploader(ResourceType.ISSUE_POST, null)
+                    @common.fileUploader(ResourceType.ISSUE_POST, null)
                 }
                 @** end of fileUploader **@
 
                 <div class="actrow right-txt">
-                    <button type="submit" class="nbtn orange medium">@Messages("button.save")</button><!--
-                 --><a href="javascript:history.back();" class="nbtn medium last">@Messages("button.cancel")</a>
+                    <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button><!--
+                 --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                 </div>
             </div>
             <div class="span3">
@@ -90,8 +100,7 @@
                         <dd>
                         @defining(Milestone.options(project.id)) { milestones =>
                             @if(milestones.isEmpty()) {
-                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="nbtn medium black">@Messages("milestone.menu.new")</a>
-                                <i class="yobicon-refresh"></i>
+                                <a href="@routes.MilestoneApp.newMilestoneForm(project.owner, project.name)" target="_blank" class="ybtn ybtn-success ybtn-small">@Messages("milestone.menu.new")</a>
                             } else {
                                 <div id="milestoneId" class="btn-group auto" data-name="milestoneId">
                                     <button class="btn dropdown-toggle auto" data-toggle="dropdown">
@@ -128,33 +137,35 @@
 	</div>
 </div>
 
-@markdown(project)
+@common.markdown(project)
 
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script id="tplRelIssue" type="text/x-jquery-tmpl">
+<li class="issue-item"><a href="${link}" class="title-link" target="_blank"><strong class="issue-id">#${id}</strong> ${title}</a><span class="date">${date}</span></li>
+</script>
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
-
 <script type="text/javascript">
 	$(document).ready(function(){
 	    // yobi.Label
         yobi.Label.init({
-            "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
-            "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
+            "sURLLabels": "@routes.IssueLabelApp.labels(project.owner, project.name)",
+            "sURLPost"  : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
         });
         
         // yobi.issue.Write
 		$yobi.loadModule("issue.Write", {
-			"sMode"			 : "new",
-			"elTextarea"	 : $("#body"),
-            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh"),
-            "sIssueFormURL"  : "@routes.IssueApp.newIssueForm(project.owner, project.name)",
-			"sUploaderAction": "@routes.AttachmentApp.uploadFile"
+			"sMode"		   : "new",
+            "sIssueFormURL": "@routes.IssueApp.newIssueForm(project.owner, project.name)",
+			"sIssueListURL": "@routes.IssueApp.issues(project.owner, project.name)",
+            "elTextarea"   : $("#body"),
+            "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
 		});
 
+        // yobi.Mention
         yobi.Mention({
-            target:'body',
-            url : '@routes.ProjectApp.mentionList(project.owner, project.name)'
+            "target": "body",
+            "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
         });
-
     });
 </script>
 }

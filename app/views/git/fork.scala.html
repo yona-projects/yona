@@ -3,9 +3,9 @@
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
-@main(title, project, utils.MenuType.PULL_REQUEST) {
+@projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
-    @prjmenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
     @if(isNew) {
 
@@ -17,7 +17,7 @@
                     <h4 style="padding-top:10px;">
                         @project.owner / @project.name @Messages("fork")
                         <span class="pull-right">
-                            <button id="helpBtn" class="nbtn small gray">
+                            <button id="helpBtn" class="ybtn ybtn-info ybtn-small">
                                 <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
                             </button>
                         </span>
@@ -59,8 +59,8 @@
                 </div>
                 <div class="control-group">
                     <div class="controls">
-                        <button type="submit" class="nbtn orange medium">@Messages("fork")</button>
-                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
+                        <button type="submit" class="ybtn ybtn-info">@Messages("fork")</button>
+                        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
                     </div>
                 </div>
             </fieldset>
@@ -80,8 +80,8 @@
     </div>
 
     <div class="center-txt">
-        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="nbtn medium orange">@Messages("fork.go")</a>
-        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="nbtn gray medium">@Messages("button.cancel")</a>
+        <a href="@routes.ProjectApp.project(forkProject.owner, forkProject.name)" class="ybtn ybtn-info">@Messages("fork.go")</a>
+        <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
     </div>
     }
 </div>

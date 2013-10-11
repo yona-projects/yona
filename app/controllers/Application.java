@@ -6,9 +6,8 @@ import play.Logger;
 import play.mvc.Controller;
 import play.mvc.Result;
 import playRepository.RepositoryService;
-//import views.html.code.codeNavi;
 import views.html.error.notfound_default;
-import views.html.index;
+import views.html.index.index;
 
 import java.io.File;
 import java.util.List;
@@ -62,7 +61,7 @@ public class Application extends Controller {
     }
 
     public static Result UIKit(){
-        return ok(views.html.UIKit.render());
+        return ok(views.html.help.UIKit.render());
     }
 
     public static Result fake() {

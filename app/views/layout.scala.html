@@ -12,7 +12,7 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("bootstrap")">
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("yobi")">
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("yobicon/style")">
-<link rel="stylesheet" type="text/css" media="screen" href="/assets/javascripts/lib/zenform/zen-form.css">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/zenform/zen-form.css")">
 
 <script type="text/javascript" src="@getJSLink("lib/jquery/jquery-1.9.0")"></script>
 <script type="text/javascript" src="@getJSLink("lib/jquery/jquery.pjax")"></script>
@@ -22,10 +22,10 @@
 
 <body class="@theme">
 @content
-@scripts()
+@common.scripts()
 
-@uservoice("196721")
-@googleAnalytics("UA-40528193-1")
+@common.uservoice("196721")
+@common.googleAnalytics("UA-40528193-1")
 
 </body>
 </html>

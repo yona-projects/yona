@@ -11,9 +11,9 @@ import play.data.DynamicForm;
 import play.mvc.*;
 import play.i18n.Messages;
 import utils.Constants;
-import views.html.login;
-import views.html.site.lostPassword;
+import views.html.user.login;
 import views.html.user.resetPassword;
+import views.html.site.lostPassword;
 
 import static play.data.Form.form;
 

@@ -3,7 +3,7 @@
 @import utils.TemplateHelper._
 @import playRepository.RepositoryService
 
-@home(title, utils.MenuType.NEW_PROJECT){
+@siteLayout(title, utils.MenuType.NEW_PROJECT){
 <div class="page">
     <div class="form-wrap new-project">
         <form id="importGit" action="@routes.ImportApp.newProject()" method="post" name="newproject" class="frm-wrap">
@@ -60,8 +60,8 @@
                 </li>
             </ul>
             <div class="actions">
-                <button class="nbtn orange medium">@Messages("project.create")</button>
-                <a href="/" class="nbtn medium black">@Messages("button.cancel")</a>
+                <button class="ybtn ybtn-info">@Messages("project.create")</button>
+                <a href="/" class="ybtn">@Messages("button.cancel")</a>
             </div>
         </form>
     </div>

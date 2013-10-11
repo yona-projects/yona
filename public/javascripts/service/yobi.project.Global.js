@@ -42,33 +42,20 @@
          */
         function _initElement() {
             htElement.welProjectMenu = $(".project-menu");
-            htElement.welProjectMenuWrap = $(".project-menu-wrap");
-
+            htElement.welPageWrap = $(".project-page-wrap");
+            htElement.welProjectHeaherWrap = $('.project-header-wrap');
+            htElement.welProjectHeaher = $('.project-header')
             htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
-            htElement.welBtnEnroll  = $(".enrollBtn");
-            htElement.welBtnClone   = $("#btnClone");
+            htElement.welBtnEnroll  = $("#enrollBtn");
+            htElement.welBtnMenuToggle = $('#btnMenuToggler');
+
+            htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
+            htElement.welInputCloneURL =$('#cloneURL');
+            htElement.welBtnCopy   = $('#cloneURLBtn');
             htElement.welForkedFrom = $("#forkedFrom");
-
+            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');
             // 프로젝트 페이지에서만.
-            // project.Global 은 프로필 페이지에서도 공유합니다
-            if(htElement.welBtnClone.length > 0){
-                htElement.welShowRepoURL = $("#showRepoURL");
-                _placeShowRepoURL();
-            }
-        }
-
-        /**
-         * 저장소 URL 정보 표시 레이어 위치 조절
-         */
-        function _placeShowRepoURL(){
-            var nWidth   = htElement.welShowRepoURL.width();
-            var nBtnHeight = htElement.welBtnClone.height();
-            var htOffset   = htElement.welBtnClone.offset();
             
-            htElement.welShowRepoURL.css({
-                "left": (htOffset.left - (nWidth / 2)) + "px",
-                "top" : (nBtnHeight + 15) + "px"
-            });
         }
 
         /**
@@ -76,22 +63,28 @@
          * attach event handlers
          */
         function _attachEvent() {
-            htElement.welBtnWatch.click(_onClickBtnWatch);
-            htElement.welBtnEnroll.click(_onClickBtnEnroll);
-
+            htElement.welBtnWatch.on('click',_onClickBtnWatch);
+            htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
+            
+            htElement.welBtnMenuToggle.on('click', function(){
+                htElement.welPageWrap.toggleClass('mini');
+            });
             // 내용은 data-content 속성으로 scala 파일 내에 있음.
             htElement.welForkedFrom.popover({
                 "html"   : true
             });
 
-            // 저장소 URL 표시 관련
-            if(htElement.welBtnClone.length > 0){
-                htElement.welBtnClone.click(_onClickBtnClone);
-                htElement.welShowRepoURL.find(".repo-url").click(function(){
-                    $(this).select();
-                });
-                $(window).on("resize", _placeShowRepoURL);
-            }
+            htElement.welProjectHeaherWrap.on('click.toggle-clone-url','[data-toggle="cloneURL"]',_onClickBtnClone);
+
+            htElement.welBtnCopy.zclip({
+                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                "copy": htVar.sRepoURL
+            });
+
+            htElement.weBtnHeaderToggle.on('click',function(){
+                htElement.welProjectHeaher.toggleClass('vertical-large');
+            });
+
         }
 
         /**
@@ -120,7 +113,18 @@
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnEnroll(weEvt){
-            $('<form action="' + $(this).attr('href') + '" method="post"></form>').submit();
+            var sURL = $(this).attr('href');
+            //$('<form action="' + sURL + '" method="post"></form>').submit();
+            $.ajax(sURL, {
+                "method" : "post",
+                "success": function(){
+                    document.location.reload();
+                },
+                "error": function(){
+                    $yobi.notify("Server Error");
+                }
+            })
+
             weEvt.preventDefault();
             return false;
         }
@@ -138,17 +142,7 @@
          * Clone 버튼 클릭시 이벤트 핸들러
          */
         function _onClickBtnClone(){
-            htElement.welShowRepoURL.toggle();
-            
-            if (!htVar.bInitClipboard) {
-                // 주소 복사 버튼
-                htElement.welShowRepoURL.find(".copy-url").zclip({
-                    "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                    "copy": htVar.sRepoURL
-                });
-
-                htVar.bInitClipboard = true;                
-            }
+            $(this).parent().toggleClass('open');
         }
 
         _init(htOptions || {});

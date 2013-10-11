@@ -12,11 +12,11 @@
                 <textarea id="comment-editor" name="contents" class="text comment" markdown="true"></textarea>
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {
-                    @fileUploader(resourceType, null)
+                    @common.fileUploader(resourceType, null)
                 }
                 @** end of fileUploader **@
                 <div class="right-txt">
-                    <button class="nbtn medium orange">@Messages("button.comment.new")</button>
+                    <button class="ybtn ybtn-success">@Messages("button.comment.new")</button>
                 </div>
             </div>
         </div>
@@ -28,7 +28,7 @@
         <div class="write-comment-wrap">
             <textarea class="text comment disabled" disabled="disabled">@Messages("error.auth.unauthorized.comment")</textarea>
             <div class="right-txt">
-                <button class="nbtn medium disabled" disabled="disabled">@Messages("button.comment.new")</button>
+                <button class="ybtn ybtn-success disabled" disabled="disabled">@Messages("button.comment.new")</button>
             </div>
         </div>
     </div>

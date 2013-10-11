@@ -1,0 +1,96 @@
+@(currentUser:models.User)
+
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil
+
+@siteLayout("app.name", utils.MenuType.SITE_HOME) {
+    @if(currentUser != User.anonymous){
+    
+    <div class="site-guide-outer hide">
+        <h3>
+            <i class="yobicon-emo-wink"></i> 
+            @Messages("app.secret.welcome",Messages("app.name"))
+            <span>Web-based collaborative platform for software development.</span>
+        </h3>
+        <div class="site-guide-inner">
+            <div class="site-guide-title">
+                @Messages("title.neehelp")
+            </div>
+            <div class="guide-wrap">
+                <ul class="guide-item">
+                    <li>
+                        <div class="guide-icons"><i class="yobicon-database-add"></i></div>
+                        <div class="guide-title">프로젝트 생성</div>
+                        <div class="guide-desc">상단의 프로젝트 생성 버튼을 통하여 자신만의 프로젝트를 만들 수 있습니다.</div>
+                    </li>
+                    <li>
+                        <div class="guide-icons"><i class="yobicon-eye"></i></div>
+                        <div class="guide-title">프로젝트 지켜보기</div> 
+                        <div class="guide-desc">이슈트레커, 게시판등에서 발생한 새로운 이벤트들에 대한 알림을 받을 수 있습니다.</div>
+                    </li>
+                    <li>
+                        <div class="guide-icons"><i class="yobicon-friends"></i></div>
+                        <div class="guide-title">팀 관리</div>
+                        <div class="guide-desc">프로젝트 설정메뉴에서 프로젝트 맴버에 대한 추가, 삭제등의 관리를 하실 수 있습니다.</div>
+                    </li>
+                    <li>
+                        <div class="guide-icons"><i class="yobicon-split"></i></div>
+                        <div class="guide-title">프로젝트 복사</div>
+                        <div class="guide-desc">원본 프로젝트를 복사하여 본인만의 고유한 프로젝트를 생성할수 있습니다.</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="guide-toggle">
+        <button class="btn-transparent" id="toggleIntro"><i class="yobicon-resizev"></i></button>
+    </div>
+    <div class="page on-fold-intro">
+        <div class="row-fluid content-container">
+            <div class="span9 main-stream">
+                <ul class="activity-streams notification-wrap unstyled">
+                    @partial_notifications(0, 20)
+                </ul>
+	        </div>
+	       
+	       <div class="span3">
+                <div class="projects-wrap">
+                    @myProjectList(currentUser)
+                </div>
+	       </div>
+           
+        </div>
+
+    </div>
+    } 
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#toggleIntro").click(function(){
+                $(".site-guide-outer").toggleClass("hide");
+                localStorage.setItem("yobi-intro", !$(".site-guide-outer").hasClass("hide"));
+            });
+
+            if(localStorage.getItem("yobi-intro") != "false"){
+                $(".site-guide-outer").removeClass("hide");
+            }
+
+            $('.notification-wrap').on('click','[data-toggle="learnmore"]',function(event) {
+                var sTargetId = $(this).data('target'),
+                    welMessage = $('#'+sTargetId),
+                    nHeight;
+
+                if(event.target.localName =='a' || event.target.localName =='img') {
+                    return ;
+                }    
+
+                welMessage.toggleClass('nowrap');
+
+                nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
+
+                $(welMessage).css('max-height',nHeight);
+               
+            });
+           
+        });
+    </script>
+}

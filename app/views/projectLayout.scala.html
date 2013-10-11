@@ -1,0 +1,19 @@
+@(title:String, project:Project, menuType:utils.MenuType)(content: Html)
+
+@import utils._
+
+@layout(Messages(title) + " (" + project.name + ")")("prj") {
+    @views.html.project.navbar(project)
+    @views.html.project.header(project)
+    
+    <div class="project-page-wrap mini"> 
+    @content
+    </div>
+    
+    <footer class="page-footer-outer">
+        <div class="page-footer">
+            <span class="provider">Powered by <strong>@Messages("app.name")</strong></span>
+        </div>
+    </footer>
+    @common.alert()
+}

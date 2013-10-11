@@ -8,6 +8,8 @@ import models.User;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
+
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
 import org.codehaus.jackson.node.ObjectNode;
@@ -34,6 +36,7 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.eclipse.jgit.util.FileUtils;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
 import play.Logger;
@@ -44,6 +47,8 @@ import utils.GravatarUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
@@ -118,9 +123,13 @@ public class GitRepository implements PlayRepository {
      * @return
      * @throws IOException
      */
-    public static Repository buildGitRepository(String ownerName, String projectName) throws IOException {
-        return new RepositoryBuilder().setGitDir(
-                new File(getGitDirectory(ownerName, projectName))).build();
+    public static Repository buildGitRepository(String ownerName, String projectName) {
+        try {
+            return new RepositoryBuilder().setGitDir(
+                    new File(getGitDirectory(ownerName, projectName))).build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -131,8 +140,30 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      * @see #buildGitRepository(String, String)
      */
-    public static Repository buildGitRepository(Project project) throws IOException {
+    public static Repository buildGitRepository(Project project) {
         return buildGitRepository(project.owner, project.name);
+    }
+
+    /**
+     * 로컬에 있는 Git 저장소를 복제(clone)한다.
+     *
+     * 디스크 공간을 절약하기 위해 우선 object들을 하드링크하는 클론을 시도하고,
+     * 실패한 경우에는 기본 JGit 클론을 한다.
+     *
+     * @param originalProject
+     * @param forkProject
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public static void cloneLocalRepository(Project originalProject, Project forkProject)
+            throws IOException {
+        try {
+            cloneHardLinkedRepository(originalProject, forkProject);
+        } catch (Exception e) {
+            new GitRepository(forkProject).delete();
+            play.Logger.warn(
+                    "Failed to clone a repository using hardlink. Fall back to straight copy", e);
+        }
     }
 
     /**
@@ -840,7 +871,8 @@ public class GitRepository implements PlayRepository {
         return commits;
     }
 
-    public static Iterator<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
+    @SuppressWarnings("unchecked")
+    public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         RevWalk walk = null;
         try {
             walk = new RevWalk(repository);
@@ -850,7 +882,7 @@ public class GitRepository implements PlayRepository {
             walk.markStart(walk.parseCommit(from));
             walk.markUninteresting(walk.parseCommit(to));
 
-            return walk.iterator();
+            return IteratorUtils.toList(walk.iterator());
         } finally {
             if (walk != null) {
                 walk.dispose();
@@ -860,10 +892,9 @@ public class GitRepository implements PlayRepository {
 
     public static List<GitCommit> diffCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
         List<GitCommit> commits = new ArrayList<>();
-        Iterator<RevCommit> iterator = diffRevCommits(repository, fromBranch, toBranch);
-        while (iterator.hasNext()) {
-            RevCommit commit = iterator.next();
-            commits.add(new GitCommit(commit));
+        List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
+        for (RevCommit revCommit : revCommits) {
+            commits.add(new GitCommit(revCommit));
         }
         return commits;
     }
@@ -884,11 +915,11 @@ public class GitRepository implements PlayRepository {
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException,
                     GitAPIException {
                 Repository repository = cloneAndFetch.getRepository();
-                Iterator<RevCommit> commits = diffRevCommits(repository,
+                List<RevCommit> commits = diffRevCommits(repository,
                         cloneAndFetch.destFromBranchName,
                         cloneAndFetch.destToBranchName);
-                while (commits.hasNext()) {
-                    findAuthors(commits.next(), repository);
+                for (RevCommit commit : commits) {
+                    findAuthors(commit, repository);
                 }
             }
 
@@ -1284,6 +1315,57 @@ public class GitRepository implements PlayRepository {
         } finally {
             if(walk != null) {
                 walk.dispose();
+            }
+        }
+    }
+
+    /**
+     * 로컬에 있는 저장소를 복제한다. 디스크 공간을 절약하기 위해, Git object들은 복사하지 않고 대신 하드링크를
+     * 건다.
+     *
+     * @param originalProject
+     * @param forkProject
+     * @throws IOException
+     */
+    protected static void cloneHardLinkedRepository(Project originalProject,
+                                                    Project forkProject) throws IOException {
+        Repository origin = GitRepository.buildGitRepository(originalProject);
+        Repository forked = GitRepository.buildGitRepository(forkProject);
+        forked.create();
+
+        final Path originObjectsPath =
+                Paths.get(new File(origin.getDirectory(), "objects").getAbsolutePath());
+        final Path forkedObjectsPath =
+                Paths.get(new File(forked.getDirectory(), "objects").getAbsolutePath());
+
+        // Hardlink files .git/objects/ directory to save disk space,
+        // but copy .git/info/alternates because the file can be modified.
+        SimpleFileVisitor<Path> visitor =
+                new SimpleFileVisitor<Path>() {
+                    public FileVisitResult visitFile(Path file,
+                                                     BasicFileAttributes attr) throws IOException {
+                        Path newPath = forkedObjectsPath.resolve(
+                                originObjectsPath.relativize(file.toAbsolutePath()));
+                        if (file.equals(forkedObjectsPath.resolve("/info/alternates"))) {
+                            Files.copy(file, newPath);
+                        } else {
+                            FileUtils.mkdirs(newPath.getParent().toFile(), true);
+                            Files.createLink(newPath, file);
+                        }
+                        return java.nio.file.FileVisitResult.CONTINUE;
+                    }
+                };
+        Files.walkFileTree(originObjectsPath, visitor);
+
+        // Import refs.
+        for (Map.Entry<String, Ref> entry : origin.getAllRefs().entrySet()) {
+            RefUpdate updateRef = forked.updateRef(entry.getKey());
+            Ref ref = entry.getValue();
+            if (ref.isSymbolic()) {
+                updateRef.link(ref.getTarget().getName());
+            } else {
+                updateRef.setNewObjectId(ref.getObjectId());
+                updateRef.update();
             }
         }
     }

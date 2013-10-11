@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * 이슈
@@ -47,6 +48,7 @@ public class Issue extends AbstractPosting implements LabelOwner {
 
     public static final String DEFAULT_SORTER = "createdDate";
     public static final String TO_BE_ASSIGNED = "TBA";
+    public static final Pattern ISSUE_PATTERN = Pattern.compile("#\\d+");
 
     public State state;
 

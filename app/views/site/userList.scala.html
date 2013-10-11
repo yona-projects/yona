@@ -1,55 +1,5 @@
 @(message: String, currentPage: com.avaje.ebean.Page[User])
 
-@siteMngMain(message) {
-    <div class="title_area">
-        <h2 class="fl">@Messages("site.sidebar.userList")</h2>
-        <form class="form-search fr" action="@routes.SiteApp.userList()">
-            <input type="text" class="input-medium search-query input-xlarge" name="loginId" placeholder="@Messages("site.userList.search")">
-            <button type="submit" class="btn">@Messages("title.search")</button>
-        </form>
-    </div>
-
-    <div class="section39">
-        @thead(Messages("site.userList.locked"))
-        <tbody>
-        @for(user <- currentPage.getList()) {
-        @if(user.state == UserState.LOCKED){
-            @listItem(user)
-        }
-        }
-        </tbody>
-        </table>
-    </div>
-
-    <div class="section39">
-        @thead(Messages("site.userList.deleted"))
-        <tbody>
-        @for(user <- currentPage.getList()) {
-            @if(user.state == UserState.DELETED){
-                @listItem(user)
-            }
-        }
-        </tbody>
-    </table>
-    </div>
-
-    <div class="section0">
-        @thead(Messages("site.userList.unlocked"))
-        <tbody>
-        @for(user <- currentPage.getList()) {
-        @if(user.state == UserState.ACTIVE){
-            @listItem(user)
-        }
-        }
-        </tbody>
-        </table>
-        
-        <div class="row-fluid mt30">
-            <center>@paginationForUserList(currentPage, 5, "pagination")</center>
-        </div>
-    </div>
-}
-
 @thead(title: String) = {
 <h3 class="h_setting">@title</h3>
 <table class="bbs_type1">
@@ -107,11 +57,61 @@
                 </div>
                 <div class="modal-footer">
                     <a href="#" class="btn" data-dismiss="modal">@Messages("button.cancel")</a>
-                    <input type="submit" " class="btn btn-danger" value="@Messages("button.save")"/>
+                    <input type="submit" class="btn btn-danger" value="@Messages("button.save")"/>
                 </div>
             </form>
         </div>
         }
     </td>
 </tr>
+}
+
+@siteMngLayout(message) {
+    <div class="title_area">
+        <h2 class="fl">@Messages("site.sidebar.userList")</h2>
+        <form class="form-search fr" action="@routes.SiteApp.userList()">
+            <input type="text" class="input-medium search-query input-xlarge" name="loginId" placeholder="@Messages("site.userList.search")">
+            <button type="submit" class="btn">@Messages("title.search")</button>
+        </form>
+    </div>
+
+    <div class="section39">
+        @thead(Messages("site.userList.locked"))
+        <tbody>
+        @for(user <- currentPage.getList()) {
+        @if(user.state == UserState.LOCKED){
+            @listItem(user)
+        }
+        }
+        </tbody>
+        </table>
+    </div>
+
+    <div class="section39">
+        @thead(Messages("site.userList.deleted"))
+        <tbody>
+        @for(user <- currentPage.getList()) {
+            @if(user.state == UserState.DELETED){
+                @listItem(user)
+            }
+        }
+        </tbody>
+    </table>
+    </div>
+
+    <div class="section0">
+        @thead(Messages("site.userList.unlocked"))
+        <tbody>
+        @for(user <- currentPage.getList()) {
+        @if(user.state == UserState.ACTIVE){
+            @listItem(user)
+        }
+        }
+        </tbody>
+        </table>
+        
+        <div class="row-fluid mt30">
+            <center>@partial_paginationForUserList(currentPage, 5, "pagination")</center>
+        </div>
+    </div>
 }

@@ -1,6 +1,4 @@
-package models;
-
-import models.resource.Resource;
+package models.resource;
 
 /**
  * 객체를 {@code Resource} 로 convert 하기 위한 인터페이스
