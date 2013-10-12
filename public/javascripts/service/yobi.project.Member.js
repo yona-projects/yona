@@ -112,7 +112,7 @@
         /**
          * 멤버 삭제 요청이 성공했을때
          */
-        function _onSuccessDeleteMemeber(){
+        function _onSuccessDeleteMember(){
             document.location.reload();
         }
         
