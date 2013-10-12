@@ -590,6 +590,7 @@ title.site.userEdit = Edit a User
 title.siteSetting = Site Setting
 title.unlimitedProjects = Unlimited Project Creation
 title.workTeam = Team Play
+title.yobi.feedback = Feedback
 title.zenmode = zen mode
 user.avatar.onlyImage = Only an image is allowed.
 user.avatar.uploadError = Upload failed. Ask to Site admin
