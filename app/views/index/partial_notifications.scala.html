@@ -29,7 +29,10 @@
             else if (msg==Messages("notification.pullrequest.rejected")) "merge rejected"
             else  "merge"
         }
-        case EventType.PULL_REQUEST_MERGED => { "merge warning" }
+        case EventType.PULL_REQUEST_MERGED => { 
+            if(msg==Messages("notification.type.pull.request.merged.resolved")) "merge"
+            else "merge warning" 
+        }
         case EventType.MEMBER_ENROLL_REQUEST => {
             if(msg==Messages("notification.member.enroll.accept")) "addfriend closed"
             else if (msg==Messages("notification.member.enroll.cancel")) "addfriend rejected"
