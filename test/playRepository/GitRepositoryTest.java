@@ -239,7 +239,7 @@ public class GitRepositoryTest {
         String projectName = "testProject";
         GitRepository repo = new GitRepository(userName, projectName);
         // When
-        repo.findFileInfo("readme");
+        repo.getMetaDataFromPath("readme");
         // Then
     }
 
