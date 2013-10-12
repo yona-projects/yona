@@ -14,28 +14,28 @@
     }
 }
 
-@notifycationIcon(notifytype: EventType, msg: String) = @{
+@notifycationIcon(notifytype: EventType, state: String) = @{
 
     notifytype match {
         case EventType.NEW_COMMENT | EventType.NEW_SIMPLE_COMMENT => { "comments"}
         case EventType.NEW_ISSUE | EventType.ISSUE_STATE_CHANGED => {
-            if(msg==Messages("notification.issue.closed")) "science closed"
+            if(state=="closed") "science closed"
             else "science"
         }
         case EventType.ISSUE_ASSIGNEE_CHANGED => { "ftpaccounts changed" }
         case EventType.NEW_POSTING => { "notes" }
         case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_STATE_CHANGED => { 
-            if(msg==Messages("notification.pullrequest.closed")) "merge closed"
-            else if (msg==Messages("notification.pullrequest.rejected")) "merge rejected"
+            if(state=="closed") "merge closed"
+            else if (state=="rejected") "merge rejected"
             else  "merge"
         }
         case EventType.PULL_REQUEST_MERGED => { 
-            if(msg==Messages("notification.type.pull.request.merged.resolved")) "merge"
+            if(state=="resolved") "merge"
             else "merge warning" 
         }
         case EventType.MEMBER_ENROLL_REQUEST => {
-            if(msg==Messages("notification.member.enroll.accept")) "addfriend closed"
-            else if (msg==Messages("notification.member.enroll.cancel")) "addfriend rejected"
+            if(state=="ACCEPT") "addfriend closed"
+            else if (state=="CANCEL") "addfriend rejected"
             else  "addfriend"
         }
         case _ => {"info"}
@@ -52,8 +52,8 @@
 @for(noti <- notifications(from, from + limit)){
 <li class="notification-stream">
     @defining(User.find.byId(noti.senderId)){ user =>
-    <div class="stream-type @notifycationIcon(noti.eventType,noti.getMessage)">
-        <span class="@notifycationIcon(noti.eventType,noti.getMessage)"><i class="yobicon-@notifycationIcon(noti.eventType,noti.getMessage)"></i></span>
+    <div class="stream-type @notifycationIcon(noti.eventType,noti.newValue)">
+        <span class="@notifycationIcon(noti.eventType,noti.newValue)"><i class="yobicon-@notifycationIcon(noti.eventType,noti.newValue)"></i></span>
     </div>
     <div class="stream-desc" data-target="message-@noti.id" data-toggle="learnmore">
         <div class="stream-info">
