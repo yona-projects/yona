@@ -673,67 +673,6 @@ public class PullRequest extends Model implements ResourceConvertible {
 
         return pullRequestMergeResult;
     }
-
-    /**
-     * pull request의 커밋정보를 초기화한다.
-     * 
-     * pull request의 커밋정보를 DB에 저장하는 것으로 구조가 변경되어 기존 pull request의 커밋을 모두 저장한다.   
-     */
-    public static void initPullRequestCommit() {
-        
-        String sql = "SELECT pull.id FROM pull_request pull LEFT JOIN pull_request_commit commit ON pull.id = commit.pull_request_id WHERE commit.id IS NULL";
-        SqlQuery sqlQuery = Ebean.createSqlQuery(sql);
-        List<SqlRow> sqlRows = sqlQuery.findList();
-
-        for (SqlRow sqlRow : sqlRows) {
-            PullRequest pullRequest = PullRequest.finder.byId(sqlRow.getLong("id"));
-            if (pullRequest.pullRequestCommits.isEmpty()) {
-                List<GitCommit> commitList = new ArrayList<GitCommit>();
-                if(pullRequest.isClosed()) {
-                    commitList = GitRepository.diffCommits(pullRequest);                
-                } else {
-                    commitList = GitRepository.getPullingCommits(pullRequest);
-                }
-                
-                for(GitCommit commit : commitList) {
-                    PullRequestCommit pullRequestCommit = PullRequestCommit.bindPullRequestCommit(commit, pullRequest);
-                    pullRequestCommit.save();
-                }                
-            }    
-        }
-    }
-    
-    /**
-     * 열려 있는 pull request에 대한 merge 결과를 초기화한다.
-     * 
-     * 유지보수와 관련된 코드로 서버 구동시 한번만 수행되며 DB에 merge 결과가 저장되지 않은 pull request에 대해서만 처리된다.  
-     * 
-     */
-    public static void initPullRequestMergeResult() {
-        List<PullRequest> pullRequests = PullRequest.finder.where().isNull("isConflict").findList();
-
-        for (PullRequest pullRequest : pullRequests) {
-        
-            if (!pullRequest.isClosed()) {
-                PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
-                
-                if (mergeResult.getGitConflicts() != null) {
-                    pullRequest.isConflict = true;
-                    pullRequest.conflictFiles = mergeResult.getConflictFilesToString();
-                } else {
-                    pullRequest.isConflict = false;
-                }
-                
-                mergeResult.save();
-                
-            } else {
-                pullRequest.isConflict = false;
-                pullRequest.setPatch(GitRepository.getPatch(pullRequest));
-                pullRequest.update();
-            }
-            
-        }
-    }
     
     /**
      * project/branch와 연관된 보낸코드들의 상태를 병합중으로 수정한다.  
