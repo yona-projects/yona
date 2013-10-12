@@ -28,7 +28,7 @@ public class Config {
                return hostname;
             }
         } else {
-           if (play.Configuration.root().getInt("application.port") == null) {
+           if (play.Configuration.root().getInt("application.port") != null) {
                play.Logger.warn("application.port is ignored because application.hostname is not" +
                        " configured.");
            }
