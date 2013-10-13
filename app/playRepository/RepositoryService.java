@@ -10,6 +10,7 @@ import controllers.UserApp;
 import models.CommitCheckMessage;
 
 import models.PullRequest;
+import models.PullRequestCommit;
 import models.PullRequestEventMessage;
 
 import models.Project;
@@ -407,21 +408,30 @@ public class RepositoryService {
 
             /*
              * 성공한 ReceiveCommand 로 영향받은 branch 에 대해서
-             * 관련 있는 코드-보내기 요청을 찾아 충돌이 발생했는지 검사한다.
+             * 관련 있는 오픈된 코드-보내기 요청을 찾아 코드가 안전한지 확인한다.
+             * branch가 삭제된 경우 관련 있는 오픈된 코드-보내기 요청을 모두 삭제한다.
              */
             private void checkPullRequests(Collection<ReceiveCommand> commands) {
-                Set<String> branches = getBranches(commands);
+                Set<String> branches = getUpdatedBranches(commands);
                 for (String branch : branches) {
                     PullRequestEventMessage message = new PullRequestEventMessage(currentUser, request, project, branch);
                     PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
                     Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
+                }
+                
+                Set<String> deletedBranches = getDeletedBranches(commands);
+                for (String branch : deletedBranches) {
+                    List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
+                    for (PullRequest pullRequest : pullRequests) {
+                        pullRequest.delete();
+                    }
                 }
             }
 
             /*
              * ReceiveCommand 중, branch update 에 해당하는 것들의 참조 branch set 을 구한다.
              */
-            private Set<String> getBranches(
+            private Set<String> getUpdatedBranches(
                     Collection<ReceiveCommand> commands) {
                 Set<String> branches = new HashSet<>();
                 for (ReceiveCommand command : commands) {
@@ -432,12 +442,30 @@ public class RepositoryService {
                 return branches;
             }
 
+            private Set<String> getDeletedBranches(
+                    Collection<ReceiveCommand> commands) {
+                Set<String> branches = new HashSet<>();
+                for (ReceiveCommand command : commands) {
+                    if (isDeleteCommand(command)) {
+                        branches.add(command.getRefName());
+                    }
+                }
+                return branches;
+                
+            }
             /*
              * command 가 update type 인지 판별한다.
              */
             private boolean isUpdateCommand(ReceiveCommand command) {
                 return command.getType() == ReceiveCommand.Type.UPDATE
                         || command.getType() == ReceiveCommand.Type.UPDATE_NONFASTFORWARD;
+            }
+            
+            /*
+             * command 가 delete type 인지 판별한다.
+             */
+            private boolean isDeleteCommand(ReceiveCommand command) {
+                return command.getType() == ReceiveCommand.Type.DELETE;
             }
         };
     }

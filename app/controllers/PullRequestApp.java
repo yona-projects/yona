@@ -19,6 +19,7 @@ import actors.PullRequestEventActor;
 import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Akka;
 import play.libs.Json;
@@ -238,6 +239,7 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @Transactional
     public static Result newPullRequest(String userName, String projectName) throws IOException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
