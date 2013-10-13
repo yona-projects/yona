@@ -29,6 +29,7 @@ public class PullRequestCommentApp extends Controller {
         Form<PullRequestComment> commentForm = new Form<>(PullRequestComment.class).bindFromRequest();
         if (commentForm.hasErrors()) {
             flash(Constants.WARNING, "post.comment.empty");
+            play.Logger.info("Failed to submit a comment: " + commentForm.errors());
             return redirect(referer);
         }
 
