@@ -34,11 +34,10 @@ public class PullRequestEventActor extends UntypedActor {
             PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
             
             if (mergeResult.commitChanged()) {
-                
+            
                 mergeResult.saveCommits();
                 
                 if (!mergeResult.getNewCommits().isEmpty()) {
-                    NotificationEvent.addCommitChange(message.getSender(), pullRequest, message.getRequest(), mergeResult);
                     PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getNewCommits());                
                 }
             }
