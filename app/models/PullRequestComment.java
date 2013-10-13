@@ -55,6 +55,10 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                 ", authorId=" + authorId +
                 ", authorLoginId='" + authorLoginId + '\'' +
                 ", authorName='" + authorName + '\'' +
+                ", commitA='" + commitA + '\'' +
+                ", commitB='" + commitB + '\'' +
+                ", path='" + path + '\'' +
+                ", line='" + line + '\'' +
                 '}';
     }
 
