@@ -5,12 +5,12 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
 import org.eclipse.jgit.blame.BlameGenerator;
-import org.eclipse.jgit.blame.BlameResult;
+import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import playRepository.FileDiff;
 import playRepository.GitRepository;
-import playRepository.RepositoryService;
-import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
@@ -31,6 +31,8 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     public String commitA;
     public String commitB;
 
+    @Transient
+    private Boolean _isOutdated = null;
 
     public void authorInfos(User user) {
         this.authorId = user.id;
@@ -94,19 +96,72 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
             return false;
         }
 
-        if (!RepositoryService.VCS_GIT.equals(pullRequest.fromProject.vcs)) {
-            throw new UnsupportedOperationException();
+        // cache
+        if (_isOutdated != null) {
+            return _isOutdated;
         }
 
-        Repository gitRepo = GitRepository.buildGitRepository(pullRequest.fromProject);
         if (path.length() > 0 && path.charAt(0) == '/') {
             path = path.substring(1);
         }
-        BlameGenerator blame = new BlameGenerator(gitRepo, path);
-        blame.push(null, gitRepo.resolve(pullRequest.mergedCommitIdTo));
-        BlameResult blameResult = blame.computeBlameResult();
 
-        return !blameResult.getSourceCommit(line.intValue() - 1).getName().equals(commitB);
+        if (commitId.equals(commitA)) {
+            _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.toProject),
+                    pullRequest.toBranch, commitId, path, line);
+        } else {
+            if (!commitId.equals(commitB)) {
+                play.Logger.warn(
+                        "Invalid PullRequestComment.commitId: It must equal to commitA or commitB.");
+            }
+            _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.fromProject),
+                        pullRequest.fromBranch, commitId, path, line);
+        }
+
+        return _isOutdated;
+    }
+
+    static private String getLastChangedCommitUntil(Repository gitRepo, String rev,
+                                                    String path, Integer line) throws IOException, IllegalArgumentException {
+        BlameGenerator blame = new BlameGenerator(gitRepo, path);
+        ObjectId id = gitRepo.resolve(rev);
+
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    String.format("Git object not found: revision '%s' in %s", rev, gitRepo.toString()));
+        }
+
+        int typeCode = gitRepo.getObjectDatabase().newReader().open(id).getType();
+
+        switch (typeCode) {
+            case Constants.OBJ_COMMIT:
+            case Constants.OBJ_TAG:
+                blame.push(null, id);
+                return blame.computeBlameResult().getSourceCommit(line.intValue() - 1).getName();
+            default:
+                throw new IllegalArgumentException(
+                      String.format("Unexpected Git object type '%s' of revision '%s' in %s.",
+                          Constants.encodedTypeString(typeCode), rev, gitRepo.toString()));
+        }
+    }
+
+    /**
+     * 저장소 {@code gitRepo}에서, {@code path}의 {@code line}이 {@code rev1}과 {@code rev2}사이에서
+     * 아무 변화가 없었는지
+     *
+     * @param gitRepo
+     * @param rev1
+     * @param rev2
+     * @param path
+     * @param line
+     * @return
+     * @throws IOException
+     */
+    static private boolean noChangesBetween(Repository gitRepo, String rev1, String rev2,
+                                            String path, Integer line) throws IOException {
+        String a = getLastChangedCommitUntil(gitRepo, rev1, path, line);
+        String b = getLastChangedCommitUntil(gitRepo, rev2, path, line);
+
+        return a.equals(b);
     }
 
     @Transient

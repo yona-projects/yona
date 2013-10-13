@@ -2,7 +2,6 @@ package controllers;
 
 import com.avaje.ebean.Page;
 import models.*;
-import models.PullRequestCommit;
 import models.enumeration.*;
 
 import org.apache.commons.collections.IteratorUtils;
@@ -10,10 +9,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Repository;
 import org.tmatesoft.svn.core.SVNException;
 
 import actors.PullRequestEventActor;
@@ -32,7 +28,6 @@ import views.html.git.*;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.text.MessageFormat;
 import java.util.*;
 
