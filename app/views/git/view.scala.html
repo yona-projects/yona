@@ -177,8 +177,14 @@
 		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
 		                }
 		            }
+		            
+		            @if(pull.isMerging) {
+		            	@if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
+		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+		                }
+		            }
+		            
 		        </div>
-		        
 		        @if(pull.isClosed()) {
 		        <div class="alert alert-info">
 		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
