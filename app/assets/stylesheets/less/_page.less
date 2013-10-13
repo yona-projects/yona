@@ -1549,22 +1549,28 @@
         }
 
         .srch-input {
-            padding:5px 0;
 
             .srch-input-inner {
-                display:inline-block;
+                display:block;
                 line-height: 20px;
-                padding:2px 5px;
+                padding:5px 25px 5px 5px;
                 border:1px solid rgba(0,0,0, .15);
                 .border-radius(3px);
+                position:relative;
 
                 input  {
                     border:none;
-                    width:80%;
+                    padding:0;
+                    width:100%;
 
                 }
 
-                button { outline:0;}
+                button { 
+                    position:absolute;
+                    top:7px;
+                    right:5px;
+                    outline:0;
+                }
 
             }
         }
