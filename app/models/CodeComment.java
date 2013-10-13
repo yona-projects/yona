@@ -45,6 +45,13 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
         createdDate = new Date();
     }
 
+    public boolean threadEquals(CodeComment other) {
+        return commitId.equals(other.commitId) &&
+                path.equals(other.path) &&
+                line.equals(other.line) &&
+                side.equals(other.side);
+    }
+
     @Transient
     public void setAuthor(User user) {
         authorId = user.id;

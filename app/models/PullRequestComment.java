@@ -37,6 +37,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     @Transient
     private Boolean _isCommitLost = null;
 
+    @Transient
+    private FileDiff fileDiff = null;
+
     public void authorInfos(User user) {
         this.authorId = user.id;
         this.authorLoginId = user.loginId;
@@ -209,7 +212,36 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     }
 
     @Transient
-    public List<FileDiff> getDiff() throws IOException {
-        return pullRequest.getDiff(commitA, commitB);
+    public FileDiff getDiff() throws IOException {
+        if (fileDiff != null) {
+            return fileDiff;
+        }
+
+        List<FileDiff> fileDiffs = pullRequest.getDiff(commitA, commitB);
+
+        if (fileDiffs.size() == 0) {
+            play.Logger.warn(this + ": Change not found between " + commitA + " and " + commitB);
+            return null;
+        }
+
+        for (FileDiff diff: fileDiffs) {
+            if (side.equals("context") || side.equals("add")) {
+                if (path.equals(diff.pathB)) {
+                    diff.updateRange(null, line);
+                    fileDiff = diff;
+                    return fileDiff;
+                }
+            } else if (side.equals("remove")) {
+                if (path.equals(diff.pathA)) {
+                    diff.updateRange(line, null);
+                    fileDiff = diff;
+                    return fileDiff;
+                }
+            }
+        }
+
+        play.Logger.warn(this + ": No interest diff between " + commitA + " and " +commitB);
+
+        return null;
     }
 }

@@ -83,6 +83,7 @@ code.nohead.init = 또는, 로컬에서 Git 저장소를 만들고 remote로 {0}
 code.nohead.pull.push = 지속적으로 코드를 갱신하여 올릴 때는 pull과 push를 사용할 수 있습니다. pull은 remote에서 코드를 가져오고, push는 remote로 코드를 보냅니다.
 code.nohead.remote = 로컬에 이미 만들어둔 Git 저장소가 있다면 {0}에 생성된 Git 저장소만 remote로 추가하고 코드를 올릴 수 있습니다.
 code.older = 다음
+code.outdatedDiff = 예전 변경
 code.openCommentBox = 댓글창 열기
 code.repoUrl = 저장소 URL
 code.showcomments = 댓글 표시하기

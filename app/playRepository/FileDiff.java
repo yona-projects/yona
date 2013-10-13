@@ -104,4 +104,32 @@ public class FileDiff {
     private boolean checkEndOfLineMissing(final RawText text, final int line) {
 		return line + 1 == text.size() && text.isMissingNewlineAtEnd();
 	}
+
+    /**
+     * 주어진 줄 번호와 관련된 diff만 남기고 나머지는 모두 버린다.
+     *
+     * null인 줄 번호는 무시한다.
+     *
+     * @param lineA
+     * @param lineB
+     */
+    public void updateRange(Integer lineA, Integer lineB) {
+        EditList newEditList = new EditList();
+
+        for (Edit edit: editList) {
+            if (lineA != null) {
+                if ((lineA >= edit.getBeginA() - context) && (lineA <= edit.getEndA() + context)) {
+                    newEditList.add(edit);
+                }
+            }
+
+            if (lineB != null) {
+                if ((lineB >= edit.getBeginB() - context) && (lineB <= edit.getEndB() + context)) {
+                    newEditList.add(edit);
+                }
+            }
+        }
+
+        editList = newEditList;
+    }
 }

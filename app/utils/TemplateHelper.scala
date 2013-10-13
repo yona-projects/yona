@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import name.fraser.neil.plaintext.DiffMatchPatch
+import models.PullRequestComment
+import models.TimelineItem
 
 object TemplateHelper {
 
@@ -188,5 +190,18 @@ object TemplateHelper {
         case first::Nil => renderLine(first, comments)
         case first::second::tail => renderTwoLines(first, second, comments) + renderLines(tail, comments)
       }
+
+    def threadAndRemains(commentOnCommit: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+      if (comments.isEmpty) {
+        (List(commentOnCommit), Nil)
+      } else {
+        (commentOnCommit, comments.head) match {
+          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) =>
+            (List(a) ++ threadAndRemains(b, comments.tail)._1, threadAndRemains(b, comments.tail)._2)
+          case _ =>
+            (threadAndRemains(commentOnCommit, comments.tail)._1, List(comments.head) ++ threadAndRemains(commentOnCommit, comments.tail)._2)
+        }
+      }
+    }
   }
 }

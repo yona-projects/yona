@@ -4,6 +4,7 @@
 @import utils.TemplateHelper._
 @import utils.AccessControl._
 @import models.enumeration
+@import scala.collection.JavaConversions._
 
 @branchName(branch:String) = @{
     branch.replace("refs/heads/", "")
@@ -21,10 +22,6 @@
             }
         }
     }
-}
-
-@isAuthorComment(commentId: String) = @{
-    if(commentId == UserApp.currentUser().loginId) {"author"}
 }
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
@@ -203,128 +200,10 @@
 		        }
 		        <div class="board-comment-wrap">
 		            <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.comments.size() + pull.getCodeComments.size()}</strong></div>
+
 		            @if(pull.getTimelineComments.size > 0) {
 		            <ul class="comments" id="comments">
-			        @for((item, index) <- pull.getTimelineComments.zipWithIndex) {
-			            @item match {
-				            case (comment: PullRequestComment) => {
-								<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
-					                <div class="comment-avatar">
-					                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-					                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-					                    </a>
-					                </div>    
-					                <div class="media-body">
-					                    <div class="meta-info">
-					                        <span class="comment_author pull-left">
-					                            <i class="yobicon-comment"></i> 
-					                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-					                                <strong>@comment.authorLoginId </strong>
-					                            </a>
-					                        </span>
-					                        <span class="ago">@utils.TemplateHelper.agoString(comment.ago())</span>
-					                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-					                        <span class="edit pull-right">
-					                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
-					                        </span>
-					                        }
-					                    </div>
-					                    
-					                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-					                    
-					                    <div class="attachments pull-right" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@comment.id"></div>
-					                </div>
-					            </li>				            
-				            
-				            }
-				            case (comment: CodeComment) => {
-				            	@defining(PullRequestCommit.getStateByCommitId(pull, comment.commitId)) { state =>
-				            	@if(state != null) {
-									<li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
-						                <div class="comment-avatar">
-						                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-						                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-						                    </a>
-						                </div>    
-						                <div class="media-body">
-						                    <div class="meta-info">
-						                        <span class="comment_author pull-left">
-						                            <i class="yobicon-comment"></i> 
-						                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-						                                <strong>@comment.authorLoginId </strong>
-						                            </a>
-						                        </span>
-						                        <span class="ago">
-						                        	@if(PullRequestCommit.State.PRIOR == state) {
-						                        		@utils.TemplateHelper.agoString(ago(comment.createdDate)) - <strike><a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", comment.commitId)</a></strike>
-						                        	} else {
-						                        		@utils.TemplateHelper.agoString(ago(comment.createdDate)) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", comment.commitId)</a>
-						                        	}
-						                        </span>
-						                        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-						                        <span class="edit pull-right">
-						                            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, comment.commitId, comment.id)"><i class="yobicon-trash"></i></button>
-						                        </span>
-						                        }
-						                    </div>
-						                    
-						                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-						                    
-						                    <div class="attachments pull-right" data-resourceType="@ResourceType.CODE_COMMENT" data-resourceId="@comment.id"></div>
-						                </div>
-						            </li>
-				            		}	
-				            	} 
-				            }
-				            case (event: PullRequestEvent) => {
-				            	@event.eventType match {
-				            		case EventType.PULL_REQUEST_STATE_CHANGED => {
-					            	<li class="event" id="comment-@event.id">
-					            		<span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-						                <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
-					            	</li>
-				            		}
-				            		case EventType.PULL_REQUEST_MERGED => {
-					            	<li class="event" id="comment-@event.id">
-					            		<span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-						                <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
-					            	</li>
-				            		}
-				            		case EventType.PULL_REQUEST_COMMIT_CHANGED => {
-									<li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
-					                <div class="comment-avatar">
-					                    <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-					                        <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
-					                    </a>
-					                </div>    
-					                <div class="media-body">
-					                    <div class="meta-info">
-					                        <span class="comment_author pull-left">
-					                            <i class="yobicon-comment"></i> 
-					                            <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-					                                <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
-					                            </a>
-					                        </span>
-					                        <span class="ago">@utils.TemplateHelper.agoString(ago(event.created))</span>
-					                    </div>
-				            			@for(commit <- event.getPullRequestCommits) {
-					                    <div class="comment-body" style="margin:10px 0;">
-					                    	@if(commit.state == PullRequestCommit.State.PRIOR) {
-		            							<strike>@commit.commitMessage - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)">@commit.commitShortId</a></strike>
-		            						} else {
-		            							@commit.commitMessage - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)">@commit.commitShortId</a>
-		            						}
-		            					</div>				            		
-				            			}
-		            				</div>
-		            				</li>		            							
-				            		}
-				            		case _ => {
-				            		}
-				            	}
-				        	}
-				        }
-					}
+                    @partial_comments(pull, pull.getTimelineComments.toList)
 					</ul>
 					}
 					@common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
