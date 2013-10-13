@@ -7,9 +7,6 @@ import controllers.routes
 import java.security.MessageDigest
 import views.html._
 import java.net.URI
-import name.fraser.neil.plaintext.DiffMatchPatch
-import DiffMatchPatch.Diff
-import DiffMatchPatch.Operation._
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeComment
@@ -17,7 +14,6 @@ import scala.collection.JavaConversions._
 import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
-import name.fraser.neil.plaintext.DiffMatchPatch
 import models.PullRequestComment
 import models.TimelineItem
 
@@ -114,6 +110,7 @@ object TemplateHelper {
         a.zip(b).map(v => v._1 + v._2)
     }
 
+    /*
     def wordDiffLinesInHtml(diffList: List[Diff]): List[String] =
       diffList match {
         case Nil => List("", "")
@@ -127,7 +124,6 @@ object TemplateHelper {
         case _ => List(diff.text, diff.text)
       }
 
-    /*
     def writeHtmlLine(klass: String, indicator: String, numA: Integer, numB: Integer, html: String, commentsOnLine: List[_ <: CodeComment]) = {
       partial_diff_line_html(klass, indicator, numA, numB, html) + (if(commentsOnLine != null) partial_diff_comment_on_line(commentsOnLine).body else "")
     }
