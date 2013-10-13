@@ -40,17 +40,17 @@
                 <div class="private">
                     <i class="yobicon-lock"></i>
                 </div> 
-                } 
+                }
+                @if(project.isFork()){
+                    <div class="origin">
+                        <span class="origin-title">@Messages("fork.original") </span>
+                        <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)' class="blue-txt">
+                            @project.originalProject.owner / @project.originalProject.name
+                        </a>
+
+                    </div>
+                }
             </div>
-            @if(project.isFork()){
-            <div class="origin">
-                <span class="origin-title">@Messages("fork.original")</span>
-                <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'>
-                    @project.originalProject.owner / @project.originalProject.name
-                </a>
-             
-            </div>
-            } 
         </div>
         <div class="project-utility">
             <ul class="project-utility-wrap">
