@@ -18,6 +18,17 @@ input[type="email"], input[type="url"], input[type="search"], input[type="tel"],
   font-size: 12px;
 }
 
+.blind {
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    font-size: 0;
+    line-height: 0;
+}
+
 /* box-shadow, border-radius */
 form { margin:0 0 2px; }
 textarea, input[type="text"], input[type="password"], input[type="datetime"],
@@ -534,7 +545,7 @@ button.nbtn {
     text-shadow:none;   
     .border-radius(3px)  !important;
     display:inline-block;
-    padding: 5px 12px !important;
+    padding: 4px 12px !important;
     vertical-align: middle;
     cursor: pointer;
     line-height: 20px;
@@ -588,14 +599,21 @@ button.nbtn {
         line-height: 16px !important;
     }
 
-    &.ybtn-primary, &.ybtn-success,&.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning, &.ybtn-transparent, &.ybtn-watching  {
-        color:@yobi-white;
-    }
-
     &.ybtn-maximum {
         padding: 20px 30px !important;
         font-size: 26px !important;
         line-height: 20px !important;
+    }
+
+    &.ybtn-padding {
+        padding:13px 30px !important;
+        font-size: 20px !important;
+        line-height: 20px !important;
+    }
+
+
+    &.ybtn-primary, &.ybtn-success,&.ybtn-info, &.ybtn-danger,&.ybtn-inverse, &.ybtn-disabled, &ybtn-warning, &.ybtn-transparent, &.ybtn-watching  {
+        color:@yobi-white;
     }
 
     &.ybtn-gray {

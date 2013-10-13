@@ -9,7 +9,7 @@
 @layout(Messages(title))(""){
     <header class="gnb-outer">
         <div class="gnb-inner">
-            <a href="@routes.Application.index()" class="logo"><img src="@routes.Assets.at("images/yobi_logo.png")"> @Messages("app.name") <span class='beta'>beta</span></a>
+            <a href="@routes.Application.index()" class="logo"><span class="blind">@Messages("app.name")</span><span class='beta'>beta</span></a>
             <ul class="gnb">
                 <li class="@isActiveMenu(MenuType.PROJECTS)">
                     <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>

@@ -9,7 +9,7 @@
     <ui class="gnb">
         @if(session.contains("loginId")){
         <li class="item">
-            <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success @if(project == null){ ybtn-middle }">
+            <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success">
                 <i class="yobicon-database-add"></i> 
             </a>
         </li>
@@ -96,7 +96,7 @@
         </li>    
         } else {
         <li class="item">
-            <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success @if(project == null){ ybtn-middle }" data-toggle="tooltip" title="@Messages("title.signup")" data-placement="bottom">
+            <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success" data-toggle="tooltip" title="@Messages("title.signup")" data-placement="bottom">
                 @Messages("title.signup")
             </a>
         </li>
