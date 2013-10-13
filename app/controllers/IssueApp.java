@@ -205,7 +205,7 @@ public class IssueApp extends AbstractPostingApp {
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         if (project == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project));
         }
 
         int updatedItems = 0;

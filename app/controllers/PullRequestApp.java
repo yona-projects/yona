@@ -730,18 +730,18 @@ public class PullRequestApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        String patch = RepositoryService.getRepository(project).getPatch(commitId);
+        List<FileDiff> fileDiffs = RepositoryService.getRepository(project).getDiff(commitId);
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
         Commit parentCommit = RepositoryService.getRepository(project).getParentCommitOf(commitId);
 
-        if (patch == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+        if (fileDiffs == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound", project));
         }
 
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).findList();
 
-        return ok(diff.render(pullRequest, commit, parentCommit, patch, comments));
+        return ok(diff.render(pullRequest, commit, parentCommit, fileDiffs, comments));
     }
 
 

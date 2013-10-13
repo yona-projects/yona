@@ -54,18 +54,18 @@ public class FileDiff {
 
 			while (aCur < aEnd || bCur < bEnd) {
 				if (aCur < curEdit.getBeginA() || endIdx + 1 < curIdx) {
-                    hunk.lines.add(new DiffLine(DiffLineType.CONTEXT, aCur, bCur,
+                    hunk.lines.add(new DiffLine(this, DiffLineType.CONTEXT, aCur, bCur,
                             a.getString(aCur)));
 					isEndOfLineMissing = checkEndOfLineMissing(a, aCur);
 					aCur++;
 					bCur++;
 				} else if (aCur < curEdit.getEndA()) {
-                    hunk.lines.add(new DiffLine(DiffLineType.REMOVE, aCur, bCur,
+                    hunk.lines.add(new DiffLine(this, DiffLineType.REMOVE, aCur, bCur,
                             a.getString(aCur)));
                     isEndOfLineMissing = checkEndOfLineMissing(a, aCur);
 					aCur++;
 				} else if (bCur < curEdit.getEndB()) {
-                    hunk.lines.add(new DiffLine(DiffLineType.ADD, aCur, bCur,
+                    hunk.lines.add(new DiffLine(this, DiffLineType.ADD, aCur, bCur,
                             b.getString(bCur)));
                     isEndOfLineMissing = checkEndOfLineMissing(a, aCur);
 					bCur++;

@@ -1509,8 +1509,8 @@ public class GitRepository implements PlayRepository {
 
         for (DiffEntry diff : formatter.scan(treeParserA, treeParserB)) {
             FileDiff fileDiff = new FileDiff();
-            fileDiff.commitA = commitA.getName();
-            fileDiff.commitB = commitB.getName();
+            fileDiff.commitA = commitA != null ? commitA.getName() : null;
+            fileDiff.commitB = commitB != null ? commitB.getName() : null;
 
             fileDiff.changeType = diff.getChangeType();
 

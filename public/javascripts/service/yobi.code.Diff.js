@@ -48,9 +48,6 @@
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
-
-            htVar.sCommitA = htOptions.sCommitA;
-            htVar.sCommitB = htOptions.sCommitB;
         }
 
         /**
@@ -65,14 +62,9 @@
                 .append(welHidden.clone().attr('name', 'line'))
                 .append(welHidden.clone().attr('name', 'side'))
                 .append(welHidden.clone().attr('name', 'commitA'))
-                .append(welHidden.clone().attr('name', 'commitB'));
+                .append(welHidden.clone().attr('name', 'commitB'))
+                .append(welHidden.clone().attr('name', 'commitId'));
             htElement.welComments = $('ul.comments');
-
-            if (htVar.bCommentable) {
-                htElement.welIcon = $('#comment-icon-template').tmpl();
-            }
-            htElement.welEmptyLineNumColumn = $('#linenum-column-template').tmpl();
-            htElement.welEmptyCommentButton = $('#comment-button-template').tmpl();
 
             // 지켜보기
             htElement.welBtnWatch = $('#watch-button');
@@ -114,7 +106,7 @@
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
             $(window).on("resize", _resizeMergely);
-            $('tr .linenum:first-child').click(_onClickLineNumA);
+            $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').click(_onClickLineNumA);
 
             _attachCommentBoxToggleEvent();
         }
@@ -254,53 +246,6 @@
             }
         }
 
-        /**
-         * welTr에 줄 번호를 붙인다.
-         *
-         * @param {Object} welTr
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         */
-        function _prependLineNumberOnLine(welTr, nLineA, nLineB) {
-            var welLineNumA =
-                htElement.welEmptyLineNumColumn.clone().text(nLineA).addClass("linenum-from");
-            var welLineNumB =
-                htElement.welEmptyLineNumColumn.clone().text(nLineB).addClass("linenum-to");
-
-            welTr.append(welLineNumA);
-            welTr.append(welLineNumB);
-
-            if (htVar.bCommentable
-                    && (!isNaN(parseInt(nLineA)) || !isNaN(parseInt(nLineB)))) {
-                _prependCommentIcon(welLineNumA, welTr);
-                welLineNumA.click(_onClickLineNumA);
-            }
-        }
-
-        /**
-         * welPrependTo에, welHoverOn에 마우스 호버시 보여질 댓글 아이콘을
-         * 붙인다.
-         *
-         * @param {Object} welPrependTo
-         * @param {Object} welHoverOn
-         */
-        function _prependCommentIcon(welPrependTo, welHoverOn) {
-            var welIcon = htElement.welIcon.clone()
-            welIcon.prependTo(welPrependTo);
-
-            welHoverOn.hover(function() {
-                welIcon.css('visibility', 'visible');
-            }, function() {
-                welIcon.css('visibility', 'hidden');
-            });
-
-            welPrependTo.hover(function() {
-                welIcon.css('opacity', '1.0');
-            }, function() {
-                welIcon.css('opacity', '0.6');
-            });
-        }
-
         function _attachCommentBoxToggleEvent() {
             if (htVar.bCommentable) {
                 var welCloseButton = $('.close-comment-box');
@@ -336,6 +281,7 @@
             htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=commitA]').removeAttr('value');
             htElement.welEmptyCommentForm.find('[name=commitB]').removeAttr('value');
+            htElement.welEmptyCommentForm.find('[name=commitId]').removeAttr('value');
             $('.code-browse-wrap').append(htElement.welEmptyCommentForm);
             _updateMiniMap();
         }
@@ -379,7 +325,10 @@
             var welCommentTr;
             var nLine = parseInt(welTr.data('line'));
             var sType = welTr.data('type');
-            var sPath = welTr.closest('table').data('path');
+            var sCommitId;
+            var sPath;
+            var sCommitA = welTr.closest('div.diff-body').data('commitA');
+            var sCommitB = welTr.closest('div.diff-body').data('commitB');
 
             if (isNaN(nLine)) {
                 nLine = parseInt(welTr.prev().data('line'));
@@ -388,6 +337,14 @@
 
             if (isNaN(nLine)) {
                 return;
+            }
+
+            if (sType == 'remove') {
+                sPath = welTr.closest('table').data('path-a');
+                sCommitId = sCommitA;
+            } else {
+                sPath = welTr.closest('table').data('path-b');
+                sCommitId = sCommitB;
             }
 
             if (htElement.welCommentTr) {
@@ -401,8 +358,10 @@
             welCommentTr.find('[name=path]').attr('value', sPath);
             welCommentTr.find('[name=line]').attr('value', nLine);
             welCommentTr.find('[name=side]').attr('value', sType);
-            welCommentTr.find('[name=commitA]').attr('value', htVar.sCommitA);
-            welCommentTr.find('[name=commitB]').attr('value', htVar.sCommitB);
+
+            welCommentTr.find('[name=commitA]').attr('value', sCommitA);
+            welCommentTr.find('[name=commitB]').attr('value', sCommitB);
+            welCommentTr.find('[name=commitId]').attr('value', sCommitId);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();

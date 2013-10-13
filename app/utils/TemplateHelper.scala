@@ -7,6 +7,17 @@ import controllers.routes
 import java.security.MessageDigest
 import views.html._
 import java.net.URI
+import name.fraser.neil.plaintext.DiffMatchPatch
+import DiffMatchPatch.Diff
+import DiffMatchPatch.Operation._
+import playRepository.DiffLine
+import playRepository.DiffLineType
+import models.CodeComment
+import scala.collection.JavaConversions._
+import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
+import views.html.partial_diff_comment_on_line
+import views.html.partial_diff_line
+import name.fraser.neil.plaintext.DiffMatchPatch
 
 object TemplateHelper {
 
@@ -89,5 +100,93 @@ object TemplateHelper {
       case (uri: String) if resourceEquals(fullURI(uri), fullURI(defaultURI)) => uri
       case (_) => defaultURI
     }
+  }
+
+  object DiffRenderer {
+
+    def removedWord(word: String) = "<span class='remove'>" + word + "</span>"
+
+    def addedWord(word: String) = "<span class='add'>" + word + "</span>"
+
+    def mergeList(a: List[String], b: List[String]) = {
+        a.zip(b).map(v => v._1 + v._2)
+    }
+
+    def wordDiffLinesInHtml(diffList: List[Diff]): List[String] =
+      diffList match {
+        case Nil => List("", "")
+        case head :: tail => mergeList(wordDiffLineInHtml(head), wordDiffLinesInHtml(tail))
+      }
+
+    def wordDiffLineInHtml(diff: Diff) =
+      diff.operation match {
+        case DELETE => List(removedWord(diff.text), "")
+        case INSERT => List("", addedWord(diff.text))
+        case _ => List(diff.text, diff.text)
+      }
+
+    /*
+    def writeHtmlLine(klass: String, indicator: String, numA: Integer, numB: Integer, html: String, commentsOnLine: List[_ <: CodeComment]) = {
+      partial_diff_line_html(klass, indicator, numA, numB, html) + (if(commentsOnLine != null) partial_diff_comment_on_line(commentsOnLine).body else "")
+    }
+
+    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[_ <: CodeComment]]) = {
+      val lines = wordDiffLinesInHtml((new DiffMatchPatch()).diffMain(lineA.content, lineB.content).toList)
+      writeHtmlLine(lineA.kind.toString.toLowerCase, "-", null, lineA.numA + 1, lines(0), commentsOrEmpty(comments, commentKey(lineA.file.pathA, "remove", lineA.numA + 1))) + writeHtmlLine(lineB.kind.toString.toLowerCase, "+", lineB.numB + 1, null, lines(1), commentsOrEmpty(comments, commentKey(lineB.file.pathB, "add", lineB.numB + 1)))
+    }
+    */
+
+    /* Not implemented yet */
+    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]]) =
+      renderLine(lineA, comments) + renderLine(lineB, comments)
+
+    def renderTwoLines(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]]) =
+      (lineA.kind, lineB.kind) match {
+        case (DiffLineType.REMOVE, DiffLineType.ADD) => renderWordDiff(lineA, lineB, comments)
+        case _ => renderLine(lineA, comments) + renderLine(lineB, comments)
+      }
+
+    def commentKey(path: String, side: String, lineNum: Integer) =
+      path + ":" + side + ":" + lineNum
+
+    def commentsOrEmpty(comments: Map[String, List[CodeComment]], key: String) =
+      if (comments.contains(key)) comments(key) else Nil
+
+    def commentsOnAddLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
+      commentsOrEmpty(comments, commentKey(line.file.pathB, "add", line.numB + 1))
+
+    def commentsOnRemoveLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
+      commentsOrEmpty(comments, commentKey(line.file.pathA, "remove", line.numA + 1))
+
+    def commentsOnContextLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
+      commentsOrEmpty(comments, commentKey(line.file.pathB, "context", line.numB + 1))
+
+    def indicator(line: DiffLine) =
+      line.kind match {
+        case DiffLineType.ADD => "+"
+        case DiffLineType.REMOVE => "-"
+        case _ => " "
+      }
+
+    def renderLine(line: DiffLine, num: Integer, numA: Integer, numB: Integer, commentsOnLine: List[CodeComment]) =
+      partial_diff_line(line.kind.toString.toLowerCase, indicator(line), num, numA, numB, line.content) +
+      partial_diff_comment_on_line(commentsOnLine).body.trim
+
+    def renderLine(line: DiffLine, comments: Map[String, List[CodeComment]]): String =
+      line.kind match {
+        case DiffLineType.ADD =>
+          renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments))
+        case DiffLineType.REMOVE =>
+          renderLine(line, line.numA + 1, line.numA + 1, null, commentsOnRemoveLine(line, comments))
+        case _ =>
+          renderLine(line, line.numB + 1, line.numA + 1, line.numB + 1, commentsOnContextLine(line, comments))
+      }
+
+    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeComment]]): String =
+      lines match {
+        case Nil => ""
+        case first::Nil => renderLine(first, comments)
+        case first::second::tail => renderTwoLines(first, second, comments) + renderLines(tail, comments)
+      }
   }
 }

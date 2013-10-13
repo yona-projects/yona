@@ -1,4 +1,4 @@
-@(pull: PullRequest, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment])
+@(pull: PullRequest, commit:playRepository.Commit, parentCommit:playRepository.Commit, diff: List[playRepository.FileDiff], comments:List[CommitComment])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -73,9 +73,8 @@
             }
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
-
-        <div class="diff-wrap">
-            <div id="commit" class="diff-body show-comments">@patch</div>
+        <div class="diff-body">
+        @views.html.partial_diff(diff, comments)
         </div>
         <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
             <h4 class="path">
@@ -92,6 +91,7 @@
 
     @** Comment **@
     <div class="board-comment-wrap">
+        @defining(comments.filter(v => v.line == null)) { comments =>
         @if(comments.size > 0) {
         <ul class="comments">
             @for(comment <- comments){
@@ -124,6 +124,7 @@
             </li>
             }
         </ul>
+        }
         }
         
         @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())

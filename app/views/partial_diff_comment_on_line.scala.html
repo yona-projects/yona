@@ -1,0 +1,44 @@
+@(comments: List[CodeComment])
+
+@import utils.TemplateHelper._
+@import utils.TemplateHelper.DiffRenderer._
+
+@if(!comments.isEmpty){
+<tr class="comments board-comment-wrap" data-commit-id="@comments(0).commitId">
+    <td colspan=3>
+        <ul class="comments">
+            @for(comment: CodeComment <- comments) {
+            <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+                <div class="comment-avatar">
+                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                    </a>
+                </div>
+                <div class="media-body">
+                    <div class="meta-info">
+                        <span class="comment_author pull-left">
+                            <i class="yobicon-comment"></i>
+                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                <strong>@comment.authorLoginId </strong>
+                            </a>
+                        </span>
+                        <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(utils.JodaDateUtil.ago(comment.createdDate))</a></span>
+                        @if(utils.AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                        <span class="edit pull-right">
+                            <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CommentApp.delete(comment.asResource.getType.resource, comment.asResource.getId)"><i class="yobicon-trash"></i></button>
+                        </span>
+                        }
+                    </div>
+
+                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+
+                    <div class="attachments" resourceType="@comment.asResource.getType" resourceId="@comment.id"></div>
+                </div>
+            </li>
+            }
+            <button class="nbtn medium btn-thread open-comment-box">@Messages("code.openCommentBox")</button>
+            <button class="nbtn medium btn-thread close-comment-box" style="display: none;">@Messages("code.closeCommentBox")</button>
+        </ul>
+    </td>
+</tr>
+}

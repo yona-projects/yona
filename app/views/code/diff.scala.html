@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment], selectedBranch:String, diff: List[playRepository.FileDiff])
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, comments:List[CommitComment], selectedBranch:String, diff: List[playRepository.FileDiff])
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -90,8 +90,9 @@
             }
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
-
+        <div class="diff-body">
         @views.html.partial_diff(diff, comments)
+        </div>
 
         <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
             <h4 class="path">
@@ -107,6 +108,7 @@
 
         @** Comment **@
         <div class="board-comment-wrap">
+            @defining(comments.filter(v => v.line == null)) { comments =>
             @if(comments.size > 0) {
             <ul class="comments">
                 @for(comment <- comments){
@@ -140,6 +142,7 @@
                 }
             </ul>
             }
+            }
             
             @common.commentForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
         </div>
@@ -159,16 +162,6 @@
 </div>
 
 @common.markdown(project)
-
-<script type="text/x-jquery-tmpl" id="comment-icon-template">
-    <i class="yobicon-comments"></i>
-</script>
-<script type="text/x-jquery-tmpl" id="linenum-column-template">
-    <td class="linenum"></td>
-</script>
-<script type="text/x-jquery-tmpl" id="comment-button-template">
-    <button class="ybtn medium btn-thread"></button>
-</script>
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">

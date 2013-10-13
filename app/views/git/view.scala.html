@@ -393,7 +393,7 @@
             </div>
 
             <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
-                <div id="pull-request-changes" class="diff-body show-comments">
+                <div class="diff-body">
                     @views.html.partial_diff(pull.getDiff, comments)
                 </div>
             </div>
@@ -431,6 +431,12 @@
 		    event.preventDefault();
 			$("#outdatedCommits").toggle(); 
 		})
+
+        $yobi.loadModule("code.Diff", {
+            "welDiff": $("#pull-request-changes"),
+            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
+            "bCommentable": "isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)"
+        });
     });
 </script>
 }

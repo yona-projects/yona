@@ -1,0 +1,3 @@
+@(klass: String, prefix: String, num: Integer, numA: Integer, numB: Integer, content: String)
+
+<tr class="@klass" data-line="@num" data-type="@klass"><td class="linenum"><i class="icon-comment"></i>@Option(numA).getOrElse("")</td><td class="linenum">@Option(numB).getOrElse("")</td><td class="code"><span>@prefix</span>@content</td></tr>

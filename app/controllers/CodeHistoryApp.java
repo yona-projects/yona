@@ -109,7 +109,7 @@ public class CodeHistoryApp extends Controller {
             List<Commit> commits = repository.getHistory(page, HISTORY_ITEM_LIMIT, branch, path);
 
             if (commits == null) {
-                return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+                return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
             return ok(history.render(project, commits, page, branch, path));
@@ -156,11 +156,11 @@ public class CodeHistoryApp extends Controller {
         Commit parentCommit = repository.getParentCommitOf(commitId);
 
         if (fileDiffs == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project));
         }
 
         if (patch == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, null));
+            return notFound(ErrorViews.NotFound.render("error.notfound", project));
         }
 
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
