@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 @Entity
 public class PullRequestComment extends CodeComment implements ResourceConvertible, TimelineItem  {
 
@@ -120,7 +122,8 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
     public boolean hasValidCommitId() {
         return isCommitIdValid(pullRequest.toProject, commitA) &&
-                isCommitIdValid(pullRequest.fromProject, commitB);
+                isCommitIdValid(pullRequest.fromProject, commitB) &&
+                (ObjectUtils.equals(commitId, commitA) || ObjectUtils.equals(commitId, commitB));
     }
 
     public boolean isCommitLost() throws IOException {
