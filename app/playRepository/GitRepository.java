@@ -950,7 +950,9 @@ public class GitRepository implements PlayRepository {
                             if (edit.getType() != Type.INSERT && edit.getType() != Type.EMPTY) {
                                 for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
                                     PersonIdent personIdent = blameResult.getSourceAuthor(i);
-                                    authors.add(User.findByEmail(personIdent.getEmailAddress()));
+                                    if (personIdent != null) {
+                                        authors.add(User.findByEmail(personIdent.getEmailAddress()));                                    
+                                    }
                                 }
                             }
                         }
