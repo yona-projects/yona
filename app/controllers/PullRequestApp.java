@@ -13,7 +13,6 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-import org.json.JSONObject;
 import org.tmatesoft.svn.core.SVNException;
 
 import actors.PullRequestEventActor;
