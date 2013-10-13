@@ -33,7 +33,7 @@
 
         <div class="pullreq-info">
             <div class="pull-right">
-                <button id="helpBtn" class="ybtn-inverse mt5">
+                <button id="helpBtn" class="ybtn ybtn-inverse ybtn-mini mt5">
                     <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
                 </button>
             </div>
@@ -147,7 +147,7 @@
                 <div id="attachments" class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
                 
                 <div class="board-footer board-actrow">
-		            <button id="watch-button" type="button" class="nbtn medium blue @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
+		            <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
 		                @if(pull.getWatchers.contains(UserApp.currentUser())) {
 		                    @Messages("project.unwatch")
 		                } else {
@@ -156,25 +156,25 @@
 		            </button>
 		            @if(!pull.isMerging && pull.isOpen()){
 		                @if(!pull.isConflict && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-		                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="nbtn orange medium">@Messages("pullRequest.accept")</a>
+		                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
 		                }
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
-		                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="nbtn black medium">@Messages("pullRequest.reject")</a>
+		                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
 		                }
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn ybtn-danger">@Messages("pullRequest.cancel")</a>
 		                }
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-		                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="nbtn gray medium">@Messages("button.edit")</a>
+		                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
 		                }
 		            }
 		
 		            @if(!pull.isMerging && pull.isRejected()){
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
-		                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="nbtn orange medium">@Messages("pullRequest.reopen")</a>
+		                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
 		                }
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
+		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn-danger">@Messages("pullRequest.cancel")</a>
 		                }
 		            }
 		        </div>
@@ -186,11 +186,11 @@
 		            @if(UserApp.currentUser().equals(pull.contributor)) {
 		                @if(canDeleteBranch) {
 						<code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
-		                <button class="nbtn black medium pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>		                
+		                <button class="ybtn ybtn-danger pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>		                
 		                }
 		                @if(canRestoreBranch) {
 						<code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
-						<a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="nbtn orange medium pull-right">@Messages("pullRequest.restore.branch")</a>		                
+						<a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="ybtn pull-right">@Messages("pullRequest.restore.branch")</a>		                
 		                }
 		            }
 		        </div>
