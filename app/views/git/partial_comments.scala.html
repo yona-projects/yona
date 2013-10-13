@@ -5,6 +5,7 @@
 @import scala.collection.immutable
 @import utils.TemplateHelper.DiffRenderer._
 @import playRepository.FileDiff
+@import java.lang.Math
 
 @isAuthorComment(commentId: String) = @{
   if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -14,8 +15,12 @@
   <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
 }
 
+@shortId(commitId: String) = {
+  @commitId.substring(0, Math.min(7, commitId.size))
+}
+
 @renderPullRequestComment(comment: PullRequestComment, thread: immutable.List[PullRequestComment] = Nil) = {
-  <li id="comment-@comment.id" class="comment @isAuthorComment(comment.authorLoginId)" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-path="@comment.path" data-line="@comment.line" data-side="@comment.side" data-outdated="@comment.isOutdated">
+<li id="comment-@comment.id" class="comment @isAuthorComment(comment.authorLoginId)" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-path="@comment.path" data-line="@comment.line" data-side="@comment.side" @if(comment.hasValidCommitId){data-outdated="@comment.isOutdated"}>
     <div class="comment-avatar">
       <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
         <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
@@ -35,26 +40,26 @@
         @if(isLineComment(comment)) {
           <span>on @comment.line in @comment.path at
             @if(comment.isCommitLost) {
-              <span style="text-decoration: line-through">@comment.commitId.substring(0, 7)</span>
+              <span style="text-decoration: line-through">@shortId(comment.commitId)</span>
             } else {
-              @comment.commitId.substring(0, 7)
+              @shortId(comment.commitId)
             }
-            from @comment.commitA.substring(0, 7)..@comment.commitB.substring(0, 7)
+            from @shortId(comment.commitA)..@shortId(comment.commitB)
           </span>
         }
 
-        @if(comment.isOutdated) {
+        @if(comment.hasValidCommitId && comment.isOutdated) {
           <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>
         }
 
-        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && !hasDiff(comment)){
+        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && (!comment.hasValidCommitId || !hasDiff(comment))){
           <span class="edit pull-right">
             <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
           </span>
         }
       </div>
 
-      @if(hasDiff(comment)) {
+      @if(comment.hasValidCommitId && hasDiff(comment)) {
         <div class="diff-body" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-outdated="true">
           @views.html.partial_filediff(comment.getDiff, thread)
         </div>
@@ -64,35 +69,6 @@
       <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
     </div>
   </li>
-}
-
-@isLineComment(comment: PullRequestComment) = @{ comment.line != null }
-
-@hasDiff(comment: PullRequestComment) = @{ isLineComment(comment) && !comment.isCommitLost && comment.getDiff != null }
-
-@if(!comments.isEmpty) {
-  @comments.head match {
-    case (comment: PullRequestComment) if comment.isOutdated => {
-      @threadAndRemains(comment, comments.tail) match {
-        case (outdatedThread, remains) => {
-          @renderPullRequestComment(comment, outdatedThread)
-          @partial_comments(pull, remains)
-        }
-      }
-    }
-    case (comment: PullRequestComment) => {
-      @renderPullRequestComment(comment)
-      @partial_comments(pull, comments.tail)
-    }
-    case (comment: CommitComment) => {
-      @renderCommitComment(comment)
-      @partial_comments(pull, comments.tail)
-    }
-    case (event: PullRequestEvent) => {
-      @renderPullRequestEvent(event)
-      @partial_comments(pull, comments.tail)
-    }
-  }
 }
 
 @renderPullRequestEvent(event: PullRequestEvent) = {
@@ -180,6 +156,38 @@
                 <div class="attachments pull-right" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
             </div>
         </li>
+    }
+  }
+}
+
+@isLineComment(comment: PullRequestComment) = @{ comment.hasValidCommitId && comment.line != null }
+
+@hasDiff(comment: PullRequestComment) = @{ isLineComment(comment) && !comment.isCommitLost && comment.getDiff != null }
+
+@if(!comments.isEmpty) {
+  @comments.head match {
+    case (comment: PullRequestComment) if comment.hasValidCommitId && comment.isOutdated => {
+      @threadAndRemains(comment, comments.tail) match {
+        case (outdatedThread, remains) => {
+          @renderPullRequestComment(comment, outdatedThread)
+          @partial_comments(pull, remains)
+        }
+      }
+    }
+    case (comment: PullRequestComment) if isLineComment(comment) => {
+      @partial_comments(pull, comments.tail)
+    }
+    case (comment: PullRequestComment) => {
+      @renderPullRequestComment(comment)
+      @partial_comments(pull, comments.tail)
+    }
+    case (comment: CommitComment) => {
+      @renderCommitComment(comment)
+      @partial_comments(pull, comments.tail)
+    }
+    case (event: PullRequestEvent) => {
+      @renderPullRequestEvent(event)
+      @partial_comments(pull, comments.tail)
     }
   }
 }
