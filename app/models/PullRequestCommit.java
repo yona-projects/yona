@@ -99,7 +99,4 @@ public class PullRequestCommit extends Model implements TimelineItem {
     public enum State {
         PRIOR, CURRENT
     }
-
-
-
 }
