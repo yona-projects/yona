@@ -1,0 +1,198 @@
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment], selectedBranch:String)
+
+@import playRepository.RepositoryService
+@import java.net.URLEncoder
+@import utils.TemplateHelper._
+@import utils.JodaDateUtil._
+@import utils.AccessControl._
+
+@branchItemType(itemType:String) = @{
+    if(itemType == "heads"){
+        "branch"
+    } else {
+        itemType
+    }
+}
+
+@makeBranchItem(project:Project, branch:String) = {
+    @defining(branch.split('/')){ names =>
+        @if(names(0).equals("refs") && names.length == 3){
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"), null)"><!--
+             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
+             -->@names(2)
+            </a></li>
+        } else {
+            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), null)">@branch</a></li>
+        }
+    }
+}
+
+@projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
+
+<div class="page">
+
+    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+
+    <div class="code-browse-wrap">
+        <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
+            <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                <span class="d-label">@if(selectedBranch){ @selectedBranch } else { HEAD }</span>
+                <span class="d-caret"><span class="caret"></span></span>
+            </button>
+            <ul class="dropdown-menu">
+            @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
+                @for(branch <- branches){
+                    @makeBranchItem(project, branch)
+                }
+            }
+            </ul>
+        </div>
+
+        <ul class="nav nav-tabs" style="margin-bottom:20px;">
+            <li>
+                <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">@Messages("code.files")</a>
+            </li>
+            <li class="active">
+                <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+            </li>
+        </ul>
+
+        <p class="commitInfo">
+            @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
+            case (user: User, _, _) if !user.isAnonymous => {
+                <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
+                    <img src="@commit.getAuthor.avatarUrl" alt="@commit.getAuthor.name" width="32" height="32"/>
+                </a>
+                <strong>@commit.getAuthor.name</strong>
+            }
+            case (_, email, name) if email != null => {
+                <span class="avatar-wrap">
+                    <img src="@urlToPicture(commit.getAuthorEmail, 32)" width="32" height="32">
+                </span>
+                @if(name != null) {
+                <strong>@name</strong>
+                }
+            }
+            case (_, _, name) if name != null => {
+                <strong>@name</strong>
+            }
+            case (_, _, _) => {
+                <strong>@User.anonymous.name</strong>
+            }
+            }
+            <span class="ago">@agoString(ago(commit.getAuthorDate))</span>
+            <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
+            @if(comments.size > 0) {
+            <span class="pull-right mt5 mr10">
+                <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
+                <label for="toggle-comments" class="form-label">@Messages("code.showcomments")</label>
+            </span>
+            }
+        </p>
+        <pre class="commitMsg">@commit.getMessage</pre>
+        <div class="diff-wrap">
+            <div id="commit" class="diff-body show-comments">@patch</div>
+        </div>
+        <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
+            <h4 class="path">
+                <span></span>
+                <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
+            </h4>
+            <div class="row-fluid">
+                <div class="span6 compare-from"></div>
+                <div class="span6 compare-to"></div>
+            </div>
+            <div id="mergely" class="mergely-wrap"></div>
+        </div>
+
+        @** Comment **@
+        <div class="board-comment-wrap">
+            @if(comments.size > 0) {
+            <ul class="comments">
+                @for(comment <- comments){
+                <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+                    <div class="comment-avatar">
+                        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                        </a>
+                    </div>
+                    <div class="media-body">
+                        <div class="meta-info">
+                            <span class="comment_author pull-left">
+                                <i class="yobicon-comment"></i>
+                                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                                    <strong>@comment.authorLoginId </strong>
+                                </a>
+                            </span>
+                            <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(ago(comment.createdDate))</a></span>
+                            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                            <span class="edit pull-right">
+                                <button class="btn-transparent pull-right close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(project.owner, project.name, commit.getId, comment.id)"><i class="yobicon-trash"></i></button>
+                            </span>
+                            }
+                        </div>
+
+                        <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+
+                        <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
+                    </div>
+                </li>
+                }
+            </ul>
+            }
+
+            @common.commentForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
+        </div>
+        @** // Comment **@
+    </div>
+
+    <button id="watch-button" type="button" class="ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
+
+    <a href="javascript: history.back();" class="ybtn pull-right">@Messages("button.list")</a>
+
+    <div id="minimap" class="minimap-outer">
+        <div class="minimap-wrap">
+            <div class="minimap-curr"></div>
+            <div class="minimap-links"></div>
+        </div>
+    </div>
+</div>
+
+@common.markdown(project)
+
+<script type="text/x-jquery-tmpl" id="comment-icon-template">
+    <i class="yobicon-comments"></i>
+</script>
+<script type="text/x-jquery-tmpl" id="linenum-column-template">
+    <td class="linenum"></td>
+</script>
+<script type="text/x-jquery-tmpl" id="comment-button-template">
+    <button class="ybtn medium btn-thread"></button>
+</script>
+
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+<script type="text/javascript" src="@getJSLink("lib/diff")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.SvnDiff", {
+            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.COMMIT_COMMENT)){true}else{false},
+            "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
+            "sUnwatchUrl"    : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
+            "sParentCommitId": "@if(parentCommit != null){@parentCommit.getId}",
+            "sCommitId"      : "@commit.getId",
+            "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",
+            "sTplRawURL"     : "@routes.CodeApp.showRawFile(project.owner, project.name, "${commitId}", "${path}")"
+        });
+
+        yobi.Mention({
+            target:'comment-editor',
+            url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(project.owner, project.name, commit.getId).toString)"
+        });
+    });
+</script>
+}

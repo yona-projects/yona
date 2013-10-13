@@ -31,6 +31,7 @@ import utils.PullRequestCommit;
 import views.html.code.history;
 import views.html.code.nohead;
 import views.html.code.diff;
+import views.html.code.svnDiff;
 import views.html.error.forbidden;
 import views.html.error.notfound;
 import views.html.error.notfound_default;
@@ -150,25 +151,32 @@ public class CodeHistoryApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        List<FileDiff> fileDiffs = repository.getDiff(commitId);
-        String patch = repository.getPatch(commitId);
         Commit commit = repository.getCommit(commitId);
         Commit parentCommit = repository.getParentCommitOf(commitId);
-
-        if (fileDiffs == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project));
-        }
-
-        if (patch == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project));
-        }
-
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).findList();
 
-        String selectedBranch = request().getQueryString("branch");
-        
-        return ok(diff.render(project, commit, parentCommit, patch, comments, selectedBranch, fileDiffs));
+        if(project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {
+            String patch = repository.getPatch(commitId);
+
+            if (patch == null) {
+                return notFound(ErrorViews.NotFound.render("error.notfound", project));
+            }
+
+            String selectedBranch = request().getQueryString("branch");
+
+            return ok(svnDiff.render(project, commit, parentCommit, patch, comments, selectedBranch));
+        } else {
+            List<FileDiff> fileDiffs = repository.getDiff(commitId);
+
+            if (fileDiffs == null) {
+                return notFound(ErrorViews.NotFound.render("error.notfound", project));
+            }
+
+            String selectedBranch = request().getQueryString("branch");
+
+            return ok(diff.render(project, commit, parentCommit, comments, selectedBranch, fileDiffs));
+        }
     }
 
     public static Result newComment(String ownerName, String projectName, String commitId)
