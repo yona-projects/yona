@@ -273,7 +273,18 @@
 
             <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
                 <div class="diff-body">
-                    @views.html.partial_diff(pull.getDiff, comments)
+                    @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
+                </div>
+                <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
+                    <h4 class="path">
+                        <span></span>
+                        <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
+                    </h4>
+                    <div class="row-fluid">
+                        <div class="span6 compare-from"></div>
+                        <div class="span6 compare-to"></div>
+                    </div>
+                    <div id="mergely" class="mergely-wrap"></div>
                 </div>
             </div>
         </div>
@@ -281,9 +292,13 @@
 
 @common.markdown(project)
 
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
-
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+<script type="text/javascript" src="@getJSLink("lib/diff")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {
@@ -314,7 +329,11 @@
         $yobi.loadModule("code.Diff", {
             "welDiff": $("#pull-request-changes"),
             "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
-            "bCommentable": "isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)"
+            "bCommentable": "isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)",
+            "sTplFileURLA"    : "@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
+            "sTplFileURLB"    : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")",
+            "sTplRawURLA"     : "@routes.CodeApp.showRawFile(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
+            "sTplRawURLB"     : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
         });
     });
 </script>

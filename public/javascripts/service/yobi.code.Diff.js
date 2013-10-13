@@ -41,8 +41,10 @@
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
-            htVar.sTplFileURL = htOptions.sTplFileURL;
-            htVar.sTplRawURL = htOptions.sTplRawURL;
+            htVar.sTplFileURLA = htOptions.sTplFileURLA ?htOptions.sTplFileURLA : htOptions.sTplFileURL;
+            htVar.sTplFileURLB = htOptions.sTplFileURLB ?htOptions.sTplFileURLB : htOptions.sTplFileURL;
+            htVar.sTplRawURLA = htOptions.sTplRawURLA ? htOptions.sTplRawURLA : htOptions.sTplRawURL;
+            htVar.sTplRawURLB = htOptions.sTplRawURLB ? htOptions.sTplRawURLB : htOptions.sTplRawURL;
             htVar.rxSlashes = /\//g;
             
             // 미니맵
@@ -146,8 +148,6 @@
                 for (var j = 0; j < aComment[sSelector].length; j++) {
                     welCommentList.append(aComment[sSelector][j]);
                 }
-
-                _appendCommentToggle($(sSelector), welCommentList);
             }
 
             htElement.welComments.show(); // Show the remain comments
@@ -327,8 +327,8 @@
             var sType = welTr.data('type');
             var sCommitId;
             var sPath;
-            var sCommitA = welTr.closest('div.diff-body').data('commitA');
-            var sCommitB = welTr.closest('div.diff-body').data('commitB');
+            var sCommitA = welTr.closest('.diff-body').data('commitA');
+            var sCommitB = welTr.closest('.diff-body').data('commitB');
 
             if (isNaN(nLine)) {
                 nLine = parseInt(welTr.prev().data('line'));
@@ -376,30 +376,35 @@
                 var welTo = welTR.find("td.linenum-to");
                 var welFrom = welTR.find("td.linenum-from");
                 var welBody = welTR.find("td.line-body");
-                var sPath = welBody.text().substr(1);
                 var sURL = "#", sCommitId="";
-                
-                // 부모 커밋(from)이 있는 경우
-                if(htVar.sParentCommitId) {
-                    sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sParentCommitId, "path":sPath});
-                    sCommitId = htVar.sParentCommitId.substr(0, Math.min(7, htVar.sParentCommitId.length));
+
+                var sCommitA = welTR.closest('.diff-body').data('commitA');
+                var sCommitB = welTR.closest('.diff-body').data('commitB');
+                var sPathA = welTR.closest('.diff-body').data('pathA');
+                var sPathB = welTR.closest('.diff-body').data('pathB');
+
+                // 두 시점에 대한 커밋, 경로 정보를 모두 갖고 있다면
+                if(sCommitA && sCommitB && sPathA && sPathB) {
+                    sURL = $yobi.tmpl(htVar.sTplFileURLA, {"commitId": sCommitA, "path":sPathA});
+                    sCommitId = sCommitA.substr(0, Math.min(7, sCommitA.length));
                     welFrom.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
                     
                     // 전체비교(fulldiff) 버튼 추가
                     var welBtnFullDiff = $('<button type="button" class="ybtn pull-right">').text(Messages("code.fullDiff"));
                     welBtnFullDiff.data({
-                        "path": sPath,
-                        "from": htVar.sParentCommitId,
-                        "to"  : htVar.sCommitId
+                        "pathA": sPathA,
+                        "pathB": sPathB,
+                        "from": sCommitA,
+                        "to"  : sCommitB
                     });
                     welBtnFullDiff.on("click", _onClickBtnFullDiff);
                     welBody.append(welBtnFullDiff);
                 }
 
                 // 변경된 새 커밋(to) 표시
-                sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sCommitId, "path":sPath});
-                sCommitId = htVar.sCommitId.substr(0, Math.min(7, htVar.sCommitId.length));
-                welTo.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
+                sURL = $yobi.tmpl(htVar.sTplFileURLB, {"commitId":sCommitB, "path":sPathB});
+                sCommitB = sCommitB.substr(0, Math.min(7, sCommitB.length));
+                welTo.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitB + '</a>');
 
                 welTR = welTo = welFrom = welBody = null; // gc
             });
@@ -440,12 +445,17 @@
             var welTarget = $(weEvt.target);
             var sToId   = welTarget.data("to");
             var sFromId = welTarget.data("from");
-            var sPath   = welTarget.data("path");
-            var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sToId, "path": sPath});
-            var sRawURLTo = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sFromId, "path": sPath});
+            var sPathA  = welTarget.data("pathA");
+            var sPathB  = welTarget.data("pathB");
+            var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURLA, {"commitId": sFromId, "path": sPathA});
+            var sRawURLTo = $yobi.tmpl(htVar.sTplRawURLB, {"commitId": sToId, "path": sPathB});
             
             // UpdateText
-            htElement.welMergelyPathTitle.text(sPath);
+            if (sPathA != sPathB) {
+                htElement.welMergelyPathTitle.text(sPathA + " -> " + sPathB);
+            } else {
+                htElement.welMergelyPathTitle.text(sPathB);
+            }
             htElement.welMergelyCommitFrom.text(sFromId);
             htElement.welMergelyCommitTo.text(sToId);
             htElement.welMergelyWrap.modal();

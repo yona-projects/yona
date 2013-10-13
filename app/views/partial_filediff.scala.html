@@ -1,0 +1,69 @@
+@(diff: playRepository.FileDiff, comments: java.util.List[_ <: CodeComment])
+
+@import playRepository.DiffLineType
+@import playRepository.DiffLine
+@import playRepository.FileDiff
+@import org.eclipse.jgit.diff.DiffEntry
+@import org.eclipse.jgit.diff.RawText
+@import utils.TemplateHelper.DiffRenderer._
+@import utils.TemplateHelper._
+@import scala.collection.immutable.Map
+@import scala.collection.immutable.List
+@import scala.collection.JavaConversions._
+
+@renderDiffLines(diff: playRepository.FileDiff, comments: Map[String, List[_ <: CodeComment]]) = {
+  @if(diff.getHunks.size > 0){
+    @for(hunk <- diff.getHunks) {
+      <tr class="range"><td>...</td><td>...</td><td>@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
+      @Html(renderLines(hunk.lines.toList, comments))
+    }
+  } else {
+    <tr><td colspan=3>@Messages("code.noChanges")</td></tr>
+  }
+}
+
+@renderRawFile(path: String, rawText: RawText, kind: String, prefix: String, comments: Map[String, List[_ <: CodeComment]]) = {
+  @for(i <- 0 until rawText.size) {
+    @partial_diff_line(kind, prefix, i + 1, null, i + 1, rawText.getString(i))
+    @partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, kind, i + 1)))
+  }
+}
+
+@renderAddedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]]) = {
+  <tr class="range"><td>...</td><td>...</td><td>@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
+  @renderRawFile(path, rawText, "add", "+", comments)
+}
+
+@renderRemovedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]]) = {
+  <tr class="range"><td>...</td><td>...</td><td>@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
+  @renderRawFile(path, rawText, "remove", "-", comments)
+}
+
+@renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {
+  <table class="diff-body show-comments" data-path-a="@diff.pathA" data-path-b="@diff.pathB" data-commit-a="@diff.commitA" data-commit-b="@diff.commitB"><tbody>
+  <tr class="file">
+      <td class="linenum-from"></td><td class="linenum-to"></td><td class="line-body"><span class="filename">@fileHeader</span></td>
+  </tr>
+  @renderedLines
+  </tbody></table>
+}
+
+@defining(comments.toList.groupBy((comment: CodeComment) => commentKey(comment.path, comment.side, comment.line))) { comments =>
+  @diff.changeType match {
+    case DiffEntry.ChangeType.MODIFY => {
+      @renderFile(diff, diff.pathB, renderDiffLines(diff, comments))
+    }
+    case DiffEntry.ChangeType.ADD => {
+      @renderFile(diff, Messages("code.addedPath", diff.pathB), renderAddedLines(diff.b, diff.pathB, comments))
+    }
+    case DiffEntry.ChangeType.DELETE => {
+      @renderFile(diff, Messages("code.deletedPath", diff.pathA), renderRemovedLines(diff.a, diff.pathA, comments))
+    }
+    case DiffEntry.ChangeType.RENAME => {
+      @renderFile(diff, Messages("code.renamedPath", diff.pathA, diff.pathB), renderDiffLines(diff, comments))
+    }
+    case DiffEntry.ChangeType.COPY => {
+      @renderFile(diff, Messages("code.copiedPath", diff.pathA, diff.pathB), renderAddedLines(diff.b, diff.pathB, comments))
+    }
+  }
+}
