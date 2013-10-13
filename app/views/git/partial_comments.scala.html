@@ -20,7 +20,7 @@
 }
 
 @renderPullRequestComment(comment: PullRequestComment, thread: immutable.List[PullRequestComment] = Nil) = {
-<li id="comment-@comment.id" class="comment @isAuthorComment(comment.authorLoginId)" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-path="@comment.path" data-line="@comment.line" data-side="@comment.side" @if(comment.hasValidCommitId){data-outdated="@comment.isOutdated"}>
+<li id="comment-@comment.id" class="comment @isAuthorComment(comment.authorLoginId)" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-path="@comment.path" data-line="@comment.line" data-side="@comment.side" @if(isLineComment(comment)){data-outdated="@comment.isOutdated"}>
     <div class="comment-avatar">
       <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
         <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
@@ -48,7 +48,7 @@
           </span>
         }
 
-        @if(comment.hasValidCommitId && comment.isOutdated) {
+        @if(isLineComment(comment) && comment.isOutdated) {
           <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>
         }
 
@@ -59,7 +59,7 @@
         }
       </div>
 
-      @if(comment.hasValidCommitId && hasDiff(comment)) {
+      @if(isLineComment(comment) && hasDiff(comment)) {
         <div class="diff-body" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-outdated="true">
           @views.html.partial_filediff(comment.getDiff, thread)
         </div>
@@ -119,7 +119,6 @@
   }
 }
 
-
 @renderCommitComment(comment: CommitComment) = {
   @defining(PullRequestCommit.getStateByCommitId(pull, comment.commitId)) { state =>
     @if(state != null) {
@@ -160,13 +159,13 @@
   }
 }
 
-@isLineComment(comment: PullRequestComment) = @{ comment.hasValidCommitId && comment.line != null }
+@isLineComment(comment: PullRequestComment) = @{ comment.line != null && comment.hasValidCommitId }
 
 @hasDiff(comment: PullRequestComment) = @{ isLineComment(comment) && !comment.isCommitLost && comment.getDiff != null }
 
 @if(!comments.isEmpty) {
   @comments.head match {
-    case (comment: PullRequestComment) if comment.hasValidCommitId && comment.isOutdated => {
+    case (comment: PullRequestComment) if isLineComment(comment) && comment.isOutdated => {
       @threadAndRemains(comment, comments.tail) match {
         case (outdatedThread, remains) => {
           @renderPullRequestComment(comment, outdatedThread)
