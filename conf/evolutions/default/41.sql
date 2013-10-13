@@ -7,6 +7,7 @@ DROP SEQUENCE IF EXISTS simple_comment_seq;
 ALTER TABLE pull_request_comment ADD COLUMN project_id bigint;
 ALTER TABLE pull_request_comment ADD COLUMN commit_a varchar(40);
 ALTER TABLE pull_request_comment ADD COLUMN commit_b varchar(40);
+ALTER TABLE pull_request_comment ADD COLUMN commit_id varchar(40);
 ALTER TABLE pull_request_comment ADD COLUMN path varchar(255);
 ALTER TABLE pull_request_comment ADD COLUMN line integer;
 ALTER TABLE pull_request_comment ADD COLUMN side varchar(16);
@@ -53,6 +54,7 @@ ALTER TABLE attachment ADD CONSTRAINT ck_attachment_container_type check (contai
 ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS project_id;
 ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS commit_a;
 ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS commit_b;
+ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS commit_id;
 ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS path;
 ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS line;
 ALTER TABLE pull_request_comment DROP COLUMN IF EXISTS side;
