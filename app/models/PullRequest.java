@@ -42,10 +42,7 @@ import play.db.ebean.Transactional;
 
 import play.i18n.Messages;
 
-import playRepository.GitCommit;
-import playRepository.GitConflicts;
-import playRepository.FileDiff;
-import playRepository.GitRepository;
+import playRepository.*;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
 import utils.AccessControl;
@@ -616,8 +613,8 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @return
      */
     @Transient
-    public List<CodeComment> getCodeComments() {
-        return CodeComment.findByCommits(fromProject, pullRequestCommits);
+    public List<CommitComment> getCodeComments() {
+        return CommitComment.findByCommits(fromProject, pullRequestCommits);
     }
     
     /**
@@ -635,8 +632,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      */
     @Transient
     public List<TimelineItem> getTimelineComments() {
-        List<PullRequestComment> comments = getComments();
-        List<CodeComment> codeComments = getCodeComments();
+        List<CommitComment> codeComments = getCodeComments();
         
         List<TimelineItem> timelineComments = new ArrayList<>();
         timelineComments.addAll(comments);

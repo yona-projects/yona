@@ -435,7 +435,16 @@ public class PullRequestApp extends Controller {
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
 
-        List<PullRequestComment> comments = PullRequestComment.findByResourceKey(pullRequest.getResourceKey());
+        List<PullRequestComment> comments = new ArrayList<>();
+
+        for (PullRequestComment comment : pullRequest.comments) {
+            if (comment.hasValidCommitId()) {
+                if (comment.commitId == null) {
+                    comment.commitId = comment.commitB;
+                }
+                comments.add(comment);
+            }
+        }
 
         return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch, activeTab));
     }

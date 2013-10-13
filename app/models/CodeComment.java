@@ -21,7 +21,7 @@ import javax.validation.constraints.Size;
 
 
 @MappedSuperclass
-public class CodeComment extends Model implements ResourceConvertible, TimelineItem {
+abstract public class CodeComment extends Model implements ResourceConvertible, TimelineItem {
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 

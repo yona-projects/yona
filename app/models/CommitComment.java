@@ -3,6 +3,7 @@ package models;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -72,10 +73,10 @@ public class CommitComment extends CodeComment {
         return count;
     }
 
-    public static List<CodeComment> findByCommits(Project project, List<PullRequestCommit> commits) {
-        List<CodeComment> list = new ArrayList<>();
+    public static List<CommitComment> findByCommits(Project project, List<PullRequestCommit> commits) {
+        List<CommitComment> list = new ArrayList<>();
         for(PullRequestCommit commit: commits) {
-            list.addAll(CodeComment.find.where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).findList());
+            list.addAll(CommitComment.find.where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).findList());
         }
         return list;
     }

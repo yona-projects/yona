@@ -34,6 +34,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     @Transient
     private Boolean _isOutdated = null;
 
+    @Transient
+    private Boolean _isCommitLost = null;
+
     public void authorInfos(User user) {
         this.authorId = user.id;
         this.authorLoginId = user.loginId;
@@ -91,6 +94,40 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         return createdDate;
     }
 
+    private boolean isCommitIdValid(Project project, String rev) {
+        try {
+            Repository repo = GitRepository.buildGitRepository(project);
+            ObjectId objectId = repo.resolve(rev);
+            if (objectId == null) {
+                play.Logger.info(String.format(
+                        "Git object not found: revision '%s' in %s", rev, repo.toString()));
+                return false;
+            } else {
+                return true;
+            }
+        } catch (Exception e) {
+            play.Logger.info(String.format("Invalid revision %s", rev), e);
+            return false;
+        }
+    }
+
+    public boolean hasValidCommitId() {
+        return isCommitIdValid(pullRequest.toProject, commitA) &&
+                isCommitIdValid(pullRequest.fromProject, commitB);
+    }
+
+    public boolean isCommitLost() throws IOException {
+        try {
+            getDiff();
+            _isCommitLost = false;
+        } catch (MissingObjectException e) {
+            play.Logger.info(this + ": commit is missing", e);
+            _isCommitLost = true;
+        }
+
+        return _isCommitLost;
+    }
+
     public boolean isOutdated() throws IOException, ServletException {
         if (line == null) {
             return false;
@@ -120,14 +157,21 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         return _isOutdated;
     }
 
-    static private String getLastChangedCommitUntil(Repository gitRepo, String rev,
-                                                    String path, Integer line) throws IOException, IllegalArgumentException {
+    static private String getLastChangedCommitUntil(
+            Repository gitRepo, String rev, String path, Integer line)
+            throws IOException, IllegalArgumentException {
         BlameGenerator blame = new BlameGenerator(gitRepo, path);
+
+        if (rev == null) {
+            throw new IllegalArgumentException(String.format("Null revision is not allowed"));
+        }
+
         ObjectId id = gitRepo.resolve(rev);
 
         if (id == null) {
             throw new IllegalArgumentException(
-                    String.format("Git object not found: revision '%s' in %s", rev, gitRepo.toString()));
+                    String.format("Git object not found: revision '%s' in %s",
+                            rev, gitRepo.toString()));
         }
 
         int typeCode = gitRepo.getObjectDatabase().newReader().open(id).getType();
