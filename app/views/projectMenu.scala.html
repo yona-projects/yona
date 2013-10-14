@@ -20,13 +20,14 @@
 <div class="project-menu">
     <ul class="nav project-menu-wrap">
         <li class="@isActiveMenu(MenuType.PROJECT_HOME)">
-            <a href="@routes.ProjectApp.project(project.owner, project.name)">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)" data-toggle="tooltip" title="@Messages("menu.home")" data-placement="right">
                 <i class="yobicon-home"></i>
                 <span class="menu-title">@Messages("title.projectHome")</span>
             </a>
         </li>
+
         <li class="@isActiveMenu(MenuType.BOARD)">
-            <a href="@routes.BoardApp.posts(project.owner, project.name)">
+            <a href="@routes.BoardApp.posts(project.owner, project.name)" data-toggle="tooltip" title="@Messages("menu.board")" data-placement="right" >
                 <i class="yobicon-notes"></i>
                 <span class="menu-title">@Messages("menu.board")</span>
                 @if(Posting.countPostings(project) > 0){
@@ -35,14 +36,14 @@
             </a>
         </li>
         <li class="@isActiveMenu(MenuType.CODE)">
-            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)">
+            <a href="@routes.CodeApp.codeBrowser(project.owner, project.name)" data-toggle="tooltip" title="@Messages("menu.code")" data-placement="right">
                 <i class="yobicon-code"></i>
                 <span class="menu-title">@Messages("menu.code")</span>
             </a>
         </li>
          @if(project.vcs.equals("GIT")){
         <li class="@isActiveMenu(MenuType.PULL_REQUEST)">
-            <a href="@getPullRequestURL(project)">
+            <a href="@getPullRequestURL(project)" data-toggle="tooltip" title="@Messages("menu.pullRequest")" data-placement="right">
                 <i class="yobicon-merge"></i>
                 <span class="menu-title">@Messages("menu.pullRequest")</span>
                 @if(PullRequest.countOpenedPullRequests(project) > 0){
@@ -52,7 +53,7 @@
         </li>
         }
         <li class="@isActiveMenu(MenuType.ISSUE)">
-            <a href="@routes.IssueApp.issues(project.owner, project.name, "open")">
+            <a href="@routes.IssueApp.issues(project.owner, project.name, "open")" data-toggle="tooltip" title="@Messages("menu.issue")" data-placement="right">
                 <i class="yobicon-science"></i>
                 <span class="menu-title">@Messages("menu.issue")</span>
                 @if(Issue.countIssues(project.id, State.OPEN) > 0){
@@ -61,7 +62,7 @@
             </a>
         </li>
         <li class="@isActiveMenu(MenuType.MILESTONE)">
-            <a href="@routes.MilestoneApp.milestones(project.owner, project.name)">
+            <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" data-toggle="tooltip" title="@Messages("milestone")" data-placement="right">
                 <i class="yobicon-tasks"></i>
                 <span class="menu-title">@Messages("milestone")</span>
                 @if(Milestone.countOpened(project) > 0){
@@ -71,7 +72,7 @@
         </li>
         @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
         <li class="@isActiveMenu(MenuType.PROJECT_SETTING)">
-            <a href="@routes.ProjectApp.settingForm(project.owner, project.name)">
+            <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" data-toggle="tooltip" title="@Messages("menu.admin")" data-placement="right">
                 <i class="yobicon-websitebuilder"></i>
                 <span class="menu-title">@Messages("menu.admin")</span>
                 @if(project.enrolledUsers.size > 0){
