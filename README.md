@@ -90,6 +90,7 @@ Yobi
 
 협업 개발 플랫폼 (현재 개발중이며 아직 공식 버전 넘버링이 안 된 상태입니다.)
 
+Official Site: [http://yobi.io](http://yobi.io)
 
 Yobi 소개
 --
