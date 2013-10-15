@@ -473,14 +473,14 @@
         function _updateMergely(sRawURLFrom, sRawURLTo){
             // rhs = from
             $.get(sRawURLFrom).done(function(sData){
-                htElement.welMergely.mergely("rhs", sData);
+                htElement.welMergely.mergely("lhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
             });
             
             // lhs = to
             $.get(sRawURLTo).done(function(sData){
-                htElement.welMergely.mergely("lhs", sData);
+                htElement.welMergely.mergely("rhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
             });
