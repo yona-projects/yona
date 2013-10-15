@@ -308,6 +308,18 @@ yobi.Files = (function(){
     }
     
     /**
+     * 업로더 영역 제거 함수
+     * 
+     * @param {String} sNamespace
+     */
+    function _destroyUploader(sNamespace){
+        if(sNamespace && htElements[sNamespace]){
+            _detachEvent(sNamespace);
+            delete htElements[sNamespace];
+        }
+    }
+    
+    /**
      * 엘리먼트 변수 설정
      * 
      * @param {Hash Table} htOptions
@@ -359,6 +371,18 @@ yobi.Files = (function(){
                 _onPasteFile(sNamespace, weEvt);
             });
         }
+    }
+    
+    /**
+     * 컨테이너 영역에 설정된 이벤트 핸들러 제거
+     * 
+     * @param {String} sNamespace
+     */
+    function _detachEvent(sNamespace){
+        var htElement = htElements[sNamespace];
+        htElement.welInputFile.unbind();
+        htElement.welContainer.unbind();
+        htElement.welTextarea.unbind();
     }
     
     /**
@@ -484,7 +508,9 @@ yobi.Files = (function(){
             return;
         }
         
-        var nIndex = htHandlers[sNamespace + sEventName].indexOf(fHandler);
+        var aHandlers = htHandlers[sNamespace + sEventName];
+        var nIndex = aHandlers ? aHandlers.indexOf(fHandler) : -1;
+        
         if(nIndex > -1){
             htHandlers[sNamespace + sEventName].splice(nIndex, 1);
         }
@@ -522,6 +548,7 @@ yobi.Files = (function(){
         "getEnv"     : _getEnv,
         "setUploader": _getUploader,
         "getUploader": _getUploader,
+        "destroyUploader": _destroyUploader,
         "attach"     : _attachCustomEvent,
         "detach"     : _detachCustomEvent,
         "getList"    : _getFileList,

@@ -98,6 +98,21 @@ yobi.Attachments = function(htOptions) {
     }
     
     /**
+     * 이벤트 핸들러 제거
+     * attach Uploader custom event handlers
+     * 
+     * @param {String} sUploaderId
+     */
+    function _detachUploaderEvent(sUploaderId){
+        yobi.Files.detach({
+            "beforeUpload"  : _onBeforeUpload,
+            "uploadProgress": _onUploadProgress,
+            "successUpload" : _onSuccessUpload,
+            "errorUpload"   : _onErrorUpload
+        }, sUploaderId);
+    }
+
+    /**
      * beforeUpload single file
      * 
      * @param {File} htOptions.oFile
@@ -456,6 +471,26 @@ yobi.Attachments = function(htOptions) {
         }
     }
 
+    /**
+     * destructor
+     */
+    function _destroy(){
+        if(htOptions.sUploaderId){
+            _detachUploaderEvent(htOptions.sUploaderId);
+        }
+        
+        // truncate HTMlElement references
+        for(var sKey in htElements){
+            htElements[sKey] = null;
+        }
+        htElements = null;
+    }
+    
     // call initiator
     _init(htOptions || {});
+    
+    // return public interface
+    return {
+        "destroy": _destroy
+    };
 };

@@ -58,13 +58,10 @@
             </div>
             <div class="pull-request-wrap">
 	            <div class="option request-from">
-	                <div class="option-label">@Messages("pullRequest.from")
-                        <code>
-                            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
-                            <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a> :
-                        </code>
+	                <div class="option-label">@Messages("pullRequest.from"):
+                        <code>@project.owner/@project.name</code>
                     </div>
-	                <div class="option-desc">
+	                <div class="option-desc mt5">
 	                    <div class="btn-group branches" data-name="fromBranch">
 	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
 	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
@@ -82,14 +79,14 @@
 	            </div>
 
                 <div class="arrow">
-	               <i class="yobicon-long-arrow-right"></i>
+	               <i class="yobicon-right"></i>
                 </div>
 
 	            <div class="option request-to">
 	                <div class="option-label">@Messages("pullRequest.to"):
-                        <code>@project.originalProject.owner / @project.originalProject.name</code>
+                        <code>@project.originalProject.owner/@project.originalProject.name</code>
                     </div>
-	                <div class="option-desc">
+	                <div class="option-desc mt5">
 	                    <div class="btn-group branches" data-name="toBranch">
 	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
 	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
@@ -107,7 +104,7 @@
 	            </div>
             </div>
 
-            <div pjax-container>
+            <div id="frmWrap">
 			@views.html.git.partial_diff(form, project, mergeResult, pullRequest)
 			</div>
         }
@@ -118,9 +115,9 @@
 <script type="text/javascript">
 $(document).ready(function() {
     $yobi.loadModule("git.Write", {
-        "url" : "@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)",
+        "sFormURL"     : "@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)",
         "welFromBranch": $("div[data-name='fromBranch']"),
-        "welToBranch": $("div[data-name='toBranch']")
+        "welToBranch"  : $("div[data-name='toBranch']")
     });
 });
 </script>
