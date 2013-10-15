@@ -380,10 +380,26 @@
             // 중복 방지용
             if(htVar.aAddedDepth.indexOf(nDepth) === -1){
                 htVar.aAddedDepth.push(nDepth);
-                htVar.elStyle.addRule('.depth-' + nDepth + ' .filename', 'padding-left:' + (20 * nDepth) + 'px');
+                _addCSSRule('.depth-' + nDepth + ' .filename', 'padding-left:' + (20 * nDepth) + 'px');
             }
         }
         
+        /**
+         * 동적으로 CSS 스타일 규칙을 추가하기 위한 함수
+         * 
+         * @param {String} sSelector
+         * @param {String} sRule
+         */
+        function _addCSSRule(sSelector, sRule){
+            var elStyle = htVar.elStyle;
+            
+            if(elStyle.addRule){ // Chrome, IE
+                elStyle.addRule(sSelector, sRule);
+            } else if(htVar.elStyle.insertRule){ // Firefox
+                elStyle.insertRule(sSelector + ' { ' + sRule + ' }', elStyle.cssRules.length);
+            }
+        }
+
         /**
          * 파일 보기 화면일 경우
          * _init 에서 호출된다
