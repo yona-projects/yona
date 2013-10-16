@@ -501,7 +501,10 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public List<FileDiff> getDiff() throws IOException {
-        return getDiff(toBranch, fromBranch);
+        if (mergedCommitIdFrom == null || mergedCommitIdTo == null) {
+            throw new IllegalStateException("No mergedCommitIdFrom or mergedCommitIdTo");
+        }
+        return getDiff(mergedCommitIdFrom, mergedCommitIdTo);
     }
 
     @Transient
@@ -682,6 +685,9 @@ public class PullRequest extends Model implements ResourceConvertible {
                 MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
                 if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
                     conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
+                } else if (mergeResult.getMergeStatus().isSuccessful()) {
+                    pullRequest.mergedCommitIdFrom = mergeResult.getMergedCommits()[0].getName();
+                    pullRequest.mergedCommitIdTo = mergeResult.getMergedCommits()[1].getName();
                 }
             }
         });

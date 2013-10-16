@@ -273,7 +273,15 @@
 
             <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
                 <div class="diff-body">
-                    @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
+                    @defining(pull.getDiff) { diff =>
+                      @if(pull.isMerging) {
+                        <div class="alert alert-warnning">
+                          <h5>@Messages("pullRequest.is.merging")</h5>
+                        </div>
+                      } else {
+                        @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
+                      }
+                    }
                 </div>
                 <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
                     <h4 class="path">
