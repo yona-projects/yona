@@ -302,10 +302,8 @@
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {
-            "sWatchUrl"     : "@routes.WatchApp.watch(pull.asResource.asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(pull.asResource.asParameter)",
-            "sFilesURL" : "@routes.AttachmentApp.getFileList",
-            "sUploadURL": "@routes.AttachmentApp.uploadFile"
+            "sWatchUrl"  : "@routes.WatchApp.watch(pull.asResource.asParameter)",
+            "sUnwatchUrl": "@routes.WatchApp.unwatch(pull.asResource.asParameter)"
         });
 
         yobi.Mention({
@@ -317,23 +315,13 @@
             }
         });
 
-		$("button.more").click(function(){
-		    $(this).next("pre").toggleClass("hidden");
-		});
-
-		$("a#toggle").click(function(event) {
-		    event.preventDefault();
-			$("#outdatedCommits").toggle(); 
-		})
-
         $yobi.loadModule("code.Diff", {
-            "welDiff": $("#pull-request-changes"),
-            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
-            "bCommentable": "isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)",
-            "sTplFileURLA"    : "@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
-            "sTplFileURLB"    : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")",
-            "sTplRawURLA"     : "@routes.CodeApp.showRawFile(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
-            "sTplRawURLB"     : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
+            "welDiff"      : $("#pull-request-changes"),
+            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)",
+            "sTplFileURLA" : "@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
+            "sTplFileURLB" : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")",
+            "sTplRawURLA"  : "@routes.CodeApp.showRawFile(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
+            "sTplRawURLB"  : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
         });
     });
 </script>

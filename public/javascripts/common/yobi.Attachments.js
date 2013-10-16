@@ -64,6 +64,7 @@ yobi.Attachments = function(htOptions) {
     function _initElement(htOptions){
         // welContainer
         htElements.welContainer = $(htOptions.elContainer);
+        htElements.welContainer.data("isYobiAttachment", true);
         htVar.sResourceId = htVar.sResourceId || htElements.welContainer.attr('data-resourceId');
         htVar.sResourceType = htVar.sResourceType || htElements.welContainer.attr('data-resourceType');
         

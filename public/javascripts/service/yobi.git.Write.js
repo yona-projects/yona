@@ -36,6 +36,7 @@
             htVar.sUploaderId = null;
             htVar.oSpinner = null;
             htVar.htUserInput = {};
+            htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
         
         /**
@@ -222,13 +223,15 @@
             
             // 업로더 초기화
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welInputBody);
-            htVar.sUploaderId = oUploader.attr("data-namespace");
-            htVar.oAttachments = new yobi.Attachments({
-                "elContainer"  : htElement.welUploader,
-                "elTextarea"   : htElement.welInputBody,
-                "sTplFileItem" : $('#tplAttachedFile').text(),
-                "sUploaderId"  : htVar.sUploaderId
-            });
+            if(oUploader){
+                htVar.sUploaderId = oUploader.attr("data-namespace");
+                htVar.oAttachments = new yobi.Attachments({
+                    "elContainer"  : htElement.welUploader,
+                    "elTextarea"   : htElement.welInputBody,
+                    "sTplFileItem" : htVar.sTplFileItem,
+                    "sUploaderId"  : htVar.sUploaderId
+                });
+            }
         }
         
         _init(htOptions || {});
