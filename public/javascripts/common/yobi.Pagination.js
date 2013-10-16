@@ -48,8 +48,8 @@ yobi.Pagination = (function(window, document) {
 	function urlWithQuery(url, query) {
 		var parser = document.createElement('a');
 			parser.href = url;
-			parser.search = '?' + query;
-			
+			parser.search = (query[0]=='?') ? query : '?' + query;
+		
 		return parser.href;
 	}
 

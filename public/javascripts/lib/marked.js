@@ -689,9 +689,7 @@ InlineLexer.prototype.output = function(src) {
     // text
     if (cap = this.rules.text.exec(src)) {
       src = src.substring(cap[0].length);
-      out += (this.options.wysiwyg) 
-        ? escape(this.smartypants(cap[0])).replace(/\n/g,'<br>')
-        : escape(this.smartypants(cap[0]));
+      out += escape(this.smartypants(cap[0]));
       continue;
     }
 
@@ -1147,7 +1145,6 @@ marked.setOptions = function(opt) {
 
 marked.defaults = {
   gfm: true,
-  wysiwyg : false,
   hook: null,
   tables: true,
   breaks: false,

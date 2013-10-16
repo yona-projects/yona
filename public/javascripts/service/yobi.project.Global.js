@@ -56,6 +56,7 @@
             htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');
             // 프로젝트 페이지에서만.
             
+            htElement.weSideMenu = $('.project-menu-wrap li a');
         }
 
         /**
@@ -65,10 +66,7 @@
         function _attachEvent() {
             htElement.welBtnWatch.on('click',_onClickBtnWatch);
             htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
-            
-            htElement.welBtnMenuToggle.on('click', function(){
-                htElement.welPageWrap.toggleClass('mini');
-            });
+            htElement.welBtnMenuToggle.on('click', _onClickBtnMenuToggle);
             // 내용은 data-content 속성으로 scala 파일 내에 있음.
             htElement.welForkedFrom.popover({
                 "html"   : true
@@ -127,6 +125,20 @@
 
             weEvt.preventDefault();
             return false;
+        }
+
+        /**
+         * MenuToggle 버튼 클릭시 이벤트 핸들러
+         * @param {Wrapped Event} weEvt
+         */
+        function _onClickBtnMenuToggle(weEvt){
+            if(htElement.welPageWrap.hasClass('mini')){
+                htElement.welPageWrap.removeClass('mini');
+                htElement.weSideMenu.tooltip('disable');
+            }else{
+                htElement.welPageWrap.addClass('mini');
+                htElement.weSideMenu.tooltip('enable');
+            }            
         }
 
         /**
