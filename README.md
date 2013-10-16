@@ -117,7 +117,7 @@ java 7(1.7) 이상이어야 합니다.
 
     wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
 
-### 압출풀기
+### 압축풀기
 
     unzip play-2.1.0.zip
 
