@@ -23,6 +23,7 @@ import play.mvc.Result;
 import jxl.write.WriteException;
 
 import org.apache.tika.Tika;
+import org.apache.commons.lang.StringUtils;
 
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
@@ -55,9 +56,6 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
-
-        String pjax = request().getHeader("X-PJAX");
-
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -67,60 +65,134 @@ public class IssueApp extends AbstractPostingApp {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
+        // SearchCondition from param
         Form<models.support.SearchCondition> issueParamForm = new Form<>(models.support.SearchCondition.class);
         models.support.SearchCondition searchCondition = issueParamForm.bindFromRequest().get();
         searchCondition.pageNum = pageNum - 1;
         searchCondition.state = state;
-        if(searchCondition.orderBy.equals("id")) {
+        if (searchCondition.orderBy.equals("id")) {
             searchCondition.orderBy = "createdDate";
         }
-
         searchCondition.labelIds.addAll(LabelSearchUtil.getLabelIds(request()));
 
+        // determine pjax or json when requested with XHR
+        if (HttpUtil.isRequestedWithXHR(request())) {
+            format = HttpUtil.isPJAXRequest(request()) ? "pjax" : "json";
+        }
+        
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
+        Page<Issue> issues = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+        
+        switch(format){
+            case EXCEL_EXT:
+                return issuesAsExcel(project, el);
 
-        if (EXCEL_EXT.equals(format)) {
-            byte[] excelData = Issue.excelFrom(el.findList());
-            String filename = HttpUtil.encodeContentDisposition(
-                    project.name + "_issues_" + JodaDateUtil.today().getTime() + "." + EXCEL_EXT);
+            case "pjax":
+                return issuesAsPjax(project, issues, searchCondition);
 
-            response().setHeader("Content-Type", new Tika().detect(filename));
-            response().setHeader("Content-Disposition", "attachment; " + filename);
+            case "json":
+                return issuesAsJson(project, issues);
 
-            return ok(excelData);
-        } else {
-            Page<Issue> issues = el
-                .findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+            case "html":
+            default:
+                return issuesAsHTML(project, issues, searchCondition); 
+        }
+    }
 
-            boolean isPjax = Boolean.parseBoolean(pjax);
+    /**
+     * 이슈 목록을 HTML 페이지로 반환
+     * issues() 에서 기본값으로 호출된다
+     * 
+     * @param project 프로젝트
+     * @param issues 이슈 목록 페이지
+     * @param searchCondition 검색 조건
+     * @return
+     */
+    private static Result issuesAsHTML(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition){
+        return ok(list.render("title.issueList", issues, searchCondition, project));
+    }
+    
+    /**
+     * 이슈 목록을 Microsoft Excel 형식으로 반환
+     * issues() 에서 요청 형식({@code format})이 엑셀(xls)일 경우 호출된다
+     * 
+     * @param project 프로젝트
+     * @param el
+     * @throws WriteException
+     * @throws IOException
+     * @return
+     */
+    private static Result issuesAsExcel(Project project, ExpressionList<Issue> el) throws WriteException, IOException {
+        byte[] excelData = Issue.excelFrom(el.findList());
+        String filename = HttpUtil.encodeContentDisposition(
+                project.name + "_issues_" + JodaDateUtil.today().getTime() + "." + EXCEL_EXT);
 
-            if (isPjax) {
-                response().setHeader("Cache-Control", "no-cache, no-store");
-                return ok(partial_search.render("title.issueList", issues, searchCondition, project));
-            } else {
-                if(HttpUtil.isRequestedWithXHR(request())){ // not pjax but xhr
-                    List<Issue> issueList = el.findList();
-                    ObjectNode listData = Json.newObject();
+        response().setHeader("Content-Type", new Tika().detect(filename));
+        response().setHeader("Content-Disposition", "attachment; " + filename);
 
-                    if(issueList.size() > 0){
-                        for (int i = 0; i < Math.min(issueList.size(), 3); i++) {
-                            ObjectNode result = Json.newObject();
-                            Issue issue = issueList.get(i);
-                            Long issueId = issue.getNumber();
-                            result.put("id", issueId);
-                            result.put("title", issue.title);
-                            result.put("state", issue.state.toString());
-                            result.put("createdDate", issue.createdDate.toString());
-                            result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
+        return ok(excelData);
+    }
+    
+    /**
+     * 이슈 목록을 PJAX 용으로 응답한다
+     * issuesAsHTML()과 거의 같지만 캐시하지 않고 partial_search 로 렌더링한다는 점이 다르다
+     * 
+     * @param project
+     * @param issues
+     * @param searchCondition
+     * @return
+     */
+    private static Result issuesAsPjax(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition) {
+        response().setHeader("Cache-Control", "no-cache, no-store");
+        return ok(partial_search.render("title.issueList", issues, searchCondition, project));
+    }
+    
+    /**
+     * 이슈 목록을 정해진 갯수만큼 JSON으로 반환한다
+     * QueryString 으로 목록에서 제외할 이슈ID (exceptId) 를 지정할 수 있고 
+     * 반환하는 갯수는 ITEMS_PER_PAGE
+     * 
+     * 이슈 작성/수정시 비슷할 수 있는 이슈 표현을 위해 XHR 이슈 검색시 사용된다 
+     * 
+     * @param project
+     * @param issues
+     * @return
+     */
+    private static Result issuesAsJson(Project project, Page<Issue> issues) {
+        ObjectNode listData = Json.newObject();
 
-                            listData.put(issue.id.toString(), result);
-                        }
-                    }
-                    return ok(listData);
-                }
-                return ok(list.render("title.issueList", issues, searchCondition, project));
+        // 반환할 목록에서 제외할 이슈ID 를 exceptId 로 지정할 수 있다(QueryString)
+        // 이슈 수정시 '비슷할 수 있는 이슈' 목록에서 현재 수정중인 이슈를 제외하기 위해 사용한다
+        String exceptIdStr = request().getQueryString("exceptId");
+        Long exceptId = -1L;
+        
+        if(!StringUtils.isEmpty(exceptIdStr)){
+            try {
+                exceptId = Long.parseLong(exceptIdStr);
+            } catch(Exception e){
+                return badRequest(listData);
             }
         }
+
+        List<Issue> issueList = issues.getList(); // the list of entities for this page
+
+        for (Issue issue : issueList){
+            Long issueId = issue.getNumber();
+            
+            if(issueId == exceptId){
+                continue;
+            }
+            
+            ObjectNode result = Json.newObject();
+            result.put("id", issueId);
+            result.put("title", issue.title);
+            result.put("state", issue.state.toString());
+            result.put("createdDate", issue.createdDate.toString());
+            result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
+            listData.put(issue.id.toString(), result);
+        }
+        
+        return ok(listData);
     }
 
     /**
