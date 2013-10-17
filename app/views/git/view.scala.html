@@ -158,9 +158,6 @@
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
 		                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
 		                }
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn ybtn-danger">@Messages("pullRequest.cancel")</a>
-		                }
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
 		                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
 		                }
@@ -170,17 +167,7 @@
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
 		                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
 		                }
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn-danger">@Messages("pullRequest.cancel")</a>
-		                }
 		            }
-		            
-		            @if(pull.isMerging) {
-		            	@if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
-		                }
-		            }
-		            
 		        </div>
 		        @if(pull.isClosed()) {
 		        <div class="alert alert-info">
