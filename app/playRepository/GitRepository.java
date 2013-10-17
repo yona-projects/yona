@@ -755,16 +755,23 @@ public class GitRepository implements PlayRepository {
                 // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
                 checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
 
-                // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
-                MergeResult mergeResult = merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
+                String mergedCommitIdFrom = null;
+                MergeResult mergeResult = null;
+
+                synchronized(this) {
+                    mergedCommitIdFrom =
+                            cloneRepository.getRef(Constants.HEAD).getObjectId().getName();
+                    // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
+                    mergeResult = merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
+                }
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
                     // merge 커밋 메시지 수정
                     amend(cloneRepository, UserApp.currentUser(), pullRequest);
 
                     ObjectId[] mergedCommits = mergeResult.getMergedCommits();
-                    pullRequest.mergedCommitIdFrom = mergedCommits[0].getName();
-                    pullRequest.mergedCommitIdTo = mergedCommits[1].getName();
+                    pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
+                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
 
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
                     // merge 한 브랜치(destToBranchName)의 코드를 push 한다.

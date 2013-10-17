@@ -17,6 +17,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryBuilder;
 
 import org.joda.time.DateTimeConstants;
 import org.eclipse.jgit.diff.*;
@@ -70,6 +71,7 @@ import java.util.Map;
 import java.util.Set;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.File;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -507,13 +509,16 @@ public class PullRequest extends Model implements ResourceConvertible {
         return getDiff(mergedCommitIdFrom, mergedCommitIdTo);
     }
 
+    public Repository getMergedRepository() throws IOException {
+        File dir = new File(
+                GitRepository.getDirectoryForMerging(toProject.owner, toProject.name) + "/.git");
+        return new RepositoryBuilder().setGitDir(dir).build();
+    }
+
     @Transient
     public List<FileDiff> getDiff(String revA, String revB) throws IOException {
-        Repository repositoryA = GitRepository.buildGitRepository(toProject);
-        Repository repositoryB = GitRepository.buildGitRepository(fromProject);
-
-        return GitRepository.getDiff(repositoryA, revA, repositoryB, revB);
-
+        Repository mergedRepository = getMergedRepository();
+        return GitRepository.getDiff(mergedRepository, revA, mergedRepository, revB);
     }
 
     /**
@@ -681,13 +686,22 @@ public class PullRequest extends Model implements ResourceConvertible {
                 
                 pullRequest.setPatch(GitRepository.getPatch(clonedRepository,
                     cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName()));
-                    
-                MergeResult mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
+
+                String mergedCommitIdFrom = null;
+                MergeResult mergeResult = null;
+
+
+                synchronized(this) {
+                    mergedCommitIdFrom =
+                            clonedRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
+                    mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
+                }
+
                 if (mergeResult.getMergeStatus() == MergeResult.MergeStatus.CONFLICTING) {
                     conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
                 } else if (mergeResult.getMergeStatus().isSuccessful()) {
-                    pullRequest.mergedCommitIdFrom = mergeResult.getMergedCommits()[0].getName();
-                    pullRequest.mergedCommitIdTo = mergeResult.getMergedCommits()[1].getName();
+                    pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
+                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
                 }
             }
         });
