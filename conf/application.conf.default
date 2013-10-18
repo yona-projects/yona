@@ -55,6 +55,7 @@ ebean.default="models.*"
 # ~~~~~
 # You can disable evolutions if needed
 # evolutionplugin=disabled
+applyEvolutions.default=true
 
 # Logger
 # ~~~~~
