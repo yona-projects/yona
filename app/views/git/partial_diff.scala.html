@@ -121,11 +121,25 @@
 			</div>
 			   
 			<div id="__changes" class="tab-pane">
-				<pre>@pullRequest.getPatch()</pre>
+				<div class="diff-body">
+				@views.html.partial_diff(pullRequest.getDiff, new ArrayList[CodeComment])
+				</div>
 			</div>
 			</div>
 			}
 			}
 			</div>
-
-			
+			<input type="hidden" id="commitChanged" value="@if(result != null){ @result.commitChanged } else {false}" />
+			<script type="text/javascript">
+			$(document).ready(function() {
+				$yobi.loadModule("code.Diff", {
+		            "welDiff": $("#pull-request-changes"),
+		            "sAttachmentAction": "@routes.AttachmentApp.uploadFile",
+		            "bCommentable": false,
+		            "sTplFileURLA"    : "@routes.CodeApp.codeBrowserWithBranch(pullRequest.toProject.owner, pullRequest.toProject.name, "${commitId}", "${path}")",
+		            "sTplFileURLB"    : "@routes.CodeApp.codeBrowserWithBranch(pullRequest.fromProject.owner, pullRequest.fromProject.name, "${commitId}", "${path}")",
+		            "sTplRawURLA"     : "@routes.CodeApp.showRawFile(pullRequest.toProject.owner, pullRequest.toProject.name, "${commitId}", "${path}")",
+		            "sTplRawURLB"     : "@routes.CodeApp.showRawFile(pullRequest.fromProject.owner, pullRequest.fromProject.name, "${commitId}", "${path}")"
+		        });
+			});
+			</script>
