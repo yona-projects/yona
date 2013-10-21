@@ -769,7 +769,6 @@ public class GitRepository implements PlayRepository {
                     // merge 커밋 메시지 수정
                     amend(cloneRepository, UserApp.currentUser(), pullRequest);
 
-                    ObjectId[] mergedCommits = mergeResult.getMergedCommits();
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
                     pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
 
