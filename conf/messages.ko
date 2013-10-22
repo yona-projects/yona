@@ -172,7 +172,7 @@ issue.event.closed = {0}님이 이 이슈를 닫았습니다.
 issue.event.open = {0}님이 이 이슈를 다시 열었습니다.
 issue.event.unassigned = {0}님이 이 이슈의 담당자를 "없음"으로 설정하였습니다.
 issue.event.referred.from.pullrequest = {0}님이 <a href="{3}">{1}에서 {2}로 보내는 코드</a>에서 이 이슈를 언급했습니다.
-issue.event.referred.from.commit = {0}님이 <a href="{2}">{1}</a>에서 이 이슈를 언급했습니다.
+issue.event.referred.from.commit = {1} <strong>{0}</strong> 님이 <a href="{3}" class="commit-id">{2}</a>에서 이 이슈를 언급했습니다.
 issue.is.empty = 등록된 이슈가 없습니다.
 issue.list.all = 전체 이슈
 issue.list.assignedToMe = 나에게 할당된 이슈
