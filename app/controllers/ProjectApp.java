@@ -339,13 +339,13 @@ public class ProjectApp extends Controller {
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
             RepositoryService.deleteRepository(loginId, projectName, project.vcs);
             project.delete();
-            
+
             // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
             if(HttpUtil.isRequestedWithXHR(request())){
                 response().setHeader("Location", routes.Application.index().toString());
-                return status(204);            
+                return status(204);
             }
-            
+
             return redirect(routes.Application.index());
         } else {
             flash(Constants.WARNING, "project.member.isManager");
@@ -511,7 +511,12 @@ public class ProjectApp extends Controller {
         if(!commitId.isEmpty()) {
             addCommitAuthor(RepositoryService.getRepository(pullRequest.fromProject).getCommit(commitId), userList);
         }
-        userList.add(pullRequest.contributor);
+
+        User contributor = pullRequest.contributor;
+        if(!userList.contains(contributor)) {
+            userList.add(contributor);
+        }
+
         userList.remove(UserApp.currentUser());
 
         List<Map<String, String>> mentionList = new ArrayList<>();
