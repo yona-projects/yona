@@ -152,16 +152,18 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
             path = path.substring(1);
         }
 
+        Repository mergedRepository = pullRequest.getMergedRepository();
+
         if (commitId.equals(commitA)) {
             _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.toProject),
-                    pullRequest.toBranch, commitId, path, line);
+                    pullRequest.toBranch, mergedRepository, commitId, path, line);
         } else {
             if (!commitId.equals(commitB)) {
                 play.Logger.warn(
                         "Invalid PullRequestComment.commitId: It must equal to commitA or commitB.");
             }
             _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.fromProject),
-                        pullRequest.fromBranch, commitId, path, line);
+                        pullRequest.fromBranch, mergedRepository, commitId, path, line);
         }
 
         return _isOutdated;
@@ -210,10 +212,11 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
      * @return
      * @throws IOException
      */
-    static private boolean noChangesBetween(Repository gitRepo, String rev1, String rev2,
+    static private boolean noChangesBetween(Repository repoA, String rev1,
+                                            Repository repoB, String rev2,
                                             String path, Integer line) throws IOException {
-        String a = getLastChangedCommitUntil(gitRepo, rev1, path, line);
-        String b = getLastChangedCommitUntil(gitRepo, rev2, path, line);
+        String a = getLastChangedCommitUntil(repoA, rev1, path, line);
+        String b = getLastChangedCommitUntil(repoB, rev2, path, line);
 
         return a.equals(b);
     }
