@@ -20,13 +20,11 @@
         <p class="infos nm">
             <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a><!--
             -->&nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
-        </p>
-    </div>
-    <div class="right-panel">
-        <div class="comment-wrap">
             @if(post.numOfComments > 0){
-            <i class="yobicon-comments"></i> <span class="num">@post.numOfComments</span>
+             <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)#comments" class="comment-wrap">
+                <i class="yobicon-comments"></i> <span class="num">@post.numOfComments</span>
+            </a>
             }
-        </div>
+        </p>
     </div>
 </li>
