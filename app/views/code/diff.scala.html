@@ -6,31 +6,9 @@
 @import utils.JodaDateUtil._
 @import utils.AccessControl._
 
-@branchItemType(itemType:String) = @{
-    if(itemType == "heads"){
-        "branch"
-    } else {
-        itemType
-    }
-}
-
-@makeBranchItem(project:Project, branch:String) = {
-    @defining(branch.split('/')){ names =>
-        @if(names(0).equals("refs") && names.length == 3){
-            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(names(2), "UTF-8"), null)"><!--
-             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
-             -->@names(2)
-            </a></li>
-        } else {
-            <li data-value="@branch"><a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), null)">@branch</a></li>
-        }
-    }
-}
-
 @projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
 
 <div class="page">
-
     @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 
     <div class="code-browse-wrap">
@@ -42,7 +20,7 @@
             <ul class="dropdown-menu">
             @defining(RepositoryService.getRepository(project).getBranches()) { branches =>
                 @for(branch <- branches){
-                    @makeBranchItem(project, branch)
+                    @partial_branchitem(project, branch, "history", "")
                 }
             }
             </ul>
@@ -173,12 +151,12 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
-            "welDiff": $("#commit"),
-            "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.COMMIT_COMMENT)){true}else{false},
-            "sWatchUrl"     : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
-            "sUnwatchUrl"   : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
-            "sTplFileURL"    : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",
-            "sTplRawURL"     : "@routes.CodeApp.showRawFile(project.owner, project.name, "${commitId}", "${path}")"
+            "welDiff"     : $("#commit"),
+            "bCommentable": @if(isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.COMMIT_COMMENT)){true}else{false},
+            "sWatchUrl"   : "@routes.WatchApp.watch(commit.asResource(project).asParameter)",
+            "sUnwatchUrl" : "@routes.WatchApp.unwatch(commit.asResource(project).asParameter)",
+            "sTplFileURL" : "@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "${commitId}", "${path}")",
+            "sTplRawURL"  : "@routes.CodeApp.showRawFile(project.owner, project.name, "${commitId}", "${path}")"
         });
 
         yobi.Mention({

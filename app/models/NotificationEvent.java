@@ -157,7 +157,7 @@ public class NotificationEvent extends Model {
         case PULL_REQUEST_COMMIT_CHANGED:
             return newValue;
         case PULL_REQUEST_MERGED:
-            return Messages.get("notification.type.pull.request.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
+            return Messages.get("notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
         case MEMBER_ENROLL_REQUEST:
             if (RequestState.REQUEST.name().equals(newValue)) {
                 return Messages.get("notification.member.enroll.request");
