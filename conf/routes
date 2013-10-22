@@ -56,7 +56,6 @@ GET     /resetPassword                                  controllers.PasswordRese
 POST    /resetPassword                                  controllers.PasswordResetApp.resetPassword()
 GET     /sites/postList                                 controllers.SiteApp.postList(pageNum: Int ?= 1)
 GET     /sites/issueList                                controllers.SiteApp.issueList(pageNum: Int ?= 1)
-GET		/sites/updatePostNumber							controllers.SiteApp.updatePostNumber()
 
 # Attachments
 GET     /files                                          controllers.AttachmentApp.getFileList()
