@@ -1090,11 +1090,8 @@
                                 color:#666;
                                 font-weight:bold;
                                 &:hover {color:@link-hover-color;}
-
                             }
-                            
                         }
-
 
                         .message-wrap {
                             margin-top:3px;
@@ -1102,19 +1099,24 @@
                             color:#888;
                             padding-left:12px;   
                             overflow:hidden;
-                            max-height:40px;
+                            line-height:20px;    
                             .transition(all 0.3s ease);
+                            min-height:20px;
 
                             .message {
                                 word-break : break-all;
+                                line-height:20px;    
                             }
-                        }
 
-                        .learn-more {
-                            margin-top:5px;
-                            font-size:13px;
-                            color:#bbb;
-                            padding-left:50px;
+                            &.nowrap {
+                                min-height:20px;
+                                height:20px;
+                                .message {
+                                    text-overflow: ellipsis; 
+                                    white-space: nowrap; 
+                                    overflow: hidden;
+                                }
+                            }
                         }
                     }
                 }
