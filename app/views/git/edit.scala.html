@@ -56,11 +56,8 @@
             </div>
             <div class="pull-request-wrap">
 	            <div class="option request-from">
-	                <div class="option-label">@Messages("pullRequest.from")
-                        <code>
-                            <a href="@routes.UserApp.userInfo(project.owner)">@project.owner</a> /
-                            <a href="@routes.ProjectApp.project(project.owner, project.name)">@project.name</a> :
-                        </code>
+	                <div class="option-label">@Messages("pullRequest.from"):
+                        <code>@project.owner/@project.name</code>
                     </div>
 	                <div class="option-desc">
 	                    <div class="btn-group branches" data-name="fromBranch">
@@ -80,12 +77,12 @@
 	            </div>
 
                 <div class="arrow">
-	               <i class="yobicon-long-arrow-right"></i>
+	               <i class="yobicon-right"></i>
                 </div>
 
 	            <div class="option request-to">
 	                <div class="option-label">@Messages("pullRequest.to"):
-                        <code>@project.originalProject.owner / @project.originalProject.name</code>
+                        <code>@project.originalProject.owner/@project.originalProject.name</code>
                     </div>
 	                <div class="option-desc">
 	                    <div class="btn-group branches" data-name="toBranch">
@@ -123,36 +120,14 @@
 <link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
 <script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
 <script type="text/javascript">
-    var memebrList = {
-        "emptyQuery": true,
-        "typeaheadOpts": {"items": 15},
-        "users": []
-    };
-
-    var prevWhich;
-
-    $(function(){
-        function _findUserList(){
-            $.ajax({
-                "type"       : "GET",
-                "dataType"   : "json",
-                "contentType": "application/json",
-                "url"        : "@routes.ProjectApp.mentionList(project.owner, project.name)"
-            }).done(function( data ) {
-                memebrList.users = data;
-                $("#body").mention(memebrList);
-            });
-        }
-
-        $("#contents").keypress(function(event){
-            if(event.which === 64){ // 64 = at
-                _findUserList();
-            }
-        });
-    });
-
 	$(document).ready(function(){
         $yobi.loadModule("git.Write");
+        
+        // yobi.Mention
+        yobi.Mention({
+            "target": "body",
+            "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
+        });
 	});
 </script>
 }

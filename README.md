@@ -16,7 +16,7 @@ Yobi offers many features to increase productivity and quality of your software:
 
 License
 --
-Copyright 2013 Yobi team(currently, NAVER Labs), Inc under the Apache 2.0 license.
+Copyright 2013 NAVER Corp, under the Apache 2.0 license.
 
 ## Installation
 
@@ -117,7 +117,7 @@ java 7(1.7) 이상이어야 합니다.
 
     wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
 
-### 압출풀기
+### 압축풀기
 
     unzip play-2.1.0.zip
 

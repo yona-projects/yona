@@ -158,9 +158,6 @@
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
 		                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
 		                }
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn ybtn-danger">@Messages("pullRequest.cancel")</a>
-		                }
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
 		                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
 		                }
@@ -170,17 +167,7 @@
 		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
 		                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
 		                }
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="ybtn-danger">@Messages("pullRequest.cancel")</a>
-		                }
 		            }
-		            
-		            @if(pull.isMerging) {
-		            	@if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.DELETE)) {
-		                    <a href="@routes.PullRequestApp.cancel(project.owner, project.name, pull.number)" class="nbtn gray medium">@Messages("pullRequest.cancel")</a>
-		                }
-		            }
-		            
 		        </div>
 		        @if(pull.isClosed()) {
 		        <div class="alert alert-info">
@@ -273,7 +260,13 @@
 
             <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
                 <div class="diff-body">
-                    @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
+                    @if(pull.isMerging) {
+                      <div class="alert alert-warnning">
+                        <h5>@Messages("pullRequest.is.merging")</h5>
+                      </div>
+                    } else {
+                      @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
+                    }
                 </div>
                 <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
                     <h4 class="path">

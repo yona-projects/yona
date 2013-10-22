@@ -30,7 +30,7 @@ yobi.Markdown = function(htOptions){
         htVar.sTplSwitch = htOptions.sTplSwitch;
         htVar.sIssuesUrl = htOptions.sIssuesUrl;
         htVar.sProjectUrl = htOptions.sProjectUrl;
-        htVar.bWysiwyg = htOptions.bWysiwyg || false;
+        htVar.breaks = htOptions.breaks;
         htVar.sUserRules = '[a-z0-9_\\-\\.]';
         htVar.sProjecRules = '[a-z0-9_\\-]';
         htVar.sIssueRules = '\\d';
@@ -58,9 +58,8 @@ yobi.Markdown = function(htOptions){
             
         var htMarkedOption = {
           gfm: true,
-          wysiwyg: htVar.bWysiwyg,
           tables: true,
-          breaks: false,
+          breaks: htVar.breaks,
           pedantic: false,
           sanitize: false,
           smartLists: true,
@@ -95,12 +94,10 @@ yobi.Markdown = function(htOptions){
 
                 return _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue, sAt, sShar1,sMention);
             });    
-            
             return  sSrc;
         };
 
         htMarkedOption.hook = hooks;
-      
         return htVar.htFilter.sanitize(marked(sText,htMarkedOption)).xss();
     }
 

@@ -516,7 +516,8 @@
 } 
 
 .project-page-wrap {    
-    margin-top:30px;
+    margin:30px 0;
+    overflow:auto;
     padding:0 40px 0 160px;
     position: relative;
     min-height:580px;
@@ -528,15 +529,14 @@
             
             li {
                 width:40px;
-                
                 a {
                     .menu-title { 
                         display:none;
                     }
                 }
+
             }
         }
-
     }
 }
 
@@ -558,6 +558,29 @@
         color: @yobi-gray;
         .inline-block;
         font-size: 12px;
+
+        a {
+            color:#333;
+            font-weight:bold;
+        }
+
+        .d2-program:hover {
+            background-color:#183054;
+
+            .d2 {
+                color:#f8da3a;
+            }
+
+            .program {
+                color:#fff;
+            }
+        }   
+
+        .naver:hover {
+            color: #1f7f12;
+        }
+
+
     }
 }
 
@@ -1357,6 +1380,8 @@
         width: 384px;
         margin-bottom: 73px;
         .center-block;
+        text-align:center;
+
     }
 }
 
@@ -1389,6 +1414,8 @@
         width: 227px;
         .center-block;
         margin-bottom: 50px;
+        text-align:center;
+
     }
 }
 
@@ -2615,6 +2642,7 @@
 
 .board-comment-wrap {
     display:block; clear:both;
+    font-family:@base-font-family;
     
     .comment-header {
         color: #222;
@@ -2752,6 +2780,8 @@ div.markdown-preview {
 
 .write-comment-box {
     padding: 17px 20px 15px;
+    font-family:@base-font-family;
+
     .write-comment-wrap {
         margin-bottom: 10px;
         position: relative;
