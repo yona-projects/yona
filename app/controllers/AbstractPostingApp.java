@@ -68,14 +68,25 @@ public class AbstractPostingApp extends Controller {
 
     protected static abstract class AbstractNotification implements Notification {
         public String getHtmlMessage() {
-            return String.format(
-                    "<pre>%s</pre><hr><a href=\"%s\">%s</a>",
-                    getMessage(), getUrlToView(), "View it on Yobi");
+            String msg = String.format("<pre>%s</pre>", getMessage());
+            String url = getUrlToView();
+
+            if (url != null) {
+                msg += String.format("<hr><a href=\"%s\">%s</a>", url, "View it on Yobi");
+            }
+
+            return msg;
         }
+
         public String getPlainMessage() {
-            return String.format(
-                    "%s\n\n--\nView it on %s",
-                    getMessage(), getUrlToView());
+            String msg = getMessage();
+            String url = getUrlToView();
+
+            if (url != null) {
+                msg += String.format("\n\n--\nView it on %s", url);
+            }
+
+            return msg;
         }
     }
 
@@ -148,10 +159,10 @@ public class AbstractPostingApp extends Controller {
 
         NotificationEvent notiEvent = new NotificationEvent();
         notiEvent.created = new Date();
-        notiEvent.title = NotificationEvent.formatReplyTitle(post);;
+        notiEvent.title = NotificationEvent.formatReplyTitle(post);
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = toView.absoluteURL(request());
+        notiEvent.urlToView = toView.url();
         notiEvent.resourceId = comment.id.toString();
         notiEvent.resourceType = comment.asResource().getType();
         notiEvent.eventType = EventType.NEW_COMMENT;
