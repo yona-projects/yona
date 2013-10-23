@@ -1,4 +1,4 @@
-@(fileDiffs: java.util.List[playRepository.FileDiff], comments:java.util.List[_ <: CodeComment])
+@(fileDiffs: java.util.List[playRepository.FileDiff], comments:java.util.List[_ <: CodeComment] = new ArrayList[CodeComment])
 
 @for(diff <- fileDiffs) {
   @views.html.partial_filediff(diff, comments)
