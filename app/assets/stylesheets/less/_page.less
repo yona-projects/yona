@@ -3045,11 +3045,9 @@ div.markdown-preview {
     .avatar-wrap { margin-right:10px; }
 
     .title {
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
         overflow: hidden;
-        white-space: nowrap;
-        text-overflow:ellipsis;
-        -webkit-line-clamp:4;
-        -webkit-box-orient:vertical;
     }
 
     .infos {
@@ -3074,7 +3072,6 @@ div.markdown-preview {
     }
     
     .title-link { 
-        display:inline-block; 
         margin:5px 0; margin-right:5px; 
         font-size:14px; font-weight:bold;
         
