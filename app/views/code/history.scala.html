@@ -62,9 +62,9 @@
             <div id="breadcrumbs" class="code-browse-header">
                 <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), "")">@project.name</a>
                 @makeBreadCrumbs(path)
-            </div>            
+            </div>
             }
-            
+
             @if(path == null){
             <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
                 <button class="btn dropdown-toggle large" data-toggle="dropdown">
@@ -155,7 +155,7 @@
                                 </a>
                             </td>
                             }
-                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                            <td class="date">@momentFromNow(commit.getAuthorDate())</td>
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {
@@ -210,7 +210,7 @@ $(document).ready(function(){
     $("button.more").click(function(){
         $(this).next("pre").toggleClass("hidden");
     });
-    
+
     var htKeyMap = {};
     @if(page > 0){
     htKeyMap.A = "@getHistoryURL?page=@(page - 1)";
