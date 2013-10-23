@@ -106,7 +106,7 @@
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget.toggleClass("active");
+                        welTarget.toggleClass("active ybtn-watching");
                     }
                 });
             });
