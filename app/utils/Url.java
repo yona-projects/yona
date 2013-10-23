@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 public class Url {
 
     /**
-     * Create url with given <code>pathSegments</code> and configured scheme, hostname and port.
+     * Create a url with given <code>pathSegments</code> and configured scheme, hostname and port.
      *
      * @param pathSegments List of path segments to construct the path.
      *
@@ -21,7 +21,7 @@ public class Url {
     }
     
     /**
-     * Create url with given <code>pathSegments</code> and configured scheme, hostname and port.
+     * Create a url with given <code>pathSegments</code> and configured scheme, hostname and port.
      * 
      * If hostname is not configured, use defaultHostport as hostname and port.
      * 
@@ -36,7 +36,7 @@ public class Url {
     }
     
     /**
-     * Create url with given <code>pathSegments</code> and configured scheme, hostname and port.
+     * Create a url with given <code>pathSegments</code> and configured scheme, hostname and port.
      * 
      * If scheme is not configured, use defaultScheme as the scheme.
      * If hostname is not configured, use defaultHostport as the hostname and the port.
