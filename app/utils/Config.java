@@ -4,9 +4,8 @@ package utils;
 import play.Configuration;
 import play.mvc.Http;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.Enumeration;
 
 public class Config {
 
@@ -43,8 +42,18 @@ public class Config {
             return getHostport(context.request().host());
         } else {
             try {
-                return java.net.InetAddress.getLocalHost().getHostAddress();
-            } catch (UnknownHostException e) {
+                Enumeration<NetworkInterface> n = NetworkInterface.getNetworkInterfaces();
+                while(n.hasMoreElements())  {
+                    Enumeration<InetAddress> a = n.nextElement().getInetAddresses();
+                    while(a.hasMoreElements()) {
+                        InetAddress address = a.nextElement();
+                        if (!address.isAnyLocalAddress() && (address instanceof Inet4Address)) {
+                            return address.getHostAddress();
+                        }
+                    }
+                }
+                return InetAddress.getLocalHost().getHostAddress();
+            } catch (Exception e) {
                 play.Logger.warn("Failed to get the host address", e);
                 return "localhost";
             }
