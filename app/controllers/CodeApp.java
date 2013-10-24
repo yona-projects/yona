@@ -22,7 +22,6 @@ import views.html.code.nohead;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -172,12 +171,12 @@ public class CodeApp extends Controller {
      * @param ownerName
      * @param projectName
      */
-    public static String getURL(String ownerName, String projectName) throws MalformedURLException {
+    public static String getURL(String ownerName, String projectName) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         return getURL(project);
     }
 
-    public static String getURL(Project project) throws MalformedURLException {
+    public static String getURL(Project project) {
         if (project == null) {
             return null;
         } else if (RepositoryService.VCS_GIT.equals(project.vcs)) {
@@ -196,7 +195,7 @@ public class CodeApp extends Controller {
      * 
      * @param project
      */
-    public static String getURLWithLoginId(Project project) throws MalformedURLException {
+    public static String getURLWithLoginId(Project project) {
         String url = getURL(project);
         if(url != null && project.vcs.equals(RepositoryService.VCS_GIT)) {
             String loginId = session().get(UserApp.SESSION_LOGINID);
