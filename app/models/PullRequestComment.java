@@ -4,11 +4,14 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameGenerator;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import playRepository.FileDiff;
 import playRepository.GitRepository;
 
@@ -17,6 +20,7 @@ import javax.servlet.ServletException;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -138,7 +142,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         return _isCommitLost;
     }
 
-    public boolean isOutdated() throws IOException, ServletException {
+    public boolean isOutdated() throws IOException, ServletException, GitAPIException {
         if (line == null) {
             return false;
         }
@@ -168,11 +172,10 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
         return _isOutdated;
     }
-
     static private String getLastChangedCommitUntil(
-            Repository gitRepo, String rev, String path, Integer line)
-            throws IOException, IllegalArgumentException {
-        BlameGenerator blame = new BlameGenerator(gitRepo, path);
+            Repository gitRepo, String rev, String path)
+            throws IOException, IllegalArgumentException, GitAPIException {
+
 
         if (rev == null) {
             throw new IllegalArgumentException(String.format("Null revision is not allowed"));
@@ -186,17 +189,13 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                             rev, gitRepo.toString()));
         }
 
-        int typeCode = gitRepo.getObjectDatabase().newReader().open(id).getType();
+        Iterator<RevCommit> result =
+                new Git(gitRepo).log().add(id).addPath(path).call().iterator();
 
-        switch (typeCode) {
-            case Constants.OBJ_COMMIT:
-            case Constants.OBJ_TAG:
-                blame.push(null, id);
-                return blame.computeBlameResult().getSourceCommit(line.intValue() - 1).getName();
-            default:
-                throw new IllegalArgumentException(
-                      String.format("Unexpected Git object type '%s' of revision '%s' in %s.",
-                          Constants.encodedTypeString(typeCode), rev, gitRepo.toString()));
+        if (result.hasNext()) {
+            return result.next().getId().getName();
+        } else {
+            return null;
         }
     }
 
@@ -214,9 +213,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
      */
     static private boolean noChangesBetween(Repository repoA, String rev1,
                                             Repository repoB, String rev2,
-                                            String path, Integer line) throws IOException {
-        String a = getLastChangedCommitUntil(repoA, rev1, path, line);
-        String b = getLastChangedCommitUntil(repoB, rev2, path, line);
+                                            String path, Integer line) throws IOException, GitAPIException {
+        String a = getLastChangedCommitUntil(repoA, rev1, path);
+        String b = getLastChangedCommitUntil(repoB, rev2, path);
 
         return a.equals(b);
     }
