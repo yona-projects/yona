@@ -11,32 +11,24 @@
 	<div class="form-wrap milestone frm-wrap">
 		<form class="nm" action="@routes.MilestoneApp.editMilestone(project.owner, project.name, milestoneId)" method="post">
 		<div class="inner left">
-			<dl>
-				<dt>
-					<label for="title">@Messages("milestone.form.title")</label>
-				</dt>
-				<dd>
-					@helper.input(form("title")){(id, name, value, args) =>
-						<input type="text" name="@name" id="@id" class="text" value="@value">
-					}
-				</dd>
-
-				<dt>
-					<label for="contents">@Messages("milestone.form.content")</label>
-				</dt>
-				<dd>
-					@helper.input(form("contents")){(id, name, value, args) =>
-					<textarea class="textarea" id="@id" name="@name" markdown="true">@value</textarea>
-					}
-				</dd>
-			</dl>
-
-			<div class="actions">
-				<button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
-				<a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
-			</div>
+			<div class="title-wrap">
+                <label for="title">@Messages("milestone.form.title")</label>
+                @helper.input(form("title")){(id, name, value, args) =>
+                <input type="text" name="@name" id="@id" placeholder="" value="@value">
+                }
+            </div>
+            <div class="content-wrap">
+                <label for="contents">@Messages("milestone.form.content")</label>
+                @helper.input(form("contents")){(id, name, value, args) =>
+                <textarea id="contents" id="@id" name="@name" markdown="true">@value</textarea>
+                }
+            </div>
+            <div class="actions">
+               <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
+                <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
+            </div>
 		</div>
-
+	
 		<div class="inner right bubble-wrap gray">
 			<p>@Messages("milestone.form.state")</p>
 			<div>
