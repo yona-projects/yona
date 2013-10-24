@@ -105,7 +105,7 @@ public class EnrollProjectApp extends Controller {
         event.eventType = EventType.MEMBER_ENROLL_REQUEST;
         event.receivers = getReceivers(project);
         event.newValue = state.name();
-        event.urlToView = call.absoluteURL(request());
+        event.urlToView = call.url();
         if (state == RequestState.ACCEPT || state == RequestState.REJECT) {
             event.receivers.remove(UserApp.currentUser());
             event.receivers.add(user);
