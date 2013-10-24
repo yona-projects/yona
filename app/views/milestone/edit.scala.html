@@ -6,12 +6,12 @@
 
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@projectMenu(project, utils.MenuType.MILESTONE, "")
+    @projectMenu(project, utils.MenuType.MILESTONE, "")
 
-	<div class="form-wrap milestone frm-wrap">
-		<form class="nm" action="@routes.MilestoneApp.editMilestone(project.owner, project.name, milestoneId)" method="post">
-		<div class="inner left">
-			<div class="title-wrap">
+    <div class="form-wrap milestone frm-wrap">
+        <form class="nm" action="@routes.MilestoneApp.editMilestone(project.owner, project.name, milestoneId)" method="post">
+        <div class="inner left">
+            <div class="title-wrap">
                 <label for="title">@Messages("milestone.form.title")</label>
                 @helper.input(form("title")){(id, name, value, args) =>
                 <input type="text" name="@name" id="@id" placeholder="" value="@value">
@@ -27,25 +27,25 @@
                <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>
                 <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
             </div>
-		</div>
-	
-		<div class="inner right bubble-wrap gray">
-			<p>@Messages("milestone.form.state")</p>
-			<div>
-				<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>&nbsp;
-				<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
-			</div>
-			<hr/>
-			<p>@Messages("milestone.form.dueDate")</p>
-			<label for="dueDate">
-				@helper.input(form("dueDate")){(id, name, value, args) =>
-				<input type="text" name="@name" id="@id" class="validate due-date" value="@value">
-				}
-			</label>
-			<div id="datepicker" class="date-picker"></div>
-		</div>
-		</form>
-	</div>
+        </div>
+    
+        <div class="inner right bubble-wrap gray">
+            <p>@Messages("milestone.form.state")</p>
+            <div>
+                <input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" @if(form("state").value.equals(State.OPEN.name)) { checked="checked" }><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>&nbsp;
+                <input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn" @if(form("state").value.equals(State.CLOSED.name)) { checked="checked" }><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
+            </div>
+            <hr/>
+            <p>@Messages("milestone.form.dueDate")</p>
+            <label for="dueDate">
+                @helper.input(form("dueDate")){(id, name, value, args) =>
+                <input type="text" name="@name" id="@id" class="validate due-date" value="@value">
+                }
+            </label>
+            <div id="datepicker" class="date-picker"></div>
+        </div>
+        </form>
+    </div>
 </div>
 
 @common.markdown(project)
@@ -89,11 +89,11 @@ $(function(){
 <script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>
 <script type="text/javascript" src="@getJSLink("lib/pikaday")"></script>
 <script type="text/javascript">
-	$(document).ready(function() {
-		$yobi.loadModule("milestone.Write", {
-			"elDueDate"   : $("#dueDate"),
-			"elDatePicker": $("#datepicker")
-		});
-	});
+    $(document).ready(function() {
+        $yobi.loadModule("milestone.Write", {
+            "elDueDate"   : $("#dueDate"),
+            "elDatePicker": $("#datepicker")
+        });
+    });
 </script>
 }
