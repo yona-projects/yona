@@ -48,12 +48,18 @@
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+            
+            // yobi.Attachments
+            htVar.sTplFileItem = ('#tplAttachedFile').text();
         }
 
         /**
          * initialize element
          */
         function _initElement(htOptions){
+            htElement.welUploader = $("#upload");
+            htElement.welTextarea = $("#comment-editor");
+
             var welHidden = $('<input>').attr('type', 'hidden');
 
             htElement.welDiff = $('#commit');
@@ -135,15 +141,16 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader($("#upload"), $("#comment-editor"));
-            var sUploaderId = oUploader.attr("data-namespace");
-
-            (new yobi.Attachments({
-                "elContainer"  : $("#upload"),
-                "elTextarea"   : $("#comment-editor"),
-                "sTplFileItem" : $('#tplAttachedFile').text(),
-                "sUploaderId"  : sUploaderId
-            }));
+            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            
+            if(oUploader){
+                (new yobi.Attachments({
+                    "elContainer"  : htElement.welUploader,
+                    "elTextarea"   : htElement.welTextarea,
+                    "sTplFileItem" : htVar.sTplFileItem,
+                    "sUploaderId"  : oUploader.attr("data-namespace")
+                }));
+            }
         }
 
         /**
@@ -152,7 +159,9 @@
          */
         function _initFileDownloader(){
             $(".attachments").each(function(i, elContainer){
-                (new yobi.Attachments({"elContainer": elContainer}));
+                if(!$(elContainer).data("isYobiAttachment")){
+                    (new yobi.Attachments({"elContainer": elContainer}));
+                }
             });
         }
 
@@ -730,16 +739,16 @@
          * @param {String} sRawURLTo
          */
         function _updateMergely(sRawURLFrom, sRawURLTo){
-            // rhs = from
+            // lhs = from
             $.get(sRawURLFrom).done(function(sData){
-                htElement.welMergely.mergely("rhs", sData);
+                htElement.welMergely.mergely("lhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
             });
 
-            // lhs = to
+            // rhs = to
             $.get(sRawURLTo).done(function(sData){
-                htElement.welMergely.mergely("lhs", sData);
+                htElement.welMergely.mergely("rhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
             });

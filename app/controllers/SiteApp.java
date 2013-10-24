@@ -294,17 +294,4 @@ public class SiteApp extends Controller {
 
         return ok(toJson(emails));
     }
-    
-    /**
-     * NHN NEXT의 이슈로 number가 null인 데이터를 초기화하는 임시 기능입니다.  
-     * @return
-     */
-    public static Result updatePostNumber() {
-        List<Posting> postings = Posting.finder.where().isNull("number").findList();
-        for(Posting post: postings) {
-            post.updateNumber();
-        }
-        
-        return ok("complete");    
-    }
 }

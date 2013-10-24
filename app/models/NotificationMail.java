@@ -6,6 +6,7 @@ import play.Configuration;
 import play.db.ebean.Model;
 import play.libs.Akka;
 import scala.concurrent.duration.Duration;
+import utils.Url;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -78,7 +79,7 @@ public class NotificationMail extends Model {
                                             mail.notificationEvent.receivers,
                                             mail.notificationEvent.title,
                                             mail.notificationEvent.getMessage(),
-                                            mail.notificationEvent.urlToView
+                                            Url.create(mail.notificationEvent.urlToView)
                                     ));
                         }
                         mail.delete();

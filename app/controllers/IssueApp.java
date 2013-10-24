@@ -28,6 +28,7 @@ import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;
@@ -275,7 +276,8 @@ public class IssueApp extends AbstractPostingApp {
             updatedItems++;
 
             Issue updatedIssue = Issue.finder.byId(issue.id);
-            String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name, issue.getNumber()).absoluteURL(request());
+            String urlToView = routes.IssueApp.issue(issue.project.owner, issue.project.name,
+                    issue.getNumber()).url();
             if(assigneeChanged) {
                 addAssigneeChangedNotification(oldAssignee, updatedIssue, urlToView);
             }
@@ -352,7 +354,7 @@ public class IssueApp extends AbstractPostingApp {
         notiEvent.title = title;
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = issueCall.absoluteURL(request());
+        notiEvent.urlToView = issueCall.url();
         notiEvent.resourceId = newIssue.id.toString();
         notiEvent.resourceType = newIssue.asResource().getType();
         notiEvent.eventType = EventType.NEW_ISSUE;

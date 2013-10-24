@@ -13,7 +13,7 @@
  * - 파일 업로드(.uploadFile)
  * - 파일 삭제  (.deleteFile)
  * - 첨부 목록 수신(.getList)
- * - 업로더 영역 설정(.setUploader)
+ * - 업로더 영역 설정(.getUploader)
  * - 커스텀 이벤트 핸들러(.attach)
  *     - beforeUpload  : 업로드 시작
  *     - uploadProgress: 업로드 진행
@@ -297,6 +297,11 @@ yobi.Files = (function(){
     function _getUploader(elContainer, elTextarea, sNamespace){
         sNamespace = sNamespace || _getSubmitId();
         
+        // only single uploader can be attached on single Container/Textarea
+        if($(elContainer).data("isYobiUploader") || $(elTextarea).data("isYobiUploader")){
+            return false;
+        }
+        
         _initElement({
             "elContainer": elContainer, 
             "elTextarea" : elTextarea,
@@ -371,6 +376,10 @@ yobi.Files = (function(){
                 _onPasteFile(sNamespace, weEvt);
             });
         }
+        
+        // Mark as already attached
+        htElement.welContainer.data("isYobiUploader", true);
+        htElement.welTextarea.data("isYobiUploader", true);
     }
     
     /**
@@ -546,7 +555,6 @@ yobi.Files = (function(){
     return {
         "init"       : _init,
         "getEnv"     : _getEnv,
-        "setUploader": _getUploader,
         "getUploader": _getUploader,
         "destroyUploader": _destroyUploader,
         "attach"     : _attachCustomEvent,

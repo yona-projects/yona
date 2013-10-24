@@ -1,40 +1,7 @@
 @(project:Project, branch:String, viewType:String, path:String)
 
-@import java.net.URLEncoder
+@import utils.TemplateHelper._
 
-@branchItemType(itemType:String) = @{
-    if(itemType == "heads"){
-        "branch"
-    } else if(itemType == "tags") {
-        "tag"
-    } else {
-        itemType
-    }
-}
-
-@getBranchURL(project:Project, branchName:String, viewType:String) = @{
-    viewType match {
-        case "history" => {
-            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
-        }
-        case "code" => {
-            routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
-        }
-        case _ => {
-            "#"
-        }
-    }
-}
-
-@defining(branch.split('/')){ names =>
-    @defining(names.slice(2, names.length).mkString("/")){ branchName =>
-        @if(names(0).equals("refs") && names.length >= 3){
-            <li data-value="@branch"><a href="@getBranchURL(project, branchName, viewType)"><!--
-             --><span class="label @branchItemType(names(1))">@branchItemType(names(1))</span><!--
-             -->@branchName
-            </a></li>
-        } else {
-            <li data-value="@branch"><a href="@getBranchURL(project, branch, viewType)">@branch</a></li>
-        }
-    }
+@defining(branchItemName(branch)){ branchName =>
+    <li data-value="@branch"><a href="@getBranchURL(project, branchName, viewType, path)">@Html(branchInHTML(branch))</a></li>
 }

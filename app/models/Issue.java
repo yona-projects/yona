@@ -344,9 +344,11 @@ public class Issue extends AbstractPosting implements LabelOwner {
     public boolean assignedUserEquals(Assignee otherAssignee) {
         if (assignee == null || assignee.user == null || assignee.user.isAnonymous()) {
             return otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous();
-        } else {
-            return assignee.equals(otherAssignee) || assignee.user.equals(otherAssignee.user);
         }
+        if (otherAssignee == null || otherAssignee.user == null || otherAssignee.user.isAnonymous()) {
+            return assignee == null || assignee.user == null || assignee.user.isAnonymous();
+        }
+        return assignee.equals(otherAssignee) || assignee.user.equals(otherAssignee.user);
     }
 
     /**

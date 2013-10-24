@@ -69,7 +69,8 @@ application.server="Play/2.1"
 
 # Components used to construct the URL to this application.
 application.scheme="http"
-
+# application.hostname="www.yourdomain.com"
+# application.port="8080"
 
 # Mailer
 # ~~~~~~
