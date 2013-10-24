@@ -201,8 +201,6 @@ public class PullRequestApp extends Controller {
         pullRequest.fromProject = project;
         pullRequest.fromBranch = request().getQueryString("fromBranch");
         pullRequest.toBranch = request().getQueryString("toBranch");
-        //TODO cloneAndFetch시 브랜치명에 id를 사용하고 있어 임의로 추가   
-        pullRequest.id = Long.MAX_VALUE;    
         
         PullRequestMergeResult mergeResult = null;
         
