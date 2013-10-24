@@ -269,7 +269,7 @@ public class NotificationEvent extends Model {
         notiEvent.title = title;
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.absoluteURL(request);
+        notiEvent.urlToView = pullRequestCall.url();
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
         notiEvent.eventType = EventType.NEW_PULL_REQUEST;
@@ -302,7 +302,7 @@ public class NotificationEvent extends Model {
         notiEvent.title = title;
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.absoluteURL(request);
+        notiEvent.urlToView = pullRequestCall.url();
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
         notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
@@ -337,8 +337,7 @@ public class NotificationEvent extends Model {
         notiEvent.senderId = sender.id;
         notiEvent.receivers = receivers;
         notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
-                request);
+                toProject.owner, toProject.name, pullRequest.number).url();
         notiEvent.resourceId = resource.getId();
         notiEvent.resourceType = resource.getType();
         notiEvent.eventType = EventType.PULL_REQUEST_MERGED;

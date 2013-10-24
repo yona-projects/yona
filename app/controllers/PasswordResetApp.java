@@ -85,7 +85,7 @@ public class PasswordResetApp extends Controller {
         try {
             SimpleEmail email = new SimpleEmail();
             email.setFrom(sender)
-                 .setSubject(Messages.get("site.resetPasswordEmail.title"))
+                 .setSubject("[" + Messages.get("app.name") + "] " + Messages.get("site.resetPasswordEmail.title"))
                  .addTo(user.email)
                  .setMsg(Messages.get("site.resetPasswordEmail.mailContents") + "\n\n" + resetPasswordUrl)
                  .setCharset("utf-8");

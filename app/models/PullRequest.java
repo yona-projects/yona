@@ -133,9 +133,6 @@ public class PullRequest extends Model implements ResourceConvertible {
     @OneToMany(cascade = CascadeType.ALL)
     public List<PullRequestEvent> pullRequestEvents;
     
-    @Lob
-    public String patch;
-    
     /**
      * {@link #fromBranch}의 가장 최근 커밋 ID
      *
@@ -194,14 +191,6 @@ public class PullRequest extends Model implements ResourceConvertible {
                 ", received=" + received +
                 ", state=" + state +
                 '}';
-    }
-    
-    public void setPatch(String patch) {
-        this.patch = patch;
-    }
-    
-    public String getPatch() {
-        return this.patch;
     }
     
     public Duration createdAgo() {
@@ -683,13 +672,9 @@ public class PullRequest extends Model implements ResourceConvertible {
                 }
                 
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
-                
-                pullRequest.setPatch(GitRepository.getPatch(clonedRepository,
-                    cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName()));
 
                 String mergedCommitIdFrom = null;
                 MergeResult mergeResult = null;
-
 
                 synchronized(this) {
                     mergedCommitIdFrom =
@@ -737,119 +722,5 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public void endMerge() {
         this.isMerging = false;
-    }
-    
-    public Map<String, Object> getDiffCommitAndPatch() {
-        final Map<String, Object> result = new HashMap<>();
-        final PullRequest pullRequest = this;
-        
-        GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                List<GitCommit> gitCommits = GitRepository.diffCommits(cloneAndFetch.getRepository(),
-                        cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
-
-                String patch = GitRepository.getPatch(cloneAndFetch.getRepository(), cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
-                
-                result.put("patch", patch);
-                result.put("commits", gitCommits);
-                
-                /*List<DiffCommit> commits = new ArrayList<>();
-                for (GitCommit gitCommit : gitCommits) {
-                    DiffCommit commit = new DiffCommit(gitCommit);
-                    commits.add(commit);
-                }                 
-                result.put("commits", commits);
-                result.put("patch", patch);*/                                
-            }
-        });
-        
-        return result;
-    }
-    
-    class DiffCommit {
-        
-        public DiffCommit(GitCommit gitCommit) {
-            this.id = gitCommit.getId();
-            this.authorDate = gitCommit.getAuthorDate();
-            this.message = gitCommit.getMessage();
-            this.shortId = gitCommit.getShortId();
-            this.authorEmail = gitCommit.getAuthorEmail();
-        }
-        
-        public String id;
-        public Date authorDate;
-        public Date created;
-        public String message;
-        public String shortId;
-        public String authorEmail;
-        
-        public String getId() {
-            return id;
-        }
-        public void setId(String id) {
-            this.id = id;
-        }
-        public Date getAuthorDate() {
-            return authorDate;
-        }
-        public String getAuthorDateAgo() {
-            Duration duration = JodaDateUtil.ago(authorDate);
-            if (duration != null){
-                long sec = duration.getMillis() / DateTimeConstants.MILLIS_PER_SECOND;
-
-                if(sec >= 86400) {
-                    return Messages.get("common.time.day", duration.getStandardDays());
-                } else if(sec >= 3600) {
-                    return Messages.get("common.time.hour", duration.getStandardHours());
-                } else if(sec >= 60) {
-                    return Messages.get("common.time.minute", duration.getStandardMinutes());
-                } else if(sec >= 0) {
-                    return Messages.get("common.time.second", duration.getStandardSeconds());
-                } else {
-                    return Messages.get("common.time.just");
-                }
-            } else {
-                return StringUtils.EMPTY;
-            }
-        }
-        public void setAuthorDate(Date authorDate) {
-            this.authorDate = authorDate;
-        }
-        public Date getCreated() {
-            return created;
-        }
-        public void setCreated(Date created) {
-            this.created = created;
-        }
-        public String getMessage() {
-            return message;
-        }
-        public void setMessage(String message) {
-            this.message = message;
-        }
-        public String getShortId() {
-            return shortId;
-        }
-        public void setShortId(String shortId) {
-            this.shortId = shortId;
-        }
-        public String getAuthorEmail() {
-            return authorEmail;
-        }
-        public boolean getExistUser() {
-            return User.find.where().eq("email", authorEmail).findUnique() != null;
-        }
-        public String getAuthorAvatarUrl() {
-            User user = User.find.where().eq("email", authorEmail).findUnique();
-            return user.avatarUrl;
-        }
-        public String getAuthorGravatarUrl() {
-            return GravatarUtil.getAvatar(authorEmail, 32);
-        }
-        
-        public void setAuthorEmail(String authorEmail) {
-            this.authorEmail = authorEmail;
-        }
     }
 }

@@ -52,7 +52,7 @@
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
             
             // yobi.Attachments
-            htVar.sTplFileItem = ('#tplAttachedFile').text();
+            htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
 
         /**
@@ -106,7 +106,7 @@
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget.toggleClass("active");
+                        welTarget.toggleClass("active ybtn-watching");
                     }
                 });
             });
