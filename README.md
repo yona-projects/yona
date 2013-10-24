@@ -34,6 +34,10 @@ or
 
     wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
 
+or using web browser (for windows)
+
+    http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+
 ### unzip
 
     unzip play-2.1.0.zip
@@ -116,6 +120,11 @@ java 7(1.7) 이상이어야 합니다.
 혹은
 
     wget http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+
+웹 브라우저에서 (이를테면, MS윈도우즈 사용자일 경우)
+
+    http://downloads.typesafe.com/play/2.1.0/play-2.1.0.zip
+
 
 ### 압축풀기
 
