@@ -399,7 +399,7 @@ project.name.alert = Wrong project name. (Characters which can be used in URL ar
 project.name.duplicate = Already existing project.
 project.name.placeholder = input project name
 project.name.rule = Naming Rule
-project.new.agreement = I read nForge4's user agreement and accept it.
+project.new.agreement = I read user agreement and accept it.
 project.new.vcsType.git = Git
 project.new.vcsType.subversion = Subversion
 project.onmember = <i class="yobicon-friends yobicon-middle"></i><strong>{0}</strong>

@@ -34,7 +34,7 @@ public class UserApp extends Controller {
     public static final String SESSION_USERID = "userId";
     public static final String SESSION_LOGINID = "loginId";
     public static final String SESSION_USERNAME = "userName";
-    public static final String TOKEN = "nforge.token";
+    public static final String TOKEN = "yobi.token";
     public static final int MAX_AGE = 30*24*60*60;
     public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
     public static final int MAX_FETCH_USERS = 1000;
