@@ -11,7 +11,6 @@ import utils.Url;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import java.net.MalformedURLException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +64,7 @@ public class NotificationMail extends Model {
                  *
                  * 가져온 메일들은 발송 여부와 상관없이 모두 지운다.
                  */
-                private void sendMail() throws MalformedURLException {
+                private void sendMail() {
                     Date sinceDate = DateTime.now().minusMillis
                             (MAIL_NOTIFICATION_DELAY_IN_MILLIS).toDate();
                     List<NotificationMail> mails = find.where()

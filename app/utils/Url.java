@@ -14,7 +14,7 @@ public class Url {
      *
      * @return <code>String</code> containing the created URL
      */
-    public static String create(List<String> pathSegments) throws MalformedURLException {
+    public static String create(List<String> pathSegments) {
         return create(join(pathSegments));
     }
     
@@ -29,7 +29,7 @@ public class Url {
      * @return <code>String</code> containing the created URL
      * 
      */
-    public static String create(List<String> pathSegments, String defaultHostport) throws MalformedURLException {
+    public static String create(List<String> pathSegments, String defaultHostport) {
         return create(join(pathSegments), defaultHostport);
     }
     
@@ -46,7 +46,7 @@ public class Url {
      * @return <code>String</code> containing the created URL
      * 
      */
-    public static String create(List<String> pathSegments, String defaultHostport, String defaultScheme) throws MalformedURLException {
+    public static String create(List<String> pathSegments, String defaultHostport, String defaultScheme) {
         return create(join(pathSegments), defaultHostport, defaultScheme);
     }
 
@@ -57,7 +57,7 @@ public class Url {
      *
      * @return <code>String</code> containing the created URL
      */
-    public static String create(String relativePath) throws MalformedURLException {
+    public static String create(String relativePath) {
         return create(relativePath, Config.getHostport());
     }
 
@@ -72,7 +72,7 @@ public class Url {
      * @return <code>String</code> containing the created URL
      *
      */
-    public static String create(String relativePath, String defaultHostport) throws MalformedURLException {
+    public static String create(String relativePath, String defaultHostport) {
         return create(relativePath, defaultHostport, Config.getScheme());
     }
 
@@ -90,11 +90,9 @@ public class Url {
      *
      */
     public static String create(
-            String relativePath, String defaultHostport, String defaultScheme)
-            throws MalformedURLException {
-        return new URL(
-                Config.getScheme(defaultScheme), Config.getHostport(defaultHostport), relativePath)
-                .toString();
+            String relativePath, String defaultHostport, String defaultScheme) {
+        return Config.getScheme(defaultScheme) + "://" + Config.getHostport(defaultHostport) +
+                relativePath;
     }
 
     private static String join(List<String> pathSegments) {

@@ -1,6 +1,6 @@
 @(post:models.Posting, project:Project)
 <li class="board">
-    <div class="num">
+    <div class="board-id">
         <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">@post.getNumber</a>
     </div>
     <div class="author-avatar-space">
