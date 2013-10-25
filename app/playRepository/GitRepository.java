@@ -1518,7 +1518,7 @@ public class GitRepository implements PlayRepository {
         }
 
         List<FileDiff> result = new ArrayList<>();
-
+        
         for (DiffEntry diff : formatter.scan(treeParserA, treeParserB)) {
             FileDiff fileDiff = new FileDiff();
             fileDiff.commitA = commitA != null ? commitA.getName() : null;
@@ -1534,8 +1534,9 @@ public class GitRepository implements PlayRepository {
                 TreeWalk t1 = TreeWalk.forPath(repositoryA, pathA, treeA);
                 ObjectId blobA = t1.getObjectId(0);
                 byte[] rawA = repositoryA.open(blobA).getBytes();
-                RawText a = new RawText(rawA);
-                fileDiff.a = a;
+                
+                fileDiff.isBinaryA = FileUtil.isBinary(rawA); 
+                fileDiff.a = fileDiff.isBinaryA ? null : new RawText(rawA);
                 fileDiff.pathA = pathA;
             }
 
@@ -1544,12 +1545,13 @@ public class GitRepository implements PlayRepository {
                 TreeWalk t2 = TreeWalk.forPath(repositoryB, pathB, treeB);
                 ObjectId blobB = t2.getObjectId(0);
                 byte[] rawB = repositoryB.open(blobB).getBytes();
-                RawText b = new RawText(rawB);
-                fileDiff.b = b;
+
+                fileDiff.isBinaryB = FileUtil.isBinary(rawB);
+                fileDiff.b = fileDiff.isBinaryB ? null : new RawText(rawB);
                 fileDiff.pathB = pathB;
             }
-
-            if (Arrays.asList(MODIFY, RENAME).contains(diff.getChangeType())) {
+             
+            if (!(fileDiff.isBinaryA || fileDiff.isBinaryB) && Arrays.asList(MODIFY, RENAME).contains(diff.getChangeType())) {
                 DiffAlgorithm diffAlgorithm = DiffAlgorithm.getAlgorithm(
                         repositoryB.getConfig().getEnum(
                                 ConfigConstants.CONFIG_DIFF_SECTION, null,
