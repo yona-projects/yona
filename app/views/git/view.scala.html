@@ -108,185 +108,96 @@
         </div>
 
         <ul class="nav nav-tabs nm">
-            <li @if(activeTab == "info"){ class="active" }><a href="#__info" data-toggle="tab">@Messages("pullRequest.menu.overview")</a></li>
-            <li @if(activeTab == "commits"){ class="active" }><a href="#__commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
-            <li @if(activeTab == "changes"){ class="active" }><a href="#__changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
+            <li class="active"><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
+            <li><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>
+            <li><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
-        <div class="tab-content">
-            <div id="__info" class="tab-pane @if(activeTab == "info"){ active }">
-                @**<!-- Pull Request Info -->**@
-                <div class="board-header issue" style="border-top:none;">
-                    <div class="title pull-left">
-                        <strong class="board-id">#@pull.number</strong> @pull.title
-                    </div>
-                    <div class="pull-right">
-                        <div class="date">@agoString(pull.createdAgo)</div>
-                        <span class="badge badge-issue-@pull.state.state.toLowerCase">@Messages("issue.state." + pull.state.state)</span>
-                    </div>
-                </div>
 
-                <div class="board-body">
-                    <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
+        <div id="__info">
+            @**<!-- Pull Request Info -->**@
+            <div class="board-header issue" style="border-top:none;">
+                <div class="title pull-left">
+                    <strong class="board-id">#@pull.number</strong> @pull.title
                 </div>
+                <div class="pull-right">
+                    <div class="date">@agoString(pull.createdAgo)</div>
+                    <span class="badge badge-issue-@pull.state.state.toLowerCase">@Messages("issue.state." + pull.state.state)</span>
+                </div>
+            </div>
 
+            <div class="board-body">
+                <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
+            </div>
+
+            @if(!pull.isMerging && pull.isOpen()){
+                @if(!pull.isConflict){
+                <div class="alert alert-success">
+                    <h5>@Messages("pullRequest.is.safe")</h5>
+                </div>
+                } else {
+                    @conflictMessage
+                }
+            }
+
+            @if(pull.isMerging) {
+                <div class="alert alert-warnning">
+                    <h5>@Messages("pullRequest.is.merging")</h5>
+                </div>
+            }
+
+            <div id="attachments" class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
+
+            <div class="board-footer board-actrow">
+                <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
+                    @if(pull.getWatchers.contains(UserApp.currentUser())) {
+                        @Messages("project.unwatch")
+                    } else {
+                        @Messages("project.watch")
+                    }
+                </button>
                 @if(!pull.isMerging && pull.isOpen()){
-                    @if(!pull.isConflict){
-                    <div class="alert alert-success">
-                        <h5>@Messages("pullRequest.is.safe")</h5>
-                    </div>
-                    } else {
-                        @conflictMessage
+                    @if(!pull.isConflict && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
+                        <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
+                    }
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
+                        <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
+                    }
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
+                        <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
                     }
                 }
-                 
-                @if(pull.isMerging) {
-                	<div class="alert alert-warnning">
-                        <h5>@Messages("pullRequest.is.merging")</h5>
-                    </div>
-                }
 
-                <div id="attachments" class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
-                
-                <div class="board-footer board-actrow">
-		            <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
-		                @if(pull.getWatchers.contains(UserApp.currentUser())) {
-		                    @Messages("project.unwatch")
-		                } else {
-		                    @Messages("project.watch")
-		                }
-		            </button>
-		            @if(!pull.isMerging && pull.isOpen()){
-		                @if(!pull.isConflict && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-		                    <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
-		                }
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
-		                    <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
-		                }
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
-		                    <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
-		                }
-		            }
-		
-		            @if(!pull.isMerging && pull.isRejected()){
-		                @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
-		                    <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
-		                }
-		            }
-		        </div>
-		        @if(pull.isClosed()) {
-		        <div class="alert alert-info">
-		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-		            <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
-		            @if(UserApp.currentUser().equals(pull.contributor)) {
-		                @if(canDeleteBranch) {
-						<code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
-		                <button class="ybtn ybtn-danger ybtn-mini pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>		                
-		                }
-		                @if(canRestoreBranch) {
-						<code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
-						<a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="ybtn ybtn-info ybtn-mini pull-right">@Messages("pullRequest.restore.branch")</a>		                
-		                }
-		            }
-		        </div>
-		        }
-		        <div class="board-comment-wrap">
-		            <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.comments.size() + pull.getCodeComments.size()}</strong></div>
-
-		            @if(pull.getTimelineComments.size > 0) {
-		            <ul class="comments" id="comments">
-                    @partial_comments(pull, pull.getTimelineComments.toList)
-					</ul>
-					}
-					@common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
-				</div>
-            </div>
-
-            <div id="__commits" class="code-browse-wrap tab-pane @if(activeTab == "commits"){ active }">
-                <div id="history" class="commit-wrap mt20">
-                    <table class="code-table commits">
-                        <thead class="thead">
-                        <tr>
-                            <td class="commit-id"><strong>@{"@"}</strong></td>
-                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
-                            <td class="author"><strong>@Messages("code.author")</strong></td>
-                        </tr>
-                        </thead>
-                        <tbody class="tbody">
-                        @for(commit <- pull.getCurrentCommits) {
-                        <tr>
-                            <td class="commit-id">
-                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
-                                    @commit.getCommitShortId()
-                                    <i class="yobicon-right"></i>
-                                </a>
-                            </td>
-
-                            <td class="messages">
-
-                                @defining(CommitComment.count(pull.fromProject, commit.getCommitId, null)){ numOfComment =>
-                                    @if(numOfComment > 0) {
-                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
-                                    }
-                                }
-
-								@defining(commit.getCommitMessage()){ commitMsg =>
-	                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
-	                                    @commitMsg.split("\n")(0)
-	                                </a>
-
-									@if(commitMsg.split("\n").length > 1){
-									<button type="button" class="more">&hellip;</button>
-									<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-									}
-                                }
-                            </td>
-                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-                            <td class="author @commit.getAuthorEmail">
-                                @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
-                                @if(user != null) {
-                                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
-                                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-                                </a>
-                                } else {
-                                <div class="avatar-wrap">
-                                    <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
-                                </div>
-                                }
-                                }
-                            </td>
-                        </tr>
-                        }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="__changes" class="tab-pane @if(activeTab == "changes"){ active }">
-                <div class="diff-body">
-                    @if(pull.isMerging) {
-                      <div class="alert alert-warnning">
-                        <h5>@Messages("pullRequest.is.merging")</h5>
-                      </div>
-                    } else {
-                      @if(pull.isConflict) {
-                        @conflictMessage
-                      } else {
-                        @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
-                      }
+                @if(!pull.isMerging && pull.isRejected()){
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
+                        <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }
-                </div>
-                <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
-                    <h4 class="path">
-                        <span></span>
-                        <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
-                    </h4>
-                    <div class="row-fluid">
-                        <div class="span6 compare-from"></div>
-                        <div class="span6 compare-to"></div>
-                    </div>
-                    <div id="mergely" class="mergely-wrap"></div>
-                </div>
+                }
+            </div>
+            @if(pull.isClosed()) {
+            <div class="alert alert-info">
+                <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
+                <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
+                @if(UserApp.currentUser().equals(pull.contributor)) {
+                    @if(canDeleteBranch) {
+                    <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
+                    <button class="ybtn ybtn-danger ybtn-mini pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>
+                    }
+                    @if(canRestoreBranch) {
+                    <code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
+                    <a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.id)" class="ybtn ybtn-info ybtn-mini pull-right">@Messages("pullRequest.restore.branch")</a>
+                    }
+                }
+            </div>
+            }
+            <div class="board-comment-wrap">
+                <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.comments.size() + pull.getCodeComments.size()}</strong></div>
+
+                @if(pull.getTimelineComments.size > 0) {
+                <ul class="comments" id="comments">
+                @partial_comments(pull, pull.getTimelineComments.toList)
+                </ul>
+                }
+                @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
             </div>
         </div>
     </div>

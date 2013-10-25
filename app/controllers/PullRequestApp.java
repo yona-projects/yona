@@ -174,11 +174,11 @@ public class PullRequestApp extends Controller {
 
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트의 원본 프로젝트로 코드를 보낼 수 있는 코드 보내기 폼을 보여준다.
-     * 
+     *
      * 코드 보내기 폼에서 보내려는 브랜치과 코드를 받을 브랜치를 선택할 수 있도록 브랜치 목록을 보여준다.
      * 보내는 브랜치(fromBranch)와 받는 브랜치(toBranch) 파라미터가 있을 경우 두개의 브랜치를 merge해보고 결과를 반환한다.
      * ajax 요청일 경우 partial로 렌더링한다.
-     * 
+     *
      * @param userName
      * @param projectName
      * @return
@@ -195,29 +195,29 @@ public class PullRequestApp extends Controller {
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
         List<String> toBranches = RepositoryService.getRepository(project.originalProject).getBranches();
-    
+
         PullRequest pullRequest = new PullRequest();
         pullRequest.toProject = project.originalProject;
         pullRequest.fromProject = project;
         pullRequest.fromBranch = request().getQueryString("fromBranch");
         pullRequest.toBranch = request().getQueryString("toBranch");
-        
+
         PullRequestMergeResult mergeResult = null;
-        
+
         if (!StringUtils.isEmpty(pullRequest.fromBranch) && !StringUtils.isEmpty(pullRequest.toBranch)) {
             mergeResult = pullRequest.attemptMerge();
             Map<String, String> suggestText = suggestTitleAndBodyFromDiffCommit(mergeResult.getGitCommits());
             pullRequest.title = suggestText.get("title");
             pullRequest.body = suggestText.get("body");
-        } 
-    
+        }
+
         String xRequested = request().getHeader("X-Requested-With");
-        
+
         if (!StringUtils.isEmpty(xRequested)) {
             response().setHeader("Cache-Control", "no-cache, no-store");
             return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, mergeResult, pullRequest));
-        } 
-        
+        }
+
         return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, fromBranches, toBranches, mergeResult, pullRequest));
     }
 
@@ -271,24 +271,24 @@ public class PullRequestApp extends Controller {
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
-        
+
         NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
- 
+
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), pullRequest.toProject, pullRequest.toBranch);
         Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
-        
+
         return redirect(pullRequestCall);
     }
-    
+
     /**
      * diff commit message로 pull request의 title과 body를 채운다.<br>
      * <br>
      * case 1 : commit이 한개이고 message가 한줄일 경우 title에 추가한다.<br>
      * case 2 : commit이 한개이고 message가 여러줄일 경우 첫번째줄 mesage는 title 나머지 message는 body에 추가<br>
      * case 3 : commit이 여러개일 경우 각 commit의 첫번째줄 message들을 모아서 body에 추가 <br>
-     * 
+     *
      * @param commits
      * @return
      */
@@ -299,21 +299,21 @@ public class PullRequestApp extends Controller {
 
         if (commits.isEmpty()) {
             return messageMap;
-            
+
         } else if (commits.size() == 1) {
-            message = commits.get(0).getMessage();            
+            message = commits.get(0).getMessage();
             String[] messages = message.split(NEW_LINE_DELIMETER);
 
             if (messages.length > 1) {
                 String[] msgs = Arrays.copyOfRange(messages, 1, messages.length);
                 messageMap.put("title", messages[0]);
                 messageMap.put("body", StringUtils.join(msgs, NEW_LINE_DELIMETER));
-                         
+
             } else {
                 messageMap.put("title", messages[0]);
                 messageMap.put("body", StringUtils.EMPTY);
             }
-            
+
         } else {
             String[] firstMessages = new String[commits.size()];
             for (int i = 0; i < commits.size(); i++) {
@@ -321,13 +321,13 @@ public class PullRequestApp extends Controller {
                 firstMessages[i] = messages[0];
             }
             messageMap.put("body", StringUtils.join(firstMessages, NEW_LINE_DELIMETER));
-            
+
         }
 
         return messageMap;
     }
-    
-    
+
+
     private static void validateForm(Form<PullRequest> form) {
         Map<String, String> data = form.data();
         ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullRequest.fromBranch.required");
@@ -424,10 +424,10 @@ public class PullRequestApp extends Controller {
         if(activeTab == null && !isValid(activeTab)) {
             activeTab = "info";
         }
-        
+
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
-        
+
         if (pullRequest.isClosed()) {
             canDeleteBranch = GitRepository.canDeleteFromBranch(pullRequest);
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
@@ -470,8 +470,39 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        List<GitCommit> commits = GitRepository.getPullingCommits(pullRequest);
-        return ok(viewCommits.render(project, pullRequest, commits));
+        return ok(viewCommits.render(project, pullRequest));
+    }
+
+    /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
+     * {@code pullRequestId}에 해당하는 코드 요청의 변경내역을 조회한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestNumber
+     * @return
+     */
+    public static Result pullRequestChanges(String userName, String projectName, long pullRequestNumber) {
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+
+        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
+        if(result != null) {
+            return result;
+        }
+
+        List<PullRequestComment> comments = new ArrayList<>();
+
+        for (PullRequestComment comment : pullRequest.comments) {
+            if (comment.hasValidCommitId()) {
+                if (comment.commitId == null) {
+                    comment.commitId = comment.commitB;
+                }
+                comments.add(comment);
+            }
+        }
+
+        return ok(viewChanges.render(project, pullRequest, comments));
     }
 
     /**
@@ -494,7 +525,7 @@ public class PullRequestApp extends Controller {
         }
 
         pullRequest.merge();
-        
+
         // merge이후 관련 pullRequest의 상태를 체크한다.
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
