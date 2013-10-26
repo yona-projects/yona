@@ -26,7 +26,7 @@
     <div class="bubble-wrap gray" style="overflow:visible">
         <ul class="members project">
             @for(member <- members){
-                @if( member.user != null){
+                @if(member.user != null){
 
             <li class="member">
                 <a href="@routes.UserApp.userInfo(member.user.loginId)" class="avatar-wrap large pull-left">
