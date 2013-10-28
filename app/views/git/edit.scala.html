@@ -13,17 +13,17 @@
     }
 }
 
-@makeBranchItem(branch:String, selectedBranch:String) = {
+@makeBranchItem(branch:String) = {
     @defining(branch.split('/')){ names =>
         @if(names(0).equals("refs")){
-            <li data-value="@branch" @if(branch.equals(selectedBranch)){data-selected="true" class="active"}>
+            <li data-value="@branch" data-selected="true" class="active">
                 <a href="#">
                     <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
                     @branch.replace("refs/" + names(1) + "/", "")
                 </a>
             </li>
         } else {
-            <li data-value="@branch" @if(branch.equals(selectedBranch)){data-selected="true" class="active"}><a href="#">@branch</a></li>
+            <li data-value="@branch" data-selected="true" class="active"><a href="#">@branch</a></li>
         }
     }
 }
@@ -66,11 +66,7 @@
 	                            <span class="d-caret"><span class="caret"></span></span>
 	                        </button>
 	                        <ul class="dropdown-menu">
-	                            @for(branch <- fromBranches) {
-	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    @makeBranchItem(branch, form("fromBranch").value())
-	                                }
-	                            }
+                                @makeBranchItem(form("fromBranch").value())
 	                        </ul>
 	                    </div>
 	                </div>
@@ -91,11 +87,7 @@
 	                            <span class="d-caret"><span class="caret"></span></span>
 	                        </button>
 	                        <ul class="dropdown-menu">
-	                            @for(branch <- toBranches) {
-	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    @makeBranchItem(branch, form("toBranch").value())
-	                                }
-	                            }
+                                @makeBranchItem(form("toBranch").value())
 	                        </ul>
 	                    </div>
 	                </div>

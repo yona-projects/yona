@@ -35,7 +35,6 @@
             htVar.oToBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welToBranch});
             htVar.sUploaderId = null;
             htVar.oSpinner = null;
-            htVar.bCommitChanged = false;
             
             htVar.htUserInput = {};
             htVar.sTplFileItem = $('#tplAttachedFile').text();
@@ -206,14 +205,17 @@
                     return false;
                 }
             }
-            
-            htVar.bCommitChanged = $.trim($("#commitChanged").val()) == "true";
-            
-            if(!htVar.bCommitChanged) {
+
+            if(!htVar.sFormURL) {
+                return true;
+            }
+
+            var bCommitNotChanged = $.trim($("#commitChanged").val()) != "true";
+
+            if(bCommitNotChanged) {
                 $yobi.alert(Messages("pullRequest.diff.noChanges"));
                 return false;
             }
-            
             return true;
         }
 
