@@ -1,6 +1,7 @@
 package models;
 
 import models.enumeration.ResourceType;
+import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints.Required;
@@ -98,15 +99,10 @@ public class Label extends Model implements ResourceConvertible {
      */
     @Override
     public Resource asResource() {
-        return new Resource() {
+        return new GlobalResource() {
             @Override
             public String getId() {
                 return id.toString();
-            }
-
-            @Override
-            public Project getProject() {
-                return null;
             }
 
             @Override

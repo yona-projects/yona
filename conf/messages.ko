@@ -496,6 +496,7 @@ pullRequest.sent.code = 보낸 코드
 pullRequest.title.required = 제목을 입력하세요.
 pullRequest.to = 코드 받을 곳
 pullRequest.toBranch.required = 코드를 받을 브랜치를 선택하세요.
+pullRequest.toHere = 이 프로젝트에 코드 보내기
 site = 사이트
 site.features.codeManagement = 작성한 코드는 모두 이력이 관리되는 형태로 안전하게 서버에 보관됩니다.
 site.features.codeReview = 변경된 코드를 보면서 팀원들과 토론해보세요. 코드의 완성도를 더욱 높일 수 있습니다.
