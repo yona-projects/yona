@@ -4,7 +4,7 @@
 @import utils.TemplateHelper.DiffRenderer._
 
 @if(!comments.isEmpty){
-<tr class="comments board-comment-wrap" data-commit-id="@comments(0).commitId">
+<tr class="comments board-comment-wrap" data-commit-id="@comments(0).getCommitId">
     <td colspan=3>
         <ul class="comments">
             @for(comment: CodeComment <- comments) {

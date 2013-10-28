@@ -350,7 +350,6 @@
 
             welCommentTr.find('[name=commitA]').attr('value', sCommitA);
             welCommentTr.find('[name=commitB]').attr('value', sCommitB);
-            welCommentTr.find('[name=commitId]').attr('value', sCommitId);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();

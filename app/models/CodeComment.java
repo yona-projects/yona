@@ -30,7 +30,6 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     public Long id;
     @ManyToOne
     public Project project;
-    public String commitId;
     public String path;
     public Integer line; // FIXME: DB엔 integer가 아닌 bigint로 되어있음.
     @Enumerated(EnumType.STRING)
@@ -47,12 +46,6 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
         createdDate = new Date();
     }
 
-    public boolean threadEquals(CodeComment other) {
-        return commitId.equals(other.commitId) &&
-                path.equals(other.path) &&
-                line.equals(other.line) &&
-                side.equals(other.side);
-    }
 
     @Transient
     public void setAuthor(User user) {
@@ -71,4 +64,6 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     }
 
     abstract public Resource asResource();
+
+    abstract public String getCommitId();
 }

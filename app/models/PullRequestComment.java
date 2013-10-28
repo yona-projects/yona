@@ -64,6 +64,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                 ", commitB='" + commitB + '\'' +
                 ", path='" + path + '\'' +
                 ", line='" + line + '\'' +
+                ", side='" + side + '\'' +
                 '}';
     }
 
@@ -128,8 +129,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
     public boolean hasValidCommitId() {
         return isCommitIdValid(pullRequest.toProject, commitA) &&
-                isCommitIdValid(pullRequest.fromProject, commitB) &&
-                (ObjectUtils.equals(commitId, commitA) || ObjectUtils.equals(commitId, commitB));
+                isCommitIdValid(pullRequest.fromProject, commitB);
     }
 
     public boolean isCommitLost() throws IOException {
@@ -175,6 +175,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                 throw new RuntimeException(unexpectedSideMessage(side));
         }
     }
+
     static private String getLastChangedCommitUntil(
             Repository gitRepo, String rev, String path)
             throws IOException, IllegalArgumentException, GitAPIException {
@@ -263,5 +264,25 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
     private String unexpectedSideMessage(Side side) {
         return String.format("Expected '%s' or '%s', but '%s'", Side.A, Side.B, side);
+    }
+
+    public boolean threadEquals(PullRequestComment other) {
+        return commitA.equals(other.commitA) &&
+               commitB.equals(other.commitB) &&
+                path.equals(other.path) &&
+                line.equals(other.line) &&
+                side.equals(other.side);
+    }
+
+    @Transient
+    public String getCommitId() {
+        switch(side) {
+            case A:
+                return commitA;
+            case B:
+                return commitB;
+            default:
+                throw new RuntimeException(unexpectedSideMessage(side));
+        }
     }
 }

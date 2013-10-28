@@ -16,6 +16,8 @@ public class CommitComment extends CodeComment {
 
     public List<CommitComment> replies = new ArrayList<>();
 
+    public String commitId;
+
     public CommitComment() {
         super();
     }
@@ -93,5 +95,16 @@ public class CommitComment extends CodeComment {
     public String groupKey() {
         return new StringBuilder().append(this.commitId)
                 .append(this.path).append(this.line).toString();
+    }
+
+    public boolean threadEquals(CommitComment other) {
+        return commitId.equals(other.commitId) &&
+                path.equals(other.path) &&
+                line.equals(other.line) &&
+                side.equals(other.side);
+    }
+
+    public String getCommitId() {
+        return commitId;
     }
 }
