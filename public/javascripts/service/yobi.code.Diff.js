@@ -345,6 +345,7 @@
             welCommentTr = htElement.welCommentTr;
             welCommentTr.find('[name=path]').attr('value', sPath);
             welCommentTr.find('[name=line]').attr('value', nLine);
+            sType = (sType == 'remove') ? 'A' : 'B';
             welCommentTr.find('[name=side]').attr('value', sType);
 
             welCommentTr.find('[name=commitA]').attr('value', sCommitA);

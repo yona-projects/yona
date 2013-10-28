@@ -22,21 +22,21 @@
   }
 }
 
-@renderRawFile(path: String, rawText: RawText, kind: String, prefix: String, comments: Map[String, List[_ <: CodeComment]]) = {
+@renderRawFile(klass: String, path: String, rawText: RawText, side: CodeComment.Side, prefix: String, comments: Map[String, List[_ <: CodeComment]]) = {
   @for(i <- 0 until rawText.size) {
-    @partial_diff_line(kind, prefix, i + 1, null, i + 1, rawText.getString(i))
-    @partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, kind, i + 1)))
+    @partial_diff_line(klass, prefix, i + 1, null, i + 1, rawText.getString(i))
+    @partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1)))
   }
 }
 
 @renderAddedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]]) = {
   <tr class="range"><td>...</td><td>...</td><td>@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
-  @renderRawFile(path, rawText, "add", "+", comments)
+  @renderRawFile("add", path, rawText, CodeComment.Side.B, "+", comments)
 }
 
 @renderRemovedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]]) = {
   <tr class="range"><td>...</td><td>...</td><td>@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
-  @renderRawFile(path, rawText, "remove", "-", comments)
+  @renderRawFile("remove", path, rawText, CodeComment.Side.A, "-", comments)
 }
 
 @renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {

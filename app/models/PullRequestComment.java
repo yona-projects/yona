@@ -6,9 +6,7 @@ import models.resource.ResourceConvertible;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.blame.BlameGenerator;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -166,19 +164,16 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
         Repository mergedRepository = pullRequest.getMergedRepository();
 
-        if (commitId.equals(commitA)) {
-            _isOutdated = !noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdFrom, mergedRepository, commitId, path, line);
-        } else {
-            if (!commitId.equals(commitB)) {
-                play.Logger.warn(
-                        "Invalid PullRequestComment.commitId: It must equal to commitA or commitB.");
-            }
-            _isOutdated = !noChangesBetween(mergedRepository,
-                        pullRequest.mergedCommitIdTo, mergedRepository, commitId, path, line);
+        switch(side) {
+            case A:
+                return!noChangesBetween(mergedRepository,
+                    pullRequest.mergedCommitIdFrom, mergedRepository, commitA, path, line);
+            case B:
+                return !noChangesBetween(mergedRepository,
+                    pullRequest.mergedCommitIdTo, mergedRepository, commitB, path, line);
+            default:
+                throw new RuntimeException(unexpectedSideMessage(side));
         }
-
-        return _isOutdated;
     }
     static private String getLastChangedCommitUntil(
             Repository gitRepo, String rev, String path)
@@ -243,23 +238,30 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         }
 
         for (FileDiff diff: fileDiffs) {
-            if (side.equals("context") || side.equals("add")) {
-                if (path.equals(diff.pathB)) {
-                    diff.updateRange(null, line);
-                    fileDiff = diff;
-                    return fileDiff;
-                }
-            } else if (side.equals("remove")) {
-                if (path.equals(diff.pathA)) {
-                    diff.updateRange(line, null);
-                    fileDiff = diff;
-                    return fileDiff;
-                }
+            switch(side) {
+                case A:
+                    if (path.equals(diff.pathA)) {
+                        diff.updateRange(line, null);
+                        fileDiff = diff;
+                        return fileDiff;
+                    }
+                case B:
+                    if (path.equals(diff.pathB)) {
+                        diff.updateRange(null, line);
+                        fileDiff = diff;
+                        return fileDiff;
+                    }
+                default:
+                    throw new RuntimeException(unexpectedSideMessage(side));
             }
         }
 
         play.Logger.warn(this + ": No interest diff between " + commitA + " and " +commitB);
 
         return null;
+    }
+
+    private String unexpectedSideMessage(Side side) {
+        return String.format("Expected '%s' or '%s', but '%s'", Side.A, Side.B, side);
     }
 }

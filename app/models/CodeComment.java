@@ -6,10 +6,7 @@ import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,6 +22,10 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 
+    public enum Side {
+        A, B
+    }
+
     @Id
     public Long id;
     @ManyToOne
@@ -32,7 +33,8 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     public String commitId;
     public String path;
     public Integer line; // FIXME: DB엔 integer가 아닌 bigint로 되어있음.
-    public String side;
+    @Enumerated(EnumType.STRING)
+    public Side side;
     @Constraints.Required @Column(length = 4000) @Size(max=4000)
     public String contents;
     @Constraints.Required
