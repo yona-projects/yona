@@ -122,7 +122,7 @@
 @renderCommitComment(comment: CommitComment) = {
   @defining(PullRequestCommit.getStateByCommitId(pull, comment.commitId)) { state =>
     @if(state != null) {
-        <li class="comment @isAuthorComment(comment.authorLoginId)" id="comment-@comment.id">
+        <li class="comment @isAuthorComment(comment.authorLoginId) @if(!comment.replies.isEmpty) {hasReply}" id="comment-@comment.id">
             <div class="comment-avatar">
                 <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                     <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
@@ -133,7 +133,7 @@
                     <span class="comment_author pull-left">
                         <i class="yobicon-comment"></i>
                         <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                            <strong>@comment.authorLoginId </strong>
+                            <strong>@comment.authorLoginId</strong>
                         </a>
                     </span>
                     <span class="ago">
@@ -155,6 +155,36 @@
                 <div class="attachments pull-right" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
             </div>
         </li>
+        @for((reply, index) <- comment.replies.zipWithIndex) {
+        <li class="comment @isAuthorComment(reply.authorLoginId) reply @if(index == (comment.replies.size - 1)) {last}" id="comment-@reply.id">
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <i class="yobicon-comment"></i>
+                        <a href="@routes.UserApp.userInfo(reply.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@reply.authorName">
+                            <strong>@reply.authorLoginId</strong>
+                        </a>
+                    </span>
+                    <span class="ago">
+                    @if(PullRequestCommit.State.PRIOR == state) {
+						@utils.TemplateHelper.agoString(ago(reply.createdDate)) - <strike>@Messages("pullRequest.code.replied")</strike>
+					} else {
+						@utils.TemplateHelper.agoString(ago(reply.createdDate)) - @Messages("pullRequest.code.replied")
+					}
+                    </span>
+                    @if(isAllowed(UserApp.currentUser(), reply.asResource(), Operation.DELETE)){
+                    <span class="edit pull-right">
+                        <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, reply.commitId, reply.id)"><i class="yobicon-trash"></i></button>
+                    </span>
+                    }
+                </div>
+
+                <div class="comment-body markdown-wrap markdown-before" markdown="true">@reply.contents</div>
+
+                <div class="attachments pull-right" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@reply.id"></div>
+            </div>
+        </li>
+        }
     }
   }
 }
