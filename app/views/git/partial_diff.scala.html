@@ -54,12 +54,12 @@
             </div>
             }
         </div>
-    
+
         <ul class="nav nav-tabs nm">
             <li class="active"><a href="#__commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
             <li><a href="#__changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
-        <div class="tab-content">    
+        <div class="tab-content">
             <div id="__commits" class="code-browse-wrap tab-pane active">
                 <div id="history" class="commit-wrap mt20">
                     <table class="code-table commits">
@@ -80,14 +80,12 @@
                                     <i class="yobicon-right"></i>
                                 </a>
                             </td>
-                
                             <td class="messages">
                                 @defining(CommitComment.count(pullRequest.fromProject, commit.getId, null)){ numOfComment =>
                                     @if(numOfComment > 0) {
                                     <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
                                     }
                                 }
-            
                                 @defining(commit.getMessage()){ commitMsg =>
                                 <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
                                     @commitMsg.split("\n")(0)
@@ -118,10 +116,11 @@
                     </table>
                 </div>
             </div>
-               
             <div id="__changes" class="tab-pane">
                 <div class="diff-body">
+                @if(result.getGitConflicts() == null) {
                 @views.html.partial_diff(pullRequest.getDiff)
+                }
                 </div>
             </div>
         </div>
