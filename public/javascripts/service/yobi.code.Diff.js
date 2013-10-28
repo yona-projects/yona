@@ -234,31 +234,6 @@
             htDiff.aAdded = [];
         }
 
-        /**
-         * 현재 줄에 다음의 프로퍼티를 설정한다.
-         *
-         * - path (파일 경로)
-         * - line (줄 번호)
-         * - side (left, right, base 중 하나)
-         *
-         * @param {Object} welTr
-         * @param {String} sPath
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         */
-        function _setPropertiesOnLine(welTr, sPath, nLineA, nLineB, sBlobA, sBlobB) {
-            welTr.data('line', nLineA || nLineB);
-            welTr.data('path', sPath);
-
-            if (nLineA && nLineB) {
-                welTr.data('side', 'base');
-            } else if (nLineA && !nLineB) {
-                welTr.data('side', 'left');
-            } else if (!nLineA && nLineB) {
-                welTr.data('side', 'right');
-            }
-        }
-
         function _attachCommentBoxToggleEvent() {
             if (htVar.bCommentable) {
                 var welCloseButton = $('.close-comment-box');
