@@ -22,96 +22,96 @@
 @renderPullRequestComment(comment: PullRequestComment, thread: immutable.List[PullRequestComment] = Nil) = {
 <li id="comment-@comment.id" class="comment @isAuthorComment(comment.authorLoginId)" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-path="@comment.path" data-line="@comment.line" data-side="@comment.side" @if(isLineComment(comment)){data-outdated="@comment.isOutdated"}>
     <div class="comment-avatar">
-      <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-      </a>
+        <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+            <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+        </a>
     </div>
     <div class="media-body">
+        <div class="meta-info">
+            <span class="comment_author pull-left">
+                <i class="yobicon-comment"></i>
+                <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                    <strong>@comment.authorLoginId</strong>
+                </a>
+            </span>
+            <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
 
-      <div class="meta-info">
-        <span class="comment_author pull-left">
-          <i class="yobicon-comment"></i>
-          <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-            <strong>@comment.authorLoginId </strong>
-          </a>
-        </span>
-        <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
-
-        @if(isLineComment(comment)) {
-          <span>on @comment.line in @comment.path at
+            @if(isLineComment(comment)) {
+            <span>on @comment.line in @comment.path at
+                
             @if(comment.isCommitLost) {
-              <span style="text-decoration: line-through">@shortId(comment.commitId)</span>
+                <span style="text-decoration: line-through">@shortId(comment.commitId)</span>
             } else {
-              @shortId(comment.commitId)
+                @shortId(comment.commitId)
             }
             from @shortId(comment.commitA)..@shortId(comment.commitB)
-          </span>
-        }
+            </span>
+            }
 
-        @if(isLineComment(comment) && comment.isOutdated) {
-          <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>
-        }
+            @if(isLineComment(comment) && comment.isOutdated) {
+            <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>
+            }
 
-        @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && (!comment.hasValidCommitId || !hasDiff(comment))){
-          <span class="edit pull-right">
-            <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
-          </span>
-        }
-      </div>
-
-      @if(isLineComment(comment) && hasDiff(comment)) {
-        <div class="diff-body" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-outdated="true">
-          @views.html.partial_filediff(comment.getDiff, thread)
+            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && (!comment.hasValidCommitId || !hasDiff(comment))){
+            <span class="edit pull-right">
+                <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
+            </span>
+            }
         </div>
-      } else {
-        @showComment(comment)
-      }
-      <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
+
+        @if(isLineComment(comment) && hasDiff(comment)) {
+        <div class="diff-body" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-outdated="true">
+            @views.html.partial_filediff(comment.getDiff, thread)
+        </div>
+        } else {
+            @showComment(comment)
+        }
+        <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
     </div>
-  </li>
+</li>
 }
 
 @renderPullRequestEvent(event: PullRequestEvent) = {
 	@event.eventType match {
 		case EventType.PULL_REQUEST_STATE_CHANGED => {
-	<li class="event" id="comment-@event.id">
-		<span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-              <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
-	</li>
+        <li class="event" id="comment-@event.id">
+            <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
+            <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
+        </li>
 		}
+		
 		case EventType.PULL_REQUEST_MERGED => {
-	<li class="event" id="comment-@event.id">
-		<span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-              <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
-	</li>
+        <li class="event" id="comment-@event.id">
+            <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
+            <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
+        </li>
 		}
+		
 		case EventType.PULL_REQUEST_COMMIT_CHANGED => {
-		<li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
-          <div class="comment-avatar">
-              <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-                  <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
-              </a>
-          </div>
-          <div class="media-body">
-              <div class="meta-info">
-                  <span class="comment_author pull-left">
-                      <i class="yobicon-push"></i>
-                      <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
-                          <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
-                      </a>
-                  </span>
-                  <span class="ago">@utils.TemplateHelper.agoString(ago(event.created))</span>
-              </div>
-			@for(commit <- event.getPullRequestCommits) {
-              <div class="comment-body" style="margin:10px 0;">
-		@if(commit.state == PullRequestCommit.State.PRIOR) {
-					<strike>@commit.commitMessage - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)">@commit.commitShortId</a></strike>
-				} else {
-					@commit.commitMessage - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)">@commit.commitShortId</a>
-				}
-			</div>
-			}
-		</div>
+        <li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
+            <div class="comment-avatar">
+                <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
+                    <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
+                </a>
+            </div>
+            <div class="media-body">
+                <div class="meta-info">
+                    <span class="comment_author pull-left">
+                        <i class="yobicon-push"></i>
+                        <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
+                            <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
+                        </a>
+                    </span>
+                    <span class="ago">@utils.TemplateHelper.agoString(ago(event.created))</span>
+                </div>
+                
+                @for(commit <- event.getPullRequestCommits) {
+                <div class="comment-body" style="margin:10px 0; @if(commit.state == PullRequestCommit.State.PRIOR){text-decoration:line-through;}">
+                    <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">@commit.commitShortId</a>
+                    <p class="commitMsg">@commit.commitMessage</p>
+                </div>
+                }
+            </div>
 		</li>
 		}
 		case _ => {

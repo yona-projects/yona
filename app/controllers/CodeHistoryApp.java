@@ -240,7 +240,7 @@ public class CodeHistoryApp extends Controller {
         notiEvent.title = NotificationEvent.formatReplyTitle(project, commit);
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = toView.absoluteURL(request());
+        notiEvent.urlToView = toView.url();
         notiEvent.resourceId = codeComment.id.toString();
         notiEvent.resourceType = codeComment.asResource().getType();
         notiEvent.eventType = EventType.NEW_COMMENT;

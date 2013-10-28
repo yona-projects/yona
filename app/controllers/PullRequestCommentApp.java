@@ -12,6 +12,7 @@ import utils.Constants;
 import utils.ErrorViews;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ public class PullRequestCommentApp extends Controller {
 
         newComment.save();
 
-        String url = referer + "#comment-" + newComment.id;
+        String url = new URL(referer).getPath() + "#comment-" + newComment.id;
         addNewCommentNotification(pullRequestId, newComment, url);
         return redirect(url);
     }
