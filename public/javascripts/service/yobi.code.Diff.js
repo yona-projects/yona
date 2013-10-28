@@ -23,7 +23,7 @@
             _initElement(htOptions);
             _attachEvent();
             _render();
-            
+
             // bUseUploader 를 명시적으로 false 로 지정한 경우
             // code.Diff 에서는 파일업로더 초기화를 실행하지 않음
             if(htVar.bUseUploader !== false){
@@ -50,11 +50,11 @@
             htVar.sTplRawURLA = htOptions.sTplRawURLA ? htOptions.sTplRawURLA : htOptions.sTplRawURL;
             htVar.sTplRawURLB = htOptions.sTplRawURLB ? htOptions.sTplRawURLB : htOptions.sTplRawURL;
             htVar.rxSlashes = /\//g;
-            
+
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
-            
+
             // yobi.Attachments
             htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
@@ -65,7 +65,7 @@
         function _initElement(htOptions){
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
-            
+
             var welHidden = $('<input>').attr('type', 'hidden');
 
             htElement.welDiff = htOptions.welDiff || $('#commit');
@@ -80,13 +80,13 @@
 
             // 지켜보기
             htElement.welBtnWatch = $('#watch-button');
-            
+
             // 미니맵
             htElement.welMiniMap = $("#minimap"); // .minimap-outer
             htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
             htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
             htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
-            
+
             // FullDiff (Mergely)
             htElement.welMergelyWrap = $("#compare");
             htElement.welMergely = $("#mergely");
@@ -114,7 +114,7 @@
                     }
                 });
             });
-            
+
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
             $(window).on("resize", _resizeMergely);
@@ -127,11 +127,10 @@
          * Render diff and comments
          */
         function _render() {
-            //var sDiff = htElement.welDiff.text();
 
-            //htElement.welDiff.text("");
-            //htElement.welDiff.append(_renderDiff(sDiff));
-            //htElement.welDiff.show();
+            if(!htVar.bCommentable) {
+                $(".diff-body .icon-comment").css("display", "none");
+            }
 
             var waComments = htElement.welComments.children('li.comment');
             var aComment = [];
@@ -161,13 +160,13 @@
             }
 
             htElement.welComments.show(); // Show the remain comments
-            
+
             // Diff 중에서 특정 파일을 #path 로 지정한 경우
             // Diff render 완료 후 해당 파일 위치로 스크롤 이동
             if(document.location.hash){
                 var sTargetId = document.location.hash.substr(1).replace(htVar.rxSlashes, "-");
                 var welTarget = $(document.getElementById(sTargetId));
-                
+
                 if(welTarget.length > 0){
                     window.scrollTo(0, welTarget.offset().top);
                 }
@@ -180,7 +179,7 @@
          */
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            
+
             if(oUploader){
                 (new yobi.Attachments({
                     "elContainer"  : htElement.welUploader,
@@ -238,19 +237,19 @@
             if (htVar.bCommentable) {
                 var welCloseButton = $('.close-comment-box');
                 var welOpenButton = $('.open-comment-box');
-    
+
                 var fOnClickAddButton = function(weEvt) {
                     _showCommentBox($(weEvt.target).closest("tr"));
                     $(weEvt.target).siblings(".close-comment-box").show();
                     $(weEvt.target).hide();
                 };
-    
+
                 var fOnClickCloseButton = function(weEvt) {
                     _hideCommentBox();
                     $(weEvt.target).siblings(".open-comment-box").show();
                     $(weEvt.target).hide();
                 };
-    
+
                 welCloseButton.click(fOnClickCloseButton).hide();
                 welOpenButton.click(fOnClickAddButton);
             }
@@ -376,7 +375,7 @@
                     sURL = $yobi.tmpl(htVar.sTplFileURLA, {"commitId": sCommitA, "path":sPathA});
                     sCommitId = sCommitA.substr(0, Math.min(7, sCommitA.length));
                     welFrom.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
-                    
+
                     // 전체비교(fulldiff) 버튼 추가
                     var welBtnFullDiff = $('<button type="button" class="ybtn pull-right">').text(Messages("code.fullDiff"));
                     welBtnFullDiff.data({
@@ -413,7 +412,7 @@
                 "cmsettings":{"readOnly": true, "lineNumbers": true}
             });
         }
-        
+
         /**
          * Mergely wrapper 크기 반환
          */
@@ -423,10 +422,10 @@
                 "nWrapHeight": window.innerHeight - (window.innerHeight * 0.2)
             };
         }
-        
+
         /**
          * fullDiff 버튼 클릭시 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event} weEvt
          */
         function _onClickBtnFullDiff(weEvt){
@@ -437,7 +436,7 @@
             var sPathB  = welTarget.data("pathB");
             var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURLA, {"commitId": sFromId, "path": sPathA});
             var sRawURLTo = $yobi.tmpl(htVar.sTplRawURLB, {"commitId": sToId, "path": sPathB});
-            
+
             // UpdateText
             if (sPathA != sPathB) {
                 htElement.welMergelyPathTitle.text(sPathA + " -> " + sPathB);
@@ -454,7 +453,7 @@
 
         /**
          * 두 코드를 가져다 fullDiff 에 표시하는 함수
-         * 
+         *
          * @param {String} sRawURLFrom
          * @param {String} sRawURLTo
          */
@@ -465,7 +464,7 @@
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
             });
-            
+
             // rhs = to
             $.get(sRawURLTo).done(function(sData){
                 htElement.welMergely.mergely("rhs", sData);
@@ -473,7 +472,7 @@
                 htElement.welMergely.mergely("update");
             });
         }
-        
+
         /**
          * Mergely 영역 크기 조절
          */
@@ -481,7 +480,7 @@
             var htWrapSize = _getMergelyWrapSize();
             var nWidth = ((htWrapSize.nWrapWidth - 92) / 2);
             var nHeight = (htWrapSize.nWrapHeight - 100);
-            
+
             htElement.welMergelyWrap.css({
                 "width" : htWrapSize.nWrapWidth + "px",
                 "height": htWrapSize.nWrapHeight + "px",
@@ -489,7 +488,7 @@
             });
             htElement.welMergely.mergely("cm", "rhs").setSize(nWidth + "px", nHeight + "px");
             htElement.welMergely.mergely("cm", "lhs").setSize(nWidth + "px", nHeight + "px");
-            
+
             $(".mergely-column").width(nWidth).height(nHeight);
             $(".CodeMirror").height(nHeight);
         }
@@ -503,7 +502,7 @@
             _updateMiniMap();
             _resizeMiniMapCurr();
         }
-        
+
         /**
          * 미니맵 비율을 설정한다
          * 비율 = 미니맵 높이 / 문서 전체 높이
@@ -511,17 +510,17 @@
         function _setMiniMapRatio(){
             var nDocumentHeight = $(document).height();
             var nMapHeight = htElement.welMiniMapWrap.height();
-            
+
             htVar.nMiniMapRatio = nMapHeight / nDocumentHeight;
         }
-        
+
         /**
          * 현재 스크롤 위치에 맞추어 minimap-curr 의 위치도 움직인다
          */
         function _updateMiniMapCurr(){
             htElement.welMiniMapCurr.css("top", Math.ceil($(document.body).scrollTop() * htVar.nMiniMapRatio) + "px");
         }
-        
+
         /**
          * 미니맵 스크롤 위치 표시기(minimap-curr)의 높이를
          * 비율에 맞추어 조정한다
@@ -529,13 +528,13 @@
         function _resizeMiniMapCurr(){
             htElement.welMiniMapCurr.css("height", Math.ceil(window.innerHeight * htVar.nMiniMapRatio) + "px");
         }
-        
+
         /**
          * tr.comments 의 위치, 높이를 기준으로 미니맵을 표시한다
-         * 
+         *
          * 화면 크기 변경(window.resize)이나 화면 내용 변동시(_initMiniMap)
          * 이미 생성한 DOM을 일일히 제어하는 것 보다 HTML을 새로 그리는 것이 빠르다
-         * 
+         *
          * 표시할 항목이 없다면 미니맵은 감춤
          */
         function _updateMiniMap(){
@@ -559,7 +558,7 @@
                 htElement.welMiniMap.hide();
             }
         }
-        
+
         _init(htOptions || {});
     };
 })("yobi.code.Diff");
