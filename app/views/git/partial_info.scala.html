@@ -1,0 +1,61 @@
+@(project: Project, pull: PullRequest)
+
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import models.enumeration
+@import scala.collection.JavaConversions._
+
+@branchName(branch:String) = @{
+    branch.replace("refs/heads/", "")
+}
+
+<div class="pullreq-info">
+    <div class="pull-right">
+        <button id="helpBtn" class="ybtn ybtn-inverse ybtn-mini mt5">
+            <i class="yobicon-question-sign yobicon-large"></i> @Messages("title.help")
+        </button>
+    </div>
+    <div>
+        <a href="@routes.UserApp.userInfo(pull.contributor.loginId)" class="avatar-wrap">
+            <img src="@pull.contributor.avatarUrl" width="32" height="32">
+        </a>
+        <a href="@routes.UserApp.userInfo(pull.contributor.loginId)">
+            <strong>@pull.contributor.name (@pull.contributor.loginId)</strong>
+        </a>
+        @Messages("pullRequest.merge.requested")
+
+        <div class="pullRequest-branch ml10">
+            <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                <code class="from">
+                    <i class="yobicon-branch"></i>
+                    <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a>/<!--
+                 --><a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>:
+                    @branchName(pull.fromBranch)
+                </code>
+            </span>
+            <i class="yobicon-right ml10"></i>
+            <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                <code class="to">
+                    <i class="yobicon-branch"></i>
+                    <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a>/<!--
+                 --><a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>:
+                    @branchName(pull.toBranch)
+                </code>
+            </span>
+        </div>
+    </div>
+    <div id="helpMessage" class="well" style="display:none;">
+        <div class="row-fluid">
+        <div class="pull-left">
+            <img class="img-polaroid" src="@routes.Assets.at("images/fork-pull/merge.jpg")"><br>
+        </div>
+        <div class="pull-left help-messages">
+            <p class="lead">@Messages("pullRequest.merge.help.1")</p>
+            <p>@Messages("pullRequest.merge.help.2")</p>
+            <p>@Messages("pullRequest.merge.help.3")</p>
+            <p>@Messages("pullRequest.merge.help.4")</p>
+        </div>
+        </div>
+    </div>
+</div>
