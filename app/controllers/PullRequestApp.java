@@ -744,7 +744,7 @@ public class PullRequestApp extends Controller {
         }
 
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", project.id).findList();
+                commitId).eq("project.id", project.id).order("createdDate").findList();
 
         return ok(diff.render(pullRequest, commit, parentCommit, fileDiffs, comments));
     }
