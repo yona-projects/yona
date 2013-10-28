@@ -85,14 +85,15 @@
 		 */
 		function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            var sUploaderId = oUploader.attr("data-namespace");
             
-            (new yobi.Attachments({
-                "elContainer"  : htElement.welUploader,
-                "elTextarea"   : htElement.welTextarea,
-                "sTplFileItem" : htVar.sTplFileItem,
-                "sUploaderId"  : sUploaderId
-            }));
+            if(oUploader){
+                (new yobi.Attachments({
+                    "elContainer"  : htElement.welUploader,
+                    "elTextarea"   : htElement.welTextarea,
+                    "sTplFileItem" : htVar.sTplFileItem,
+                    "sUploaderId"  : Uploader.attr("data-namespace")
+                }));
+            }
 		}
 		
 		_init(htOptions);

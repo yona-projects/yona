@@ -16,6 +16,8 @@ import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
 import models.PullRequestComment
 import models.TimelineItem
+import models.Project
+import java.net.URLEncoder
 
 object TemplateHelper {
 
@@ -100,6 +102,56 @@ object TemplateHelper {
     }
   }
 
+  def branchItemType(branch: String) = {
+    var names = branch.split('/');
+    
+    if(names(0).equals("refs") && names.length >= 3){
+        names(1) match {
+            case "heads" => "branch"
+            case "tags"  => "tag"
+            case _       => names(1)
+        }
+    } else {
+        branch
+    }
+  }
+  
+  def branchItemName(branch: String) = {
+    var names = branch.split('/');
+    
+    if(names(0).equals("refs") && names.length >= 3){
+        names.slice(2, names.length).mkString("/");
+    } else {
+        branch
+    }
+  }
+
+  def branchInHTML(branch: String) = {
+    var names = branch.split('/');
+    var branchType = branchItemType(branch);
+    var branchName = branchItemName(branch);
+    
+    if(names(0).equals("refs") && names.length >= 3){
+        "<span class=\"label " + branchType + "\">" + branchType + "</span>" + branchName
+    } else {
+        branch
+    }
+  }
+  
+  def getBranchURL(project:Project, branchName:String, viewType:String, path:String) = {
+    viewType match {
+        case "history" => {
+            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
+        }
+        case "code" => {
+            routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
+        }
+        case _ => {
+            "#"
+        }
+    }
+  }
+    
   object DiffRenderer {
 
     def removedWord(word: String) = "<span class='remove'>" + word + "</span>"

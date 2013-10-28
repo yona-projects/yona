@@ -32,8 +32,6 @@
          * initialize variables except HTML Element
          */
         function _initVar(htOptions){
-            htVar.sFilesURL = htOptions.sFilesURL;
-            htVar.sUploadURL = htOptions.sUploadURL;
             htVar.sTplFileItem = $('#tplAttachedFile').text();
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
@@ -78,6 +76,15 @@
                     }
                 });
             });
+            
+            $("button.more").click(function(){
+                $(this).next("pre").toggleClass("hidden");
+            });
+
+            $("a#toggle").click(function(weEvt){
+                weEvt.preventDefault();
+                $("#outdatedCommits").toggle();
+            });
         }
 
         /**
@@ -85,14 +92,15 @@
          */
         function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-            var sUploaderId = oUploader.attr("data-namespace");
             
-            (new yobi.Attachments({
-                "elContainer"  : htElement.welUploader,
-                "elTextarea"   : htElement.welTextarea,
-                "sTplFileItem" : htVar.sTplFileItem,
-                "sUploaderId"  : sUploaderId
-            }));
+            if(oUploader){
+                (new yobi.Attachments({
+                    "elContainer"  : htElement.welUploader,
+                    "elTextarea"   : htElement.welTextarea,
+                    "sTplFileItem" : htVar.sTplFileItem,
+                    "sUploaderId"  : oUploader.attr("data-namespace")
+                }));
+            }
         }
 
         /**
@@ -100,7 +108,11 @@
          */
         function _initFileDownloader(){
             htElement.welAttachments.each(function(n, elContainer){
-                (new yobi.Attachments({"elContainer": elContainer}));
+                if(!$(elContainer).data("isYobiAttachment")){
+                    if(!$(elContainer).data("isYobiAttachment")){
+                        (new yobi.Attachments({"elContainer": elContainer}));
+                    }
+                }
             });
         }
 

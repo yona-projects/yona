@@ -178,14 +178,15 @@
 		 */
 		function _initFileUploader(){
 			var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
-			var sUploaderId = oUploader.attr("data-namespace");
-			
-			(new yobi.Attachments({
-			    "elContainer"  : htElement.welUploader,
-			    "elTextarea"   : htElement.welTextarea,
-			    "sTplFileItem" : htVar.sTplFileItem,
-			    "sUploaderId"  : sUploaderId
-			}));
+
+			if(oUploader){
+    			(new yobi.Attachments({
+    			    "elContainer"  : htElement.welUploader,
+    			    "elTextarea"   : htElement.welTextarea,
+    			    "sTplFileItem" : htVar.sTplFileItem,
+    			    "sUploaderId"  : oUploader.attr("data-namespace")
+    			}));
+			}
 		}
 		
 		/**
@@ -193,7 +194,9 @@
 		 */
 		function _initFileDownloader(){
 			htElement.welAttachments.each(function(i, elContainer){
-    			(new yobi.Attachments({"elContainer": elContainer}));
+			    if(!$(elContainer).data("isYobiAttachment")){
+                    (new yobi.Attachments({"elContainer": elContainer}));
+    			}
 			});
 		}
         
