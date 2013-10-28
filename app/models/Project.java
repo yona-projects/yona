@@ -749,6 +749,14 @@ public class Project extends Model implements LabelOwner {
             label.delete();
         }
 
+        for(Issue issue : issues) {
+            issue.delete();
+        }
+
+        for(Posting posting : posts) {
+            posting.delete();
+        }
+
         super.delete();
     }
 
