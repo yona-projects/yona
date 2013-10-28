@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
@@ -143,10 +144,10 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return
      */
     public void moveTo(Resource to) {
-        if(to.getProject() != null) {
-            projectId = to.getProject().id;
-        } else {
+        if (to instanceof GlobalResource) {
             projectId = null;
+        } else {
+            projectId = to.getProject().id;
         }
         containerType = to.getType();
         containerId = to.getId();
@@ -223,9 +224,9 @@ public class Attachment extends Model implements ResourceConvertible {
     public boolean store(File file, String name, Resource container) throws IOException, NoSuchAlgorithmException {
         // Store the file as its SHA1 hash in filesystem, and record its
         // metadata - projectId, containerType, containerId, size and hash - in Database.
-
-        Project project = container.getProject();
-        this.projectId = project == null ? 0L : project.id;
+        if (!(container instanceof GlobalResource)) {
+            this.projectId = container.getProject().id;
+        }
         this.containerType = container.getType();
         this.containerId = container.getId();
 
@@ -325,50 +326,70 @@ public class Attachment extends Model implements ResourceConvertible {
      */
     @Override
     public Resource asResource() {
-        return new Resource() {
-            @Override
-            public String getId() {
-                return id.toString();
-            }
-
-            @Override
-            public Project getProject() {
-                if (projectId != null) {
-                    return Project.find.byId(projectId);
-                } else {
-                    return null;
+        if (projectId == null) {
+            return new GlobalResource() {
+                @Override
+                public String getId() {
+                    return id.toString();
                 }
-            }
 
-            @Override
-            public ResourceType getType() {
-                return ResourceType.ATTACHMENT;
-            }
+                @Override
+                public ResourceType getType() {
+                    return ResourceType.ATTACHMENT;
+                }
 
-            @Override
-            public Resource getContainer() {
-                return new Resource() {
-
-                    @Override
-                    public String getId() {
-                        return containerId;
-                    }
-
-                    @Override
-                    public Project getProject() {
-                        if (projectId != null) {
-                            return Project.find.byId(projectId);
-                        } else {
-                            return null;
+                @Override
+                public Resource getContainer() {
+                    return  new GlobalResource() {
+                        @Override
+                        public String getId() {
+                            return containerId;
                         }
-                    }
 
-                    @Override
-                    public ResourceType getType() {
-                        return containerType;
-                    }
-                };
-            }
-        };
+                        @Override
+                        public ResourceType getType() {
+                            return containerType;
+                        }
+                    };
+                }
+            };
+        } else {
+            return new Resource() {
+                @Override
+                public String getId() {
+                    return id.toString();
+                }
+
+                @Override
+                public Project getProject() {
+                    return Project.find.byId(projectId);
+                }
+
+                @Override
+                public ResourceType getType() {
+                    return ResourceType.ATTACHMENT;
+                }
+
+                @Override
+                public Resource getContainer() {
+                    return new Resource() {
+                        @Override
+                        public String getId() {
+                            return containerId;
+                        }
+
+                        @Override
+                        public Project getProject() {
+                            return Project.find.byId(projectId);
+                        }
+
+                        @Override
+                        public ResourceType getType() {
+                            return containerType;
+                        }
+                    };
+                }
+            };
+        }
     }
 }
