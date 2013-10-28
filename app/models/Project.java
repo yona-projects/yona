@@ -9,6 +9,7 @@ import controllers.routes;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.RoleType;
+import models.resource.GlobalResource;
 import models.resource.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -485,16 +486,11 @@ public class Project extends Model implements LabelOwner {
      */
     @Override
     public Resource asResource() {
-        return new Resource() {
+        return new GlobalResource() {
 
             @Override
             public String getId() {
                 return id.toString();
-            }
-
-            @Override
-            public Project getProject() {
-                return null;
             }
 
             @Override
