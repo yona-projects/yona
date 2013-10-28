@@ -131,15 +131,6 @@
                 url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString)"
             }
         });
-
-        $yobi.loadModule("code.Diff", {
-            "welDiff"      : $("#pull-request-changes"),
-            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)",
-            "sTplFileURLA" : "@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
-            "sTplFileURLB" : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")",
-            "sTplRawURLA"  : "@routes.CodeApp.showRawFile(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
-            "sTplRawURLB"  : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
-        });
     });
 </script>
 }

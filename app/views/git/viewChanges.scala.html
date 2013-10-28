@@ -44,6 +44,7 @@
                 <div id="mergely" class="mergely-wrap"></div>
             </div>
         </div>
+        @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
     </div>
 
 @common.markdown(project)
@@ -57,11 +58,6 @@
 <script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        $yobi.loadModule("git.View", {
-            "sWatchUrl"  : "@routes.WatchApp.watch(pull.asResource.asParameter)",
-            "sUnwatchUrl": "@routes.WatchApp.unwatch(pull.asResource.asParameter)"
-        });
-
         yobi.Mention({
             target:'comment-editor',
             @if(pull.getCurrentCommits.isEmpty()) {
