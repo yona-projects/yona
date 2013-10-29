@@ -59,7 +59,6 @@
 <div class="page">
     @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
 
-    @if(history.size() > 0) {
     <div class="bubble-wrap dark-gray repo-wrap">
         <div class="code-browse-wrap">
             @if(path != null){
@@ -108,6 +107,9 @@
                         </tr>
                     </thead>
                     <tbody class="tbody">
+                        @if( history.size == 0){
+                            <tr><td colspan="5"><div class="warning-none">@Messages("code.nocommits")</div></td></tr>
+                        }
                         @for(commit <- history.iterator()) {
                         @defining(getShowCommitURL(project, commit, path)){ showCommitURL =>
                         <tr>
@@ -201,12 +203,11 @@
             <a href="@getHistoryURL?page=@(page - 1)" class="ybtn pull-left">@Messages("code.newer")</a>
             }
 
-            @if(history.get(history.size() - 1).getParentCount() > 0) {
+            @if(history.size() > 0 && history.get(history.size() - 1).getParentCount() > 0) {
             <a href="@getHistoryURL?page=@(page + 1)" class="ybtn pull-left">@Messages("code.older")</a>
             }
         </div>
     </div>
-    } @** end of if(history.size) **@
 </div>
 
 <script type="text/javascript">
@@ -219,7 +220,7 @@ $(document).ready(function(){
     @if(page > 0){
     htKeyMap.A = "@getHistoryURL?page=@(page - 1)";
     }
-    @if(history.get(history.size() - 1).getParentCount() > 0) {
+    @if(history.size() > 0 && history.get(history.size() - 1).getParentCount() > 0) {
     htKeyMap.S = "@getHistoryURL?page=@(page + 1)";
     }
     if(htKeyMap.A || htKeyMap.S){

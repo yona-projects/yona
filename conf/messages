@@ -78,6 +78,8 @@ code.history = History
 code.isBinary = Binary file is not shown
 code.newer = Newer
 code.noChanges = No changes
+code.nocommits = There is no commit
+code.nofiles = There is no file
 code.nohead = <div class="alert alert-block"><h4>The repository is empty!</h4></div>
 code.nohead.clone = Create new local repository by cloning the repository created on {0}, and push README.md file.
 code.nohead.svn.clone = You can commit your code to this repository.
