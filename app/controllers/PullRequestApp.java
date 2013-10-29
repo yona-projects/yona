@@ -503,13 +503,13 @@ public class PullRequestApp extends Controller {
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
 
-        addNotification(pullRequest, call);
+        addNotification(pullRequest, call, State.OPEN, State.CLOSED);
 
         return redirect(call);
     }
 
-    private static void addNotification(PullRequest pullRequest, Call call) {
-        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, State.OPEN, State.CLOSED);
+    private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {
+        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, from, to);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 
@@ -536,7 +536,7 @@ public class PullRequestApp extends Controller {
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
 
-        addNotification(pullRequest, call);
+        addNotification(pullRequest, call, State.OPEN, State.REJECTED);
 
         return redirect(call);
     }
@@ -564,7 +564,7 @@ public class PullRequestApp extends Controller {
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
 
-        addNotification(pullRequest, call);
+        addNotification(pullRequest, call, State.REJECTED, State.OPEN);
 
         return redirect(call);
     }
@@ -744,7 +744,7 @@ public class PullRequestApp extends Controller {
         }
 
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", project.id).findList();
+                commitId).eq("project.id", project.id).order("createdDate").findList();
 
         return ok(diff.render(pullRequest, commit, parentCommit, fileDiffs, comments));
     }

@@ -4,6 +4,7 @@ import models.enumeration.EventType;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
+import models.resource.GlobalResource;
 import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -186,7 +187,11 @@ public class NotificationEvent extends Model {
         default:
             Resource resource = getResource();
             if (resource != null) {
-                return resource.getProject();
+                if (resource instanceof GlobalResource) {
+                    return null;
+                } else {
+                    return resource.getProject();
+                }
             } else {
                 return null;
             }
