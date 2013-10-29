@@ -24,7 +24,11 @@
             _attachEvent();
             _render();
             
-            _initFileUploader();
+            // bUseUploader 를 명시적으로 false 로 지정한 경우
+            // code.Diff 에서는 파일업로더 초기화를 실행하지 않음
+            if(htVar.bUseUploader !== false){
+                _initFileUploader();
+            }
             _initFileDownloader();
             _initToggleCommentsButton();
             _initFileViewButton();

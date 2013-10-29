@@ -91,7 +91,7 @@
                     "elContainer"  : htElement.welUploader,
                     "elTextarea"   : htElement.welTextarea,
                     "sTplFileItem" : htVar.sTplFileItem,
-                    "sUploaderId"  : Uploader.attr("data-namespace")
+                    "sUploaderId"  : oUploader.attr("data-namespace")
                 }));
             }
 		}
