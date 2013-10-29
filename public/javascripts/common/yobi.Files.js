@@ -121,11 +121,19 @@ yobi.Files = (function(){
             "error": function(oRes){
                 _onErrorSubmit(nSubmitId, oRes, sNamespace);
             },
-            "xhrFields": {"onprogress": function(weEvt){
-                if(weEvt.lengthComputable){
-                    _onUploadProgress(nSubmitId, Math.ceil(weEvt.loaded / weEvt.total), sNamespace);
+            "xhr": function(){
+                var oXHR = $.ajaxSettings.xhr();
+
+                if(oXHR.upload){
+                    oXHR.upload.addEventListener("progress", function(weEvt){
+                        if(weEvt.lengthComputable){
+                            _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
+                        }
+                    }, false);
                 }
-            }}
+                
+                return oXHR;
+            }
         });
     }
 
