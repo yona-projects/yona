@@ -15,14 +15,14 @@ URL의 path segment로 사용되는 상황에 대한 고려
 
 path segment가 될 수 있는 이름(사용자 이름, 프로젝트 이름 등)에 `/` 이나 `?` 같은 예약된 문자를 사용하면 [percent encoding](http://tools.ietf.org/html/rfc3986#section-2.1)이 되는 것을 피할 수 없다.
 
-예를 들어 프로젝트 이름이 "엔포지" 라면, 프로젝트에 대한 url은 다음과 같이 만들어 질 것이다.
+예를 들어 프로젝트 이름이 "요비" 라면, 프로젝트에 대한 url은 다음과 같이 만들어 질 것이다.
 
-    http://nforge.com/foo/%EC%97%94%ED%8F%AC%EC%A7%80
+    http://www.foo.com/bar/%EC%9A%94%EB%B9%84
 
 이렇게 되면 아래와 같은 단점이 있다.
 
-* nforge에서 디코딩을 빼먹으면 버그를 유발하게 됨
-* nforge를 이용해 뭔가를 만들어보려는 개발자 입장에서도 percent encoding이 되는 상황을 고려해야 하는 것은 불편함
+* Yobi에서 디코딩을 빼먹으면 버그를 유발하게 됨
+* Yobi를 이용해 뭔가를 만들어보려는 개발자 입장에서도 percent encoding이 되는 상황을 고려해야 하는 것은 불편함
 * 보기도 좋지 않음
 
 예외

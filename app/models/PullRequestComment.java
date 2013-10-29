@@ -79,7 +79,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
             @Override
             public Project getProject() {
-                return null;
+                return pullRequest.asResource().getProject();
             }
 
             @Override
@@ -152,6 +152,10 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
             return _isOutdated;
         }
 
+        if (pullRequest.mergedCommitIdFrom == null || pullRequest.mergedCommitIdTo == null) {
+            return false;
+        }
+
         if (path.length() > 0 && path.charAt(0) == '/') {
             path = path.substring(1);
         }
@@ -159,15 +163,15 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         Repository mergedRepository = pullRequest.getMergedRepository();
 
         if (commitId.equals(commitA)) {
-            _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.toProject),
-                    pullRequest.toBranch, mergedRepository, commitId, path, line);
+            _isOutdated = !noChangesBetween(mergedRepository,
+                    pullRequest.mergedCommitIdFrom, mergedRepository, commitId, path, line);
         } else {
             if (!commitId.equals(commitB)) {
                 play.Logger.warn(
                         "Invalid PullRequestComment.commitId: It must equal to commitA or commitB.");
             }
-            _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.fromProject),
-                        pullRequest.fromBranch, mergedRepository, commitId, path, line);
+            _isOutdated = !noChangesBetween(mergedRepository,
+                        pullRequest.mergedCommitIdTo, mergedRepository, commitId, path, line);
         }
 
         return _isOutdated;

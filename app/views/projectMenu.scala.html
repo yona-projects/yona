@@ -70,7 +70,7 @@
                 }
             </a>
         </li>
-        @if(ProjectUser.roleOf(session.get("loginId"), project).equals("manager")){
+        @if(AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
         <li class="@isActiveMenu(MenuType.PROJECT_SETTING)">
             <a href="@routes.ProjectApp.settingForm(project.owner, project.name)" data-toggle="tooltip" title="@Messages("menu.admin")" data-placement="right">
                 <i class="yobicon-websitebuilder"></i>

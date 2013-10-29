@@ -483,9 +483,13 @@ public class GitRepository implements PlayRepository {
 
     /**
      * Git 저장소 디렉토리를 삭제한다.
+     * 변경전 {@code repository.close()}를 통해 open된 repository의 리소스를 반환하고
+     * repository 내부에서 사용하는 {@code Cache}를 초기화하여 packFile의 참조를 제거한다.
      */
     @Override
     public void delete() {
+        repository.close();
+        WindowCache.reconfigure(new WindowCacheConfig());
         FileUtil.rm_rf(repository.getDirectory());
     }
 

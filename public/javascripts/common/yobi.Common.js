@@ -103,16 +103,6 @@ $yobi = yobi.Common = (function(){
             oModule = oModule[sDepth];
         }
         
-        /*
-        if(typeof oModule != "function"){
-            console.log("[Yobi] " + sName + " is not loaded or invalid module");
-            return false;
-        }
-        
-        htModuleInstance[sName] = new oModule(htOptions);
-        return htModuleInstance[sName];
-        */
-        
         // temporary code for compatibility with nForge
         var oInstance;
         if(typeof oModule == "undefined"){

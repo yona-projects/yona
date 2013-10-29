@@ -154,7 +154,7 @@ public class CodeHistoryApp extends Controller {
         Commit commit = repository.getCommit(commitId);
         Commit parentCommit = repository.getParentCommitOf(commitId);
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", project.id).findList();
+                commitId).eq("project.id", project.id).order("createdDate").findList();
 
         if(project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {
             String patch = repository.getPatch(commitId);

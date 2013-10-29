@@ -105,7 +105,7 @@
             @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")
             @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
-            @common.fileUploader(ResourceType.PULL_REQUEST, null)
+            @common.fileUploader(ResourceType.PULL_REQUEST, pull.id)
 
             <div class="actions">
                 <button type="submit" class="ybtn ybtn-info">@Messages("button.save")</button>

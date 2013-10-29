@@ -496,6 +496,7 @@ pullRequest.sent.code = 送ったリクエスト
 pullRequest.title.required = タイトルを入力してください
 pullRequest.to = コード 受ける場所
 pullRequest.toBranch.required = コードを受けてもらいたいブランチを選んでください
+pullRequest.toHere = こちらへプルリクエスト
 site = サイト
 site.features.codeManagement = All your codes are stored in a version controlled system safely.
 site.features.codeReview = You can review all changes on code with your team before merging. Discussion makes your code better.
