@@ -19,7 +19,7 @@
         </div>
     </div>
     <div class="box-wrap bottom">
-        <a id="deletion" data-toggle="modal" href="#alertDeletion" class="ybtn ybtn-danger"><!--
+        <a id="btnDelete" href="#alertDeletion" class="ybtn ybtn-danger" data-toggle="modal" ><!-- 
          --><i class="yobicon-database-remove"></i> @Messages("project.delete.this")</a>
     </div>
 
@@ -34,8 +34,8 @@
 	        <p> @Messages("project.delete.reaccept") </p>
 	    </div>
 	    <div class="modal-footer">
-	        <button type="button" class="nbtn medium red" data-request-method="delete" data-request-uri="@routes.ProjectApp.deleteProject(project.owner, project.name)">@Messages("button.yes")</button>
-            <button type="button" class="nbtn medium" data-dismiss="modal">@Messages("button.no")</button>
+	        <button id="btnDeleteExec" type="button" class="ybtn ybtn-danger">@Messages("button.yes")</button>
+            <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
 	    </div>
 	</div>
 	@** // -- // **@
@@ -43,7 +43,9 @@
 
 <script type="text/javascript">
 	$(document).ready(function(){
-        $yobi.loadModule("project.Delete");
+        $yobi.loadModule("project.Delete", {
+            "sDeleteURL": "@routes.ProjectApp.deleteProject(project.owner, project.name)"
+        });
 	});
 </script>
 }

@@ -166,7 +166,7 @@ public class ProjectApp extends Controller {
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
-        return ok(setting.render("menu.admin", projectForm, project));
+        return ok(setting.render("title.projectSetting", projectForm, project));
     }
 
     /**
@@ -315,7 +315,7 @@ public class ProjectApp extends Controller {
         }
 
         Form<Project> projectForm = form(Project.class).fill(project);
-        return ok(delete.render("title.projectSetting", projectForm, project));
+        return ok(delete.render("title.projectDelete", projectForm, project));
     }
 
     /**
@@ -377,7 +377,7 @@ public class ProjectApp extends Controller {
 
         project.cleanEnrolledUsers();
 
-        return ok(views.html.project.members.render("title.memberList",
+        return ok(views.html.project.members.render("title.projectMembers",
                 ProjectUser.findMemberListByProject(project.id), project,
                 Role.getActiveRoles()));
     }
