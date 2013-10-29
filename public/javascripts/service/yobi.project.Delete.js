@@ -27,7 +27,7 @@
          * initialize element variables
          */
         function _initElement(htOptions){
-            htElement.welChkAccept    = $("#accept");
+            htElement.welChkAccept    = $("#accept");            
             htElement.welBtnDeletePop = $("#btnDelete");
             htElement.welBtnDeletePrj = $("#btnDeleteExec");
         }
