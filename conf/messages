@@ -136,6 +136,7 @@ error.required = Mandatory field is empty
 error.unauthorized = Login required
 error.validation = Input validation check error
 error.wrong.format = Wrong format
+error.toolargefile = Wow, that's a big file.<br>Please submit a file smaller than {0}.
 fork = Fork
 fork.already.exist = There is already forked the same project.
 fork.failed = Failed to fork the project.

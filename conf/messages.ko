@@ -136,6 +136,7 @@ error.required = 필수 입력란입니다.
 error.unauthorized = 로그인 해야 합니다
 error.validation = 입력값 유효성검사 오류
 error.wrong.format = 잘못된 형식의 값 입니다.
+error.toolargefile = 와 엄청 큰 파일이군요.<br>{0} 미만의 파일만 첨부해주세요.
 fork = 프로젝트 복사
 fork.already.exist = 동일한 원본 프로젝트를 복사한 프로젝트가 있습니다.
 fork.failed = 프로젝트를 복사하지 못했습니다.
