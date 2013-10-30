@@ -19,9 +19,9 @@ object ApplicationBuild extends Build {
       // Add your project dependencies here,
       "postgresql" % "postgresql" % "9.1-901.jdbc4",
       // Core Library
-      "org.eclipse.jgit" % "org.eclipse.jgit" % "2.3.1.201302201838-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "3.1.0.201310021548-r",
       // Smart HTTP Servlet
-      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "2.3.1.201302201838-r",
+      "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.1.0.201310021548-r",
       // svnkit
       "sonia.svnkit" % "svnkit" % "1.7.5-1",
       // svnkit-dav

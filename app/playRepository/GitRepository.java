@@ -22,13 +22,12 @@ import org.eclipse.jgit.diff.Edit.Type;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
+import org.eclipse.jgit.internal.storage.file.WindowCache;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.storage.file.ReflogReader;
-import org.eclipse.jgit.storage.file.WindowCache;
 import org.eclipse.jgit.storage.file.WindowCacheConfig;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
@@ -39,6 +38,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FileUtils;
 import org.eclipse.jgit.util.io.NullOutputStream;
 import org.tmatesoft.svn.core.SVNException;
+
 import play.Logger;
 import play.libs.Json;
 import utils.FileUtil;
@@ -489,7 +489,8 @@ public class GitRepository implements PlayRepository {
     @Override
     public void delete() {
         repository.close();
-        WindowCache.reconfigure(new WindowCacheConfig());
+        WindowCacheConfig config = new WindowCacheConfig();
+        config.install();
         FileUtil.rm_rf(repository.getDirectory());
     }
 
@@ -1449,6 +1450,7 @@ public class GitRepository implements PlayRepository {
         reader.addObjectReader(repositoryA.newObjectReader());
         reader.addObjectReader(repositoryB.newObjectReader());
 
+        @SuppressWarnings("rawtypes")
         Repository fakeRepo = new Repository(new BaseRepositoryBuilder()) {
 
             @Override
@@ -1680,8 +1682,8 @@ public class GitRepository implements PlayRepository {
     public boolean renameTo(String projectName) {
 
         repository.close();
-        WindowCache.reconfigure(new WindowCacheConfig());
-
+        WindowCacheConfig config = new WindowCacheConfig();
+        config.install();
         File src = new File(getGitDirectory(this.ownerName, this.projectName));
         File dest = new File(getGitDirectory(this.ownerName, projectName));
 

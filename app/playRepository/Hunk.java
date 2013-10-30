@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Hunk extends EditList {
+
+    private static final long serialVersionUID = 1L;
     public int beginA;
     public int endA;
     public int beginB;
