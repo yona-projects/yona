@@ -13,17 +13,17 @@
     }
 }
 
-@makeBranchItem(branch:String, selectedBranch:String) = {
+@makeBranchItem(branch:String) = {
     @defining(branch.split('/')){ names =>
         @if(names(0).equals("refs")){
-            <li data-value="@branch" @if(branch.equals(selectedBranch)){data-selected="true" class="active"}>
+            <li data-value="@branch" data-selected="true" class="active">
                 <a href="#">
                     <span class="label @branchItemType(names(1))">@branchItemType(names(1))</span>
                     @branch.replace("refs/" + names(1) + "/", "")
                 </a>
             </li>
         } else {
-            <li data-value="@branch" @if(branch.equals(selectedBranch)){data-selected="true" class="active"}><a href="#">@branch</a></li>
+            <li data-value="@branch" data-selected="true" class="active"><a href="#">@branch</a></li>
         }
     }
 }
@@ -55,51 +55,43 @@
                 </div>
             </div>
             <div class="pull-request-wrap">
-	            <div class="option request-from">
-	                <div class="option-label">@Messages("pullRequest.from"):
+                <div class="option request-from">
+                    <div class="option-label">@Messages("pullRequest.from"):
                         <code>@project.owner/@project.name</code>
                     </div>
-	                <div class="option-desc">
-	                    <div class="btn-group branches" data-name="fromBranch">
-	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
-	                            <span class="d-caret"><span class="caret"></span></span>
-	                        </button>
-	                        <ul class="dropdown-menu">
-	                            @for(branch <- fromBranches) {
-	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    @makeBranchItem(branch, form("fromBranch").value())
-	                                }
-	                            }
-	                        </ul>
-	                    </div>
-	                </div>
-	            </div>
-
-                <div class="arrow">
-	               <i class="yobicon-right"></i>
+                    <div class="option-desc">
+                        <div class="btn-group branches" data-name="fromBranch">
+                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                @makeBranchItem(form("fromBranch").value())
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
-	            <div class="option request-to">
-	                <div class="option-label">@Messages("pullRequest.to"):
+                <div class="arrow">
+                   <i class="yobicon-right"></i>
+                </div>
+
+                <div class="option request-to">
+                    <div class="option-label">@Messages("pullRequest.to"):
                         <code>@project.originalProject.owner/@project.originalProject.name</code>
                     </div>
-	                <div class="option-desc">
-	                    <div class="btn-group branches" data-name="toBranch">
-	                        <button class="btn dropdown-toggle auto" data-toggle="dropdown">
-	                            <span class="d-label">@Messages("pullRequest.select.branch")</span>
-	                            <span class="d-caret"><span class="caret"></span></span>
-	                        </button>
-	                        <ul class="dropdown-menu">
-	                            @for(branch <- toBranches) {
-	                                @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-	                                    @makeBranchItem(branch, form("toBranch").value())
-	                                }
-	                            }
-	                        </ul>
-	                    </div>
-	                </div>
-	            </div>
+                    <div class="option-desc">
+                        <div class="btn-group branches" data-name="toBranch">
+                            <button class="btn dropdown-toggle auto" data-toggle="dropdown">
+                                <span class="d-label">@Messages("pullRequest.select.branch")</span>
+                                <span class="d-caret"><span class="caret"></span></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                @makeBranchItem(form("toBranch").value())
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1, 'placeholder->"Title")

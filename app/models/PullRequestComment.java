@@ -207,8 +207,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
      * 저장소 {@code gitRepo}에서, {@code path}의 {@code line}이 {@code rev1}과 {@code rev2}사이에서
      * 아무 변화가 없었는지
      *
-     * @param gitRepo
+     * @param repoA
      * @param rev1
+     * @param repoB
      * @param rev2
      * @param path
      * @param line
