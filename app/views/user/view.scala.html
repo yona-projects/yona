@@ -29,7 +29,6 @@
             <div class="whoami-wrap" style="background-image:url('@user.avatarUrl')">
                 <div class="whoami">
                     <span class="uname">@user.name</span>
-                    <span class="eml reverb">@emailObfuscation(user.email)</span>
                 </div>
                 @if(user != null && session != null && user.loginId == session.get("loginId")){
                 <div class="edit">
