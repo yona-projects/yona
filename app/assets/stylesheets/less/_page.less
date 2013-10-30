@@ -557,7 +557,7 @@
         text-align:center;
         line-height: 34px;
     }
-    
+
     .provider {
         margin-left: 4px;
         font-family: Verdana;
@@ -577,7 +577,7 @@
         .d2-program:hover {
             background-color:#183054;
             text-decoration:none;
-            
+
             .d2 {
                 color:#f8da3a;
             }
@@ -2722,7 +2722,13 @@
 
                     .yobicon-comment {vertical-align: middle;}
                     .comment_author {font-size:13px; margin-right:5px; }
-                    .ago { color:#7F8C8D;}
+                    .ago {
+                        color:#7F8C8D;
+
+                        .outdated {
+                            text-decoration:line-through;
+                        }
+                     }
                     .edit { color: #7F8C8D;}
                 }
 
@@ -4540,7 +4546,7 @@ div.markdown-preview {
 .diff-body {
     font-family: "monospace", Consolas, Tahoma;
     overflow:auto;
-    
+
     .isBinary { color:#bbb; text-shadow:-1px -1px #fff; }
 
     table {

@@ -671,7 +671,7 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     /**
      * groupKey를 통해 같은 코멘트그룹 목록을 반환한다.
-     * (같은 커밋, 같은 파일, 같은 라인의 덧글들)
+     * (같은 커밋, 같은 파일, 같은 라인의 댓글들)
      * @param commitComments
      * @return
      */

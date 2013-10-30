@@ -34,7 +34,7 @@
                     <strong>@comment.authorLoginId</strong>
                 </a>
             </span>
-            <a href="#comment-@comment.id" class="ago">@utils.TemplateHelper.agoString(comment.ago())</a>
+            <a href="#comment-@comment.id" class="ago">@momentFromNow(comment.getDate())</a>
 
             @if(isLineComment(comment)) {
             <span>on @comment.line in @comment.path at
@@ -76,14 +76,14 @@
 		case EventType.PULL_REQUEST_STATE_CHANGED => {
         <li class="event" id="comment-@event.id">
             <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-            <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
+            <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate())</a></span>
         </li>
 		}
 
 		case EventType.PULL_REQUEST_MERGED => {
         <li class="event" id="comment-@event.id">
             <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-            <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
+            <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate())</a></span>
         </li>
 		}
 
@@ -102,7 +102,7 @@
                             <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
                         </a>
                     </span>
-                    <span class="ago">@utils.TemplateHelper.agoString(ago(event.created))</span>
+                    <span class="ago">@momentFromNow(event.created)</span>
                 </div>
 
                 @for(commit <- event.getPullRequestCommits) {
@@ -138,9 +138,9 @@
                     </span>
                     <span class="ago">
                         @if(PullRequestCommit.State.PRIOR == state) {
-                            @utils.TemplateHelper.agoString(ago(comment.createdDate)) - <strike><a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", comment.commitId)</a></strike>
+                            @momentFromNow(comment.createdDate) - <a class="outdated" href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", shortId(comment.commitId), comment.path + ":" + comment.line)</a>
                         } else {
-                            @utils.TemplateHelper.agoString(ago(comment.createdDate)) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", comment.commitId)</a>
+                            @momentFromNow(comment.createdDate) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", shortId(comment.commitId), comment.path + ":" + comment.line)</a>
                         }
                     </span>
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
@@ -167,10 +167,10 @@
                     </span>
                     <span class="ago">
                     @if(PullRequestCommit.State.PRIOR == state) {
-						@utils.TemplateHelper.agoString(ago(reply.createdDate)) - <strike>@Messages("pullRequest.code.replied")</strike>
-					} else {
-						@utils.TemplateHelper.agoString(ago(reply.createdDate)) - @Messages("pullRequest.code.replied")
-					}
+                        @momentFromNow(reply.createdDate) - <a class="outdated" href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
+                    } else {
+                        @momentFromNow(reply.createdDate) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
+                    }
                     </span>
                     @if(isAllowed(UserApp.currentUser(), reply.asResource(), Operation.DELETE)){
                     <span class="edit pull-right">
