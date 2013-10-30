@@ -2,6 +2,7 @@ package models;
 
 import controllers.UserApp;
 import models.enumeration.ResourceType;
+import models.resource.GlobalResource;
 import models.resource.Resource;
 import play.i18n.Messages;
 
@@ -31,15 +32,10 @@ public class NullUser extends User {
 
     @Override
     public Resource asResource() {
-        return new Resource() {
+        return new GlobalResource() {
             @Override
             public String getId() {
                 return id.toString();
-            }
-
-            @Override
-            public Project getProject() {
-                return null;
             }
 
             @Override

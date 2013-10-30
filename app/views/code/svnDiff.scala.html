@@ -1,4 +1,4 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment], selectedBranch:String)
+@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, patch: String, comments:List[CommitComment], selectedBranch:String, path:String)
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -91,7 +91,7 @@
         </p>
         <pre class="commitMsg">@commit.getMessage</pre>
         <div class="diff-wrap">
-            <div id="commit" class="diff-body show-comments">@patch</div>
+            <div id="commit" data-commit-origin="true" class="diff-body show-comments hide">@patch</div>
         </div>
         <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
             <h4 class="path">
@@ -148,7 +148,7 @@
 
     <button id="watch-button" type="button" class="ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
 
-    <a href="javascript: history.back();" class="ybtn pull-right">@Messages("button.list")</a>
+    <a href="@routes.CodeHistoryApp.history(project.owner, project.name, selectedBranch, path)" class="ybtn pull-right">@Messages("button.list")</a>
 
     <div id="minimap" class="minimap-outer">
         <div class="minimap-wrap">

@@ -12,6 +12,7 @@ import models.enumeration.EventType;
 import models.enumeration.Operation;
 
 import models.enumeration.ResourceType;
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -154,7 +155,10 @@ public class CodeHistoryApp extends Controller {
         Commit commit = repository.getCommit(commitId);
         Commit parentCommit = repository.getParentCommitOf(commitId);
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", project.id).findList();
+                commitId).eq("project.id", project.id).order("createdDate").findList();
+
+        String selectedBranch = StringUtils.defaultIfBlank(request().getQueryString("branch"), "HEAD");
+        String path = StringUtils.defaultIfBlank(request().getQueryString("path"), "");
 
         if(project.vcs.equals(RepositoryService.VCS_SUBVERSION)) {
             String patch = repository.getPatch(commitId);
@@ -163,9 +167,7 @@ public class CodeHistoryApp extends Controller {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
-            String selectedBranch = request().getQueryString("branch");
-
-            return ok(svnDiff.render(project, commit, parentCommit, patch, comments, selectedBranch));
+            return ok(svnDiff.render(project, commit, parentCommit, patch, comments, selectedBranch, path));
         } else {
             List<FileDiff> fileDiffs = repository.getDiff(commitId);
 
@@ -173,9 +175,7 @@ public class CodeHistoryApp extends Controller {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
-            String selectedBranch = request().getQueryString("branch");
-
-            return ok(diff.render(project, commit, parentCommit, comments, selectedBranch, fileDiffs));
+            return ok(diff.render(project, commit, parentCommit, comments, selectedBranch, fileDiffs, path));
         }
     }
 

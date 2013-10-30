@@ -292,6 +292,7 @@ yobi.Files = (function(){
      * 
      * @param {HTMLElement} elContainer
      * @param {HTMLTextareaElement} elTextarea (Optional)
+     * @param {String} sNamespace
      * @return {Wrapped Element}
      */
     function _getUploader(elContainer, elTextarea, sNamespace){
@@ -301,7 +302,7 @@ yobi.Files = (function(){
         if($(elContainer).data("isYobiUploader") || $(elTextarea).data("isYobiUploader")){
             return false;
         }
-        
+
         _initElement({
             "elContainer": elContainer, 
             "elTextarea" : elTextarea,
@@ -392,6 +393,8 @@ yobi.Files = (function(){
         htElement.welInputFile.unbind();
         htElement.welContainer.unbind();
         htElement.welTextarea.unbind();
+        htElement.welContainer.data("isYobiUploader", false);
+        htElement.welTextarea.data("isYobiUploader", false);
     }
     
     /**

@@ -7,6 +7,7 @@ import javax.persistence.*;
 
 import controllers.UserApp;
 import models.enumeration.*;
+import models.resource.GlobalResource;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import models.support.FinderTemplate;
@@ -319,15 +320,10 @@ public class User extends Model implements ResourceConvertible {
      */
     @Override
     public Resource asResource() {
-        return new Resource() {
+        return new GlobalResource() {
             @Override
             public String getId() {
                 return id.toString();
-            }
-
-            @Override
-            public Project getProject() {
-                return null;
             }
 
             @Override
@@ -338,15 +334,10 @@ public class User extends Model implements ResourceConvertible {
     }
 
     public Resource avatarAsResource() {
-        return new Resource() {
+        return new GlobalResource() {
             @Override
             public String getId() {
                 return id.toString();
-            }
-
-            @Override
-            public Project getProject() {
-                return null;
             }
 
             @Override

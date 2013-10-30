@@ -1,4 +1,5 @@
 @(project: Project, page: com.avaje.ebean.Page[PullRequest], requestType: String)
+@import utils.AccessControl
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
 <div class="page">
@@ -11,10 +12,20 @@
             @Messages("pullRequest")
         </a>
         }
+        
+        @** 이 프로젝트가 복사본이 아니며, 현재 사용자가 복사본을 갖고 있고, 코드보내기 권한이 있는 경우 **@
+        @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myFork =>
+        @if(!project.isFork && myFork != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
+        <a href="@routes.PullRequestApp.newPullRequestForm(myFork.owner, myFork.name)" class="ybtn ybtn-success">
+            <i class="yobicon-split yobicon-large"></i>
+            @Messages("pullRequest.toHere")
+        </a>
+        }
+        }
     </div>
 
     @if(project.hasForks() || project.isFork()) {
-    <ul class="nav nav-tabs cb">
+    <ul class="nav nav-tabs">
         @if(project.hasForks()){
             <li @if(requestType.equals("opened")){class="active"}>
                 <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">

@@ -79,7 +79,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
             @Override
             public Project getProject() {
-                return null;
+                return pullRequest.asResource().getProject();
             }
 
             @Override
