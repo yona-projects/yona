@@ -557,19 +557,27 @@
         text-align:center;
         line-height: 34px;
     }
+    
     .provider {
-        color: @yobi-gray;
-        .inline-block;
-        font-size: 12px;
+        margin-left: 4px;
+        font-family: Verdana;
+        font-size: 9px;
+        color: #333;
 
         a {
-            color:#333;
+            font-family: Tahoma;
+            color:#444;
             font-weight:bold;
+
+            &:hover {
+                color: #2cb400;
+            }
         }
 
         .d2-program:hover {
             background-color:#183054;
-
+            text-decoration:none;
+            
             .d2 {
                 color:#f8da3a;
             }
@@ -578,12 +586,6 @@
                 color:#fff;
             }
         }
-
-        .naver:hover {
-            color: #1f7f12;
-        }
-
-
     }
 }
 
