@@ -73,7 +73,7 @@
             @**<!--
             <div class="div btn-group btn-flat">
             @for(state <- Issue.availableStates){
-                @if( state.state == issue.state.state ){
+                @if(state.state == issue.state.state){
                 <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)"} class="btn active @isFirstState(issue.state) no-gradient">@Messages("issue.state." + issue.state.state)</a>
                 } else {
                 <a @if(isAllowed(UserApp.currentUser(), issue.asResource(), Operation.UPDATE)) {href="@routes.IssueApp.nextState(project.owner, project.name, issue.getNumber)"} class="btn no-gradient">@Messages("issue.state." + state.state)</a>

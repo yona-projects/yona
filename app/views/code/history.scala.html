@@ -165,7 +165,7 @@
                                 case (user: User, _, _) if !user.isAnonymous => {
 
                                     <a href="@routes.UserApp.userInfo(commit.getAuthor.loginId)" class="avatar-wrap">
-                                    @if( user.avatarUrl == UserApp.DEFAULT_AVATAR_URL ){
+                                    @if(user.avatarUrl == UserApp.DEFAULT_AVATAR_URL){
                                         @if(commit.getAuthorEmail != null) {
                                             <img src="@urlToPicture(commit.getAuthorEmail, 32)">
                                         } else {
