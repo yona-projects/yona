@@ -163,7 +163,7 @@ public class PlayServletContext implements ServletContext {
     @Override
     public RequestDispatcher getNamedDispatcher(String arg0) {
         throw new UnsupportedOperationException();
-        
+
     }
 
     @Override

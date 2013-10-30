@@ -4,7 +4,7 @@
     <a href="#helpKeys" data-toggle="modal" class="ybtn ybtn-inverse ybtn-mini">
         <i class="yobicon-info-sign"></i> @Messages("title.keymap")
     </a>
-    
+
     <div id="helpKeys" class="modal hide fade keymap-help" tabindex="-1" role="dialog">
         <div class="row-fluid">
             <div class="span4">
@@ -34,15 +34,15 @@
                 <span class="help-inline">@Messages("project.setting")</span><br>
                 }
             </div>
-            
+
             <div class="span4">
 	            <h5>@Messages("title." + section)</h5>
-	            
+
 	            @if(section.indexOf("board") > -1){
                 <span class="ybtn ybtn-small">N</span>
                 <span class="help-inline">@Messages("post.write")</span><br>
                 }
-                
+
                 @if(section.indexOf("issue") > -1){
                 <span class="ybtn ybtn-small">N</span>
                 <span class="help-inline">@Messages("issue.menu.new")</span><br>
@@ -55,15 +55,15 @@
 	            <span class="ybtn ybtn-small">E</span>
 	            <span class="help-inline">@Messages("button.edit")</span><br>
 	            }
-	           
+
 	            @if(section.indexOf("List") > -1){
 	            <span class="ybtn ybtn-small">A</span>
 	            <span class="help-inline">@Messages("button.prevPage")</span><br>
-	
+
 	            <span class="ybtn ybtn-small">S</span>
 	            <span class="help-inline">@Messages("button.nextPage")</span><br>
 	            }
-	            
+
                 @if(section == "issueList"){
                 <span class="ybtn ybtn-small">CTRL</span>+ <span class="ybtn ybtn-small">A</span>
                 <span class="help-inline">@Messages("button.selectAll")</span><br>
@@ -74,7 +74,7 @@
 	            <h5>@Messages("site")</h5>
 	            <span class="ybtn ybtn-small">P</span>
 	            <span class="help-inline">@Messages("userinfo.profile")</span><br>
-	            
+
                 <span class="ybtn ybtn-small">ALT</span>+ <span class="ybtn ybtn-small">S</span>
                 <span class="help-inline">@Messages("site.search")</span><br>
 
@@ -82,7 +82,7 @@
 	            <span class="help-inline">@Messages("button.submitForm")</span><br>
             </div>
         </div>
-        
+
         <p class="actrow">
             <button type="button" class="ybtn ybtn-info" data-dismiss="modal">@Messages("button.confirm")</button>
         </p>

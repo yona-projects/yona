@@ -3,14 +3,14 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
 /**
  * bootstrap-typeahead.js 사용을 위한 공통 인터페이스
- *   
- * @example 
+ *
+ * @example
  * new yobi.ui.Typeahead(htElement.welInputAddTag, {
  *      "sActionURL": htVar.sURLTags,
  *      "htData": {
@@ -19,18 +19,18 @@
  *          "limit": 8
  *      }
  * });
- * 
+ *
  * @require bootstrap-typeahead.js
  */
 
 (function(ns){
-	
+
 	var oNS = $yobi.createNamespace(ns);
 	oNS.container[oNS.name] = function(sQuery, htOptions){
 
 		var htVar = {};
 		var htElement = {};
-	
+
 		/**
 		 * 초기화
 		 * Initialize component
@@ -41,7 +41,7 @@
 			_initVar(htOptions);
 			_initElement(sQuery);
 		}
-		
+
 		/**
 		 * 변수 초기화
 		 * Initialize variables
@@ -60,7 +60,7 @@
                 return htVar.htData[key];
             }
         }
-		
+
         /**
          * 엘리먼트 초기화
          * Initialize element
@@ -76,7 +76,7 @@
                 htData.minLength = 0;
             } catch (err){
                 if(typeof console == "object") {
-                    console.log(err);        	                        
+                    console.log(err);
         	}
             }
         }
@@ -102,18 +102,18 @@
                     "sDataType" : "json",
             		"fOnLoad"	: function(oData, oStatus, oXHR){
             			var sContentRange = oXHR.getResponseHeader('Content-Range');
-            			
+
             			htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
             			htVar.sLastQuery = sQuery;
             			htVar.htCachedUsers = oData;
-            			
+
             			fProcess(oData);
             			sContentRange = null;
             		}
             	});
             }
         }
-		
+
         /**
          * Return whether the given content range is an entire range for items.
          * e.g) "items 10/10"
@@ -128,5 +128,5 @@
 
 		_init(sQuery, htOptions || {});
 	};
-	
+
 })("yobi.ui.Typeahead");

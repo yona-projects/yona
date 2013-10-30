@@ -235,9 +235,9 @@ public class MilestoneApp extends Controller {
         // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
         if(HttpUtil.isRequestedWithXHR(request())){
             response().setHeader("Location", routes.MilestoneApp.milestones(userName, projectName).toString());
-            return status(204);            
+            return status(204);
         }
-        
+
         return redirect(routes.MilestoneApp.milestones(userName, projectName));
     }
 
@@ -306,14 +306,14 @@ public class MilestoneApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
-        
+
         if(milestone == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-        
+
         String paramState = request().getQueryString("state");
         State state = State.getValue(paramState);
-        
+
         return ok(view.render(milestone.title, milestone, project, state));
     }
 }

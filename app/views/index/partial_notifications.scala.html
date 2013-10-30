@@ -24,14 +24,14 @@
         }
         case EventType.ISSUE_ASSIGNEE_CHANGED => { "ftpaccounts changed" }
         case EventType.NEW_POSTING => { "notes" }
-        case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_STATE_CHANGED => { 
+        case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_STATE_CHANGED => {
             if(state=="closed") "merge closed"
             else if (state=="rejected") "merge rejected"
             else  "merge"
         }
-        case EventType.PULL_REQUEST_MERGED => { 
+        case EventType.PULL_REQUEST_MERGED => {
             if(state=="resolved") "merge"
-            else "merge warning" 
+            else "merge warning"
         }
         case EventType.MEMBER_ENROLL_REQUEST => {
             if(state=="ACCEPT") "addfriend closed"
@@ -64,17 +64,17 @@
             } else {
             <div class="avatar-wrap mlarge">
                 <img src="@routes.Assets.at("images/default-avatar-64.png")" width="42" height="42">
-            </div>    
+            </div>
             }
             <div class="title"><a href="@noti.urlToView">@noti.title</a></div>
             <div class="message-wrap nowrap" id="message-@noti.id">
-                <div class="message">@noti.getMessage</div> 
-            </div> 
+                <div class="message">@noti.getMessage</div>
+            </div>
             <div class="meta">
                 <a href="@routes.UserApp.userInfo(user.loginId)" class="author">@user.name</a> @@@user.loginId
                 <span class="ago pull-right">@agoString(JodaDateUtil.ago(noti.created))</span>
-            </div> 
-        </div>    
+            </div>
+        </div>
     </div>
     }
 </li>

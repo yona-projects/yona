@@ -25,11 +25,11 @@
         $(document).ready(function(){
             var welForm = $("#comment-form");
             var welBtnSubmit = welForm.find("button[type=submit]");
-            
+
             welForm.on("submit", function(){
                 // set submit button as disabled
                 welBtnSubmit.attr("disabled", "disabled").addClass("ybtn-disabled");
-                
+
                 // restore button if cancel submitting with ESC key
                 if(!welForm.data("cancelerAttached")){
                     welForm.data("cancelerAttached", true);

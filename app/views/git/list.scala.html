@@ -12,7 +12,7 @@
             @Messages("pullRequest")
         </a>
         }
-        
+
         @** 이 프로젝트가 복사본이 아니며, 현재 사용자가 복사본을 갖고 있고, 코드보내기 권한이 있는 경우 **@
         @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myFork =>
         @if(!project.isFork && myFork != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){

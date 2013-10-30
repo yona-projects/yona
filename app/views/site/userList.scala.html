@@ -30,7 +30,7 @@
         <a class="btn" href="@routes.SiteApp.toggleAccountLock(user.loginId)">@Messages("button" +
                 ".user.makeAccountUnlock."+ (user.state == UserState.LOCKED))</a>
         <a class="btn btn-danger" data-toggle="modal" href="#alertDeletion-@user.loginId">@Messages("button.delete")</a>
-        
+
         <div id="alertDeletion-@user.loginId" class="modal hide">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">×</button>
@@ -109,7 +109,7 @@
         }
         </tbody>
         </table>
-        
+
         <div class="row-fluid mt30">
             <center>@partial_paginationForUserList(currentPage, 5, "pagination")</center>
         </div>

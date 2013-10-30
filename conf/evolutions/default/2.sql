@@ -30,7 +30,7 @@ DROP SEQUENCE IF EXISTS comment_seq;
 ALTER TABLE attachment ALTER container_type TYPE varchar(15);
 ALTER TABLE attachment DROP CONSTRAINT ck_attachment_container_type;
 ALTER TABLE attachment ADD CONSTRAINT ck_attachment_container_type check (container_type in ('ISSUE_POST';'ISSUE_COMMENT';'ISSUE_ASSIGNEE';'ISSUE_STATE';'ISSUE_CATEGORY';'ISSUE_MILESTONE';'ISSUE_NOTICE';'ISSUE_LABEL';'BOARD_POST';'BOARD_COMMENT';'BOARD_CATEGORY';'BOARD_NOTICE';'CODE';'MILESTONE';'WIKI_PAGE';'PROJECT_SETTING';'SITE_SETTING';'USER';'USER_AVATAR';'PROJECT';'ATTACHMENT'));
- 
+
 ALTER TABLE posting_comment ADD file_path;
 ALTER TABLE posting_comment DROP CONSTRAINT pk_posting_comment;
 ALTER TABLE posting_comment ADD CONSTRAINT pk_comment primary key (id);

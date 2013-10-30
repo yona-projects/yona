@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 yobi.Mention = function(htOptions) {
@@ -13,7 +13,7 @@ yobi.Mention = function(htOptions) {
 
     /**
      * Initialize
-     * 
+     *
      * @param {Hash Table} htOptions
      */
     function _init(htOptions){
@@ -23,8 +23,8 @@ yobi.Mention = function(htOptions) {
     }
 
     /**
-     * Initialize Variables 
-     * 
+     * Initialize Variables
+     *
      * @param {Hash Table} htOptions
      */
     function _initVar(htOptions) {
@@ -45,7 +45,7 @@ yobi.Mention = function(htOptions) {
     function _initElement(){
         htElement.welTarget = $('#' + htVar.target);
     }
-    
+
     /**
      * attachEvent
      */
@@ -55,7 +55,7 @@ yobi.Mention = function(htOptions) {
 
     /**
      * Event handler on KeyInput event
-     * 
+     *
      * @param {Event} eEvt
      */
     function _onKeyInput(eEvt){
@@ -65,7 +65,7 @@ yobi.Mention = function(htOptions) {
             _findUserList();
         }
     }
-    
+
     /**
      * Find Userlist
      */
@@ -77,7 +77,7 @@ yobi.Mention = function(htOptions) {
             "dataType"   : "json"
         }).done(_onLoadUserList);
     }
-    
+
     function _onLoadUserList(aData){
         htVar.htMemberList.users = aData;
         htElement.welTarget.mention(htVar.htMemberList);

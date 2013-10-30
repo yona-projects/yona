@@ -27,11 +27,11 @@
         </div>
         <div class="progress-info">
             <div class="pull-left" >
-                <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>        
+                <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
             </div>
             <div class="pull-right">
                 <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
             </div>
-        </div>    
+        </div>
     </div>
 </div>

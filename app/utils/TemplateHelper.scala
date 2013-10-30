@@ -104,7 +104,7 @@ object TemplateHelper {
 
   def branchItemType(branch: String) = {
     var names = branch.split('/');
-    
+
     if(names(0).equals("refs") && names.length >= 3){
         names(1) match {
             case "heads" => "branch"
@@ -115,10 +115,10 @@ object TemplateHelper {
         branch
     }
   }
-  
+
   def branchItemName(branch: String) = {
     var names = branch.split('/');
-    
+
     if(names(0).equals("refs") && names.length >= 3){
         names.slice(2, names.length).mkString("/");
     } else {
@@ -130,14 +130,14 @@ object TemplateHelper {
     var names = branch.split('/');
     var branchType = branchItemType(branch);
     var branchName = branchItemName(branch);
-    
+
     if(names(0).equals("refs") && names.length >= 3){
         "<span class=\"label " + branchType + "\">" + branchType + "</span>" + branchName
     } else {
         branch
     }
   }
-  
+
   def getBranchURL(project:Project, branchName:String, viewType:String, path:String) = {
     viewType match {
         case "history" => {
@@ -151,7 +151,7 @@ object TemplateHelper {
         }
     }
   }
-    
+
   object DiffRenderer {
 
     def removedWord(word: String) = "<span class='remove'>" + word + "</span>"

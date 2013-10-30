@@ -65,7 +65,7 @@ $(function(){
             contentType: 'application/json',
             url: "@routes.ProjectApp.mentionList(project.owner, project.name)",
             dataType: "json"
-        }).done(function(data){ 
+        }).done(function(data){
             memebrList.users = data;
             $("#contents").mention(memebrList);
         });

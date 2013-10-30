@@ -2,9 +2,9 @@
 
 ----
 ## 네임스페이스, 모듈, 함수, 변수 등의 이름을 작성할 때
-	
+
 * 단어를 생략하거나 약어를 사용하지 않는다. 단, HTML,URL 등과 같은 범용적인 약어는 사용할 수 있다. 약어 사용시에는 모두 대문자로 작성한다.
-* 한글 발음을 로마자로 그대로 표기하지 않는다 
+* 한글 발음을 로마자로 그대로 표기하지 않는다
 * 특수 문자는 가급적 사용하지 않는다. 단, 상수의 이름에서 단어를 구분하기 위한 용도와 Private 지시자 표시를 위하여 언더스코어(`_`)를 사용한다
 * 2글자 이상 대문자를 연속해서 사용하지 않는다. 단, 상수 이름이나 약어는 예외로 한다
 * 상수 이름이나 약어 이름을 대문자를 사용한다
@@ -27,7 +27,7 @@
         var oNS = $yobi.createNamespace("yobi.namespace.Module");
         oNS.container[oNS.name] = function() { };
 
-* 네임스페이스의 이름을 정의할 때에는 언더스코어 표기법을 적용한다. 
+* 네임스페이스의 이름을 정의할 때에는 언더스코어 표기법을 적용한다.
 
         yobi.project = {};
         yobi.project.todo_list = {};
@@ -49,7 +49,7 @@
 >        var Coin = (function(){  return {}; })();
 
 
-* 이름은 반드시 영문으로 작성한다 
+* 이름은 반드시 영문으로 작성한다
 * 파스칼 표기법을 준수한다. 복합어 이름은 각 단어의 첫 글자를 대문자로 작성하여 단어를 구분한다.
 
 
@@ -79,7 +79,7 @@
 
 * 이벤트 핸들러 메소드는 `_on` + 이벤트명 으로 정의한다. 브라우저에서 제공하는 이벤트가 아니라 특정 모듈이나 함수에서 비동기 콜백 함수(이벤트) 모델을 사용하는 경우에도 동일하다.
 
->        function _onLoadImage(){ 
+>        function _onLoadImage(){
 >            console.log("image loaded");
 >        }
 >
@@ -89,7 +89,7 @@
 >            "success": _onSuccessRequest
 >        });
 
-* 각 함수는 Jsdoc 
+* 각 함수는 Jsdoc
 
 ## 변수 이름
 
@@ -107,7 +107,7 @@
 
 >n: Number
 
->b: Boolean 
+>b: Boolean
 
 >o: Object (메소드 함수를 가진 객체)
 
@@ -124,7 +124,7 @@
 >f: Function
 
 
-* jQuery 프레임워크를 사용할 때 특정한 하나의 엘리먼트만을 지정하는 경우에는 Wrapped Element (wel), 여러 엘리먼트를 동시에 지정하는 경우에는 Wrapped Array (wa)로 취급한다. jQuery 프레임워크의 특성상 두 변수형의 활용이 유사하지만 어떤 목적으로 사용하느냐를 우선하도록 한다. 
+* jQuery 프레임워크를 사용할 때 특정한 하나의 엘리먼트만을 지정하는 경우에는 Wrapped Element (wel), 여러 엘리먼트를 동시에 지정하는 경우에는 Wrapped Array (wa)로 취급한다. jQuery 프레임워크의 특성상 두 변수형의 활용이 유사하지만 어떤 목적으로 사용하느냐를 우선하도록 한다.
 
         var welContainer = $("#container");
         var welInput = $("<input>");

@@ -15,7 +15,7 @@ public class CommitComment extends CodeComment {
     public static final Finder<Long, CommitComment> find = new Finder<>(Long.class, CommitComment.class);
 
     public List<CommitComment> replies = new ArrayList<>();
-    
+
     public CommitComment() {
         super();
     }
@@ -87,7 +87,7 @@ public class CommitComment extends CodeComment {
      * CommitComment의 groupKey를 반환한다.
      * commitId, path, line정보를 조한한 키가 일치할 경우 동일한 내용에 대한
      * 코멘트로 간주한다.
-     * 
+     *
      * @return
      */
     public String groupKey() {

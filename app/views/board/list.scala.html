@@ -29,9 +29,9 @@
                 <div class="search-bar">
                     <input name="filter" class="textbox" type="text" placeholder="@Messages("project.searchPlaceholder")" value="@param.filter">
                     <button type="submit" class="search-btn"><i class="yobicon-search"></i></button>
-                </div>   
+                </div>
             </form>
-	        <div class="actrow"> 
+	        <div class="actrow">
                 <a href="@routes.BoardApp.newPostForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("post.write")</a>
             </div>
 	    </div>
@@ -80,7 +80,7 @@
 	<div id="pagination">
 		<!-- pagination.js will fill here. -->
 	</div>
-	
+
     @help.keymap("boardList", project)
 </div>
 
@@ -90,7 +90,7 @@
 			"elPagination": $('#pagination'),
 			"nTotalPages" : @page.getTotalPageCount
 		});
-		
+
 		yobi.ShortcutKey.setKeymapLink({
 		   "N": "@routes.BoardApp.newPostForm(project.owner, project.name)"
 		   @if(page.getPageIndex > 0){

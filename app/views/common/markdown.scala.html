@@ -22,7 +22,7 @@ $(document).ready(function(){
     htOptions.sProjectUrl = "@routes.ProjectApp.project(project.owner, project.name)";
     }
 
-    htOptions.breaks = ($('[markdown]').hasClass('readme-body')) ? false : true; 
+    htOptions.breaks = ($('[markdown]').hasClass('readme-body')) ? false : true;
 
     yobi.Markdown(htOptions);
 });

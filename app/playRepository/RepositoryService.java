@@ -139,21 +139,21 @@ public class RepositoryService {
      */
     public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository, String branch, String path)
         throws Exception {
-            
+
         List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
-        
-        String partialPath = "";            
+
+        String partialPath = "";
         String[] pathArray = path.split("/");
         Integer pathLength = pathArray.length;
         ObjectNode metaData;
-        
+
         for(int i = 0; i < pathLength; i++){
             metaData = repository.getMetaDataFromPath(branch, partialPath);
             metaData.put("path", partialPath);
             partialPath = (partialPath.equals("")) ? pathArray[i] : partialPath + "/" + pathArray[i];
             recursiveData.add(metaData);
         }
-        
+
         return recursiveData;
     }
 
@@ -235,7 +235,7 @@ public class RepositoryService {
         Project project = ProjectApp.getProject(userName, projectName);
         return RepositoryService.getRepository(project);
     }
-    
+
     /**
      * {@link DAVServlet}을 생성하고 초기화(init)해서 객체를 반환한다.
      * <p/>
@@ -418,7 +418,7 @@ public class RepositoryService {
                     PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
                     Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
                 }
-                
+
                 Set<String> deletedBranches = getDeletedBranches(commands);
                 for (String branch : deletedBranches) {
                     List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
@@ -451,7 +451,7 @@ public class RepositoryService {
                     }
                 }
                 return branches;
-                
+
             }
             /*
              * command 가 update type 인지 판별한다.
@@ -460,7 +460,7 @@ public class RepositoryService {
                 return command.getType() == ReceiveCommand.Type.UPDATE
                         || command.getType() == ReceiveCommand.Type.UPDATE_NONFASTFORWARD;
             }
-            
+
             /*
              * command 가 delete type 인지 판별한다.
              */

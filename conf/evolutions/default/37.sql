@@ -5,7 +5,7 @@ create table pull_request_commit (
   commit_id					varchar(255),
   commit_short_id			varchar(7),
   commit_message			varchar(2000),
-  created					timestamp,  
+  created					timestamp,
   author_date				timestamp,
   author_email				varchar(255),
   state						varchar(10),

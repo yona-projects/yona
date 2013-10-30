@@ -282,13 +282,13 @@ public class NotificationEvent extends Model {
         notiEvent.newValue = pullRequest.body;
 
         NotificationEvent.add(notiEvent);
-        
+
         return notiEvent;
     }
-        
+
     /**
      * 보낸코드의 상태가 변경되었을때의 알림 설정
-     * 
+     *
      * @param pullRequestCall
      * @param request
      * @param pullRequest
@@ -315,10 +315,10 @@ public class NotificationEvent extends Model {
         notiEvent.newValue = newState.state();
 
         add(notiEvent);
-        
+
         return notiEvent;
     }
-    
+
     /**
      * 보낸 코드의 병합 결과 알림 설정
      * @param sender
@@ -329,7 +329,7 @@ public class NotificationEvent extends Model {
      * @return
      */
     public static NotificationEvent addPullRequestMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, Request request, State state) {
-        
+
         String title = NotificationEvent.formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = new HashSet<>();
@@ -347,13 +347,13 @@ public class NotificationEvent extends Model {
         notiEvent.resourceType = resource.getType();
         notiEvent.eventType = EventType.PULL_REQUEST_MERGED;
         notiEvent.newValue = state.state();
-        
+
         if (conflicts != null) {
-            notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");        
+            notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
         }
 
         add(notiEvent);
-        
+
         return notiEvent;
     }
 }

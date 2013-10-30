@@ -80,7 +80,7 @@ public class Global extends GlobalSettings {
         }
 
         PullRequest.regulateNumbers();
-        
+
         NotificationMail.startSchedule();
     }
 

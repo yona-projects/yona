@@ -7,19 +7,19 @@
 <div class="page">
 	@projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
     @partial_settingmenu(project)
-    
+
     <div class="bubble-wrap gray wp">
         <div class="cu-label">@Messages("project.delete")</div>
         <div class="cu-desc">
             <p><strong class="notice">@Messages("project.delete.description")</strong></p>
             <p>
-            	<input type="checkbox" class="checkbox" autocomplete="off" id="accept"><!-- 
+		<input type="checkbox" class="checkbox" autocomplete="off" id="accept"><!--
              --><label for="accept" class="bg-checkbox label-agreement">@Messages("project.delete.accept")</label>
             </p>
         </div>
     </div>
     <div class="box-wrap bottom">
-        <a id="deletion" data-toggle="modal" href="#alertDeletion" class="ybtn ybtn-danger"><!-- 
+        <a id="deletion" data-toggle="modal" href="#alertDeletion" class="ybtn ybtn-danger"><!--
          --><i class="yobicon-database-remove"></i> @Messages("project.delete.this")</a>
     </div>
 
@@ -40,7 +40,7 @@
 	</div>
 	@** // -- // **@
 </div>
-	
+
 <script type="text/javascript">
 	$(document).ready(function(){
         $yobi.loadModule("project.Delete");

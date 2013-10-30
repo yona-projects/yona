@@ -3,14 +3,14 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 yobi.Markdown = function(htOptions){
 
     var htVar = {};
     var htElement = {};
-    
+
     /**
      * initialize
      * @param {Hash Table} htOptions
@@ -18,7 +18,7 @@ yobi.Markdown = function(htOptions){
     function _init(htOptions){
         _initVar(htOptions);
         _initElement(htOptions);
-        
+
         _enableMarkdown();
     }
 
@@ -38,7 +38,7 @@ yobi.Markdown = function(htOptions){
         htVar.htFilter = new Filter();
 
     }
-    
+
     /**
      * initialize element
      * @param {Hash Table} htOptions
@@ -46,7 +46,7 @@ yobi.Markdown = function(htOptions){
     function _initElement(htOptions){
         htElement.waTarget = $(htOptions.aTarget) || $("[markdown]");
     }
-    
+
     /**
      * Render as Markdown document
      * @require showdown.js
@@ -55,7 +55,7 @@ yobi.Markdown = function(htOptions){
      * @return {String}
      */
     function _renderMarkdown(sText) {
-            
+
         var htMarkedOption = {
           gfm: true,
           tables: true,
@@ -69,31 +69,31 @@ yobi.Markdown = function(htOptions){
             return hljs(code,lang).value;
           }
         };
-        
+
         var hooks = function(sSrc,sType) {
 
             var sGfmLinkRules =  '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
-            
+
             if(sType=='code') return sSrc;
 
             sGfmLinkRules = sGfmLinkRules.replace(/\[user\]/g,htVar.sUserRules)
                 .replace(/\[user\]/g,htVar.sUserRules)
                 .replace(/\[project\]/g,htVar.sProjecRules)
                 .replace(/\[shar1\]/g,htVar.sSha1Rules)
-                .replace(/\[issue\]/g,htVar.sIssueRules);             
+                .replace(/\[issue\]/g,htVar.sIssueRules);
 
-            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) { 
+            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) {
                 var rIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm,
                     aIgnores;
 
                 while(aIgnores = rIgnoreRules.exec(sSrc)) {
                   if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length) return sMatch;
-                }    
+                }
 
                 if(/\w/.test(sSrc[nMatchIndex-1]) || /\w/.test(sSrc[nMatchIndex+sMatch.length])) return sMatch;
 
                 return _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue, sAt, sShar1,sMention);
-            });    
+            });
             return  sSrc;
         };
 
@@ -105,7 +105,7 @@ yobi.Markdown = function(htOptions){
         var sRef,
             sTitle,
             sOwner = htVar.sProjectUrl.split('/')[1],
-            sProject = htVar.sProjectUrl.split('/')[2]; 
+            sProject = htVar.sProjectUrl.split('/')[2];
 
         if(sProjectGroup && sUserName && sIssue && !sProjectPath) {
             // User/#Num nforge#12345
@@ -139,7 +139,7 @@ yobi.Markdown = function(htOptions){
         }
 
         return '<a href="/'+sRef+'">'+sTitle+'</a>';
-        
+
     }
 
     /**
@@ -147,7 +147,7 @@ yobi.Markdown = function(htOptions){
      * @param {Wrapped Element} welTextarea
      */
     function _setEditor(welTextarea) {
-        // create new preview area 
+        // create new preview area
         var welPreview = $('<div class="markdown-preview markdown-wrap">');
         welPreview.css({
             "display"   : "none",
@@ -178,17 +178,17 @@ yobi.Markdown = function(htOptions){
     function _setViewer(welTarget) {
         welTarget.html(_renderMarkdown(welTarget.text())).removeClass('markdown-before');
     }
-    
+
     /**
      * enableMarkdown
      * same as nforge.markdown.enable
      */
     function _enableMarkdown(){
         var sTagName;
-        
+
         htElement.waTarget.each(function(nIndex, elTarget){
             sTagName = elTarget.tagName.toUpperCase();
-            
+
             if(sTagName == "TEXTAREA" || sTagName == "INPUT" || elTarget.contentEditable == "true"){
                 _setEditor($(elTarget));
             } else {

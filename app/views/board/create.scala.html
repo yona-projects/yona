@@ -20,7 +20,7 @@
 					@if(errors != null) {
 						<div class="message">
 						@for(error <- errors) {
-							<div>@Messages(error.message)</div>				
+							<div>@Messages(error.message)</div>
 						}
 						</div>
 					}
@@ -67,7 +67,7 @@ $(document).ready(function(){
 		"elTextarea"	 : $("#body"),
 		"sUploaderAction": "@routes.AttachmentApp.uploadFile"
 	});
-	
+
 	$("#title").focus();
     $('.zen-mode').zenForm({theme: 'light'});
     $('.s--zen').tooltip({delay: { show: 500, hide: 100 }, title: '@Messages("title.zenmode")', placement: 'left'});

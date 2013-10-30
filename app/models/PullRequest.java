@@ -92,16 +92,16 @@ public class PullRequest extends Model implements ResourceConvertible {
     public Date received;
 
     public State state = State.OPEN;
-    
+
     public Boolean isConflict;
     public Boolean isMerging;
-    
+
     @OneToMany(cascade = CascadeType.ALL)
     public List<PullRequestCommit> pullRequestCommits;
-    
+
     @OneToMany(cascade = CascadeType.ALL)
     public List<PullRequestEvent> pullRequestEvents;
-    
+
     /**
      * {@link #fromBranch}의 가장 최근 커밋 ID
      *
@@ -161,7 +161,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                 ", state=" + state +
                 '}';
     }
-    
+
     public Duration createdAgo() {
         return JodaDateUtil.ago(this.created);
     }
@@ -169,7 +169,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public Duration receivedAgo() {
         return JodaDateUtil.ago(this.received);
     }
-    
+
     public boolean isOpen() {
         return this.state == State.OPEN;
     }
@@ -265,7 +265,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     /**
      * 보내거나 받는 쪽에
      * {@code project} 의 {@code branch} 를 가지고 있는 pull-request 목록 조회
-     * 
+     *
      * 병합(Closed)되지 않은 모든 보낸코드를 조회한다.
      *
      * @param project
@@ -568,7 +568,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         deleteIssueEvents();
         super.delete();
     }
-    
+
     @Transient
     public String[] getConflictFiles() {
         return StringUtils.split(this.conflictFiles, ",");
@@ -582,7 +582,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public List<CommitComment> getCommitComments() {
         return CommitComment.findByCommits(fromProject, pullRequestCommits);
     }
-    
+
     /**
      * 현재 커밋목록을 반환한다.
      * @return
@@ -591,15 +591,15 @@ public class PullRequest extends Model implements ResourceConvertible {
     public List<PullRequestCommit> getCurrentCommits() {
         return PullRequestCommit.getCurrentCommits(this);
     }
-    
+
     /**
      * pull request의 모든 코멘트 정보를 가져오고 시간순으로 정렬 후 반환한다. (코멘트 + 코드코멘트 + 이벤트 )
-     * 
+     *
      * @return
      */
     @Transient
     public List<TimelineItem> getTimelineComments() {
-        List<CommitComment> commitComment 
+        List<CommitComment> commitComment
                         = computeCommitCommentReplies(getCommitComments());
 
         List<TimelineItem> timelineComments = new ArrayList<>();
@@ -630,10 +630,10 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     /**
      * 답글목록을 부모글의 필드로 재할당한다.
-     * 
+     *
      * commentGroup은 등록일순으로 오름차순 정렬되어 있는 상태이며
      * 목록의 첫번째 코멘트를 부모글로 판단한다.
-     * 
+     *
      * @param commentGroup
      * @return
      */
@@ -706,7 +706,7 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     /**
      * 보낸 코드를 병합해보고 결과 정보를 반환한다.
-     * 
+     *
      * @param pullRequest
      * @return
      */
@@ -714,19 +714,19 @@ public class PullRequest extends Model implements ResourceConvertible {
         final GitConflicts[] conflicts = {null};
         final List<GitCommit> commits = new ArrayList<>();
         final PullRequest pullRequest = this;
-        
+
         GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
             @Override
             public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
                 Repository clonedRepository = cloneAndFetch.getRepository();
-                
+
                 List<GitCommit> commitList = GitRepository.diffCommits(clonedRepository,
                     cloneAndFetch.getDestFromBranchName(), cloneAndFetch.getDestToBranchName());
 
                 for (GitCommit gitCommit : commitList) {
                     commits.add(gitCommit);
                 }
-                
+
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 
                 String mergedCommitIdFrom = null;
@@ -746,7 +746,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                 }
             }
         });
-        
+
         PullRequestMergeResult pullRequestMergeResult = new PullRequestMergeResult();
         pullRequestMergeResult.setGitCommits(commits);
         pullRequestMergeResult.setGitConflicts(conflicts[0]);
@@ -754,16 +754,16 @@ public class PullRequest extends Model implements ResourceConvertible {
 
         return pullRequestMergeResult;
     }
-    
+
     /**
-     * project/branch와 연관된 보낸코드들의 상태를 병합중으로 수정한다.  
-     * 
+     * project/branch와 연관된 보낸코드들의 상태를 병합중으로 수정한다.
+     *
      * @param project
      * @param branch
      */
     public static void changeStateToMergingRelatedPullRequests(Project project, String branch) {
         List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
-            
+
         for (PullRequest pullRequest : pullRequests) {
             if (!pullRequest.isClosed()) {
                 pullRequest.startMerge();

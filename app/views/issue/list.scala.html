@@ -4,7 +4,7 @@ models.support.SearchCondition, project:Project)
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE){
 <div class="page">
 	@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
-	
+
 	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>
 <div id="spin" style="position:absolute; top:35%; left:50%"></div>
@@ -17,7 +17,7 @@ models.support.SearchCondition, project:Project)
         };
 
         $.pjax.defaults.maxCacheLength = 0;
-        
+
         $(document).on('click', 'a[pjax-page]', function(event) {
             $.pjax.click(event, "div[pjax-container]", pjaxOptions)
         });
@@ -25,12 +25,12 @@ models.support.SearchCondition, project:Project)
         $(document).on("submit", "form[name='search']", function(event) {
 			$.pjax.submit(event, "div[pjax-container]", pjaxOptions)
 		});
-        
+
         $(document).on('pjax:send', function() {
 			var target = document.getElementById('spin');
 			spinner = new Spinner().spin(target);
         });
-        
+
         $(document).on('pjax:complete', function() {
             spinner.stop();
         });

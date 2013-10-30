@@ -58,10 +58,10 @@
             }
             </ul>
         </div>
-        
+
         <div class="stats">
             @Html(Messages("project.onmember", User.findUsersByProject(project.id).length))<br/>
-            
+
             @if(session.get("loginId") != project.owner ){
                 @if(User.isWatching(project)){
                     <a href="@routes.WatchProjectApp.unwatch(project.owner, project.name)" class="nbtn blue medium watchBtn">

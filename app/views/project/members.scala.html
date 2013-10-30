@@ -12,7 +12,7 @@
 <div class="page">
     @projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
     @partial_settingmenu(project)
-    
+
     <div class="inner-bubble">
         <form class="nm" action="@routes.ProjectApp.newMember(project.owner, project.name)" method="post" id="addNewMember">
             <input type="text" class="text uname" id="loginId" name="loginId"

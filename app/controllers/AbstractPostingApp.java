@@ -63,7 +63,7 @@ public class AbstractPostingApp extends Controller {
         public Set<User> getReceivers();
         public String getMessage();
         public String getUrlToView();
-        
+
     }
 
     protected static abstract class AbstractNotification implements Notification {
@@ -97,7 +97,7 @@ public class AbstractPostingApp extends Controller {
                 public User getSender() {
                     return sender;
                 }
-                
+
                 public String getTitle() {
                     return title;
                 }
@@ -201,11 +201,11 @@ public class AbstractPostingApp extends Controller {
         try {
             email.setFrom(Config.getEmailFromSmtp(), noti.getSender().name);
             email.addTo(Config.getEmailFromSmtp(), "Yobi");
-            
+
             for (User receiver : receivers) {
                 email.addBcc(receiver.email, receiver.name);
             }
-            
+
             email.setSubject(noti.getTitle());
             email.setHtmlMsg(noti.getHtmlMessage());
             email.setTextMsg(noti.getPlainMessage());
@@ -240,9 +240,9 @@ public class AbstractPostingApp extends Controller {
         // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다
         if(HttpUtil.isRequestedWithXHR(request())){
             response().setHeader("Location", redirectTo.absoluteURL(request()));
-            return status(204);            
+            return status(204);
         }
-        
+
         return redirect(redirectTo);
     }
 

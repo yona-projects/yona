@@ -38,7 +38,7 @@
 
             @if(isLineComment(comment)) {
             <span>on @comment.line in @comment.path at
-                
+
             @if(comment.isCommitLost) {
                 <span style="text-decoration: line-through">@shortId(comment.commitId)</span>
             } else {
@@ -79,14 +79,14 @@
             <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
         </li>
 		}
-		
+
 		case EventType.PULL_REQUEST_MERGED => {
         <li class="event" id="comment-@event.id">
             <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
             <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @utils.TemplateHelper.agoString(ago(event.getDate()))</a></span>
         </li>
 		}
-		
+
 		case EventType.PULL_REQUEST_COMMIT_CHANGED => {
         <li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
             <div class="comment-avatar">
@@ -104,7 +104,7 @@
                     </span>
                     <span class="ago">@utils.TemplateHelper.agoString(ago(event.created))</span>
                 </div>
-                
+
                 @for(commit <- event.getPullRequestCommits) {
                 <div class="comment-body" style="margin:10px 0; @if(commit.state == PullRequestCommit.State.PRIOR){text-decoration:line-through;}">
                     <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">@commit.commitShortId</a>

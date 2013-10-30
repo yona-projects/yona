@@ -76,7 +76,7 @@
                     </div>
 
                     <div id="advanced-search-form" class="srch-advanced">
-                        
+
                         <dl class="issue-option">
                             <dt>@Messages("issue.author")</dt>
                             <dd>
@@ -99,7 +99,7 @@
                                                 </span>
 
                                                 <strong class="name">@author.name</strong>
-                                                <span class="loginid"> <strong>@@</strong>@author.loginId</span> 
+                                                <span class="loginid"> <strong>@@</strong>@author.loginId</span>
                                             </a>
                                         </li>
                                         }
@@ -131,7 +131,7 @@
                                                 </span>
 
                                                 <strong class="name">@member.user.name</strong>
-                                                <span class="loginid"> <strong>@@</strong>@member.user.loginId</span> 
+                                                <span class="loginid"> <strong>@@</strong>@member.user.loginId</span>
                                             </a>
                                         </li>
                                         }
@@ -174,7 +174,7 @@
                     </dl>
                 </form>
             </div>
-        </div>        
+        </div>
         <div class="span10" id="span10">
             <div class="pull-right">
                 <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("issue.menu.new")</a>
@@ -223,7 +223,7 @@
         </div>
 		<script type="text/javascript">
 			$(document).ready(function(){
-	   	    
+
 				yobi.Label.init({
 				    "sURLLabels"   : "@routes.IssueLabelApp.labels(project.owner, project.name)",
 				    "sURLPost"     : "@routes.IssueLabelApp.newLabel(project.owner, project.name)",
@@ -231,12 +231,12 @@
 				    @if(param.labelIds != null){
 				    , "aSelectedLabels" : [@StringUtils.join(param.labelIds, ",")]
 				    } else {
-				    , "aSelectedLabels" : []    
+				    , "aSelectedLabels" : []
 				    }
 				});
-				
+
 				$yobi.loadModule("issue.List", {
-			    	"welSearchOrder": $("a[orderBy]"),		    
+				"welSearchOrder": $("a[orderBy]"),
 		   	        "welSearchState": $("a[state]"),
 		   	        "welSearchAuthor": $("div[data-name='authorId']"),
 		   	        "welSearchAssignee": $("div[data-name='assigneeId']"),
@@ -246,7 +246,7 @@
 		   		    "elPagination": $("#pagination"),
 		   		    "nTotalPages" : @currentPage.getTotalPageCount()
 			   	});
-				 
+
 		        yobi.ShortcutKey.setKeymapLink({
 		           "N": "@routes.IssueApp.newIssueForm(project.owner, project.name)"
 		           @if(currentPage.getPageIndex > 0){

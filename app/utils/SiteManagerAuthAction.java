@@ -12,12 +12,12 @@ import play.mvc.Result;
 public class SiteManagerAuthAction extends Action.Simple {
     /**
      * 사이트 관리자 권한을 확인한다.
-     * 
+     *
      * when : 사이트 관리자 페이지 접근시 사용
-     * 
+     *
      * 관리자 권한이 아닐경우 경고메세지와 함께 {@link play.mvc.Results#forbidden} 을 반환한다.
-     * 관리자 권한일 경우 기존 요청을 그대로 처리한다. 
-     * 
+     * 관리자 권한일 경우 기존 요청을 그대로 처리한다.
+     *
      * @param context
      * @return
      * @throws Throwable

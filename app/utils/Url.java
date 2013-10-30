@@ -17,34 +17,34 @@ public class Url {
     public static String create(List<String> pathSegments) {
         return create(join(pathSegments));
     }
-    
+
     /**
      * Create a url with given <code>pathSegments</code> and configured scheme, hostname and port.
-     * 
+     *
      * If hostname is not configured, use defaultHostport as hostname and port.
-     * 
+     *
      * @param pathSegments List of path segments to construct the path.
      * @param defaultHostport
-     * 
+     *
      * @return <code>String</code> containing the created URL
-     * 
+     *
      */
     public static String create(List<String> pathSegments, String defaultHostport) {
         return create(join(pathSegments), defaultHostport);
     }
-    
+
     /**
      * Create a url with given <code>pathSegments</code> and configured scheme, hostname and port.
-     * 
+     *
      * If scheme is not configured, use defaultScheme as the scheme.
      * If hostname is not configured, use defaultHostport as the hostname and the port.
-     * 
+     *
      * @param pathSegments List of path segments to construct the path.
      * @param defaultHostport
      * @param defaultScheme
-     * 
+     *
      * @return <code>String</code> containing the created URL
-     * 
+     *
      */
     public static String create(List<String> pathSegments, String defaultHostport, String defaultScheme) {
         return create(join(pathSegments), defaultHostport, defaultScheme);

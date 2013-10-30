@@ -5,10 +5,10 @@
 
 @siteLayout("app.name", utils.MenuType.SITE_HOME) {
     @if(currentUser != User.anonymous){
-    
+
     <div class="site-guide-outer hide">
         <h3>
-            <i class="yobicon-emo-wink"></i> 
+            <i class="yobicon-emo-wink"></i>
             @Messages("app.secret.welcome",Messages("app.name"))
             <span>Web-based collaborative platform for software development.</span>
         </h3>
@@ -21,7 +21,7 @@
                 </li>
                 <li>
                     <div class="guide-icons"><i class="yobicon-eye"></i></div>
-                    <div class="guide-title">프로젝트 지켜보기</div> 
+                    <div class="guide-title">프로젝트 지켜보기</div>
                     <div class="guide-desc">이슈트레커, 게시판등에서 발생한 새로운 이벤트들에 대한 알림을 받을 수 있습니다.</div>
                 </li>
                 <li>
@@ -47,17 +47,17 @@
                     @partial_notifications(0, 20)
                 </ul>
 	        </div>
-	       
+
 	       <div class="span3">
                 <div class="projects-wrap">
                     @myProjectList(currentUser)
                 </div>
 	       </div>
-           
+
         </div>
 
     </div>
-    } 
+    }
     <script type="text/javascript">
         $(document).ready(function(){
             $("#toggleIntro").click(function(){
@@ -76,15 +76,15 @@
 
                 if(event.target.localName =='a' || event.target.localName =='img') {
                     return ;
-                }    
+                }
 
                 welMessage.toggleClass('nowrap');
 
                 nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
-                
-                $(welMessage).css('min-height',nHeight);               
+
+                $(welMessage).css('min-height',nHeight);
             });
-           
+
         });
     </script>
 }

@@ -10,7 +10,7 @@
         @if(session.contains("loginId")){
         <li class="item">
             <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success">
-                <i class="yobicon-database-add"></i> 
+                <i class="yobicon-database-add"></i>
             </a>
         </li>
         @if(session.get("userId").equals("1")) {
@@ -22,14 +22,14 @@
         }
         <li class="gnb-dropdown">
             <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
-                <i class="yobicon-database"></i> 
+                <i class="yobicon-database"></i>
                 <span class="caret"></span>
 
             </a>
             <ul class="dropdown-menu flat right title">
                 @defining(UserApp.currentUser.getWatchingProjects()){ watchingProjects =>
                     <li class="title">
-                        @Messages("project.watchingproject") 
+                        @Messages("project.watchingproject")
                         <span class="numberic">@watchingProjects.size</span>
                     </li>
                     @if(watchingProjects.length > 0) {
@@ -40,10 +40,10 @@
                         <li class="empty">@Messages("project.is.empty")</li>
                     }
                 }
-                   
+
                 @defining(User.findByLoginId(session.get("loginId")).myProjects("name")){ myProjects =>
                     <li class="title">
-                        @Messages("project.createdByMe") 
+                        @Messages("project.createdByMe")
                         <span class="numberic">@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()</span>
                     </li>
                     @if(Project.findProjectsCreatedByUser(session.get("loginId"), "name").size() > 0){
@@ -53,10 +53,10 @@
                             }
                         }
                     } else {
-                        <li class="empty">@Messages("project.is.empty")</li>        
+                        <li class="empty">@Messages("project.is.empty")</li>
                     }
 
-                    <li class="title">@Messages("project.belongsToMe") 
+                    <li class="title">@Messages("project.belongsToMe")
                         <span class="numberic">@(myProjects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</span>
                     </li>
                     @for(project <- myProjects){
@@ -64,7 +64,7 @@
                         <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                         }
                     }
-                    
+
                 }
             </ul>
         </li>
@@ -72,16 +72,16 @@
             <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
                 <span class="avatar-wrap smaller">
                     <img src="@User.findByLoginId(session.get("loginId")).avatarUrl" />
-                </span>    
+                </span>
                 <span class="caret"></span>
-            </a>   
+            </a>
             <ul class="dropdown-menu flat right">
                 <li class="title">
                     @User.findByLoginId(session.get("loginId")).name <span class="disabled">@{"@"}@session.get("loginId")</span>
-                </li>  
+                </li>
                 <li>
                     <a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a>
-                </li>  
+                </li>
                 <li>
                     <a href="@routes.UserApp.editUserInfoForm()">
                         @Messages("userinfo.accountSetting")
@@ -92,8 +92,8 @@
                         @Messages("title.logout")
                     </a>
                 </li>
-            </ul>    
-        </li>    
+            </ul>
+        </li>
         } else {
         <li class="item">
             <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success" data-toggle="tooltip" title="@Messages("title.signup")" data-placement="bottom">
@@ -106,5 +106,5 @@
             </a>
         </li>
         }
-    </ul>    
-</div>    
+    </ul>
+</div>

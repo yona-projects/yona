@@ -100,7 +100,7 @@
         </div>
 
         <div class="span3">
-		    <div class="bubble-wrap gray project-home" style="width:260px;">		        
+		    <div class="bubble-wrap gray project-home" style="width:260px;">
 		        <div class="inner logo" style="background-image:url('@projectLogoImage');">
 		            @if(isAllowed(UserApp.currentUser(), project.labelsAsResource(), Operation.UPDATE)){
 		            <div class="edit">
@@ -110,7 +110,7 @@
 		        </div>
                 <div class="project-btn-wrap">
                     <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
-                </div>    
+                </div>
                 @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
                     @if(milestones.length > 0){
                         @views.html.milestone.partial_status(milestones(0), project)

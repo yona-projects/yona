@@ -4,7 +4,7 @@ users:
         name:           Yobi
         loginId:        yobi
         password:       ys9gr1Xet/DL9RpmgczOlJg+txPvqnZCaw/z55gb0KU=
-        passwordSalt:   '[B@1032a4'        
+        passwordSalt:   '[B@1032a4'
         email:          yobi@yobi.io
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-12-01 08:00:00

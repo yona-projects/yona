@@ -38,10 +38,10 @@ input[type="week"], input[type="number"], input[type="email"], input[type="url"]
 input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     .box-shadow(none);
     .border-radius(2px);
-    
+
     &:focus {
         .box-shadow(none);
-        border-color:@primary;        
+        border-color:@primary;
     }
 }
 
@@ -76,13 +76,13 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         float:right; margin:0;
         padding:4px 9px;
         border-left:1px solid rgba(0,0,0,0.1);
-        
+
         .caret {
             border-top-color:#4f4f4f;
         }
         &.nlb { border-left:none; }
     }
-    
+
     &.blue {
         background:@blue2; border-bottom:1px solid rgba(0,0,0,0.25);
         .d-caret .caret { border-top-color:#fff; }
@@ -99,7 +99,7 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
 }
 .btn-group.open .btn.dropdown-toggle {
     background:darken(@white, 5%);
-    
+
     &.blue   { background:darken(@blue2, 5%); }
     &.orange { background:darken(@orange, 5%); }
 }
@@ -179,10 +179,10 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
         text-decoration: none;
     }
     &.last  { margin-right:0; }
-    &.active { 
-        .box-shadow(inset 1px 1px 4px rgba(0, 0, 0, 0.25)); 
+    &.active {
+        .box-shadow(inset 1px 1px 4px rgba(0, 0, 0, 0.25));
     }
-    
+
     &.blue {
         background-color: @blue2; /*#56B5D9*/
         &:hover { background-color: darken(@blue2, 10%); color: #00ddff; }
@@ -203,12 +203,12 @@ input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
       background-color: @green;
       &:hover { background-color: darken(@green, 10%); color: #00ddff; }
     }
-    
+
     &.red {
         background-color:#e45642;
         &:hover { background-color: darken(#e45642, 10%); color: #fff; }
     }
-    
+
     &.mint {
         background-color:#83d6df;
         &:hover { background-color: darken(#83d6df, 10%); color: #fff; }
@@ -308,10 +308,10 @@ button.nbtn {
     font-size:11px; font-weight:bold;
     color:#fff; white-space:nowrap; vertical-align:middle;
     background:#aaa;/*d9d9d9;*/
-    
+
     .border-radius(2px);
     /*.box-shadow(inset 0px -2px 2px rgba(255,255,255,0.4));*/
-    
+
     /*&.language { background:#ffc48c; }
     &.license  { background:#ff9f80; }*/
 }
@@ -419,9 +419,9 @@ button.nbtn {
                 border:1px solid #d3d3d3;
                 text-decoration: none;
                 background-color: @yobi-white-dark;
-            }    
+            }
         }
-        
+
         &.active a {
             font-weight:bold;
             letter-spacing:-1pt;
@@ -520,7 +520,7 @@ button.nbtn {
 .num-noti {
     display: inline-block;
     background: @primary;
-    color:#fff; 
+    color:#fff;
     font-weight:bold;
     border:1px solid #eee;
     padding: 0px 5px;
@@ -549,7 +549,7 @@ button.nbtn {
     white-space:nowrap;
     color: #333;
     background-color: @yobi-btn-default;
-    text-shadow:none;   
+    text-shadow:none;
     .border-radius(3px)  !important;
     display:inline-block;
     padding: 4px 12px !important;
@@ -564,7 +564,7 @@ button.nbtn {
     margin-left: .3em;
     border: 1px solid rgba(0,0,0,.15);
     .box-shadow(0 1px 0 rgba(0,0,0,.05));
-    
+
     i { line-height:20px;}
 
     &.ybnt-midium {
@@ -573,7 +573,7 @@ button.nbtn {
 
     &:first-child {
         margin-left:0;
-    } 
+    }
 
     &:hover, &:focus, &:active, &:focus, &.disabled, &[disabled]  {
         border:1px solid rgba(0,0,0,.25);
@@ -628,25 +628,25 @@ button.nbtn {
     &.ybtn-gray {
         backgroun-color: @yobi-white-dark;
 
-        &:hover, &:focus, &:active, &:focus { 
-            background-color: @yobi-white !important;  
+        &:hover, &:focus, &:active, &:focus {
+            background-color: @yobi-white !important;
         }
     }
 
     &.ybtn-primary {
         background-color : @yobi-btn-primary !important;
-        border:1px solid @yobi-btn-primary-hover;   
-        &:hover, &:focus, &:active, &:focus { 
-            background-color: @yobi-btn-primary-hover !important;  
+        border:1px solid @yobi-btn-primary-hover;
+        &:hover, &:focus, &:active, &:focus {
+            background-color: @yobi-btn-primary-hover !important;
         }
     }
 
     &.ybtn-success {
         background-color : @yobi-btn-primary !important;
-        border:1px solid @yobi-btn-primary-hover; 
+        border:1px solid @yobi-btn-primary-hover;
 
-        &:hover, &:focus, &:active, &:focus { 
-            background-color: @yobi-btn-primary-hover !important;  
+        &:hover, &:focus, &:active, &:focus {
+            background-color: @yobi-btn-primary-hover !important;
         }
     }
 
@@ -654,8 +654,8 @@ button.nbtn {
         background-color : @yobi-btn-warning !important;
         border:1px solid @yobi-btn-warning-hover;
 
-        &:hover, &:focus { 
-            background-color: @yobi-btn-warning-hover !important;  
+        &:hover, &:focus {
+            background-color: @yobi-btn-warning-hover !important;
         }
     }
 
@@ -663,17 +663,17 @@ button.nbtn {
         background-color : @yobi-btn-info !important;
         border:1px solid @yobi-btn-info-hover;
 
-        &:hover, &:focus { 
-            background-color: @yobi-btn-info-hover !important;  
+        &:hover, &:focus {
+            background-color: @yobi-btn-info-hover !important;
         }
     }
 
     &.ybtn-danger {
         background-color : @yobi-btn-danger !important;
         border:1px solid @yobi-btn-danger-hover;
-    
-        &:hover, &:focus { 
-            background-color: @yobi-btn-danger-hover !important;  
+
+        &:hover, &:focus {
+            background-color: @yobi-btn-danger-hover !important;
         }
     }
 
@@ -681,15 +681,15 @@ button.nbtn {
         background-color : @yobi-btn-inverse !important;
         border:1px solid @yobi-btn-inverse-hover;
 
-        &:hover, &:focus { 
-            background-color: @yobi-btn-inverse-hover !important;  
+        &:hover, &:focus {
+            background-color: @yobi-btn-inverse-hover !important;
         }
     }
 
     &.ybtn-transparent {
         background-color : rgba(0,0,0, 0.25);
-        
-        &:hover, &:focus { 
+
+        &:hover, &:focus {
             background-color: rgba(0,0,0, 0.45);
         }
     }
@@ -699,8 +699,8 @@ button.nbtn {
         border:none;
         color:#FFF;
 
-        &:hover, &:focus { 
-            background-color: @yobi-btn-disabled-hover !important;  
+        &:hover, &:focus {
+            background-color: @yobi-btn-disabled-hover !important;
         }
     }
 
@@ -708,17 +708,17 @@ button.nbtn {
         background-color : @yobi-btn-success !important;
         border:1px solid @yobi-btn-success-hover;
 
-        &:hover, &:focus { 
-            background-color: @yobi-btn-success-hover !important;  
+        &:hover, &:focus {
+            background-color: @yobi-btn-success-hover !important;
         }
     }
 
     &.ybtn-unwatching {
         background-color : @yobi-btn-disabled !important;
         border:none;
-        
-        &:hover, &:focus { 
-            background-color:  !important;  
+
+        &:hover, &:focus {
+            background-color:  !important;
         }
     }
 
@@ -878,7 +878,7 @@ button.nbtn {
                     padding-top: 5px;
                 }
             }
-               
+
             &.active, &:selected {
                 > a {
                     background: rgba(255,255,255,0.25);
@@ -897,7 +897,7 @@ button.nbtn {
               padding-left: 11px;
               padding-right: 11px;
             }
-            
+
             &.divider {
                 margin-left: 11px;
                 margin-right: 11px;
@@ -915,14 +915,14 @@ button.nbtn {
                    margin-top: 0px;
                 }
             }
-            
+
             > a {
                 .border-radius(3px);
                 color:#292929;
                 padding: 3px 20px 5px;
                 background-color:transparent !important;
                 .transition(all 0.2s ease);
-            
+
 
                 &:hover, &:active, &:focus {
                     .border-radius(3px) !important;
@@ -941,7 +941,7 @@ button.nbtn {
                     height:auto;
                 }
             }
-           
+
             .disabled {
                 color:#ccc;
                 font-size:0.8em;
@@ -1004,9 +1004,9 @@ button.nbtn {
  * http://www.apache.org/licenses/LICENSE-2.0
  * ============================================================ */
 /**
- * Flat UI Free 
+ * Flat UI Free
  * licensed under a CC BY 3.0 and MIT License
- * 
+ *
  * http://creativecommons.org/licenses/by/3.0/
  * http://opensource.org/licenses/mit-license.html
  */
@@ -1150,7 +1150,7 @@ button.nbtn {
     .border-radius(3px);
     line-height:20px;
     display:inline-block;
-    
+
     .textbox {
         border:0 none;
         height: 20px;

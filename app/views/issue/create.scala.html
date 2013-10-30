@@ -26,7 +26,7 @@
 	                    @if(errors != null) {
 							<div class="message">
 							@for(error <- errors) {
-								<div>@Messages(error.message)</div>				
+								<div>@Messages(error.message)</div>
 							}
 							</div>
 						}
@@ -44,7 +44,7 @@
                         <textarea id="body" name="body" markdown="true" class="zen-mode text content .go-zen--textarea" tabindex="2"  data-label="@Messages("issue.error.emptyBody")"></textarea>
                         <dl id="relativeIssue" class="relative-issue">
                             <dt>
-                                @Messages("issue.relativeCandidate") 
+                                @Messages("issue.relativeCandidate")
                                 <a href="#experimentalHelp" role="button" class="ybtn ybtn-inverse ybtn-minimum" data-toggle="modal">@Messages("common.experimental")</a>
                             </dt>
                             <dd>
@@ -93,7 +93,7 @@
                      </dd>
                 </dl>
                 }
-    
+
                 @if(isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.ISSUE_MILESTONE)) {
                     <dl id="milestoneOption" class="issue-option">
                         <dt>@Messages("milestone")</dt>
@@ -118,7 +118,7 @@
                         </dd>
                     </dl>
                 }
-    
+
                 <dl id="labels" class="issue-option">
                     <dt>
                         @Messages("label.select")
@@ -130,7 +130,7 @@
                         <fieldset class="labels issue-form-labels"></fieldset>
                     </dd>
                 </dl>
-            </div>                    
+            </div>
         </div>
     </div>
     } @** end of form **@
@@ -151,7 +151,7 @@
             "sURLLabels": "@routes.IssueLabelApp.labels(project.owner, project.name)",
             "sURLPost"  : "@routes.IssueLabelApp.newLabel(project.owner, project.name)"
         });
-        
+
         // yobi.issue.Write
 		$yobi.loadModule("issue.Write", {
 			"sMode"		   : "new",

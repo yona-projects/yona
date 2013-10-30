@@ -32,7 +32,7 @@ public class CodeApp extends Controller {
 
     /**
      * 기본 코드 브라우저 표시
-     * 
+     *
      * @param userName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      */
@@ -61,10 +61,10 @@ public class CodeApp extends Controller {
 
         return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, "HEAD", ""));
     }
-    
+
     /**
      * 브랜치, 파일 경로를 인자로 받는 코드 브라우저 표시
-     * 
+     *
      * @param userName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param branch 브랜치 이름
@@ -84,19 +84,19 @@ public class CodeApp extends Controller {
 
         List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
         List<String> branches = repository.getBranches();
-        
+
         /** 해당 경로가 폴더이고 최상위가 아니면, 최상위 경로부터 순서대로 정보를 추가한다 **/
         if(fileInfo.get("type").getTextValue().equals("folder") && !path.equals("")){
             recursiveData.addAll(RepositoryService.getMetaDataFromAncestorDirectories(repository, branch, path));
         }
         recursiveData.add(fileInfo);
-        
+
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
-    
+
     /**
      * AJAX 호출로 지정한 프로젝트 지정한 경로의 정보를 얻고자 할 때 사용된다
-     * 
+     *
      * @param userName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param path 파일 또는 폴더의 경로
@@ -111,10 +111,10 @@ public class CodeApp extends Controller {
             return notFound();
         }
     }
-    
+
     /**
      * AJAX 호출로 지정한 프로젝트의 특정 브랜치에서 지정한 경로의 정보를 얻고자 할 때 사용된다
-     * 
+     *
      * @param userName 프로젝트 소유자 이름
      * @param projectName 프로젝트 이름
      * @param branch 브랜치 이름
@@ -135,7 +135,7 @@ public class CodeApp extends Controller {
 
     /**
      * 지정한 프로젝트의 지정한 파일의 원본을 보여준다
-     * 
+     *
      * @param userName
      * @param projectName
      * @param revision
@@ -151,7 +151,7 @@ public class CodeApp extends Controller {
 
     /**
      * 지정판 프로젝트의 지정한 이미지 파일 원본을 보여준다
-     * 
+     *
      * @param userName
      * @param projectName
      * @param path
@@ -166,8 +166,8 @@ public class CodeApp extends Controller {
 
     /**
      * 프로젝트의 저장소 URL을 반환하는 함수
-     * 화면에 저장소 URL을 표시하기 위해 사용된다 
-     * 
+     * 화면에 저장소 URL을 표시하기 위해 사용된다
+     *
      * @param ownerName
      * @param projectName
      */
@@ -192,7 +192,7 @@ public class CodeApp extends Controller {
      * 현재 로그인 된 사용자 정보가 있으면
      * 프로젝트 저장소 URL에 사용자 ID를 포함해서 반환한다
      * 예: protocol://user@host.name/path
-     * 
+     *
      * @param project
      */
     public static String getURLWithLoginId(Project project) {

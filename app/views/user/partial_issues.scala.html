@@ -25,7 +25,7 @@
             <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
                 <img src="@projectLogoImage" alt="@project.owner / @project.name">
             </a>
-           
+
         </div>
         <label>
             <div class="title">
@@ -38,7 +38,7 @@
                     <span class="gray-txt">@Messages("issue.noAuthor")</span>
                 }
                 <span class="date">@agoString(issue.ago)</span>
-               
+
                 @if(issue.comments.size()>0){
                 <a href="@routes.IssueApp.issue(project.owner, project.name, issue.getNumber)#comments" class="comment-wrap">
                     <i class="icon yobicon-comments"></i><span class="num">@issue.comments.size()</span>
@@ -72,5 +72,5 @@
                 </a>
             }
         </div>
-    </div>    
+    </div>
 </div>

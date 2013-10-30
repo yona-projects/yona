@@ -16,7 +16,7 @@ public class PullRequestMergeResult {
     private List<GitCommit> gitCommits;
     private List<PullRequestCommit> newCommits;
     private PullRequest pullRequest;
-    
+
     public GitConflicts getGitConflicts() {
         return gitConflicts;
     }
@@ -53,7 +53,7 @@ public class PullRequestMergeResult {
         }
         return StringUtils.join(gitConflicts.conflictFiles, PullRequest.DELIMETER);
     }
-    
+
     /**
      * 신규로 추가된 커밋목록을 반환한다.
      * @return
@@ -63,39 +63,39 @@ public class PullRequestMergeResult {
         for (GitCommit commit: gitCommits) {
             boolean existCommit = false;
             for (PullRequestCommit pullRequestCommit: PullRequestCommit.find.where().eq("pullRequest", pullRequest).findList()) {
-                if(commit.getId().equals(pullRequestCommit.commitId)) {  
+                if(commit.getId().equals(pullRequestCommit.commitId)) {
                     existCommit = true;
                     break;
                 }
             }
-            
+
             if (!existCommit) {
                 PullRequestCommit pullRequestCommit = PullRequestCommit.bindPullRequestCommit(commit, pullRequest);
                 currentCommits.add(pullRequestCommit);
             }
-        }     
+        }
         return currentCommits;
     }
-    
+
     /**
      * 보낸코드의 병합결과를 저장한다.
-     * 
+     *
      * 신규 커밋 / 이전 커밋 / 병합상태(완료)
      */
     public void save() {
         pullRequest.endMerge();
         pullRequest.update();
     }
-    
+
     public void saveCommits() {
         newCommits = findNewCommits();
         saveNewCommits();
         updatePriorCommits();
     }
-    
+
     /**
      * 신규 커밋을 저장한다.
-     * 
+     *
      * @param pullRequest
      * @param commits
      * @return
@@ -105,12 +105,12 @@ public class PullRequestMergeResult {
             commit.save();
         }
     }
-    
+
     /**
      * 이전 커밋을 업데이트한다.
-     * 
+     *
      * DB의 커밋이 코드저장소의 커밋에 존재하지 않으면 이전커밋으로 판단하고 업데이트 한다.
-     * 
+     *
      * @param pullRequest
      * @param commits
      * @return
@@ -131,7 +131,7 @@ public class PullRequestMergeResult {
             }
         }
     }
-    
+
     /**
      * 보낸코드를 충돌 상태로 설정한다.
      */
@@ -139,7 +139,7 @@ public class PullRequestMergeResult {
         pullRequest.isConflict = true;
         pullRequest.conflictFiles = getConflictFilesToString();
     }
-    
+
     /**
      * 보낸코드를 충돌해결 상태로 설정한다.
      */

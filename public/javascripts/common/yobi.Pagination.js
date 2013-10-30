@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 // Render pagination in the given target HTML element.
@@ -16,7 +16,7 @@
 yobi.Pagination = (function(window, document) {
 	var htRegEx = {};
 	var rxDigit = /^.[0-9]*$/;
-	
+
 	/**
 	 * getQuery
 	 * @param {String} url
@@ -24,7 +24,7 @@ yobi.Pagination = (function(window, document) {
 	function getQuery(url){
 		var parser = document.createElement('a');
 			parser.href = url.replace('&amp;', '&');
-			
+
 		return parser.search;
 	}
 
@@ -34,7 +34,7 @@ yobi.Pagination = (function(window, document) {
 	 * @param {String} query
 	 */
 	function valueFromQuery(key, query) {
-		htRegEx[key] = htRegEx[key] || new RegExp('(^|&|\\?)' + key + '=([^&]+)'); 
+		htRegEx[key] = htRegEx[key] || new RegExp('(^|&|\\?)' + key + '=([^&]+)');
 		var result = htRegEx[key].exec(query);
 
 		return (result) ? result[2]: null;
@@ -49,7 +49,7 @@ yobi.Pagination = (function(window, document) {
 		var parser = document.createElement('a');
 			parser.href = url;
 			parser.search = (query[0]=='?') ? query : '?' + query;
-		
+
 		return parser.href;
 	}
 
@@ -98,7 +98,7 @@ yobi.Pagination = (function(window, document) {
 		var target = $(target);
 		var linkToPrev, linkToNext, urlToPrevPage, urlToNextPage;
 		var options = options || {};
-		
+
 		options.url = options.url || document.URL;
 		options.firstPage = options.firstPage || 1;
 
@@ -188,11 +188,11 @@ yobi.Pagination = (function(window, document) {
             welTarget.val(nCurrentPageNum);
             return false;
         }
-        
+
         var nVal = parseInt(welTarget.val(), 10);
         var nMin = parseInt(welTarget.attr("min"), 10);
         var nMax = parseInt(welTarget.attr("max"), 10);
-        
+
         if(nVal < nMin){
             welTarget.val(nMin);
         } else if(nVal > nMax){

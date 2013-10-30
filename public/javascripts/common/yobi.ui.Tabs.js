@@ -3,7 +3,7 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 
@@ -15,7 +15,7 @@ $(document).ready(function(){
     var waItems;
     var welContainer;
     var sContainerId;
-    
+
     $(".nav-tabs[id]").each(function(i, elContainer){
         welContainer = $(elContainer);
         sContainerId = welContainer.attr("id");

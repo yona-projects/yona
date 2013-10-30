@@ -62,7 +62,7 @@ yobi.Files.deleteFile({
 
 파일 전송. input[type=file] 엘리먼트 객체를 인자로 주면 선택된 파일을 전송한다.
 XHR2 사용 가능 환경에서는 File, FileList, Blob 객체도 인자로 줄 수 있다.
-사용 가능한 커스텀 이벤트는 아래와 같으며 .attach("이벤트명", function(){}); 로 
+사용 가능한 커스텀 이벤트는 아래와 같으며 .attach("이벤트명", function(){}); 로
 핸들러를 지정하고 같은 방식으로 .detach() 를 이용해 핸들러를 제거할 수 있다.
 
 - beforeUpload: 업로드 시작 전 이벤트. 핸들러 함수는 여러개 지정할 수 있는데 단 하나라도 false 를 명시적으로 반환하면 업로드를 중단한다
@@ -71,7 +71,7 @@ XHR2 사용 가능 환경에서는 File, FileList, Blob 객체도 인자로 줄 
 - errorUpload: 업로드 실패시 발생하는 이벤트
 
 예: 기본 사용법
-```  
+```
 yobi.Files.attach({
     "successUpload": function(htData){
         // 응답결과(htData) 형식은 uploader-server-internal.md 참조
@@ -88,17 +88,17 @@ yobi.Files.attach("beforeUpload", function(){
 });
 
 yobi.Files.uploadFile($("input[type=file]"));
-// 또는 
+// 또는
 yobi.Files.uploadFile($("input[type=file]")[0].files);
 ```
 
 ### .getUploader
 
-첫 번째 인자로 지정한 컨테이너 영역내에 존재하는 input[type=file]의 change 이벤트, 
+첫 번째 인자로 지정한 컨테이너 영역내에 존재하는 input[type=file]의 change 이벤트,
 그리고 가능하다면 해당 영역의 drop 이벤트에 핸들러를 설정하고 자동으로 uploadFile 메소드를 이용한 파일 업로드를 수행하도록 만들어 준다.
 두 번째 인자인 elTextarea 를 지정할 경우 이 영역에 대해서도 drop 및 paste 이벤트 핸들러를 설정한다.
 
-함수명이 get 으로 시작하는 이유는 이 함수의 실행 결과로 업로더 ID(Unique)를 반환하기 때문인데 
+함수명이 get 으로 시작하는 이유는 이 함수의 실행 결과로 업로더 ID(Unique)를 반환하기 때문인데
 이 값은 yobi.Attachments 를 사용하여 첨부 파일 목록을 표현할 때 필요하다.
 yobi.Attachments 와 연계하여 사용할 것이 아니라면 반환값은 무시해도 무방하다.
 
@@ -119,13 +119,13 @@ yobi.Attachments 와 연계하여 사용할 것이 아니라면 반환값은 무
 yobi.Attachments
 ----
 
-yobi.Files 가 서버와의 통신을 담당하고 yobi.Attachments 는 커스텀 이벤트 핸들러를 이용해 화면에 첨부된 파일 목록을 나타내는데 사용한다. 
+yobi.Files 가 서버와의 통신을 담당하고 yobi.Attachments 는 커스텀 이벤트 핸들러를 이용해 화면에 첨부된 파일 목록을 나타내는데 사용한다.
 파일 업로더와 함께 사용할 수도 있고, 단순히 resourceType 과 resourceId 만 지정해서 기존에 첨부된 파일 목록을 표현할 수도 있다.
 yobi.Files 와 달리 new yobi.Attachments 로 인스턴스를 생성하여 사용한다.
 
 예: 단순한 첨부파일 목록 표현 yobi.Attachments
 ```
-<ul class="attachments" data-resourceType="ISSUE_COMMENT" data-resourceId="1234"></ul>  
+<ul class="attachments" data-resourceType="ISSUE_COMMENT" data-resourceId="1234"></ul>
 <script type="text/javascript">
     new yobi.Attachments({"elContainer": $("#attachments")});
 </script>
@@ -139,11 +139,11 @@ yobi.Files 와 달리 new yobi.Attachments 로 인스턴스를 생성하여 사�
 ```
 var welUploader = $("#uploader");
 var welTextarea = $("#body");
-var sTplText = $("#tplFileItem").text();  
-var oUploader = yobi.Files.getUploader(welUploader, welTextarea);  
-var sUploaderId = oUploader.attr("data-namespace");  
+var sTplText = $("#tplFileItem").text();
+var oUploader = yobi.Files.getUploader(welUploader, welTextarea);
+var sUploaderId = oUploader.attr("data-namespace");
 
-(new yobi.Attachments({  
+(new yobi.Attachments({
     "elContainer"  : welUploader,
     "elTextarea"   : welTextarea,
     "sTplFileItem" : sTplText,

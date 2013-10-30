@@ -46,7 +46,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date createdDate;
-    
+
     @Constraints.Required
     @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
     public Date updatedDate;
@@ -139,8 +139,8 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         numOfComments = computeNumOfComments();
         super.update();
     }
-    
-    
+
+
     public void updateNumber() {
         number = increaseNumber();
         super.update();

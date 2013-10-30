@@ -28,7 +28,7 @@
 	                    @if(errors != null) {
 							<div class="message">
 							@for(error <- errors) {
-								<div>@Messages(error.message)</div>				
+								<div>@Messages(error.message)</div>
 							}
 							</div>
 						}
@@ -55,7 +55,7 @@
                         @help.experimental()
                     </dd>
                 </dl>
-            
+
                 @** fileUploader **@
                 @if(!UserApp.currentUser.isAnonymous) {
                     @common.fileUploader(ResourceType.ISSUE_POST, issue.id)
@@ -67,7 +67,7 @@
                  --><a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
                 </div>
             </div>
-            
+
             <div class="span3">
                 @if(isAllowed(UserApp.currentUser(), issue.stateAsResource(), Operation.UPDATE)){
                 <dl class="issue-option">
@@ -86,7 +86,7 @@
                     </dd>
                 </dl>
                 }
-    
+
                 @if(isAllowed(UserApp.currentUser(), issue.assigneeAsResource(), Operation.UPDATE)){
                 <dl class="issue-option">
                      <dt>@Messages("issue.assignee")</dt>
@@ -118,7 +118,7 @@
                      </dd>
                 </dl>
                 }
-    
+
                 @if(isAllowed(UserApp.currentUser(), issue.milestoneAsResource(), Operation.UPDATE)){
                 <dl id="milestoneOption" class="issue-option">
                     <dt>@Messages("milestone")</dt>
@@ -144,7 +144,7 @@
                     </dd>
                 </dl>
                 }
-    
+
                 <dl id="labels" class="issue-option">
                     <dt>
                         @Messages("label.select")
@@ -192,7 +192,7 @@
             "elTextarea"        : $("#body"),
             "elMilestoneRefresh": $("#milestoneOption .yobicon-refresh")
         });
-        
+
         // yobi.Mention
         yobi.Mention({
             "target": "body",

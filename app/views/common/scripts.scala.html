@@ -54,11 +54,11 @@
 
 <script type="text/javascript">
 	$yobi.setScriptPath("@getJSPath()");
-	
+
 	$(document).ready(function(){
 		// tooltip
 		$("[data-toggle=tooltip]").tooltip();
-		
+
     	// jquery.placeholder plugin initiator
         $('input[type=text], textarea').placeholder();
 
@@ -70,7 +70,7 @@
         		(new yobi.ui.Dropdown({"elContainer":el}));
         	}
         });
-        
+
         // yobi.ShortcutKey
         // Set CTRL+ENTER as submit form on INPUT/TEXTAREA
         yobi.ShortcutKey.attach("CTRL+ENTER", function(htInfo){

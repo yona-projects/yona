@@ -3,19 +3,19 @@
  *
  * Copyright NHN Corporation.
  * Released under the MIT license
- * 
+ *
  * http://yobi.dev.naver.com/license
  */
 window.yobi = (typeof yobi == "undefined") ? {} : yobi;
 
 $yobi = yobi.Common = (function(){
-    
+
     var htVar = {
         "sScriptPath":"",
         "rxTrim": /\s+/g
     };
     var htModuleInstance = {};
-    
+
     /**
      * set JavaScript asset path for loadScript
      * @param {String} sPath
@@ -28,7 +28,7 @@ $yobi = yobi.Common = (function(){
      * Create namespace object from String
      * @param {String} sName namespace string like 'yobi.module.Name'
      * @returns {Hash Table} container object and last name of argument
-     * @example 
+     * @example
      * var oNS = createNamespace("yobi.module.Name");
      * oNS.container[oNS.name] = { ... };
      * // oNS.container === yobi.module
@@ -38,7 +38,7 @@ $yobi = yobi.Common = (function(){
         var aSpace = sNamespace.split(".");
         var oParent = window;
         var sObjectName = null;
-        
+
         for ( var i = 0, len = aSpace.length; i < len; i++) {
             sObjectName = aSpace[i];
             if (i == (len - 1)) {
@@ -49,13 +49,13 @@ $yobi = yobi.Common = (function(){
             }
             oParent = oParent[sObjectName];
         }
-        
+
         return {
             "container" : oParent,
             "name" : sObjectName
         };
     }
-    
+
     /**
      * load module
      * @param {String} sName
@@ -70,19 +70,19 @@ $yobi = yobi.Common = (function(){
         if(registerModule(sName, htOptions) === false){
             htVar.htTryLoad = htVar.htTryLoad || {};
             htVar.htTryLoad[sName] = (typeof htVar.htTryLoad[sName] == "undefined") ? 1 : (++htVar.htTryLoad[sName]);
-            
+
             if(htVar.htTryLoad[sName] > 3){
                 console.log("[Yobi] fail to load module " + sName);
                 return false;
             }
-            
+
             var sURL = htVar.sScriptPath + "service/yobi." + sName + ".js";
             var fOnLoad = function(){
                 loadModule(sName, htOptions, fCallback);
             };
             return loadScript(sURL, fOnLoad);
         }
-        
+
         if(typeof fCallback == "function"){
             fCallback(htOptions);
         }
@@ -97,12 +97,12 @@ $yobi = yobi.Common = (function(){
         var aNames = sName.split(".");
         var sDepth = aNames.shift();
         var oModule = yobi[sDepth];
-        
+
         while(aNames.length && oModule){
             sDepth = aNames.shift();
             oModule = oModule[sDepth];
         }
-        
+
         // temporary code for compatibility with nForge
         var oInstance;
         if(typeof oModule == "undefined"){
@@ -115,7 +115,7 @@ $yobi = yobi.Common = (function(){
         }
         return htModuleInstance[sName] = oInstance;
     }
-    
+
     /**
      * load JavaScript
      * @param {String} sURL
@@ -135,7 +135,7 @@ $yobi = yobi.Common = (function(){
             document.body.removeChild(elScript);
             elScript = fOnLoad = null;
         };
-        
+
         // attach onLoad event handler
         if(elScript.addEventListener) { // for FF
             elScript.addEventListener("load", fOnLoad, false);
@@ -148,7 +148,7 @@ $yobi = yobi.Common = (function(){
         } else { // and for other polite browsers
             elScript.onload = fOnLoad;
         }
-    
+
         document.body.appendChild(elScript);
     }
 
@@ -170,7 +170,7 @@ $yobi = yobi.Common = (function(){
             eEvt.preventDefault();
         }
     }
-    
+
     /**
      * Compute a color contrasted with the given color (lightness).
      * See http://en.wikipedia.org/wiki/Luma_(video)
@@ -198,15 +198,15 @@ $yobi = yobi.Common = (function(){
         var sKey = "";
         var aFields = [];
         var aFormAttr = [];
-        
+
         // create form with attributes (htOptForm)
         var htOptForm = htOptions.htOptForm || {"method":"post"};
         for(sKey in htOptForm){
             aFormAttr.push(sKey + '="' + htOptForm[sKey] + '"');
         }
         var sFormAttr = aFormAttr.join(" ");
-        var welForm = $('<form action="' + htOptions.sURL + '" ' + sFormAttr + '>');        
-        
+        var welForm = $('<form action="' + htOptions.sURL + '" ' + sFormAttr + '>');
+
         // form fields
         var htData = htOptions.htData || {};
         for(sKey in htData){
@@ -214,7 +214,7 @@ $yobi = yobi.Common = (function(){
         }
         welForm.append(aFields);
         welForm.appendTo(document.body);
-        
+
         // send form
         welForm.ajaxForm({
             "success" : function(){
@@ -231,12 +231,12 @@ $yobi = yobi.Common = (function(){
             },
             "dataType": htOptions.sDataType || null
         });
-        
+
         welForm.submit();
 
         aFields = aFormAttr = sFormAttr = null;
     }
-    
+
     /**
      * Strip all whitespace in string
      * @param {String} sValue
@@ -255,12 +255,12 @@ $yobi = yobi.Common = (function(){
         if(!htVar.oAlertDialog){
             htVar.oAlertDialog = new yobi.ui.Dialog("#yobiDialog");
         }
-        
+
         htVar.oAlertDialog.show(sMessage, {
             "fOnAfterHide": fOnAfterHide
         });
     }
-    
+
     /**
      * Show notification message using Toast PopUp
      * @param {String} sMessage
@@ -272,10 +272,10 @@ $yobi = yobi.Common = (function(){
                 "sTplToast": $("#tplYobiToast").text()
             });
         }
-        
+
         htVar.oToast.push(sMessage, nDuration);
     }
-    
+
     /**
      * Inserts HTML line breaks before all newlines in a string
      * @param {String} sText
@@ -284,17 +284,17 @@ $yobi = yobi.Common = (function(){
     function nl2br(sText){
         return (typeof sText === "string") ? sText.split("\n").join("<br>") : sText;
     }
-    
+
     /**
      * Simple template processor
      * @param {String} sTemplate Template String
      * @param {Hash Table} htData Data Object.
      * @return {String}
-     * @example 
-     * processTpl("My name is ${name}", {name: 'John Doe'}); 
+     * @example
+     * processTpl("My name is ${name}", {name: 'John Doe'});
      * // returns "My name is John Doe"
-     *  
-     * processTpl("1st item of Array is '${0}'", ['a','b','c']); 
+     *
+     * processTpl("1st item of Array is '${0}'", ['a','b','c']);
      * // returns "1st item of Array is 'a'"
      */
     function processTpl(sTemplate, htData) {
@@ -304,7 +304,7 @@ $yobi = yobi.Common = (function(){
             return (typeof htData[b] == "undefined") ? "" : htData[b];
         });
     }
-    
+
     /**
      * Convert special characters to HTML entities
      * @param {String} sHTML
@@ -314,7 +314,7 @@ $yobi = yobi.Common = (function(){
         htVar.welHSC = htVar.welHSC || $("<div>");
         return htVar.welHSC.text(sHTML).html();
     }
-    
+
     /* public Interface */
     return {
         "setScriptPath"   : setScriptPath,

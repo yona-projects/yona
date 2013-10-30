@@ -24,7 +24,7 @@ public class JodaDateUtil {
     public static Duration ago(Long time){
         return new Duration(new DateTime(new Date(time)), DateTime.now());
     }
-    
+
     public static Date before(int days){
         return new DateTime(today()).minusDays(days).toDate();
     }

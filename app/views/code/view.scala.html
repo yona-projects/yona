@@ -28,7 +28,7 @@
         <div class="span1 commitDate"><strong>@Messages("code.commitDate")</strong></div>
         <div class="span1 author"><strong>@Messages("code.author")</strong></div>
     </div>
-    
+
     @** folders **@
     @for(fileName <- data.getFieldNames()){
         @defining(data.get(fileName)) { file =>
@@ -116,13 +116,13 @@
 }
 @showFileView(files:org.codehaus.jackson.node.ObjectNode) = {
     @defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
-    @defining(getFileRev(files)) { revId=> 
+    @defining(getFileRev(files)) { revId=>
     @defining(routes.CodeApp.showRawFile(project.owner, project.name, revId, path)) { filePath =>
 <div class="file-wrap" data-type="file">
     <div class="file-header nm">
         <div id="fileInfo" class="file-info">
             <span id="commiter" class="commiter">
-                @getAvatar(files) 
+                @getAvatar(files)
                 <a href="@getUserLink(fieldText(files, "userLoginId"))" class="ml5">@fieldText(files,"commiter")</a>
             </span>
             <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
@@ -220,7 +220,7 @@
             }
         </ul>
         }
-        
+
         <div class="code-viewer-wrap">
             <div id="spin" style="position:fixed; top:50%; left:50%"></div>
             @for(fileInfo <- recursiveData){

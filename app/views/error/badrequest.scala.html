@@ -1,4 +1,4 @@
-@(messageKey:String = "error.badrequest", project: Project) 
+@(messageKey:String = "error.badrequest", project: Project)
 
 @projectLayout(Messages(messageKey), project, utils.MenuType.NONE) {
 <div class="page">
@@ -6,6 +6,6 @@
 	<div class="error-wrap">
 		<i class="ico ico-err2"></i>
 		<p>@Messages(messageKey)</p>
-	</div>  
+	</div>
 </div>
 }

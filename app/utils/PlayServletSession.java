@@ -6,7 +6,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
 public class PlayServletSession implements HttpSession {
-    
+
     private ServletContext context;
 
     public PlayServletSession(ServletContext context) {

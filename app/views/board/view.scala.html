@@ -8,14 +8,14 @@
 @urlToPostings = @{ urlToList(request.getHeader("Referer"), routes.BoardApp.posts(project.owner, project.name).toString) }
 
 @isAuthorComment(commentId: String) = @{
-    if(commentId == UserApp.currentUser().loginId) {"author"}   
+    if(commentId == UserApp.currentUser().loginId) {"author"}
 }
 
 @projectLayout(post.title, project, utils.MenuType.BOARD){
 
 <div class="page board-view">
 	@projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
-  
+
 	@** Post Info **@
     <div class="board-header issue">
         <div class="title pull-left">
@@ -24,7 +24,7 @@
         <div class="pull-right">
             <div class="date">@agoString(post.ago)</div>
         </div>
-    </div>	
+    </div>
 
 	@** Content body **@
 	<div class="board-body">
@@ -54,7 +54,7 @@
 	    <div class="pull-left">
             <a href="@urlToPostings" class="ybtn">@Messages("button.list")</a>
         </div>
-	    
+
         @if(isAllowed(UserApp.currentUser(), post.asResource(), Operation.DELETE)){
         <a href="#deleteConfirm" class="ybtn ybtn-danger" data-toggle="modal">@Messages("button.delete")</a>
         }
@@ -80,11 +80,11 @@
                     <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                         <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
                     </a>
-                </div>    
+                </div>
                 <div class="media-body">
                     <div class="meta-info">
                         <span class="comment_author pull-left">
-                            <i class="yobicon-comment"></i> 
+                            <i class="yobicon-comment"></i>
                             <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                                 <strong>@comment.authorLoginId </strong>
                             </a>
@@ -96,9 +96,9 @@
                         </span>
                         }
                     </div>
-                    
+
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                    
+
                     <div class="attachments pull-right" data-resourceType="@ResourceType.NONISSUE_COMMENT" data-resourceId="@comment.id"></div>
                 </div>
             </li>
@@ -107,7 +107,7 @@
 
         @common.commentForm(project, ResourceType.NONISSUE_COMMENT, routes.BoardApp.newComment(project.owner, project.name, post.getNumber).toString())
 	</div>
-	
+
 	@help.keymap("boardDetail", project)
 </div>
 
@@ -142,7 +142,7 @@
             "sWatchUrl"  : "@routes.WatchApp.watch(post.asResource.asParameter)",
             "sUnwatchUrl": "@routes.WatchApp.unwatch(post.asResource.asParameter)"
 		});
-		
+
         // yobi.ShortcutKey
         yobi.ShortcutKey.setKeymapLink({
             "N": "@routes.BoardApp.newPostForm(project.owner, project.name)",
@@ -151,12 +151,12 @@
            ,"E": "@routes.BoardApp.editPostForm(project.owner, project.name, post.getNumber)"
             }
         });
-        
+
         // yobi.Mention
         yobi.Mention({
             "target": "comment-editor",
             "url"   : "@Html(routes.ProjectApp.mentionList(project.owner, project.name, post.getNumber, post.asResource().getType().resource()).toString())"
         });
-	});	
+	});
 </script>
 }

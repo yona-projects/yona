@@ -55,9 +55,9 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     public static Result issues(String ownerName, String projectName, String state, String format, int pageNum) throws WriteException, IOException {
-       
+
         String pjax = request().getHeader("X-PJAX");
-        
+
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
@@ -101,7 +101,7 @@ public class IssueApp extends AbstractPostingApp {
                 if(HttpUtil.isRequestedWithXHR(request())){ // not pjax but xhr
                     List<Issue> issueList = el.findList();
                     ObjectNode listData = Json.newObject();
-                    
+
                     if(issueList.size() > 0){
                         for (int i = 0; i < Math.min(issueList.size(), 3); i++) {
                             ObjectNode result = Json.newObject();
@@ -112,7 +112,7 @@ public class IssueApp extends AbstractPostingApp {
                             result.put("state", issue.state.toString());
                             result.put("createdDate", issue.createdDate.toString());
                             result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
-                        
+
                             listData.put(issue.id.toString(), result);
                         }
                     }
@@ -333,7 +333,7 @@ public class IssueApp extends AbstractPostingApp {
         newIssue.project = project;
 
         newIssue.state = State.OPEN;
-        
+
         addLabels(newIssue, request());
         setMilestone(issueForm, newIssue);
 
@@ -447,14 +447,14 @@ public class IssueApp extends AbstractPostingApp {
         if (project == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
-        
+
         if (issueForm.hasErrors()) {
             return badRequest(edit.render("error.validation", issueForm, Issue.findByNumber(project, number), project));
         }
-        
+
         final Issue issue = issueForm.get();
         setMilestone(issueForm, issue);
-        
+
         final Issue originalIssue = Issue.findByNumber(project, number);
 
         Call redirectTo = routes.IssueApp.issue(project.owner, project.name, number);
@@ -686,7 +686,7 @@ public class IssueApp extends AbstractPostingApp {
         if (issue.labels == null) {
             issue.labels = new HashSet<IssueLabel>();
         }
-        
+
         Http.MultipartFormData multipart = request.body().asMultipartFormData();
         Map<String, String[]> form;
         if (multipart != null) {
