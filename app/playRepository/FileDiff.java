@@ -110,10 +110,16 @@ public class FileDiff {
      *
      * null인 줄 번호는 무시한다.
      *
+     * editList가 null이라면 파일이 새로 추가되거나 삭제인 경우인데, 이럴때는 아무것도 하지 않는다.
+     *
      * @param lineA
      * @param lineB
      */
     public void updateRange(Integer lineA, Integer lineB) {
+        if (editList == null) {
+            return;
+        }
+
         EditList newEditList = new EditList();
 
         for (Edit edit: editList) {
