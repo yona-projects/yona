@@ -4,6 +4,7 @@ import models.enumeration.EventType;
 import models.enumeration.RequestState;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
+import models.resource.GlobalResource;
 import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -157,7 +158,7 @@ public class NotificationEvent extends Model {
         case PULL_REQUEST_COMMIT_CHANGED:
             return newValue;
         case PULL_REQUEST_MERGED:
-            return Messages.get("notification.type.pull.request.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
+            return Messages.get("notification.type.pullrequest.merged." + newValue) + "\n" + StringUtils.defaultString(oldValue, StringUtils.EMPTY);
         case MEMBER_ENROLL_REQUEST:
             if (RequestState.REQUEST.name().equals(newValue)) {
                 return Messages.get("notification.member.enroll.request");
@@ -186,7 +187,11 @@ public class NotificationEvent extends Model {
         default:
             Resource resource = getResource();
             if (resource != null) {
-                return resource.getProject();
+                if (resource instanceof GlobalResource) {
+                    return null;
+                } else {
+                    return resource.getProject();
+                }
             } else {
                 return null;
             }
@@ -269,7 +274,7 @@ public class NotificationEvent extends Model {
         notiEvent.title = title;
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.absoluteURL(request);
+        notiEvent.urlToView = pullRequestCall.url();
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
         notiEvent.eventType = EventType.NEW_PULL_REQUEST;
@@ -302,7 +307,7 @@ public class NotificationEvent extends Model {
         notiEvent.title = title;
         notiEvent.senderId = UserApp.currentUser().id;
         notiEvent.receivers = watchers;
-        notiEvent.urlToView = pullRequestCall.absoluteURL(request);
+        notiEvent.urlToView = pullRequestCall.url();
         notiEvent.resourceId = pullRequest.id.toString();
         notiEvent.resourceType = pullRequest.asResource().getType();
         notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
@@ -337,8 +342,7 @@ public class NotificationEvent extends Model {
         notiEvent.senderId = sender.id;
         notiEvent.receivers = receivers;
         notiEvent.urlToView = routes.PullRequestApp.pullRequest(
-                toProject.owner, toProject.name, pullRequest.number).absoluteURL(
-                request);
+                toProject.owner, toProject.name, pullRequest.number).url();
         notiEvent.resourceId = resource.getId();
         notiEvent.resourceType = resource.getType();
         notiEvent.eventType = EventType.PULL_REQUEST_MERGED;

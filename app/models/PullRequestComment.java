@@ -4,11 +4,14 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameGenerator;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import playRepository.FileDiff;
 import playRepository.GitRepository;
 
@@ -17,6 +20,7 @@ import javax.servlet.ServletException;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -75,7 +79,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
             @Override
             public Project getProject() {
-                return null;
+                return pullRequest.asResource().getProject();
             }
 
             @Override
@@ -138,7 +142,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         return _isCommitLost;
     }
 
-    public boolean isOutdated() throws IOException, ServletException {
+    public boolean isOutdated() throws IOException, ServletException, GitAPIException {
         if (line == null) {
             return false;
         }
@@ -148,29 +152,34 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
             return _isOutdated;
         }
 
+        if (pullRequest.mergedCommitIdFrom == null || pullRequest.mergedCommitIdTo == null) {
+            return false;
+        }
+
         if (path.length() > 0 && path.charAt(0) == '/') {
             path = path.substring(1);
         }
 
+        Repository mergedRepository = pullRequest.getMergedRepository();
+
         if (commitId.equals(commitA)) {
-            _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.toProject),
-                    pullRequest.toBranch, commitId, path, line);
+            _isOutdated = !noChangesBetween(mergedRepository,
+                    pullRequest.mergedCommitIdFrom, mergedRepository, commitId, path, line);
         } else {
             if (!commitId.equals(commitB)) {
                 play.Logger.warn(
                         "Invalid PullRequestComment.commitId: It must equal to commitA or commitB.");
             }
-            _isOutdated = !noChangesBetween(GitRepository.buildGitRepository(pullRequest.fromProject),
-                        pullRequest.fromBranch, commitId, path, line);
+            _isOutdated = !noChangesBetween(mergedRepository,
+                        pullRequest.mergedCommitIdTo, mergedRepository, commitId, path, line);
         }
 
         return _isOutdated;
     }
-
     static private String getLastChangedCommitUntil(
-            Repository gitRepo, String rev, String path, Integer line)
-            throws IOException, IllegalArgumentException {
-        BlameGenerator blame = new BlameGenerator(gitRepo, path);
+            Repository gitRepo, String rev, String path)
+            throws IOException, IllegalArgumentException, GitAPIException {
+
 
         if (rev == null) {
             throw new IllegalArgumentException(String.format("Null revision is not allowed"));
@@ -184,17 +193,13 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                             rev, gitRepo.toString()));
         }
 
-        int typeCode = gitRepo.getObjectDatabase().newReader().open(id).getType();
+        Iterator<RevCommit> result =
+                new Git(gitRepo).log().add(id).addPath(path).call().iterator();
 
-        switch (typeCode) {
-            case Constants.OBJ_COMMIT:
-            case Constants.OBJ_TAG:
-                blame.push(null, id);
-                return blame.computeBlameResult().getSourceCommit(line.intValue() - 1).getName();
-            default:
-                throw new IllegalArgumentException(
-                      String.format("Unexpected Git object type '%s' of revision '%s' in %s.",
-                          Constants.encodedTypeString(typeCode), rev, gitRepo.toString()));
+        if (result.hasNext()) {
+            return result.next().getId().getName();
+        } else {
+            return null;
         }
     }
 
@@ -202,18 +207,20 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
      * 저장소 {@code gitRepo}에서, {@code path}의 {@code line}이 {@code rev1}과 {@code rev2}사이에서
      * 아무 변화가 없었는지
      *
-     * @param gitRepo
+     * @param repoA
      * @param rev1
+     * @param repoB
      * @param rev2
      * @param path
      * @param line
      * @return
      * @throws IOException
      */
-    static private boolean noChangesBetween(Repository gitRepo, String rev1, String rev2,
-                                            String path, Integer line) throws IOException {
-        String a = getLastChangedCommitUntil(gitRepo, rev1, path, line);
-        String b = getLastChangedCommitUntil(gitRepo, rev2, path, line);
+    static private boolean noChangesBetween(Repository repoA, String rev1,
+                                            Repository repoB, String rev2,
+                                            String path, Integer line) throws IOException, GitAPIException {
+        String a = getLastChangedCommitUntil(repoA, rev1, path);
+        String b = getLastChangedCommitUntil(repoB, rev2, path);
 
         return a.equals(b);
     }

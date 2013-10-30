@@ -72,7 +72,7 @@
                 "errorUpload"   : _onAvatarUploadError,
                 "uploadProgress": _onAvatarUploading
             });
-            yobi.Files.setUploader(".avatar-frm");
+            yobi.Files.getUploader(".avatar-frm");
 
             // 알림 설정 변경
             htElement.welChkNotiSwtich.change(_onChangeNotiSwitch);

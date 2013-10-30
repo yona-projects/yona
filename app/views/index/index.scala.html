@@ -81,9 +81,8 @@
                 welMessage.toggleClass('nowrap');
 
                 nHeight = (welMessage.hasClass('nowrap')) ? '' : $(welMessage).find('.message').height();
-
-                $(welMessage).css('max-height',nHeight);
-               
+                
+                $(welMessage).css('min-height',nHeight);               
             });
            
         });

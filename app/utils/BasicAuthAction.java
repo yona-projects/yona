@@ -15,7 +15,7 @@ import play.mvc.Result;
 
 public class BasicAuthAction extends Action<Object> {
     private boolean isAnonymousSupported = true; // configuration is not available yet.
-    private static final String REALM = "nforge4";
+    private static final String REALM = "Yobi";
 
     public static Result unauthorized(Response response) {
         // challenge   = "Basic" realm

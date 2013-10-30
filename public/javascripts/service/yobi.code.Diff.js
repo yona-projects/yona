@@ -24,7 +24,11 @@
             _attachEvent();
             _render();
             
-            _initFileUploader();
+            // bUseUploader 를 명시적으로 false 로 지정한 경우
+            // code.Diff 에서는 파일업로더 초기화를 실행하지 않음
+            if(htVar.bUseUploader !== false){
+                _initFileUploader();
+            }
             _initFileDownloader();
             _initToggleCommentsButton();
             _initFileViewButton();
@@ -50,12 +54,18 @@
             // 미니맵
             htVar.sQueryMiniMap = htOptions.sQueryMiniMap || "li.comment";
             htVar.sTplMiniMapLink = '<a href="#${id}" style="top:${top}px; height:${height}px;"></a>';
+            
+            // yobi.Attachments
+            htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
 
         /**
          * initialize element
          */
         function _initElement(htOptions){
+            htElement.welUploader = $("#upload");
+            htElement.welTextarea = $("#comment-editor");
+            
             var welHidden = $('<input>').attr('type', 'hidden');
 
             htElement.welDiff = htOptions.welDiff || $('#commit');
@@ -100,7 +110,7 @@
                 $yobi.sendForm({
                     "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
                     "fOnLoad": function(){
-                        welTarget.toggleClass("active");
+                        welTarget.toggleClass("active ybtn-watching");
                     }
                 });
             });
@@ -169,15 +179,16 @@
          * initialize fileUploader
          */
         function _initFileUploader(){
-            var oUploader = yobi.Files.getUploader($("#upload"), $("#comment-editor"));
-            var sUploaderId = oUploader.attr("data-namespace");
-
-            (new yobi.Attachments({
-                "elContainer"  : $("#upload"),
-                "elTextarea"   : $("#comment-editor"),
-                "sTplFileItem" : $('#tplAttachedFile').text(),
-                "sUploaderId"  : sUploaderId
-            }));
+            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
+            
+            if(oUploader){
+                (new yobi.Attachments({
+                    "elContainer"  : htElement.welUploader,
+                    "elTextarea"   : htElement.welTextarea,
+                    "sTplFileItem" : htVar.sTplFileItem,
+                    "sUploaderId"  : oUploader.attr("data-namespace")
+                }));
+            }
         }
 
         /**
@@ -186,7 +197,9 @@
          */
         function _initFileDownloader(){
             $(".attachments").each(function(i, elContainer){
-                (new yobi.Attachments({"elContainer": elContainer}));
+                if(!$(elContainer).data("isYobiAttachment")){
+                    (new yobi.Attachments({"elContainer": elContainer}));
+                }
             });
         }
 
@@ -219,31 +232,6 @@
 
             htDiff.aRemoved = [];
             htDiff.aAdded = [];
-        }
-
-        /**
-         * 현재 줄에 다음의 프로퍼티를 설정한다.
-         *
-         * - path (파일 경로)
-         * - line (줄 번호)
-         * - side (left, right, base 중 하나)
-         *
-         * @param {Object} welTr
-         * @param {String} sPath
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         */
-        function _setPropertiesOnLine(welTr, sPath, nLineA, nLineB, sBlobA, sBlobB) {
-            welTr.data('line', nLineA || nLineB);
-            welTr.data('path', sPath);
-
-            if (nLineA && nLineB) {
-                welTr.data('side', 'base');
-            } else if (nLineA && !nLineB) {
-                welTr.data('side', 'left');
-            } else if (!nLineA && nLineB) {
-                welTr.data('side', 'right');
-            }
         }
 
         function _attachCommentBoxToggleEvent() {
@@ -471,14 +459,14 @@
          * @param {String} sRawURLTo
          */
         function _updateMergely(sRawURLFrom, sRawURLTo){
-            // rhs = from
+            // lhs = from
             $.get(sRawURLFrom).done(function(sData){
                 htElement.welMergely.mergely("lhs", sData);
                 htElement.welMergely.mergely("resize");
                 htElement.welMergely.mergely("update");
             });
             
-            // lhs = to
+            // rhs = to
             $.get(sRawURLTo).done(function(sData){
                 htElement.welMergely.mergely("rhs", sData);
                 htElement.welMergely.mergely("resize");

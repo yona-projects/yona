@@ -5,12 +5,14 @@ import models.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 
 import play.test.Helpers;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 import models.enumeration.Operation;
+import models.enumeration.State;
 
 public class AccessControlTest extends ModelTest<Role>{
     @Before
@@ -73,5 +75,31 @@ public class AccessControlTest extends ModelTest<Role>{
         assertThat(canRead).isEqualTo(true);
         assertThat(canUpdate).isEqualTo(false);
         assertThat(canDelete).isEqualTo(false);
+    }
+
+    // AccessControl.isAllowed throws IllegalStateException if the resource
+    // belongs to a project but the project is missing.
+    @Test
+    public void isAllowed_lostProject() {
+        // Given
+        User author = User.findByLoginId("nori");
+        Project projectYobi = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        Issue issue = new Issue();
+        issue.setProject(projectYobi);
+        issue.setTitle("hello");
+        issue.setBody("world");
+        issue.setAuthor(author);
+        issue.state = State.OPEN;
+        issue.save();
+
+        // When
+        issue.project = null;
+
+        // Then
+        try {
+            AccessControl.isAllowed(author, issue.asResource(), Operation.READ);
+            Assert.fail();
+        } catch (IllegalStateException e) {
+        }
     }
 }

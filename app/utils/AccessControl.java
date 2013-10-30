@@ -4,6 +4,7 @@ import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 
+import models.resource.GlobalResource;
 import models.resource.Resource;
 
 public class AccessControl {
@@ -84,7 +85,8 @@ public class AccessControl {
      * @param operation
      * @return
      */
-    private static boolean isGlobalResourceAllowed(User user, Resource resource, Operation operation) {
+    private static boolean isGlobalResourceAllowed(User user, GlobalResource resource,
+                                                   Operation operation) {
         // Temporary attachments are allowed only for the user who uploads them.
         if (resource.getType() == ResourceType.ATTACHMENT
                 && resource.getContainer().getType() == ResourceType.USER) {
@@ -195,16 +197,21 @@ public class AccessControl {
      * @return {@code user}가 {@code resource}에 {@code operation}을
      *         하는 것이 허용되는지의 여부
      */
-    public static boolean isAllowed(User user, Resource resource, Operation operation) {
+    public static boolean isAllowed(User user, Resource resource, Operation operation)
+            throws IllegalStateException {
         if (user.isSiteManager()) {
             return true;
         }
 
-        Project project = resource.getProject();
-
-        if (project == null) {
-            return isGlobalResourceAllowed(user, resource, operation);
+        if (resource instanceof GlobalResource) {
+            return isGlobalResourceAllowed(user, (GlobalResource) resource, operation);
         } else {
+            Project project = resource.getProject();
+
+            if (project == null) {
+                throw new IllegalStateException("A project resource lost its project");
+            }
+
             return isProjectResourceAllowed(user, project, resource, operation);
         }
     }

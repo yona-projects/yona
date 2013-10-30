@@ -25,107 +25,119 @@
     }
 }
 
-            @helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
-            @helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
+@helper.inputText(form("title"), 'class->"text title", 'maxlength -> "250", 'tabindex -> 1)
+@helper.textarea(form("body"), 'markdown -> true, 'class->"text content", 'tabindex -> 2)
 
-            @common.fileUploader(ResourceType.PULL_REQUEST, null)
+@common.fileUploader(ResourceType.PULL_REQUEST, null)
+@common.markdown(project)
 
-			@common.markdown(project)
-			
-			<div class="actions">
-                <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
-                <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
+<div class="actions">
+    <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
+    <a href="javascript:history.back();" class="ybtn">@Messages("button.cancel")</a>
+</div>
+
+<div id="spin" style="position: absolute; top:50%; left:50%"></div>
+
+<div id="diff">
+@if(result != null) {
+    @if(result.getGitCommits().isEmpty()) {
+        <h4>@Messages("pullRequest.diff.noChanges")</h4>
+    } else {
+        <div style="margin-top:20px;">
+            @if(result.getGitConflicts() == null){
+            <div class="alert alert-success">
+                <h5>@Messages("pullRequest.is.safe")</h5>
             </div>
-			
-			<div id="spin" style="position: absolute; top:50%; left:50%"></div>
-			
-            <div id="diff">
-            @if(result != null) {
-			@if(result.getGitCommits().isEmpty()) {
-			<h4>@Messages("pullRequest.diff.noChanges")</h4>
-			} else {
-			<div style="margin-top:20px;">
-				@if(result.getGitConflicts() == null){
-				<div class="alert alert-success">
-					<h5>@Messages("pullRequest.is.safe")</h5>
-				</div>
-				} else {
-				<div class="alert alert-error">
-					<h5>@Messages("pullRequest.is.not.safe")</h5>
-				</div>
-				}
-			</div>
+            } else {
+            <div class="alert alert-error">
+                <h5>@Messages("pullRequest.is.not.safe")</h5>
+            </div>
+            }
+        </div>
 
-		<ul class="nav nav-tabs nm">
+        <ul class="nav nav-tabs nm">
             <li class="active"><a href="#__commits" data-toggle="tab">@Messages("pullRequest.menu.commit")</a></li>
             <li><a href="#__changes" data-toggle="tab">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
-        <div class="tab-content">	
-			<div id="__commits" class="code-browse-wrap tab-pane active">
-				<div id="history" class="commit-wrap mt20">
-				    <table class="code-table commits">
-				        <thead class="thead">
-				        <tr>
-				            <td class="commit-id"><strong>@{"@"}</strong></td>
-				            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
-				            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
-				            <td class="author"><strong>@Messages("code.author")</strong></td>
-				        </tr>
-				        </thead>
-				        <tbody class="tbody">
-				        @for(commit <- result.getGitCommits()) {
-				        <tr>
-				            <td class="commit-id">
-				                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
-				                    @commit.getShortId()
-				                    <i class="yobicon-right"></i>
-				                </a>
-				            </td>
-				
-				            <td class="messages">
-				                @defining(CommitComment.count(pullRequest.fromProject, commit.getId, null)){ numOfComment =>
-				                    @if(numOfComment > 0) {
-				                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
-				                    }
-				                }
-			
-								@defining(commit.getMessage()){ commitMsg =>
-								<a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
-								    @commitMsg.split("\n")(0)
-								</a>
-								@if(commitMsg.split("\n").length > 1){
-								<button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
-								<pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-								}
-								}
-							</td>
-			                <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
-			                <td class="author @commit.getAuthorEmail">
-			                    @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
-			                    @if(user != null) {
-			                    <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
-			                        <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
-			                    </a>
-			                    } else {
-			                    <div class="avatar-wrap">
-			                        <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
-			                    </div>
-			                    }
-			                    }
-			                </td>
-			            </tr>
-			            }
-			            </tbody>
-			        </table>
-			    </div>
-			</div>
-			   
-			<div id="__changes" class="tab-pane">
-				<pre>@pullRequest.getPatch()</pre>
-			</div>
-			</div>
-			}
-			}
-			</div>
-
-			
+        <div class="tab-content">
+            <div id="__commits" class="code-browse-wrap tab-pane active">
+                <div id="history" class="commit-wrap mt20">
+                    <table class="code-table commits">
+                        <thead class="thead">
+                        <tr>
+                            <td class="commit-id"><strong>@{"@"}</strong></td>
+                            <td class="messages"><strong>@Messages("code.commitMsg")</strong></td>
+                            <td class="date"><strong>@Messages("code.commitDate")</strong></td>
+                            <td class="author"><strong>@Messages("code.author")</strong></td>
+                        </tr>
+                        </thead>
+                        <tbody class="tbody">
+                        @for(commit <- result.getGitCommits()) {
+                        <tr>
+                            <td class="commit-id">
+                                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
+                                    @commit.getShortId()
+                                    <i class="yobicon-right"></i>
+                                </a>
+                            </td>
+                            <td class="messages">
+                                @defining(CommitComment.count(pullRequest.fromProject, commit.getId, null)){ numOfComment =>
+                                    @if(numOfComment > 0) {
+                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
+                                    }
+                                }
+                                @defining(commit.getMessage()){ commitMsg =>
+                                <a href="@routes.CodeHistoryApp.show(pullRequest.fromProject.owner, pullRequest.fromProject.name, commit.getId())">
+                                    @commitMsg.split("\n")(0)
+                                </a>
+                                @if(commitMsg.split("\n").length > 1){
+                                <button type="button" class="more"><i class="yobicon-ellipsis-horizontal"></i></button>
+                                <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+                                }
+                                }
+                            </td>
+                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                            <td class="author @commit.getAuthorEmail">
+                                @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
+                                @if(user != null) {
+                                <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
+                                    <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
+                                </a>
+                                } else {
+                                <div class="avatar-wrap">
+                                    <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
+                                </div>
+                                }
+                                }
+                            </td>
+                        </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="__changes" class="tab-pane">
+                <div class="diff-body">
+                @if(result.getGitConflicts() == null) {
+                @views.html.partial_diff(pullRequest.getDiff)
+                }
+                </div>
+            </div>
+        </div>
+    }
+}
+</div>
+<input type="hidden" id="commitChanged" value="@if(result != null){ @result.commitChanged } else {false}" />
+<script type="text/javascript">
+$(document).ready(function() {
+    $yobi.loadModule("code.Diff", {
+        "welDiff"     : $("#pull-request-changes"),
+        "bCommentable": false,
+        "bUseUploader": false,
+        "sTplFileURLA": "@routes.CodeApp.codeBrowserWithBranch(pullRequest.toProject.owner, pullRequest.toProject.name, "${commitId}", "${path}")",
+        "sTplFileURLB": "@routes.CodeApp.codeBrowserWithBranch(pullRequest.fromProject.owner, pullRequest.fromProject.name, "${commitId}", "${path}")",
+        "sTplRawURLA" : "@routes.CodeApp.showRawFile(pullRequest.toProject.owner, pullRequest.toProject.name, "${commitId}", "${path}")",
+        "sTplRawURLB" : "@routes.CodeApp.showRawFile(pullRequest.fromProject.owner, pullRequest.fromProject.name, "${commitId}", "${path}")"
+    });
+});
+</script>

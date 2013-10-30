@@ -10,22 +10,14 @@
     <div class="form-wrap milestone frm-wrap">
         <form class="nm" action="@routes.MilestoneApp.newMilestone(project.owner, project.name)" method="post">
             <div class="inner left">
-            	<dl>
-            		<dt>
-            			<label for="title">@Messages("milestone.form.title")</label>
-            		</dt>
-            		<dd>
-						<input type="text" name="title" id="title" class="text" placeholder="">
-					</dd>
-
-					<dt>
-		                <label for="contents">@Messages("milestone.form.content")</label>
-		            </dt>
-		            <dd>
-                        <textarea id="contents" name="contents" class="textarea" markdown="true"></textarea>
-					</dd>
-            	</dl>
-
+                <div class="title-wrap">
+                    <label for="title">@Messages("milestone.form.title")</label>
+                    <input type="text" name="title" id="title" placeholder="">
+                </div>
+                <div class="content-wrap">
+                    <label for="contents">@Messages("milestone.form.content")</label>
+                    <textarea id="contents" name="contents" markdown="true"></textarea>
+                </div>
                 <div class="actions">
                     <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
@@ -73,14 +65,14 @@ $(function(){
             contentType: 'application/json',
             url: "@routes.ProjectApp.mentionList(project.owner, project.name)",
             dataType: "json"
-        }).done(function( data ) {
+        }).done(function(data){ 
             memebrList.users = data;
             $("#contents").mention(memebrList);
         });
     }
 
     $("#contents" ).keypress(function(event){
-        if( event.which == 64 ){ // 64 = at
+        if(event.which == 64){ // 64 = at
             _findUserList();
         }
     });
