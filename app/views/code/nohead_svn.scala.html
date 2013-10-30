@@ -21,20 +21,6 @@
 
 @(project: Project)
 
-@getCodeURL(project: Project) = @{
-    if(session == null){
-        CodeApp.getURL(project.owner, project.name)
-    } else {
-        defining(ProjectUser.roleOf(session.get("loginId"), project)) { role =>
-            if(role == "manager" || role == "member"){
-                CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
-            } else {
-                CodeApp.getURL(project.owner, project.name)
-            }
-        }
-    }
-}
-
 @import utils.AccessControl._
 
 @projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
