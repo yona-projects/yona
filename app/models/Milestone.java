@@ -65,11 +65,11 @@ public class Milestone extends Model implements ResourceConvertible {
     }
 
     public int getNumClosedIssues() {
-    	return Issue.finder.where().eq("milestone", this).eq("state", State.CLOSED).findRowCount();
+        return Issue.finder.where().eq("milestone", this).eq("state", State.CLOSED).findRowCount();
     }
 
     public int getNumOpenIssues() {
-    	return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
+        return Issue.finder.where().eq("milestone", this).eq("state", State.OPEN).findRowCount();
     }
 
     public List<Issue> sortedByNumberOfIssue(){
@@ -182,11 +182,11 @@ public class Milestone extends Model implements ResourceConvertible {
     public static List<Milestone> findMilestones(Long projectId,
                                                  State state, String sort, final Direction direction) {
 
-    	OrderParams orderParams = new OrderParams();
+        OrderParams orderParams = new OrderParams();
 
-    	if(!"completionRate".equals(sort)) {
-		orderParams.add(sort, direction);
-    	}
+        if(!"completionRate".equals(sort)) {
+        orderParams.add(sort, direction);
+        }
 
         SearchParams searchParams = new SearchParams().add("project.id", projectId, Matching.EQUALS);
         if(state != null && state != State.ALL) {
@@ -196,19 +196,19 @@ public class Milestone extends Model implements ResourceConvertible {
         List<Milestone> milestones = FinderTemplate.findBy(orderParams, searchParams, find);
 
         if("completionRate".equals(sort)) {
-        	Collections.sort(milestones, new Comparator<Milestone>() {
-				@Override
-				public int compare(Milestone o1, Milestone o2) {
-					int o1CompletionRate = o1.getCompletionRate();
-					int o2CompletionRate = o2.getCompletionRate();
+            Collections.sort(milestones, new Comparator<Milestone>() {
+                @Override
+                public int compare(Milestone o1, Milestone o2) {
+                    int o1CompletionRate = o1.getCompletionRate();
+                    int o2CompletionRate = o2.getCompletionRate();
 
-					if(direction == Direction.ASC) {
-				        return (o1CompletionRate < o2CompletionRate ? -1 : (o1CompletionRate == o2CompletionRate ? 0 : 1));
-					} else {
-						return (o1CompletionRate < o2CompletionRate ? 1 : (o1CompletionRate == o2CompletionRate ? 0 : -1));
-					}
-				}
-			});
+                    if(direction == Direction.ASC) {
+                        return (o1CompletionRate < o2CompletionRate ? -1 : (o1CompletionRate == o2CompletionRate ? 0 : 1));
+                    } else {
+                        return (o1CompletionRate < o2CompletionRate ? 1 : (o1CompletionRate == o2CompletionRate ? 0 : -1));
+                    }
+                }
+            });
         }
 
         return milestones;
