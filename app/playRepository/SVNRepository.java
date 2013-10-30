@@ -81,7 +81,7 @@ public class SVNRepository implements PlayRepository {
             result.put("type", "folder");
 
             Iterator<SVNDirEntry> iterator = entries.iterator( );
-            
+
             while(iterator.hasNext()){
                 SVNDirEntry entry = iterator.next( );
 
@@ -101,7 +101,7 @@ public class SVNRepository implements PlayRepository {
                 data.put("commiter", author);
                 data.put("commitDate", commitTime);
                 data.put("commitId", entry.getRevision());
-                data.put("size", entry.getSize());                
+                data.put("size", entry.getSize());
 
                 listData.put(entry.getName(), data);
             }
@@ -143,7 +143,7 @@ public class SVNRepository implements PlayRepository {
             result.put("type", "folder");
 
             Iterator<SVNDirEntry> iterator = entries.iterator();
-            
+
             while(iterator.hasNext()){
                 SVNDirEntry entry = iterator.next();
 
@@ -185,7 +185,7 @@ public class SVNRepository implements PlayRepository {
         boolean isBinary;
         String mimeType;
         String data = null;
-        
+
         if (size > MAX_FILE_SIZE_CAN_BE_VIEWED) {
             isBinary = true;
             mimeType = "application/octet-stream";
@@ -197,14 +197,14 @@ public class SVNRepository implements PlayRepository {
             }
             mimeType = new Tika().detect(bytes, path);
         }
-        
+
         String author = prop.getStringValue(SVNProperty.LAST_AUTHOR);
         User user = User.findByLoginId(author);
-        
+
         String commitDate = prop.getStringValue(SVNProperty.COMMITTED_DATE);
         DateTimeFormatter dateFormatter = ISODateTimeFormat.dateTime();
         Long commitTime = dateFormatter.parseMillis(commitDate);
-        
+
         ObjectNode result = Json.newObject();
         result.put("type", "file");
         result.put("revisionNo", prop.getStringValue(SVNProperty.COMMITTED_REVISION));
@@ -219,7 +219,7 @@ public class SVNRepository implements PlayRepository {
         result.put("isBinary", isBinary);
         result.put("mimeType", mimeType);
         result.put("data", data);
-        
+
         return result;
     }
 
@@ -272,7 +272,7 @@ public class SVNRepository implements PlayRepository {
         if(path != null){
             paths[0] = "/" + path;
         }
-        
+
         // Determine revisions
         long startRevision = repository.getLatestRevision() - page * limit;
         long endRevision = startRevision - limit;
@@ -387,6 +387,23 @@ public class SVNRepository implements PlayRepository {
             return getCommit(rev.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean isEmpty() {
+        SVNURL svnURL = null;
+        org.tmatesoft.svn.core.io.SVNRepository repository = null;
+        try {
+            svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
+            repository = SVNRepositoryFactory.create(svnURL);
+            return repository.getLatestRevision() == 0;
+        } catch (SVNException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(repository != null) {
+                repository.closeSession();
+            }
         }
     }
 }

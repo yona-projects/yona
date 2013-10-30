@@ -308,7 +308,7 @@ public class GitRepository implements PlayRepository {
         PersonIdent commitAuthor = commit.getAuthorIdent();
         String emailAddress = commitAuthor.getEmailAddress();
         User user = User.findByEmail(emailAddress);
-        
+
         result.put("type", "file");
         result.put("msg", commit.getShortMessage());
         result.put("author", commitAuthor.getName());
@@ -922,7 +922,7 @@ public class GitRepository implements PlayRepository {
         });
 
         return commits;
-    }   
+    }
 
     @SuppressWarnings("unchecked")
     public static List<RevCommit> diffRevCommits(Repository repository, String fromBranch, String toBranch) throws IOException {
@@ -947,7 +947,7 @@ public class GitRepository implements PlayRepository {
         List<GitCommit> commits = new ArrayList<>();
         List<RevCommit> revCommits = diffRevCommits(repository, fromBranch, toBranch);
         for (RevCommit revCommit : revCommits) {
-            commits.add(new GitCommit(revCommit));            
+            commits.add(new GitCommit(revCommit));
         }
         return commits;
     }
@@ -1003,7 +1003,7 @@ public class GitRepository implements PlayRepository {
                                 for (int i = edit.getBeginA(); i < edit.getEndA(); i++) {
                                     PersonIdent personIdent = blameResult.getSourceAuthor(i);
                                     if (personIdent != null) {
-                                        authors.add(User.findByEmail(personIdent.getEmailAddress()));                                    
+                                        authors.add(User.findByEmail(personIdent.getEmailAddress()));
                                     }
                                 }
                             }
@@ -1295,11 +1295,11 @@ public class GitRepository implements PlayRepository {
         RevWalk walk = null;
         try {
             if(pullRequest.isClosed()) {
-                repo = buildGitRepository(pullRequest.toProject);            
+                repo = buildGitRepository(pullRequest.toProject);
             } else {
                 repo = buildGitRepository(pullRequest.fromProject);
             }
-            
+
             ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
             if(untilId == null) {
                 return commits;
@@ -1360,7 +1360,7 @@ public class GitRepository implements PlayRepository {
         RevWalk walk = null;
         try {
             repo = buildGitRepository(pullRequest.toProject);
-            
+
             ObjectId untilId = repo.resolve(pullRequest.mergedCommitIdTo);
             if(untilId == null) {
                 return "";
@@ -1711,6 +1711,11 @@ public class GitRepository implements PlayRepository {
         }
 
         return null;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return this.getBranches().isEmpty();
     }
 
 }

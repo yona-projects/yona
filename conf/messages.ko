@@ -79,6 +79,7 @@ code.newer = 이전
 code.noChanges = 변경 없음
 code.nohead = <div class="alert alert-block"><h4>저장소가 비어있습니다!</h4></div>
 code.nohead.clone = {0}에 생성된 Git 저장소를 clone 받아서 로컬에 Git 저장소를 만들고 README.md 파일을 {0}에 올릴 수 있습니다.
+code.nohead.svn.clone = {0}에 생성된 SVN 저장소에 코드를 커밋하실 수 있습니다.
 code.nohead.init = 또는, 로컬에서 Git 저장소를 만들고 remote로 {0}에 생성된 Git 저장소를 직접 추가하고 README.md 파일을 {0}에 올릴 수 있습니다.
 code.nohead.pull.push = 지속적으로 코드를 갱신하여 올릴 때는 pull과 push를 사용할 수 있습니다. pull은 remote에서 코드를 가져오고, push는 remote로 코드를 보냅니다.
 code.nohead.remote = 로컬에 이미 만들어둔 Git 저장소가 있다면 {0}에 생성된 Git 저장소만 remote로 추가하고 코드를 올릴 수 있습니다.

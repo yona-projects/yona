@@ -1,0 +1,40 @@
+@(project: Project)
+
+@getCodeURL(project: Project) = @{
+    if(session == null){
+        CodeApp.getURL(project.owner, project.name)
+    } else {
+        defining(ProjectUser.roleOf(session.get("loginId"), project)) { role =>
+            if(role == "manager" || role == "member"){
+                CodeApp.getURL(project.owner, project.name).replace("://", "://" + session.get("loginId") + "@")
+            } else {
+                CodeApp.getURL(project.owner, project.name)
+            }
+        }
+    }
+}
+
+@import utils.AccessControl._
+
+@projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
+<div class="page">
+	@projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+
+	<div class="row-fluid">
+		<div class="span12">
+			@Html(Messages("code.nohead"))
+            @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+                <h5>@Messages("code.nohead.svn.clone", Messages("app.name"))</h5>
+            }
+		</div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("code.Nohead", {
+            "sProjectName": "@project.name"
+        });
+    });
+</script>
+}

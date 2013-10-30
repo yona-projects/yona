@@ -20,7 +20,7 @@
 # - user
 # - userinfo
 # - validation
-# 
+#
 app.description = 共に、簡単に、作りましょう！
 app.name = Yobi
 app.restart.notice = サーバの再始動が必要です
@@ -79,6 +79,7 @@ code.newer = 以前
 code.noChanges = 変更なし
 code.nohead =<div class="alert alert-block"><h4>リポジトリーが空いています!</h4>ローカルにGitリポジトリーを作って{0}にコードを送る方法は：</div>
 code.nohead.clone = {0}に作られたGit リポジトリーをcloneしてローカルにGit リポジトリーを作り、README.md ファイルを{0}にコミットする事が出来ます。
+code.nohead.svn.clone = You can commit your code to this repository.
 code.nohead.init = それとも, ローカルでGit リポジトリーを作りremoteで{0}に作ったGit リポジトリーを直接追加してREADME.mdファイルを{0}にコミットする事が出来ます。
 code.nohead.pull.push = 継続的にコードを更新するときはpullとpushを使えます。pullはremoteからコードを持ってくるし、pushはremoteにコードを送ります。
 code.nohead.remote = ローカルにすでに作っていたGit リポジトリーがあれば{0}に作ったGit リポジトリーを remoteに追加しコードをコミットする事ができます。
@@ -461,7 +462,7 @@ pullRequest.help.message.1 = 原本プロジェクトにコードを寄与する
 pullRequest.help.message.2 = 送ろうとするコードが入っているブランチとそれを受けてくれる原本プロジェクトのブランチを指定しどんなコードか説明してください
 pullRequest.help.message.3 = 原本プロジェクトのメンバーがプルリクエストを確認し、受諾するか保留するかを決めます
 pullRequest.is.empty = プルリクエストがありません
-pullRequest.is.merging = Checking whether code is safety. Please wait for a while to complete. 
+pullRequest.is.merging = Checking whether code is safety. Please wait for a while to complete.
 pullRequest.is.not.safe = コードは自動的にマージすると衝突が発生します。自動でマージできません。
 pullRequest.is.safe = コードを安全に自動マージが出来ます。
 pullRequest.listEmpty = まだ送られたプルリクエストがありません
@@ -503,7 +504,7 @@ site.features.codeManagement = All your codes are stored in a version controlled
 site.features.codeReview = You can review all changes on code with your team before merging. Discussion makes your code better.
 site.features.issueTracker = Yobi provides an issue tracker to make you deal with your issues more easily and clearly.
 site.features.privateRepositories = Everyone has secrets. You can keep your secret codes at your private repositories.
-site.features.unlimitedProjects = You can create repositories as many as you want. Just create it. 
+site.features.unlimitedProjects = You can create repositories as many as you want. Just create it.
 site.features.workTeam = You can make a team for your project with simple and easy team management tools of Yobi.
 site.mail.authMethod = 認証方法
 site.mail.body = 本文
