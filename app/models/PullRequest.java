@@ -11,31 +11,15 @@ import models.enumeration.State;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 
-import org.joda.time.DateTimeConstants;
-import org.eclipse.jgit.diff.*;
-import org.eclipse.jgit.lib.ConfigConstants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.util.io.NullOutputStream;
 import org.joda.time.Duration;
 
-import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Expr;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
-import com.avaje.ebean.SqlQuery;
-import com.avaje.ebean.SqlRow;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -48,29 +32,14 @@ import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
 import utils.AccessControl;
 import utils.Constants;
-import utils.GravatarUtil;
 import utils.JodaDateUtil;
 import utils.WatchService;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 
+import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.File;
 
 @Entity
@@ -610,7 +579,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @return
      */
     @Transient
-    public List<CommitComment> getCodeComments() {
+    public List<CommitComment> getCommitComments() {
         return CommitComment.findByCommits(fromProject, pullRequestCommits);
     }
     
@@ -625,15 +594,17 @@ public class PullRequest extends Model implements ResourceConvertible {
     
     /**
      * pull request의 모든 코멘트 정보를 가져오고 시간순으로 정렬 후 반환한다. (코멘트 + 코드코멘트 + 이벤트 )
+     * 
      * @return
      */
     @Transient
     public List<TimelineItem> getTimelineComments() {
-        List<CommitComment> codeComments = getCodeComments();
-        
+        List<CommitComment> commitComment 
+                        = computeCommitCommentReplies(getCommitComments());
+
         List<TimelineItem> timelineComments = new ArrayList<>();
         timelineComments.addAll(comments);
-        timelineComments.addAll(codeComments);
+        timelineComments.addAll(commitComment);
         timelineComments.addAll(pullRequestEvents);
 
         Collections.sort(timelineComments, new Comparator<TimelineItem>() {
@@ -641,12 +612,97 @@ public class PullRequest extends Model implements ResourceConvertible {
             public int compare(TimelineItem o1, TimelineItem o2) {
                 return o1.getDate().compareTo(o2.getDate());
             }
-            
+
         });
-        
+
         return timelineComments;
     }
 
+    /**
+     * 전체 코멘트중 부모글과 답글 정보를 재할당한다.
+     * @param commitComments
+     * @return
+     */
+    private List<CommitComment> computeCommitCommentReplies(
+            List<CommitComment> commitComments) {
+        return reAssignReplyComments(sameTopicCommentGroups(commitComments));
+    }
+
+    /**
+     * 답글목록을 부모글의 필드로 재할당한다.
+     * 
+     * commentGroup은 등록일순으로 오름차순 정렬되어 있는 상태이며
+     * 목록의 첫번째 코멘트를 부모글로 판단한다.
+     * 
+     * @param commentGroup
+     * @return
+     */
+    private List<CommitComment> reAssignReplyComments(
+            Map<String, List<CommitComment>> commentGroup) {
+        List<CommitComment> parentCommitComments = new ArrayList<>();
+
+        for (List<CommitComment> commitComments : commentGroup.values()) {
+            CommitComment parentComment = commitComments.get(0);
+            if (hasReply(commitComments)) {
+                parentComment.replies = replies(commitComments);
+            }
+            parentCommitComments.add(parentComment);
+        }
+        return parentCommitComments;
+    }
+
+    /**
+     * 답글 목록을 반환한다.
+     * @param commitComments
+     * @return
+     */
+    private List<CommitComment> replies(List<CommitComment> commitComments) {
+        return commitComments.subList(1, commitComments.size());
+    }
+
+    /**
+     * 답글 유무를 체크한다.
+     * @param commitComments
+     * @return
+     */
+    private boolean hasReply(List<CommitComment> commitComments) {
+        return commitComments.size() > 1;
+    }
+
+    /**
+     * groupKey를 통해 같은 코멘트그룹 목록을 반환한다.
+     * (같은 커밋, 같은 파일, 같은 라인의 덧글들)
+     * @param commitComments
+     * @return
+     */
+    private Map<String, List<CommitComment>> sameTopicCommentGroups(
+            List<CommitComment> commitComments) {
+        Map<String, List<CommitComment>> commentGroup = new HashMap<>();
+        for (CommitComment commitComment : commitComments) {
+            commentGroup.put(
+                    commitComment.groupKey(),
+                    commitCommentsGroupByKey(commitComment.groupKey(),
+                            commitComments));
+        }
+        return commentGroup;
+    }
+
+    /**
+     * groupKey를 통해 같은 코멘트그룹을 반환한다.
+     * @param groupKey
+     * @param codeComments
+     * @return
+     */
+    private List<CommitComment> commitCommentsGroupByKey(String groupKey,
+            List<CommitComment> codeComments) {
+        List<CommitComment> commitCommentGroups = new ArrayList<CommitComment>();
+        for (CommitComment commitComment : codeComments) {
+            if (commitComment.groupKey().equals(groupKey)) {
+                commitCommentGroups.add(commitComment);
+            }
+        }
+        return commitCommentGroups;
+    }
 
     /**
      * 보낸 코드를 병합해보고 결과 정보를 반환한다.

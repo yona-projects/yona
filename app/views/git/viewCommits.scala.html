@@ -1,44 +1,25 @@
-@(project: Project, pull: PullRequest, commits: List[playRepository.GitCommit])
+@(project: Project, pull: PullRequest)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
-@import java.net.URLEncoder
+@import utils.AccessControl._
+@import models.enumeration
+@import scala.collection.JavaConversions._
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
     <div class="page">
         @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
-        <p>
-            @Messages("pullRequest.from")
-            <span class="label label-info">
-                <a href="@routes.UserApp.userInfo(pull.fromProject.owner)">@pull.fromProject.owner</a> /
-                <a href="@routes.ProjectApp.project(pull.fromProject.owner, pull.fromProject.name)">@pull.fromProject.name</a>
-            </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, pull.fromBranch, "")" class="label label-success">@pull.fromBranch</a>
+        @partial_info(project, pull)
 
-            @Messages("pullRequest.to")
-            <span class="label label-info">
-                <a href="@routes.UserApp.userInfo(pull.toProject.owner)">@pull.toProject.owner</a> /
-                <a href="@routes.ProjectApp.project(pull.toProject.owner, pull.toProject.name)">@pull.toProject.name</a>
-            </span>
-            <a href="@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, pull.toBranch, "")" class="label label-success">@pull.toBranch</a>
-        </p>
-
-        <ul class="nav nav-tabs yobi-tabs">
-            <li>
-                <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.id)">
-                    @Messages("pullRequest.menu.overview")
-                </a>
-            </li>
-            <li class="active">
-                <a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.id)">
-                    @Messages("pullRequest.menu.commit")
-                </a>
-            </li>
+        <ul class="nav nav-tabs nm">
+            <li><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
+            <li class="active"><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>
+            <li><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
         </ul>
 
-        <div class="code-browse-wrap">
-            <div id="history" class="commit-wrap">
+        <div id="__commits" class="code-browse-wrap">
+            <div id="history" class="commit-wrap mt20">
                 <table class="code-table commits">
                     <thead class="thead">
                     <tr>
@@ -49,18 +30,37 @@
                     </tr>
                     </thead>
                     <tbody class="tbody">
-                    @for(commit <- commits.iterator()) {
+                    @for(commit <- pull.getCurrentCommits) {
                     <tr>
                         <td class="commit-id">
-                            <a href="@routes.CodeHistoryApp.show(pull.fromProject.owner, pull.fromProject.name, commit.getId())?branch=@URLEncoder.encode(pull.fromBranch, "UTF-8")">
-                                @commit.getShortId()
+                            <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
+                                @commit.getCommitShortId()
                                 <i class="yobicon-right"></i>
                             </a>
                         </td>
-                        <td class="messages">@commit.getMessage()</td>
+
+                        <td class="messages">
+
+                            @defining(CommitComment.count(pull.fromProject, commit.getCommitId, null)){ numOfComment =>
+                                @if(numOfComment > 0) {
+                                <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
+                                }
+                            }
+
+                            @defining(commit.getCommitMessage()){ commitMsg =>
+                                <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.getCommitId())">
+                                    @commitMsg.split("\n")(0)
+                                </a>
+
+                                @if(commitMsg.split("\n").length > 1){
+                                <button type="button" class="more">&hellip;</button>
+                                <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+                                }
+                            }
+                        </td>
                         <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
                         <td class="author @commit.getAuthorEmail">
-                        @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
+                            @defining(User.find.where.eq("email", commit.getAuthorEmail).findUnique) { user =>
                             @if(user != null) {
                             <a href="@routes.UserApp.userInfo(user.loginId)" class="avatar-wrap">
                                 <img src="@user.avatarUrl" alt="@user.name" width="32" height="32"/>
@@ -70,7 +70,7 @@
                                 <img src="@urlToPicture(commit.getAuthorEmail(), 32)" width="32" height="32"/>
                             </div>
                             }
-                        }
+                            }
                         </td>
                     </tr>
                     }
@@ -81,4 +81,5 @@
     </div>
 
 @common.markdown(project)
+
 }

@@ -253,13 +253,13 @@ public class Issue extends AbstractPosting implements LabelOwner {
     // FIXME 이것이 없이 테스트는 잘 작동하나, view에서 댓글이 달린 이슈들을 필터링하는 라디오버튼을 작동시에 이 메쏘드에서
     // 시행하는 동기화 작업 없이는 작동을 하지 않는다.
 
-	public boolean isOpen() {
-	    return this.state == State.OPEN;
-	}
+    public boolean isOpen() {
+        return this.state == State.OPEN;
+    }
 
-	public boolean isClosed() {
-	    return this.state == State.CLOSED;
-	}
+    public boolean isClosed() {
+        return this.state == State.CLOSED;
+    }
 
     @Override
     public Resource asResource() {

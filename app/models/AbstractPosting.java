@@ -161,26 +161,26 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
 
     public Resource asResource(final ResourceType type) {
         return new Resource() {
-	        @Override
-	        public String getId() {
-	            return id.toString();
-	        }
+            @Override
+            public String getId() {
+                return id.toString();
+            }
 
-	        @Override
-	        public Project getProject() {
-	            return project;
-	        }
+            @Override
+            public Project getProject() {
+                return project;
+            }
 
-	        @Override
-	        public ResourceType getType() {
+            @Override
+            public ResourceType getType() {
                 return type;
-	        }
+            }
 
             @Override
             public Long getAuthorId() {
                 return authorId;
             }
-	    };
+        };
     }
 
     /**

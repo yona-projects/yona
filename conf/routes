@@ -146,11 +146,13 @@ GET     /:ownerName/:project/newFork                    controllers.PullRequestA
 POST    /:ownerName/:project/fork                       controllers.PullRequestApp.fork(ownerName:String, project:String)
 POST    /:ownerName/:project/clone                      controllers.PullRequestApp.doClone(ownerName:String, project:String, name:String, isPublic:Boolean)
 GET     /:ownerName/:project/pullRequests               controllers.PullRequestApp.pullRequests(ownerName, project, pageNum: Int ?= 1)
+
 GET     /:ownerName/:project/closedPullRequests         controllers.PullRequestApp.closedPullRequests(ownerName, project, pageNum: Int ?= 1)
 GET     /:ownerName/:project/sentPullRequests           controllers.PullRequestApp.sentPullRequests(ownerName, project, pageNum: Int ?= 1)
 GET     /:ownerName/:project/rejectedPullRequests       controllers.PullRequestApp.rejectedPullRequests(ownerName, project, pageNum: Int ?= 1)
 GET     /:ownerName/:project/pullRequest/:id            controllers.PullRequestApp.pullRequest(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/commits    controllers.PullRequestApp.pullRequestCommits(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/changes    controllers.PullRequestApp.pullRequestChanges(ownerName, project, id: Long)
 GET     /:ownerName/:project/newPullRequestForm         controllers.PullRequestApp.newPullRequestForm(ownerName:String, project:String)
 POST    /:ownerName/:project/pullRequests               controllers.PullRequestApp.newPullRequest(ownerName, project)
 GET     /:ownerName/:project/pullRequest/:id/accept     controllers.PullRequestApp.accept(ownerName, project, id: Long)

@@ -80,7 +80,7 @@ object TemplateHelper {
   }
 
   def getJSPath(): String = {
-	routes.Assets.at("javascripts/").toString
+    routes.Assets.at("javascripts/").toString
   }
 
   def nullOrEquals(a: String, b: String) = (a == null || b == null) ||  a.equals(b)

@@ -2734,7 +2734,6 @@
 
                     .yobicon-paperclip {vertical-align:middle;margin-top: 4px;}
 
-
                 }
                 .comment-body {
                     font-size: 12px;
@@ -2749,6 +2748,7 @@
                         .border-radius(2px);
                     }
                 }
+
             }
             .attach-preview-wrap {
                 margin-top: 10px;
@@ -2762,8 +2762,32 @@
                 .meta-info { background-color:#f8f8f8; }
 
                 .attach { background-color:#f8f8f8; }
-            }        
+            }
+        }
 
+        .reply {
+            padding:0 20px;
+            .media-body {
+                border-top:0px;
+                .border-radius(0 0 0 0);
+                &:before {
+                    content:none;
+                }
+            }
+        }
+
+        .hasReply {
+            padding-bottom:0px;
+            .media-body {
+                .border-radius(3px 3px 0 0);
+            }
+        }
+
+        .last {
+            padding-bottom:10px;
+            .media-body {
+                .border-radius(0 0 3px 3px);
+            }
         }
 
         .event {
@@ -2771,7 +2795,6 @@
             padding:15px 0 15px 75px;
             font-size:14px;
             line-height:14px;
-
             .state { 
                 color:#FFF;
                 padding: 6px 0;
@@ -4577,6 +4600,10 @@ div.markdown-preview {
         width: 40px;
     }
     .filename { float:left; line-height:30px; }
+    
+    .hide {
+        display:none;
+    }
 }
 
 div.diff-body[data-outdated="true"] tr:hover .icon-comment {
