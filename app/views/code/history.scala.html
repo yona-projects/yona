@@ -159,7 +159,7 @@
                                 </a>
                             </td>
                             }
-                            <td class="date">@agoString(ago(commit.getAuthorDate()))</td>
+                            <td class="date">@momentFromNow(commit.getAuthorDate())</td>
                             <td class="author @commit.getAuthorEmail">
                                 @(commit.getAuthor, commit.getAuthorEmail, commit.getAuthorName) match {
                                 case (user: User, _, _) if !user.isAnonymous => {

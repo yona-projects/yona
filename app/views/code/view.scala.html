@@ -92,7 +92,7 @@
     }
 }
 @getFileDate(file:org.codehaus.jackson.JsonNode, field:String) = @{
-    agoString(JodaDateUtil.ago(file.get(field).getLongValue))
+    JodaDateUtil.momentFromNow(file.get(field).getLongValue)
 }
 @getCorrectedPath(filePath:String, fileName:String) = @{
     if((filePath != "") && (filePath.substring(filePath.length() - 1) == "/")){
