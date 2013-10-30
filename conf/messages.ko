@@ -438,6 +438,7 @@ pullRequest.back.to.the.pullrequest = 코드 주고받기로 돌아가기
 pullRequest.body.required = 내용을 입력하세요.
 pullRequest.cancel = 취소
 pullRequest.code.commented = {0} 에 덧글을 작성했습니다.
+pullRequest.code.replied = 답글을 작성했습니다.
 pullRequest.conflict.files = 충돌난 파일
 pullRequest.delete.branch = 브랜치 삭제
 pullRequest.delete.frombranch.message = 브랜치를 삭제할 수 있습니다.

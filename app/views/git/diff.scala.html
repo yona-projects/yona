@@ -31,10 +31,10 @@
 <div class="page">
     <div class="code-browse-wrap">
         <div class="actrow">
-            <a href="@routes.PullRequestApp.pullRequest(pull.toProject.owner, pull.toProject.name, pull.number)?activeTab=commits" class="ybtn">
+            <a href="@routes.PullRequestApp.pullRequestCommits(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">
                 <i class="yobicon-arrow-right"></i> @Messages("pullRequest.back.to.the.pullrequest")
             </a>
-            
+
             <div class="pull-right">
                 <button id="watch-button" type="button" class="ybtn ybtn-info @if(commit.getWatchers(pull.fromProject).contains(UserApp.currentUser())) { active }" data-toggle="button">@Messages("notification.watch")</button>
             </div>
@@ -100,11 +100,11 @@
                     <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                         <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
                     </a>
-                </div>    
+                </div>
                 <div class="media-body">
                     <div class="meta-info">
                         <span class="comment_author pull-left">
-                            <i class="yobicon-comment"></i> 
+                            <i class="yobicon-comment"></i>
                             <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
                                 <strong>@comment.authorLoginId </strong>
                             </a>
@@ -116,9 +116,9 @@
                         </span>
                         }
                     </div>
-                    
+
                     <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
-                    
+
                     <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
                 </div>
             </li>
@@ -126,11 +126,11 @@
         </ul>
         }
         }
-        
+
         @common.commentForm(pull.fromProject, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(pull.fromProject.owner, pull.fromProject.name, commit.getId).toString())
     </div>
     @** // Comment **@
-    
+
     <div id="minimap" class="minimap-outer">
         <div class="minimap-wrap">
             <div class="minimap-curr"></div>

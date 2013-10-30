@@ -1,0 +1,80 @@
+@(project: Project, pull: PullRequest, comments: List[PullRequestComment])
+
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+@import utils.AccessControl._
+@import models.enumeration
+@import scala.collection.JavaConversions._
+
+@projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
+    <div class="page">
+        @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+
+        @partial_info(project, pull)
+
+        <ul class="nav nav-tabs nm">
+            <li><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
+            <li><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>
+            <li class="active"><a href="@routes.PullRequestApp.pullRequestChanges(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.changes")</a></li>
+        </ul>
+
+        <div id="__changes">
+            <div class="diff-body">
+                @if(pull.isMerging) {
+                  <div class="alert alert-warnning">
+                    <h5>@Messages("pullRequest.is.merging")</h5>
+                  </div>
+                } else {
+                  @if(pull.isConflict) {
+                    @partial_conflict_message(project, pull)
+                  } else {
+                    @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated))
+                  }
+                }
+            </div>
+            <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
+                <h4 class="path">
+                    <span></span>
+                    <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
+                </h4>
+                <div class="row-fluid">
+                    <div class="span6 compare-from"></div>
+                    <div class="span6 compare-to"></div>
+                </div>
+                <div id="mergely" class="mergely-wrap"></div>
+            </div>
+        </div>
+        @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+    </div>
+
+@common.markdown(project)
+
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@getCSSLink("mention")">
+<script type="text/javascript" src="@getJSLink("lib/mentionjs/mention")"></script>
+<script type="text/javascript" src="@getJSLink("lib/diff")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        yobi.Mention({
+            target:'comment-editor',
+            @if(pull.getCurrentCommits.isEmpty()) {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, "", pull.id).toString)"
+            } else {
+                url : "@Html(routes.ProjectApp.mentionListAtPullRequest(pull.toProject.owner, pull.toProject.name, pull.getCurrentCommits.get(0).getCommitId, pull.id).toString)"
+            }
+        });
+
+        $yobi.loadModule("code.Diff", {
+            "welDiff"      : $("#pull-request-changes"),
+            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)",
+            "sTplFileURLA" : "@routes.CodeApp.codeBrowserWithBranch(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
+            "sTplFileURLB" : "@routes.CodeApp.codeBrowserWithBranch(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")",
+            "sTplRawURLA"  : "@routes.CodeApp.showRawFile(pull.toProject.owner, pull.toProject.name, "${commitId}", "${path}")",
+            "sTplRawURLB"  : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
+        });
+    });
+</script>
+}

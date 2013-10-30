@@ -70,8 +70,8 @@ public class CodeApp extends Controller {
      * @param branch 브랜치 이름
      * @param path 파일 경로
      */
-	public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
-	    throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException, Exception {
+    public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
+        throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException, Exception {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {
@@ -93,14 +93,14 @@ public class CodeApp extends Controller {
         
         return ok(view.render(project, branches, recursiveData, branch, path));
     }
-	
-	/**
-	 * AJAX 호출로 지정한 프로젝트 지정한 경로의 정보를 얻고자 할 때 사용된다
-	 * 
-	 * @param userName 프로젝트 소유자 이름
-	 * @param projectName 프로젝트 이름
-	 * @param path 파일 또는 폴더의 경로
-	 */
+    
+    /**
+     * AJAX 호출로 지정한 프로젝트 지정한 경로의 정보를 얻고자 할 때 사용된다
+     * 
+     * @param userName 프로젝트 소유자 이름
+     * @param projectName 프로젝트 이름
+     * @param path 파일 또는 폴더의 경로
+     */
     public static Result ajaxRequest(String userName, String projectName, String path) throws Exception{
         PlayRepository repository = RepositoryService.getRepository(userName, projectName);
         ObjectNode fileInfo = repository.getMetaDataFromPath(path);
