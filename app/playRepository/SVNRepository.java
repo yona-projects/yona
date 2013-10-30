@@ -16,6 +16,7 @@ import org.codehaus.jackson.node.ObjectNode;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 
 import org.tigris.subversion.javahl.*;
@@ -191,7 +192,7 @@ public class SVNRepository implements PlayRepository {
             mimeType = "application/octet-stream";
         } else {
             byte[] bytes = baos.toByteArray();
-            isBinary = FileUtil.isBinary(bytes);
+            isBinary = RawText.isBinary(bytes);
             if (!isBinary) {
                 data = new String(bytes);
             }

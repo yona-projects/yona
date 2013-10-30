@@ -323,7 +323,7 @@ public class GitRepository implements PlayRepository {
         ObjectLoader file = repository.open(treeWalk.getObjectId(0));
         result.put("size", file.getSize());
 
-        boolean isBinary = FileUtil.isBinary(file.openStream());
+        boolean isBinary = RawText.isBinary(file.openStream());
         result.put("isBinary", isBinary);
         if (!isBinary && file.getSize() < MAX_FILE_SIZE_CAN_BE_VIEWED) {
             String str = new String(file.getBytes(), "UTF-8");
@@ -1535,7 +1535,7 @@ public class GitRepository implements PlayRepository {
                 ObjectId blobA = t1.getObjectId(0);
                 byte[] rawA = repositoryA.open(blobA).getBytes();
                 
-                fileDiff.isBinaryA = FileUtil.isBinary(rawA); 
+                fileDiff.isBinaryA = RawText.isBinary(rawA);
                 fileDiff.a = fileDiff.isBinaryA ? null : new RawText(rawA);
                 fileDiff.pathA = pathA;
             }
@@ -1546,7 +1546,7 @@ public class GitRepository implements PlayRepository {
                 ObjectId blobB = t2.getObjectId(0);
                 byte[] rawB = repositoryB.open(blobB).getBytes();
 
-                fileDiff.isBinaryB = FileUtil.isBinary(rawB);
+                fileDiff.isBinaryB = RawText.isBinary(rawB);
                 fileDiff.b = fileDiff.isBinaryB ? null : new RawText(rawB);
                 fileDiff.pathB = pathB;
             }
