@@ -340,17 +340,7 @@ public class Attachment extends Model implements ResourceConvertible {
 
                 @Override
                 public Resource getContainer() {
-                    return  new GlobalResource() {
-                        @Override
-                        public String getId() {
-                            return containerId;
-                        }
-
-                        @Override
-                        public ResourceType getType() {
-                            return containerType;
-                        }
-                    };
+                    return Resource.get(containerType, containerId);
                 }
             };
         } else {
@@ -372,22 +362,7 @@ public class Attachment extends Model implements ResourceConvertible {
 
                 @Override
                 public Resource getContainer() {
-                    return new Resource() {
-                        @Override
-                        public String getId() {
-                            return containerId;
-                        }
-
-                        @Override
-                        public Project getProject() {
-                            return Project.find.byId(projectId);
-                        }
-
-                        @Override
-                        public ResourceType getType() {
-                            return containerType;
-                        }
-                    };
+                    return Resource.get(containerType, containerId);
                 }
             };
         }
