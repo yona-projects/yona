@@ -44,6 +44,8 @@ yobi.Files = (function(){
         htVar.bXHR2 = (typeof FormData != "undefined"); // XMLHttpRequest 2 required
         htVar.bDroppable = (typeof window.File != "undefined"); // HTML5 FileAPI required
         htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2; // onpaste & XHR2 required
+
+        htVar.nMaxFileSize = 2147483454; // maximum filesize (<= 2,147,483,454 bytes)
     }
 
     /**
@@ -105,6 +107,14 @@ yobi.Files = (function(){
      * @param {String} sNamespace
      */
     function _uploadFileXHR(nSubmitId, oFile, sNamespace){
+        // check maximum filesize (<= 2,147,483,454 bytes) if available
+        if(oFile.size && oFile.size > htVar.nMaxFileSize){
+            return _onErrorSubmit(nSubmitId, {
+                "status"    : 0,
+                "statusText": Messages("error.toolargefile", humanize.filesize(htVar.nMaxFileSize))
+            }, sNamespace);
+        }
+        
         var oData = new FormData();
         oData.append("filePath", oFile, oFile.name);
 
@@ -121,11 +131,19 @@ yobi.Files = (function(){
             "error": function(oRes){
                 _onErrorSubmit(nSubmitId, oRes, sNamespace);
             },
-            "xhrFields": {"onprogress": function(weEvt){
-                if(weEvt.lengthComputable){
-                    _onUploadProgress(nSubmitId, Math.ceil(weEvt.loaded / weEvt.total), sNamespace);
+            "xhr": function(){
+                var oXHR = $.ajaxSettings.xhr();
+
+                if(oXHR.upload){
+                    oXHR.upload.addEventListener("progress", function(weEvt){
+                        if(weEvt.lengthComputable){
+                            _onUploadProgress(nSubmitId, Math.ceil((weEvt.loaded / weEvt.total) * 100), sNamespace);
+                        }
+                    }, false);
                 }
-            }}
+                
+                return oXHR;
+            }
         });
     }
 

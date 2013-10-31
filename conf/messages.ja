@@ -136,6 +136,7 @@ error.required = 必須項目です
 error.unauthorized = ログインが必要です
 error.validation = 入力値検証チェックエラー
 error.wrong.format = 不正な形式の値です。
+error.toolargefile = ファイルが大きすぎます。<br>{0}より小さい物だけにしてください。
 fork = フォーク
 fork.already.exist = おなじ原本プロジェクトをフォークしたプロジェクトがあります
 fork.failed = プロジェクトのコピーが失敗しました
