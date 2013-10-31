@@ -6,7 +6,6 @@ import models.Project;
 import models.PullRequest;
 import models.User;
 import models.enumeration.ResourceType;
-import models.enumeration.State;
 import models.resource.Resource;
 
 import org.apache.commons.collections.IteratorUtils;
@@ -19,10 +18,8 @@ import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.diff.*;
 import org.eclipse.jgit.diff.Edit.Type;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.internal.storage.file.WindowCache;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -58,7 +55,6 @@ import static org.eclipse.jgit.diff.DiffEntry.ChangeType.*;
  */
 public class GitRepository implements PlayRepository {
 
-    private static final long ALLOWED_MAX_FILESIZE = 1024 * 1024;
     /**
      * Git 저장소 베이스 디렉토리
      */
@@ -454,14 +450,6 @@ public class GitRepository implements PlayRepository {
         return result;
     }
 
-    private void setUserName(ObjectNode data, String emailAddress) {
-        User.findByEmail(emailAddress);
-    }
-
-    /* (non-Javadoc)
-     *
-     */
-
     /**
      * {@link Constants#HEAD}에서 {@code path}에 해당하는 파일을 반환한다.
      *
@@ -739,62 +727,6 @@ public class GitRepository implements PlayRepository {
                 .setDirectory(new File(directory))
                 .setCloneAllBranches(true)
                 .setBare(true)
-                .call();
-    }
-
-    /**
-     * {@code pullRequest}를 merge 한다.
-     *
-     * 자동으로 merge해도 안전한지 확인한 다음 admin 계정으로 코드를 받을 저장소로 자동으로 병합한 코드를 push 한다.
-     *
-     * @param pullRequest
-     */
-    public static void merge(final PullRequest pullRequest) {
-        cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
-            @Override
-            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
-                Repository cloneRepository = cloneAndFetch.getRepository();
-                String srcToBranchName = pullRequest.toBranch;
-                String destToBranchName = cloneAndFetch.destToBranchName;
-
-                // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
-                checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
-
-                String mergedCommitIdFrom = null;
-                MergeResult mergeResult = null;
-
-                synchronized(this) {
-                    mergedCommitIdFrom =
-                            cloneRepository.getRef(Constants.HEAD).getObjectId().getName();
-                    // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
-                    mergeResult = merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
-                }
-
-                if (mergeResult.getMergeStatus().isSuccessful()) {
-                    // merge 커밋 메시지 수정
-                    amend(cloneRepository, UserApp.currentUser(), pullRequest);
-
-                    pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
-
-                    // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
-                    // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
-                    push(cloneRepository, getGitDirectoryURL(pullRequest.toProject), destToBranchName, srcToBranchName);
-
-                    // 풀리퀘스트 완료
-                    pullRequest.state = State.CLOSED;
-                }
-            }
-        });
-    }
-
-    private static void amend(Repository cloneRepository, User user, PullRequest pullRequest) throws GitAPIException {
-        Project fromProject = pullRequest.fromProject;
-        new Git(cloneRepository).commit()
-                .setAmend(true).setAuthor(user.name, user.email)
-                .setMessage("Merge pull request #" + pullRequest.number +
-                        " from " + fromProject.owner + "/" + fromProject.name + " " + pullRequest.fromBranch)
-                .setCommitter(user.name, user.email)
                 .call();
     }
 
