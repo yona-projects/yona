@@ -13,18 +13,13 @@
     }
 }
 
-@watching_count(loginId: String) = {
-    @User.findByLoginId(loginId).getWatchingProjects().size()
-}
-@belongsToMe_count() = {
-    @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size())
-}
-
+@watching_count(loginId: String) = { @User.findByLoginId(loginId).getWatchingProjects().size() }
+@belongsToMe_count() = { @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size()) }
 @showBadgeNumberIfExist(number:Int) = { @if(number>0){ <span class="num-badge">@number</span> } }
-
 @emailObfuscation(emailAddress:String) = {
     @Html(emailAddress.reverse.replace("@","@<span class='z'>"+MD5Util.md5Hex(emailAddress)+"</span>").replace(".", "<span class='z'>"+MD5Util.md5Hex(emailAddress).reverse+"</span>."))
 }
+@isActiveTab(tabId:String) = { @if(selected == tabId){ active } }
 
 @siteLayout(user.loginId, utils.MenuType.USER) {
 
@@ -68,28 +63,28 @@
                 @Messages("userinfo.daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo" style="margin:0px 5px; vertical-align:bottom;">@Messages("userinfo.daysAgo.suffix")
             </div>
 
-            <ul id="user-stream-tabs" class="nav nav-tabs">
-                <li @if(selected == "projects"){ class="active"} >
+            <ul class="nav nav-tabs">
+                <li class="@isActiveTab("projects")">
                     <a href="#projects" data-toggle="tab">
                         @Messages("project.projects") @showBadgeNumberIfExist(projects.size)
                     </a>
                 </li>
-                <li>
+                <li class="@isActiveTab("postings")">
                     <a href="#postings" data-toggle="tab">
                         @Messages("menu.board") @showBadgeNumberIfExist(postings.size)
                     </a>
                 </li>
-                <li>
+                <li class="@isActiveTab("pullRequests")">
                     <a href="#pullRequests" data-toggle="tab">
                         @Messages("menu.pullRequest") @showBadgeNumberIfExist(pullRequests.size)
                     </a>
                 </li>
-                <li>
+                <li class="@isActiveTab("issues")">
                     <a href="#issues" data-toggle="tab">
                         @Messages("menu.issue") @showBadgeNumberIfExist(issues.size)
                     </a>
                 </li>
-                <li>
+                <li class="@isActiveTab("milestones")">
                     <a href="#milestones" data-toggle="tab">
                         @Messages("milestone") @showBadgeNumberIfExist(milestones.size)
                     </a>
@@ -97,7 +92,7 @@
             </ul>
 
             <div class="tab-content">
-                <div id="projects" class="tab-pane active">
+                <div id="projects" class="tab-pane @isActiveTab("projects")">
                     @if(projects.size==0){
                         <div class="error-wrap">
                             <p>@Messages("project.is.empty")</p>
@@ -109,7 +104,7 @@
                         }
                     </ul>
                 </div>
-                <div id="postings" class="tab-pane">
+                <div id="postings" class="tab-pane @isActiveTab("postings")">
                     @if(postings.size==0){
                         <div class="error-wrap">
                             <p>@Messages("userinfo.daysAgo.prefix") @Messages("post.is.empty")</p>
@@ -121,7 +116,7 @@
                         }
                     </ul>
                 </div>
-                <div id="issues" class="tab-pane">
+                <div id="issues" class="tab-pane @isActiveTab("issues")">
                     @if(issues.size==0){
                         <div class="error-wrap">
                             <p>@Messages("userinfo.daysAgo.prefix") @Messages("issue.is.empty")</p>
@@ -131,7 +126,7 @@
                         @partial_issues(issue, issue.project)
                     }
                 </div>
-                <div id="pullRequests" class="tab-pane">
+                <div id="pullRequests" class="tab-pane @isActiveTab("pullRequests")">
                     @if(pullRequests.size==0){
                         <div class="error-wrap">
                             <p>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest.is.empty")</p>
@@ -141,7 +136,7 @@
                         @partial_pullRequests(pull, pull.toProject)
                     }
                 </div>
-                <div id="milestones" class="tab-pane">
+                <div id="milestones" class="tab-pane @isActiveTab("milestones")">
                     @if(milestones.size==0){
                         <div class="error-wrap">
                             <p>@Messages("milestone.is.empty")</p>
@@ -158,67 +153,12 @@
     </section>
 </div>
 
+<script type="text/javascript" src='@getJSLink("lib/parseuri")'></script>
 <script type="text/javascript">
 $(document).ready(function(){
-    $("a.leaveProject").click(function(weEvt){
-        var sProjectName = $(this).attr("data-projectName");
-        if(confirm(Messages("userinfo.leaveProject.confirm", sProjectName)) === false){
-            weEvt.preventDefault();
-            weEvt.stopPropagation();
-            return false;
-        }
+    $yobi.loadModule("user.View", {
+        "sTabSelected": "@selected"
     });
-    $yobi.loadModule("project.Global");
-
-    var selectedTab = '@selected';
-    var stateObj = {};
-    var rememberCurrentTab = function(selectedTab){
-        var daysAgo = $('#daysAgoBtn').val();
-        var uri = parseUri(window.location.href);
-        var groupsOption = "";
-        if(uri.queryKey.groups){
-            groupsOption = "&groups=" + uri.queryKey.groups;
-        }
-        history.replaceState(stateObj, '', '?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption);
-    }
-
-    //daysAgo input enter
-    $('#daysAgoBtn').on("keypress", function(e) {
-        /* ENTER PRESSED*/
-        if (e.keyCode == 13) {
-            var daysAgo = $('#daysAgoBtn').val();
-            var uri = parseUri(window.location.href);
-            var groupsOption = "";
-            if(uri.queryKey.groups){
-                groupsOption = "&groups=" + uri.queryKey.groups;
-            }
-            history.replaceState(stateObj, '', '?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption);
-            window.location.href='?daysAgo='+daysAgo+'&selected='+selectedTab + groupsOption;
-            return false;
-        }
-    });
-
-    $('a[data-toggle="tab"]').click(function(e){
-        //get href link and remove '#' from #link from 'href' value
-        selectedTab = $(this).attr('href').replace('#', '');
-        rememberCurrentTab(selectedTab);
-
-        //postings, pullRequests, issues 탭이 아닐경우에는 daysAgo input 을 disabled 시킨다.
-        var targets = ['#postings','#pullRequests','#issues'];
-        if($.inArray($(this).attr('href'), targets) === -1){
-            $("#daysAgoBtn").prop('disabled', true);
-            $("#daysAgoBtn").css('color','#eee');
-        } else {
-            $("#daysAgoBtn").prop('disabled', false);
-            $("#daysAgoBtn").css('color','');
-            $("#daysAgoBtn").blur()
-        }
-    });
-
-    // in loading, previously selected tab click
-    $('a[href=#@selected]').trigger('click');
 });
 </script>
 }
-
-<script type="text/javascript" src='@getJSLink("lib/parseuri")'></script>

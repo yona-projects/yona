@@ -22,19 +22,17 @@
         </a>
     </div>
 
-    <div class="contents" style="padding-left:10px;">
+    <div class="contents">
         <p class="title">
             <a href="@routes.BoardApp.post(project.owner, project.name, post.getNumber)">
                 @if(post.notice == true){<span class="label label-notice">@Messages("post.notice")</span>&nbsp;}
-                @post.title
+                @post.title 
+                @if(Attachment.findByContainer(post.asResource).size > 0){ <i class="yobicon-paperclip yobicon-middle"></i> }
             </a>
-            @if(Attachment.findByContainer(post.asResource).size > 0){
-            <i class="yobicon-paperclip yobicon-middle"></i>
-            }
         </p>
         <p class="infos nm">
             <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a>
-            &nbsp;<span class="date">@utils.TemplateHelper.agoString(post.ago())</span>
+            <span class="date">@JodaDateUtil.momentFromNow(post.createdDate.getTime())</span>
         </p>
     </div>
     <div class="right-panel">

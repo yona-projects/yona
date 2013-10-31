@@ -21,7 +21,7 @@
         </div>
         <div class="pull-left" style="margin-left: 10px;">
             <div class="header">
-                <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
+                <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
                 @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
             </div>
             @if(project.isFork()){
@@ -33,14 +33,14 @@
             </div>
             }
             <div class="desc tag">
-            @for(label <- project.labels) {
+                @for(label <- project.labels) {
                 <span class="project-label @label.category.toLowerCase()">@label.name</span>
-            }
+                }
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-                <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a>
-                <strong>@agoString(JodaDateUtil.ago(project.createdDate))</strong> @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@agoString(project.lastPushedDateAgo())}</strong>
+                @Messages("project.create") <strong>@JodaDateUtil.momentFromNow(project.createdDate)</strong> 
+                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@JodaDateUtil.momentFromNow(project.lastPushedDate.getTime())}</strong>
             </div>
         </div>
     </div>
@@ -48,13 +48,11 @@
         <div class="members">
             <ul class="unstyled">
             @for(member <- User.findUsersByProject(project.id)){
-                @if(member.loginId != project.owner){
                 <li>
                     <a href="@routes.UserApp.userInfo(member.loginId)" class="avatar-wrap">
                         <img src="@member.avatarUrl" alt="@member.name">
                     </a>
                 </li>
-                }
             }
             </ul>
         </div>

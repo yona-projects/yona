@@ -340,7 +340,7 @@ public class UserApp extends Controller {
         sortDatum(postings, issues, pullRequests, milestones);
 
         sortByLastPushedDateAndName(projects);
-        return ok(info.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo, selected));
+        return ok(view.render(user, groupNames, projects, postings, issues, pullRequests, milestones, daysAgo, selected));
     }
 
     private static void sortByLastPushedDateAndName(List<Project> projects) {
