@@ -389,4 +389,21 @@ public class SVNRepository implements PlayRepository {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public boolean isEmpty() {
+        SVNURL svnURL = null;
+        org.tmatesoft.svn.core.io.SVNRepository repository = null;
+        try {
+            svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
+            repository = SVNRepositoryFactory.create(svnURL);
+            return repository.getLatestRevision() == 0;
+        } catch (SVNException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(repository != null) {
+                repository.closeSession();
+            }
+        }
+    }
 }

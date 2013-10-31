@@ -131,4 +131,11 @@ public interface PlayRepository {
      * @return
      */
     Commit getParentCommitOf(String commitId);
+
+    /**
+     * 저장소가 비어있는지 확인한다.
+     *
+     * @return 저장소가 비어있을시 true / 비어있지 않을시 false
+     */
+    boolean isEmpty();
 }

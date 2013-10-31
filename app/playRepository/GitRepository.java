@@ -1717,4 +1717,9 @@ public class GitRepository implements PlayRepository {
         return null;
     }
 
+    @Override
+    public boolean isEmpty() {
+        return this.getBranches().isEmpty();
+    }
+
 }

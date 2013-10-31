@@ -80,6 +80,7 @@ code.newer = 以前
 code.noChanges = 変更なし
 code.nohead =<div class="alert alert-block"><h4>リポジトリーが空いています!</h4>ローカルにGitリポジトリーを作って{0}にコードを送る方法は：</div>
 code.nohead.clone = {0}に作られたGit リポジトリーをcloneしてローカルにGit リポジトリーを作り、README.md ファイルを{0}にコミットする事が出来ます。
+code.nohead.svn.clone = You can commit your code to this repository.
 code.nohead.init = それとも, ローカルでGit リポジトリーを作りremoteで{0}に作ったGit リポジトリーを直接追加してREADME.mdファイルを{0}にコミットする事が出来ます。
 code.nohead.pull.push = 継続的にコードを更新するときはpullとpushを使えます。pullはremoteからコードを持ってくるし、pushはremoteにコードを送ります。
 code.nohead.remote = ローカルにすでに作っていたGit リポジトリーがあれば{0}に作ったGit リポジトリーを remoteに追加しコードをコミットする事ができます。

@@ -1,31 +1,27 @@
 package controllers;
 
 import models.Project;
-import models.User;
 import models.enumeration.Operation;
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.joda.time.DateTime;
 import org.tmatesoft.svn.core.SVNException;
-import play.Logger;
-import play.data.Form;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import playRepository.RepositoryService;
 import playRepository.PlayRepository;
+import playRepository.RepositoryService;
 import utils.AccessControl;
 import utils.ErrorViews;
-import views.html.code.view;
 import views.html.code.nohead;
+import views.html.code.nohead_svn;
+import views.html.code.view;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CodeApp extends Controller {
     public static String hostName;
@@ -51,13 +47,17 @@ public class CodeApp extends Controller {
             return status(Http.Status.NOT_IMPLEMENTED, project.vcs + " is not supported!");
         }
 
-        List<String> branches = RepositoryService.getRepository(project).getBranches();
+        PlayRepository repository = RepositoryService.getRepository(project);
 
         // GIT 저장소이면서 브랜치가 하나도 없는 경우 NOHEAD 안내문 표시
-        if (RepositoryService.VCS_GIT.equals(project.vcs) && branches.size() == 0) {
-            return ok(nohead.render(project));
+        if(repository.isEmpty()) {
+            switch (project.vcs) {
+                case RepositoryService.VCS_GIT:
+                    return ok(nohead.render(project));
+                case RepositoryService.VCS_SUBVERSION:
+                    return ok(nohead_svn.render(project));
+            }
         }
-        // TODO: SVN 저장소 이면서 저장소가 비어있는 경우 안내문 표시 필요
 
         return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, "HEAD", ""));
     }

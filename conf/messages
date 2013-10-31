@@ -80,6 +80,7 @@ code.newer = Newer
 code.noChanges = No changes
 code.nohead = <div class="alert alert-block"><h4>The repository is empty!</h4></div>
 code.nohead.clone = Create new local repository by cloning the repository created on {0}, and push README.md file.
+code.nohead.svn.clone = You can commit your code to this repository.
 code.nohead.init = Or, create new local repository by yourself and add a remote that indicate the {0} repository and push README.md file.
 code.nohead.pull.push = You can keep update your code to your {0} repository with 'pull' and 'push'. The 'pull' means getting update from the remote repository, and 'push' means putting your code to remote repository.
 code.nohead.remote = If you already have existing Git repository, you can just add remote and push your code.
