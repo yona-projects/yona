@@ -10,9 +10,7 @@ import play.db.ebean.Model;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 @Entity
@@ -110,9 +108,9 @@ public class IssueEvent extends Model implements TimelineItem {
         return created;
     }
 
-    public static List<Issue> findReferredIssue(String message, Project project) {
+    public static Set<Issue> findReferredIssue(String message, Project project) {
         Matcher m = Issue.ISSUE_PATTERN.matcher(message);
-        List<Issue> referredIssues = new ArrayList<>();
+        Set<Issue> referredIssues = new HashSet<>();
 
         while(m.find()) {
             String issueText = m.group();
