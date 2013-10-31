@@ -40,9 +40,9 @@
             <span>on @comment.line in @comment.path at
 
             @if(comment.isCommitLost) {
-                <span style="text-decoration: line-through">@shortId(comment.commitId)</span>
+                <span style="text-decoration: line-through">@shortId(comment.getCommitId)</span>
             } else {
-                @shortId(comment.commitId)
+                @shortId(comment.getCommitId)
             }
             from @shortId(comment.commitA)..@shortId(comment.commitB)
             </span>

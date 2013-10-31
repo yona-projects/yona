@@ -517,6 +517,7 @@
         function _showCommentBox(welTr) {
             var welTd = $("<td colspan=3>");
             var welCommentTr;
+            var sSide;
 
             if (isNaN(parseInt(welTr.data('line')))) {
                 return;
@@ -532,7 +533,8 @@
             welCommentTr = htElement.welCommentTr;
             welCommentTr.find('[name=path]').attr('value', welTr.data('path'));
             welCommentTr.find('[name=line]').attr('value', welTr.data('line'));
-            welCommentTr.find('[name=side]').attr('value', welTr.data('side'));
+            sSide == (welTr.data('side') == 'remove') ? 'A' : 'B';
+            welCommentTr.find('[name=side]').attr('value', sSide);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();

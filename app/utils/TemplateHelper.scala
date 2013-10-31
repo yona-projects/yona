@@ -10,6 +10,7 @@ import java.net.URI
 import playRepository.DiffLine
 import playRepository.DiffLineType
 import models.CodeComment
+import models.CodeComment.Side
 import scala.collection.JavaConversions._
 import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
@@ -196,20 +197,20 @@ object TemplateHelper {
         case _ => renderLine(lineA, comments) + renderLine(lineB, comments)
       }
 
-    def commentKey(path: String, side: String, lineNum: Integer) =
+    def commentKey(path: String, side: Side, lineNum: Integer) =
       path + ":" + side + ":" + lineNum
 
     def commentsOrEmpty(comments: Map[String, List[CodeComment]], key: String) =
       if (comments.contains(key)) comments(key) else Nil
 
     def commentsOnAddLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
-      commentsOrEmpty(comments, commentKey(line.file.pathB, "add", line.numB + 1))
+      commentsOrEmpty(comments, commentKey(line.file.pathB, Side.B, line.numB + 1))
 
     def commentsOnRemoveLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
-      commentsOrEmpty(comments, commentKey(line.file.pathA, "remove", line.numA + 1))
+      commentsOrEmpty(comments, commentKey(line.file.pathA, Side.A, line.numA + 1))
 
     def commentsOnContextLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
-      commentsOrEmpty(comments, commentKey(line.file.pathB, "context", line.numB + 1))
+      commentsOrEmpty(comments, commentKey(line.file.pathB, Side.B, line.numB + 1))
 
     def indicator(line: DiffLine) =
       line.kind match {

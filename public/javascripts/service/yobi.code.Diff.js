@@ -345,11 +345,11 @@
             welCommentTr = htElement.welCommentTr;
             welCommentTr.find('[name=path]').attr('value', sPath);
             welCommentTr.find('[name=line]').attr('value', nLine);
+            sType = (sType == 'remove') ? 'A' : 'B';
             welCommentTr.find('[name=side]').attr('value', sType);
 
             welCommentTr.find('[name=commitA]').attr('value', sCommitA);
             welCommentTr.find('[name=commitB]').attr('value', sCommitB);
-            welCommentTr.find('[name=commitId]').attr('value', sCommitId);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();

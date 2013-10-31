@@ -437,9 +437,6 @@ public class PullRequestApp extends Controller {
 
         for (PullRequestComment comment : pullRequest.comments) {
             if (comment.hasValidCommitId()) {
-                if (comment.commitId == null) {
-                    comment.commitId = comment.commitB;
-                }
                 comments.add(comment);
             }
         }
@@ -495,9 +492,6 @@ public class PullRequestApp extends Controller {
 
         for (PullRequestComment comment : pullRequest.comments) {
             if (comment.hasValidCommitId()) {
-                if (comment.commitId == null) {
-                    comment.commitId = comment.commitB;
-                }
                 comments.add(comment);
             }
         }
@@ -891,6 +885,4 @@ public class PullRequestApp extends Controller {
 
         return result;
     }
-
-
 }
