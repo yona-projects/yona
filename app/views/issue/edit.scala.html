@@ -187,6 +187,7 @@
         // yobi.issue.Write
         $yobi.loadModule("issue.Write", {
             "sMode"             : "edit",
+            "sIssueId"          : "@issue.getNumber",
             "sIssueFormURL"     : "@routes.IssueApp.newIssueForm(project.owner, project.name)",
             "sIssueListURL"     : "@routes.IssueApp.issues(project.owner, project.name)",
             "elTextarea"        : $("#body"),

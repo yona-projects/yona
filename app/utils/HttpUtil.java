@@ -114,4 +114,15 @@ public class HttpUtil {
         String requestedWith = request.getHeader("X-Requested-With");
         return (requestedWith != null && requestedWith.toLowerCase().equals("xmlhttprequest"));
     }
+    
+    /**
+     * 주어진 Http.Request 에서 X-PJAX 헤더가 존재하는지 
+     * (= PJAX 요청인지) 여부를 Boolean 으로 반환한다.
+     * 
+     * @param request
+     * @return Boolean
+     */
+    public static Boolean isPJAXRequest(Http.Request request){
+        return Boolean.parseBoolean(request.getHeader("X-PJAX"));
+    }
 }

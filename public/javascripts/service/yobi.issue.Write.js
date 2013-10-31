@@ -38,6 +38,7 @@
          */
         function _initVar(htOptions){
             htVar.sMode = htOptions.sMode || "new";
+            htVar.sIssueId = htOptions.sIssueId || null;
             htVar.sIssueListURL = htOptions.sIssueListURL;
             htVar.sIssueFormURL = htOptions.sIssueFormURL;
             htVar.sTplFileItem = htOptions.sTplFileItem || htElement.welTplFileItem.text();
@@ -187,7 +188,7 @@
                 // 필드가 그냥 비어있는 경우
                 if(sHaystack === " "){
                     htElement.welRelativeIssueWrap.hide();
-                }                
+                }
             }, 1000);
         }
         
@@ -225,8 +226,9 @@
             // 이미 요청한 상태라면 반복 요청하지 않기 위해
             htVar.bOnRequestRelIssue = true;
             $.get(htVar.sIssueListURL, {
-                "state": "all",
-                "filter": sKeyword
+                "state"   : "all",
+                "filter"  : sKeyword,
+                "exceptId": htVar.sIssueId
             }, _onLoadRelativeIssue);
         }
         
