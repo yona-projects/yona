@@ -94,7 +94,7 @@
             }
             <div class="board-comment-wrap">
                 <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.comments.size() + pull.getCommitComments.size()}</strong></div>
-
+                <hr class="nm">
                 @if(pull.getTimelineComments.size > 0) {
                 <ul class="comments" id="comments">
                 @partial_comments(pull, pull.getTimelineComments.toList)
