@@ -75,6 +75,7 @@ code.copyUrl = URLコピー
 code.filename = ファイル名
 code.files = ファイル
 code.history = 履歴
+code.isBinary = バイナリファイル
 code.newer = 以前
 code.noChanges = 変更なし
 code.nohead =<div class="alert alert-block"><h4>リポジトリーが空いています!</h4>ローカルにGitリポジトリーを作って{0}にコードを送る方法は：</div>

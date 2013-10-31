@@ -23,6 +23,8 @@ public class FileDiff {
     public String pathA;
     public String pathB;
     public int context = 3;
+    public boolean isBinaryA = false;
+    public boolean isBinaryB = false;
     private boolean isEndOfLineMissing;
     public DiffEntry.ChangeType changeType;
 

@@ -75,6 +75,7 @@ code.copyUrl = 주소 복사
 code.filename = 파일명
 code.files = 파일
 code.history = 변경이력
+code.isBinary = 이진 파일입니다
 code.newer = 이전
 code.noChanges = 변경 없음
 code.nohead = <div class="alert alert-block"><h4>저장소가 비어있습니다!</h4></div>

@@ -75,6 +75,7 @@ code.copyUrl = Copy URL
 code.filename = Filename
 code.files = Files
 code.history = History
+code.isBinary = Binary file is not shown
 code.newer = Newer
 code.noChanges = No changes
 code.nohead = <div class="alert alert-block"><h4>The repository is empty!</h4></div>

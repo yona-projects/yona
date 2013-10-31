@@ -11,6 +11,12 @@
 @import scala.collection.immutable.List
 @import scala.collection.JavaConversions._
 
+@**
+ * 변경 내용(Diff) 표시
+ *
+ * @param diff
+ * @param comments
+**@
 @renderDiffLines(diff: playRepository.FileDiff, comments: Map[String, List[_ <: CodeComment]]) = {
   @if(diff.getHunks.size > 0){
     @for(hunk <- diff.getHunks) {
@@ -22,23 +28,62 @@
   }
 }
 
+@**
+ * 파일 내용 표시
+ *
+ * @param klass
+ * @param path
+ * @param rawText
+ * @param kind
+ * @param prefix
+ * @param comments
+**@
 @renderRawFile(klass: String, path: String, rawText: RawText, side: CodeComment.Side, prefix: String, comments: Map[String, List[_ <: CodeComment]]) = {
-  @for(i <- 0 until rawText.size) {
-    @partial_diff_line(klass, prefix, i + 1, null, i + 1, rawText.getString(i))
-    @partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1)))
-  }
+    @for(i <- 0 until rawText.size) {
+        @partial_diff_line(klass, prefix, i + 1, null, i + 1, rawText.getString(i))
+        @partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1)))
+    }
 }
 
-@renderAddedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]]) = {
+@**
+ * 추가된 라인 표시
+ *
+ * @param rawText
+ * @param path
+ * @param comments
+ * @param isBinaryOverwritten 기존 데이터가 바이너리인 경우 true
+**@
+@renderAddedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]], isBinaryOverwritten: Boolean = false) = {
   <tr class="range"><td>...</td><td>...</td><td>@@@@ -0,0 +1,@rawText.size @@@@</td></tr>
+  @if(isBinaryOverwritten ){
+      @renderCodeIsBinary("remove", "-")
+  }
   @renderRawFile("add", path, rawText, CodeComment.Side.B, "+", comments)
 }
 
-@renderRemovedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]]) = {
+@**
+ * 삭제된 라인 표시
+ *
+ * @param rawText
+ * @param path
+ * @param comments
+ * @param isOverwrittenByBinary 새 데이터가 바이너리인 경우 true
+**@
+@renderRemovedLines(rawText: RawText, path: String, comments:Map[String, List[_ <: CodeComment]], isOverwrittenByBinary: Boolean = false) = {
   <tr class="range"><td>...</td><td>...</td><td>@@@@ -1,@rawText.size +0,0 @@@@</td></tr>
   @renderRawFile("remove", path, rawText, CodeComment.Side.A, "-", comments)
+  @if(isOverwrittenByBinary){
+      @renderCodeIsBinary("add", "+")      
+  }
 }
 
+@**
+ * 파일 헤더를 포함한 변경점 렌더링
+ * 
+ * @param diff
+ * @param fileHeader
+ * @param renderedLines
+**@
 @renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {
   <table class="diff-body show-comments" data-path-a="@diff.pathA" data-path-b="@diff.pathB" data-commit-a="@diff.commitA" data-commit-b="@diff.commitB"><tbody>
   <tr class="file">
@@ -48,22 +93,82 @@
   </tbody></table>
 }
 
+@**
+ * 바이너리 파일이면 경로명 뒤에 (Binary) 붙이기
+ *
+ * @param path
+ * @param isBinary
+**@
+@getPathPostfixedBinary(path:String, isBinary:Boolean) = @{
+    path + (if (isBinary) { " (Binary)" } else { "" } )
+}
+
+@**
+ * 파일 헤더 영역 메시지
+ *
+ * @param headerType
+ * @param diff
+**@
+@getFileHeaderMessage(headerType:DiffEntry.ChangeType, diff:FileDiff) = @{
+    headerType match {
+        case DiffEntry.ChangeType.MODIFY => { getPathPostfixedBinary(diff.pathB, diff.isBinaryB) }
+        case DiffEntry.ChangeType.ADD    => { Messages("code.addedPath", getPathPostfixedBinary(diff.pathB, diff.isBinaryB)) }
+        case DiffEntry.ChangeType.DELETE => { Messages("code.deletedPath", getPathPostfixedBinary(diff.pathA, diff.isBinaryA)) }
+        case DiffEntry.ChangeType.RENAME => { Messages("code.renamedPath", getPathPostfixedBinary(diff.pathA, diff.isBinaryA), getPathPostfixedBinary(diff.pathB, diff.isBinaryB)) }
+        case DiffEntry.ChangeType.COPY   => { Messages("code.copiedPath", getPathPostfixedBinary(diff.pathA, diff.isBinaryA), getPathPostfixedBinary(diff.pathB, diff.isBinaryB)) }
+        case _ => { "" }
+    }
+}
+
+@**
+ * 바이너리 파일입니다 표시
+ * 이 영역에는 댓글을 달 수 없음
+ *
+ * @param klass CSS 클래스명. add/remove
+ * @param prefix
+**@
+@renderCodeIsBinary(klass:String = "", prefix:String = "") = {
+    <tr class="@klass"><td></td><td></td><td class="isBinary">@prefix@Messages("code.isBinary")</td></tr>
+}
+
 @defining(comments.toList.groupBy((comment: CodeComment) => commentKey(comment.path, comment.side, comment.line))) { comments =>
   @diff.changeType match {
     case DiffEntry.ChangeType.MODIFY => {
-      @renderFile(diff, diff.pathB, renderDiffLines(diff, comments))
+        @(diff.isBinaryA, diff.isBinaryB) match {
+            case (true, true)   => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderCodeIsBinary()) }
+            case (true, false)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderAddedLines(diff.b, diff.pathB, comments, true))   }
+            case (false, true)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderRemovedLines(diff.a, diff.pathA, comments, true)) }
+            case (false, false) => { @renderFile(diff, diff.pathB, renderDiffLines(diff, comments)) }
+        }
     }
     case DiffEntry.ChangeType.ADD => {
-      @renderFile(diff, Messages("code.addedPath", diff.pathB), renderAddedLines(diff.b, diff.pathB, comments))
+        @if(diff.isBinaryB){
+            @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.ADD, diff), renderCodeIsBinary())
+        } else {
+            @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.ADD, diff), renderAddedLines(diff.b, diff.pathB, comments))
+        }
     }
     case DiffEntry.ChangeType.DELETE => {
-      @renderFile(diff, Messages("code.deletedPath", diff.pathA), renderRemovedLines(diff.a, diff.pathA, comments))
+        @if(diff.isBinaryA){
+            @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.DELETE, diff), renderCodeIsBinary())
+        } else {
+            @renderFile(diff, Messages("code.deletedPath", diff.pathA), renderRemovedLines(diff.a, diff.pathA, comments))
+        }
     }
     case DiffEntry.ChangeType.RENAME => {
-      @renderFile(diff, Messages("code.renamedPath", diff.pathA, diff.pathB), renderDiffLines(diff, comments))
+        @(diff.isBinaryA, diff.isBinaryB) match {
+            case (true, true)   => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderCodeIsBinary()) }
+            case (true, false)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderAddedLines(diff.b, diff.pathB, comments, true)) }
+            case (false, true)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderRemovedLines(diff.a, diff.pathA, comments, true)) }
+            case (false, false) => { @renderFile(diff, Messages("code.renamedPath", diff.pathA, diff.pathB), renderDiffLines(diff, comments)) }
+        }
     }
     case DiffEntry.ChangeType.COPY => {
-      @renderFile(diff, Messages("code.copiedPath", diff.pathA, diff.pathB), renderAddedLines(diff.b, diff.pathB, comments))
+        @if(diff.isBinaryB){
+            @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.COPY, diff), renderCodeIsBinary())
+        } else {
+            @renderFile(diff, Messages("code.copiedPath", diff.pathA, diff.pathB), renderAddedLines(diff.b, diff.pathB, comments))
+        }
     }
   }
 }
