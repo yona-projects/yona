@@ -12,6 +12,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.parboiled.common.StringUtils;
 import playRepository.FileDiff;
 import playRepository.GitRepository;
 
@@ -109,6 +110,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
 
     private boolean isCommitIdValid(Project project, String rev) {
         try {
+            if (StringUtils.isEmpty(rev)) {
+                throw new IllegalArgumentException("An empty revision is not allowed");
+            }
             Repository repo = GitRepository.buildGitRepository(project);
             ObjectId objectId = repo.resolve(rev);
             if (objectId == null) {
@@ -119,7 +123,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                 return true;
             }
         } catch (Exception e) {
-            play.Logger.info(String.format("Invalid revision %s", rev), e);
+            play.Logger.warn(String.format("Invalid revision %s", rev), e);
             return false;
         }
     }
