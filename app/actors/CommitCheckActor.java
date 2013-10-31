@@ -14,10 +14,7 @@ import playRepository.GitCommit;
 import playRepository.GitRepository;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
@@ -42,7 +39,7 @@ public class CommitCheckActor extends UntypedActor {
     private void addIssueEvent(RevCommit commit, Project project) {
         GitCommit gitCommit = new GitCommit(commit);
         String fullMessage = gitCommit.getMessage();
-        List<Issue> referredIssues = IssueEvent.findReferredIssue(fullMessage, project);
+        Set<Issue> referredIssues = IssueEvent.findReferredIssue(fullMessage, project);
         String newValue = getNewEventValue(gitCommit, project);
         for(Issue issue : referredIssues) {
             IssueEvent issueEvent = new IssueEvent();

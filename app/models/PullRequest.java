@@ -519,7 +519,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      * 새로운 풀리퀘가 저장될때 풀리퀘의 제목과 본문에서 참조한 이슈에 이슈 이벤트를 생성한다.
      */
     private void addNewIssueEvents() {
-        List<Issue> referredIsseus = IssueEvent.findReferredIssue(this.title + this.body, this.toProject);
+        Set<Issue> referredIsseus = IssueEvent.findReferredIssue(this.title + this.body, this.toProject);
         String newValue = getNewEventValue();
         for(Issue issue : referredIsseus) {
             IssueEvent issueEvent = new IssueEvent();
