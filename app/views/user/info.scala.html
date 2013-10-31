@@ -64,6 +64,10 @@
         </div>
 
         <div class="user-stream-box">
+            <div class="pull-right">
+                @Messages("userinfo.daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo" style="margin:0px 5px; vertical-align:bottom;">@Messages("userinfo.daysAgo.suffix")
+            </div>
+
             <ul id="user-stream-tabs" class="nav nav-tabs">
                 <li @if(selected == "projects"){ class="active"} >
                     <a href="#projects" data-toggle="tab">
@@ -91,10 +95,6 @@
                     </a>
                 </li>
             </ul>
-
-            <div class="right-txt">
-                @Messages("userinfo.daysAgo.prefix")<input id="daysAgoBtn" name="daysAgo" type="number" min="1" max="99" class="input-mini-min" value="@daysAgo">@Messages("userinfo.daysAgo.suffix")
-            </div>
 
             <div class="tab-content">
                 <div id="projects" class="tab-pane active">
