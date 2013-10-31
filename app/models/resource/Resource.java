@@ -124,6 +124,8 @@ public abstract class Resource {
                 return PullRequest.finder.byId(longId).asResource();
             case PULL_REQUEST_COMMENT:
                 return PullRequestComment.find.byId(longId).asResource();
+            case USER_AVATAR:
+                return User.find.byId(longId).avatarAsResource();
             default:
                 throw new IllegalArgumentException(getInvalidResourceTypeMessage(resourceType));
         }
