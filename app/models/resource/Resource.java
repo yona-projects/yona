@@ -106,7 +106,7 @@ public abstract class Resource {
                 resource = Posting.finder.byId(longId).asResource();
                 break;
             case USER:
-                resource = null;
+                resource = User.find.byId(longId).asResource();
                 break;
             case PROJECT:
                 resource = Project.find.byId(longId).asResource();
