@@ -50,6 +50,9 @@ public class PullRequestCommentApp extends Controller {
 
         newComment.save();
 
+        // Attach all of the files in the current user's temporary storage to this comment.
+        Attachment.moveAll(UserApp.currentUser().asResource(), newComment.asResource());
+
         String url = new URL(referer).getPath() + "#comment-" + newComment.id;
         addNewCommentNotification(pullRequestId, newComment, url);
         return redirect(url);
