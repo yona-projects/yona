@@ -83,3 +83,11 @@
 @common.markdown(project)
 
 }
+
+<script type="text/javascript">
+$(function() {
+    $('.code-table').on('click','.more',function(){
+        $(this).next('pre').toggleClass('hidden');
+    });
+});
+</script>
