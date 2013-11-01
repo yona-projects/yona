@@ -61,7 +61,7 @@
 
         @if(isLineComment(comment) && hasDiff(comment)) {
         <div class="diff-body" data-commit-a="@comment.commitA" data-commit-b="@comment.commitB" data-outdated="true">
-            @views.html.partial_filediff(comment.getDiff, thread)
+            @views.html.partial_filediff(comment.getDiff, thread, pull.fromProject, pull.toProject)
         </div>
         } else {
             @showComment(comment)

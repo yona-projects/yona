@@ -119,7 +119,7 @@
             <div id="__changes" class="tab-pane mt20">
                 <div class="diff-body">
                 @if(result.getGitConflicts() == null) {
-                @views.html.partial_diff(pullRequest.getDiff)
+                @views.html.partial_diff(pullRequest.getDiff, null, pullRequest.fromProject, pullRequest.toProject)
                 }
                 </div>
             </div>
@@ -128,16 +128,3 @@
 }
 </div>
 <input type="hidden" id="commitChanged" value="@if(result != null){ @result.commitChanged } else {false}" />
-<script type="text/javascript">
-$(document).ready(function() {
-    $yobi.loadModule("code.Diff", {
-        "welDiff"     : $("#pull-request-changes"),
-        "bCommentable": false,
-        "bUseUploader": false,
-        "sTplFileURLA": "@routes.CodeApp.codeBrowserWithBranch(pullRequest.toProject.owner, pullRequest.toProject.name, "${commitId}", "${path}")",
-        "sTplFileURLB": "@routes.CodeApp.codeBrowserWithBranch(pullRequest.fromProject.owner, pullRequest.fromProject.name, "${commitId}", "${path}")",
-        "sTplRawURLA" : "@routes.CodeApp.showRawFile(pullRequest.toProject.owner, pullRequest.toProject.name, "${commitId}", "${path}")",
-        "sTplRawURLB" : "@routes.CodeApp.showRawFile(pullRequest.fromProject.owner, pullRequest.fromProject.name, "${commitId}", "${path}")"
-    });
-});
-</script>

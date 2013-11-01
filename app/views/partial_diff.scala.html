@@ -1,5 +1,7 @@
-@(fileDiffs: java.util.List[playRepository.FileDiff], comments:java.util.List[_ <: CodeComment] = new ArrayList[CodeComment])
+@(fileDiffs: java.util.List[playRepository.FileDiff], comments:java.util.List[_ <: CodeComment] = new ArrayList[CodeComment], projectA: Project, projectB: Project)
 
 @for(diff <- fileDiffs) {
-  @views.html.partial_filediff(diff, comments)
+  @views.html.partial_filediff(diff, comments, projectA, projectB)
 }
+
+@common.mergely()

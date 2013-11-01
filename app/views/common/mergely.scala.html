@@ -1,0 +1,44 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author JiHan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@import utils.TemplateHelper._
+
+<div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
+    <h4 class="path">
+        <span></span>
+        <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
+     </h4>
+     <div class="row-fluid">
+        <div class="span6 commitA"></div>
+        <div class="span6 commitB"></div>
+     </div>
+     <div id="mergely" class="mergely-wrap"></div>
+</div>
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
+<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
+<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.ui.Mergely")"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        yobi.ui.Mergely().setButtons("[data-toggle=mergely]");
+    });
+</script>
