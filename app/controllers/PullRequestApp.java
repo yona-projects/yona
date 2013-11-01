@@ -650,6 +650,8 @@ public class PullRequestApp extends Controller {
         List<String> fromBranches = RepositoryService.getRepository(pullRequest.fromProject).getBranches();
         List<String> toBranches = RepositoryService.getRepository(pullRequest.toProject).getBranches();
 
+        Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
+
         return ok(edit.render("title.editPullRequest", editForm, fromProject, fromBranches, toBranches, pullRequest));
     }
 
