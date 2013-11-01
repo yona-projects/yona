@@ -29,6 +29,10 @@
         <div class="span1 author"><strong>@Messages("code.author")</strong></div>
     </div>
 
+    @** no files **@
+    @if(data.getFieldNames().hasNext == false){
+        <div class="warning-none">@Messages("code.nofiles")</div>
+    }
     @** folders **@
     @for(fileName <- data.getFieldNames()){
         @defining(data.get(fileName)) { file =>

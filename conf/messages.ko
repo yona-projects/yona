@@ -78,6 +78,8 @@ code.history = 변경이력
 code.isBinary = 이진 파일입니다
 code.newer = 이전
 code.noChanges = 변경 없음
+code.nocommits = 커밋이 존재하지 않습니다
+code.nofiles = 파일이 존재하지 않습니다
 code.nohead = <div class="alert alert-block"><h4>저장소가 비어있습니다!</h4></div>
 code.nohead.clone = {0}에 생성된 Git 저장소를 clone 받아서 로컬에 Git 저장소를 만들고 README.md 파일을 {0}에 올릴 수 있습니다.
 code.nohead.svn.clone = {0}에 생성된 SVN 저장소에 코드를 커밋하실 수 있습니다.
