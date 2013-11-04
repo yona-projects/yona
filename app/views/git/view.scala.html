@@ -34,12 +34,14 @@
                 <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
             </div>
 
-            @if(!pull.isConflict){
-            <div class="alert alert-success">
-                <h5>@Messages("pullRequest.is.safe")</h5>
-            </div>
-            } else {
-                @partial_conflict_message(project, pull)
+            @if(!pull.isMerging && !pull.isClosed) {
+                @if(!pull.isConflict){
+                <div class="alert alert-success">
+                    <h5>@Messages("pullRequest.is.safe")</h5>
+                </div>
+                } else {
+                    @partial_conflict_message(project, pull)
+                }
             }
 
             @if(pull.isMerging) {
