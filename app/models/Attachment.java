@@ -40,8 +40,6 @@ public class Attachment extends Model implements ResourceConvertible {
     @Constraints.Required
     public String hash;
 
-    public Long projectId;
-
     @Enumerated(EnumType.STRING)
     public ResourceType containerType;
 
@@ -144,11 +142,6 @@ public class Attachment extends Model implements ResourceConvertible {
      * @return
      */
     public void moveTo(Resource to) {
-        if (to instanceof GlobalResource) {
-            projectId = null;
-        } else {
-            projectId = to.getProject().id;
-        }
         containerType = to.getType();
         containerId = to.getId();
         update();
@@ -223,10 +216,7 @@ public class Attachment extends Model implements ResourceConvertible {
     @Transient
     public boolean store(File file, String name, Resource container) throws IOException, NoSuchAlgorithmException {
         // Store the file as its SHA1 hash in filesystem, and record its
-        // metadata - projectId, containerType, containerId, size and hash - in Database.
-        if (!(container instanceof GlobalResource)) {
-            this.projectId = container.getProject().id;
-        }
+        // metadata - containerType, containerId, size and hash - in Database.
         this.containerType = container.getType();
         this.containerId = container.getId();
 
@@ -317,6 +307,10 @@ public class Attachment extends Model implements ResourceConvertible {
         }
     }
 
+    private String messageForLosingProject() {
+        return "An attachment '" + this +"' lost the project it belongs to";
+    }
+
     /**
      * 이 객체를 리소스로 반환한다.
      *
@@ -326,7 +320,51 @@ public class Attachment extends Model implements ResourceConvertible {
      */
     @Override
     public Resource asResource() {
-        if (projectId == null) {
+        boolean isContainerProject = containerType.equals(ResourceType.PROJECT);
+        final Project project;
+        final Resource container;
+
+        if (isContainerProject) {
+            project = Project.find.byId(Long.parseLong(containerId));
+            if (project == null) {
+                throw new RuntimeException(messageForLosingProject());
+            }
+            container = project.asResource();
+        } else {
+            container = Resource.get(containerType, containerId);
+            if (!(container instanceof GlobalResource)) {
+                project = container.getProject();
+                if (project == null) {
+                    throw new RuntimeException(messageForLosingProject());
+                }
+            } else {
+                project = null;
+            }
+        }
+
+        if (project != null) {
+            return new Resource() {
+                @Override
+                public String getId() {
+                    return id.toString();
+                }
+
+                @Override
+                public Project getProject() {
+                    return project;
+                }
+
+                @Override
+                public ResourceType getType() {
+                    return ResourceType.ATTACHMENT;
+                }
+
+                @Override
+                public Resource getContainer() {
+                    return container;
+                }
+            };
+        } else {
             return new GlobalResource() {
                 @Override
                 public String getId() {
@@ -340,29 +378,7 @@ public class Attachment extends Model implements ResourceConvertible {
 
                 @Override
                 public Resource getContainer() {
-                    return Resource.get(containerType, containerId);
-                }
-            };
-        } else {
-            return new Resource() {
-                @Override
-                public String getId() {
-                    return id.toString();
-                }
-
-                @Override
-                public Project getProject() {
-                    return Project.find.byId(projectId);
-                }
-
-                @Override
-                public ResourceType getType() {
-                    return ResourceType.ATTACHMENT;
-                }
-
-                @Override
-                public Resource getContainer() {
-                    return Resource.get(containerType, containerId);
+                    return container;
                 }
             };
         }
