@@ -160,6 +160,7 @@
 <script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
+        // code.Diff
         $yobi.loadModule("code.Diff", {
             "bCommentable"   : @if(isProjectResourceCreatable(UserApp.currentUser, pull.fromProject, ResourceType.COMMIT_COMMENT)){true}else{false},
             "sWatchUrl"      : "@routes.WatchApp.watch(commit.asResource(pull.fromProject).asParameter)",
@@ -170,9 +171,20 @@
             "sTplRawURL"     : "@routes.CodeApp.showRawFile(pull.fromProject.owner, pull.fromProject.name, "${commitId}", "${path}")"
         });
 
+        // yobi.Mention
         yobi.Mention({
             target:'comment-editor',
             url : "@Html(routes.ProjectApp.mentionListAtCommitDiff(pull.toProject.owner, pull.toProject.name, commit.getId, pull.id).toString)"
+        });
+
+        @**/*
+            프로젝트 전역 공통 스크립트 project.Global
+            
+            보통은 projectMenu.scala.html 에서 공통적으로 선언하는데 이 페이지에서는 프로젝트 메뉴를 표시하지 않으므로
+            단축키 옵션을 제외하고 코드주고받기 요청을 받는 프로젝트를 기준으로 모듈을 호출해준다
+        */**@
+        $yobi.loadModule("project.Global", {
+            "sRepoURL": "@CodeApp.getURLWithLoginId(pull.toProject)"
         });
     });
 </script>
