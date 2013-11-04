@@ -17,6 +17,7 @@ import utils.ErrorViews;
 import utils.LabelSearchUtil;
 
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.Call;
 import play.mvc.Result;
 
@@ -196,6 +197,7 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      * @throws IOException
      */
+    @Transactional
     public static Result massUpdate(String ownerName, String projectName) throws IOException {
         Form<IssueMassUpdate> issueMassUpdateForm
                 = new Form<>(IssueMassUpdate.class).bindFromRequest();
@@ -311,6 +313,7 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      * @throws IOException
      */
+    @Transactional
     public static Result newIssue(String ownerName, String projectName) throws IOException {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
@@ -408,6 +411,7 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      * @throws IOException
      */
+    @Transactional
     public static Result nextState(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
@@ -440,6 +444,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
+    @Transactional
     public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
@@ -500,6 +505,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param updatedIssue
      * @param urlToView
      */
+    @Transactional
     private static void addStateChangedNotification(State oldState, Issue updatedIssue, String urlToView) {
         NotificationEvent notiEvent = new NotificationEvent();
 
@@ -534,6 +540,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param updatedIssue
      * @param urlToView
      */
+    @Transactional
     private static void addAssigneeChangedNotification(User oldAssignee, Issue updatedIssue, String urlToView) {
         NotificationEvent notiEvent = new NotificationEvent();
 
@@ -588,6 +595,7 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      * @ see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
+    @Transactional
     public static Result deleteIssue(String ownerName, String projectName, Long number) {
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
@@ -614,6 +622,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      * @see {@link AbstractPostingApp#newComment(models.Comment, play.data.Form}
      */
+    @Transactional
     public static Result newComment(String ownerName, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         if (project == null) {
@@ -661,6 +670,7 @@ public class IssueApp extends AbstractPostingApp {
      * @return
      * @see {@link AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, Call)}
      */
+    @Transactional
     public static Result deleteComment(String ownerName, String projectName, Long issueNumber,
             Long commentId) {
         Comment comment = IssueComment.find.byId(commentId);
@@ -682,7 +692,7 @@ public class IssueApp extends AbstractPostingApp {
      * @param labels 이슈 라벨을 저장할 대상
      * @param request 요청 정보 (이슈라벨 ID를 추출하여 사용한다)
      */
-    public static void addLabels(Issue issue, Http.Request request) {
+    private static void addLabels(Issue issue, Http.Request request) {
         if (issue.labels == null) {
             issue.labels = new HashSet<IssueLabel>();
         }

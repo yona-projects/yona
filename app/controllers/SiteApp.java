@@ -11,6 +11,7 @@ import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
 import play.Configuration;
 import play.Logger;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -163,6 +164,7 @@ public class SiteApp extends Controller {
      * @return the result
      * @see {@link Project#isOnlyManager(Long)}
      */
+    @Transactional
     public static Result deleteUser(Long userId) {
         if (User.findByLoginId(session().get("loginId")).isSiteManager()){
             if (Project.isOnlyManager(userId)) {
@@ -205,6 +207,7 @@ public class SiteApp extends Controller {
      * @param projectId the project id
      * @return the result
      */
+    @Transactional
     public static Result deleteProject(Long projectId){
         if( User.findByLoginId(session().get("loginId")).isSiteManager() ){
             Project.find.byId(projectId).delete();
@@ -226,6 +229,7 @@ public class SiteApp extends Controller {
      * @param loginId the login id
      * @return the result
      */
+    @Transactional
     public static Result toggleAccountLock(String loginId){
         if(User.findByLoginId(session().get("loginId")).isSiteManager()){
             User targetUser = User.findByLoginId(loginId);

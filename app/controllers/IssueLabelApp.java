@@ -17,6 +17,7 @@ import views.html.board.view;
 import static play.libs.Json.toJson;
 
 import play.data.*;
+import play.db.ebean.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -93,6 +94,7 @@ public class IssueLabelApp extends Controller {
      * @param projectName 프로젝트의 이름
      * @return 이슈라벨을 추가해달라는 요청에 대한 응답
      */
+    @Transactional
      public static Result newLabel(String ownerName, String projectName) {
         Form<IssueLabel> labelForm = new Form<>(IssueLabel.class).bindFromRequest();
 
@@ -148,6 +150,7 @@ public class IssueLabelApp extends Controller {
      * @param id 삭제할 이슈라벨의 아이디
      * @return 이슈라벨을 삭제해달라는 요청에 대한 응답
      */
+    @Transactional
      public static Result delete(String ownerName, String projectName, Long id) {
         // _method must be 'delete'
         DynamicForm bindedForm = form().bindFromRequest();

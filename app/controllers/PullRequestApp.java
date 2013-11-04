@@ -124,6 +124,7 @@ public class PullRequestApp extends Controller {
      * @param isPublic
      * @return
      */
+    @Transactional
     public static Result doClone(String userName, String projectName, String name, Boolean isPublic) {
         String status = "status";
         String failed = "failed";
@@ -484,6 +485,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
     public static Result accept(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -523,6 +525,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
     public static Result reject(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -551,6 +554,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
     public static Result open(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -577,6 +581,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
     public static Result cancel(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
@@ -638,6 +643,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
     public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
@@ -673,6 +679,7 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
     public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);

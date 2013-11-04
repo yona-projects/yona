@@ -14,6 +14,7 @@ import org.apache.shiro.util.ByteSource;
 import play.Configuration;
 import play.Logger;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.AccessControl;
@@ -206,6 +207,7 @@ public class UserApp extends Controller {
      *
      * @return
      */
+    @Transactional
     public static Result newUser() {
         Form<User> newUserForm = form(User.class).bindFromRequest();
         validate(newUserForm);
@@ -229,6 +231,7 @@ public class UserApp extends Controller {
      *
      * @return
      */
+    @Transactional
     public static Result resetUserPassword() {
         Form<User> userForm = form(User.class).bindFromRequest();
 
@@ -275,6 +278,7 @@ public class UserApp extends Controller {
      * @param user 사용자객체
      * @param newPassword 신규비밀번호
      */
+    @Transactional
     public static void resetPassword(User user, String newPassword) {
         user.password = hashedPassword(newPassword, user.passwordSalt);
         user.save();
@@ -455,6 +459,7 @@ public class UserApp extends Controller {
      *
      * @return
      */
+    @Transactional
     public static Result editUserInfo() {
         Form<User> userForm = new Form<>(User.class).bindFromRequest("name", "email");
         String newEmail = userForm.data().get("email");
@@ -501,6 +506,7 @@ public class UserApp extends Controller {
      * @param projectName 프로젝트 이름
      * @return
      */
+    @Transactional
     public static Result leave(String userName, String projectName) {
         ProjectApp.deleteMember(userName, projectName, UserApp.currentUser().id);
         return redirect(routes.UserApp.userInfo(UserApp.currentUser().loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));

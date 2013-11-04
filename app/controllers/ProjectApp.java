@@ -329,6 +329,7 @@ public class ProjectApp extends Controller {
      * @return the result
      * @throws Exception the exception
      */
+    @Transactional
     public static Result deleteProject(String loginId, String projectName) throws Exception {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
@@ -365,6 +366,7 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return 프로젝트, 멤버목록, Role 목록
      */
+    @Transactional
     public static Result members(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
@@ -628,6 +630,7 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return 프로젝트, 멤버목록, Role 목록
      */
+    @Transactional
     public static Result newMember(String loginId, String projectName) {
         // TODO change into view validation
         Form<User> addMemberForm = form(User.class).bindFromRequest();
@@ -670,6 +673,7 @@ public class ProjectApp extends Controller {
      * @param userId 삭제할 멤버 아이디
      * @return the result
      */
+    @Transactional
     public static Result deleteMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
@@ -703,6 +707,7 @@ public class ProjectApp extends Controller {
      * @param userId the user id
      * @return
      */
+    @Transactional
     public static Result editMember(String loginId, String projectName, Long userId) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
 
@@ -884,6 +889,7 @@ public class ProjectApp extends Controller {
      * @param projectName the project name
      * @return the result
      */
+    @Transactional
     public static Result attachLabel(String ownerName, String projectName) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
@@ -956,6 +962,7 @@ public class ProjectApp extends Controller {
      * @param id the id
      * @return the result
      */
+    @Transactional
     public static Result detachLabel(String ownerName, String projectName, Long id) {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
