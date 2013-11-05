@@ -130,7 +130,7 @@
 
             htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
             htVar.oValidator.registerCallback('check_loginId', _onValidateLoginId)
-            
+
             // set error message
             htVar.oValidator.setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"));
             htVar.oValidator.setMessage('required',         Messages("validation.required"));
@@ -200,7 +200,7 @@
 
         function hideErrorMessage(welInput){
             welInput.tooltip("hide");
-            
+
             try{
                 welInput.tooltip("destroy");
             } catch(e){} // to avoid bootstrap bug
