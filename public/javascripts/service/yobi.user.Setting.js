@@ -230,7 +230,8 @@
          */
         function _sendCroppedImage(){
             var elImage = new Image();
-
+            var sTmpImageURL = htElement.welImgCrop.attr("src");
+            
             // 원본 이미지 크기를 알아내기 위해 새 객체로 불러온다
             // 브라우저 캐시를 사용하므로 네트워크 호출 없음
             elImage.onload = function(){
@@ -248,8 +249,12 @@
 
                 var htEnv = yobi.Files.getEnv();
 
-                // blob 전송이 가능한 환경이면 캔버스를 이용해 처리하고
+                // blob 전송이 가능한 환경이면
                 if(htEnv.bXHR2){
+                    // 임시 업로드 상태의 현재 파일은 삭제
+                    yobi.Files.deleteFile({"sURL": sTmpImageURL});
+                    
+                    // 캔버스를 이용해 Crop 이미지 데이터로 업로드
                     var elCanvas = document.getElementById("avatarCrop"); // canvas
                     var oContext = elCanvas.getContext("2d");
                     oContext.drawImage(elImage, htCropData.x, htCropData.y, htCropData.w, htCropData.h, 0, 0, 128, 128);
@@ -262,8 +267,8 @@
                     // TODO: 아니면 서버에 Crop 데이터만 전송한다 (for IE)
                     htElement.welFormAvatar.submit();
                 }
-            }
-            elImage.src = htElement.welImgCrop.attr("src");
+            };
+            elImage.src = sTmpImageURL;
         }
 
         /**
