@@ -8,7 +8,7 @@
  */
 /*
  * 프로젝트 페이지 전역에 영향을 주는 공통모듈
- * prjmenu.scala.html 에서 호출함
+ * projectMenu.scala.html 에서 호출함
  */
 (function(ns) {
     var oNS = $yobi.createNamespace(ns);
@@ -25,7 +25,10 @@
             _initElement();
             _attachEvent();
 
-            _initShortcutKey(htOptions.htKeyMap);
+            // htKeyMap is optional
+            if(typeof htOptions.htKeyMap === "object"){
+                _initShortcutKey(htOptions.htKeyMap);
+            }
         }
 
         /**
