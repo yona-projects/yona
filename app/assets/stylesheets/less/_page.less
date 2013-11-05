@@ -3455,7 +3455,7 @@ div.markdown-preview {
             .messages {
                 a { display:inline-block; font-size:14px; }
                 pre { background:#f5f5f5; }
-
+                vertical-align:top;
                 button.more {
                     display:inline-block;
                     border:none; margin:0; font-size:14px;
@@ -3467,7 +3467,8 @@ div.markdown-preview {
 
             .commit-id {
                 width: 70px; text-align:center;
-
+                vertical-align:top;
+                padding-top:15px;
                 font-family:Consolas;
                 font-size:12px;
 
@@ -3476,7 +3477,8 @@ div.markdown-preview {
                     &:hover { color:@link-hover-color; text-decoration:underline; }
                 }
             }
-
+            .date { vertical-align:top;}
+            .author { vertical-align:top;}
             .browse {  width:70px; text-align:center; }
         }
     }
