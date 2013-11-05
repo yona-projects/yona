@@ -1,5 +1,6 @@
 package playRepository;
 
+import models.CodeComment;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
@@ -27,6 +28,8 @@ public class FileDiff {
     public boolean isBinaryB = false;
     private boolean isEndOfLineMissing;
     public DiffEntry.ChangeType changeType;
+    public Integer interestLine = null;
+    public CodeComment.Side interestSide = null;
 
     /**
      * Get list of hunks
@@ -77,7 +80,30 @@ public class FileDiff {
                     curEdit = editList.get(curIdx);
             }
 
-            hunks.add(hunk);
+            if (interestLine != null && interestSide != null) {
+                boolean added = false;
+                switch(interestSide) {
+                    case A:
+                        if (hunk.beginA <= interestLine && hunk.endA >= interestLine) {
+                            hunks.add(hunk);
+                            added = true;
+                        }
+                        break;
+                    case B:
+                        if (hunk.beginB <= interestLine && hunk.endB >= interestLine) {
+                            hunks.add(hunk);
+                            added = true;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                if (added) {
+                    break;
+                }
+            } else {
+                hunks.add(hunk);
+            }
         }
 
         return hunks;
