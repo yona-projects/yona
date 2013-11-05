@@ -917,6 +917,7 @@ public class ProjectApp extends Controller {
         if (label == null) {
             // Create new label if there is no label which has the given name.
             label = new Label(category, name);
+            label.projects.add(project);
             label.save();
             isCreated = true;
         }
