@@ -1,6 +1,7 @@
 @(pull: PullRequest, comments: scala.collection.immutable.List[TimelineItem])
 
 @import utils.JodaDateUtil._
+@import utils.TemplateHelper._
 @import utils.AccessControl._
 @import scala.collection.immutable
 @import utils.TemplateHelper.DiffRenderer._
@@ -104,13 +105,27 @@
                     </span>
                     <span class="ago">@utils.TemplateHelper.agoString(ago(event.created))</span>
                 </div>
-
+                <ul class="commit-list">
                 @for(commit <- event.getPullRequestCommits) {
-                <div class="comment-body" style="margin:10px 0; @if(commit.state == PullRequestCommit.State.PRIOR){text-decoration:line-through;}">
-                    <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">@commit.commitShortId</a>
-                    <p class="commitMsg">@commit.commitMessage</p>
-                </div>
+                    <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
+                    @defining(User.findByEmail(commit.authorEmail)) { author => 
+                        <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
+                            @commit.commitShortId
+                        </a>
+                        @if(!author.isAnonymous()) {
+                        <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
+                            <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
+                        </a>
+                        <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
+                        } else {
+                           <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
+                        }
+                        <p class="commitMsg">@commit.commitMessage.split("\n")(0)  @if(commit.commitMessage.split("\n").length > 1) {<button class="moreBtn" data-toggle="more"><span>...</span></button>}</p>
+                        <p class="commitMsg desc hide">@commit.commitMessage.replace(commit.commitMessage.split("\n")(0)+"\n", "")</p>
+                    }
+                    </li>
                 }
+                </ul>
             </div>
 		</li>
 		}

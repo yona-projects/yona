@@ -45,7 +45,7 @@
             htElement.welTextarea = $("#comment-editor");
             htElement.welAttachments = $("#attachments");
             htElement.welBtnWatch = $('#watch-button');
-
+            htElement.welComment = $('#comments');
             htElement.welBtnHelp = $('#helpBtn');
             htElement.welMsgHelp = $('#helpMessage');
 
@@ -84,6 +84,10 @@
             $("a#toggle").click(function(weEvt){
                 weEvt.preventDefault();
                 $("#outdatedCommits").toggle();
+            });
+
+            htElement.welComment.on('click','[data-toggle="more"]', function(){
+              $(this).parent().next('p.desc').toggleClass('hide');
             });
         }
 
