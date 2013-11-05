@@ -8,37 +8,37 @@
  */
 
 (function(ns){
-	
-	var oNS = $yobi.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
-		
-		var htVar = {};
-		var htElement = {};
-	
-		function _init(htOptions){
-			var htOpt = htOptions || {};
-			_initVar(htOpt);
-			_initElement(htOptions);
-			_attachEvent();			
+
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(htOptions){
+
+        var htVar = {};
+        var htElement = {};
+
+        function _init(htOptions){
+            var htOpt = htOptions || {};
+            _initVar(htOpt);
+            _initElement(htOptions);
+            _attachEvent();
             _initLabels();
             
 //            _resizeProjectInfo();
-		}
+        }
 
         function _initVar(htOptions){
             htVar.sURLProjectLabels = htOptions.sURLProjectLabels;
             htVar.sURLLabels = htOptions.sURLLabels;
             htVar.sURLLabelCategories = htOptions.sURLLabelCategories;
             htVar.nProjectId = htOptions.nProjectId;
-		}
+        }
 
-		/**
-		 * initialize element
-		 */
-		function _initElement(htOptions) {
+        /**
+         * initialize element
+         */
+        function _initElement(htOptions) {
             var welBtnPlus = $('#plus-button-template').tmpl();
 
-			htElement.welRepoURL = $("#repositoryURL");
+            htElement.welRepoURL = $("#repositoryURL");
 
             // project label
             htElement.welLabelBoard = htOptions.welLabelBoard;
@@ -82,13 +82,13 @@
             htElement.welHomeInfo = htElement.welHome.find(".project-info");
             htElement.welHomeMember = htElement.welHome.find(".member-info");
             */            
-		}
-		
-		/**
-		 * attach event handler
-		 */
-		function _attachEvent(){
-			htElement.welRepoURL.click(_onClickRepoURL);
+        }
+
+        /**
+         * attach event handler
+         */
+        function _attachEvent(){
+            htElement.welRepoURL.click(_onClickRepoURL);
             htElement.welLabelEditorToggle.on('click', function() {
                 if ($(this).hasClass('active')) {
                     // Now inactive
@@ -114,17 +114,17 @@
             htElement.welBtnPlusCategory.click(_onClickPlusCategory);
 
             //$(window).bind("resize", _resizeProjectInfo);
-		}
-		
-		/*
-		function _resizeProjectInfo(){
-		    htElement.welHomeInfo.width(htElement.welHome.width() - (htElement.welHomeLogo.width() + htElement.welHomeMember.width() + 21));
-		}
-		*/
+        }
 
-		function _onClickRepoURL(){
-			htElement.welRepoURL.select();
-		}
+        /*
+        function _resizeProjectInfo(){
+            htElement.welHomeInfo.width(htElement.welHome.width() - (htElement.welHomeLogo.width() + htElement.welHomeMember.width() + 21));
+        }
+        */
+
+        function _onClickRepoURL(){
+            htElement.welRepoURL.select();
+        }
 
         /**
         * When any key is pressed on input box in any Category line.
@@ -443,7 +443,7 @@
             htElement.welLabelBoard.parent().css('height', 'auto');
         }
 
-		_init(htOptions || {});
-	};
-	
+        _init(htOptions || {});
+    };
+
 })("yobi.project.Home");

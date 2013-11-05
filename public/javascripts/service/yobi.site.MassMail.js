@@ -9,53 +9,53 @@
 
 (function(ns){
 
-	var oNS = $yobi.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(htOptions){
 
-		var htVar = {};
-		var htElement = {};
+        var htVar = {};
+        var htElement = {};
 
-		/**
-		 * initialize
-		 */
-		function _init(htOptions){
-			var htOpt = htOptions || {};
-			_initVar(htOpt);
-			_initElement(htOpt);
-			_attachEvent();
-		}
+        /**
+         * initialize
+         */
+        function _init(htOptions){
+            var htOpt = htOptions || {};
+            _initVar(htOpt);
+            _initElement(htOpt);
+            _attachEvent();
+        }
 
-		/**
-		 * initialize variables
-		 * 정규식 변수는 한번만 선언하는게 성능 향상에 도움이 됩니다
-		 */
-		function _initVar(htOptions){
+        /**
+         * initialize variables
+         * 정규식 변수는 한번만 선언하는게 성능 향상에 도움이 됩니다
+         */
+        function _initVar(htOptions){
             htVar.sURLProjects = htOptions.sURLProjects;
             htVar.sURLMailList = htOptions.sURLMailList;
-		}
+        }
 
-		/**
-		 * initialize element variables
-		 */
-		function _initElement(htOptions){
+        /**
+         * initialize element variables
+         */
+        function _initElement(htOptions){
             // projects
             htElement.welInputProject = $('#input-project');
             htElement.welSelectedProjects = $('#selected-projects');
             htElement.welBtnSelectProject = $('#select-project');
             htElement.welBtnWriteEmail = $('#write-email');
-		}
+        }
 
         /**
-		 * attach event handlers
-		 */
-		function _attachEvent(){
+         * attach event handlers
+         */
+        function _attachEvent(){
             htElement.welInputProject.keypress(_onKeyPressInputProject);
             htElement.welBtnSelectProject.click(_onClickSelectProject);
             htElement.welBtnWriteEmail.click(_onClickWriteEmail);
             new yobi.ui.Typeahead(htElement.welInputProject, {
-		"sActionURL": htVar.sURLProjects
+        "sActionURL": htVar.sURLProjects
             });
-		}
+        }
 
         /**
         * Launch a mail client to write an email.
@@ -131,8 +131,8 @@
             };
 
             var welProject = $('<span class="label label-info">' + sName + " </span>")
-            	.append($('<a href="javascript:void(0)">x</a>')
-            	.click(fOnClickUnselect));
+                .append($('<a href="javascript:void(0)">x</a>')
+                .click(fOnClickUnselect));
 
             return welProject;
         }
@@ -148,7 +148,7 @@
             }
         }
 
-		_init(htOptions);
-	};
+        _init(htOptions);
+    };
 
 })("yobi.site.MassMail");

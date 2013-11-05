@@ -9,10 +9,10 @@
 
 (function(ns){
 
-	var oNS = $yobi.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(htOptions){
 
-	    var htVar = {};
+        var htVar = {};
         var htElement = {};
 
         /**
