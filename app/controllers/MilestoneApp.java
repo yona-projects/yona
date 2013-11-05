@@ -3,6 +3,7 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 import play.data.*;
+import play.db.ebean.Transactional;
 import play.mvc.*;
 import utils.AccessControl;
 import utils.Constants;
@@ -100,6 +101,7 @@ public class MilestoneApp extends Controller {
      * @return
      * @see {@link #validate(models.Project, play.data.Form)}
      */
+    @Transactional
     public static Result newMilestone(String userName, String projectName) {
         Form<Milestone> milestoneForm = new Form<>(Milestone.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -179,6 +181,7 @@ public class MilestoneApp extends Controller {
      * @param milestoneId
      * @return
      */
+    @Transactional
     public static Result editMilestone(String userName, String projectName, Long milestoneId) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
@@ -218,6 +221,7 @@ public class MilestoneApp extends Controller {
      * @param id
      * @return
      */
+    @Transactional
     public static Result deleteMilestone(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
@@ -250,6 +254,7 @@ public class MilestoneApp extends Controller {
      * @param id
      * @return
      */
+    @Transactional
     public static Result open(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {
@@ -274,6 +279,7 @@ public class MilestoneApp extends Controller {
      * @param id
      * @return
      */
+    @Transactional
     public static Result close(String userName, String projectName, Long id) {
         Project project = ProjectApp.getProject(userName, projectName);
         if(project == null ) {

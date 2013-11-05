@@ -18,6 +18,7 @@ import utils.JodaDateUtil;
 import utils.ErrorViews;
 
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.Call;
 import play.mvc.Result;
 
@@ -116,6 +117,7 @@ public class BoardApp extends AbstractPostingApp {
      * @param projectName 프로젝트 이름
      * @return
      */
+    @Transactional
     public static Result newPost(String userName, String projectName) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -259,6 +261,7 @@ public class BoardApp extends AbstractPostingApp {
      * @return
      * @see AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form
      */
+    @Transactional
     public static Result editPost(String userName, String projectName, Long number) {
         Form<Posting> postForm = new Form<>(Posting.class).bindFromRequest();
         Project project = ProjectApp.getProject(userName, projectName);
@@ -297,6 +300,7 @@ public class BoardApp extends AbstractPostingApp {
      * @return
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
+    @Transactional
     public static Result deletePost(String owner, String projectName, Long number) {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         if (project == null) {
@@ -323,6 +327,7 @@ public class BoardApp extends AbstractPostingApp {
      * @throws IOException
      * @see controllers.AbstractPostingApp#newComment(models.Comment, play.data.Form, play.mvc.Call, Runnable)
      */
+    @Transactional
     public static Result newComment(String owner, String projectName, Long number) throws IOException {
         Project project = Project.findByOwnerAndProjectName(owner, projectName);
         if (project == null) {
@@ -369,6 +374,7 @@ public class BoardApp extends AbstractPostingApp {
      * @return
      * @see controllers.AbstractPostingApp#delete(play.db.ebean.Model, models.resource.Resource, play.mvc.Call)
      */
+    @Transactional
     public static Result deleteComment(String userName, String projectName, Long number, Long commentId) {
         Comment comment = PostingComment.find.byId(commentId);
         Project project = comment.asResource().getProject();

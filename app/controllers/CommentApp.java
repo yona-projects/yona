@@ -2,6 +2,7 @@ package controllers;
 
 import models.enumeration.Operation;
 import models.resource.Resource;
+import play.db.ebean.Transactional;
 import play.mvc.Result;
 import play.mvc.Controller;
 import utils.AccessControl;
@@ -9,6 +10,7 @@ import utils.AccessControl;
 import static models.enumeration.ResourceType.*;
 
 public class CommentApp extends Controller {
+    @Transactional
     public static Result delete(String type, String id) {
         Resource comment = Resource.get(getValue(type), id);
 

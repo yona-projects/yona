@@ -5,6 +5,7 @@ import models.enumeration.EventType;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import play.data.Form;
+import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.AccessControl;
@@ -22,6 +23,7 @@ import java.util.Set;
  */
 public class PullRequestCommentApp extends Controller {
 
+    @Transactional
     public static Result newComment(String ownerName, String projectName, Long pullRequestId) throws IOException {
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
 
@@ -85,6 +87,7 @@ public class PullRequestCommentApp extends Controller {
         NotificationEvent.add(notiEvent);
     }
 
+    @Transactional
     public static Result deleteComment(Long id) {
         PullRequestComment pullRequestComment = PullRequestComment.findById(id);
         if(pullRequestComment == null) {

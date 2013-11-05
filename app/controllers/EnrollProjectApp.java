@@ -12,6 +12,7 @@ import models.enumeration.EventType;
 import models.enumeration.RequestState;
 import models.enumeration.RoleType;
 import models.resource.Resource;
+import play.db.ebean.Transactional;
 import play.mvc.Call;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -34,6 +35,7 @@ public class EnrollProjectApp extends Controller {
      * @param projectName
      * @return
      */
+    @Transactional
     public static Result enroll(String loginId, String projectName) {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
         if(project == null) {
@@ -63,6 +65,7 @@ public class EnrollProjectApp extends Controller {
      * @param proejctName
      * @return
      */
+    @Transactional
     public static Result cancelEnroll(String loginId, String proejctName) {
         Project project = Project.findByOwnerAndProjectName(loginId, proejctName);
         if(project == null) {
