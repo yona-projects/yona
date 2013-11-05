@@ -1,10 +1,13 @@
 package models;
 
+import actors.PullRequestEventActor;
+import akka.actor.Props;
+
 import com.avaje.ebean.Page;
+
 import controllers.UserApp;
 import controllers.routes;
 import models.enumeration.EventType;
-
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
@@ -12,21 +15,21 @@ import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
-
 import org.joda.time.Duration;
 
 import com.avaje.ebean.Expr;
 
+import play.api.mvc.Call;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
-
 import play.i18n.Messages;
-
+import play.libs.Akka;
 import playRepository.*;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
@@ -353,13 +356,53 @@ public class PullRequest extends Model implements ResourceConvertible {
         GitRepository.restoreBranch(this);
     }
 
-    public void merge() {
-        GitRepository.merge(this);
-        if(this.state == State.CLOSED) {
-            this.received = JodaDateUtil.now();
-            this.receiver = UserApp.currentUser();
-            this.update();
-        }
+    public void merge(final PullRequestEventMessage message, final Call call) {
+        final PullRequest pullRequest = this;
+        GitRepository.cloneAndFetch(pullRequest, new AfterCloneAndFetchOperation() {
+            @Override
+            public void invoke(CloneAndFetch cloneAndFetch) throws IOException, GitAPIException {
+                Repository cloneRepository = cloneAndFetch.getRepository();
+                String srcToBranchName = pullRequest.toBranch;
+                String destToBranchName = cloneAndFetch.getDestToBranchName();
+
+                // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
+                GitRepository.checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
+
+                String mergedCommitIdFrom = null;
+                MergeResult mergeResult = null;
+
+                synchronized(this) {
+                    mergedCommitIdFrom =
+                            cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
+                    // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
+                    mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
+                }
+
+                if (mergeResult.getMergeStatus().isSuccessful()) {
+                    // merge 커밋 메시지 수정
+                    writeMergeCommitMessage(cloneRepository, UserApp.currentUser());
+
+                    pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
+                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
+
+                    // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
+                    // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
+                    GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), destToBranchName, srcToBranchName);
+
+                    // 풀리퀘스트 완료
+                    pullRequest.state = State.CLOSED;
+                    pullRequest.received = JodaDateUtil.now();
+                    pullRequest.receiver = UserApp.currentUser();
+                    pullRequest.update();
+
+                    NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, message.getRequest(), pullRequest, State.OPEN, State.CLOSED);
+                    PullRequestEvent.addEvent(notiEvent, pullRequest);
+
+                    PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
+                    Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
+                }
+            }
+        });
     }
 
     public String getResourceKey() {
@@ -389,6 +432,16 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         return allowedWatchers;
+    }
+
+    private void writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {
+        Project fromProject = this.fromProject;
+        new Git(cloneRepository).commit()
+                .setAmend(true).setAuthor(user.name, user.email)
+                .setMessage("Merge pull request #" + this.number +
+                        " from " + fromProject.owner + "/" + fromProject.name + " " + this.fromBranch)
+                .setCommitter(user.name, user.email)
+                .call();
     }
 
     public void reject() {
@@ -671,7 +724,7 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     /**
      * groupKey를 통해 같은 코멘트그룹 목록을 반환한다.
-     * (같은 커밋, 같은 파일, 같은 라인의 덧글들)
+     * (같은 커밋, 같은 파일, 같은 라인의 댓글들)
      * @param commitComments
      * @return
      */

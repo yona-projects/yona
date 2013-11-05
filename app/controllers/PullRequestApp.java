@@ -1,6 +1,7 @@
 package controllers;
 
 import com.avaje.ebean.Page;
+
 import models.*;
 import models.enumeration.*;
 
@@ -27,6 +28,7 @@ import utils.*;
 import views.html.git.*;
 
 import javax.servlet.ServletException;
+
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
@@ -520,17 +522,11 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
-        pullRequest.merge();
-
-        // merge이후 관련 pullRequest의 상태를 체크한다.
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
-        PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
-        Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-
-        addNotification(pullRequest, call, State.OPEN, State.CLOSED);
+        pullRequest.merge(message, call);
 
         return redirect(call);
     }
