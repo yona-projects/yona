@@ -53,13 +53,13 @@
             htElement.welBtnSelectProject.click(_onClickSelectProject);
             htElement.welBtnWriteEmail.click(_onClickWriteEmail);
             new yobi.ui.Typeahead(htElement.welInputProject, {
-        "sActionURL": htVar.sURLProjects
+                "sActionURL": htVar.sURLProjects
             });
         }
 
         /**
-        * Launch a mail client to write an email.
-        */
+         * Launch a mail client to write an email.
+         */
         function _onClickWriteEmail() {
             // Get project names from labels in #selected-projects div.
             var sMailingType = $('[name=mailingType]:checked').val();
@@ -98,9 +98,9 @@
         }
 
         /**
-        * Add a project, which user types in #input-project element, into
-        * #selected-projects div.
-        */
+         * Add a project, which user types in #input-project element, into
+         * #selected-projects div.
+         */
         function _onClickSelectProject() {
             _appendProjectLabel([htElement.welInputProject.val()]);
             htElement.welInputProject.val("");
@@ -108,10 +108,10 @@
         }
 
         /**
-        * Same as _onClickSelectProject but triggered by pressing enter.
-        *
-        * @param {Object} oEvent
-        */
+         * Same as _onClickSelectProject but triggered by pressing enter.
+         *
+         * @param {Object} oEvent
+         */
         function _onKeyPressInputProject(oEvent) {
             if (oEvent.keyCode == 13) {
                 _appendProjectLabel([htElement.welInputProject.val()]);
@@ -121,10 +121,10 @@
         }
 
         /**
-        * Make a project label by given name.
-        *
-        * @param {String} sName
-        */
+         * Make a project label by given name.
+         *
+         * @param {String} sName
+         */
         function _createProjectLabel(sName) {
             var fOnClickUnselect = function() {
                 welProject.remove();
@@ -138,10 +138,10 @@
         }
 
         /**
-        * Append the given projects on #selected-projects div to show them.
-        *
-        * @param {Object} htProjects
-        */
+         * Append the given projects on #selected-projects div to show them.
+         *
+         * @param {Object} htProjects
+         */
         function _appendProjectLabel(htTags) {
             for(var sId in htTags) {
                 htElement.welSelectedProjects.append(_createProjectLabel(sId, htTags[sId]));

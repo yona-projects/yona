@@ -122,21 +122,21 @@
          */
         function _initFormValidator(){
             var aRules = [
-                {"name": 'loginId',            "rules": 'required|callback_check_loginId'},
-                  {"name": 'email',            "rules": 'required|valid_email'},
-                  {"name": 'password',        "rules": 'required|min_length[4]'},
-                  {"name": 'retypedPassword', "rules": 'required|matches[password]'}
-              ];
+                {"name": 'loginId',         "rules": 'required|callback_check_loginId'},
+                {"name": 'email',           "rules": 'required|valid_email'},
+                {"name": 'password',        "rules": 'required|min_length[4]'},
+                {"name": 'retypedPassword', "rules": 'required|matches[password]'}
+            ];
 
             htVar.oValidator = new FormValidator('signup', aRules, _onFormValidate);
             htVar.oValidator.registerCallback('check_loginId', _onValidateLoginId)
 
             // set error message
             htVar.oValidator.setMessage('check_loginId', Messages("validation.allowedCharsForLoginId"));
-            htVar.oValidator.setMessage('required',         Messages("validation.required"));
-            htVar.oValidator.setMessage('min_length',     Messages("validation.tooShortPassword"));
-            htVar.oValidator.setMessage('matches',         Messages("validation.passwordMismatch"));
-            htVar.oValidator.setMessage('valid_email',     Messages("validation.invalidEmail"));
+            htVar.oValidator.setMessage('required',      Messages("validation.required"));
+            htVar.oValidator.setMessage('min_length',    Messages("validation.tooShortPassword"));
+            htVar.oValidator.setMessage('matches',       Messages("validation.passwordMismatch"));
+            htVar.oValidator.setMessage('valid_email',   Messages("validation.invalidEmail"));
         }
 
         /**

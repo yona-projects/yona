@@ -126,7 +126,7 @@ yobi.Pagination = (function(window, document) {
 
             if (typeof (options.submit) == 'function') {
                 linkToPrev.attr('href', 'javascript: void(0);').click(function(e) {
-                        options.submit(options.current - 1);
+                    options.submit(options.current - 1);
                 });
             } else {
                 urlToPrevPage = urlWithPageNum(options.url, options.current - 1, paramNameForPage);
