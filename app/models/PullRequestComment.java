@@ -11,6 +11,9 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import playRepository.FileDiff;
 import playRepository.GitRepository;
 
@@ -266,12 +269,34 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         return String.format("Expected '%s' or '%s', but '%s'", Side.A, Side.B, side);
     }
 
-    public boolean threadEquals(PullRequestComment other) {
-        return commitA.equals(other.commitA) &&
-               commitB.equals(other.commitB) &&
-                path.equals(other.path) &&
+    /**
+     * 이 댓글이 달린 blob의 id를 반환한다.
+     *
+     * @return
+     * @throws IOException
+     */
+    private ObjectId getBlobId() throws IOException {
+        Repository repo = pullRequest.getMergedRepository();
+        RevTree tree = new RevWalk(repo).parseTree(repo.resolve(getCommitId()));
+        TreeWalk tw = TreeWalk.forPath(repo, path, tree);
+        return tw.getObjectId(0);
+    }
+
+    /**
+     * 이 댓글이 주어진 댓글 {@other}와 같은 스레드에 있는지의 여부를 반환한다.
+     *
+     * 이 댓글이 주어진 댓글과 같은 pullrequest에 속하고, line과 side가 같으며, 댓글이 달린 blob도 같다면
+     * 같은 스레드로 본다.
+     *
+     * @param other
+     * @return
+     * @throws IOException
+     */
+    public boolean threadEquals(PullRequestComment other) throws IOException {
+        return pullRequest.equals(other.pullRequest) &&
                 line.equals(other.line) &&
-                side.equals(other.side);
+                side.equals(other.side) &&
+                getBlobId().equals(other.getBlobId());
     }
 
     @Transient
