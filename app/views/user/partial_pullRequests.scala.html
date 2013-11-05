@@ -19,9 +19,9 @@
 
 <div class="row-fluid issue-item">
     <div class="span10">
-        <div class="pull-left span1" style="margin-right: 10px;">
-            <a href="@routes.ProjectApp.project(project.owner, project.name)">
-                <img src="@projectLogoImage" alt="@project.owner / @project.name" class="img-rounded" />
+        <div class="pull-left span1">
+            <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
+                <img src="@projectLogoImage" alt="@project.owner / @project.name">
             </a>
         </div>
         <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="avatar-wrap mlarge pull-left">
@@ -33,24 +33,29 @@
             </div>
             <div class="infos nm">
                 <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
-                <span class="date"><i class="yobicon-calendar"></i> @agoString(req.createdAgo())</span>
-                <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
-                <code>
-                    <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a> /
-                    <a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a> :
-                    @branchName(req.fromBranch)
-                </code>
-                </span>
-                        <span style="margin-left: 3px;">
-                            <i class="yobicon-long-arrow-right yobicon-large"></i>
-                        </span>
-                <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
-                <code>
-                    <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a> /
-                    <a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a> :
-                    @branchName(req.toBranch)
-                </code>
-                </span>
+                <span class="date">@JodaDateUtil.momentFromNow(req.created)</span>
+                
+                <div class="pullRequest-branch ml20">
+                    <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">
+                        <code class="from">
+                            <i class="yobicon-branch"></i>
+                            <a href="@routes.UserApp.userInfo(req.fromProject.owner)">@req.fromProject.owner</a>/<!--
+                         --><a href="@routes.ProjectApp.project(req.fromProject.owner, req.fromProject.name)">@req.fromProject.name</a>:
+                            @branchName(req.fromBranch)
+                        </code>
+                    </span>
+                    <i class="yobicon-right ml10"></i>
+                    <span class="ml10" data-toggle="tooltip" data-original-title="@Messages("pullRequest.to")">
+                        <code class="to">
+                            <i class="yobicon-branch"></i>
+                            @if(!project.owner.equals(req.toProject.owner) || !project.name.equals(req.toProject.name)) {
+                            <a href="@routes.UserApp.userInfo(req.toProject.owner)">@req.toProject.owner</a>/<!--
+                         --><a href="@routes.ProjectApp.project(req.toProject.owner, req.toProject.name)">@req.toProject.name</a>:
+                            }
+                            @branchName(req.toBranch)
+                        </code>
+                    </span>
+                </div>                
             </div>
         </label>
     </div>
