@@ -245,10 +245,14 @@ object TemplateHelper {
         (List(commentOnCommit), Nil)
       } else {
         (commentOnCommit, comments.head) match {
-          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) =>
-            (List(a) ++ threadAndRemains(b, comments.tail)._1, threadAndRemains(b, comments.tail)._2)
-          case _ =>
-            (threadAndRemains(commentOnCommit, comments.tail)._1, List(comments.head) ++ threadAndRemains(commentOnCommit, comments.tail)._2)
+          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) => {
+            val res = threadAndRemains(b, comments.tail)
+            (List(a) ++ res._1, res._2)
+          }
+          case (a, b) => {
+            val res = threadAndRemains(a, comments.tail)
+            (res._1, List(b) ++ res._2)
+          }
         }
       }
     }
