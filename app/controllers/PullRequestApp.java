@@ -439,7 +439,7 @@ public class PullRequestApp extends Controller {
         List<PullRequestComment> comments = new ArrayList<>();
 
         for (PullRequestComment comment : pullRequest.comments) {
-            if (comment.hasValidCommitId()) {
+            if (comment.line != null && comment.hasValidCommitId()) {
                 comments.add(comment);
             }
         }

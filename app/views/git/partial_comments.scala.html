@@ -53,7 +53,7 @@
             <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>
             }
 
-            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && (!comment.hasValidCommitId || !hasDiff(comment))){
+            @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE) && !isLineComment(comment)){
             <span class="edit pull-right">
                 <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.PullRequestCommentApp.deleteComment(comment.id)"><i class="yobicon-trash"></i></button>
             </span>
