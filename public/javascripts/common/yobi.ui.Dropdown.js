@@ -46,7 +46,8 @@
         function _initElement(htOptions){
             htElement.welContainer = $(htOptions.elContainer);
             htElement.welSelectedLabel = htElement.welContainer.find(".d-label");
-            htElement.waItems = htElement.welContainer.find(".dropdown-menu li");
+            htElement.welList = htElement.welContainer.find(".dropdown-menu");
+            htElement.waItems = htElement.welList.find("li");
         }
 
         /**
@@ -57,7 +58,7 @@
             // 각 <li> 항목에 이벤트 핸들러를 설정하는 것 보다
             // ul.dropdown-menu 전체에 설정하는 것이 메모리 절약
 
-            htElement.welContainer.on('click', '.dropdown-menu', _onClickItem);
+            htElement.welList.on("click", "li", _onClickItem);
         }
 
         /**
@@ -70,8 +71,8 @@
             var welCurrent = $(weEvt.target);
             var welTarget = (weEvt.target.tagName === "LI") ? welCurrent : $(welCurrent.parents("li")[0]);
 
-            // if click disabled item
-            if(welTarget.hasClass("disabled")){
+            // ignore click event if item doesn't have data-value attribute
+            if(welTarget.length === 0 || typeof welTarget.attr("data-value") === "undefined"){
                 weEvt.stopPropagation();
                 weEvt.preventDefault();
                 return false;
@@ -98,14 +99,15 @@
          */
         function _setFormValue(welTarget){
             var sFieldValue = welTarget.attr("data-value");
-            var sFieldName    = htElement.welContainer.attr("data-name");
-            var welInput    = htElement.welContainer.find("input[name='" + sFieldName +"']");
-            htVar.sValue = sFieldValue;
+            var sFieldName  = htElement.welContainer.attr("data-name");
+            htVar.sValue    = sFieldValue;
 
             if(typeof sFieldName == "undefined"){
                 return;
             }
 
+            var welInput = htElement.welContainer.find("input[name='" + sFieldName +"']");
+            
             if(welInput.length === 0){
                 welInput = $('<input type="hidden" name="' + sFieldName + '">');
                 htElement.welContainer.append(welInput);
@@ -183,6 +185,4 @@
             "selectItem"   : _selectItem
         };
     };
-
 })("yobi.ui.Dropdown");
-
