@@ -34,6 +34,13 @@
             </div>
         </div>
         @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
+        
+        <div id="minimap" class="minimap-outer">
+            <div class="minimap-wrap">
+                <div class="minimap-curr"></div>
+                <div class="minimap-links"></div>
+            </div>
+        </div>
     </div>
 
 @common.markdown(project)
