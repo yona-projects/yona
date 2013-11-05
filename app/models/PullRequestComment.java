@@ -239,21 +239,12 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         }
 
         for (FileDiff diff: fileDiffs) {
-            switch(side) {
-                case A:
-                    if (path.equals(diff.pathA)) {
-                        diff.updateRange(line, null);
-                        fileDiff = diff;
-                        return fileDiff;
-                    }
-                case B:
-                    if (path.equals(diff.pathB)) {
-                        diff.updateRange(null, line);
-                        fileDiff = diff;
-                        return fileDiff;
-                    }
-                default:
-                    throw new RuntimeException(unexpectedSideMessage(side));
+            if ((side.equals(Side.A) && path.equals(diff.pathA)) ||
+                 (side.equals(Side.B) && path.equals(diff.pathB))) {
+                fileDiff = diff;
+                fileDiff.interestSide = side;
+                fileDiff.interestLine = line;
+                return fileDiff;
             }
         }
 
