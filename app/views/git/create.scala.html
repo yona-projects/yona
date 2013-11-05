@@ -107,25 +107,9 @@
             <div id="frmWrap">
             @views.html.git.partial_diff(form, project, mergeResult, pullRequest)
             </div>
-            <div id="compare" class="modal hide compare-wrap" tabindex="-1" role="dialog">
-                <h4 class="path">
-                    <span></span>
-                    <button type="button" class="ybtn pull-right" data-dismiss="modal" style="margin-right:20px;">@Messages("button.confirm")</button>
-                </h4>
-                <div class="row-fluid">
-                    <div class="span6 compare-from"></div>
-                    <div class="span6 compare-to"></div>
-                </div>
-                <div id="mergely" class="mergely-wrap"></div>
-            </div>
         }
     </div>
 </div>
-
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/codemirror.css")">
-<link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mergely/mergely.css")">
-<script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
-<script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
 
 <script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
 <script type="text/javascript">

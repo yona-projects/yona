@@ -24,16 +24,10 @@
             _attachEvent();
             _render();
 
-            // bUseUploader 를 명시적으로 false 로 지정한 경우
-            // code.Diff 에서는 파일업로더 초기화를 실행하지 않음
-            if(htVar.bUseUploader !== false){
-                _initFileUploader();
-            }
+            _initFileUploader();
             _initFileDownloader();
             _initToggleCommentsButton();
-            _initFileViewButton();
             _initMiniMap();
-            _initMergely();
         }
 
         /**
@@ -45,10 +39,6 @@
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
             htVar.sParentCommitId = htOptions.sParentCommitId;
             htVar.sCommitId = htOptions.sCommitId;
-            htVar.sTplFileURLA = htOptions.sTplFileURLA ?htOptions.sTplFileURLA : htOptions.sTplFileURL;
-            htVar.sTplFileURLB = htOptions.sTplFileURLB ?htOptions.sTplFileURLB : htOptions.sTplFileURL;
-            htVar.sTplRawURLA = htOptions.sTplRawURLA ? htOptions.sTplRawURLA : htOptions.sTplRawURL;
-            htVar.sTplRawURLB = htOptions.sTplRawURLB ? htOptions.sTplRawURLB : htOptions.sTplRawURL;
             htVar.rxSlashes = /\//g;
 
             // 미니맵
@@ -86,13 +76,6 @@
             htElement.welMiniMapWrap = htElement.welMiniMap.find(".minimap-wrap");
             htElement.welMiniMapCurr = htElement.welMiniMapWrap.find(".minimap-curr");
             htElement.welMiniMapLinks = htElement.welMiniMapWrap.find(".minimap-links");
-
-            // FullDiff (Mergely)
-            htElement.welMergelyWrap = $("#compare");
-            htElement.welMergely = $("#mergely");
-            htElement.welMergelyPathTitle = htElement.welMergelyWrap.find(".path > span");
-            htElement.welMergelyCommitFrom = htElement.welMergelyWrap.find(".compare-from");
-            htElement.welMergelyCommitTo = htElement.welMergelyWrap.find(".compare-to");
         }
 
         /**
@@ -117,7 +100,6 @@
 
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
-            $(window).on("resize", _resizeMergely);
             $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').click(_onClickLineNumA);
 
             _attachCommentBoxToggleEvent();
@@ -352,145 +334,6 @@
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();
-        }
-
-        /**
-         * 부모/현재 CommitId 의 파일을 보기 위한 버튼을 만든다
-         */
-        function _initFileViewButton(){
-            $('tr.file').each(function(index, elTR) {
-                var welTR = $(elTR);
-                var welTo = welTR.find("td.linenum-to");
-                var welFrom = welTR.find("td.linenum-from");
-                var welBody = welTR.find("td.line-body");
-                var sURL = "#", sCommitId="";
-
-                var sCommitA = welTR.closest('.diff-body').data('commitA');
-                var sCommitB = welTR.closest('.diff-body').data('commitB');
-                var sPathA = welTR.closest('.diff-body').data('pathA');
-                var sPathB = welTR.closest('.diff-body').data('pathB');
-
-                // 두 시점에 대한 커밋, 경로 정보를 모두 갖고 있다면
-                if(sCommitA && sCommitB && sPathA && sPathB) {
-                    sURL = $yobi.tmpl(htVar.sTplFileURLA, {"commitId": sCommitA, "path":sPathA});
-                    sCommitId = sCommitA.substr(0, Math.min(7, sCommitA.length));
-                    welFrom.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
-
-                    // 전체비교(fulldiff) 버튼 추가
-                    var welBtnFullDiff = $('<button type="button" class="ybtn pull-right">').text(Messages("code.fullDiff"));
-                    welBtnFullDiff.data({
-                        "pathA": sPathA,
-                        "pathB": sPathB,
-                        "from": sCommitA,
-                        "to"  : sCommitB
-                    });
-                    welBtnFullDiff.on("click", _onClickBtnFullDiff);
-                    welBody.append(welBtnFullDiff);
-                }
-
-                // 변경된 새 커밋(to) 표시
-                sURL = $yobi.tmpl(htVar.sTplFileURLB, {"commitId":sCommitB, "path":sPathB});
-                sCommitB = sCommitB.substr(0, Math.min(7, sCommitB.length));
-                welTo.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitB + '</a>');
-
-                welTR = welTo = welFrom = welBody = null; // gc
-            });
-        }
-
-        /**
-         * Mergely 초기화
-         */
-        function _initMergely(){
-            var htWrapSize = _getMergelyWrapSize();
-
-            htElement.welMergely.mergely({
-                "width" : "auto",
-                // "height": "auto",
-                "height": (htWrapSize.nWrapHeight - 100) + "px",
-                "editor_width": ((htWrapSize.nWrapWidth - 92) / 2) + "px",
-                "editor_height": (htWrapSize.nWrapHeight - 100) + "px",
-                "cmsettings":{"readOnly": true, "lineNumbers": true}
-            });
-        }
-
-        /**
-         * Mergely wrapper 크기 반환
-         */
-        function _getMergelyWrapSize(){
-            return {
-                "nWrapWidth" : window.innerWidth - 100,
-                "nWrapHeight": window.innerHeight - (window.innerHeight * 0.2)
-            };
-        }
-
-        /**
-         * fullDiff 버튼 클릭시 이벤트 핸들러
-         *
-         * @param {Wrapped Event} weEvt
-         */
-        function _onClickBtnFullDiff(weEvt){
-            var welTarget = $(weEvt.target);
-            var sToId   = welTarget.data("to");
-            var sFromId = welTarget.data("from");
-            var sPathA  = welTarget.data("pathA");
-            var sPathB  = welTarget.data("pathB");
-            var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURLA, {"commitId": sFromId, "path": sPathA});
-            var sRawURLTo = $yobi.tmpl(htVar.sTplRawURLB, {"commitId": sToId, "path": sPathB});
-
-            // UpdateText
-            if (sPathA != sPathB) {
-                htElement.welMergelyPathTitle.text(sPathA + " -> " + sPathB);
-            } else {
-                htElement.welMergelyPathTitle.text(sPathB);
-            }
-            htElement.welMergelyCommitFrom.text(sFromId);
-            htElement.welMergelyCommitTo.text(sToId);
-            htElement.welMergelyWrap.modal();
-
-            _resizeMergely();
-            _updateMergely(sRawURLFrom, sRawURLTo);
-        }
-
-        /**
-         * 두 코드를 가져다 fullDiff 에 표시하는 함수
-         *
-         * @param {String} sRawURLFrom
-         * @param {String} sRawURLTo
-         */
-        function _updateMergely(sRawURLFrom, sRawURLTo){
-            // lhs = from
-            $.get(sRawURLFrom).done(function(sData){
-                htElement.welMergely.mergely("lhs", sData);
-                htElement.welMergely.mergely("resize");
-                htElement.welMergely.mergely("update");
-            });
-
-            // rhs = to
-            $.get(sRawURLTo).done(function(sData){
-                htElement.welMergely.mergely("rhs", sData);
-                htElement.welMergely.mergely("resize");
-                htElement.welMergely.mergely("update");
-            });
-        }
-
-        /**
-         * Mergely 영역 크기 조절
-         */
-        function _resizeMergely(){
-            var htWrapSize = _getMergelyWrapSize();
-            var nWidth = ((htWrapSize.nWrapWidth - 92) / 2);
-            var nHeight = (htWrapSize.nWrapHeight - 100);
-
-            htElement.welMergelyWrap.css({
-                "width" : htWrapSize.nWrapWidth + "px",
-                "height": htWrapSize.nWrapHeight + "px",
-                "margin-left": -(htWrapSize.nWrapWidth / 2) + "px"
-            });
-            htElement.welMergely.mergely("cm", "rhs").setSize(nWidth + "px", nHeight + "px");
-            htElement.welMergely.mergely("cm", "lhs").setSize(nWidth + "px", nHeight + "px");
-
-            $(".mergely-column").width(nWidth).height(nHeight);
-            $(".CodeMirror").height(nHeight);
         }
 
         /**

@@ -201,7 +201,7 @@ object TemplateHelper {
       path + ":" + side + ":" + lineNum
 
     def commentsOrEmpty(comments: Map[String, List[CodeComment]], key: String) =
-      if (comments.contains(key)) comments(key) else Nil
+      if (comments != null && comments.contains(key)) comments(key) else Nil
 
     def commentsOnAddLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
       commentsOrEmpty(comments, commentKey(line.file.pathB, Side.B, line.numB + 1))
