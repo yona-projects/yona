@@ -80,10 +80,10 @@ public class IssueApp extends AbstractPostingApp {
         if (HttpUtil.isRequestedWithXHR(request())) {
             format = HttpUtil.isPJAXRequest(request()) ? "pjax" : "json";
         }
-        
+
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
         Page<Issue> issues = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
-        
+
         switch(format){
             case EXCEL_EXT:
                 return issuesAsExcel(project, el);
@@ -112,7 +112,7 @@ public class IssueApp extends AbstractPostingApp {
     private static Result issuesAsHTML(Project project, Page<Issue> issues, models.support.SearchCondition searchCondition){
         return ok(list.render("title.issueList", issues, searchCondition, project));
     }
-    
+
     /**
      * 이슈 목록을 Microsoft Excel 형식으로 반환
      * issues() 에서 요청 형식({@code format})이 엑셀(xls)일 경우 호출된다
@@ -133,7 +133,7 @@ public class IssueApp extends AbstractPostingApp {
 
         return ok(excelData);
     }
-    
+
     /**
      * 이슈 목록을 PJAX 용으로 응답한다
      * issuesAsHTML()과 거의 같지만 캐시하지 않고 partial_search 로 렌더링한다는 점이 다르다
@@ -147,7 +147,7 @@ public class IssueApp extends AbstractPostingApp {
         response().setHeader("Cache-Control", "no-cache, no-store");
         return ok(partial_search.render("title.issueList", issues, searchCondition, project));
     }
-    
+
     /**
      * 이슈 목록을 정해진 갯수만큼 JSON으로 반환한다
      * QueryString 으로 목록에서 제외할 이슈ID (exceptId) 를 지정할 수 있고 
@@ -166,7 +166,7 @@ public class IssueApp extends AbstractPostingApp {
         // 이슈 수정시 '비슷할 수 있는 이슈' 목록에서 현재 수정중인 이슈를 제외하기 위해 사용한다
         String exceptIdStr = request().getQueryString("exceptId");
         Long exceptId = -1L;
-        
+
         if(!StringUtils.isEmpty(exceptIdStr)){
             try {
                 exceptId = Long.parseLong(exceptIdStr);
@@ -179,11 +179,11 @@ public class IssueApp extends AbstractPostingApp {
 
         for (Issue issue : issueList){
             Long issueId = issue.getNumber();
-            
+
             if(issueId == exceptId){
                 continue;
             }
-            
+
             ObjectNode result = Json.newObject();
             result.put("id", issueId);
             result.put("title", issue.title);
@@ -192,7 +192,7 @@ public class IssueApp extends AbstractPostingApp {
             result.put("link", routes.IssueApp.issue(project.owner, project.name, issueId).toString());
             listData.put(issue.id.toString(), result);
         }
-        
+
         return ok(listData);
     }
 

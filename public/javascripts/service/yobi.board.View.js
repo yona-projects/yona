@@ -8,46 +8,46 @@
  */
 
 (function(ns){
-	
-	var oNS = $yobi.createNamespace(ns);
-	oNS.container[oNS.name] = function(htOptions){
-		
-		var htVar = {};
-		var htElement = {};
 
-		/**
-		 * initialize
-		 * @param {Hash Table} htOptions
-		 */
-		function _init(htOptions){
-			_initVar(htOptions || {});
-			_initElement(htOptions || {});
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(htOptions){
+
+        var htVar = {};
+        var htElement = {};
+
+        /**
+         * initialize
+         * @param {Hash Table} htOptions
+         */
+        function _init(htOptions){
+            _initVar(htOptions || {});
+            _initElement(htOptions || {});
             _attachEvent();
 
-			_initFileUploader();
-			_initFileDownloader();
-		}
+            _initFileUploader();
+            _initFileDownloader();
+        }
 
-		/**
-		 * initialize variables except HTML Element
-		 */
-		function _initVar(htOptions){
-			htVar.sTplFileItem = $('#tplAttachedFile').text();
-			htVar.sAction = htOptions.sAction;
+        /**
+         * initialize variables except HTML Element
+         */
+        function _initVar(htOptions){
+            htVar.sTplFileItem = $('#tplAttachedFile').text();
+            htVar.sAction = htOptions.sAction;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
-		}
-		
-		/**
-		 * initialize HTML Element variables
-		 */
-		function _initElement(htOptions){
-			htElement.welUploader = $("#upload");
-			htElement.welTextarea = $("#comment-editor");
-			
-			htElement.welAttachments = $(".attachments");			
+        }
+
+        /**
+         * initialize HTML Element variables
+         */
+        function _initElement(htOptions){
+            htElement.welUploader = $("#upload");
+            htElement.welTextarea = $("#comment-editor");
+
+            htElement.welAttachments = $(".attachments");
             htElement.welBtnWatch = $('#watch-button');
-		}
+        }
 
         /**
          * attach event handler
@@ -68,10 +68,10 @@
             });
         }
 
-		/**
-		 * initialize fileUploader
-		 */
-		function _initFileUploader(){
+        /**
+         * initialize fileUploader
+         */
+        function _initFileUploader(){
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welTextarea);
             
             if(oUploader){
@@ -82,20 +82,20 @@
                     "sUploaderId"  : oUploader.attr("data-namespace")
                 }));
             }
-		}
-		
-		/**
-		 * initialize fileDownloader
-		 */
-		function _initFileDownloader(){
+        }
+
+        /**
+         * initialize fileDownloader
+         */
+        function _initFileDownloader(){
             htElement.welAttachments.each(function(i, elContainer){
                 if(!$(elContainer).data("isYobiAttachment")){
                     (new yobi.Attachments({"elContainer": elContainer}));
                 }
             });
-		}
+        }
         
         _init(htOptions);
-	};
-	
+    };
+
 })("yobi.board.View");

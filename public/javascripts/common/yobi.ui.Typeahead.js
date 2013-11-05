@@ -25,33 +25,33 @@
 
 (function(ns){
 
-	var oNS = $yobi.createNamespace(ns);
-	oNS.container[oNS.name] = function(sQuery, htOptions){
+    var oNS = $yobi.createNamespace(ns);
+    oNS.container[oNS.name] = function(sQuery, htOptions){
 
-		var htVar = {};
-		var htElement = {};
+        var htVar = {};
+        var htElement = {};
 
-		/**
-		 * 초기화
-		 * Initialize component
-		 * @param {String} sQuery ui.Typeahead 를 적용할 대상
-		 * @param {Hash Table} htOptions
-		 */
-		function _init(sQuery, htOptions){
-			_initVar(htOptions);
-			_initElement(sQuery);
-		}
+        /**
+         * 초기화
+         * Initialize component
+         * @param {String} sQuery ui.Typeahead 를 적용할 대상
+         * @param {Hash Table} htOptions
+         */
+        function _init(sQuery, htOptions){
+            _initVar(htOptions);
+            _initElement(sQuery);
+        }
 
-		/**
-		 * 변수 초기화
-		 * Initialize variables
-		 * @param {Hash Table} htOptions
-		 */
-		function _initVar(htOptions){
-			htVar.sActionURL = htOptions.sActionURL || "/users";
-			htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
+        /**
+         * 변수 초기화
+         * Initialize variables
+         * @param {Hash Table} htOptions
+         */
+        function _initVar(htOptions){
+            htVar.sActionURL = htOptions.sActionURL || "/users";
+            htVar.rxContentRange = /items\s+([0-9]+)\/([0-9]+)/;
             htVar.htData = htOptions.htData || {};
-		}
+        }
 
         function data(key, value) {
             if (value !== undefined) {
@@ -77,7 +77,7 @@
             } catch (err){
                 if(typeof console == "object") {
                     console.log(err);
-        	}
+            }
             }
         }
 
@@ -92,25 +92,25 @@
         */
         function _onTypeAhead(sQuery, fProcess) {
             if (sQuery.match(htVar.sLastQuery) && htVar.bIsLastRangeEntire) {
-            	fProcess(htVar.htCachedUsers);
+                fProcess(htVar.htCachedUsers);
             } else {
                 htVar.htData.query = sQuery;
-            	$yobi.sendForm({
-            		"sURL"		: htVar.sActionURL,
-            		"htOptForm"	: {"method":"get"},
-            		"htData"	: htVar.htData,
+                $yobi.sendForm({
+                    "sURL"        : htVar.sActionURL,
+                    "htOptForm"    : {"method":"get"},
+                    "htData"    : htVar.htData,
                     "sDataType" : "json",
-            		"fOnLoad"	: function(oData, oStatus, oXHR){
-            			var sContentRange = oXHR.getResponseHeader('Content-Range');
+                    "fOnLoad"    : function(oData, oStatus, oXHR){
+                        var sContentRange = oXHR.getResponseHeader('Content-Range');
 
-            			htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
-            			htVar.sLastQuery = sQuery;
-            			htVar.htCachedUsers = oData;
+                        htVar.bIsLastRangeEntire = _isEntireRange(sContentRange);
+                        htVar.sLastQuery = sQuery;
+                        htVar.htCachedUsers = oData;
 
-            			fProcess(oData);
-            			sContentRange = null;
-            		}
-            	});
+                        fProcess(oData);
+                        sContentRange = null;
+                    }
+                });
             }
         }
 
@@ -126,7 +126,7 @@
              return (aMatch) ? !(parseInt(aMatch[1], 10) < parseInt(aMatch[2], 10)) : true;
          }
 
-		_init(sQuery, htOptions || {});
-	};
+        _init(sQuery, htOptions || {});
+    };
 
 })("yobi.ui.Typeahead");

@@ -85,11 +85,11 @@ public class History {
     }
 
     public void setUserAvatarUrl(String userAvatarUrl){
-    	this.userAvatarUrl = userAvatarUrl;
+        this.userAvatarUrl = userAvatarUrl;
     }
 
     public String getUserAvatarUrl(){
-    	return userAvatarUrl;
+        return userAvatarUrl;
     }
 
     public String getShortTitle() {

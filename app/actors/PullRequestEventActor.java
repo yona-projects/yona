@@ -27,42 +27,42 @@ public class PullRequestEventActor extends UntypedActor {
             if (!(object instanceof PullRequestEventMessage)) {
                 return;
             }
-            
+
             PullRequestEventMessage message = (PullRequestEventMessage) object;
             List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(
                     message.getProject(), message.getBranch());
-            
+
             for (PullRequest pullRequest : pullRequests) {
                 try {
                     PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
-                    
+
                     if (mergeResult.commitChanged()) {
-                        
+
                         mergeResult.saveCommits();
-                        
+
                         if (!mergeResult.getNewCommits().isEmpty()) {
                             PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getNewCommits());
                         }
                     }
-                    
+
                     if (mergeResult.conflicts()) {
-                        
+
                         mergeResult.setConflictStateOfPullRequest();
-                        
+
                         NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
                                 pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.CONFLICT);
                         PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
-                        
+
                     } else if (mergeResult.resolved()) {
-                        
+
                         mergeResult.setResolvedStateOfPullRequest();
-                        
+
                         NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
                                 pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.RESOLVED);
                         PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
-                        
+
                     }
-                    
+
                     mergeResult.save();
                 } catch (Exception e) {
                     play.Logger.error("Failed to check merging from " + pullRequest, e );
