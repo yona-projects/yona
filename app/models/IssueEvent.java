@@ -23,7 +23,8 @@ public class IssueEvent extends Model implements TimelineItem {
     public Date created;
 
     public String senderLoginId;
-
+    public String senderEmail;
+    
     @ManyToOne
     public Issue issue;
 

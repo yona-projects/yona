@@ -2,6 +2,7 @@ package actors;
 
 import akka.actor.UntypedActor;
 import controllers.routes;
+import controllers.UserApp;
 import models.*;
 import models.enumeration.EventType;
 import org.eclipse.jgit.lib.ObjectId;
@@ -16,6 +17,8 @@ import playRepository.GitRepository;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
+
+import utils.TemplateHelper.*;
 
 /**
  * @author Keesun Baik
@@ -41,10 +44,12 @@ public class CommitCheckActor extends UntypedActor {
         String fullMessage = gitCommit.getMessage();
         Set<Issue> referredIssues = IssueEvent.findReferredIssue(fullMessage, project);
         String newValue = getNewEventValue(gitCommit, project);
+        
         for(Issue issue : referredIssues) {
             IssueEvent issueEvent = new IssueEvent();
             issueEvent.issue = issue;
             issueEvent.senderLoginId = gitCommit.getCommitterName();
+            issueEvent.senderEmail = gitCommit.getCommitterEmail();
             issueEvent.newValue = newValue;
             issueEvent.created = new Date();
             issueEvent.eventType = EventType.ISSUE_REFERRED;
@@ -53,9 +58,19 @@ public class CommitCheckActor extends UntypedActor {
     }
 
     private String getNewEventValue(GitCommit gitCommit, Project project) {
+        String senderEmail = gitCommit.getCommitterEmail();
+        User user = User.findByEmail(senderEmail);        
+        String userInfoURL = routes.UserApp.userInfo(user.loginId, UserApp.DEFAULT_GROUP, UserApp.DAYS_AGO, UserApp.DEFAULT_SELECTED_TAB).toString();
+        String userAvatar = utils.TemplateHelper.getUserAvatar(user, "small");
+        String commiterName = user.isAnonymous() ? gitCommit.getCommitterName() : user.name;
+        String commiterLoginId = user.isAnonymous() ? "" : user.loginId;
+        
         return Messages.get("issue.event.referred.from.commit",
-                gitCommit.getCommitterName(), gitCommit.getShortId(),
-                routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()));
+                commiterLoginId,
+                userAvatar,
+                gitCommit.getShortId(),
+                routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()) 
+               );
     }
 
     private List<RevCommit> getCommits(CommitCheckMessage message) {
