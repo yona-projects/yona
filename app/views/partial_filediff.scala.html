@@ -101,7 +101,11 @@
 @renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {
   <table class="diff-body show-comments" data-path-a="@diff.pathA" data-path-b="@diff.pathB" data-commit-a="@diff.commitA" data-commit-b="@diff.commitB"><tbody>
   <tr class="file">
-      <td class="linenum-from"><a href="@routes.CodeApp.codeBrowserWithBranch(projectA.owner, projectA.name, diff.commitA, diff.pathA)" title="@diff.commitA" target="_blank">@getShortenedCommitId(diff.commitA)</a></td>
+      <td class="linenum-from">
+          @if(diff.commitA != null && diff.pathA != null){
+          <a href="@routes.CodeApp.codeBrowserWithBranch(projectA.owner, projectA.name, diff.commitA, diff.pathA)" title="@diff.commitA" target="_blank">@getShortenedCommitId(diff.commitA)</a>
+          }
+      </td>
       <td class="linenum-to"><a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a></td>
       <td class="line-body">
           <span class="filename">@fileHeader</span>
