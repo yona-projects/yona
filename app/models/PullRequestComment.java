@@ -6,6 +6,7 @@ import models.resource.ResourceConvertible;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
@@ -179,33 +180,6 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         }
     }
 
-    static private String getLastChangedCommitUntil(
-            Repository gitRepo, String rev, String path)
-            throws IOException, IllegalArgumentException, GitAPIException {
-
-
-        if (rev == null) {
-            throw new IllegalArgumentException(String.format("Null revision is not allowed"));
-        }
-
-        ObjectId id = gitRepo.resolve(rev);
-
-        if (id == null) {
-            throw new IllegalArgumentException(
-                    String.format("Git object not found: revision '%s' in %s",
-                            rev, gitRepo.toString()));
-        }
-
-        Iterator<RevCommit> result =
-                new Git(gitRepo).log().add(id).addPath(path).call().iterator();
-
-        if (result.hasNext()) {
-            return result.next().getId().getName();
-        } else {
-            return null;
-        }
-    }
-
     /**
      * 저장소 {@code gitRepo}에서, {@code path}의 {@code line}이 {@code rev1}과 {@code rev2}사이에서
      * 아무 변화가 없었는지
@@ -222,10 +196,15 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     static private boolean noChangesBetween(Repository repoA, String rev1,
                                             Repository repoB, String rev2,
                                             String path, Integer line) throws IOException, GitAPIException {
-        String a = getLastChangedCommitUntil(repoA, rev1, path);
-        String b = getLastChangedCommitUntil(repoB, rev2, path);
-
+        ObjectId a = getBlobId(repoA, rev1, path);
+        ObjectId b = getBlobId(repoB, rev2, path);
         return a.equals(b);
+    }
+
+    static private ObjectId getBlobId(Repository repo, String rev, String path) throws IOException {
+        RevTree tree = new RevWalk(repo).parseTree(repo.resolve(rev));
+        TreeWalk tw = TreeWalk.forPath(repo, path, tree);
+        return tw.getObjectId(0);
     }
 
     @Transient
