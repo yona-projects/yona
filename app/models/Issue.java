@@ -82,15 +82,6 @@ public class Issue extends AbstractPosting implements LabelOwner {
     }
 
     /**
-     * @return
-     * @see models.AbstractPosting#getFinder()
-     */
-    @Override
-    public Finder<Long, ? extends AbstractPosting> getFinder() {
-        return finder;
-    }
-
-    /**
      * {@link Project}의 {@link Issue} 마다 유일하게 증가하는 번호를 갖도록
      * 최근 이슈 번호를 반환한다.
      *
