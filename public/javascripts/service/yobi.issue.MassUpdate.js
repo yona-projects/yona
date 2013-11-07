@@ -85,9 +85,11 @@
                 _onCheckIssue();
             });
             yobi.ShortcutKey.attach("CTRL+A", function(htInfo){
-                htInfo.weEvt.preventDefault();
-                $(htElement.weAllCheckbox).trigger('click');
-                return false; 
+                if(!htInfo.bFormInput){
+                    htInfo.weEvt.preventDefault();
+                    $(htElement.weAllCheckbox).trigger('click');
+                    return false;
+                }
             });
         }
 
