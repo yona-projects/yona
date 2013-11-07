@@ -79,8 +79,6 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
         this.updatedDate = JodaDateUtil.now();
     }
 
-    protected abstract Finder<Long, ? extends AbstractPosting> getFinder();
-
     /**
      * {@link Project}에 속한 {@link Issue} 또는 {@link Posting} 번호를 올린다.
      *

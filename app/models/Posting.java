@@ -31,14 +31,6 @@ public class Posting extends AbstractPosting {
     public List<PostingComment> comments;
 
     /**
-     * @return
-     * @see models.AbstractPosting#getFinder()
-     */
-    public Finder<Long, ? extends AbstractPosting> getFinder() {
-        return finder;
-    }
-
-    /**
      * {@link Project}의 최근 게시물 번호를 반환한다.
      *
      * @return
