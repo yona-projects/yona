@@ -10,18 +10,17 @@
 <script type="text/javascript">
 $(document).ready(function(){
     var htOptions = {
-		"aTarget"   : $("[markdown]"),
-		"sTplSwitch": $("#tplMarkdownPreview").text(),
-    }
+        "sTplSwitch": $("#tplMarkdownPreview").text(),
+        "bBreaks": ($('[markdown]').hasClass('readme-body')) ? false : true
+    };
 
     @if(project != null){
     htOptions.sIssuesUrl = "@routes.IssueApp.issues(project.owner, project.name)";
     htOptions.sProjectUrl = "@routes.ProjectApp.project(project.owner, project.name)";
     }
 
-    htOptions.breaks = ($('[markdown]').hasClass('readme-body')) ? false : true;
-
-    yobi.Markdown(htOptions);
+    // Reusable markdown renderer
+    yobi.Markdown.init(htOptions);
 });
 </script>
 
