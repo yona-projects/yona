@@ -241,7 +241,7 @@
                 if(sResult != htVar.sTimelineHTML){ // update only HTML has changed
                     htVar.sTimelineHTML = sResult;
                     htElement.welTimeline.html(sResult); // update timeline HTML
-                    yobi.Markdown.render(htElement.welTimeline.find("[markdown]")); // render markdown
+                    yobi.Markdown.enableMarkdown(htElement.welTimeline.find("[markdown]")); // enable markdown
                     htElement.welTimeline.find("[data-request-method]").requestAs(); // delete button
                 }
             }).always(function(){

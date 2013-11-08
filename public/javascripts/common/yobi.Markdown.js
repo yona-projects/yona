@@ -43,6 +43,30 @@ yobi.Markdown = (function(htOptions){
         htVar.rxIssue = /\[issue\]/g;
         htVar.rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
         htVar.rxWord = /\w/;
+        
+        htVar.htMarkedOption = {
+            "gfm"       : true,
+            "tables"    : true,
+            "pedantic"  : false,
+            "sanitize"  : false,
+            "smartLists": true,
+            "langPrefix": '',
+            "breaks"    : htVar.bBreaks,
+            "hook"      : _markedHooks,
+            "highlight" : function(sCode, sLang){
+                return (!sLang) ? sCode : hljs(sCode, sLang).value;
+            }
+        };
+        
+        var sGfmLinkRules = '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
+
+        sGfmLinkRules = sGfmLinkRules.replace(htVar.rxUser, htVar.sUserRules)
+            .replace(htVar.rxUser, htVar.sUserRules)
+            .replace(htVar.rxProject, htVar.sProjecRules)
+            .replace(htVar.rxShar1, htVar.sSha1Rules)
+            .replace(htVar.rxIssue, htVar.sIssueRules);
+
+        htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
     }
 
     /**
@@ -54,54 +78,41 @@ yobi.Markdown = (function(htOptions){
      * @return {String}
      */
     function _renderMarkdown(sText) {
-        var htMarkedOption = {
-          gfm: true,
-          tables: true,
-          breaks: htVar.bBreaks,
-          pedantic: false,
-          sanitize: false,
-          smartLists: true,
-          langPrefix: '',
-          highlight: function(sCode, sLang){
-            return (!sLang) ? sCode : hljs(sCode, sLang).value;
-          }
-        };
-
-        var fHooks = function(sSrc, sType){
-            var sGfmLinkRules = '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
-
-            if(sType === 'code'){
-                return sSrc;
-            }
-
-            sGfmLinkRules = sGfmLinkRules.replace(htVar.rxUser, htVar.sUserRules)
-                .replace(htVar.rxUser, htVar.sUserRules)
-                .replace(htVar.rxProject, htVar.sProjecRules)
-                .replace(htVar.rxShar1, htVar.sSha1Rules)
-                .replace(htVar.rxIssue, htVar.sIssueRules);
-
-            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
-                var aIgnores;
-                
-                while(aIgnores = htVar.rxIgnoreRules.exec(sSrc)) {
-                  if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length) {
-                      return sMatch;
-                  }
-                }
-
-                if(htVar.rxWord.test(sSrc[nMatchIndex-1]) || htVar.rxWord.test(sSrc[nMatchIndex+sMatch.length])) {
-                    return sMatch;
-                }
-
-                return _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue, sAt, sShar1,sMention);
-            });
-            return sSrc;
-        };
-
-        htMarkedOption.hook = fHooks;
-        return htVar.htFilter.sanitize(marked(sText,htMarkedOption)).xss();
+        return htVar.htFilter.sanitize(marked(sText, htVar.htMarkedOption)).xss();
     }
 
+    /**
+     * marked.js hooks function
+     * 
+     * @require marked.js
+     * @param {String} sSrc
+     * @param {String} sType
+     * @return {String}
+     */
+    function _markedHooks(sSrc, sType){
+        if(sType === 'code'){
+            return sSrc;
+        }
+
+        sSrc = sSrc.replace(htVar.rxGfmLinkRules, function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
+            var aIgnores;
+            
+            while(aIgnores = htVar.rxIgnoreRules.exec(sSrc)){
+                if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length){
+                    return sMatch;
+                }
+            }
+
+            if(htVar.rxWord.test(sSrc[nMatchIndex-1]) || htVar.rxWord.test(sSrc[nMatchIndex+sMatch.length])){
+                return sMatch;
+            }
+
+            return _makeLink(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention);
+        });
+        
+        return sSrc;
+    }
+    
     /**
      * make hyperlink automatically with patterns.
      * 
@@ -222,6 +233,7 @@ yobi.Markdown = (function(htOptions){
     // public interface
     return {
         "init"  : _init,
-        "render": _enableMarkdown
+        "enableMarkdown": _enableMarkdown,
+        "renderMarkdown": _renderMarkdown
     };
 })();
