@@ -4,12 +4,10 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -22,7 +20,6 @@ import javax.servlet.ServletException;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -170,62 +167,39 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         switch(side) {
             case A:
                 return!noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdFrom, mergedRepository, commitA, path, line);
+                    pullRequest.mergedCommitIdFrom, mergedRepository, commitA, path);
             case B:
                 return !noChangesBetween(mergedRepository,
-                    pullRequest.mergedCommitIdTo, mergedRepository, commitB, path, line);
+                    pullRequest.mergedCommitIdTo, mergedRepository, commitB, path);
             default:
                 throw new RuntimeException(unexpectedSideMessage(side));
         }
     }
 
-    static private String getLastChangedCommitUntil(
-            Repository gitRepo, String rev, String path)
-            throws IOException, IllegalArgumentException, GitAPIException {
-
-
-        if (rev == null) {
-            throw new IllegalArgumentException(String.format("Null revision is not allowed"));
-        }
-
-        ObjectId id = gitRepo.resolve(rev);
-
-        if (id == null) {
-            throw new IllegalArgumentException(
-                    String.format("Git object not found: revision '%s' in %s",
-                            rev, gitRepo.toString()));
-        }
-
-        Iterator<RevCommit> result =
-                new Git(gitRepo).log().add(id).addPath(path).call().iterator();
-
-        if (result.hasNext()) {
-            return result.next().getId().getName();
-        } else {
-            return null;
-        }
-    }
-
     /**
-     * 저장소 {@code gitRepo}에서, {@code path}의 {@code line}이 {@code rev1}과 {@code rev2}사이에서
-     * 아무 변화가 없었는지
+     * 저장소 {@code gitRepo}에서, {@code path}가 {@code rev1}과 {@code rev2}사이에서 아무
+     * 변화가 없었는지
      *
      * @param repoA
      * @param rev1
      * @param repoB
      * @param rev2
      * @param path
-     * @param line
      * @return
      * @throws IOException
      */
     static private boolean noChangesBetween(Repository repoA, String rev1,
                                             Repository repoB, String rev2,
-                                            String path, Integer line) throws IOException, GitAPIException {
-        String a = getLastChangedCommitUntil(repoA, rev1, path);
-        String b = getLastChangedCommitUntil(repoB, rev2, path);
-
+                                            String path) throws IOException, GitAPIException {
+        ObjectId a = getBlobId(repoA, rev1, path);
+        ObjectId b = getBlobId(repoB, rev2, path);
         return a.equals(b);
+    }
+
+    static private ObjectId getBlobId(Repository repo, String rev, String path) throws IOException {
+        RevTree tree = new RevWalk(repo).parseTree(repo.resolve(rev));
+        TreeWalk tw = TreeWalk.forPath(repo, path, tree);
+        return tw.getObjectId(0);
     }
 
     @Transient
