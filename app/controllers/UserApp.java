@@ -1,6 +1,7 @@
 package controllers;
 
 import com.avaje.ebean.ExpressionList;
+import com.avaje.ebean.annotation.Transactional;
 import models.*;
 import models.enumeration.Operation;
 
@@ -14,7 +15,7 @@ import org.apache.shiro.util.ByteSource;
 import play.Configuration;
 import play.Logger;
 import play.data.Form;
-import play.db.ebean.Transactional;
+import play.i18n.Messages;
 import play.mvc.*;
 import play.mvc.Http.Cookie;
 import utils.AccessControl;
@@ -550,6 +551,150 @@ public class UserApp extends Controller {
             return null;
         }
         return new Sha256Hash(plainTextPassword, ByteSource.Util.bytes(passwordSalt), HASH_ITERATIONS).toBase64();
+    }
+
+    /**
+     * 이메일 추가
+     *
+     * @return
+     */
+    @Transactional
+    public static Result addEmail() {
+        Form<Email> emailForm = form(Email.class).bindFromRequest();
+        String newEmail = emailForm.data().get("email");
+
+        if(emailForm.hasErrors()) {
+            flash(Constants.WARNING, emailForm.error("email").message());
+            return redirect(routes.UserApp.editUserInfoForm());
+        }
+
+        User currentUser = currentUser();
+        if(currentUser == null || currentUser.isAnonymous()) {
+            return forbidden(ErrorViews.NotFound.render());
+        }
+
+        if(User.isEmailExist(newEmail) || Email.exists(newEmail, true) || currentUser.has(newEmail)) {
+            flash(Constants.WARNING, Messages.get("user.email.duplicate"));
+            return redirect(routes.UserApp.editUserInfoForm());
+        }
+
+        Email email = new Email();
+        User user = currentUser();
+        email.user = user;
+        email.email = newEmail;
+        email.valid = false;
+
+        user.addEmail(email);
+
+        return redirect(routes.UserApp.editUserInfoForm());
+    }
+
+    /**
+     * 이메일 삭제
+     *
+     * @param id
+     * @return
+     */
+    @Transactional
+    public static Result deleteEmail(Long id) {
+        User currentUser = currentUser();
+        Email email = Email.find.byId(id);
+
+        if(currentUser == null || currentUser.isAnonymous() || email == null) {
+            return forbidden(ErrorViews.NotFound.render());
+        }
+
+        if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.DELETE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+        }
+
+        email.delete();
+        return redirect(routes.UserApp.editUserInfoForm());
+    }
+
+    /**
+     * 보조 이메일 확인 메일 보내기
+     *
+     * @param id
+     * @return
+     */
+    @Transactional
+    public static Result sendValidationEmail(Long id) {
+        User currentUser = currentUser();
+        Email email = Email.find.byId(id);
+
+        if(currentUser == null || currentUser.isAnonymous() || email == null) {
+            return forbidden(ErrorViews.NotFound.render());
+        }
+
+        if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+        }
+
+        email.sendValidationEmail();
+
+        flash(Constants.WARNING, "확인 메일을 전송했습니다.");
+        return redirect(routes.UserApp.editUserInfoForm());
+    }
+
+    /**
+     * 이메일 확인
+     *
+     * @param id
+     * @param token
+     * @return
+     */
+    @Transactional
+    public static Result confirmEmail(Long id, String token) {
+        User currentUser = currentUser();
+        Email email = Email.find.byId(id);
+
+        if(currentUser == null || currentUser.isAnonymous() || email == null) {
+            return forbidden(ErrorViews.NotFound.render());
+        }
+
+        if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+        }
+
+        if(email.validate(token)) {
+            return redirect(routes.UserApp.editUserInfoForm());
+        } else {
+            return forbidden(ErrorViews.NotFound.render());
+        }
+    }
+
+    /**
+     * 대표 메일로 설정하기
+     *
+     * @param id
+     * @return
+     */
+    @Transactional
+    public static Result setAsMainEmail(Long id) {
+        User currentUser = currentUser();
+        Email email = Email.find.byId(id);
+
+        if(currentUser == null || currentUser.isAnonymous() || email == null) {
+            return forbidden(ErrorViews.NotFound.render());
+        }
+
+        if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.UPDATE)) {
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
+        }
+
+        String oldMainEmail = currentUser.email;
+        currentUser.email = email.email;
+        currentUser.removeEmail(email);
+        currentUser.update();
+
+        Email newSubEmail = new Email();
+        newSubEmail.valid = true;
+        newSubEmail.email = oldMainEmail;
+        newSubEmail.user = currentUser;
+        currentUser.addEmail(newSubEmail);
+
+        return redirect(routes.UserApp.editUserInfoForm());
     }
 
     /*
