@@ -26,7 +26,7 @@
     if(selectedBranch){
         var queryString = "?branch=" + URLEncoder.encode(selectedBranch, "UTF-8");
         if(path != null) {
-            queryString += "&path=" + path;
+            queryString += "&path=" + path + "#" + path.replace("/", "-").replace(".", "-");
         }
         routes.CodeHistoryApp.show(project.owner, project.name, commit.getId()) + queryString;
     } else {
