@@ -107,6 +107,8 @@ JsMessages class 의 generate method 는 더 이상 static method 가 아니다.
 
 ## Known Issues
 
+### 현상
+
 play 2.1 에서 사용하던 코드 중, 아래와 같은 구조의 코드는 play 2.2 에서 정상적으로 compile 은 되지만, runtime 시 ```java.lang.VerifyError``` 를 발생시킨다.
 
 	TestObject object = new TestObject();
@@ -127,7 +129,20 @@ play 2.1 에서 사용하던 코드 중, 아래와 같은 구조의 코드는 pl
 
 이 문제가 해결되기 전까지는 play 2.2 로 migration 은 힘들 것 같다.
 
-문제에 대한 재현은 아래 링크들에서 확인 할 수 있다.
+### 원인
+
+javassist 3.17 version 이후부터 class file 의 stackmap 을 구성하는 코드가 변경되었다.
+이로 인해서 변조된 class file 이 JAVA7 이상에서 사용되는 class verifier 의 검증을 통과하지 못하는 경우가 발생한다.
+
+### workaround
+
+stackmap 검증에 덜 엄격한 JAVA6 의 class verifier 를 사용하도록 강제한다.
+
+    -XX:-UseSplitVerifier
+
+이 옵션은 JAVA7 에서 유효하며, JAVA8 에선 deprecated.
+
+### 관련 링크
 
 * [테스트 코드](https://github.com/kjkmadness/play-test)
 * [테스트 CI](https://travis-ci.org/kjkmadness/play-test)
