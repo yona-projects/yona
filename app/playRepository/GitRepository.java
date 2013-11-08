@@ -154,13 +154,14 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      */
     public static void cloneLocalRepository(Project originalProject, Project forkProject)
-            throws IOException {
+            throws IOException, GitAPIException {
         try {
             cloneHardLinkedRepository(originalProject, forkProject);
         } catch (Exception e) {
             new GitRepository(forkProject).delete();
             play.Logger.warn(
                     "Failed to clone a repository using hardlink. Fall back to straight copy", e);
+            cloneRepository(getGitDirectory(originalProject), forkProject);
         }
     }
 
