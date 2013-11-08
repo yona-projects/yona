@@ -97,8 +97,7 @@ public class BasicAuthAction extends Action<Object> {
         }
 
         if (!user.isAnonymous()) {
-            context.session().put(UserApp.SESSION_USERID, String.valueOf(user.id));
-            context.session().put(UserApp.SESSION_USERNAME, user.name);
+            UserApp.addUserInfoToSession(user);
         }
 
         return delegate.call(context);
