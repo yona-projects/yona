@@ -28,7 +28,7 @@
             _initFileDownloader();
             _setLabelTextColor();
             
-            // _setTimelineUpdateTimer();
+            _setTimelineUpdateTimer();
         }
 
         /**
@@ -49,7 +49,7 @@
             
             htVar.bTimelineUpdating = false;
             htVar.nTimelineUpdateTimer = null;
-            htVar.nTimelineUpdatePeriod = htOptions.nTimelineUpdatePeriod || 10000; // ms
+            htVar.nTimelineUpdatePeriod = htOptions.nTimelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
             htVar.sTimelineHTML = "";
         }
 
@@ -265,7 +265,7 @@
                 }
             }, htVar.nTimelineUpdatePeriod);
         }
-        
+
         // initialize
         _init(htOptions || {});
     };
