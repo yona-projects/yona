@@ -9,4 +9,6 @@ public class Constants {
 
     public static final String RESOURCE_KEY_DELIM = "_";
     public static final String ADMIN_LOGIN_ID = "admin";
+
+    public static final String DEFAULT_LANGUAGE = "en";
 }
