@@ -295,12 +295,14 @@ public class User extends Model implements ResourceConvertible {
     /**
      * 기존에 존재하는 email인지 확인한다.
      *
+     * {@link Email}에 검증된 보조 이메일로 존재하는지 확인한다.
+     *
      * @param emailAddress
      * @return email이 있으면 true / 없으면 false
      */
     public static boolean isEmailExist(String emailAddress) {
         User user = find.where().ieq("email", emailAddress).findUnique();
-        return user != null;
+        return user != null || Email.exists(emailAddress, true);
     }
 
     /**
