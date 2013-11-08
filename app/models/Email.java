@@ -107,15 +107,22 @@ public class Email extends Model {
         if(token.equals(this.token)) {
             this.valid = true;
             update();
-            deleteOtherInvalidEmails();
+            deleteOtherInvalidEmails(this.email);
             return true;
         } else {
             return false;
         }
     }
 
-    private void deleteOtherInvalidEmails() {
-        List<Email> invalidEmails = find.where().eq("email", this.email).eq("valid", false).findList();
+    /**
+     * {@code emailAddress}로 등록되어있는 보조 이메일 중에서 검증되지 않은 이메일을 삭제한다.
+     *
+     * when: 새로운 유저가 {@code emailAddress}로 가입했을때 또는 해당 이메일로 검증된 보조 이메일이 생성됐을 때 사용한다.
+     *
+     * @param emailAddress
+     */
+    public static void deleteOtherInvalidEmails(String emailAddress) {
+        List<Email> invalidEmails = find.where().eq("email", emailAddress).eq("valid", false).findList();
         for(Email email : invalidEmails) {
             email.delete();
         }

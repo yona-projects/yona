@@ -496,6 +496,7 @@ public class UserApp extends Controller {
         } catch (NumberFormatException e) {
         }
 
+        Email.deleteOtherInvalidEmails(user.email);
         user.update();
         return redirect(routes.UserApp.userInfo(user.loginId, DEFAULT_GROUP, DAYS_AGO, DEFAULT_SELECTED_TAB));
     }
@@ -786,6 +787,7 @@ public class UserApp extends Controller {
         } else {
             user.changeState(UserState.ACTIVE);
         }
+        Email.deleteOtherInvalidEmails(user.email);
         return user;
     }
 
