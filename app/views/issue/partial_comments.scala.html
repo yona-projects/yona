@@ -63,6 +63,7 @@
 
 <div class="comment-header"><i class="yobicon-comments"></i> <strong>@Messages("common.comment")</strong> <strong class="num">@issue.comments.size</strong></div>
 <hr class="nm">
+
 @if(issue.comments.size + issue.events.size > 0) {
 <ul class="comments">
 @for(item <- issue.getTimeline){
@@ -121,5 +122,3 @@
 }
 </ul>
 }
-
-@common.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())

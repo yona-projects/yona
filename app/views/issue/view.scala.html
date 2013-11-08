@@ -233,7 +233,10 @@
 
     @** Comment **@
     <div id="comments" class="board-comment-wrap">
-        @partial_comments(project, issue)
+        <div id="timeline">
+            @partial_comments(project, issue)
+        </div>
+        @common.commentForm(project, ResourceType.ISSUE_COMMENT, routes.IssueApp.newComment(project.owner, project.name, issue.getNumber).toString())
     </div>
     @** // Comment **@
 
@@ -277,11 +280,10 @@
         // yobi.issue.View
         $yobi.loadModule("issue.View", {
             "htOptLabel"    : htOptLabel,
-            "sUploadUrl"    : "@routes.AttachmentApp.uploadFile",
-            "sFilesUrl"     : "@routes.AttachmentApp.getFileList",
             "sWatchUrl"     : "@routes.WatchApp.watch(issue.asResource.asParameter)",
             "sUnwatchUrl"   : "@routes.WatchApp.unwatch(issue.asResource.asParameter)",
             "sIssuesUrl"    : "@routes.IssueApp.massUpdate(project.owner, project.name)",
+            "sTimelineUrl"  : "@routes.IssueApp.timeline(project.owner, project.name, issue.getNumber)",
             "sIssueId"      : "@issue.id",
             "welMilestone"  : $("#milestone"),
             "welAssignee"   : $("#assignee"),
