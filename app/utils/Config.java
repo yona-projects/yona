@@ -8,6 +8,7 @@ import java.net.*;
 import java.util.Enumeration;
 
 public class Config {
+    public static final String DEFAULT_SCHEME = "http";
 
     public static String getHostport(String defaultValue) {
         play.Configuration config = play.Configuration.root();
@@ -81,13 +82,22 @@ public class Config {
 
         if (context != null) {
             try {
-                return Config.getScheme(new URI(context.request().uri()).getScheme());
+                return getScheme(getSchemeFromRequestURI(context.request()));
             } catch (URISyntaxException e) {
                 play.Logger.warn("Failed to get the scheme part from the request-uri", e);
-                return getScheme("http");
+                return getScheme(DEFAULT_SCHEME);
             }
         } else {
-            return getScheme("http");
+            return getScheme(DEFAULT_SCHEME);
+        }
+    }
+
+    private static String getSchemeFromRequestURI(Http.Request request) throws URISyntaxException {
+        String scheme = new URI(request.uri()).getScheme();
+        if (scheme == null) {
+            return DEFAULT_SCHEME;
+        } else {
+            return scheme;
         }
     }
 

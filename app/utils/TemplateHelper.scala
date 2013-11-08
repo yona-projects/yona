@@ -88,9 +88,17 @@ object TemplateHelper {
 
   def equals(a: String, b: String) = (a == b) || a.equals(b)
 
+  def getPort(uri: URI) = {
+    val port = uri.getPort
+    port match {
+      case -1 => uri.toURL.getDefaultPort
+      case _ => port
+    }
+  }
+
   // Whether the given uris are pointing the same resource.
   def resourceEquals(a: URI, b: URI) =
-    nullOrEquals(a.getAuthority, b.getAuthority) && equals(a.getPath, b.getPath)
+    nullOrEquals(a.getHost, b.getHost) && getPort(a) == getPort(b) && equals(a.getPath, b.getPath)
 
   // Get the url to return to the list page from the view page.
   // Return the referrer if the it is the uri for the list page, an/ return the
