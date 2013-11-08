@@ -30,12 +30,20 @@ public class JodaDateUtil {
     }
 
     public static String momentFromNow(Long time) {
-        JSInvocable moment = MomentUtil.newMoment(time);
+        return momentFromNow(time, Constants.DEFAULT_LANGUAGE);
+    }
+
+    public static String momentFromNow(Long time, String language) {
+        JSInvocable moment = MomentUtil.newMoment(time, language);
         return moment.invoke("fromNow");
     }
 
     public static String momentFromNow(Date time) {
-        JSInvocable moment = MomentUtil.newMoment(time.getTime());
+        return momentFromNow(time, Constants.DEFAULT_LANGUAGE);
+    }
+
+    public static String momentFromNow(Date time, String language) {
+        JSInvocable moment = MomentUtil.newMoment(time.getTime(), language);
         return moment.invoke("fromNow");
     }
 

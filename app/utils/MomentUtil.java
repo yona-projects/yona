@@ -34,10 +34,9 @@ import java.io.Reader;
  * @see JSInvocable
  */
 public class MomentUtil {
-
-    private static final String MOMENT_JS_FILE = "public/javascripts/lib/moment.min.js";
-    private static final String MOMENT_KO_FILE = "public/javascripts/lib/moment.ko.js";
     private static ScriptEngine engine = buildEngine();
+
+    private static final String MOMENT_JS_FILE = "public/javascripts/lib/moment-with-langs.min.js";
 
     private static ScriptEngine buildEngine() {
         ScriptEngineManager manager = new ScriptEngineManager();
@@ -47,10 +46,6 @@ public class MomentUtil {
 
         try {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MOMENT_JS_FILE);
-            reader = new InputStreamReader(is);
-            _engine.eval(reader);
-
-            is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MOMENT_KO_FILE);
             reader = new InputStreamReader(is);
             _engine.eval(reader);
         } catch (Exception ex) {
@@ -68,6 +63,10 @@ public class MomentUtil {
     }
 
     public static JSInvocable newMoment(Long epoch) {
+        return newMoment(epoch, Constants.DEFAULT_LANGUAGE);
+    }
+
+    public static JSInvocable newMoment(Long epoch, String language) {
         Object moment;
 
         try {
@@ -76,6 +75,7 @@ public class MomentUtil {
             } else {
                 moment = ((Invocable) engine).invokeFunction("moment", epoch);
             }
+            ((Invocable) engine).invokeMethod(moment, "lang", language);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
