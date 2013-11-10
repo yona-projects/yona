@@ -69,7 +69,7 @@
         function _initFormValidator(){
             // name : name of input element
             // rules: rules to apply to the input element.
-            var htRuleName   = {"name":"name",   "rules":"required|alpha_dash"}; // project name
+            var htRuleName   = {"name":"name",   "rules":"required"}; // project name
             var aRules = [htRuleName];
 
             htVar.oValidator = new FormValidator(htVar.sFormName, aRules, _onFormValidate);

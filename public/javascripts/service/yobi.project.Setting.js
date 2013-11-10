@@ -33,7 +33,7 @@
          */
         function _initVar(htOptions){
             htVar.rxLogoExt = /\.(gif|bmp|jpg|jpeg|png)$/i;
-            htVar.rxPrjName = /^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$/;
+            htVar.rxPrjName = /^[0-9A-Za-z_-\.]+$/;
         }
 
         /**

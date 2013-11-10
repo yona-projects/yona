@@ -402,6 +402,7 @@ project.members = Project Members
 project.members.addMember = Add a new member...
 project.name = Project Name
 project.name.alert = Wrong project name. (Characters which can be used in URL are allowed)
+project.name.reserved.alert = Name is reserved.
 project.name.duplicate = Already existing project.
 project.name.placeholder = input project name
 project.name.rule = Naming Rule

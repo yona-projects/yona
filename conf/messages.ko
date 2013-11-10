@@ -403,6 +403,7 @@ project.members = 개발자
 project.members.addMember = 새로운 멤버의 아이디를 입력하세요
 project.name = 프로젝트 이름
 project.name.alert = 프로젝트 이름은 URL로 사용할 수 있는 글자(영문자,숫자,-'하이픈')만 허용합니다
+project.name.reserved.alert = 예약된 이름으로 사용할 수 없습니다.
 project.name.duplicate = 이미 같은 이름의 프로젝트가 있습니다
 project.name.placeholder = 프로젝트 이름을 입력해주세요.
 project.name.rule = 이름 규칙
