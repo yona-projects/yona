@@ -53,7 +53,7 @@ public class ImportApp extends Controller {
 
         String gitUrl = filledNewProjectForm.data().get("url");
         if(gitUrl == null || gitUrl.trim().isEmpty()) {
-            flash(Constants.WARNING, "import.error.empty.url");
+            flash(Constants.WARNING, "project.import.error.empty.url");
             return badRequest(importing.render("title.newProject", filledNewProjectForm));
         }
 
@@ -78,12 +78,12 @@ public class ImportApp extends Controller {
             ProjectUser.assignRole(UserApp.currentUser().id, projectId, RoleType.MANAGER);
         } catch (InvalidRemoteException e) {
             // It is not an url.
-            errorMessageKey = "import.error.wrong.url";
+            errorMessageKey = "project.import.error.wrong.url";
         } catch (JGitInternalException e) {
             // The url seems that does not locate a git repository.
-            errorMessageKey = "import.error.wrong.url";
+            errorMessageKey = "project.import.error.wrong.url";
         } catch (TransportException e) {
-            errorMessageKey = "import.error.transport";
+            errorMessageKey = "project.import.error.transport";
         }
 
         if (errorMessageKey != null) {
