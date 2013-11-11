@@ -210,16 +210,13 @@
 
 @if(!comments.isEmpty) {
   @comments.head match {
-    case (comment: PullRequestComment) if isLineComment(comment) && comment.isOutdated => {
+    case (comment: PullRequestComment) if isLineComment(comment) => {
       @threadAndRemains(comment, comments.tail) match {
-        case (outdatedThread, remains) => {
-          @renderPullRequestComment(comment, outdatedThread)
+        case (thread, remains) => {
+          @renderPullRequestComment(comment, thread)
           @partial_comments(pull, remains)
         }
       }
-    }
-    case (comment: PullRequestComment) if isLineComment(comment) => {
-      @partial_comments(pull, comments.tail)
     }
     case (comment: PullRequestComment) => {
       @renderPullRequestComment(comment)
