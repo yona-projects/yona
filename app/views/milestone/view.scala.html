@@ -75,7 +75,7 @@
 
     <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-        <button type="button" data-request-method="delete" data-request-uri="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)" class="ybtn ybtn-danger pull-left">@Messages("milestone.delete")</button>
+        <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger pull-left">@Messages("milestone.delete")</a>
         }
 
         @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
@@ -91,6 +91,21 @@
     </div>
 
 
+</div>
+
+@** Confirm to delete post **@
+<div id="deleteConfirm" class="modal hide fade">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h3>@Messages("milestone.delete")</h3>
+    </div>
+    <div class="modal-body">
+        <p>@Messages("post.delete.confirm")</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="ybtn ybtn-danger" data-request-method="delete" data-request-uri="@routes.MilestoneApp.deleteMilestone(project.owner, project.name, milestone.id)">@Messages("button.yes")</button>
+        <button type="button" class="ybtn" data-dismiss="modal">@Messages("button.no")</button>
+    </div>
 </div>
 
 @common.markdown(project)
