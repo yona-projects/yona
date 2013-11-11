@@ -112,7 +112,10 @@
           <a href="@routes.CodeApp.codeBrowserWithBranch(projectA.owner, projectA.name, diff.commitA, diff.pathA)" title="@diff.commitA" target="_blank">@getShortenedCommitId(diff.commitA)</a>
           }
       </td>
-      <td class="linenum-to"><a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a></td>
+      <td class="linenum-to">
+          @if(diff.commitB != null && diff.pathB != null){
+          <a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a></td>
+          }
       <td class="line-body">
           <span class="filename">@fileHeader</span>
           @if(diff.commitA && diff.commitB && diff.pathA && diff.pathB){
