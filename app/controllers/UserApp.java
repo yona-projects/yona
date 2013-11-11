@@ -647,7 +647,7 @@ public class UserApp extends Controller {
     /*
      * 사용자 정보를 세션에 저장한다 (로그인 처리됨)
      */
-    private static void addUserInfoToSession(User user) {
+    public static void addUserInfoToSession(User user) {
         session(SESSION_USERID, String.valueOf(user.id));
         session(SESSION_LOGINID, user.loginId);
         session(SESSION_USERNAME, user.name);
