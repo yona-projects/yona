@@ -50,6 +50,10 @@ public class MilestoneApp extends Controller {
         if(project == null ) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
+        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+
         MilestoneCondition mCondition = form(MilestoneCondition.class).bindFromRequest().get();
 
         List<Milestone> milestones = Milestone.findMilestones(project.id,
@@ -312,9 +316,12 @@ public class MilestoneApp extends Controller {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
         }
         Milestone milestone = Milestone.findById(id);
-
         if(milestone == null) {
             return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         String paramState = request().getQueryString("state");
