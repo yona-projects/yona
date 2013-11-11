@@ -33,10 +33,7 @@ import play.libs.Akka;
 import playRepository.*;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
-import utils.AccessControl;
-import utils.Constants;
-import utils.JodaDateUtil;
-import utils.WatchService;
+import utils.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -435,13 +432,26 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     private void writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {
-        Project fromProject = this.fromProject;
         new Git(cloneRepository).commit()
                 .setAmend(true).setAuthor(user.name, user.email)
-                .setMessage("Merge pull request #" + this.number +
-                        " from " + fromProject.owner + "/" + fromProject.name + " " + this.fromBranch)
+                .setMessage(makeMergeCommitMessage())
                 .setCommitter(user.name, user.email)
                 .call();
+    }
+
+    private String makeMergeCommitMessage() {
+        StringBuilder builder = new StringBuilder("Merged pull request from ");
+        builder.append(fromProject.owner);
+        builder.append("/");
+        builder.append(fromProject.name);
+        builder.append("\n\n");
+        String url = Url.create(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, this.number).url());
+        builder.append(url);
+        builder.append("\n");
+        builder.append(this.title);
+        builder.append("\n");
+        builder.append(this.body);
+        return builder.toString();
     }
 
     public void reject() {
