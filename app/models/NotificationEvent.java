@@ -239,6 +239,7 @@ public class NotificationEvent extends Model {
             return;
         }
         event.save();
+        event.saveManyToManyAssociations("receivers");
     }
 
     /*
