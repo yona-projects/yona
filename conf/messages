@@ -350,6 +350,7 @@ project.created = Created
 project.createdByMe = Create
 project.default.group.member = Member
 project.default.group.watching = Watching
+project.defaultBranch.placeholder = Input default branch
 project.delete = Delete project
 project.delete.accept = I agree with deleting this project.
 project.delete.alert = You should agree with deleting this project.

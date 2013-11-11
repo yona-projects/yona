@@ -59,7 +59,7 @@ public class CodeApp extends Controller {
             }
         }
 
-        return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, "HEAD", ""));
+        return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, project.defaultBranch().name(), ""));
     }
 
     /**

@@ -351,6 +351,7 @@ project.created = 생성일
 project.createdByMe = 만든 프로젝트
 project.default.group.member = 멤버로 참여중인 프로젝트
 project.default.group.watching = 지켜보는 프로젝트
+project.defaultBranch.placeholder = 기본 브랜치를 입력해주세요.
 project.delete = 프로젝트 삭제
 project.delete.accept = 프로젝트를 삭제하는데 동의합니다.
 project.delete.alert = 프로젝트 삭제에 동의하여야 합니다.

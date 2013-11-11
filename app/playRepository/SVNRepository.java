@@ -375,6 +375,16 @@ public class SVNRepository implements PlayRepository {
 
     }
 
+    @Override
+    public VCSRef getSymbolicRef(String ref) throws IOException, UnsupportedOperationException {
+        throw new UnsupportedOperationException("symbolic-ref is unsupported method");
+    }
+
+    @Override
+    public void updateSymbolicRef(String ref, String target) throws IOException, UnsupportedOperationException {
+        throw new UnsupportedOperationException("symbolic-ref is unsupported method");
+    }
+
     /**
      * {@code #revNumber}의 이전 리비전에 해당하는 커밋 정보를 번환한다.
      *

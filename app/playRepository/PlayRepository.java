@@ -1,10 +1,9 @@
 package playRepository;
 
-import models.Project;
 import models.resource.Resource;
+
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.tigris.subversion.javahl.ClientException;
 import org.tmatesoft.svn.core.SVNException;
 
@@ -123,6 +122,23 @@ public interface PlayRepository {
      * @return 코드저장소 이름 변경성공시 true / 실패시 false
      */
     public abstract boolean renameTo(String projectName);
+
+    /**
+     * 
+     * @param name
+     * @return 브랜치 이름
+     * @throws IOException
+     * @throws UnsupportedOperationException 지원하지 않는 레파지토리인 경우
+     */
+    VCSRef getSymbolicRef(String name) throws IOException, UnsupportedOperationException;
+
+    /**
+     * @param ref 레퍼런스 이름
+     * @param target 대상 브랜치 이름
+     * @throws IOException
+     * @throws UnsupportedOperationException 지원하지 않는 레파지토리인 경우
+     */
+    void updateSymbolicRef(String ref, String target) throws IOException, UnsupportedOperationException;
 
     /**
      * {@code #commitId}의 부모 커밋이나 부모 리비전에 해당하는 커밋을 반환한다.
