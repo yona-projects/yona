@@ -1,9 +1,10 @@
 package utils;
 
-import models.*;
+import models.Project;
+import models.ProjectUser;
+import models.User;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
-
 import models.resource.GlobalResource;
 import models.resource.Resource;
 

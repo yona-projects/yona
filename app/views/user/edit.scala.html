@@ -2,6 +2,7 @@
 
 @import helper._
 @import utils.TemplateHelper._
+@import utils.GravatarUtil._
 
 @siteLayout(user.loginId, utils.MenuType.USER) {
 
@@ -15,6 +16,7 @@
         <li><a href="#changePassword" data-toggle="tab">@Messages("userinfo.changePassword")</a></li>
         <li><a href="#avatar" data-toggle="tab">@Messages("userinfo.changeAvatar")</a></li>
         <li><a href="#watch" data-toggle="tab">@Messages("userinfo.changeNotifications")</a></li>
+        <li><a href="#email" data-toggle="tab">@Messages("userinfo.changeEmails")</a></li>
     </ul>
 
     <div class="tab-content">
@@ -114,6 +116,51 @@
                 }
             </div>
             }
+        </div>
+
+        <div id="email" class="tab-pane">
+            <div class="well well-small">
+                <legend>@Messages("emails.main.email")</legend>
+                <p>@Messages("emails.main.email.descr")</p>
+                <img src="@getAvatar(user.email, 40)" />
+                @user.email
+            </div>
+            <div class="well well-small">
+                <legend>@Messages("emails.sub.emails")</legend>
+                <p>@Messages("emails.sub.email.descr")</p>
+                <div>
+                    <form class="form-inline" action="@routes.UserApp.addEmail()" method="post">
+                        <input type="text" placeholder="새 이메일" name="email">
+                        <button type="submit" class="ybtn ybtn-success">@Messages("button.add")</button>
+                    </form>
+                </div>
+                <table class="table table-bordered">
+                    @for(mail <- user.emails) {
+                    <tr>
+                        <td>
+                            <img src="@getAvatar(mail.email, 40)" width="40px" height="40px" />
+                        </td>
+                        <td>
+                            @mail.email
+                        </td>
+                        <td>
+                            @if(mail.valid) {
+                            <button type="button" data-request-method="put" href="@routes.UserApp.setAsMainEmail(mail.id)" class="ybtn ybtn-success">
+                                @Messages("emails.set.as.main")
+                            </button>
+                            } else {
+                            <button type="button" data-request-method="post" href="@routes.UserApp.sendValidationEmail(mail.id)" class="ybtn ybtn-info">
+                                @Messages("emails.send.validatino.mail")
+                            </button>
+                            }
+                            <button type="button" data-request-method="delete" data-request-uri="@routes.UserApp.deleteEmail(mail.id)" class="ybtn ybtn-danger">
+                                @Messages("button.delete")
+                            </button>
+                        </td>
+                    </tr>
+                    }
+                </table>
+            </div>
         </div>
     </div>
 </div>

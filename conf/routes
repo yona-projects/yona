@@ -37,8 +37,12 @@ POST    /user/edit                                      controllers.UserApp.edit
 POST	/user/resetPassword								controllers.UserApp.resetUserPassword()
 GET     /user/isExist/:loginId                          controllers.UserApp.isUserExist(loginId)
 GET     /user/isEmailExist/:email                       controllers.UserApp.isEmailExist(email)
-
 GET 	/info/leave/:user/:project  				    controllers.UserApp.leave(user, project)
+POST    /user/email                                     controllers.UserApp.addEmail()
+DELETE  /user/email/delete/:emailId                     controllers.UserApp.deleteEmail(emailId:Long)
+PUT     /user/email/setAsMain/:emailId                  controllers.UserApp.setAsMainEmail(emailId:Long)
+POST    /user/email/sendValidationEmail/:emailId        controllers.UserApp.sendValidationEmail(emailId:Long)
+GET     /user/email/confirm/:emailId/:token             controllers.UserApp.confirmEmail(emailId: Long, token: String)
 
 # Site
 GET     /sites/mail                                     controllers.SiteApp.writeMail(errorMessage:String ?= "", sended:Boolean ?= false)

@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.apache.shiro.util.ByteSource;
 import play.data.format.Formats;
+import play.data.validation.Constraints;
 import play.data.validation.Constraints.*;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -89,7 +90,7 @@ public class User extends Model implements ResourceConvertible {
     /**
      * 이메일
      */
-    @Email(message = "user.wrongEmail.alert")
+    @Constraints.Email(message = "user.wrongEmail.alert")
     public String email;
     /**
      * 아바타 URL
@@ -133,6 +134,18 @@ public class User extends Model implements ResourceConvertible {
     @ManyToMany(mappedBy = "receivers")
     @OrderBy("created DESC")
     public List<NotificationEvent> notificationEvents;
+
+    /**
+     * 사용자로 인식할 수 있는 추가 이메일
+     *
+     * 한 사용자가 여러 이메일을 사용할 경우, 해당 이메일로도 사용자를 인식할 때 사용한다.
+     * {@link #email}은 대표 이메일로 사용한다.
+     *
+     * 추가 이메일 목록 중에 하나를 {@link #email}로 설정할 수 있으며
+     * 그때는 {@link #emails}에서 빠지고 {@link #email}로 바뀐다.
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    public List<Email> emails;
 
     public User(){}
 
@@ -282,12 +295,14 @@ public class User extends Model implements ResourceConvertible {
     /**
      * 기존에 존재하는 email인지 확인한다.
      *
+     * {@link Email}에 검증된 보조 이메일로 존재하는지 확인한다.
+     *
      * @param emailAddress
      * @return email이 있으면 true / 없으면 false
      */
     public static boolean isEmailExist(String emailAddress) {
         User user = find.where().ieq("email", emailAddress).findUnique();
-        return user != null;
+        return user != null || Email.exists(emailAddress, true);
     }
 
     /**
@@ -484,5 +499,40 @@ public class User extends Model implements ResourceConvertible {
                 .eq("projectUser.role.id", roleType.roleType())
                 .orderBy().asc("name")
                 .findList();
+    }
+
+    /**
+     * 사용자가 가진 보조 이메일에 새로운 이메일 추가한다.
+     *
+     * @param email
+     */
+    public void addEmail(Email email) {
+        email.save();
+        emails.add(email);
+    }
+
+    /**
+     * 사용자가 가진 보조 이메일 중에 {@code newEmail}값에 해당하는 이메일이 있는지 확인한다.
+     *
+     * @param newEmail
+     * @return
+     */
+    public boolean has(String newEmail) {
+        for(Email email : emails) {
+            if(email.email.equals(newEmail)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 사용자가 가진 보조 이메일에서 {@code email}을 삭제한다.
+     *
+     * @param email
+     */
+    public void removeEmail(Email email) {
+        emails.remove(email);
+        email.delete();
     }
 }
