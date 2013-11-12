@@ -55,18 +55,6 @@
             </span>
             <a href="#comment-@comment.id" class="ago">@momentFromNow(comment.getDate())</a>
 
-            @if(isLineComment(comment)) {
-            <span>on @comment.line in @comment.path at
-
-            @if(comment.isCommitLost) {
-                <span style="text-decoration: line-through">@shortId(comment.getCommitId)</span>
-            } else {
-                @shortId(comment.getCommitId)
-            }
-            from @shortId(comment.commitA)..@shortId(comment.commitB)
-            </span>
-            }
-
             @if(isLineComment(comment) && comment.isOutdated) {
             <span class="outdated-message" style="color: red">@Messages("code.outdatedDiff")</span>
             }
