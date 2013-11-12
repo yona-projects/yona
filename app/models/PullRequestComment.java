@@ -43,6 +43,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     private Boolean _isCommitLost = null;
 
     @Transient
+    private Boolean _hasValidCommitId = null;
+
+    @Transient
     private FileDiff fileDiff = null;
 
     public void authorInfos(User user) {
@@ -128,11 +131,21 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     }
 
     public boolean hasValidCommitId() {
-        return isCommitIdValid(pullRequest.toProject, commitA) &&
+        if (_hasValidCommitId != null) {
+            return _hasValidCommitId;
+        }
+
+        _hasValidCommitId = isCommitIdValid(pullRequest.toProject, commitA) &&
                 isCommitIdValid(pullRequest.fromProject, commitB);
+
+        return _hasValidCommitId;
     }
 
     public boolean isCommitLost() throws IOException {
+        if (_isCommitLost != null) {
+            return _isCommitLost;
+        }
+
         try {
             getDiff();
             _isCommitLost = false;
