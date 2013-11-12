@@ -54,6 +54,9 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public static final int ITEMS_PER_PAGE = 15;
 
+    @Transient
+    public Repository mergedRepo = null;
+
     @Id
     public Long id;
 
@@ -550,9 +553,13 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public Repository getMergedRepository() throws IOException {
-        File dir = new File(
-                GitRepository.getDirectoryForMerging(toProject.owner, toProject.name) + "/.git");
-        return new RepositoryBuilder().setGitDir(dir).build();
+        if (mergedRepo == null) {
+            File dir = new File(
+                    GitRepository.getDirectoryForMerging(toProject.owner, toProject.name) + "/.git");
+            mergedRepo = new RepositoryBuilder().setGitDir(dir).build();
+        }
+
+        return mergedRepo;
     }
 
     @Transient
