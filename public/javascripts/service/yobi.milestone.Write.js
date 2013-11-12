@@ -23,6 +23,7 @@
             _initElement(htOptions);
             _initDatePicker();
             _attachEvent();
+            _initFileUploader();
         }
 
         /**
@@ -31,6 +32,7 @@
         function _initVar(htOptions){
             htVar.sDateFormat  = htOptions.sDateFormat  || "YYYY-MM-DD";
             htVar.rxDateFormat = htOptions.rxDateFormat || /\d{4}-\d{2}-\d{2}/;
+            htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
 
         /**
@@ -42,6 +44,7 @@
             htElement.welInputDueDate = $(htOptions.elDueDate);
             htElement.welInputTitle   = $('#title');
             htElement.welInputContent = $('#contents');
+            htElement.welUploader = $(htOptions.elUploader || "#upload");
         }
 
         /**
@@ -113,6 +116,22 @@
             });
         }
 
+        /**
+         * 파일 업로더 초기화
+         * initialize fileUploader
+         */
+        function _initFileUploader(){
+            var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welInputContent);
+            
+            if(oUploader){
+                (new yobi.Attachments({
+                    "elContainer"  : htElement.welUploader,
+                    "elTextarea"   : htElement.welInputContent,
+                    "sTplFileItem" : htVar.sTplFileItem,
+                    "sUploaderId"  : oUploader.attr("data-namespace")
+                }));
+            }
+        }
 
         _init(htOptions || {});
     };

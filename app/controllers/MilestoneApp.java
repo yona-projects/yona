@@ -124,6 +124,7 @@ public class MilestoneApp extends Controller {
             Milestone newMilestone = milestoneForm.get();
             newMilestone.project = project;
             Milestone.create(newMilestone);
+            Attachment.moveAll(UserApp.currentUser().asResource(), newMilestone.asResource());
             return redirect(routes.MilestoneApp.milestone(userName, projectName, newMilestone.id));
         }
     }
@@ -206,6 +207,7 @@ public class MilestoneApp extends Controller {
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
             existingMilestone.updateWith(milestoneForm.get());
+            Attachment.moveAll(UserApp.currentUser().asResource(), existingMilestone.asResource());
             return redirect(routes.MilestoneApp.milestone(userName, projectName, existingMilestone.id));
         }
     }

@@ -44,6 +44,7 @@
 
     <div class="milestone-desc">
         <div markdown="true" class="markdown-wrap">@milestone.contents</div>
+        <div class="attachments" data-resourceType="@ResourceType.MILESTONE" data-resourceId="@milestone.id"></div>
     </div>
 
 	<ul class="nav nav-tabs">
@@ -110,4 +111,9 @@
 
 @common.markdown(project)
 
+<script type="text/javascript">
+    $(document).ready(function(){
+        $yobi.loadModule("milestone.View");
+    });
+</script>
 }
