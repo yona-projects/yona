@@ -1,0 +1,97 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Wansoon Park
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(pull: PullRequest, comment: CommitComment)
+
+@import utils.TemplateHelper.DiffRenderer._
+@import utils.JodaDateUtil._
+@import utils.AccessControl._
+
+@defining(PullRequestCommit.getStateByCommitId(pull, comment.commitId)) { state =>
+  @if(state != null) {
+      <li class="comment @isAuthorComment(comment.authorLoginId) @if(!comment.replies.isEmpty) {hasReply}" id="comment-@comment.id">
+          <div class="comment-avatar">
+              <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                  <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+              </a>
+          </div>
+          <div class="media-body">
+              <div class="meta-info">
+                  <span class="comment_author pull-left">
+                      <i class="yobicon-comment"></i>
+                      <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
+                          <strong>@comment.authorLoginId</strong>
+                      </a>
+                  </span>
+                  <span class="ago">
+                      @momentFromNow(comment.createdDate) -
+                      <a @if(PullRequestCommit.State.PRIOR == state){class="outdated"} href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">
+                          @if(comment.hasLocation()) {
+                              @Messages("pullRequest.code.commented.on.from", shortId(comment.commitId), comment.path + ":" + comment.line)
+                          } else {
+                              @Messages("pullRequest.code.commented.from", shortId(comment.commitId))
+                          }
+                      </a>
+                  </span>
+                  @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                  <span class="edit pull-right">
+                      <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, comment.commitId, comment.id)"><i class="yobicon-trash"></i></button>
+                  </span>
+                  }
+              </div>
+
+              <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+
+              <div class="attachments pull-right" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
+          </div>
+      </li>
+      @for((reply, index) <- comment.replies.zipWithIndex) {
+      <li class="comment @isAuthorComment(reply.authorLoginId) reply @if(index == (comment.replies.size - 1)) {last}" id="comment-@reply.id">
+          <div class="media-body">
+              <div class="meta-info">
+                  <span class="comment_author pull-left">
+                      <i class="yobicon-comment"></i>
+                      <a href="@routes.UserApp.userInfo(reply.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@reply.authorName">
+                          <strong>@reply.authorLoginId</strong>
+                      </a>
+                  </span>
+                  <span class="ago">
+                  @if(PullRequestCommit.State.PRIOR == state) {
+                      @momentFromNow(reply.createdDate) - <a class="outdated" href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
+                  } else {
+                      @momentFromNow(reply.createdDate) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, reply.commitId)?#comment-@reply.id">@Messages("pullRequest.code.replied")</a>
+                  }
+                  </span>
+                  @if(isAllowed(UserApp.currentUser(), reply.asResource(), Operation.DELETE)){
+                  <span class="edit pull-right">
+                      <button type="button" class="btn-transparent close" data-request-method="delete" data-request-uri="@routes.CodeHistoryApp.deleteComment(pull.fromProject.owner, pull.fromProject.name, reply.commitId, reply.id)"><i class="yobicon-trash"></i></button>
+                  </span>
+                  }
+              </div>
+
+              <div class="comment-body markdown-wrap markdown-before" markdown="true">@reply.contents</div>
+
+              <div class="attachments pull-right" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@reply.id"></div>
+          </div>
+      </li>
+      }
+  }
+}

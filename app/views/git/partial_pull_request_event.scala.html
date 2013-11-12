@@ -1,0 +1,86 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author JiHan Kim, insanehong
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+
+@(pull: PullRequest, event: PullRequestEvent)
+
+@import utils.TemplateHelper._
+@import utils.TemplateHelper.DiffRenderer._
+@import utils.JodaDateUtil._
+
+@event.eventType match {
+    case EventType.PULL_REQUEST_STATE_CHANGED => {
+    <li class="event" id="comment-@event.id">
+        <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
+        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate())</a></span>
+    </li>
+    }
+
+    case EventType.PULL_REQUEST_MERGED => {
+    <li class="event" id="comment-@event.id">
+        <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
+        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate())</a></span>
+    </li>
+    }
+
+    case EventType.PULL_REQUEST_COMMIT_CHANGED => {
+    <li class="comment @isAuthorComment(event.senderLoginId)" id="comment-@event.id">
+        <div class="comment-avatar">
+            <a href="@routes.UserApp.userInfo(event.senderLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
+                <img src="@User.findByLoginId(event.senderLoginId).avatarUrl" width="32" height="32" alt="@User.findByLoginId(event.senderLoginId).name">
+            </a>
+        </div>
+        <div class="media-body">
+            <div class="meta-info">
+                <span class="comment_author pull-left">
+                    <i class="yobicon-push"></i>
+                    <a href="@routes.UserApp.userInfo(event.senderLoginId)" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(event.senderLoginId).name">
+                        <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
+                    </a>
+                </span>
+                <span class="ago">@momentFromNow(event.created)</span>
+            </div>
+            <ul class="commit-list">
+            @for(commit <- event.getPullRequestCommits) {
+                <li class="comment-body commit-info @if(commit.state == PullRequestCommit.State.PRIOR){ outdated }">
+                @defining(User.findByEmail(commit.authorEmail)) { author =>
+                    <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, commit.commitId)" class="commit-id">
+                        @commit.commitShortId
+                    </a>
+                    @if(!author.isAnonymous()) {
+                    <a href="@routes.UserApp.userInfo(author.loginId)" class="avatar-wrap small" data-toggle="tooltip" data-placement="top" title="@User.findByLoginId(author.loginId).name">
+                        <img src="@author.avatarUrl"  alt="@author.name"> @commit.authorEmail
+                    </a>
+                    <div class="date">@utils.TemplateHelper.agoString(ago(commit.authorDate))</div>
+                    } else {
+                        <img src="@urlToPicture(commit.getAuthorEmail, 32)" class="avatar-wrap small">
+                    }
+                    <p class="commitMsg">@commit.commitMessage.split("\n")(0)  @if(commit.commitMessage.split("\n").length > 1) {<button class="moreBtn" data-toggle="more"><span>...</span></button>}</p>
+                    <p class="commitMsg desc hide">@commit.commitMessage.replace(commit.commitMessage.split("\n")(0)+"\n", "")</p>
+                }
+                </li>
+            }
+            </ul>
+        </div>
+    </li>
+    }
+    case _ => {
+    }
+}
