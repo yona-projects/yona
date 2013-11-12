@@ -18,7 +18,10 @@
                     <label for="contents">@Messages("milestone.form.content")</label>
                     <textarea id="contents" name="contents" markdown="true"></textarea>
                 </div>
-                <div class="actions">
+                
+                @common.fileUploader(ResourceType.MILESTONE, null)
+                
+                <div class="actions mt20">
                     <button type="submit" class="ybtn ybtn-success">@Messages("button.save")</button>
                     <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.cancel")</a>
                 </div>
