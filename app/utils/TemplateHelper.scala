@@ -262,22 +262,22 @@ object TemplateHelper {
         case first::second::tail => renderTwoLines(first, second, comments) + renderLines(tail, comments)
       }
 
-    def threadAndRemains(commentOnCommit: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
       if (comments.isEmpty) {
-        (List(commentOnCommit), Nil)
+        (thread, remains)
       } else {
-        (commentOnCommit, comments.head) match {
+        (thread.head, comments.head) match {
           case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) => {
-            val res = threadAndRemains(b, comments.tail)
-            (List(a) ++ res._1, res._2)
+            _threadAndRemains(thread :+ b, remains, comments.tail)
           }
           case (a, b) => {
-            val res = threadAndRemains(a, comments.tail)
-            (res._1, List(b) ++ res._2)
+            _threadAndRemains(thread, remains :+ b, comments.tail)
           }
         }
       }
     }
+
+    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = _threadAndRemains(List(comment), List(), comments.tail)
 
     def isLineComment(comment: PullRequestComment) = comment.line != null && comment.hasValidCommitId
 
