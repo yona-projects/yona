@@ -36,14 +36,6 @@ yobi.Markdown = (function(htOptions){
         htVar.sIssueRules = '\\d';
         htVar.sSha1Rules = '[a-f0-9]{7,40}';
         htVar.htFilter = new Filter();
-        
-        htVar.rxUser = /\[user\]/g;
-        htVar.rxProject = /\[project\]/g;
-        htVar.rxShar1 = /\[shar1\]/g;
-        htVar.rxIssue = /\[issue\]/g;
-        htVar.rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
-        htVar.rxWord = /\w/;
-        
         htVar.htMarkedOption = {
             "gfm"       : true,
             "tables"    : true,
@@ -57,16 +49,6 @@ yobi.Markdown = (function(htOptions){
                 return (!sLang) ? sCode : hljs(sCode, sLang).value;
             }
         };
-        
-        var sGfmLinkRules = '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
-
-        sGfmLinkRules = sGfmLinkRules.replace(htVar.rxUser, htVar.sUserRules)
-            .replace(htVar.rxUser, htVar.sUserRules)
-            .replace(htVar.rxProject, htVar.sProjecRules)
-            .replace(htVar.rxShar1, htVar.sSha1Rules)
-            .replace(htVar.rxIssue, htVar.sIssueRules);
-
-        htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
     }
 
     /**
@@ -94,6 +76,29 @@ yobi.Markdown = (function(htOptions){
             return sSrc;
         }
 
+        // define rxGfmLinkRules once
+        htVar = htVar || {};
+        
+        if(typeof htVar.rxGfmLinkRules === "undefined"){
+            htVar.rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
+            htVar.rxWord = /\w/;
+
+            var rxUser = /\[user\]/g;
+            var rxProject = /\[project\]/g;
+            var rxShar1 = /\[shar1\]/g;
+            var rxIssue = /\[issue\]/g;
+            var sGfmLinkRules = '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
+
+            sGfmLinkRules = sGfmLinkRules.replace(rxUser, htVar.sUserRules)
+                .replace(rxUser,    htVar.sUserRules)
+                .replace(rxProject, htVar.sProjecRules)
+                .replace(rxShar1,   htVar.sSha1Rules)
+                .replace(rxIssue,   htVar.sIssueRules);
+    
+            htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
+        }
+        // -- //
+        
         sSrc = sSrc.replace(htVar.rxGfmLinkRules, function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
             var aIgnores;
             
