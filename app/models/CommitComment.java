@@ -80,7 +80,7 @@ public class CommitComment extends CodeComment {
     public static List<CommitComment> findByCommits(Project project, List<PullRequestCommit> commits) {
         List<CommitComment> list = new ArrayList<>();
         for(PullRequestCommit commit: commits) {
-            list.addAll(CommitComment.find.where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).findList());
+            list.addAll(CommitComment.find.where().eq("project.id", project.id).eq("commitId", commit.getCommitId()).setOrderBy("createdDate asc").findList());
         }
         return list;
     }
