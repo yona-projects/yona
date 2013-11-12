@@ -5,7 +5,7 @@
 
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
 <div class="page">
-	@projectMenu(project, utils.MenuType.MILESTONE, "")
+    @projectMenu(project, utils.MenuType.MILESTONE, "")
 
     <div class="form-wrap milestone frm-wrap">
         <form class="nm" action="@routes.MilestoneApp.newMilestone(project.owner, project.name)" method="post">
@@ -30,9 +30,9 @@
             <div class="inner right bubble-wrap gray">
                 <p>@Messages("milestone.form.state")</p>
                 <div>
-               		<input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" checked="checked"><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>
-               		&nbsp;
-               		<input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn"><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
+                       <input type="radio" name="state" value="@State.OPEN" id="milestone-open" class="radio-btn" checked="checked"><label for="milestone-open" class="bold">@Messages("milestone.state.open")</label>
+                       &nbsp;
+                       <input type="radio" name="state" value="@State.CLOSED" id="milestone-close" class="radio-btn"><label for="milestone-close" class="bold">@Messages("milestone.state.closed")</label>
                 </div>
                 <hr/>
                 <p>@Messages("milestone.form.dueDate")</p>
@@ -55,18 +55,18 @@
 <script type="text/javascript" src="@getJSLink("lib/moment.min")"></script>
 <script type="text/javascript" src="@getJSLink("lib/pikaday")"></script>
 <script type="text/javascript">
-	$(document).ready(function() {
-	    // yobi.milestone.Write
-		$yobi.loadModule("milestone.Write", {
-			"elDueDate"   : $("#dueDate"),
-			"elDatePicker": $("#datepicker")
-		});
+    $(document).ready(function() {
+        // yobi.milestone.Write
+        $yobi.loadModule("milestone.Write", {
+            "elDueDate"   : $("#dueDate"),
+            "elDatePicker": $("#datepicker")
+        });
 
         // yobi.Mention
         yobi.Mention({
             "target": "contents",
             "url"   : "@routes.ProjectApp.mentionList(project.owner, project.name)"
         });
-	});
+    });
 </script>
 }
