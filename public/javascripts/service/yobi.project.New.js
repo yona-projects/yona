@@ -28,7 +28,8 @@
          */
         function _initVar(htOptions){
             htVar.sFormName = htOptions.sFormName || "newproject";
-
+            htVar.rxPrjName = /^[0-9A-Za-z-_\.]+$/;
+            htVar.aReservedWords = [".", "..", ".git"];
         }
 
         /**
@@ -69,10 +70,28 @@
         function _initFormValidator(){
             // name : name of input element
             // rules: rules to apply to the input element.
-            var htRuleName   = {"name":"name",   "rules":"required"}; // project name
-            var aRules = [htRuleName];
+            var aRules = [];
 
-            htVar.oValidator = new FormValidator(htVar.sFormName, aRules, _onFormValidate);
+            htVar.oValidator = new FormValidator(htVar.sFormName, aRules, function(aErrors){
+                var oForm = $(document.forms[htVar.sFormName]);
+                var oElement = oForm.find("input[name=name]");
+                var sPrjName = oElement.val();
+                if(!htVar.rxPrjName.test(sPrjName)){
+                    aErrors.push({
+                        id: oElement.attr("id"),
+                        name: oElement.attr("name"),
+                        message: Messages("project.name.alert")
+                    });
+                }
+                if(htVar.aReservedWords.indexOf(sPrjName) >= 0){
+                    aErrors.push({
+                        id: oElement.attr("id"),
+                        name: oElement.attr("name"),
+                        message: Messages("project.name.reserved.alert")
+                    });
+                }
+                _onFormValidate(aErrors);
+            });
         }
 
         /**
@@ -81,7 +100,7 @@
         function _onFormValidate(aErrors){
             if(aErrors.length > 0){
                 $('span.warning').hide();
-                $('span.msg').show();
+                $('span.msg').html(aErrors[0].message).show();
             } else {
                 new Spinner({
                     lines: 13, // The number of lines to draw
