@@ -17,7 +17,6 @@ object ApplicationBuild extends Build {
     javaJdbc,
     javaEbean,
       // Add your project dependencies here,
-      "postgresql" % "postgresql" % "9.1-901.jdbc4",
       // Core Library
       "org.eclipse.jgit" % "org.eclipse.jgit" % "3.1.0.201310021548-r",
       // Smart HTTP Servlet
