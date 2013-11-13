@@ -647,18 +647,14 @@ public class UserApp extends Controller {
      */
     @Transactional
     public static Result confirmEmail(Long id, String token) {
-        User currentUser = currentUser();
         Email email = Email.find.byId(id);
 
-        if(currentUser == null || currentUser.isAnonymous() || email == null) {
+        if(email == null) {
             return forbidden(ErrorViews.NotFound.render());
         }
 
-        if(!AccessControl.isAllowed(currentUser, email.user.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden")));
-        }
-
         if(email.validate(token)) {
+            addUserInfoToSession(email.user);
             return redirect(routes.UserApp.editUserInfoForm());
         } else {
             return forbidden(ErrorViews.NotFound.render());
