@@ -136,6 +136,7 @@ error.notfound = 페이지를 찾을 수 없습니다
 error.notfound.issue = 존재하지 않는 이슈입니다
 error.notfound.post = 존재하지 않는 글입니다
 error.notfound.watch = 존재하지 않는 알림 정보입니다.
+error.notfound.commit = 존재하지 않는 커밋입니다.
 error.required = 필수 입력란입니다.
 error.unauthorized = 로그인 해야 합니다
 error.validation = 입력값 유효성검사 오류

@@ -134,6 +134,7 @@ error.notfound = 存在しないページです
 error.notfound.issue = 存在しないイシューです
 error.notfound.post = 存在しないスレッドです
 error.notfound.watch = 存在しなおメッセージです
+error.notfound.commit = Commit not found
 error.required = 必須項目です
 error.unauthorized = ログインが必要です
 error.validation = 入力値検証チェックエラー

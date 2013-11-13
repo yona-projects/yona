@@ -136,6 +136,7 @@ error.notfound = Page not found
 error.notfound.issue = Issue not found
 error.notfound.post = Post not found
 error.notfound.watch = Watch not found
+error.notfound.commit = Commit not found
 error.required = Mandatory field is empty
 error.unauthorized = Login required
 error.validation = Input validation check error

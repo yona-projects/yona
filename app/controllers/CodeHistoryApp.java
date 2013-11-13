@@ -152,7 +152,17 @@ public class CodeHistoryApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        Commit commit = repository.getCommit(commitId);
+        Commit commit = null;
+        try {
+            commit = repository.getCommit(commitId);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if(commit == null) {
+                return notFound(ErrorViews.NotFound.render("error.notfound.commit", project, commitId));
+            }
+        }
+
         Commit parentCommit = repository.getParentCommitOf(commitId);
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).order("createdDate").findList();
