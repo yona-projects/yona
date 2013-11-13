@@ -27,6 +27,8 @@
             _initFileUploader();
             _initFileDownloader();
             _setLabelTextColor();
+            
+            _setTimelineUpdateTimer();
         }
 
         /**
@@ -38,13 +40,17 @@
             htVar.sIssueId = htOptions.sIssueId;
             htVar.sIssuesUrl = htOptions.sIssuesUrl;
 
-            htVar.sUploadUrl  = htOptions.sUploadUrl;
-            htVar.sFilesUrl   = htOptions.sFilesUrl;
             htVar.sWatchUrl   = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
+            htVar.sTimelineUrl = htOptions.sTimelineUrl;
             
             htVar.oAssignee  = new yobi.ui.Dropdown({"elContainer": htOptions.welAssignee});
             htVar.oMilestone = new yobi.ui.Dropdown({"elContainer": htOptions.welMilestone});
+            
+            htVar.bTimelineUpdating = false;
+            htVar.nTimelineUpdateTimer = null;
+            htVar.nTimelineUpdatePeriod = htOptions.nTimelineUpdatePeriod || 60000; // 60000ms = 60s = 1m
+            htVar.sTimelineHTML = "";
         }
 
         /**
@@ -62,6 +68,8 @@
             htElement.sIssueCheckBoxesSelector = htOptions.sIssueCheckBoxesSelector;
             
             htElement.welChkIssueOpen = $("#issueOpen");
+            htElement.welTimeline = $("#timeline");
+            htVar.sTimelineHTML = htElement.welTimeline.html();
         }
 
         /**
@@ -108,6 +116,7 @@
                "htData" : {"state": sNextState},
                "fOnLoad": function(){
                     welTarget.prop("checked", bChecked);
+                    _updateTimeline();
                 },
                "fOnError": function(){
                     welTarget.prop("checked", !bChecked);
@@ -127,6 +136,7 @@
                "fOnLoad" : function(){
                    $yobi.notify(Messages("issue.update.assignee"), 3000);
                    htVar.oAssignee.selectItem("li[data-id=" + sValue + "]");
+                   _updateTimeline();
                },
                "fOnError": _onErrorRequest
             });
@@ -217,7 +227,46 @@
             welLabel = null;
         }
         
-        _init(htOptions);
-    };
+        /**
+         * update IssueTimeline
+         */
+        function _updateTimeline(){
+            if(htVar.bTimelineUpdating){
+                return;
+            }
+            
+            htVar.bTimelineUpdating = true;
+            
+            $.get(htVar.sTimelineUrl, function(sResult){
+                if(sResult != htVar.sTimelineHTML){ // update only HTML has changed
+                    htVar.sTimelineHTML = sResult;
+                    htElement.welTimeline.html(sResult); // update timeline HTML
+                    yobi.Markdown.enableMarkdown(htElement.welTimeline.find("[markdown]")); // enable markdown
+                    htElement.welTimeline.find("[data-request-method]").requestAs(); // delete button
+                }
+            }).always(function(){
+                htVar.bTimelineUpdating = false;
+            });
+        }
+        
+        /**
+         * update IssueTimeline automatically 
+         * with interval timer
+         */
+        function _setTimelineUpdateTimer(){
+            if(htVar.nTimelineUpdateTimer != null){
+                clearInterval(htVar.nTimelineUpdateTimer);
+                htVar.nTimelineUpdateTimer = null;
+            }
+            
+            htVar.nTimelineUpdateTimer = setInterval(function(){
+                if(htVar.bTimelineUpdating !== true){
+                    _updateTimeline();
+                }
+            }, htVar.nTimelineUpdatePeriod);
+        }
 
+        // initialize
+        _init(htOptions || {});
+    };
 })("yobi.issue.View");

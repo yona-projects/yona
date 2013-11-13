@@ -6,7 +6,7 @@
  *
  * http://yobi.dev.naver.com/license
  */
-yobi.Markdown = function(htOptions){
+yobi.Markdown = (function(htOptions){
 
     var htVar = {};
     var htElement = {};
@@ -16,10 +16,10 @@ yobi.Markdown = function(htOptions){
      * @param {Hash Table} htOptions
      */
     function _init(htOptions){
+        htOptions = htOptions || {};
+        
         _initVar(htOptions);
-        _initElement(htOptions);
-
-        _enableMarkdown();
+        _enableMarkdown(htOptions.aTarget);
     }
 
     /**
@@ -30,78 +30,109 @@ yobi.Markdown = function(htOptions){
         htVar.sTplSwitch = htOptions.sTplSwitch;
         htVar.sIssuesUrl = htOptions.sIssuesUrl;
         htVar.sProjectUrl = htOptions.sProjectUrl;
-        htVar.breaks = htOptions.breaks;
+        htVar.bBreaks = htOptions.bBreaks;
         htVar.sUserRules = '[a-z0-9_\\-\\.]';
         htVar.sProjecRules = '[a-z0-9_\\-]';
         htVar.sIssueRules = '\\d';
         htVar.sSha1Rules = '[a-f0-9]{7,40}';
         htVar.htFilter = new Filter();
-
-    }
-
-    /**
-     * initialize element
-     * @param {Hash Table} htOptions
-     */
-    function _initElement(htOptions){
-        htElement.waTarget = $(htOptions.aTarget) || $("[markdown]");
+        htVar.htMarkedOption = {
+            "gfm"       : true,
+            "tables"    : true,
+            "pedantic"  : false,
+            "sanitize"  : false,
+            "smartLists": true,
+            "langPrefix": '',
+            "breaks"    : htVar.bBreaks,
+            "hook"      : _markedHooks,
+            "highlight" : function(sCode, sLang){
+                return (!sLang) ? sCode : hljs(sCode, sLang).value;
+            }
+        };
     }
 
     /**
      * Render as Markdown document
+     * 
      * @require showdown.js
      * @require hljs.js
      * @param {String} sText
      * @return {String}
      */
     function _renderMarkdown(sText) {
-
-        var htMarkedOption = {
-          gfm: true,
-          tables: true,
-          breaks: htVar.breaks,
-          pedantic: false,
-          sanitize: false,
-          smartLists: true,
-          langPrefix: '',
-          highlight: function(code, lang) {
-            if(!lang) return code;
-            return hljs(code,lang).value;
-          }
-        };
-
-        var hooks = function(sSrc,sType) {
-
-            var sGfmLinkRules =  '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
-
-            if(sType=='code') return sSrc;
-
-            sGfmLinkRules = sGfmLinkRules.replace(/\[user\]/g,htVar.sUserRules)
-                .replace(/\[user\]/g,htVar.sUserRules)
-                .replace(/\[project\]/g,htVar.sProjecRules)
-                .replace(/\[shar1\]/g,htVar.sSha1Rules)
-                .replace(/\[issue\]/g,htVar.sIssueRules);
-
-            sSrc = sSrc.replace(new RegExp(sGfmLinkRules,'gm'), function(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt ,sShar1,sMention,nMatchIndex) {
-                var rIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm,
-                    aIgnores;
-
-                while(aIgnores = rIgnoreRules.exec(sSrc)) {
-                  if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length) return sMatch;
-                }
-
-                if(/\w/.test(sSrc[nMatchIndex-1]) || /\w/.test(sSrc[nMatchIndex+sMatch.length])) return sMatch;
-
-                return _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue, sAt, sShar1,sMention);
-            });
-            return  sSrc;
-        };
-
-        htMarkedOption.hook = hooks;
-        return htVar.htFilter.sanitize(marked(sText,htMarkedOption)).xss();
+        return htVar.htFilter.sanitize(marked(sText, htVar.htMarkedOption)).xss();
     }
 
-    function _makeLink(sMatch,sProjectGroup,sProjectPath,sUserName,sTargetGoup,sIssue,sAt,sShar1,sMention) {
+    /**
+     * marked.js hooks function
+     * 
+     * @require marked.js
+     * @param {String} sSrc
+     * @param {String} sType
+     * @return {String}
+     */
+    function _markedHooks(sSrc, sType){
+        if(sType === 'code'){
+            return sSrc;
+        }
+
+        // define rxGfmLinkRules once
+        htVar = htVar || {};
+        
+        if(typeof htVar.rxGfmLinkRules === "undefined"){
+            htVar.rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
+            htVar.rxWord = /\w/;
+
+            var rxUser = /\[user\]/g;
+            var rxProject = /\[project\]/g;
+            var rxShar1 = /\[shar1\]/g;
+            var rxIssue = /\[issue\]/g;
+            var sGfmLinkRules = '(([user]+\\/[project]+)|([user]+))?(#([issue]+)|(@)?([shar1]))|@([user]+)';
+
+            sGfmLinkRules = sGfmLinkRules.replace(rxUser, htVar.sUserRules)
+                .replace(rxUser,    htVar.sUserRules)
+                .replace(rxProject, htVar.sProjecRules)
+                .replace(rxShar1,   htVar.sSha1Rules)
+                .replace(rxIssue,   htVar.sIssueRules);
+    
+            htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
+        }
+        // -- //
+        
+        sSrc = sSrc.replace(htVar.rxGfmLinkRules, function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
+            var aIgnores;
+            
+            while(aIgnores = htVar.rxIgnoreRules.exec(sSrc)){
+                if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length){
+                    return sMatch;
+                }
+            }
+
+            if(htVar.rxWord.test(sSrc[nMatchIndex-1]) || htVar.rxWord.test(sSrc[nMatchIndex+sMatch.length])){
+                return sMatch;
+            }
+
+            return _makeLink(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention);
+        });
+        
+        return sSrc;
+    }
+    
+    /**
+     * make hyperlink automatically with patterns.
+     * 
+     * @param {String} sMatch
+     * @param {String} sProjectGroup
+     * @param {String} sProjectPath
+     * @param {String} sUserName
+     * @param {String} sTargetGoup
+     * @param {String} sIssue
+     * @param {String} sAt
+     * @param {String} sShar1
+     * @param {String} sMention
+     * @return {String}
+     */
+    function _makeLink(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention){
         var sRef,
             sTitle,
             sOwner = htVar.sProjectUrl.split('/')[1],
@@ -139,11 +170,11 @@ yobi.Markdown = function(htOptions){
         }
 
         return '<a href="/'+sRef+'">'+sTitle+'</a>';
-
     }
 
     /**
      * set Markdown Editor
+     * 
      * @param {Wrapped Element} welTextarea
      */
     function _setEditor(welTextarea) {
@@ -173,6 +204,7 @@ yobi.Markdown = function(htOptions){
 
     /**
      * set Markdown Viewer
+     * 
      * @param {Wrapped Element} welTarget is not <textarea> or <input>
      */
     function _setViewer(welTarget) {
@@ -180,23 +212,33 @@ yobi.Markdown = function(htOptions){
     }
 
     /**
-     * enableMarkdown
-     * same as nforge.markdown.enable
+     * enableMarkdown on target elements 
+     * 
+     * @param {String} sQuery Selector string for targets
      */
-    function _enableMarkdown(){
-        var sTagName;
-
-        htElement.waTarget.each(function(nIndex, elTarget){
-            sTagName = elTarget.tagName.toUpperCase();
-
-            if(sTagName == "TEXTAREA" || sTagName == "INPUT" || elTarget.contentEditable == "true"){
-                _setEditor($(elTarget));
-            } else {
-                _setViewer($(elTarget));
-            }
+    function _enableMarkdown(sQuery){
+        var waTarget = $(sQuery || "[markdown]"); // TODO: markdown=true
+        
+        waTarget.each(function(nIndex, elTarget){
+            _isEditableElement(elTarget) ? _setEditor($(elTarget)) : _setViewer($(elTarget));
         });
     }
+    
+    /**
+     * Returns that specifieid element is editable
+     * 
+     * @param {HTMLElement} elTarget
+     * @return {Boolean}
+     */
+    function _isEditableElement(elTarget){
+        var sTagName = elTarget.tagName.toUpperCase();
+        return (sTagName === "TEXTAREA" || sTagName === "INPUT" || elTarget.contentEditable == "true");
+    }
 
-    // initialize
-    _init(htOptions || {});
-};
+    // public interface
+    return {
+        "init"  : _init,
+        "enableMarkdown": _enableMarkdown,
+        "renderMarkdown": _renderMarkdown
+    };
+})();

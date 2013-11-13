@@ -9,6 +9,7 @@ import views.html.issue.partial_search;
 import views.html.issue.view;
 import views.html.issue.list;
 import views.html.issue.create;
+import views.html.issue.partial_comments;
 
 import utils.AccessControl;
 import utils.JodaDateUtil;
@@ -234,6 +235,41 @@ public class IssueApp extends AbstractPostingApp {
         return ok(view.render("title.issueDetail", issueInfo, editForm, commentForm, project));
     }
 
+    /**
+     * 이슈 타임라인 조회
+     * 
+     * <p>when: 단일 이슈의 타임라인 조회</p>
+     * 
+     * 접근 권한이 없을 경우, Forbidden 으로 응답한다.
+     * 조회하려는 이슈가 존재하지 않을 경우엔 NotFound 로 응답한다.
+     *
+     * @param ownerName 프로젝트 소유자 이름
+     * @param projectName 프로젝트 이름
+     * @param number 이슈 번호
+     * @return
+     */
+    public static Result timeline(String ownerName, String projectName, Long number) {
+        Project project = ProjectApp.getProject(ownerName, projectName);
+        if (project == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+
+        Issue issueInfo = Issue.findByNumber(project, number);
+        if (issueInfo == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound", project, "issue"));
+        }
+
+        if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+        }
+        
+        for (IssueLabel label: issueInfo.labels) {
+            label.refresh();
+        }
+        
+        return ok(partial_comments.render(project, issueInfo));
+    }
+    
     /**
      * 새 이슈 등록 폼
      *
