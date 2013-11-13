@@ -184,6 +184,8 @@ public class NotificationEvent extends Model {
         switch(resourceType) {
         case ISSUE_ASSIGNEE:
             return Assignee.finder.byId(Long.valueOf(resourceId)).project;
+        case PROJECT:
+            return Project.find.byId(Long.valueOf(resourceId));
         default:
             Resource resource = getResource();
             if (resource != null) {
@@ -232,21 +234,31 @@ public class NotificationEvent extends Model {
             }
         }
 
-        // 특정 알림 유형에 대해 설정을 꺼둔 사용자가 있을 경우 수신인에서 제외
-        Resource resource = Resource.get(event.resourceType, event.resourceId);
+        event.receivers = getFilteredReceivers(event);
+        if (event.receivers.isEmpty()) {
+            return;
+        }
+        event.save();
+    }
+
+    /*
+     * 특정 알림 유형에 대해 설정을 꺼둔 사용자가 있을 경우 수신인에서 제외
+     * 알림의 대상 Resource 가 project 별 on / off 설정이 불가능할 경우 필터링을 하지 않는다.
+     */
+    private static Set<User> getFilteredReceivers(NotificationEvent event) {
         Set<User> receivers = event.receivers;
+        Project project = event.getProject();
+        if (project == null) {
+            return receivers;
+        }
+
         Set<User> filteredReceivers = new HashSet<>();
         for (User receiver : receivers) {
-            if (UserProjectNotification.isEnabledNotiType(receiver, resource.getProject(), event.eventType)) {
+            if (UserProjectNotification.isEnabledNotiType(receiver, project, event.eventType)) {
                 filteredReceivers.add(receiver);
             }
         }
-        if (filteredReceivers.isEmpty()) {
-            return;
-        }
-
-        event.receivers = filteredReceivers;
-        event.save();
+        return filteredReceivers;
     }
 
     public static void deleteBy(Resource resource) {
