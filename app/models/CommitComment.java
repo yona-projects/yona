@@ -9,6 +9,8 @@ import java.util.List;
 import javax.persistence.Entity;
 import javax.validation.constraints.Size;
 
+import org.apache.commons.lang3.StringUtils;
+
 @Entity
 public class CommitComment extends CodeComment {
     private static final long serialVersionUID = 1L;
@@ -106,5 +108,16 @@ public class CommitComment extends CodeComment {
 
     public String getCommitId() {
         return commitId;
+    }
+
+    /**
+     * 코멘트가 작성된 위치 정보가 있는지 여부를 반환한다.
+     * @return path와 line정보가 있으면 true 아니면 false
+     */
+    public boolean hasLocation() {
+        if (StringUtils.isNotBlank(this.path) && this.line != null) {
+            return true;
+        }
+        return false;
     }
 }
