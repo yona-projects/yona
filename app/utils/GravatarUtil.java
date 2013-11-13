@@ -8,8 +8,7 @@ public class GravatarUtil {
     public static final String DEFAULT_GRAVATAR_URL = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
 
     public static String getAvatar(String email) {
-        String avatarUrl = "http://www.gravatar.com/avatar/" + MD5Util.md5Hex(email);
-        return avatarUrl;
+        return "http://www.gravatar.com/avatar/" + MD5Util.md5Hex(email);
     }
 
     public static String getAvatar(String email, int size) {
