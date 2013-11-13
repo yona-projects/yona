@@ -51,7 +51,7 @@
             htVar.rxSub = /text\/x-(.+)-source/;
             htVar.rxScala = /\.scala\.html$/i;
             htVar.sPath = htOptions.sInitialPath;
-            htVar.nFontSize = 13;
+            htVar.nFontSize = 12;
             htVar.aPathQueue = [];
             
             // Spinner Option
