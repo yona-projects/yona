@@ -440,18 +440,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     private String makeMergeCommitMessage() {
-        StringBuilder builder = new StringBuilder("Merged pull request from ");
-        builder.append(fromProject.owner);
-        builder.append("/");
-        builder.append(fromProject.name);
-        builder.append("\n\n");
-        String url = Url.create(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, this.number).url());
-        builder.append(url);
-        builder.append("\n");
-        builder.append(this.title);
-        builder.append("\n");
-        builder.append(this.body);
-        return builder.toString();
+        return "Merged pull request from " + fromProject.owner + "/" + fromProject.name + "\n\n"
+                + Url.create(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, this.number).url())
+                + "\n" + this.title + "\n" + this.body;
     }
 
     public void reject() {
