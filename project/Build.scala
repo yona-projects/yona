@@ -39,7 +39,8 @@ object ApplicationBuild extends Build {
       "org.apache.tika" % "tika-core" % "1.2",
       "commons-io" % "commons-io" % "2.4",
       "com.github.julienrf" %% "play-jsmessages" % "1.4.1",
-      "commons-collections" % "commons-collections" % "3.2.1"
+      "commons-collections" % "commons-collections" % "3.2.1",
+      "org.jsoup" % "jsoup" % "1.7.2"
   )
 
     val projectSettings = Seq(

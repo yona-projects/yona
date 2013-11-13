@@ -11,9 +11,16 @@ import utils.Url;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.net.URI;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.*;
+import org.jsoup.select.Elements;
 
 @Entity
 public class NotificationMail extends Model {
@@ -73,12 +80,14 @@ public class NotificationMail extends Model {
 
                     for (NotificationMail mail: mails) {
                         if (mail.notificationEvent.resourceExists()) {
+                            String message = mail.notificationEvent.getMessage();
+
                             AbstractPostingApp.sendNotification(
                                     AbstractPostingApp.NotificationFactory.create(
                                             mail.notificationEvent.getSender(),
                                             mail.notificationEvent.receivers,
                                             mail.notificationEvent.title,
-                                            mail.notificationEvent.getMessage(),
+                                            message,
                                             Url.create(mail.notificationEvent.urlToView)
                                     ));
                         }
