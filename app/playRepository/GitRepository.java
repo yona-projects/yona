@@ -1629,12 +1629,12 @@ public class GitRepository implements PlayRepository {
     }
 
     @Override
-    public VCSRef getSymbolicRef(String ref) throws IOException, UnsupportedOperationException {
-        return new GitRef(repository.getRef(ref).getTarget().getName());
+    public String getDefaultBranch() throws IOException {
+        return repository.getRef(Constants.HEAD).getTarget().getName();
     }
 
     @Override
-    public void updateSymbolicRef(String ref, String target) throws IOException, UnsupportedOperationException {
+    public void setDefaultBranch(String target) throws IOException {
         Result result = repository.updateRef(Constants.HEAD).link(target);
         switch (result) {
         case NEW:

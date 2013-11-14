@@ -342,15 +342,12 @@ public class Project extends Model implements LabelOwner {
         return this.createdDate;
     }
 
-    public VCSRef defaultBranch() {
+    public String defaultBranch() {
         try {
-            return RepositoryService.getRepository(this).getSymbolicRef("HEAD");
-        } catch (UnsupportedOperationException e) {
-            // default branch를 제공하지 않는 SCM은 HEAD를 반환하도록 한다. isFile 등 revision으로 사용하고 있다.
-            return new VCSRef("HEAD");
-        } catch (IOException | ServletException e) {
-            return null;
+            return RepositoryService.getRepository(this).getDefaultBranch();
+        } catch (Exception e) {
         }
+        return "HEAD";
     }
 
     /**

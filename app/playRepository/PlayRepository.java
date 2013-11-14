@@ -124,21 +124,20 @@ public interface PlayRepository {
     public abstract boolean renameTo(String projectName);
 
     /**
-     * 
-     * @param name
+     * 기본 브랜치를 반환한다.
+     *
      * @return 브랜치 이름
      * @throws IOException
-     * @throws UnsupportedOperationException 지원하지 않는 레파지토리인 경우
      */
-    VCSRef getSymbolicRef(String name) throws IOException, UnsupportedOperationException;
+    String getDefaultBranch() throws IOException;
 
     /**
-     * @param ref 레퍼런스 이름
-     * @param target 대상 브랜치 이름
+     * 기본 브랜치를 변경한다.
+     *
+     * @param target 변경할 대상 브랜치 이름
      * @throws IOException
-     * @throws UnsupportedOperationException 지원하지 않는 레파지토리인 경우
      */
-    void updateSymbolicRef(String ref, String target) throws IOException, UnsupportedOperationException;
+    void setDefaultBranch(String target) throws IOException;
 
     /**
      * {@code #commitId}의 부모 커밋이나 부모 리비전에 해당하는 커밋을 반환한다.

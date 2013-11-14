@@ -376,13 +376,12 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public VCSRef getSymbolicRef(String ref) throws IOException, UnsupportedOperationException {
-        throw new UnsupportedOperationException("symbolic-ref is unsupported method");
+    public String getDefaultBranch() throws IOException {
+        return "HEAD";
     }
 
     @Override
-    public void updateSymbolicRef(String ref, String target) throws IOException, UnsupportedOperationException {
-        throw new UnsupportedOperationException("symbolic-ref is unsupported method");
+    public void setDefaultBranch(String target) throws IOException {
     }
 
     /**

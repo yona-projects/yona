@@ -264,10 +264,7 @@ public class ProjectApp extends Controller {
         Map<String, String[]> data = body.asFormUrlEncoded();
         String defaultBranch = HttpUtil.getFirstValueFromQuery(data, "defaultBranch");
         if (defaultBranch != null) {
-            try {
-                repository.updateSymbolicRef("HEAD", defaultBranch);
-            } catch (UnsupportedOperationException e) { // ignore
-            }
+            repository.setDefaultBranch(defaultBranch);
         }
 
         if (!repository.renameTo(updatedProject.name)) {
