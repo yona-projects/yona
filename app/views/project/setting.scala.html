@@ -19,7 +19,7 @@
     @partial_settingmenu(project)
 
 	<form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
-    <div class="bubble-wrap gray">
+    <div class="bubble-wrap gray" style="overflow: visible">
         <input type="hidden" name="id" value="@projectForm("id").value.toLong">
         <input type="hidden" name="watchingCount" value="@projectForm("watchingCount").value.toLong">
         <div class="box-wrap top clearfix frm-wrap" style="padding-top:20px;">
