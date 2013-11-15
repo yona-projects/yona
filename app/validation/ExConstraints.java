@@ -30,7 +30,7 @@ public class ExConstraints {
      * Validator for <code>@Restricted</code> fields.
      */
     public static class RestrictedValidator extends Constraints.Validator<Object> implements ConstraintValidator<Restricted, Object> {
-        final static public String message = "error.restricted";
+        public static final String message = "error.restricted";
         private String[] words;
         private boolean ignoreCase;
 
