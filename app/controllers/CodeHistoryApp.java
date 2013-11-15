@@ -155,8 +155,6 @@ public class CodeHistoryApp extends Controller {
         Commit commit = null;
         try {
             commit = repository.getCommit(commitId);
-        } catch (Exception e) {
-            throw e;
         } finally {
             if(commit == null) {
                 return notFound(ErrorViews.NotFound.render("error.notfound.commit", project, commitId));
