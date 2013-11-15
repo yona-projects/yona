@@ -26,7 +26,7 @@
                 </div>
                 <div class="pull-right">
                     <div class="date">@agoString(pull.createdAgo)</div>
-                    <span class="badge badge-issue-@pull.state.state.toLowerCase">@Messages("issue.state." + pull.state.state)</span>
+                    <span class="badge badge-issue-@pull.state.state.toLowerCase">@Messages("pullRequest.state." + pull.state.state)</span>
                 </div>
             </div>
 
@@ -34,7 +34,7 @@
                 <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
             </div>
 
-            @if(!pull.isMerging && !pull.isClosed) {
+            @if(!pull.isMerging && !pull.isClosed && !pull.isMerged) {
                 @if(!pull.isConflict){
                 <div class="alert alert-success">
                     <h5>@Messages("pullRequest.is.safe")</h5>
@@ -64,6 +64,9 @@
                     @if(!pull.isConflict && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
                         <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
                     }
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
+                        <a href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
+                    }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
                         <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
                     }
@@ -72,13 +75,13 @@
                     }
                 }
 
-                @if(!pull.isMerging && pull.isRejected()){
+                @if(!pull.isMerging && (pull.isClosed() || pull.isRejected)){
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                         <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }
                 }
             </div>
-            @if(pull.isClosed()) {
+            @if(pull.isMerged()) {
             <div class="alert alert-info">
                 <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
                 <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")

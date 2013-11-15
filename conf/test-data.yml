@@ -32,6 +32,14 @@ users:
         email:          ejlee@nhn.com
         avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-05-01 08:00:00
+    - !!models.User
+        name:           wansoon
+        loginId:        alecsiel
+        password:       2OZ+qhPn9UJ7GffhbfO5gctuUMWI8jUf2YFdAMH73G8=
+        passwordSalt:   '[B@737aa47f'
+        email:          alecsiel@nhn.com
+        avatarUrl:      /assets/images/default-avatar-128.png
+        createdDate:           2013-11-18 13:30:00
 
 # Projects
 projects:
@@ -43,6 +51,16 @@ projects:
         siteurl:       http://localhost:9000/projectYobi
         owner:          yobi
         createdDate:           2012-02-01 08:00:00
+    - !!models.Project
+        name:           projectYobi-1
+        overview:       Yobi는 소프트웨어 개발에 필요한 기능들을 사용하기 편리하게 웹으로 묶은 협업 개발 플랫폼입니다.
+        isPublic:   true
+        vcs:            GIT
+        siteurl:       http://localhost:9000/projectYobi-1
+        owner:          yobi
+        createdDate:           2013-11-18 11:11:00
+        originalProject:       !!models.Project
+                                    id: 1
     - !!models.Project
         name:           Jindo
         overview:       Jindo는 NHN에서 제작한 Javascript Library 입니다.
@@ -67,7 +85,44 @@ projects:
         siteurl:       http://localhost:9000/HelloSocialApp
         owner:          yobi
         createdDate:           2012-12-01 08:00:00
-
+    - !!models.Project
+        name:           HelloSocialApp-1
+        overview:       네이버 앱팩토리 플랫폼에서 제공하는 오픈소셜 API를 직접 실행해 볼 수 있는 애플리케이션입니다.
+        isPublic:   false
+        vcs:            GIT
+        siteurl:       http://localhost:9000/HelloSocialApp
+        owner:          yobi
+        createdDate:           2013-11-18 13:40:00
+        originalProject:       !!models.Project
+                                    id: 5
+# PullRequests
+pullRequests:
+    - !!models.PullRequest
+        title:      projectYobi test pull-request
+        body:       projectYobi의 테스트용 pull-request 입니다.
+        fromProject:     !!models.Project
+                                    id: 2
+        toProject:       !!models.Project
+                                    id: 1
+        fromBranch:      frombranch
+        toBranch:        tobranch
+        contributor:     !!models.User
+                                    id: 1
+        created:           2013-11-18 13:19:00
+        state:          OPEN
+    - !!models.PullRequest
+        title:      HelloSocialApp test pull-request
+        body:       HelloSocialApp의 테스트용 pull-request 입니다.
+        fromProject:     !!models.Project
+                                    id: 6
+        toProject:       !!models.Project
+                                    id: 5
+        fromBranch:      frombranch
+        toBranch:        tobranch
+        contributor:     !!models.User
+                                    id: 1
+        created:           2013-11-18 13:41:00
+        state:          CLOSED
 # Board
 postings:
     - !!models.Posting

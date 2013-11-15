@@ -2631,6 +2631,7 @@
     &.badge-issue-open { background-color:@state-open; }
     &.badge-issue-closed { background-color : @state-closed;}
     &.badge-issue-rejected { background-color : @state-rejected;}
+    &.badge-issue-merged { background-color: @state-merged;}
 }
 
 
@@ -2762,7 +2763,7 @@
                             margin:0;
                             margin-left:90px;
                             margin-right:150px;
-                            padding:5px;   
+                            padding:5px;
                             font-size:14px;
                             word-break: break-word;
                             overflow: hidden;
@@ -2904,13 +2905,13 @@
 
                 i {margin-right:3px;}
 
-
+                &.merged { background-color: @state-merged;}
                 &.closed { background-color: @state-closed;}
                 &.open { background-color : @state-open;}
                 &.changed { background-color : @state-changed;}
                 &.rejected {background: #F39C12;}
                 &.conflict {background: #C0392B;}
-				&.resolved {background: #468847;}
+                &.resolved {background: #468847;}
              }
 
              em { font-size:12px; color:#7F8C8D; margin-right:5px;}
@@ -3244,6 +3245,7 @@ div.markdown-preview {
         padding:5px 15px;
         .border-radius(15px);
 
+        &.merged { background-color: @state-merged;}
         &.open { background-color: @state-open; }
         &.closed { background-color : @state-closed;}
         &.rejected { background-color : @state-rejected;}

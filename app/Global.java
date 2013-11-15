@@ -124,7 +124,7 @@ public class Global extends GlobalSettings {
 
     private static void insertTestData() {
         String[] entityNames = {
-            "users", "projects", "milestones", "issues", "issueComments",
+            "users", "projects", "pullRequests", "milestones", "issues", "issueComments",
             "postings", "postingComments", "projectUsers"
         };
 
