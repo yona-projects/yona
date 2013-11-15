@@ -195,7 +195,7 @@ public class PullRequestApp extends Controller {
 
         User currentUser = UserApp.currentUser();
         if(!AccessControl.isProjectResourceCreatable(currentUser, project, ResourceType.FORK)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
@@ -247,7 +247,7 @@ public class PullRequestApp extends Controller {
             return result;
         }
         if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.FORK)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
@@ -360,7 +360,7 @@ public class PullRequestApp extends Controller {
             return badRequest(ErrorViews.BadRequest.render("Now, only git project is allowed this request.", project));
         }
         if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
         Page<PullRequest> page = PullRequest.findPagingList(State.OPEN, project, pageNum - 1);
         return ok(list.render(project, page, "opened"));
@@ -379,7 +379,7 @@ public class PullRequestApp extends Controller {
             return notFoundProject(userName, projectName);
         }
         if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
         Page<PullRequest> page = PullRequest.findPagingList(State.CLOSED, project, pageNum - 1);
         return ok(list.render(project, page, "closed"));
@@ -398,7 +398,7 @@ public class PullRequestApp extends Controller {
             return notFoundProject(userName, projectName);
         }
         if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
         Page<PullRequest> page = PullRequest.findPagingList(State.REJECTED, project, pageNum - 1);
         return ok(list.render(project, page, "rejected"));
@@ -417,7 +417,7 @@ public class PullRequestApp extends Controller {
             return notFoundProject(userName, projectName);
         }
         if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
         Page<PullRequest> page = PullRequest.findSentPullRequests(project, pageNum - 1);
         return ok(list.render(project, page, "sent"));
@@ -440,7 +440,7 @@ public class PullRequestApp extends Controller {
             return result;
         }
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         String activeTab = request().getQueryString("activeTab");
@@ -485,7 +485,7 @@ public class PullRequestApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
@@ -509,7 +509,7 @@ public class PullRequestApp extends Controller {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
@@ -669,7 +669,7 @@ public class PullRequestApp extends Controller {
         User user = UserApp.currentUser();
 
         if(!AccessControl.isAllowed(user, pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), fromProject));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", fromProject));
         }
 
         Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
@@ -699,7 +699,7 @@ public class PullRequestApp extends Controller {
         Project fromProject = pullRequest.fromProject;
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
         }
 
         Form<PullRequest> pullRequestForm = new Form<>(PullRequest.class).bindFromRequest();
@@ -734,7 +734,7 @@ public class PullRequestApp extends Controller {
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
         }
 
         pullRequest.deleteFromBranch();
@@ -756,7 +756,7 @@ public class PullRequestApp extends Controller {
 
 
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), toProject));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
         }
 
         pullRequest.restoreFromBranch();
@@ -911,7 +911,7 @@ public class PullRequestApp extends Controller {
         }
 
         if(!AccessControl.isAllowed(user, pullRequest.asResource(), operation)) {
-            result = forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            result = forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         return result;
