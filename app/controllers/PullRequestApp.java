@@ -195,7 +195,7 @@ public class PullRequestApp extends Controller {
 
         User currentUser = UserApp.currentUser();
         if(!AccessControl.isProjectResourceCreatable(currentUser, project, ResourceType.FORK)) {
-            forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
+            return forbidden(ErrorViews.Forbidden.render(Messages.get("error.forbidden"), project));
         }
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
