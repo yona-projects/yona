@@ -15,6 +15,7 @@ import models.enumeration.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.openqa.selenium.android.library.Logger;
 import org.tmatesoft.svn.core.SVNException;
 
 import play.data.Form;
@@ -152,13 +153,10 @@ public class CodeHistoryApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        Commit commit = null;
-        try {
-            commit = repository.getCommit(commitId);
-        } finally {
-            if(commit == null) {
-                return notFound(ErrorViews.NotFound.render("error.notfound.commit", project, commitId));
-            }
+        Commit commit = repository.getCommit(commitId);
+
+        if(commit == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound.commit", project));
         }
 
         Commit parentCommit = repository.getParentCommitOf(commitId);
