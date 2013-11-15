@@ -7,6 +7,7 @@
 @import utils.TemplateHelper.DiffRenderer._
 @import playRepository.FileDiff
 @import java.lang.Math
+@import models.CommitComment
 
 @isAuthorComment(commentId: String) = @{
   if(commentId == UserApp.currentUser().loginId) {"author"}
@@ -152,11 +153,14 @@
                         </a>
                     </span>
                     <span class="ago">
-                        @if(PullRequestCommit.State.PRIOR == state) {
-                            @momentFromNow(comment.createdDate) - <a class="outdated" href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", shortId(comment.commitId), comment.path + ":" + comment.line)</a>
-                        } else {
-                            @momentFromNow(comment.createdDate) - <a href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">@Messages("pullRequest.code.commented", shortId(comment.commitId), comment.path + ":" + comment.line)</a>
-                        }
+                        @momentFromNow(comment.createdDate) - 
+                        <a @if(PullRequestCommit.State.PRIOR == state){class="outdated"} href="@routes.PullRequestApp.commitView(pull.toProject.owner, pull.toProject.name, pull.number, comment.commitId)?#comment-@comment.id">
+                            @if(comment.hasLocation()) {
+                                @Messages("pullRequest.code.commented.on.from", shortId(comment.commitId), comment.path + ":" + comment.line)                            
+                            } else {
+                                @Messages("pullRequest.code.commented.from", shortId(comment.commitId))
+                            }
+                        </a>
                     </span>
                     @if(isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
                     <span class="edit pull-right">
