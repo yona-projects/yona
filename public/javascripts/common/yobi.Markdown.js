@@ -182,7 +182,6 @@ yobi.Markdown = (function(htOptions){
         var welPreview = $('<div class="markdown-preview markdown-wrap">');
         welPreview.css({
             "display"   : "none",
-            "width"     : welTextarea.width()  + 'px',
             "min-height": welTextarea.height() + 'px',
             "padding"   : welTextarea.css("padding")
         });
