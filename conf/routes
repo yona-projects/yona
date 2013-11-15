@@ -158,6 +158,7 @@ GET     /:ownerName/:project/rejectedPullRequests       controllers.PullRequestA
 GET     /:ownerName/:project/pullRequest/:id            controllers.PullRequestApp.pullRequest(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/commits    controllers.PullRequestApp.pullRequestCommits(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/changes    controllers.PullRequestApp.pullRequestChanges(ownerName, project, id: Long)
+GET     /:ownerName/:project/pullRequest/:id/state      controllers.PullRequestApp.pullRequestState(ownerName, project, id: Long)
 GET     /:ownerName/:project/newPullRequestForm         controllers.PullRequestApp.newPullRequestForm(ownerName:String, project:String)
 POST    /:ownerName/:project/pullRequests               controllers.PullRequestApp.newPullRequest(ownerName, project)
 GET     /:ownerName/:project/pullRequest/:id/accept     controllers.PullRequestApp.accept(ownerName, project, id: Long)

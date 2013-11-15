@@ -493,6 +493,48 @@ public class PullRequestApp extends Controller {
     }
 
     /**
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온 
+     * {@code pullRequestId}에 해당하는 코드 요청의 상태를 반환한다
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestNumber
+     * @return
+     */
+    public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) throws IOException {
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.READ);
+        if (result != null) {
+            return result;
+        }
+
+        boolean canDeleteBranch = false;
+        boolean canRestoreBranch = false;
+
+        if (pullRequest.isClosed()) {
+            canDeleteBranch = GitRepository.canDeleteFromBranch(pullRequest);
+            canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
+        }
+
+        if(HttpUtil.isRequestedWithXHR(request()) && !HttpUtil.isPJAXRequest(request())){
+            ObjectNode requestState = Json.newObject();
+            requestState.put("id", pullRequestNumber);
+            requestState.put("isOpen",     pullRequest.isOpen());
+            requestState.put("isClosed",   pullRequest.isClosed());
+            requestState.put("isRejected", pullRequest.isRejected());
+            requestState.put("isMerging",  pullRequest.isMerging);
+            requestState.put("isConflict", pullRequest.isConflict);
+            requestState.put("canDeleteBranch", canDeleteBranch);
+            requestState.put("canRestoreBranch", canRestoreBranch);
+            requestState.put("html", partial_state.render(project, pullRequest, canDeleteBranch, canRestoreBranch).toString());
+            return ok(requestState);
+        }
+        return ok(partial_state.render(project, pullRequest, canDeleteBranch, canRestoreBranch));
+    }
+    
+    /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
      * {@code pullRequestId}에 해당하는 코드 요청의 커밋 목록을 조회한다.
      *

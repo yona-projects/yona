@@ -26,6 +26,7 @@
 
             _initFileUploader();
             _initFileDownloader();
+            _setStateUpdateTimer();
         }
 
         /**
@@ -35,6 +36,12 @@
             htVar.sTplFileItem = $('#tplAttachedFile').text();
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
+
+            htVar.sStateUrl = htOptions.sStateUrl;
+            htVar.bStateUpdating = false;
+            htVar.nStateUpdateTimer = null;
+            htVar.nStateUpdateInterval = htOptions.nStateUpdateInterval || 30000; // 30sec
+            htVar.sStateHTML = "";
         }
 
         /**
@@ -48,7 +55,11 @@
             htElement.welComment = $('#comments');
             htElement.welBtnHelp = $('#helpBtn');
             htElement.welMsgHelp = $('#helpMessage');
-
+            htElement.welState = $("#state");
+            htElement.welActOnOpen = $("#actOnOpen");
+            htElement.welActOnRejected = $("#actOnRejected");
+            htElement.welBtnAccept = $("#btnAccept");
+            
             // tooltip
             $('span[data-toggle="tooltip"]').tooltip({
                 placement : "bottom"
@@ -118,6 +129,51 @@
                     }
                 }
             });
+        }
+        
+        /**
+         * update pullRequest state
+         */
+        function _updateState(){
+            if(htVar.bStateUpdating){
+                return;
+            }
+            
+            htVar.bStateUpdating = true;
+
+            $.get(htVar.sStateUrl, function(oRes){
+                var sResult = oRes.html;
+                
+                // update state only HTML has changed
+                if(sResult != htVar.sStateHTML){ 
+                    htVar.sStateHTML = sResult;
+                    htElement.welState.html(sResult);
+                }
+                
+                // update visiblitity of actrow buttons
+                htElement.welActOnOpen.css("display", oRes.isOpen ? "block" : "none");
+                htElement.welActOnRejected.css("display", oRes.isRejected ? "block" : "none");
+                htElement.welBtnAccept.css("display", oRes.isConflict ? "none" : "inline-block");
+            }).always(function(){
+                htVar.bStateUpdating = false;
+            });
+        }
+        
+        /**
+         * update current state of pullRequest automatically 
+         * with interval timer
+         */
+        function _setStateUpdateTimer(){
+            if(htVar.nStateUpdateTimer != null){
+                clearInterval(htVar.nStateUpdateTimer);
+                htVar.nStateUpdateTimer = null;
+            }
+            
+            htVar.nStateUpdateTimer = setInterval(function(){
+                if(htVar.bStateUpdating !== true){
+                    _updateState();
+                }
+            }, htVar.nStateUpdateInterval);
         }
 
         _init(htOptions || {});
