@@ -40,7 +40,7 @@
             htVar.sStateUrl = htOptions.sStateUrl;
             htVar.bStateUpdating = false;
             htVar.nStateUpdateTimer = null;
-            htVar.nStateUpdateInterval = htOptions.nStateUpdateInterval || 30000; // 30sec
+            htVar.nStateUpdateInterval = htOptions.nStateUpdateInterval || 10000; // 10sec
             htVar.sStateHTML = "";
         }
 
@@ -165,11 +165,11 @@
          */
         function _setStateUpdateTimer(){
             if(htVar.nStateUpdateTimer != null){
-                clearInterval(htVar.nStateUpdateTimer);
+                yobi.Interval.clear(htVar.nStateUpdateTimer);
                 htVar.nStateUpdateTimer = null;
             }
             
-            htVar.nStateUpdateTimer = setInterval(function(){
+            htVar.nStateUpdateTimer = yobi.Interval.set(function(){
                 if(htVar.bStateUpdating !== true){
                     _updateState();
                 }
