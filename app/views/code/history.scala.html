@@ -130,25 +130,6 @@
                                 }
 
                                 @defining(commit.getMessage()){ commitMsg =>
-                                @if(commitMsg.startsWith("Merge pull request")){
-                                    @defining(commitMsg.split(" ")(3)) { pullRequestIdPart =>
-                                        @defining(pullRequestIdPart.replace("#", "").toLong) { pullRequestId =>
-                                        <a href="@showCommitURL">
-                                            @defining(commitMsg.indexOf(" #")) { indexOfPullRequestStart =>
-                                                @commitMsg.split("\n")(0).substring(0, indexOfPullRequestStart)
-                                            }
-                                        </a>
-                                        <a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pullRequestId)" class="secondary-txt">
-                                            #@pullRequestId
-                                        </a>
-                                        <a href="@showCommitURL">
-                                            @defining(commitMsg.indexOf(commitMsg.split(" ")(3)) + commitMsg.split(" ")(3).length) { indexOfPullRequestIdEnd =>
-                                            @commitMsg.split("\n")(0).substring(indexOfPullRequestIdEnd)
-                                            }
-                                        </a>
-                                        }
-                                    }
-                                } else {
                                     <a href="@showCommitURL">@commitMsg.split("\n")(0)</a>
                                 }
 
