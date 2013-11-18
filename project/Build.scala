@@ -50,7 +50,7 @@ object ApplicationBuild extends Build {
       templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "yobi.less"),
         //      jacoco.settings:_*,
-      javaOptions in test ++= Seq("-Xmx512m", "-XX:MaxPermSize=512m"),
+      javaOptions in test ++= Seq("-Xmx512m", "-XX:MaxPermSize=512m", "-Dfile.encoding=UTF-8"),
       javacOptions ++= Seq("-Xlint:all", "-Xlint:-path"),
       scalacOptions ++= Seq("-feature")
     )
