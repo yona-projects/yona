@@ -1,4 +1,42 @@
-# Yobi User Guide 목차
+# Yobi User Guide
+
+<a name="english"></a>
+[[한국어]](#korean)
+
+## Using Yobi
+
+### Projects
+* Creating projects
+* Viewing Repository URL
+* Watching projects
+* Forking projects
+
+### Code Review
+* Pull Request
+
+### Issues
+* Using issues
+* Using milestones
+
+### Account
+* Signing up
+* Changing account information
+
+### Members
+* Registering members
+* Managing members
+
+### Notification
+* Receiving notifications
+* Setting notifications
+
+### Project Setting
+* Setting projects
+* Deleting projects
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
 
 이 문서는 Yobi User Guide 문서의 목차입니다.
 
@@ -32,9 +70,3 @@
 ### 프로젝트 셋팅
 * 프로젝트 설정하기
 * 프로젝트 삭제하기
-
-
-## Yobi FAQ
-* 차후에 채울 예정입니다.
-* 차후에 채울 예정입니다.
-* 차후에 채울 예정입니다.
