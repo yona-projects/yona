@@ -680,37 +680,6 @@ public class PullRequestApp extends Controller {
     }
 
     /**
-     * {@code pullRequestId}에 해당하는 코드 요청을 삭제한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
-    @Transactional
-    public static Result cancel(String userName, String projectName, Long pullRequestNumber) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        User user = UserApp.currentUser();
-
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.DELETE);
-        if(result != null) {
-            return result;
-        }
-
-        // 게스트 중에서 코드 요청을 보낸 사용자는 취소 할 수 있다.
-        if(isGuest(project, user)) {
-            if(!user.equals(pullRequest.contributor)) {
-                forbidden(ErrorViews.Forbidden.render("Only this project's member and manager and the pull_request's author are allowed.", project));
-            }
-        }
-
-        pullRequest.delete();
-        return redirect(routes.PullRequestApp.pullRequests(userName, projectName, 1));
-    }
-
-    /**
      * 코드 요청 수정 폼으로 이동한다.
      *
      * @param userName
