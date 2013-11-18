@@ -754,7 +754,6 @@ public class PullRequestApp extends Controller {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 
-
         if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
         }
