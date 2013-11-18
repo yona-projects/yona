@@ -124,19 +124,18 @@
                             </td>
                             <td class="messages">
                                 @defining(CommitComment.count(project, commit.getId, path)){ numOfComment =>
-                                @if(numOfComment > 0) {
-                                <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
-                                }
+                                    @if(numOfComment > 0) {
+                                    <span class="number-of-comments"><i class="yobicon-comments"></i> @numOfComment</span>
+                                    }
                                 }
 
                                 @defining(commit.getMessage()){ commitMsg =>
                                     <a href="@showCommitURL">@commitMsg.split("\n")(0)</a>
-                                }
 
-                                @if(commitMsg.split("\n").length > 1){
-                                    <button type="button" class="more">&hellip;</button>
-                                    <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
-                                }
+                                    @if(commitMsg.split("\n").length > 1){
+                                        <button type="button" class="more">&hellip;</button>
+                                        <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+                                    }
                                 }
                             </td>
                             @if(path != null){
