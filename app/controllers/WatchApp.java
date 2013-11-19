@@ -18,10 +18,6 @@ public class WatchApp extends Controller {
             return forbidden("Anonymous cannot watch it.");
         }
 
-        if (resource == null) {
-            return notFound();
-        }
-
         if (!AccessControl.isAllowed(user, resource, Operation.READ)) {
             return forbidden("You have no permission to watch it.");
         }
