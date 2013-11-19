@@ -172,8 +172,8 @@ issue.event.assignedToMe = {0} assigned this issue to her/himself
 issue.event.closed = {0} closed this issue
 issue.event.open = {0} reopened this issue
 issue.event.unassigned = {0} unassinged this issue
-issue.event.referred.from.pullrequest = {0} referred this issue in a pullrequest, <a href="{3}">from {1} to {2}</a>.
-issue.event.referred.from.commit = {1} <strong>{0}</strong> referred this issue in a commit, <a href="{3}" class="commit-id">{2}</a>.
+issue.event.referred.from.pullrequest = <strong>{0}</strong> referred this issue in a <a href="{3}" class="referred-event" title="{4}" data-content="{6}"><strong>pullrequest-{5}</strong> {4}</a>
+issue.event.referred.from.commit = {1} <strong>{0}</strong> referred this issue in a commit <span class="referred-event"><a href="{3}" class="commit-id referred-event" rel="popover" data-trigger="hover" title="{4}" data-content="{5}">{2}</a> {4}</span>
 issue.is.empty = There is no Issue.
 issue.list.all = All Issues
 issue.list.assignedToMe = Assigned to me

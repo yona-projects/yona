@@ -27,6 +27,7 @@ import org.joda.time.Duration;
 import com.avaje.ebean.Expr;
 
 import play.api.mvc.Call;
+import play.api.templates.HtmlFormat;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -634,8 +635,8 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     private String getNewEventValue() {
         return Messages.get("issue.event.referred.from.pullrequest",
-                this.contributor.loginId, this.fromBranch, this.toBranch,
-                routes.PullRequestApp.pullRequest(this.toProject.owner, this.toProject.name, this.number));
+                this.contributor.loginId, TemplateHelper.branchItemName(this.fromBranch), TemplateHelper.branchItemName(this.toBranch),
+                routes.PullRequestApp.pullRequest(this.toProject.owner, this.toProject.name, this.number), HtmlFormat.escape(this.title), this.number, HtmlFormat.escape(this.body));
     }
 
     /**
