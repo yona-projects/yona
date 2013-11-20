@@ -443,11 +443,6 @@ public class PullRequestApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        String activeTab = request().getQueryString("activeTab");
-        if(activeTab == null && !isValid(activeTab)) {
-            activeTab = "info";
-        }
-
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
 
@@ -464,7 +459,7 @@ public class PullRequestApp extends Controller {
             }
         }
 
-        return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch, activeTab));
+        return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch));
     }
 
     private static boolean isValid(String activeTab) {
