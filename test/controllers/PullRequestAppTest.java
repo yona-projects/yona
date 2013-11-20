@@ -23,6 +23,8 @@ package controllers;
 import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.Status.*;
 import static play.test.Helpers.*;
+
+import java.util.HashMap;
 import java.util.Map;
 
 import models.Project;
@@ -63,7 +65,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -77,7 +79,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -91,7 +93,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -106,7 +108,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.close(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -131,7 +133,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -145,7 +147,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.open(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -170,7 +172,7 @@ public class PullRequestAppTest {
 
         Result result = callAction(
                 controllers.routes.ref.PullRequestApp.reject(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest()
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
                 .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
               );
 
@@ -186,6 +188,106 @@ public class PullRequestAppTest {
         );
 
         assertThat(status(result)).isEqualTo(SEE_OTHER);
+    }
+
+    @Test
+    public void testNewForkByAdmin() {
+        initParameters("yobi", "projectYobi", 1L);
+        User currentUser = User.findByLoginId("admin");
+
+        Result result = callAction(
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
+                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+              );
+
+        assertThat(status(result)).isEqualTo(OK);
+    }
+
+    @Test
+    public void testNewForkByMember() {
+        initParameters("yobi", "projectYobi", 1L);
+        User currentUser = User.findByLoginId("yobi");
+
+        Result result = callAction(
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
+                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+              );
+
+        assertThat(status(result)).isEqualTo(OK);
+
+    }
+
+    @Test
+    public void testNewForkByNotMember() {
+        initParameters("yobi", "projectYobi", 1L);
+        User currentUser = User.findByLoginId("alecsiel");
+
+        Result result = callAction(
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
+                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+              );
+
+        assertThat(status(result)).isEqualTo(OK);
+    }
+
+    @Test
+    public void testNewForkPrivateProjectAndNotMember() {
+        initParameters("laziel", "Jindo", 1L);
+        User currentUser = User.findByLoginId("alecsiel");
+
+        Result result = callAction(
+                controllers.routes.ref.PullRequestApp.newFork(ownerLoginId, projectName),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/newFork")
+                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+              );
+
+        assertThat(status(result)).isEqualTo(FORBIDDEN);
+    }
+
+    @Test
+    public void testForkAlreadyExistForkProject() {
+        initParameters("yobi", "projectYobi", 1L);
+        User currentUser = User.findByLoginId("yobi");
+
+        Result result = callAction(
+                controllers.routes.ref.PullRequestApp.fork(ownerLoginId, projectName),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/fork")
+                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+              );
+
+        assertThat(status(result)).isEqualTo(SEE_OTHER);
+    }
+
+    @Test
+    public void testForkSampleName() {
+        initParameters("yobi", "TestApp", 1L);
+        User currentUser = User.findByLoginId("yobi");
+
+        Map<String,String> data = new HashMap<>();
+        data.put("name", "HelloSocialApp-1");
+
+        Result result = callAction(
+                controllers.routes.ref.PullRequestApp.fork(ownerLoginId, projectName),
+                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/fork")
+                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+                .withFormUrlEncodedBody(data)
+              );
+
+        assertThat(status(result)).isEqualTo(SEE_OTHER);
+    }
+    @Test
+    public void testNewForkRoute() {
+        initParameters("yobi", "projectYobi", 1L);
+        String url = "/" + ownerLoginId + "/" + projectName + "/newFork";
+        User currentUser = User.findByLoginId("yobi");
+
+        Result result = route(
+            fakeRequest(GET, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+        );
+        assertThat(status(result)).isEqualTo(OK);
     }
 
     @Test
