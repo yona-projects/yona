@@ -330,6 +330,40 @@ public class NotificationEvent extends Model {
     }
 
     /**
+     * 보낸코드의 상태가 변경되었을때의 알림 설정
+     *
+     * @param pullRequestCall
+     * @param request
+     * @param pullRequest
+     * @param oldState
+     * @param newState
+     * @return
+     */
+    public static NotificationEvent addPullRequestUpdate(User sender, PullRequest pullRequest, State oldState, State newState) {
+        String title = NotificationEvent.formatNewTitle(pullRequest);
+        Set<User> watchers = pullRequest.getWatchers();
+        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
+        watchers.remove(sender);
+        Project toProject = pullRequest.toProject;
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = sender.id;
+        notiEvent.receivers = watchers;
+        notiEvent.urlToView = routes.PullRequestApp.pullRequest(
+                toProject.owner, toProject.name, pullRequest.number).url();
+        notiEvent.resourceId = pullRequest.id.toString();
+        notiEvent.resourceType = pullRequest.asResource().getType();
+        notiEvent.eventType = EventType.PULL_REQUEST_STATE_CHANGED;
+        notiEvent.oldValue = oldState.state();
+        notiEvent.newValue = newState.state();
+
+        add(notiEvent);
+
+        return notiEvent;
+    }
+    /**
      * 보낸 코드의 병합 결과 알림 설정
      * @param sender
      * @param pullRequest
