@@ -229,7 +229,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static List<PullRequest> findAcceptedPullRequests(Project project) {
         return finder.where()
                 .eq("fromProject", project)
-                .eq("state", State.CLOSED)
+                .or(com.avaje.ebean.Expr.eq("state", State.CLOSED), com.avaje.ebean.Expr.eq("state", State.MERGED))
                 .order().desc("created")
                 .findList();
     }
@@ -284,6 +284,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                                 Expr.eq("toProject", project),
                                 Expr.eq("toBranch", branch)))
                 .ne("state", State.CLOSED)
+                .ne("state", State.MERGED)
                 .findList();
     }
 
@@ -337,7 +338,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     public boolean isClosed() {
-        return state == State.CLOSED;
+        return this.state == State.CLOSED;
+    }
+
+    public boolean isMerged() {
+        return this.state == State.MERGED;
     }
 
     /**
@@ -392,13 +397,14 @@ public class PullRequest extends Model implements ResourceConvertible {
                     GitRepository.push(cloneRepository, GitRepository.getGitDirectoryURL(pullRequest.toProject), destToBranchName, srcToBranchName);
 
                     // 풀리퀘스트 완료
-                    pullRequest.state = State.CLOSED;
+                    pullRequest.state = State.MERGED;
                     pullRequest.received = JodaDateUtil.now();
                     pullRequest.receiver = UserApp.currentUser();
                     pullRequest.update();
 
-                    NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, message.getRequest(), pullRequest, State.OPEN, State.CLOSED);
-                    PullRequestEvent.addEvent(notiEvent, pullRequest);
+                    NotificationEvent.addPullRequestUpdate(call, message.getRequest(), pullRequest, State.OPEN, State.MERGED);
+                    PullRequestEvent.addStateEvent(pullRequest, State.MERGED);
+
 
                     PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
                     Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
@@ -450,18 +456,35 @@ public class PullRequest extends Model implements ResourceConvertible {
                 + "\n" + this.title + "\n" + this.body;
     }
 
-    public void reject() {
-        this.state = State.REJECTED;
+    /**
+     * 코드 보내기 상태 변경
+     * @param state
+     */
+    private void changeState(State state) {
+        this.state = state;
         this.received = JodaDateUtil.now();
         this.receiver = UserApp.currentUser();
         this.update();
     }
+    /**
+     * 코드 보내기 보류
+     */
+    public void reject() {
+        changeState(State.REJECTED);
+    }
 
+    /**
+     * 코드 보내기 다시 열림
+     */
     public void reopen() {
-        this.state = State.OPEN;
-        this.received = JodaDateUtil.now();
-        this.receiver = UserApp.currentUser();
-        this.update();
+        changeState(State.OPEN);
+    }
+
+    /**
+     * 코드 보내기 닫힘
+     */
+    public void close() {
+        changeState(State.CLOSED);
     }
 
     public static List<PullRequest> findByToProject(Project project) {
@@ -557,6 +580,22 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .getPage(pageNum);
     }
 
+    /**
+     * 받은 코드 목록을 반환한다.
+     *
+     * 받은 코드는 닫혔(Closed)거나 병합(Merged)된 코드이다.
+     * @param project
+     * @param pageNum
+     * @return
+     */
+    public static Page<PullRequest> findClosedPagingList(Project project, int pageNum) {
+        return finder.where()
+                .eq("toProject",  project)
+                .or(com.avaje.ebean.Expr.eq("state", State.CLOSED), com.avaje.ebean.Expr.eq("state", State.MERGED))
+                .order().desc("created")
+                .findPagingList(ITEMS_PER_PAGE)
+                .getPage(pageNum);
+    }
     /**
      * {@code project}에서 보낸 풀리퀘 목록 중 한 페이지를 가져온다.
      *

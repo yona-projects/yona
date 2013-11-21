@@ -24,7 +24,6 @@ import playRepository.GitRepository;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -148,12 +147,10 @@ public class NotificationEvent extends Model {
         case NEW_PULL_REQUEST_COMMENT:
             return newValue;
         case PULL_REQUEST_STATE_CHANGED:
-            if(newValue.equals(State.CLOSED.state())) {
-                return Messages.get("notification.pullrequest.closed");
-            } else if(newValue.equals(State.REJECTED.state())) {
-                return Messages.get("notification.pullrequest.rejected");
-            } else {
+            if (State.OPEN.state().equals(newValue)) {
                 return Messages.get("notification.pullrequest.reopened");
+            } else {
+                return Messages.get("notification.pullrequest." + newValue);
             }
         case PULL_REQUEST_COMMIT_CHANGED:
             return newValue;

@@ -1,3 +1,23 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2013 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Wansoon Park
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package controllers;
 
 import com.avaje.ebean.Page;
@@ -381,7 +401,7 @@ public class PullRequestApp extends Controller {
         if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
-        Page<PullRequest> page = PullRequest.findPagingList(State.CLOSED, project, pageNum - 1);
+        Page<PullRequest> page = PullRequest.findClosedPagingList(project, pageNum - 1);
         return ok(list.render(project, page, "closed"));
     }
 
@@ -451,7 +471,7 @@ public class PullRequestApp extends Controller {
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
 
-        if (pullRequest.isClosed()) {
+        if (pullRequest.isMerged()) {
             canDeleteBranch = GitRepository.canDeleteFromBranch(pullRequest);
             canRestoreBranch = GitRepository.canRestoreBranch(pullRequest);
         }
@@ -582,19 +602,49 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
+        State beforeState = pullRequest.state;
+
         pullRequest.reject();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
 
-        addNotification(pullRequest, call, State.OPEN, State.REJECTED);
+        addNotification(pullRequest, call, beforeState, State.REJECTED);
 
         return redirect(call);
     }
 
     /**
+     * 코드 보내기 상태를 닫힘으로 처리한다.
+     *
+     * @param userName
+     * @param projectName
+     * @param pullRequestNumber
+     * @return
+     */
+    @Transactional
+    public static Result close(String userName, String projectName, Long pullRequestNumber) {
+        Project project = Project.findByOwnerAndProjectName(userName, projectName);
+        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
+
+        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.REJECT);
+        if(result != null) {
+            return result;
+        }
+
+        State beforeState = pullRequest.state;
+
+        pullRequest.close();
+
+        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
+
+        addNotification(pullRequest, call, beforeState, State.CLOSED);
+
+        return redirect(call);
+    }
+    /**
      * {@code pullRequestId}에 해당하는 코드 요청을 다시 열어준다.
      *
-     * when: 보류 상태로 변경했던 코드 요청을 다시 Open 상태로 변경할 때 사용한다.
+     * when: 보류 또는 닫기 상태로 변경했던 코드 요청을 다시 Open 상태로 변경할 때 사용한다.
      *
      * @param userName
      * @param projectName
@@ -611,44 +661,22 @@ public class PullRequestApp extends Controller {
             return result;
         }
 
+        if (pullRequest.isMerged() || pullRequest.isOpen()) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
+        State beforeState = pullRequest.state;
+
         pullRequest.reopen();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
+        addNotification(pullRequest, call, beforeState, State.OPEN);
 
-        addNotification(pullRequest, call, State.REJECTED, State.OPEN);
+        PullRequestEventMessage message = new PullRequestEventMessage(
+                UserApp.currentUser(), request(), pullRequest.fromProject, pullRequest.fromBranch);
+        Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
 
         return redirect(call);
-    }
-
-    /**
-     * {@code pullRequestId}에 해당하는 코드 요청을 삭제한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
-    @Transactional
-    public static Result cancel(String userName, String projectName, Long pullRequestNumber) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        User user = UserApp.currentUser();
-
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.DELETE);
-        if(result != null) {
-            return result;
-        }
-
-        // 게스트 중에서 코드 요청을 보낸 사용자는 취소 할 수 있다.
-        if(isGuest(project, user)) {
-            if(!user.equals(pullRequest.contributor)) {
-                forbidden(ErrorViews.Forbidden.render("Only this project's member and manager and the pull_request's author are allowed.", project));
-            }
-        }
-
-        pullRequest.delete();
-        return redirect(routes.PullRequestApp.pullRequests(userName, projectName, 1));
     }
 
     /**
@@ -910,7 +938,7 @@ public class PullRequestApp extends Controller {
         }
 
         if(!AccessControl.isAllowed(user, pullRequest.asResource(), operation)) {
-            result = forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         return result;
