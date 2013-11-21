@@ -462,11 +462,6 @@ public class PullRequestApp extends Controller {
         return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch));
     }
 
-    private static boolean isValid(String activeTab) {
-        List<String> validTabs = Arrays.asList("info", "commits", "changes");
-        return validTabs.contains(activeTab);
-    }
-
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
      * {@code pullRequestId}에 해당하는 코드 요청의 커밋 목록을 조회한다.
