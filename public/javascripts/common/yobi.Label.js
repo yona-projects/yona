@@ -54,7 +54,7 @@ yobi.Label = (function(htOptions){
 
         htVar.sTplLabel = htOptions.sTplLabel || '<div class="control-group"><label class="control-label" data-category="${category}">${category}</label></div>';
         htVar.sTplControls = htOptions.sTplControls || '<div class="controls label-group" data-category="${category}"></div>';
-        htVar.sTplBtnLabelId = htOptions.sTplBtnLabelId || '<button type="button" class="issue-label ${labelCSS} ${activeClass}" data-labelId="${labelId}">${labelName}</button>';
+        htVar.sTplBtnLabelId = htOptions.sTplBtnLabelId || '<span class="issue-label ${labelCSS} ${activeClass}" data-labelId="${labelId}">${labelName}${deleteButton}</span>';
     }
 
     /**
@@ -198,20 +198,20 @@ yobi.Label = (function(htOptions){
         _setLabelColor(oLabel);
 
         // label Id
-        var welBtnLabelId = $.tmpl(htVar.sTplBtnLabelId, {
-            "labelId": oLabel.id,
-            "labelName": oLabel.name,
-            "labelCSS" : 'active-' + $yobi.getContrastColor(oLabel.color),
-            "activeClass" : _getActiveClass(parseInt(oLabel.id))
-        });
+        var welBtnLabelId = $($yobi.tmpl(htVar.sTplBtnLabelId, {
+            "labelId"     : oLabel.id,
+            "labelName"   : oLabel.name,
+            "labelCSS"    : 'active-' + $yobi.getContrastColor(oLabel.color),
+            "activeClass" : _getActiveClass(parseInt(oLabel.id)),
+            "deleteButton": htVar.bEditable ? '<span class="delete">&times;</span>' : ''
+        }));
 
-        // 편집모드: 라벨 버튼을 항상 active 상태로 유지하고, 삭제 링크를 추가
+        // 편집모드: 라벨 버튼을 항상 active 상태로 유지하고, 라벨 삭제 기능 제공
         if(htVar.bEditable){
             welBtnLabelId.addClass('active');
-            welBtnLabelId.append(_getDeleteLink(oLabel.id, oLabel.color));
-        } else {
-            welBtnLabelId.click(_onClickLabel);
+            welBtnLabelId.on("click", ".delete", _onClickLabelDelete);
         }
+        welBtnLabelId.click(_onClickLabel);
 
         // 이미 같은 카테고리가 있으면 거기에 넣고
         var welCategory = $('fieldset.labels div[data-category="' + oLabel.category + '"]');
@@ -279,6 +279,10 @@ yobi.Label = (function(htOptions){
      * @return {Boolean} false
      */
     function _onClickLabel(weEvt){
+        if(htVar.bEditable){
+            return false;
+        }
+        
         var welTarget = $(weEvt.target || weEvt.srcElement || weEvt.originalTarget);
         welTarget.toggleClass("active");
 
@@ -287,6 +291,29 @@ yobi.Label = (function(htOptions){
         }
 
         return false;
+    }
+
+    /**
+     * 라벨 삭제 링크 반환
+     * Get delete link element
+     * @param {String} sId
+     */
+    function _onClickLabelDelete(){
+        if(confirm(Messages("label.confirm.delete")) === false){
+            return false;
+        }
+        
+        var welTarget = $(weEvt.target || weEvt.srcElement || weEvt.originalTarget);
+        var sLabelId = welTarget.attr("data-labelId");
+        
+        if(sLabelId){
+            $.post(
+                htVar.sURLLabel + '/' + sLabelId + '/delete',
+                {"_method": "delete"}
+            ).done(function(){
+                _removeLabel(sLabelId);
+            });
+        }
     }
 
     /**
@@ -313,31 +340,6 @@ yobi.Label = (function(htOptions){
         }
         // setting menu 의 리스트 에서도 제거
         $('li[data-value="'+sLabelId+'"]').remove();
-    }
-
-    /**
-     * 라벨 삭제 링크 반환
-     * Get delete link element
-     * @param {String} sId
-     * @param {String} sColor
-     * @return {Wrapped Element}
-     */
-    function _getDeleteLink(sId, sColor){
-        var welLinkDelete = $('<a class="delete">&times;</a>');
-        welLinkDelete.click(function(){
-            if(confirm(Messages("label.confirm.delete")) === false){
-                return false;
-            }
-
-            $.post(
-                htVar.sURLLabel + '/' + sId + '/delete',
-                {"_method": "delete"}
-            ).done(function(){
-                _removeLabel(sId);
-            });
-        });
-
-        return welLinkDelete;
     }
 
     /**
