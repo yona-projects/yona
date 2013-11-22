@@ -463,11 +463,6 @@ public class PullRequestApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        String activeTab = request().getQueryString("activeTab");
-        if(activeTab == null && !isValid(activeTab)) {
-            activeTab = "info";
-        }
-
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
 
@@ -484,12 +479,7 @@ public class PullRequestApp extends Controller {
             }
         }
 
-        return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch, activeTab));
-    }
-
-    private static boolean isValid(String activeTab) {
-        List<String> validTabs = Arrays.asList("info", "commits", "changes");
-        return validTabs.contains(activeTab);
+        return ok(view.render(project, pullRequest, comments, canDeleteBranch, canRestoreBranch));
     }
 
     /**
