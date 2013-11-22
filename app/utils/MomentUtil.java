@@ -37,28 +37,22 @@ public class MomentUtil {
 
     private static final String MOMENT_JS_FILE = "public/javascripts/lib/moment.min.js";
     private static final String MOMENT_KO_FILE = "public/javascripts/lib/moment.ko.js";
+    private static ScriptEngine engine = buildEngine();
 
-    public static JSInvocable newMoment(Long epoch) {
+    private static ScriptEngine buildEngine() {
         ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("JavaScript");
-        Object moment;
-
         InputStream is = null;
         Reader reader = null;
+        ScriptEngine _engine = manager.getEngineByName("JavaScript");
+
         try {
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MOMENT_JS_FILE);
             reader = new InputStreamReader(is);
-            engine.eval(reader);
+            _engine.eval(reader);
 
             is = Thread.currentThread().getContextClassLoader().getResourceAsStream(MOMENT_KO_FILE);
             reader = new InputStreamReader(is);
-            engine.eval(reader);
-
-            if (epoch == null) {
-                moment = ((Invocable) engine).invokeFunction("moment");
-            } else {
-                moment = ((Invocable) engine).invokeFunction("moment", epoch);
-            }
+            _engine.eval(reader);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
@@ -70,7 +64,22 @@ public class MomentUtil {
             }
         }
 
-        return new JSInvocable((Invocable) engine, moment);
+        return _engine;
     }
 
+    public static JSInvocable newMoment(Long epoch) {
+        Object moment;
+
+        try {
+            if (epoch == null) {
+                moment = ((Invocable) engine).invokeFunction("moment");
+            } else {
+                moment = ((Invocable) engine).invokeFunction("moment", epoch);
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
+        return new JSInvocable((Invocable) engine, moment);
+    }
 }

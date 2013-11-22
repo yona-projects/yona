@@ -10,6 +10,7 @@
 @import scala.collection.immutable.Map
 @import scala.collection.immutable.List
 @import scala.collection.JavaConversions._
+@import org.apache.commons.lang.StringEscapeUtils.escapeHtml;
 
 @**
  * 변경 내용(Diff) 표시
@@ -31,6 +32,10 @@
 @**
  * 파일 내용 표시
  *
+ * 성능 문제를 해결하기 위해 StringBuilder를 사용했다.
+ *
+ * 주의: StringBuilder는 thread-safe 하지 않다.
+ *
  * @param klass
  * @param path
  * @param rawText
@@ -39,9 +44,23 @@
  * @param comments
 **@
 @renderRawFile(klass: String, path: String, rawText: RawText, side: CodeComment.Side, prefix: String, comments: Map[String, List[_ <: CodeComment]]) = {
-    @for(i <- 0 until rawText.size) {
-        @partial_diff_line(klass, prefix, i + 1, null, i + 1, rawText.getString(i))
-        @partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1)))
+    @defining(new StringBuilder) { builder =>
+        @for(i <- 0 until rawText.size) @{
+            builder.append("<tr class='")
+            builder.append(klass)
+            builder.append("' data-line='")
+            builder.append(i + 1)
+            builder.append("' data-type='")
+            builder.append(klass)
+            builder.append("'><td class='linenum'><i class='icon-comment'></i></td><td class='linenum'>")
+            builder.append(i + 1)
+            builder.append("</td><td class='code'><span>")
+            builder.append(prefix)
+            builder.append("</span>")
+            builder.append(escapeHtml(rawText.getString(i)))
+            builder.append(partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1))).toString.trim)
+        }
+        @Html(builder.toString)
     }
 }
 

@@ -4,6 +4,7 @@ import play.mvc.Call
 import org.joda.time.DateTimeConstants
 import play.i18n.Messages
 import controllers.routes
+import controllers.UserApp
 import java.security.MessageDigest
 import views.html._
 import java.net.URI
@@ -15,10 +16,17 @@ import scala.collection.JavaConversions._
 import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
 import views.html.partial_diff_line
+import views.html.git.partial_pull_request_comment
+import views.html.git.partial_pull_request_event
+import views.html.git.partial_commit_comment
 import models.PullRequestComment
+import models.CommitComment
+import models.PullRequestEvent
+import models.PullRequest
 import models.TimelineItem
 import models.Project
 import java.net.URLEncoder
+import scala.annotation.tailrec
 
 object TemplateHelper {
 
@@ -254,20 +262,57 @@ object TemplateHelper {
         case first::second::tail => renderTwoLines(first, second, comments) + renderLines(tail, comments)
       }
 
-    def threadAndRemains(commentOnCommit: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
       if (comments.isEmpty) {
-        (List(commentOnCommit), Nil)
+        (thread, remains)
       } else {
-        (commentOnCommit, comments.head) match {
+        (thread.head, comments.head) match {
           case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) => {
-            val res = threadAndRemains(b, comments.tail)
-            (List(a) ++ res._1, res._2)
+            _threadAndRemains(thread :+ b, remains, comments.tail)
           }
           case (a, b) => {
-            val res = threadAndRemains(a, comments.tail)
-            (res._1, List(b) ++ res._2)
+            _threadAndRemains(thread, remains :+ b, comments.tail)
           }
         }
+      }
+    }
+
+    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = _threadAndRemains(List(comment), List(), comments.tail)
+
+    def isLineComment(comment: PullRequestComment) = comment.line != null && comment.hasValidCommitId
+
+    def isAuthorComment(commentId: String) = if(commentId == UserApp.currentUser().loginId) "author"
+
+    def shortId(commitId: String) = commitId.substring(0, Math.min(7, commitId.size))
+
+    @tailrec def renderCommentsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html = {
+      val remains = comments.head match {
+        case (comment: PullRequestComment) if isLineComment(comment) => {
+          threadAndRemains(comment, comments.tail) match {
+            case (thread, remains) => {
+              html += partial_pull_request_comment(pull, comment, thread)
+              remains
+            }
+          }
+        }
+        case (comment: PullRequestComment) => {
+          html += partial_pull_request_comment(pull, comment)
+          comments.tail
+        }
+        case (comment: CommitComment) => {
+          html += partial_commit_comment(pull, comment)
+          comments.tail
+        }
+        case (event: PullRequestEvent) => {
+          html += partial_pull_request_event(pull, event)
+          comments.tail
+        }
+      }
+
+      if (remains.isEmpty) {
+        html
+      } else {
+        renderCommentsOnPullRequest(pull, html, remains)
       }
     }
   }

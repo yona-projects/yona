@@ -2,6 +2,7 @@
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
+@import utils.TemplateHelper.DiffRenderer._
 @import utils.AccessControl._
 @import models.enumeration
 @import scala.collection.JavaConversions._
@@ -102,7 +103,7 @@
                 <hr class="nm">
                 @if(pull.getTimelineComments.size > 0) {
                 <ul class="comments" id="comments">
-                @partial_comments(pull, pull.getTimelineComments.toList)
+                @renderCommentsOnPullRequest(pull, Html(""), pull.getTimelineComments.toList)
                 </ul>
                 }
                 @common.commentForm(project, ResourceType.PULL_REQUEST_COMMENT, routes.PullRequestCommentApp.newComment(project.owner, project.name, pull.id).toString())
