@@ -1,7 +1,12 @@
 package playRepository;
 
+import static play.test.Helpers.*;
+
 import models.Project;
 import models.PullRequest;
+
+import org.apache.commons.io.FileUtils;
+import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.MergeResult;
@@ -134,6 +139,8 @@ public class GitRepositoryTest {
         git.add().addFilepattern("readme.txt").call();
         git.commit().setMessage("commit 2").call();
 
+        git.tag().setName("tag").setAnnotated(true).call();
+
         out.write("hello 3");
         out.flush();
         git.add().addFilepattern("readme.txt").call();
@@ -142,7 +149,8 @@ public class GitRepositoryTest {
         GitRepository gitRepo = new GitRepository(userName, projectName + "/");
 
         List<Commit> history2 = gitRepo.getHistory(0, 2, "HEAD", null);
-        List<Commit> history5 = gitRepo.getHistory(0, 5, "HEAD", null);
+        List<Commit> history5 = gitRepo.getHistory(0, 5, null, null);
+        List<Commit> tagHistory2 = gitRepo.getHistory(0, 2, "tag", null);
 
         // then
         assertThat(history2.size()).isEqualTo(2);
@@ -153,6 +161,10 @@ public class GitRepositoryTest {
         assertThat(history5.get(0).getMessage()).isEqualTo("commit 3");
         assertThat(history5.get(1).getMessage()).isEqualTo("commit 2");
         assertThat(history5.get(2).getMessage()).isEqualTo("commit 1");
+
+        assertThat(tagHistory2.size()).isEqualTo(2);
+        assertThat(tagHistory2.get(0).getMessage()).isEqualTo("commit 2");
+        assertThat(tagHistory2.get(1).getMessage()).isEqualTo("commit 1");
     }
 
     @Test
@@ -231,16 +243,59 @@ public class GitRepositoryTest {
     }
 
 
-    @Ignore
     @Test
-    public void findFileInfo() throws Exception {
+    public void getMetaDataFromPath() throws Exception {
         // Given
-        String userName = "yobi";
-        String projectName = "testProject";
-        GitRepository repo = new GitRepository(userName, projectName);
-        // When
-        repo.getMetaDataFromPath("readme");
-        // Then
+        final String userName = "yobi";
+        final String projectName = "mytest";
+        final String branchName = "branch";
+        final String lightWeightTagName = "tag1";
+        final String annotatedTagName = "tag2";
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+
+        Repository repository = GitRepository.buildGitRepository(userName, projectName + "/");
+        repository.create();
+        Git git = new Git(repository);
+        FileUtils.touch(new File(wcPath + "/hello"));
+        FileUtils.touch(new File(wcPath + "/dir/world"));
+        git.add().addFilepattern("hello").call();
+        git.add().addFilepattern("dir").call();
+        git.commit().setAuthor("yobi", "yobi@yobi.io").setMessage("test").call();
+        git.branchCreate().setName(branchName).call();
+        git.tag().setName(lightWeightTagName).setAnnotated(false).call();
+        git.tag().setName(annotatedTagName).setAnnotated(true).setMessage("annotated tag").call();
+        repository.close();
+
+        running(fakeApplication(inMemoryDatabase()), new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // When
+                    GitRepository gitRepository = new GitRepository(userName, projectName + "/");
+                    ObjectNode notExistBranch = gitRepository.getMetaDataFromPath("not_exist_branch", "");
+                    ObjectNode root = gitRepository.getMetaDataFromPath("");
+                    ObjectNode dir = gitRepository.getMetaDataFromPath("dir");
+                    ObjectNode file= gitRepository.getMetaDataFromPath("hello");
+                    ObjectNode branch = gitRepository.getMetaDataFromPath(branchName, "");
+                    ObjectNode lightWeightTag = gitRepository.getMetaDataFromPath(lightWeightTagName, "");
+                    ObjectNode annotatedTag = gitRepository.getMetaDataFromPath(annotatedTagName, "");
+
+                    // Then
+                    assertThat(notExistBranch).isNull();
+                    assertThat(root.get("type").getTextValue()).isEqualTo("folder");
+                    assertThat(root.get("data").get("hello").get("type").getTextValue()).isEqualTo("file");
+                    assertThat(root.get("data").get("dir").get("type").getTextValue()).isEqualTo("folder");
+                    assertThat(dir.get("type").getTextValue()).isEqualTo("folder");
+                    assertThat(dir.get("data").get("world").get("type").getTextValue()).isEqualTo("file");
+                    assertThat(file.get("type").getTextValue()).isEqualTo("file");
+                    assertThat(branch.toString()).isEqualTo(root.toString());
+                    assertThat(lightWeightTag.toString()).isEqualTo(root.toString());
+                    assertThat(annotatedTag.toString()).isEqualTo(root.toString());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
     }
 
     @Ignore
@@ -416,6 +471,35 @@ public class GitRepositoryTest {
         originalRepo.close();
     }
 
+    @Test
+    public void isFile() throws Exception {
+        // Given
+        String userName = "yobi";
+        String projectName = "mytest";
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+        String repoPath = wcPath + "/.git";
+        String dirName = "dir";
+        String fileName = "file";
+
+        Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
+        repository.create(false);
+        Git git = new Git(repository);
+        FileUtils.forceMkdir(new File(wcPath + "/" + dirName));
+        FileUtils.touch(new File(wcPath + "/" + fileName));
+        git.add().addFilepattern(dirName).call();
+        git.add().addFilepattern(fileName).call();
+        git.commit().setMessage("test").call();
+        repository.close();
+
+        // When
+        GitRepository gitRepository = new GitRepository(userName, projectName + "/");
+
+        // Then
+        assertThat(gitRepository.isFile(dirName)).isEqualTo(false);
+        assertThat(gitRepository.isFile(fileName)).isEqualTo(true);
+        assertThat(gitRepository.isFile("not_exist_file")).isEqualTo(false);
+        assertThat(gitRepository.isFile(fileName, "not_exist_branch")).isEqualTo(false);
+    }
 
     private Project createProject(String owner, String name) {
         Project project = new Project();

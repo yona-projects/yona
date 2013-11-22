@@ -195,20 +195,14 @@ public class GitRepository implements PlayRepository {
     }
 
     public boolean isFile(String path, String revStr) throws IOException {
-        ObjectId commitId;
+        ObjectId objectId = getObjectId(revStr);
 
-        if (revStr == null){
-            commitId = repository.resolve(Constants.HEAD);
-        } else {
-            commitId = repository.resolve(revStr);
-        }
-
-        if (commitId == null) {
+        if (objectId == null) {
             return false;
         }
 
         RevWalk revWalk = new RevWalk(repository);
-        RevTree revTree = revWalk.parseTree(commitId);
+        RevTree revTree = revWalk.parseTree(objectId);
         TreeWalk treeWalk = new TreeWalk(repository);
         treeWalk.addTree(revTree);
 
@@ -239,14 +233,7 @@ public class GitRepository implements PlayRepository {
      */
     @Override
     public ObjectNode getMetaDataFromPath(String branch, String path) throws IOException, GitAPIException {
-        ObjectId headCommit;
-
-        if (branch == null){
-            headCommit = repository.resolve(Constants.HEAD);
-        } else {
-            headCommit = repository.resolve(branch);
-        }
-        // 만약 특정 커밋을 얻오오고싶다면 바꾸어 주면 된다.
+        RevCommit headCommit = getRevCommit(branch);
         if (headCommit == null) {
             Logger.debug("GitRepository : init Project - No Head commit");
             return null;
@@ -583,13 +570,13 @@ public class GitRepository implements PlayRepository {
         if (path != null) {
             logCommand.addPath(path);
         }
-        if (untilRevName != null) {
-            ObjectId objectId = repository.resolve(untilRevName);
-            if (objectId == null) {
-                return null;
-            }
-            logCommand.add(objectId);
+
+        RevCommit start = getRevCommit(untilRevName);
+        if (start == null) {
+            return null;
         }
+        logCommand.add(start);
+
         Iterable<RevCommit> iter = logCommand.setMaxCount(pageNumber * pageSize + pageSize).call();
         List<RevCommit> list = new LinkedList<>();
         for (RevCommit commit : iter) {
@@ -1655,4 +1642,26 @@ public class GitRepository implements PlayRepository {
         return this.getBranches().isEmpty();
     }
 
+    /*
+     * 주어진 git 객체 참조 값에 해당하는 것을 가져온다
+     */
+    private ObjectId getObjectId(String revstr) throws IOException {
+        if (revstr == null) {
+            return repository.resolve(Constants.HEAD);
+        } else {
+            return repository.resolve(revstr);
+        }
+    }
+
+    /*
+     * 주어진 git 객체 참조 값을 이용해서 commit 객체를 가져온다
+     */
+    private RevCommit getRevCommit(String revstr) throws IOException {
+        ObjectId objectId = getObjectId(revstr);
+        if (objectId == null) {
+            return null;
+        }
+        RevWalk revWalk = new RevWalk(repository);
+        return revWalk.parseCommit(objectId);
+    }
 }
