@@ -375,13 +375,11 @@ public class PullRequest extends Model implements ResourceConvertible {
                 String mergedCommitIdFrom = null;
                 MergeResult mergeResult = null;
 
-                synchronized(this) {
-                    mergedCommitIdFrom =
-                            cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
+                mergedCommitIdFrom =
+                        cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
 
-                    // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
-                    mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
-                }
+                // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
+                mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
                     // merge 커밋 메시지 수정
