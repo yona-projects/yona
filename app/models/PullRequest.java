@@ -373,14 +373,11 @@ public class PullRequest extends Model implements ResourceConvertible {
                 GitRepository.checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
 
                 String mergedCommitIdFrom = null;
-                String mergedCommitIdTo = null;
                 MergeResult mergeResult = null;
 
                 synchronized(this) {
                     mergedCommitIdFrom =
                             cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
-                    mergedCommitIdTo =
-                            cloneRepository.getRef(cloneAndFetch.getDestFromBranchName()).getObjectId().getName();
 
                     // 코드를 보낸 브랜치(fromBranch)의 코드를 merge 한다.
                     mergeResult = GitRepository.merge(cloneRepository, cloneAndFetch.getDestFromBranchName());
@@ -390,7 +387,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                     // merge 커밋 메시지 수정
                     writeMergeCommitMessage(cloneRepository, UserApp.currentUser());
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergedCommitIdTo;
+                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
 
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
                     // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
@@ -828,14 +825,12 @@ public class PullRequest extends Model implements ResourceConvertible {
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 
                 String mergedCommitIdFrom = null;
-                String mergedCommitIdTo = null;
                 MergeResult mergeResult = null;
 
                 synchronized(this) {
                     mergedCommitIdFrom =
                             clonedRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
-                    mergedCommitIdTo =
-                            clonedRepository.getRef(cloneAndFetch.getDestFromBranchName()).getObjectId().getName();
+
                     mergeResult = GitRepository.merge(clonedRepository, cloneAndFetch.getDestFromBranchName());
                 }
 
@@ -843,7 +838,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                     conflicts[0] = new GitConflicts(clonedRepository, mergeResult);
                 } else if (mergeResult.getMergeStatus().isSuccessful()) {
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergedCommitIdTo;
+                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
                 }
             }
         });
