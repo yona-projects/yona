@@ -219,7 +219,7 @@
             welTr.append(welBody);
 
             if(sClass === "file"){
-                welTr.attr("id", sPath.substr(1));
+                welTr.attr("id", sPath);
                 welBody.find("span").addClass("filename");
             }
             welTable.append(welTr);
@@ -560,6 +560,7 @@
                 sPath: ""
             };
             var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
+            var rxFileHeader = /^(---|\+\+\+) (.+)\t[^\t]+$/; // http://en.wikipedia.org/wiki/Diff#Unified_format
             var bAddedOrRemoved;
             var aHunkRange;
             var nLastLineA = 0;
@@ -590,14 +591,23 @@
                 } else {
                     switch (aLine[i].substr(0, 2)) {
                     case '--':
-                        htDiff.sPath = aLine[i].substr(5);
-                        break;
                     case '++':
-                        if (aLine[i].substr(5) != 'dev/null') {
-                            htDiff.sPath = aLine[i].substr(5);
+                        var m = aLine[i].match(rxFileHeader);
+                        if (m == null) {
+                            if (aLine[i].indexOf("---") === 0 || aLine[i].indexOf("+++") === 0) {
+                                // (revision N), (working copy), timestamp 등이 없을 때
+                                m = ['', aLine[i].substring(0, 3), aLine[i].substr(4)];
+                            } else {
+                                continue;
+                            }
                         }
-                        _flushChangedLines(welTable, htDiff);
-                        _appendFileHeader(welTable, htDiff.sPath);
+                        if (m[1] == "---") {
+                            htDiff.sPath = m[2];
+                        } else if (m[1] == "+++") {
+                            htDiff.sPath = m[2] == "/dev/null" ? htDiff.sPath : m[2];
+                            _flushChangedLines(welTable, htDiff);
+                            _appendFileHeader(welTable, htDiff.sPath);
+                        }
                         break;
                     case '@@':
                         aMatch = aLine[i].match(rxHunkHeader);
@@ -658,7 +668,7 @@
                 var welTo = welTR.find("td.linenum-to");
                 var welFrom = welTR.find("td.linenum-from");
                 var welBody = welTR.find("td.line-body");
-                var sPath = welBody.text().substr(1);
+                var sPath = welBody.text();
                 var sURL = "#", sCommitId="";
 
                 // 부모 커밋(from)이 있는 경우
@@ -723,6 +733,7 @@
             var sToId   = welTarget.data("to");
             var sFromId = welTarget.data("from");
             var sPath   = welTarget.data("path");
+            sPath = sPath.indexOf("/") === 0 ? sPath.substr(1) : sPath;
             var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sToId, "path": sPath});
             var sRawURLTo = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sFromId, "path": sPath});
 
