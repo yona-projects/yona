@@ -1,3 +1,119 @@
+<a name="english"></a>
+[[한국어]](#korean)
+
+# Pull Request
+
+By using `Pull Request` you can let the members of the original project know about the changes of your codes to be reviewed for alterations. Also, the project can be discussed with other group members and your codes can be merged when code review is complete. 
+
+`Pull Request`, however, is only available for projects using git repository.
+
+## Before you begin
+
+Before you begin, you must do the following:
+
+* Create an account for Yobi.
+* Fork any project.
+* Push codes modified to a forked project. (If there is no modification, you cannot use `Pull Request`)
+
+## Pull Request
+
+`Pull Request` allows members of original project know about your alterations which can be reviewed.
+ 
+* Go to the forked project
+* Click `Pull Request` <그림 삽입>
+* Once screen is changed, click `Pull Request`<그림 삽입>
+
+Or 
+
+* Click `Pull Request` on the original project.
+* Click `New Pull Request` <그림 삽입>
+
+Choose branches for source and destination, fill the form and click `Save`.
+
+<그림 삽입>
+
+### Conflicts
+
+If codes modified come into conflict ith original ones, you will see the screen below.
+
+<그림 삽입>
+
+Although these conflicts are not solved `Pull Request` can be used. But you have to solve it before you `Accept`.
+
+## Code Review
+
+The original project members, can review codes. They are able to let others give feedback and discuss with other people.
+ 
+The target for review are that items are categorized as `Opened Code` in the original project.
+
+<그림 삽입>
+
+### Commits
+
+The commit tab shows comit logs.
+
+<그림 삽입>
+
+### Changes 변경내역
+
+변경사항 전체 커밋을 대상으로 원본과 차이를 비교할 수 있는 탭입니다.
+
+<그림 삽입>
+
+### Comments
+
+You can review by using comments. Here are two ways to use comments.
+
+First of all, use comments in overview tab.
+ 
+<그림 삽입>
+
+Second way is the following
+
+* Go to commit tab
+* Click on the commit you want to comment on
+* Move the mouse to point to where you want to write then you can see this icon. <그림 삽입>
+* Click the icon and write down what you want.
+
+<그림 삽입>
+
+## Accept
+
+You can merge the source codes reviewed with the original repository through `Accept`.
+
+To use `Accept` :
+
+* Choose the request in `Pull Request` menu.
+* Click `Accept`.  
+
+<그림 삽입>
+
+### Conflicts
+
+If the request comes into conflict with the original project, you will see below messages and cannot proceed to `Accept`.
+
+To solve the conflicts follow the guide.
+
+<그림 삽입>
+
+## Postpone 보류
+
+Sometimes certian requests need to be postponed. Then use `Postpone`
+
+To postpone the request :
+
+* Go to `Pull Request` page.
+* Choose the request you want to postpone
+* Click `Postpone`
+
+<그림 삽입>
+
+The requests postponed will be seen within `Postpone Code tab` in original project.
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
+
 # 코드주고받기
 
 `코드주고받기`를 통하여 복사한 프로젝트의 변경사항을 원본 프로젝트의 멤버들에게 알려 수정사항에 대해 리뷰를 받거나 토론 할 수 있고 적절한 시점에 본인 또는 멤버에 의해 원본 저장소에 수정사항이 적용 될 수 있습니다.
