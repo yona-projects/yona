@@ -70,6 +70,7 @@ code.author = Author
 code.closeCommentBox = Close Comment Box
 code.commitDate = Commit Date
 code.commitMsg = Commit Message
+code.commitMsg.empty = No commit message
 code.commits = Commits
 code.copyUrl = Copy URL
 code.filename = Filename

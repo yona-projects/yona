@@ -70,6 +70,7 @@ code.author = 作成者
 code.closeCommentBox = コメント閉じる
 code.commitDate = コミット日時
 code.commitMsg = コミットメッセージ
+code.commitMsg.empty = No commit message
 code.commits = コミット
 code.copyUrl = URLコピー
 code.filename = ファイル名

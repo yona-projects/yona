@@ -70,6 +70,7 @@ code.author = 작성자
 code.closeCommentBox = 댓글창 닫기
 code.commitDate = 커밋한 날짜
 code.commitMsg = 커밋 메시지
+code.commitMsg.empty = No commit message
 code.commits = 커밋
 code.copyUrl = 주소 복사
 code.filename = 파일명

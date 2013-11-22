@@ -130,8 +130,11 @@
                                 }
 
                                 @defining(commit.getMessage()){ commitMsg =>
-                                    <a href="@showCommitURL">@commitMsg.split("\n")(0)</a>
-
+                                    @if(commit.getShortMessage()) {
+                                        <a href="@showCommitURL">@commit.getShortMessage()</a>
+                                    } else {
+                                        <a href="@showCommitURL">@Messages("code.commitMsg.empty")</a>
+                                    }
                                     @if(commitMsg.split("\n").length > 1){
                                         <button type="button" class="more">&hellip;</button>
                                         <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
