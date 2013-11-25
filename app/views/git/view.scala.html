@@ -48,16 +48,15 @@
                         @Messages("project.watch")
                     }
                 </button>
-                
                 <div id="actOnOpen" class="mr5 pull-right" style="@if(!pull.isMerging && pull.isOpen()){display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-                        <a id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict){style="display:none;"}>@Messages("pullRequest.accept")</a>
+                        <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict){style="display:none;"}>@Messages("pullRequest.accept")</a>
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
-                        <a href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
+                        <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
-                        <a href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
+                        <a data-request-method="post" href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
                         <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
@@ -66,7 +65,7 @@
 
                 <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && (pull.isClosed() || pull.isRejected)){display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
-                        <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
+                        <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }
                 </div>
             </div>

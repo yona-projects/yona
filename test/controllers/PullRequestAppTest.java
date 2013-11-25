@@ -22,12 +22,7 @@ package controllers;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.mvc.Http.Status.*;
-import static play.test.Helpers.GET;
-import static play.test.Helpers.callAction;
-import static play.test.Helpers.fakeRequest;
-import static play.test.Helpers.route;
-import static play.test.Helpers.status;
-
+import static play.test.Helpers.*;
 import java.util.Map;
 
 import models.Project;
@@ -200,7 +195,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("yobi");
 
         Result result = route(
-            fakeRequest(GET, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+            fakeRequest(POST, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
         );
         assertThat(status(result)).isEqualTo(SEE_OTHER);
 
@@ -217,7 +212,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("yobi");
 
         Result result = route(
-            fakeRequest(GET, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+            fakeRequest(POST, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
         );
         assertThat(status(result)).isEqualTo(BAD_REQUEST);
 
@@ -234,7 +229,7 @@ public class PullRequestAppTest {
         User currentUser = User.findByLoginId("yobi");
 
         Result result = route(
-            fakeRequest(GET, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
+            fakeRequest(POST, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
         );
         assertThat(status(result)).isEqualTo(SEE_OTHER);
 
