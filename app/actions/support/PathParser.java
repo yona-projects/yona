@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 public class PathParser {
-    private static final char DELIMETER = '/';
+    private static final String DELIMETER = "/";
     private String[] paths;
     private String contextPath;
     private String path;
@@ -34,18 +34,8 @@ public class PathParser {
     }
 
     public PathParser(String contextPath, String path) {
-        this.contextPath = contextPath;
-        this.path = path;
-        makePath();
-    }
-
-    private void makePath() {
-        if(StringUtils.endsWith(this.contextPath, "/")) {
-            int start = 0;
-            int end = this.contextPath.length() - 1;
-            this.contextPath = StringUtils.substring(this.contextPath, start, end);
-        }
-        this.path = StringUtils.remove(this.path, this.contextPath);
+        this.contextPath = StringUtils.removeEnd(contextPath, DELIMETER);
+        this.path = StringUtils.removeStart(path, this.contextPath);
         this.paths = StringUtils.split(this.path, DELIMETER);
     }
 
