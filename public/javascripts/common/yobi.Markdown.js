@@ -80,9 +80,7 @@ yobi.Markdown = (function(htOptions){
         htVar = htVar || {};
         
         if(typeof htVar.rxGfmLinkRules === "undefined"){
-            htVar.rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
             htVar.rxWord = /\w/;
-
             var rxUser = /\[user\]/g;
             var rxProject = /\[project\]/g;
             var rxShar1 = /\[shar1\]/g;
@@ -97,15 +95,15 @@ yobi.Markdown = (function(htOptions){
     
             htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
         }
-        // -- //
         
         sSrc = sSrc.replace(htVar.rxGfmLinkRules, function(sMatch, sProjectGroup, sProjectPath, sUserName, sTargetGoup, sIssue, sAt, sShar1, sMention, nMatchIndex){
-            var aIgnores;
+            var aIgnores,
+                rxIgnoreRules = /<(?:a|code)(?:\s+[^>]*)*\s*>[^\n]*<\/(?:a|code)>|(?:\S+)\s*=\s*["'][^"']*["']/igm;
             
-            while(aIgnores = htVar.rxIgnoreRules.exec(sSrc)){
+            while(aIgnores = rxIgnoreRules.exec(sSrc)){
                 if(nMatchIndex > aIgnores.index && nMatchIndex < aIgnores.index + aIgnores[0].length){
                     return sMatch;
-                }
+                }   
             }
 
             if(htVar.rxWord.test(sSrc[nMatchIndex-1]) || htVar.rxWord.test(sSrc[nMatchIndex+sMatch.length])){
