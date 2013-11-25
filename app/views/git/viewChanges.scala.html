@@ -20,16 +20,10 @@
 
         <div id="__changes" class="mt20">
             <div class="diff-body">
-                @if(pull.isMerging) {
-                  <div class="alert alert-warnning">
-                    <h5>@Messages("pullRequest.is.merging")</h5>
-                  </div>
-                } else {
-                  @if(pull.isConflict) {
-                    @partial_conflict_message(project, pull)
-                  } else {
+                @if(!pull.isMerging && !pull.isConflict){
                     @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated), pull.fromProject, pull.toProject)
-                  }
+                } else {
+                    @partial_state(project, pull, false, false)
                 }
             </div>
         </div>

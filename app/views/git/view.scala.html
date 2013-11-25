@@ -33,37 +33,25 @@
 
             <div class="board-body">
                 <div class="content markdown-wrap markdown-before" markdown="true">@pull.body</div>
+                <div class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
             </div>
 
-            @if(!pull.isMerging && !pull.isClosed && !pull.isMerged) {
-                @if(!pull.isConflict){
-                <div class="alert alert-success">
-                    <h5>@Messages("pullRequest.is.safe")</h5>
-                </div>
-                } else {
-                    @partial_conflict_message(project, pull)
-                }
-            }
-
-            @if(pull.isMerging) {
-                <div class="alert alert-warnning">
-                    <h5>@Messages("pullRequest.is.merging")</h5>
-                </div>
-            }
-
-            <div class="attachments" data-resourceType="@ResourceType.PULL_REQUEST" data-resourceId="@pull.id"></div>
+            <div id="state">
+                @partial_state(project, pull, canDeleteBranch, canRestoreBranch)
+            </div>
 
             <div class="board-footer board-actrow">
-                <button id="watch-button" type="button" class="ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { active }" data-toggle="button">
+                <button id="watch-button" type="button" class="pull-right ybtn @if(pull.getWatchers.contains(UserApp.currentUser())) { ybtn-watching }" data-toggle="button">
                     @if(pull.getWatchers.contains(UserApp.currentUser())) {
                         @Messages("project.unwatch")
                     } else {
                         @Messages("project.watch")
                     }
                 </button>
-                @if(!pull.isMerging && pull.isOpen()){
-                    @if(!pull.isConflict && isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-                        <a href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success">@Messages("pullRequest.accept")</a>
+                
+                <div id="actOnOpen" class="mr5 pull-right" style="@if(!pull.isMerging && pull.isOpen()){display:block;}else{display:none;}">
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
+                        <a id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict){style="display:none;"}>@Messages("pullRequest.accept")</a>
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
                         <a href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
@@ -74,30 +62,14 @@
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
                         <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
                     }
-                }
+                </div>
 
-                @if(!pull.isMerging && (pull.isClosed() || pull.isRejected)){
+                <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && (pull.isClosed() || pull.isRejected)){display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                         <a href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }
-                }
+                </div>
             </div>
-            @if(pull.isMerged()) {
-            <div class="alert alert-info">
-                <a href="@routes.UserApp.userInfo(pull.receiver.loginId)"><img src="@pull.receiver.avatarUrl" width="25" height="25" class="img-rounded"></a>
-                <a href="@routes.UserApp.userInfo(pull.receiver.loginId)">@pull.receiver.name</a>@Messages("pullRequest.merged.the.pullrequest")
-                @if(UserApp.currentUser().equals(pull.contributor)) {
-                    @if(canDeleteBranch) {
-                    <code>@pull.fromBranch</code> @Messages("pullRequest.delete.frombranch.message")
-                    <button class="ybtn ybtn-danger ybtn-mini pull-right" data-request-method="delete" data-request-uri="@routes.PullRequestApp.deleteFromBranch(project.owner, project.name, pull.number)">@Messages("pullRequest.delete.branch")</button>
-                    }
-                    @if(canRestoreBranch) {
-                    <code>@pull.fromBranch</code> @Messages("pullRequest.restore.frombranch.message")
-                    <a href="@routes.PullRequestApp.restoreFromBranch(project.owner, project.name, pull.number)" class="ybtn ybtn-info ybtn-mini pull-right">@Messages("pullRequest.restore.branch")</a>
-                    }
-                }
-            </div>
-            }
             <div class="board-comment-wrap">
                 <div class="comment-header"><i class="yobicon-comments"></i><strong>@Messages("common.comment")</strong> <strong class="num">@{pull.comments.size() + pull.getCommitComments.size()}</strong></div>
                 <hr class="nm">
@@ -120,11 +92,13 @@
 <script type="text/javascript" src="@getJSLink("lib/diff")"></script>
 <script type="text/javascript" src="@getJSLink("lib/mergely/codemirror.min")"></script>
 <script type="text/javascript" src="@getJSLink("lib/mergely/mergely")"></script>
+<script type="text/javascript" src="@getJSLink("common/yobi.Interval")"></script>
 <script type="text/javascript">
     $(document).ready(function() {
         $yobi.loadModule("git.View", {
             "sWatchUrl"  : "@routes.WatchApp.watch(pull.asResource.asParameter)",
-            "sUnwatchUrl": "@routes.WatchApp.unwatch(pull.asResource.asParameter)"
+            "sUnwatchUrl": "@routes.WatchApp.unwatch(pull.asResource.asParameter)",
+            "sStateUrl"  : "@routes.PullRequestApp.pullRequestState(pull.toProject.owner, pull.toProject.name, pull.number)"
         });
 
         yobi.Mention({
