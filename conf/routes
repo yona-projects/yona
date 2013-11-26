@@ -204,6 +204,10 @@ GET     /:user/:project/commit/:id                      controllers.CodeHistoryA
 POST    /:user/:project/commit/:commitId/comments       controllers.CodeHistoryApp.newComment(user, project, commitId)
 DELETE  /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeHistoryApp.deleteComment(user, project, commitId, id: Long)
 
+# Branches
+GET     /:user/:project/branches                        controllers.BranchApp.branches(user, project)
+DELETE  /:user/:project/delete/:branch/                 controllers.BranchApp.deleteBranch(user, project, branch)
+
 # Help
 GET     /help                                           controllers.HelpApp.help()
 

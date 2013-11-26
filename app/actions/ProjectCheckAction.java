@@ -58,6 +58,11 @@ public class ProjectCheckAction extends Action<ProjectAccess> {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
+        boolean isGitOnly = this.configuration.isGitOnly();
+        if(isGitOnly && !project.isGit()) {
+            return badRequest(ErrorViews.BadRequest.render());
+        }
+
         return this.delegate.call(context);
     }
 }

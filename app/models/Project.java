@@ -893,4 +893,9 @@ public class Project extends Model implements LabelOwner {
                             .lt("pushedDate", DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate())
                             .findList();
     }
+
+    public boolean isGit() {
+        return vcs.equals("GIT");
+    }
+
 }

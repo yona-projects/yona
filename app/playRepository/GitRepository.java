@@ -615,6 +615,29 @@ public class GitRepository implements PlayRepository {
         return new ArrayList<>(repository.getAllRefs().keySet());
     }
 
+    public List<GitBranch> getAllBranches() throws GitAPIException, IOException {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+
+        List<GitBranch> branches = new ArrayList<>();
+        for(Ref branchRef : new Git(repository).branchList().call()) {
+            RevWalk walk = new RevWalk(repository);
+            RevCommit head = walk.parseCommit(branchRef.getObjectId());
+            walk.dispose();
+
+            GitBranch newBranch = new GitBranch(branchRef.getName(), new GitCommit(head));
+            branches.add(newBranch);
+        }
+
+        Collections.sort(branches, new Comparator<GitBranch>() {
+            @Override
+            public int compare(GitBranch b1, GitBranch b2) {
+                return b2.getHeadCommit().getCommitterDate().compareTo(b1.getHeadCommit().getCommitterDate());
+            }
+        });
+
+        return branches;
+    }
+
     @Override
     public Resource asResource() {
         return new Resource() {
