@@ -277,7 +277,9 @@ object TemplateHelper {
       }
     }
 
-    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = _threadAndRemains(List(comment), List(), comments.tail)
+    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+      _threadAndRemains(List(comment), List(), if (comments.isEmpty) List() else comments.tail)
+    }
 
     def isLineComment(comment: PullRequestComment) = comment.line != null && comment.hasValidCommitId
 
