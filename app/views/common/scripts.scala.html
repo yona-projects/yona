@@ -89,5 +89,27 @@
             "sListURL"  : "@routes.AttachmentApp.getFileList",
             "sUploadURL": "@routes.AttachmentApp.uploadFile"
         });
+
+        // ajax for issue link detail)
+        $('.issueLink').hover(
+            function handleIn() {
+                var e=$(this);
+                e.tooltip ( { title : 'loading..' } ).tooltip('show');
+                $.get(e.attr('href'),function(data) {
+                    if( e.tooltip ) e.tooltip('hide');
+                    e.popover({
+                        title: data.title,
+                        content: data.body,
+                        placement: 'right',
+                        html: 'true',
+                        trigger: 'hover'}
+                    ).popover('show');
+                });
+
+            }, function handleOut(){
+                var e=$(this);
+                e.tooltip('destroy');
+                e.popover('hide');
+            });
 	});
 </script>

@@ -3,6 +3,7 @@ package controllers;
 import models.*;
 import models.enumeration.*;
 
+import play.i18n.Messages;
 import play.mvc.Http;
 import views.html.issue.edit;
 import views.html.issue.partial_search;
@@ -217,8 +218,16 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         Issue issueInfo = Issue.findByNumber(project, number);
+
         if (issueInfo == null) {
-            return notFound(ErrorViews.NotFound.render("error.notfound", project, "issue"));
+            if (isXHR()){
+                ObjectNode result = Json.newObject();
+                result.put("title", number);
+                result.put("body", Messages.get("error.notfound.issue"));
+                return ok(result);
+            } else {
+                return notFound(ErrorViews.NotFound.render("error.notfound", project, "issue"));
+            }
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), issueInfo.asResource(), Operation.READ)) {
@@ -232,7 +241,24 @@ public class IssueApp extends AbstractPostingApp {
         Form<Comment> commentForm = new Form<>(Comment.class);
         Form<Issue> editForm = new Form<>(Issue.class).fill(Issue.findByNumber(project, number));
 
+        if( isXHR() ) {
+            ObjectNode result = Json.newObject();
+            result.put("id", issueInfo.getNumber());
+            result.put("title", issueInfo.title);
+            result.put("state", issueInfo.state.toString());
+            result.put("body", StringUtils.abbreviate(issueInfo.body, 1000));
+            result.put("createdDate", issueInfo.createdDate.toString());
+            result.put("link", routes.IssueApp.issue(project.owner, project.name, issueInfo.getNumber()).toString());
+            return ok(result);
+        }
+
         return ok(view.render("title.issueDetail", issueInfo, editForm, commentForm, project));
+    }
+
+    private static Boolean isXHR() {
+        // Response as JSON on XHR
+        String contentType = HttpUtil.getPreferType(request(), "application/json", "text/html");
+        return contentType.equals("application/json");
     }
 
     /**
@@ -401,9 +427,7 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         // Response as JSON on XHR
-        String contentType = HttpUtil.getPreferType(request(), "application/json", "text/html");
-        Boolean isXHR = contentType.equals("application/json");
-        return isXHR ? ok() : redirect(request().getHeader("Referer"));
+        return isXHR() ? ok() : redirect(request().getHeader("Referer"));
     }
 
     /**

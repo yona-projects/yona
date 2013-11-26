@@ -135,6 +135,7 @@ yobi.Markdown = (function(htOptions){
             sTitle,
             sOwner = htVar.sProjectUrl.split('/')[1],
             sProject = htVar.sProjectUrl.split('/')[2];
+        var sClass = "";
 
         if(sProjectGroup && sUserName && sIssue && !sProjectPath) {
             // User/#Num nforge#12345
@@ -148,6 +149,7 @@ yobi.Markdown = (function(htOptions){
             // #Num #123
             sRef = [sOwner, sProject, 'issue', sIssue].join("/");
             sTitle = sMatch;
+            sClass="issueLink";
         } else if(sShar1 && !sAt) {
             // SHA1 be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sOwner, sProject, 'commit' , sMatch].join("/");
@@ -167,7 +169,7 @@ yobi.Markdown = (function(htOptions){
             return sMatch;
         }
 
-        return '<a href="/'+sRef+'">'+sTitle+'</a>';
+        return '<a href="/'+sRef+'" class="'+sClass+'">'+sTitle+'</a>';
     }
 
     /**
