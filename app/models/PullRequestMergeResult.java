@@ -3,6 +3,8 @@ package models;
 import java.util.ArrayList;
 import java.util.List;
 
+import models.enumeration.State;
+
 import org.apache.commons.lang3.StringUtils;
 
 import playRepository.GitCommit;
@@ -35,7 +37,7 @@ public class PullRequestMergeResult {
     public void setPullRequest(PullRequest pullRequest) {
         this.pullRequest = pullRequest;
     }
-    public boolean commitChanged() {
+    public boolean hasDiffCommits() {
         return this.gitCommits.size() > 0;
     }
     public boolean resolved() {
@@ -146,5 +148,14 @@ public class PullRequestMergeResult {
     public void setResolvedStateOfPullRequest() {
         pullRequest.isConflict = false;
         pullRequest.conflictFiles = StringUtils.EMPTY;
+    }
+    /**
+     * 보낸코드를 병합 상태로 설정한다.
+     */
+    public void setMergedStateOfPullRequest(User receiver) {
+        pullRequest.isConflict = false;
+        pullRequest.conflictFiles = StringUtils.EMPTY;
+        pullRequest.state = State.MERGED;
+        pullRequest.receiver = receiver;
     }
 }

@@ -2,8 +2,6 @@ package actors;
 
 import java.util.List;
 
-import com.jcraft.jsch.Logger;
-
 import models.NotificationEvent;
 import models.PullRequest;
 import models.PullRequestEvent;
@@ -36,36 +34,35 @@ public class PullRequestEventActor extends UntypedActor {
                 try {
                     PullRequestMergeResult mergeResult = pullRequest.attemptMerge();
 
-                    if (mergeResult.commitChanged()) {
-
+                    if (mergeResult.hasDiffCommits()) {
                         mergeResult.saveCommits();
-
                         if (!mergeResult.getNewCommits().isEmpty()) {
                             PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getNewCommits());
                         }
+                    } else {
+                        mergeResult.setMergedStateOfPullRequest(message.getSender());
+                        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(message.getSender(), 
+                                pullRequest, pullRequest.state, State.MERGED);
+                        PullRequestEvent.addEvent(notiEvent, pullRequest);
                     }
 
                     if (mergeResult.conflicts()) {
-
                         mergeResult.setConflictStateOfPullRequest();
-
                         NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
                                 pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.CONFLICT);
                         PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
+                    }
 
-                    } else if (mergeResult.resolved()) {
-
+                    if (mergeResult.resolved()) {
                         mergeResult.setResolvedStateOfPullRequest();
-
                         NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
                                 pullRequest, mergeResult.getGitConflicts(), message.getRequest(), State.RESOLVED);
                         PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
-
                     }
 
                     mergeResult.save();
                 } catch (Exception e) {
-                    play.Logger.error("Failed to check merging from " + pullRequest, e );
+                    play.Logger.error("Failed to check merging from " + pullRequest, e);
                 }
             }
 
