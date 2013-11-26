@@ -22,6 +22,9 @@ package controllers;
 
 import com.avaje.ebean.Page;
 
+import controllers.annotation.IsCreatable;
+import controllers.annotation.ProjectAccess;
+import controllers.annotation.PullRequestAccess;
 import models.*;
 import models.enumeration.*;
 
@@ -30,16 +33,17 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 
+import actions.AnonymousCheckAction;
 import actors.PullRequestEventActor;
 import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
 import play.db.ebean.Transactional;
-import play.i18n.Messages;
 import play.libs.Akka;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.With;
 import playRepository.*;
 import utils.*;
 import views.html.git.*;
@@ -65,19 +69,14 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @With(AnonymousCheckAction.class)
+    @IsCreatable(ResourceType.FORK)
     public static Result newFork(String userName, String projectName) {
         Project project = ProjectApp.getProject(userName, projectName);
-        if(project == null ) {
-            return notFoundProject(userName, projectName);
-        }
-
         User currentUser = UserApp.currentUser();
-        if(!AccessControl.isProjectResourceCreatable(currentUser, project, ResourceType.FORK)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, project);
-        if(forkedProject != null) {
+
+        if (forkedProject != null) {
             return ok(fork.render("fork", project, forkedProject, false, new Form<>(Project.class)));
         } else {
             Project forkProject = Project.copy(project, currentUser);
@@ -97,16 +96,11 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @With(AnonymousCheckAction.class)
+    @IsCreatable(ResourceType.FORK)
     public static Result fork(String userName, String projectName) {
         Project originalProject = Project.findByOwnerAndProjectName(userName, projectName);
-        if(originalProject == null) {
-            return notFoundProject(userName, projectName);
-        }
-
         User currentUser = UserApp.currentUser();
-        if(!AccessControl.isProjectResourceCreatable(currentUser, originalProject, ResourceType.FORK)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", originalProject));
-        }
 
         // 이미 포크한 프로젝트가 있다면 그 프로젝트로 이동.
         Project forkedProject = Project.findByOwnerAndOriginalProject(currentUser.loginId, originalProject);
@@ -205,17 +199,14 @@ public class PullRequestApp extends Controller {
      * @throws IOException
      * @throws ServletException
      */
+    @With(AnonymousCheckAction.class)
+    @IsCreatable(ResourceType.FORK)
     public static Result newPullRequestForm(String userName, String projectName) throws IOException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         Result result = validateBeforePullRequest(project, userName, projectName);
         if(result != null) {
             return result;
-        }
-
-        User currentUser = UserApp.currentUser();
-        if(!AccessControl.isProjectResourceCreatable(currentUser, project, ResourceType.FORK)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
@@ -259,15 +250,14 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @IsCreatable(ResourceType.FORK)
     public static Result newPullRequest(String userName, String projectName) throws IOException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         Result result = validateBeforePullRequest(project, userName, projectName);
         if(result != null) {
             return result;
-        }
-        if(!AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.FORK)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
@@ -371,17 +361,14 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @ProjectAccess(Operation.READ)
     public static Result pullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        if(project == null) {
-            return notFoundProject(userName, projectName);
-        }
+
         if(!project.vcs.equals("GIT")) {
             return badRequest(ErrorViews.BadRequest.render("Now, only git project is allowed this request.", project));
         }
-        if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
+
         Page<PullRequest> page = PullRequest.findPagingList(State.OPEN, project, pageNum - 1);
         return ok(list.render(project, page, "opened"));
     }
@@ -393,15 +380,10 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @ProjectAccess(Operation.READ)
     public static Result closedPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        if(project == null) {
-            return notFoundProject(userName, projectName);
-        }
-        if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-        Page<PullRequest> page = PullRequest.findClosedPagingList(project, pageNum - 1);
+        Page<PullRequest> page = PullRequest.findPagingList(State.CLOSED, project, pageNum - 1);
         return ok(list.render(project, page, "closed"));
     }
 
@@ -412,14 +394,9 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @ProjectAccess(Operation.READ)
     public static Result rejectedPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        if(project == null) {
-            return notFoundProject(userName, projectName);
-        }
-        if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
         Page<PullRequest> page = PullRequest.findPagingList(State.REJECTED, project, pageNum - 1);
         return ok(list.render(project, page, "rejected"));
     }
@@ -431,14 +408,9 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
+    @ProjectAccess(Operation.READ)
     public static Result sentPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        if(project == null) {
-            return notFoundProject(userName, projectName);
-        }
-        if(!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
         Page<PullRequest> page = PullRequest.findSentPullRequests(project, pageNum - 1);
         return ok(list.render(project, page, "sent"));
     }
@@ -451,17 +423,11 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.READ)
     public static Result pullRequest(String userName, String projectName, long pullRequestNumber) throws IOException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
-        if (result != null) {
-            return result;
-        }
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
@@ -491,14 +457,11 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.READ)
     public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) throws IOException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.READ);
-        if (result != null) {
-            return result;
-        }
 
         boolean canDeleteBranch = false;
         boolean canRestoreBranch = false;
@@ -533,18 +496,11 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.READ)
     public static Result pullRequestCommits(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
-        if(result != null) {
-            return result;
-        }
-
         return ok(viewCommits.render(project, pullRequest));
     }
 
@@ -557,17 +513,11 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.READ)
     public static Result pullRequestChanges(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
-        if(result != null) {
-            return result;
-        }
 
         List<PullRequestComment> comments = new ArrayList<>();
 
@@ -591,14 +541,12 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.ACCEPT)
     public static Result accept(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.ACCEPT);
-        if(result != null) {
-            return result;
-        }
 
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
@@ -625,21 +573,17 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.REJECT)
     public static Result reject(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.REJECT);
-        if(result != null) {
-            return result;
-        }
-
         State beforeState = pullRequest.state;
-
         pullRequest.reject();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-
         addNotification(pullRequest, call, beforeState, State.REJECTED);
 
         return redirect(call);
@@ -654,25 +598,22 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.CLOSE)
     public static Result close(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.REJECT);
-        if(result != null) {
-            return result;
-        }
-
         State beforeState = pullRequest.state;
-
         pullRequest.close();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-
         addNotification(pullRequest, call, beforeState, State.CLOSED);
 
         return redirect(call);
     }
+
     /**
      * {@code pullRequestId}에 해당하는 코드 요청을 다시 열어준다.
      *
@@ -684,21 +625,18 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.CLOSE)
     public static Result open(String userName, String projectName, Long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        Result result = validatePullRequestOperation(project, pullRequest, userName, projectName, pullRequestNumber, Operation.REOPEN);
-        if(result != null) {
-            return result;
-        }
 
         if (pullRequest.isMerged() || pullRequest.isOpen()) {
             return badRequest(ErrorViews.BadRequest.render());
         }
 
         State beforeState = pullRequest.state;
-
         pullRequest.reopen();
 
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
@@ -721,16 +659,13 @@ public class PullRequestApp extends Controller {
      * @throws IOException
      * @throws ServletException
      */
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.UPDATE)
     public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, ServletException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;
-
-        User user = UserApp.currentUser();
-
-        if(!AccessControl.isAllowed(user, pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", fromProject));
-        }
 
         Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
         List<String> fromBranches = RepositoryService.getRepository(pullRequest.fromProject).getBranches();
@@ -753,14 +688,13 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.UPDATE)
     public static Result editPullRequest(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;
-
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
-        }
 
         Form<PullRequest> pullRequestForm = new Form<>(PullRequest.class).bindFromRequest();
         PullRequest updatedPullRequest = pullRequestForm.get();
@@ -789,13 +723,12 @@ public class PullRequestApp extends Controller {
      * @return
      */
     @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.UPDATE)
     public static Result deleteFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
-
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
-        }
 
         pullRequest.deleteFromBranch();
 
@@ -810,13 +743,13 @@ public class PullRequestApp extends Controller {
      * @param pullRequestNumber
      * @return
      */
+    @Transactional
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.READ)
+    @PullRequestAccess(Operation.UPDATE)
     public static Result restoreFromBranch(String userName, String projectName, Long pullRequestNumber) {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
-
-        if(!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), Operation.UPDATE)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", toProject));
-        }
 
         pullRequest.restoreFromBranch();
 
@@ -836,19 +769,13 @@ public class PullRequestApp extends Controller {
      * @throws GitAPIException
      * @throws SVNException
      */
+    @Transactional
+    @ProjectAccess(Operation.READ)
     public static Result commitView(String userName, String projectName, Long pullRequestNumber, String commitId) throws IOException, ServletException, GitAPIException, SVNException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 
         Project project = pullRequest.fromProject;
-
-        if(project == null) {
-            return notFound(("No project matches given parameters '" + userName + "' and project_name '" + projectName + "'"));
-        }
-
-        if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.READ)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
 
         List<FileDiff> fileDiffs = RepositoryService.getRepository(project).getDiff(commitId);
         Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
@@ -881,22 +808,13 @@ public class PullRequestApp extends Controller {
      * @return
      */
     private static Result validateBeforePullRequest(Project project, String userName, String projectName) {
-        User currentUser = UserApp.currentUser();
-        if(currentUser.isAnonymous()) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
-        }
-
-        if(project == null) {
-            return notFound(("No project matches given parameters '" + userName + "' and project_name '" + projectName + "'"));
-        }
 
         if(!project.isFork()) {
             return badRequest(ErrorViews.BadRequest.render("Only fork project is allowed this request", project));
         }
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
-        if(isGuest(project, currentUser)) {
+        if(isGuest(project, UserApp.currentUser())) {
             return forbidden(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
         }
 
@@ -905,74 +823,5 @@ public class PullRequestApp extends Controller {
 
     private static boolean isGuest(Project project, User currentUser) {
         return ProjectUser.roleOf(currentUser.loginId, project).equals("guest");
-    }
-
-    /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트가 없을 경우에 보내는 응답
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
-    private static Status notFoundProject(String userName, String projectName) {
-        return notFound(("No project matches given parameters '" + userName + "' and project_name '" + projectName + "'"));
-    }
-
-    /**
-     * {@code project}과 {@code pullRequest}가 null인지 확인한다.
-     *
-     * @param project
-     * @param pullRequest
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
-    private static Result validatePullRequest(Project project, PullRequest pullRequest,
-                                              String userName, String projectName, long pullRequestNumber) {
-        if(project == null) {
-            return notFoundProject(userName, projectName);
-        }
-
-        if(pullRequest == null) {
-            return notFound(ErrorViews.NotFound.render("No pullrequest matches given parameter '" + pullRequestNumber + "'", project));
-        }
-
-        Project toProject = pullRequest.toProject;
-        if(!toProject.equals(project)) {
-            return redirect(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, pullRequestNumber));
-        }
-        return null;
-    }
-
-    /**
-     * {@code project}와 {@code pullRequest}가 null인지 확인하고
-     * 현재 사용자가 {@code project}의 코드 요청을 처리 할 수 있는지 확인한다.
-     *
-     * @param project
-     * @param pullRequest
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
-    private static Result validatePullRequestOperation(Project project, PullRequest pullRequest,
-                                                       String userName, String projectName, long pullRequestNumber, Operation operation) {
-        User user = UserApp.currentUser();
-        if(user.isAnonymous()) {
-            flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
-        }
-
-        Result result = validatePullRequest(project, pullRequest, userName, projectName, pullRequestNumber);
-        if(result != null) {
-            return result;
-        }
-
-        if(!AccessControl.isAllowed(user, pullRequest.asResource(), operation)) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
-        }
-
-        return result;
     }
 }

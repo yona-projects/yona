@@ -95,6 +95,14 @@ projects:
         createdDate:           2013-11-18 13:40:00
         originalProject:       !!models.Project
                                     id: 5
+    - !!models.Project
+        name:           TestApp
+        overview:       테스트 애플리케이션
+        isPublic:   true
+        vcs:            GIT
+        siteurl:       http://localhost:9000/Test
+        owner:          yobi
+        createdDate:           2012-12-01 08:00:00
 # PullRequests
 pullRequests:
     - !!models.PullRequest
