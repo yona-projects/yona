@@ -1,4 +1,6 @@
 @(project:Project)
+@orderString = @{"createdDate DESC"}
+
 <div class="gnb-collapse">
     <div class="gnb-search-bar">
         <form action="@routes.ProjectApp.projects()">
@@ -41,30 +43,32 @@
                     }
                 }
 
-                @defining(User.findByLoginId(session.get("loginId")).myProjects("name")){ myProjects =>
+                @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
                     <li class="title">
                         @Messages("project.createdByMe")
-                        <span class="numberic">@Project.findProjectsCreatedByUser(session.get("loginId"), "name").size()</span>
+                        <span class="numberic">@myProjects.size</span>
                     </li>
-                    @if(Project.findProjectsCreatedByUser(session.get("loginId"), "name").size() > 0){
+                    @if(myProjects.length > 0) {
                         @for(project <- myProjects){
-                            @if(project.isOwner(User.findByLoginId(session.get("loginId")))){
-                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="bold">@project.name</span></a></li>
-                            }
+                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                         }
                     } else {
                         <li class="empty">@Messages("project.is.empty")</li>
                     }
+                }
 
-                    <li class="title">@Messages("project.belongsToMe")
-                        <span class="numberic">@(myProjects.size() - Project.findProjectsCreatedByUser(session.get("loginId"), "name").size())</span>
+                @defining(Project.findProjectsJustMemberAndNotOwner(UserApp.currentUser, orderString)) { memberProjects =>
+                    <li class="title">
+                        @Messages("project.default.group.member")
+                        <span class="numberic">@memberProjects.size</span>
                     </li>
-                    @for(project <- myProjects){
-                        @if(!project.isOwner(User.findByLoginId(session.get("loginId")))){
-                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                    @if(memberProjects.length > 0) {
+                        @for(project <- memberProjects){
+                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
                         }
+                    } else {
+                        <li class="empty">@Messages("project.is.empty")</li>
                     }
-
                 }
             </ul>
         </li>
