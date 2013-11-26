@@ -449,9 +449,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     }
 
     private String makeMergeCommitMessage() {
-        return "Merged pull request from " + fromProject.owner + "/" + fromProject.name + "\n\n"
-                + Url.create(routes.PullRequestApp.pullRequest(toProject.owner, toProject.name, this.number).url())
-                + "\n" + this.title + "\n" + this.body;
+        return "Merge branch `" + this.fromBranch.replace("refs/heads/", "")
+                + "` of " + fromProject.owner + "/" + fromProject.name + "\n\n"
+            + "from pull request " + number;
     }
 
     /**
