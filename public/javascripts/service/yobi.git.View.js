@@ -34,6 +34,7 @@
          */
         function _initVar(htOptions){
             htVar.sTplFileItem = $('#tplAttachedFile').text();
+            htVar.bCommentable = htOptions.bCommentable;
             htVar.sWatchUrl = htOptions.sWatchUrl;
             htVar.sUnwatchUrl = htOptions.sUnwatchUrl;
 
@@ -100,6 +101,15 @@
             htElement.welComment.on('click','[data-toggle="more"]', function(){
               $(this).parent().next('p.desc').toggleClass('hide');
             });
+
+            if (htVar.bCommentable) {
+                yobi.CodeCommentBox.init({
+                    fCallbackAfterHideCommentBox: function(welCommentBox) {
+                        $('ul#comments').after(welCommentBox);
+                    },
+                    welDiff: htOptions.htDiff
+                });
+            }
         }
 
         /**
