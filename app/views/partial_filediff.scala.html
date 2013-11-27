@@ -22,7 +22,7 @@
   @if(diff.getHunks.size > 0){
     @for(hunk <- diff.getHunks) {
       <tr class="range"><td>...</td><td>...</td><td>@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
-      @Html(renderLines(hunk.lines.toList, comments))
+      @Html(renderLines(hunk.lines.toList, comments, eolMissingChecker(diff)))
     }
   } else {
     <tr><td colspan=3>@Messages("code.noChanges")</td></tr>
@@ -58,8 +58,13 @@
             builder.append(prefix)
             builder.append("</span>")
             builder.append(escapeHtml(rawText.getString(i)))
+            if ((i + 1 == rawText.size) && rawText.isMissingNewlineAtEnd) {
+                builder.append(noNewlineAtEof)
+            }
+            builder.append("</td></tr>")
             builder.append(partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1))).toString.trim)
         }
+
         @Html(builder.toString)
     }
 }

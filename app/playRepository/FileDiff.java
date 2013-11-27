@@ -26,7 +26,6 @@ public class FileDiff {
     public int context = 3;
     public boolean isBinaryA = false;
     public boolean isBinaryB = false;
-    private boolean isEndOfLineMissing;
     public DiffEntry.ChangeType changeType;
     public Integer interestLine = null;
     public CodeComment.Side interestSide = null;
@@ -61,18 +60,15 @@ public class FileDiff {
                 if (aCur < curEdit.getBeginA() || endIdx + 1 < curIdx) {
                     hunk.lines.add(new DiffLine(this, DiffLineType.CONTEXT, aCur, bCur,
                             a.getString(aCur)));
-                    isEndOfLineMissing = checkEndOfLineMissing(a, aCur);
                     aCur++;
                     bCur++;
                 } else if (aCur < curEdit.getEndA()) {
                     hunk.lines.add(new DiffLine(this, DiffLineType.REMOVE, aCur, bCur,
                             a.getString(aCur)));
-                    isEndOfLineMissing = checkEndOfLineMissing(a, aCur);
                     aCur++;
                 } else if (bCur < curEdit.getEndB()) {
                     hunk.lines.add(new DiffLine(this, DiffLineType.ADD, aCur, bCur,
                             b.getString(bCur)));
-                    isEndOfLineMissing = checkEndOfLineMissing(a, aCur);
                     bCur++;
                 }
 

@@ -13,5 +13,4 @@ public class Hunk extends EditList {
     public int beginB;
     public int endB;
     public List<DiffLine> lines = new ArrayList<>();
-    public boolean isEndOfLineMissing;
 }

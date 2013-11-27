@@ -27,6 +27,7 @@ import models.TimelineItem
 import models.Project
 import java.net.URLEncoder
 import scala.annotation.tailrec
+import playRepository.FileDiff
 
 object TemplateHelper {
 
@@ -210,13 +211,13 @@ object TemplateHelper {
     */
 
     /* Not implemented yet */
-    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]]) =
-      renderLine(lineA, comments) + renderLine(lineB, comments)
+    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean) =
+      renderLine(lineA, comments, isEndOfLineMissing) + renderLine(lineB, comments, isEndOfLineMissing)
 
-    def renderTwoLines(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]]) =
+    def renderTwoLines(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean) =
       (lineA.kind, lineB.kind) match {
-        case (DiffLineType.REMOVE, DiffLineType.ADD) => renderWordDiff(lineA, lineB, comments)
-        case _ => renderLine(lineA, comments) + renderLine(lineB, comments)
+        case (DiffLineType.REMOVE, DiffLineType.ADD) => renderWordDiff(lineA, lineB, comments, isEndOfLineMissing)
+        case _ => renderLine(lineA, comments, isEndOfLineMissing) + renderLine(lineB, comments, isEndOfLineMissing)
       }
 
     def commentKey(path: String, side: Side, lineNum: Integer) =
@@ -241,25 +242,33 @@ object TemplateHelper {
         case _ => " "
       }
 
-    def renderLine(line: DiffLine, num: Integer, numA: Integer, numB: Integer, commentsOnLine: List[CodeComment]) =
-      partial_diff_line(line.kind.toString.toLowerCase, indicator(line), num, numA, numB, line.content) +
-      partial_diff_comment_on_line(commentsOnLine).body.trim
+    val noNewlineAtEof = "<span style='color: red'>(" + Messages.get("code.eolMissing") + ")</span>"
 
-    def renderLine(line: DiffLine, comments: Map[String, List[CodeComment]]): String =
+    def eolMissingChecker(diff: FileDiff)(line: DiffLine) =
       line.kind match {
-        case DiffLineType.ADD =>
-          renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments))
-        case DiffLineType.REMOVE =>
-          renderLine(line, line.numA + 1, line.numA + 1, null, commentsOnRemoveLine(line, comments))
-        case _ =>
-          renderLine(line, line.numB + 1, line.numA + 1, line.numB + 1, commentsOnContextLine(line, comments))
+        case DiffLineType.REMOVE => (line.numA + 1) == diff.a.size && diff.a.isMissingNewlineAtEnd
+        case _ => (line.numB + 1) == diff.b.size && diff.b.isMissingNewlineAtEnd
       }
 
-    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeComment]]): String =
+    def renderLine(line: DiffLine, num: Integer, numA: Integer, numB: Integer, commentsOnLine: List[CodeComment], isEndOfLineMissing: DiffLine => Boolean) =
+      partial_diff_line(line.kind.toString.toLowerCase, indicator(line), num, numA, numB, line.content, isEndOfLineMissing(line)) +
+      partial_diff_comment_on_line(commentsOnLine).body.trim
+
+    def renderLine(line: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
+      line.kind match {
+        case DiffLineType.ADD =>
+        renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments), isEndOfLineMissing)
+        case DiffLineType.REMOVE =>
+          renderLine(line, line.numA + 1, line.numA + 1, null, commentsOnRemoveLine(line, comments), isEndOfLineMissing)
+        case _ =>
+          renderLine(line, line.numB + 1, line.numA + 1, line.numB + 1, commentsOnContextLine(line, comments), isEndOfLineMissing)
+      }
+
+    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
       lines match {
         case Nil => ""
-        case first::Nil => renderLine(first, comments)
-        case first::second::tail => renderTwoLines(first, second, comments) + renderLines(tail, comments)
+        case first::Nil => renderLine(first, comments, isEndOfLineMissing)
+        case first::second::tail => renderTwoLines(first, second, comments, isEndOfLineMissing) + renderLines(tail, comments, isEndOfLineMissing)
       }
 
     @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
