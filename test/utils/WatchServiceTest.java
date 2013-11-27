@@ -145,4 +145,33 @@ public class WatchServiceTest {
         assertThat(WatchService.isWatching(user1, resource2)).isFalse();
         assertThat(WatchService.isWatching(user2, resource2)).isTrue();
     }
+
+    @Test
+    public void findActualWatchers() {
+        // Given
+        Resource resource_of_private_project = Issue.finder.byId(5L).asResource();
+
+        User watch_issue_not_member = User.find.byId(2L);
+        WatchService.watch(watch_issue_not_member, resource_of_private_project);
+
+        User watch_isssue = User.find.byId(3L);
+        WatchService.watch(watch_isssue, resource_of_private_project);
+
+        User watch_project = User.find.byId(4L);
+        WatchService.watch(watch_project, resource_of_private_project.getProject().asResource());
+
+        User watch_project_unwatch_issue = User.find.byId(5L);
+        WatchService.watch(watch_project_unwatch_issue, resource_of_private_project.getProject().asResource());
+        WatchService.unwatch(watch_project_unwatch_issue, resource_of_private_project);
+
+        User base_watcher_not_member = User.find.byId(6L);
+        Set<User> baseWatchers = new HashSet<>();
+        baseWatchers.add(base_watcher_not_member);
+
+        // When
+        Set<User> actualWatchers = WatchService.findActualWatchers(baseWatchers, resource_of_private_project);
+
+        // Then
+        assertThat(actualWatchers).containsOnly(watch_isssue, watch_project);
+    }
 }
