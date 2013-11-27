@@ -15,8 +15,10 @@ import models.resource.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.tmatesoft.svn.core.SVNException;
+
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -25,6 +27,7 @@ import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -35,6 +38,8 @@ import java.util.*;
 public class Project extends Model implements LabelOwner {
     private static final long serialVersionUID = 1L;
     public static final play.db.ebean.Model.Finder <Long, Project> find = new Finder<>(Long.class, Project.class);
+
+    private static final int DRAFT_TIME_IN_MILLIS = 1000 * 60 * 60;
 
     @Id
     public Long id;
@@ -101,6 +106,9 @@ public class Project extends Model implements LabelOwner {
      */
     public long watchingCount;
     public Date lastPushedDate;
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
+    public List<PushedBranch> pushedBranches;
 
     @ManyToMany(mappedBy = "enrolledProjects")
     public List<User> enrolledUsers;
@@ -852,5 +860,27 @@ public class Project extends Model implements LabelOwner {
      */
     public static int countProjectsCreatedByUser(String loginId) {
         return find.where().eq("owner", loginId).findRowCount();
+    }
+
+    /**
+     * 최근 푸쉬된 브랜치 목록을 반환한다.
+     * @return
+     */
+    public List<PushedBranch> getRecentlyPushedBranches() {
+        return PushedBranch.find.where()
+                            .eq("project", this)
+                            .gt("pushedDate", DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate())
+                            .findList();
+    }
+
+    /**
+     * 오래전 푸쉬된 브랜치 목록을 반환한다.
+     * @return
+     */
+    public List<PushedBranch> getOldPushedBranches() {
+        return PushedBranch.find.where()
+                            .eq("project", this)
+                            .lt("pushedDate", DateTime.now().minusMillis(DRAFT_TIME_IN_MILLIS).toDate())
+                            .findList();
     }
 }

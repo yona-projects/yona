@@ -487,6 +487,7 @@ pullRequest.merge.help.4 = 코드를 수락할 수 없는 경우에는 보류 �
 pullRequest.merge.requested = 이 보내는 코드:
 pullRequest.merged.the.pullrequest = 님이 코드 요청을 수락했습니다.
 pullRequest.opened.code = 확인할 코드
+pullRequest.pushed.branches.title = 최근 푸쉬된 브랜치
 pullRequest.reject = 보류
 pullRequest.rejected.code = 보류한 코드
 pullRequest.reopen = 다시 열기

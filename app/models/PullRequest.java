@@ -489,6 +489,11 @@ public class PullRequest extends Model implements ResourceConvertible {
         return finder.where().eq("toProject", project).order().asc("created").findList();
     }
 
+    public static List<PullRequest> findByFromProjectAndBranch(Project fromProject, String fromBranch) {
+        return finder.where().eq("fromProject", fromProject).eq("fromBranch", fromBranch)
+                .or(com.avaje.ebean.Expr.eq("state", State.OPEN), com.avaje.ebean.Expr.eq("state", State.REJECTED)).findList();
+    }
+
     @Transactional
     @Override
     public void save() {

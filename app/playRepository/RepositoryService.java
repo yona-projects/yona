@@ -1,35 +1,40 @@
 package playRepository;
 
-import actors.CommitCheckActor;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import actors.PullRequestEventActor;
-import akka.actor.Props;
-import controllers.ProjectApp;
-import controllers.UserApp;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 import models.CommitCheckMessage;
-
-import models.PullRequest;
-import models.PullRequestCommit;
-import models.PullRequestEventMessage;
-
 import models.Project;
+import models.PullRequest;
+import models.PullRequestEventMessage;
+import models.PushedBranch;
 import models.User;
-import models.enumeration.State;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.node.ObjectNode;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
 import org.eclipse.jgit.transport.PacketLineOut;
 import org.eclipse.jgit.transport.PostReceiveHook;
 import org.eclipse.jgit.transport.ReceiveCommand;
@@ -45,13 +50,12 @@ import play.libs.Akka;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import java.io.*;
-
-import java.util.*;
+import utils.JodaDateUtil;
+import actors.CommitCheckActor;
+import actors.PullRequestEventActor;
+import akka.actor.Props;
+import controllers.ProjectApp;
+import controllers.UserApp;
 
 /**
  * 저장소 관련 서비스를 제공하는 클래스
@@ -389,7 +393,51 @@ public class RepositoryService {
             @Override
             public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
                 updateLastPushedDate();
+                updateRecentlyPushedBranch(commands);
                 commitCheck(commands);
+            }
+
+            /**
+             * 프로젝트의 가장 최근 Push된 브랜치 저장
+             * @param commands
+             */
+            private void updateRecentlyPushedBranch(
+                    Collection<ReceiveCommand> commands) {
+                removeOldPushedBranches();
+                saveRecentlyPushedBranch(getUpdatedBranches(commands));
+            }
+
+            /**
+             * 오래전 푸쉬된 브랜치를 삭제한다.
+             */
+            private void removeOldPushedBranches() {
+                List<PushedBranch> list = project.getOldPushedBranches();
+                for (PushedBranch pushedBranch : list) {
+                    pushedBranch.delete();
+                }
+            }
+
+            /**
+             * 최근 푸쉬된 브랜치를 저장한다.
+             * 이미 존재할 경우 {@code pushedDate}만 업데이트한다.
+             * 푸쉬된 브랜치를 보내는 코드(열림/보류 상태)가 있으면 저장하지 않는다.
+             * @param updatedBranches
+             */
+            private void saveRecentlyPushedBranch(Set<String> updatedBranches) {
+                for (String branch : updatedBranches) {
+                    PushedBranch pushedBranch = PushedBranch.find.where()
+                                    .eq("project", project).eq("name", branch).findUnique();
+
+                    if (pushedBranch != null) {
+                        pushedBranch.pushedDate = JodaDateUtil.now();
+                        pushedBranch.update();
+                    }
+
+                    if (pushedBranch == null && PullRequest.findByFromProjectAndBranch(project, branch).isEmpty()) {
+                        pushedBranch = new PushedBranch(JodaDateUtil.now(), branch, project);
+                        pushedBranch.save();
+                    }
+                }
             }
 
             private void commitCheck(Collection<ReceiveCommand> commands) {
