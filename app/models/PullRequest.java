@@ -217,7 +217,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static List<PullRequest> findClosedPullRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)
-                .eq("state", State.CLOSED)
+                .or(com.avaje.ebean.Expr.eq("state", State.CLOSED), com.avaje.ebean.Expr.eq("state", State.MERGED))
                 .order().desc("created")
                 .findList();
     }
