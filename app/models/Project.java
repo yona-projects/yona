@@ -252,6 +252,7 @@ public class Project extends Model implements LabelOwner {
     public static List<Project> findProjectsJustMemberAndNotOwner(User user, String orderString) {
         ExpressionList<Project> el = find.where()
                 .eq("projectUser.user.id", user.id)
+                .ne("projectUser.role.id", RoleType.SITEMANAGER.roleType())
                 .ne("owner", user.loginId);
         if (StringUtils.isNotBlank(orderString)) {
             el.orderBy(orderString);
