@@ -40,10 +40,13 @@ public class WatchProjectAppTest {
         String projectName = "222";
 
         // when
-        Result result = callAction(routes.ref.WatchProjectApp.watch(ownerName, projectName));
+        Result result = callAction(
+                    routes.ref.WatchProjectApp.watch(ownerName, projectName),
+                    fakeRequest("POST", "/" + ownerName + "/" + projectName + "/watch")
+                );
 
         //then
-        assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
+        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
     }
 
     @Test
@@ -51,7 +54,7 @@ public class WatchProjectAppTest {
         // given
         String ownerName = "yobi";
         String projectName = "projectYobi";
-        FakeRequest request = fakeRequest();
+        FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/watch");
 
         // when
         Result result = callAction(routes.ref.WatchProjectApp.watch(ownerName, projectName), request);
@@ -68,7 +71,7 @@ public class WatchProjectAppTest {
         String projectName = "projectYobi";
         String referer = "http://test/projects";
         Long userId = 3L;
-        FakeRequest request = fakeRequest().
+        FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/watch").
                 withSession(UserApp.SESSION_USERID, String.valueOf(userId)).
                 withHeader(Http.HeaderNames.REFERER, referer);
 
@@ -88,10 +91,12 @@ public class WatchProjectAppTest {
         String projectName = "222";
 
         // when
-        Result result = callAction(routes.ref.WatchProjectApp.unwatch(ownerName, projectName));
+        Result result = callAction(routes.ref.WatchProjectApp.unwatch(ownerName, projectName),
+                fakeRequest("POST", "/" + ownerName + "/" + projectName + "/unwatch")
+                );
 
         //then
-        assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
+        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
     }
     
     @Test
@@ -99,7 +104,7 @@ public class WatchProjectAppTest {
         // given
         String ownerName = "yobi";
         String projectName = "projectYobi";
-        FakeRequest request = fakeRequest();
+        FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/unwatch");
 
         // when
         Result result = callAction(routes.ref.WatchProjectApp.unwatch(ownerName, projectName), request);
@@ -116,7 +121,7 @@ public class WatchProjectAppTest {
         String projectName = "projectYobi";
         String referer = "http://test/projects";
         Long userId = 3L;
-        FakeRequest request = fakeRequest().
+        FakeRequest request = fakeRequest("POST", "/" + ownerName + "/" + projectName + "/unwatch").
                 withSession(UserApp.SESSION_USERID, String.valueOf(userId)).
                 withHeader(Http.HeaderNames.REFERER, referer);
 

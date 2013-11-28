@@ -1,24 +1,18 @@
 package controllers;
 
-import actions.AnonymousCheckAction;
-import controllers.annotation.ProjectAccess;
 import models.Project;
 import models.User;
 import models.UserProjectNotification;
-import models.Watch;
 import models.enumeration.EventType;
 import models.enumeration.Operation;
-import models.enumeration.ResourceType;
-import org.codehaus.jackson.node.ObjectNode;
 import play.i18n.Messages;
-import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import play.mvc.With;
-import utils.Constants;
-import utils.ErrorViews;
 import utils.WatchService;
+import actions.AnonymousCheckAction;
+import controllers.annotation.ProjectAccess;
 
 public class WatchProjectApp extends Controller {
 
