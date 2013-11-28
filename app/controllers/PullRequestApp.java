@@ -383,7 +383,7 @@ public class PullRequestApp extends Controller {
     @ProjectAccess(Operation.READ)
     public static Result closedPullRequests(String userName, String projectName, int pageNum) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        Page<PullRequest> page = PullRequest.findPagingList(State.CLOSED, project, pageNum - 1);
+        Page<PullRequest> page = PullRequest.findClosedPagingList(project, pageNum - 1);
         return ok(list.render(project, page, "closed"));
     }
 
