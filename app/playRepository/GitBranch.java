@@ -21,6 +21,8 @@
 package playRepository;
 
 import models.User;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.lib.Constants;
 
 /**
  * @author Keesun Baik
@@ -37,7 +39,7 @@ public class GitBranch {
 
     public GitBranch(String name, GitCommit headCommit) {
         this.name = name;
-        this.shortName = name.replace("refs/heads/", "");
+        this.shortName = StringUtils.removeStart(name, Constants.R_HEADS);
         this.headCommit = headCommit;
         this.user = User.findByCommitterEmail(headCommit.getCommitterEmail());
     }
