@@ -206,7 +206,7 @@ DELETE  /:user/:project/commit/:commitId/comments/:id/delete   controllers.CodeH
 
 # Branches
 GET     /:user/:project/branches                        controllers.BranchApp.branches(user, project)
-DELETE  /:user/:project/delete/:branch/                 controllers.BranchApp.deleteBranch(user, project, branch)
+DELETE  /:user/:project/code/:branch/                   controllers.BranchApp.deleteBranch(user, project, branch)
 
 # Help
 GET     /help                                           controllers.HelpApp.help()
