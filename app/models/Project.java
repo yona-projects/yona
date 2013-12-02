@@ -22,6 +22,7 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import playRepository.*;
 import utils.JodaDateUtil;
+import validation.ExConstraints;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
@@ -40,8 +41,8 @@ public class Project extends Model implements LabelOwner {
     public Long id;
 
     @Constraints.Required
-    @Constraints.Pattern("^[-a-zA-Z0-9_]*$")
-    @Constraints.MinLength(2)
+    @Constraints.Pattern("^[a-zA-Z0-9-_\\.]+$")
+    @ExConstraints.Restricted({".", "..", ".git"})
     public String name;
 
     public String overview;

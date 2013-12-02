@@ -403,6 +403,7 @@ project.members = メンバー
 project.members.addMember = 追加するメンバーのIDを入力してください
 project.name = プロジェクト名
 project.name.alert = プロジェクト名はURLで使える文字(半角ローマ字,数字,-'ハイフン')だけ使えます
+project.name.reserved.alert = Name is reserved
 project.name.duplicate = すでに同じな名前のプロジェクトがあります
 project.name.placeholder = プロジェクト名を入力してください
 project.name.rule = 名前規則

@@ -12,7 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
+
 import play.data.Form;
+import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -28,9 +30,11 @@ import utils.Constants;
 import utils.HttpUtil;
 import utils.ErrorViews;
 import utils.LabelSearchUtil;
+import validation.ExConstraints.RestrictedValidator;
 import views.html.project.*;
 
 import javax.servlet.ServletException;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -191,8 +195,10 @@ public class ProjectApp extends Controller {
             filledNewProjectForm.reject("name");
             return badRequest(create.render("title.newProject", filledNewProjectForm));
         } else if (filledNewProjectForm.hasErrors()) {
+            ValidationError error = filledNewProjectForm.error("name");
+            flash(Constants.WARNING, RestrictedValidator.message.equals(error.message()) ?
+                    "project.name.reserved.alert" : "project.name.alert");
             filledNewProjectForm.reject("name");
-            flash(Constants.WARNING, "project.name.alert");
             return badRequest(create.render("title.newProject", filledNewProjectForm));
         } else {
             Project project = filledNewProjectForm.get();
@@ -224,6 +230,15 @@ public class ProjectApp extends Controller {
     @Transactional
     public static Result settingProject(String loginId, String projectName) throws IOException, NoSuchAlgorithmException, UnsupportedOperationException, ServletException {
         Form<Project> filledUpdatedProjectForm = form(Project.class).bindFromRequest();
+        if (filledUpdatedProjectForm.hasErrors()) {
+            ValidationError error = filledUpdatedProjectForm.error("name");
+            flash(Constants.WARNING, RestrictedValidator.message.equals(error.message()) ?
+                    "project.name.reserved.alert" : "project.name.alert");
+            filledUpdatedProjectForm.reject("name");
+            return badRequest(setting.render("title.projectSetting",
+                    filledUpdatedProjectForm, Project.find.byId(
+                            Long.valueOf(filledUpdatedProjectForm.field("id").value()))));
+        }
         Project updatedProject = filledUpdatedProjectForm.get();
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), updatedProject.asResource(), Operation.UPDATE)) {

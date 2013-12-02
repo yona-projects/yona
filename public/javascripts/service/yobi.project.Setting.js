@@ -33,7 +33,8 @@
          */
         function _initVar(htOptions){
             htVar.rxLogoExt = /\.(gif|bmp|jpg|jpeg|png)$/i;
-            htVar.rxPrjName = /^[a-zA-Z0-9_][-a-zA-Z0-9_]+[^-]$/;
+            htVar.rxPrjName = /^[0-9A-Za-z-_\.]+$/;
+            htVar.aReservedWords = [".", "..", ".git"];
         }
 
         /**
@@ -79,8 +80,13 @@
          * 프로젝트 설정 저장 버튼 클릭시
          */
         function _onClickBtnSave(){
-            if(!htVar.rxPrjName.test(htElement.welInputName.val())){
+            var sPrjName = htElement.welInputName.val();
+            if(!htVar.rxPrjName.test(sPrjName)){
                 $yobi.showAlert(Messages("project.name.alert"));
+                return false;
+            }
+            if(htVar.aReservedWords.indexOf(sPrjName) >= 0){
+                $yobi.showAlert(Messages("project.name.reserved.alert"));
                 return false;
             }
 
