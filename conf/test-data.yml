@@ -421,3 +421,24 @@ projectUsers:
                             id: 2
         role:           !!models.Role
                             id: 1
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 3
+        project:        !!models.Project
+                            id: 3
+        role:           !!models.Role
+                            id: 2
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 4
+        project:        !!models.Project
+                            id: 3
+        role:           !!models.Role
+                            id: 2
+    - !!models.ProjectUser
+        user:           !!models.User
+                            id: 5
+        project:        !!models.Project
+                            id: 3
+        role:           !!models.Role
+                            id: 2

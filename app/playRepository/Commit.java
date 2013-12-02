@@ -44,22 +44,7 @@ public abstract class Commit {
             }
         }
 
-        // Add every user who watches the project to which this commit belongs
-        actualWatchers.addAll(WatchService.findWatchers(project.asResource()));
-
-        // For this commit, add every user who watch explicitly and remove who unwatch explicitly.
-        actualWatchers.addAll(WatchService.findWatchers(asResource(project)));
-        actualWatchers.removeAll(WatchService.findUnwatchers(asResource(project)));
-
-        // Filter the watchers who has no permission to read this commit.
-        Set<User> allowedWatchers = new HashSet<>();
-        for (User watcher : actualWatchers) {
-            if (AccessControl.isAllowed(watcher, project.asResource(), Operation.READ)) {
-                allowedWatchers.add(watcher);
-            }
-        }
-
-        return allowedWatchers;
+        return WatchService.findActualWatchers(actualWatchers, asResource(project));
     }
 
     public static Project getProjectFromResourceId(String resourceId) {

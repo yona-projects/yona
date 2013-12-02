@@ -426,18 +426,7 @@ public class PullRequest extends Model implements ResourceConvertible {
             }
         }
 
-        actualWatchers.addAll(WatchService.findWatchers(toProject.asResource()));
-        actualWatchers.addAll(WatchService.findWatchers(asResource()));
-        actualWatchers.removeAll(WatchService.findUnwatchers(asResource()));
-
-        Set<User> allowedWatchers = new HashSet<>();
-        for (User watcher : actualWatchers) {
-            if (AccessControl.isAllowed(watcher, asResource(), Operation.READ)) {
-                allowedWatchers.add(watcher);
-            }
-        }
-
-        return allowedWatchers;
+        return WatchService.findActualWatchers(actualWatchers, asResource());
     }
 
     private void writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {

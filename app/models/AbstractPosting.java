@@ -262,17 +262,6 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
             }
         }
 
-        actualWatchers.addAll(WatchService.findWatchers(project.asResource()));
-        actualWatchers.addAll(WatchService.findWatchers(asResource()));
-        actualWatchers.removeAll(WatchService.findUnwatchers(asResource()));
-
-        Set<User> allowedWatchers = new HashSet<>();
-        for (User watcher : actualWatchers) {
-            if (AccessControl.isAllowed(watcher, asResource(), Operation.READ)) {
-                allowedWatchers.add(watcher);
-            }
-        }
-
-        return allowedWatchers;
+        return WatchService.findActualWatchers(actualWatchers, asResource());
     }
 }
