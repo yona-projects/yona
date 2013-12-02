@@ -8,6 +8,8 @@ import java.util.Map;
 import models.Project;
 import models.User;
 
+import models.UserProjectNotification;
+import models.enumeration.EventType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +18,7 @@ import play.mvc.Http;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
+import utils.WatchService;
 
 public class WatchProjectAppTest {
     private static FakeApplication app;
@@ -98,7 +101,7 @@ public class WatchProjectAppTest {
         //then
         assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
     }
-    
+
     @Test
     public void testUnwatch_AnonymousUser() {
         // given
@@ -133,6 +136,91 @@ public class WatchProjectAppTest {
         assertThat(redirectLocation(result)).isEqualTo(referer);
         assertProjectIsNotInUserWatchingProjects(ownerName,
                 projectName, userId);
+    }
+
+    @Test
+    public void testToggleWatchingProject() {
+        // given
+        Long userId = 1l;
+        Long projectId = 1l;
+        String eventTypeValue = "NEW_ISSUE";
+
+        User user = User.find.byId(userId);
+        Project project = Project.find.byId(projectId);
+        EventType eventType = EventType.valueOf(eventTypeValue);
+
+        WatchService.watch(user, project.asResource());
+        assertThat(user.getWatchingProjects().contains(project)).isTrue();
+        assertThat(UserProjectNotification.isEnabledNotiType(user, project, eventType)).isTrue();
+
+        FakeRequest request = fakeRequest("POST", "/noti/toggle/" + projectId + "/" + eventTypeValue)
+                .withSession(UserApp.SESSION_USERID, String.valueOf(userId));
+
+        // when
+        Result result = callAction(routes.ref.WatchProjectApp.toggle(projectId, eventTypeValue), request);
+
+        // then
+        assertThat(status(result)).isEqualTo(Http.Status.OK);
+        assertThat(UserProjectNotification.isEnabledNotiType(user, project, eventType)).isFalse();
+    }
+
+    @Test
+    public void testToggleUnwatchingProject() {
+        // given
+        Long userId = 1l;
+        Long projectId = 2l;
+        String eventTypeValue = "NEW_ISSUE";
+
+        User user = User.find.byId(userId);
+        Project project = Project.find.byId(projectId);
+
+        assertThat(user.getWatchingProjects().contains(project)).isFalse();
+
+        FakeRequest request = fakeRequest("POST", "/noti/toggle/" + projectId + "/" + eventTypeValue)
+                .withSession(UserApp.SESSION_USERID, String.valueOf(userId));
+
+        // when
+        Result result = callAction(routes.ref.WatchProjectApp.toggle(projectId, eventTypeValue), request);
+
+        // then
+        assertThat(status(result)).isEqualTo(Http.Status.BAD_REQUEST);
+    }
+
+    @Test
+    public void testToggleNoProject() {
+        // given
+        Long userId = 1l;
+        Long projectId = 100l; // The project which has this id, should not exist.
+        String eventTypeValue = "NEW_ISSUE";
+
+        FakeRequest request = fakeRequest("POST", "/noti/toggle/" + projectId + "/" + eventTypeValue)
+                .withSession(UserApp.SESSION_USERID, String.valueOf(userId));
+
+        // when
+        Result result = callAction(routes.ref.WatchProjectApp.toggle(projectId, eventTypeValue), request);
+
+        // then
+        assertThat(status(result)).isEqualTo(Http.Status.NOT_FOUND);
+    }
+
+    @Test
+    public void testTogglePrivateProject() {
+        // given
+        Long userId = 2l;
+        Long projectId = 3l; // The project should be private.
+        String eventTypeValue = "NEW_ISSUE";
+
+        Project project = Project.find.byId(projectId);
+        assertThat(project.isPublic).isFalse();
+
+        FakeRequest request = fakeRequest("POST", "/noti/toggle/" + projectId + "/" + eventTypeValue)
+                .withSession(UserApp.SESSION_USERID, String.valueOf(userId));
+
+        // when
+        Result result = callAction(routes.ref.WatchProjectApp.toggle(projectId, eventTypeValue), request);
+
+        // then
+        assertThat(status(result)).isEqualTo(Http.Status.FORBIDDEN);
     }
 
     private void assertProjectIsInUserWatchingProjects(String ownerName,
