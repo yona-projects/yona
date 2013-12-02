@@ -345,6 +345,14 @@ public class Project extends Model implements LabelOwner {
         return this.createdDate;
     }
 
+    public String defaultBranch() {
+        try {
+            return RepositoryService.getRepository(this).getDefaultBranch();
+        } catch (Exception e) {
+        }
+        return "HEAD";
+    }
+
     /**
      *
      * 프로젝트 마지막 업데이트일을 {@link Duration} 객체로 반환한다. ( 지속시간 )

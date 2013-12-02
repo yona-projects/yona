@@ -19,6 +19,7 @@ import views.html.code.view;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +60,14 @@ public class CodeApp extends Controller {
             }
         }
 
-        return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, "HEAD", ""));
+        String defaultBranch = project.defaultBranch();
+        if (defaultBranch == null) {
+            defaultBranch = "HEAD";
+        } else if (defaultBranch.split("/").length >= 3) {
+            defaultBranch = defaultBranch.split("/", 3)[2];
+        }
+        defaultBranch = URLEncoder.encode(defaultBranch, "UTF-8");
+        return redirect(routes.CodeApp.codeBrowserWithBranch(userName, projectName, defaultBranch, ""));
     }
 
     /**
@@ -80,6 +88,9 @@ public class CodeApp extends Controller {
 
         PlayRepository repository = RepositoryService.getRepository(project);
         ObjectNode fileInfo = repository.getMetaDataFromPath(branch, path);
+        if (fileInfo == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
         fileInfo.put("path", path);
 
         List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();

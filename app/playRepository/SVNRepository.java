@@ -375,6 +375,15 @@ public class SVNRepository implements PlayRepository {
 
     }
 
+    @Override
+    public String getDefaultBranch() throws IOException {
+        return "HEAD";
+    }
+
+    @Override
+    public void setDefaultBranch(String target) throws IOException {
+    }
+
     /**
      * {@code #revNumber}의 이전 리비전에 해당하는 커밋 정보를 번환한다.
      *

@@ -351,6 +351,7 @@ project.created = 作成日
 project.createdByMe = 作成したプロジェクト
 project.default.group.member = 参加しているプロジェクト
 project.default.group.watching = 見守っているプロジェクト
+project.defaultBranch.placeholder = ブランチの名前を入力してください
 project.delete = プロジェクト削除
 project.delete.accept = プロジェクトを削除する事に同意します
 project.delete.alert = 「プロジェクト削除する事に同意」にチェックしてください

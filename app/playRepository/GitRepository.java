@@ -21,6 +21,7 @@ import org.eclipse.jgit.diff.Edit.Type;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.lib.RefUpdate.Result;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
@@ -1612,6 +1613,24 @@ public class GitRepository implements PlayRepository {
         src.setWritable(true);
 
         return src.renameTo(dest);
+    }
+
+    @Override
+    public String getDefaultBranch() throws IOException {
+        return repository.getRef(Constants.HEAD).getTarget().getName();
+    }
+
+    @Override
+    public void setDefaultBranch(String target) throws IOException {
+        Result result = repository.updateRef(Constants.HEAD).link(target);
+        switch (result) {
+        case NEW:
+        case FORCED:
+        case NO_CHANGE:
+            break;
+        default:
+            throw new IOException("Failed to update symbolic ref, got: " + result);
+        }
     }
 
     /**
