@@ -236,9 +236,11 @@ public class ProjectApp extends Controller {
             flash(Constants.WARNING, RestrictedValidator.message.equals(error.message()) ?
                     "project.name.reserved.alert" : "project.name.alert");
             filledUpdatedProjectForm.reject("name");
+            Project project = Project.find.byId(
+                            Long.valueOf(filledUpdatedProjectForm.field("id").value()));
+            PlayRepository repository = RepositoryService.getRepository(project); 
             return badRequest(setting.render("title.projectSetting",
-                    filledUpdatedProjectForm, Project.find.byId(
-                            Long.valueOf(filledUpdatedProjectForm.field("id").value()))));
+                    filledUpdatedProjectForm, project, repository.getBranches()));
         }
         Project updatedProject = filledUpdatedProjectForm.get();
 
