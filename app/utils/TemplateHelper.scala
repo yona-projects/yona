@@ -290,7 +290,7 @@ object TemplateHelper {
     @tailrec def renderCommentsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html = {
       val remains = comments.head match {
         case (comment: PullRequestComment) if isLineComment(comment) => {
-          threadAndRemains(comment, comments.tail) match {
+          threadAndRemains(comment, comments) match {
             case (thread, remains) => {
               html += partial_pull_request_comment(pull, comment, thread)
               remains
