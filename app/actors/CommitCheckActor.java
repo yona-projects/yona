@@ -69,7 +69,9 @@ public class CommitCheckActor extends UntypedActor {
                 commiterLoginId,
                 userAvatar,
                 gitCommit.getShortId(),
-                routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()) 
+                routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()),
+                gitCommit.getShortMessage(),
+                gitCommit.getMessage()
                );
     }
 
