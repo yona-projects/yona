@@ -96,24 +96,43 @@ yobi.Label = (function(htOptions){
     }
 
     /**
-     * 폼 전송시 라벨 선택도 반영되도록 자동으로 필드 추가
+     * 폼 전송시 이벤트 핸들러
+     * 라벨 선택도 반영되도록 자동으로 필드를 추가한다
      */
     function _onSubmitForm(){
-        $("input[name='labelIds']").each(function(nIndex, elInput) {
-            $(elInput).remove();
-        })
+        // append labelIds to searchForm
+        _appendSelectedLabelIdsToForm();
+
+        return true;
+    }
+
+    /**
+     * 현재 선택되어 있는 라벨들의 ID를 검색폼에 추가한다
+     * @private
+     */
+    function _appendSelectedLabelIdsToForm(){
+        // clear former fields first
+        _clearLabelIdsOnForm();
 
         var aValues = [];
-        var welButtons = $('fieldset.labels div[data-category] button.active[data-labelId]');
+        var waSelectedLabels = $("fieldset.labels div[data-category] span.active[data-labelId]");
 
-        welButtons.each(function(nIndex, elBtn){
-            aValues.push('<input type="hidden" name="labelIds" value="'+ $(elBtn).attr('data-labelId') + '">');
+        waSelectedLabels.each(function(i, elLabel){
+            aValues.push('<input type="hidden" name="labelIds" value="'+ $(elLabel).attr('data-labelId') + '">');
         });
 
         htElement.welForm.append(aValues);
-        welButtons = aButtons = null;
+        waSelectedLabels = null;
+    }
 
-        return true;
+    /**
+     * 기존에 검색폼 영역에 추가되어 있던 labelIds input을 제거한다
+     * @private
+     */
+    function _clearLabelIdsOnForm(){
+        $("input[name='labelIds']").each(function(i, elInput) {
+            $(elInput).remove();
+        });
     }
 
     /**
@@ -216,10 +235,9 @@ yobi.Label = (function(htOptions){
             "deleteButton": htVar.bEditable ? '<span class="delete">&times;</span>' : ''
         }));
 
-        // 편집모드: 라벨 버튼을 항상 active 상태로 유지하고, 라벨 삭제 기능 제공
+        // 편집모드: 라벨 버튼을 항상 active 상태로 유지
         if(htVar.bEditable){
             welBtnLabelId.addClass('active');
-            welBtnLabelId.on("click", ".delete", _onClickLabelDelete);
         }
         welBtnLabelId.click(_onClickLabel);
 
@@ -256,18 +274,18 @@ yobi.Label = (function(htOptions){
      * @param {Object} oLabel
      */
     function _setLabelColor(oLabel){
-        var sDefualtCssTarget = '.issue-label[data-labelId="' + oLabel.id + '"]';
-        var sActiceCSSTarget = '.issue-label.active[data-labelId="' + oLabel.id + '"]';
+        var sDefaultCSSTarget = '.issue-label[data-labelId="' + oLabel.id + '"]';
+        var sActiveCSSTarget = '.issue-label.active[data-labelId="' + oLabel.id + '"]';
 
         var sDefaultCss = 'border-left: 3px solid ' + oLabel.color;
         var sActiveCss = 'background-color: ' + oLabel.color + '; color:'+$yobi.getContrastColor(oLabel.color);
 
         if(document.styleSheets[0].addRule) {
-            document.styleSheets[0].addRule(sActiceCSSTarget,sActiveCss);
-            document.styleSheets[0].addRule(sDefualtCssTarget,sDefaultCss);
+            document.styleSheets[0].addRule(sActiveCSSTarget,sActiveCss);
+            document.styleSheets[0].addRule(sDefaultCSSTarget,sDefaultCss);
         } else {
-            document.styleSheets[0].insertRule(sActiceCSSTarget+'{'+ sActiveCss +'}',0);
-            document.styleSheets[0].insertRule(sDefualtCssTarget+'{'+ sDefaultCss +'}',0);
+            document.styleSheets[0].insertRule(sActiveCSSTarget+'{'+ sActiveCss +'}',0);
+            document.styleSheets[0].insertRule(sDefaultCSSTarget+'{'+ sDefaultCss +'}',0);
         }
     }
 
@@ -284,18 +302,32 @@ yobi.Label = (function(htOptions){
 
     /**
      * 라벨 엘리먼트를 클릭했을때 이벤트 핸들러
-     * active 클래스를 토글한다
+     *
      * @param {Wrapped Event} weEvt
      * @return {Boolean} false
      */
     function _onClickLabel(weEvt){
-        if(htVar.bEditable){
-            return false;
-        }
-        
-        var welTarget = $(weEvt.target || weEvt.srcElement || weEvt.originalTarget);
-        welTarget.toggleClass("active");
+        var welCurrent = $(weEvt.target); // SPAN .delete or .issue-label
+        var welLabel = welCurrent.attr("data-labelId") ? welCurrent : welCurrent.parent("[data-labelId]");
+        var sLabelId = welLabel.attr("data-labelId");
 
+        // 편집모드이고, 삭제버튼을 클릭한 경우라면
+        if(htVar.bEditable && welCurrent.hasClass("delete")){
+            // 정말 삭제하겠냐고 물어보고
+            if(confirm(Messages("label.confirm.delete")) === false){
+                return false;
+            }
+
+            return _requestDeleteLabel(sLabelId);
+        }
+
+        // 편집모드가 아닐때 클릭한거면 라벨의 활성상태 토글(.active)
+        if(!htVar.bEditable){
+            welLabel.toggleClass("active");
+        }
+
+        // 선택한 라벨로 이슈 검색
+        // 선택한 값을 검색쿼리에 추가하는 작업은 _onSubmitForm 에서 수행된다
         if (htVar.bRefresh) {
             htElement.welForm.submit();
         }
@@ -303,32 +335,31 @@ yobi.Label = (function(htOptions){
         return false;
     }
 
+
     /**
-     * 라벨 삭제 링크 반환
-     * Get delete link element
-     * @param {String} sId
+     * 서버에 라벨 삭제 요청 전송
+     * request to delete label
+     * @param sLabelId
+     * @private
      */
-    function _onClickLabelDelete(){
-        if(confirm(Messages("label.confirm.delete")) === false){
+    function _requestDeleteLabel(sLabelId){
+        if(!sLabelId){
             return false;
         }
-        
-        var welTarget = $(weEvt.target || weEvt.srcElement || weEvt.originalTarget);
-        var sLabelId = welTarget.attr("data-labelId");
-        
-        if(sLabelId){
-            $.post(
-                htVar.sURLLabel + '/' + sLabelId + '/delete',
-                {"_method": "delete"}
-            ).done(function(){
-                _removeLabel(sLabelId);
-            });
-        }
+
+        $.post(
+            htVar.sURLLabel + '/' + sLabelId + '/delete',
+            {"_method": "delete"}
+        ).done(function(){
+            _removeLabel(sLabelId);
+        });
+
+        return true;
     }
 
     /**
-     * 라벨 삭제
-     * remove label
+     * 라벨 목록에서 라벨 삭제
+     * remove label on list
      * @param {String} sLabelId
      */
     function _removeLabel(sLabelId) {
@@ -355,9 +386,8 @@ yobi.Label = (function(htOptions){
     /**
      * 지정한 라벨을 선택한 상태로 만들어주는 함수
      * @param {String} sId
-     * @param {String} sColor deprecated
      */
-    function _setActiveLabel(sId, sColor){
+    function _setActiveLabel(sId){
         // 색상 지정: addLabelIntoCategory 단계에서
         // 이미 .active 상태의 색상이 지정되어 있음
 
