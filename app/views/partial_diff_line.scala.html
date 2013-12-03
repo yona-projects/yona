@@ -1,3 +1,5 @@
-@(klass: String, prefix: String, num: Integer, numA: Integer, numB: Integer, content: String)
+@(klass: String, prefix: String, num: Integer, numA: Integer, numB: Integer, content: String, isEndOfLineMissing: Boolean = false)
 
-<tr class="@klass" data-line="@num" data-type="@klass"><td class="linenum"><i class="icon-comment"></i>@Option(numA).getOrElse("")</td><td class="linenum">@Option(numB).getOrElse("")</td><td class="code"><span>@prefix</span>@content</td></tr>
+@import utils.TemplateHelper.DiffRenderer._
+
+<tr class="@klass" data-line="@num" data-type="@klass"><td class="linenum"><i class="icon-comment"></i>@Option(numA).getOrElse("")</td><td class="linenum">@Option(numB).getOrElse("")</td><td class="code"><span>@prefix</span>@content @if(isEndOfLineMissing){@Html(noNewlineAtEof)}</td></tr>
