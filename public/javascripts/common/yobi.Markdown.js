@@ -154,6 +154,10 @@ yobi.Markdown = (function(htOptions){
             // SHA1 be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sOwner, sProject, 'commit' , sMatch].join("/");
             sTitle = sMatch.slice(0,7);
+        } else if(sShar1 && sAt) {
+            // SHA1 @be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
+            sRef = [sOwner, sProject, 'commit' , sMatch.slice(1)].join("/");
+            sTitle = sMatch.slice(1,7);    
         } else if(sProjectGroup && sUserName && sShar1 && sAt && !sProjectPath ) {
             // User@SHA1 nforge@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sUserName, sProject, 'commit' , sShar1].join("/");
