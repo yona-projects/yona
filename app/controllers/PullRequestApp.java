@@ -286,6 +286,7 @@ public class PullRequestApp extends Controller {
 
         pullRequest.save();
 
+        PushedBranch.removeByPullRequestFrom(pullRequest);
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
@@ -363,6 +364,7 @@ public class PullRequestApp extends Controller {
      */
     @ProjectAccess(Operation.READ)
     public static Result pullRequests(String userName, String projectName, int pageNum) {
+
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         if(!project.vcs.equals("GIT")) {
@@ -449,7 +451,7 @@ public class PullRequestApp extends Controller {
     }
 
     /**
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온 
+     * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
      * {@code pullRequestId}에 해당하는 코드 요청의 상태를 반환한다
      *
      * @param userName
@@ -486,7 +488,7 @@ public class PullRequestApp extends Controller {
         }
         return ok(partial_state.render(project, pullRequest, canDeleteBranch, canRestoreBranch));
     }
-    
+
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트로 들어온
      * {@code pullRequestId}에 해당하는 코드 요청의 커밋 목록을 조회한다.

@@ -5,6 +5,15 @@
 <div class="page">
     @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
+    @if(project.isFork) {
+        @partial_recently_pushed_branches(project)
+    } else {
+        @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myForkProject =>
+            @if(myForkProject != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
+                @partial_recently_pushed_branches(myForkProject)
+            }
+        }
+    }
     <div class="pull-right">
         @if(project.isFork){
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">

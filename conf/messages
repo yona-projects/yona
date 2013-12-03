@@ -489,6 +489,7 @@ pullRequest.merge.help.4 = You can reject or delete the code request.
 pullRequest.merge.requested = has requested pull :
 pullRequest.merged.the.pullrequest = accepted this pull request.
 pullRequest.opened.code = Opened Code
+pullRequest.pushed.branches.title = Recently pushed branches
 pullRequest.reject = Reject
 pullRequest.rejected.code = Rejected Code
 pullRequest.reopen = Reopen

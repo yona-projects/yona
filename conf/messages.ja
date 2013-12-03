@@ -488,6 +488,7 @@ pullRequest.merge.help.4 = コードを受諾できない場合は保留状態�
 pullRequest.merge.requested = からのプルリクエスト:
 pullRequest.merged.the.pullrequest = さんがプルリクエストを受諾しました
 pullRequest.opened.code = プルリクエスト
+pullRequest.pushed.branches.title = Recently pushed branches
 pullRequest.reject = 保留
 pullRequest.rejected.code = 保留したリクエスト
 pullRequest.reopen = 再び確認
