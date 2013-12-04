@@ -62,6 +62,9 @@ public class PushedBranch extends Model {
     }
 
     public static void removeByPullRequestFrom(PullRequest pullRequest) {
-        find.where().eq("project",  pullRequest.fromProject).eq("name", pullRequest.fromBranch).findUnique().delete();
+        PushedBranch pushedBranch = find.where().eq("project",  pullRequest.fromProject).eq("name", pullRequest.fromBranch).findUnique();
+        if(pushedBranch != null){
+            pushedBranch.delete();
+        }
     }
 }
