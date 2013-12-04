@@ -5,7 +5,7 @@
  * http://yobi.io
  *
  * @Author Wansoon Park, Keesun Baek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,10 @@ import actions.ProjectCheckAction;
 
 /**
  * {@code Project}의 {@code Operation} 권한을 체크한다.
+ *
+ * 이 애노테이션은 /user/project/** 패턴에 해당하는 요청만 처리할 수 있다.
+ * 그 이외 요청을 처리하는 핸들러에 사용하면 에러가 발생하고 요청이 처리되지 않는다.
+ *
  * @author Wansoon Park, Keesun Beak
  *
  */
