@@ -1,5 +1,8 @@
 package utils;
 
+import models.PullRequest;
+import play.db.ebean.Model.Finder;
+
 public class Constants {
     public static final String WARNING = "warning";
     public static final String INFO = "info";
@@ -11,4 +14,5 @@ public class Constants {
     public static final String ADMIN_LOGIN_ID = "admin";
 
     public static final String DEFAULT_LANGUAGE = "en";
+    public static final String NEW_LINE_DELIMETER = "\n";
 }

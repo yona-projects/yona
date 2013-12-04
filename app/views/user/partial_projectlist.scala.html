@@ -24,7 +24,7 @@
                 <a href="@routes.UserApp.userInfo(project.owner)" class="owner-name-small">@project.owner</a> / <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
                 @if(!project.isPublic){ <i class="yobicon-lock yobicon-small"></i> }
             </div>
-            @if(project.isFork()){
+            @if(project.isForkedFromOrigin()){
             <div class="forked label">
                 <i class="yobicon-split yobicon-white vmiddle"></i>
                 @Messages("fork.original")

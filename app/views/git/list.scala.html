@@ -5,7 +5,7 @@
 <div class="page">
     @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
-    @if(project.isFork) {
+    @if(project.isForkedFromOrigin) {
         @partial_recently_pushed_branches(project)
     } else {
         @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myForkProject =>
@@ -15,7 +15,7 @@
         }
     }
     <div class="pull-right">
-        @if(project.isFork){
+        @if(project.isForkedFromOrigin){
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
             <i class="yobicon-merge yobicon-large"></i>
             @Messages("pullRequest")
@@ -24,7 +24,7 @@
 
         @** 이 프로젝트가 복사본이 아니며, 현재 사용자가 복사본을 갖고 있고, 코드보내기 권한이 있는 경우 **@
         @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myFork =>
-        @if(!project.isFork && myFork != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
+        @if(!project.isForkedFromOrigin && myFork != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
         <a href="@routes.PullRequestApp.newPullRequestForm(myFork.owner, myFork.name)" class="ybtn ybtn-success">
             <i class="yobicon-split yobicon-large"></i>
             @Messages("pullRequest.toHere")
@@ -33,7 +33,7 @@
         }
     </div>
 
-    @if(project.hasForks() || project.isFork()) {
+    @if(project.hasForks() || project.isForkedFromOrigin()) {
     <ul class="nav nav-tabs">
         @if(project.hasForks()){
             <li @if(requestType.equals("opened")){class="active"}>
@@ -55,7 +55,7 @@
                 </a>
             </li>
         }
-        @if(project.isFork()){
+        @if(project.isForkedFromOrigin()){
             <li @if(requestType.equals("sent")){class="active"}>
                 <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
                     @Messages("pullRequest.sent.code")

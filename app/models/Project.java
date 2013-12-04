@@ -596,7 +596,7 @@ public class Project extends Model implements LabelOwner {
      *
      * @return
      */
-    public boolean isFork() {
+    public boolean isForkedFromOrigin() {
         return this.originalProject != null;
     }
 

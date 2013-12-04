@@ -23,6 +23,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.Duration;
+import org.springframework.util.Assert;
 
 import com.avaje.ebean.Expr;
 
@@ -33,6 +34,7 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Akka;
+import play.mvc.Controller;
 import playRepository.*;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
@@ -148,6 +150,15 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     @OneToMany(mappedBy = "pullRequest")
     public List<PullRequestComment> comments;
+
+    public static PullRequest createNewPullRequest(Project project, String fromBranch, String toBranch) {
+        PullRequest pullRequest = new PullRequest();
+        pullRequest.toProject = project.originalProject;
+        pullRequest.fromProject = project;
+        pullRequest.fromBranch = fromBranch;
+        pullRequest.toBranch = toBranch;
+        return pullRequest;
+    }
 
     @Override
     public String toString() {
@@ -869,4 +880,61 @@ public class PullRequest extends Model implements ResourceConvertible {
     public void endMerge() {
         this.isMerging = false;
     }
+
+    public PullRequestMergeResult getPullRequestMergeResult() {
+        PullRequestMergeResult mergeResult = null;
+        if (!StringUtils.isEmpty(this.fromBranch) && !StringUtils.isEmpty(this.toBranch)) {
+            mergeResult = this.attemptMerge();
+            Map<String, String> suggestText = suggestTitleAndBodyFromDiffCommit(mergeResult.getGitCommits());
+            this.title = suggestText.get("title");
+            this.body = suggestText.get("body");
+        }
+        return mergeResult;
+    }
+
+    /**
+     * diff commit message로 pull request의 title과 body를 채운다.<br>
+     * <br>
+     * case 1 : commit이 한개이고 message가 한줄일 경우 title에 추가한다.<br>
+     * case 2 : commit이 한개이고 message가 여러줄일 경우 첫번째줄 mesage는 title 나머지 message는 body에 추가<br>
+     * case 3 : commit이 여러개일 경우 각 commit의 첫번째줄 message들을 모아서 body에 추가 <br>
+     *
+     * @param commits
+     * @return
+     */
+    private Map<String, String> suggestTitleAndBodyFromDiffCommit(List<GitCommit> commits) {
+        Map<String, String> messageMap = new HashMap<>();
+
+        String message = StringUtils.EMPTY;
+
+        if (commits.isEmpty()) {
+            return messageMap;
+
+        } else if (commits.size() == 1) {
+            message = commits.get(0).getMessage();
+            String[] messages = message.split(Constants.NEW_LINE_DELIMETER);
+
+            if (messages.length > 1) {
+                String[] msgs = Arrays.copyOfRange(messages, 1, messages.length);
+                messageMap.put("title", messages[0]);
+                messageMap.put("body", StringUtils.join(msgs, Constants.NEW_LINE_DELIMETER));
+
+            } else {
+                messageMap.put("title", messages[0]);
+                messageMap.put("body", StringUtils.EMPTY);
+            }
+
+        } else {
+            String[] firstMessages = new String[commits.size()];
+            for (int i = 0; i < commits.size(); i++) {
+                String[] messages = commits.get(i).getMessage().split(Constants.NEW_LINE_DELIMETER);
+                firstMessages[i] = messages[0];
+            }
+            messageMap.put("body", StringUtils.join(firstMessages, Constants.NEW_LINE_DELIMETER));
+
+        }
+
+        return messageMap;
+    }
+
 }

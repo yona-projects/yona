@@ -17,7 +17,7 @@
 }
 
 @getPullRequestURL(project:Project) = @{
-    if(project.isFork()){
+    if(project.isForkedFromOrigin()){
         routes.PullRequestApp.sentPullRequests(project.owner, project.name)
     } else {
         routes.PullRequestApp.pullRequests(project.owner, project.name)
@@ -41,7 +41,7 @@
                     <i class="yobicon-lock"></i>
                 </div>
                 }
-                @if(project.isFork()){
+                @if(project.isForkedFromOrigin()){
                     <div class="origin">
                         <span class="origin-title">@Messages("fork.original") </span>
                         <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)' class="blue-txt">
