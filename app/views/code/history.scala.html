@@ -94,6 +94,11 @@
                 <li class="active">
                     <a href="@getHistoryURL">@Messages("code.commits")</a>
                 </li>
+                @if(project.isGit()) {
+                <li>
+                    <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
+                </li>
+                }
             </ul>
             }
 

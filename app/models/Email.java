@@ -84,9 +84,7 @@ public class Email extends Model {
      * @return
      */
     public static boolean exists(String newEmail, boolean valid) {
-        ExpressionList<Email> el = find.where()
-                .eq("email", newEmail)
-                .eq("valid", valid);
+        ExpressionList<Email> el = findByEmailAndIsValid(newEmail, valid);
 
         if(valid) {
             Email uniqueValidatedEmail = el.findUnique();
@@ -136,5 +134,15 @@ public class Email extends Model {
         this.confirmUrl = Url.create(routes.UserApp.confirmEmail(this.id, this.token).url());
         update();
         Akka.system().actorOf(new Props(ValidationEmailSender.class)).tell(this, null);
+    }
+
+    public static Email findByEmail(String email, boolean isValid) {
+        return findByEmailAndIsValid(email, isValid).findUnique();
+    }
+
+    private static ExpressionList<Email> findByEmailAndIsValid(String email, boolean isValid) {
+        return find.where()
+                    .eq("email", email)
+                    .eq("valid", isValid);
     }
 }

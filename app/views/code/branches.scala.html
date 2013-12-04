@@ -1,0 +1,74 @@
+@(project: Project, branches: List[playRepository.GitBranch])
+
+@import utils.JodaDateUtil._
+@import utils.TemplateHelper._
+@import utils.Url
+@import playRepository.RepositoryService
+@import java.net.URLEncoder
+@import org.joda.time.Duration
+@import controllers.CodeApp
+
+@getShowCommitURL(project:Project, gitBranch:playRepository.GitBranch) = @{
+    var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8");
+    routes.CodeHistoryApp.show(project.owner, project.name, gitBranch.getHeadCommit.getId) + queryString;
+}
+
+@deleteBranchURL(project:Project, branch:String) =@{
+    var branchName = URLEncoder.encode(branch, "UTF-8");
+    routes.BranchApp.deleteBranch(project.owner, project.name, branchName);
+}
+
+@projectLayout(Messages("title.branches"), project, utils.MenuType.CODE) {
+<div class="page">
+    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+
+    <div class="bubble-wrap dark-gray repo-wrap">
+        <div class="code-browse-wrap">
+            <ul class="nav nav-tabs" style="margin-bottom:20px;">
+                <li>
+                    <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "HEAD", "")">@Messages("code.files")</a>
+                </li>
+                <li>
+                    <a href="@routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)">@Messages("code.commits")</a>
+                </li>
+                @if(project.isGit()) {
+                <li class="active">
+                    <a href="@routes.BranchApp.branches(project.owner, project.name)">@Messages("title.branches")</a>
+                </li>
+                }
+            </ul>
+
+            <table class="table table-bordered">
+                <tbody>
+                @for(branch <- branches.iterator()) {
+                    <tr>
+                        <td>
+                            <h4>@branch.getShortName</h4>
+                        </td>
+                        <td>
+                            @Messages("branch.recently.update")
+                            <a href="@getShowCommitURL(project, branch)" class="blue-txt">
+                                @branch.getHeadCommit.getShortId
+                            </a>
+                            @momentFromNow(branch.getHeadCommit.getCommitterDate)
+                            @if(branch.getUser != null) {
+                                <img src="@utils.GravatarUtil.getAvatar(branch.getUser.email, 25)">
+                                <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="blue-txt">@branch.getUser.name</a>
+                            } else {
+                                @branch.getHeadCommit.getCommitterName
+                            }
+                        </td>
+                        <td>
+                            <a class="ybtn ybtn-danger" data-request-method="delete" href="@deleteBranchURL(project, branch.getName)">
+                                @Messages("button.delete")
+                            </a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+}

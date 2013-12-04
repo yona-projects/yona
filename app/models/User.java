@@ -535,4 +535,24 @@ public class User extends Model implements ResourceConvertible {
         emails.remove(email);
         email.delete();
     }
+
+    /**
+     * {@code committerEmail}에 해당하는 User를 찾아 반환한다.
+     *
+     * @param committerEmail
+     * @return
+     */
+    public static User findByCommitterEmail(String committerEmail) {
+        User user = find.where().eq("email", committerEmail).findUnique();
+        if(user != null) {
+            return user;
+        }
+
+        Email email = Email.findByEmail(committerEmail, true);
+        if(email != null) {
+            return email.user;
+        }
+
+        return null;
+    }
 }

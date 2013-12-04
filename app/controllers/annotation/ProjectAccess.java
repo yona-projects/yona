@@ -5,7 +5,7 @@
  * http://yobi.io
  *
  * @Author Wansoon Park, Keesun Baek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,4 +39,5 @@ import actions.ProjectCheckAction;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProjectAccess {
     Operation value();
+    boolean isGitOnly() default false;
 }
