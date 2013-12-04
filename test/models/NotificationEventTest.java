@@ -1,8 +1,11 @@
 package models;
 
+import models.enumeration.EventType;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import org.junit.Test;
+
+import utils.WatchService;
 
 import java.util.HashSet;
 
@@ -57,5 +60,30 @@ public class NotificationEventTest extends ModelTest<NotificationEvent> {
 
         // Then
         assertThat(NotificationMail.find.byId(event.notificationMail.id)).isNull();
+    }
+
+    @Test
+    public void add_with_filter() {
+        // Given
+        Issue issue = Issue.finder.byId(1L);
+        Project project = issue.project;
+
+        User watching_project_off = getTestUser(2L);
+        WatchService.watch(watching_project_off, project.asResource());
+        UserProjectNotification.unwatchExplictly(watching_project_off, project, EventType.ISSUE_ASSIGNEE_CHANGED);
+
+        User off = getTestUser(3L);
+        UserProjectNotification.unwatchExplictly(off, project, EventType.ISSUE_ASSIGNEE_CHANGED);
+
+        NotificationEvent event = getNotificationEvent();
+        event.eventType = EventType.ISSUE_ASSIGNEE_CHANGED;
+        event.receivers.add(watching_project_off);
+        event.receivers.add(off);
+
+        // When
+        NotificationEvent.add(event);
+
+        // Then
+        assertThat(event.receivers).containsOnly(off);
     }
 }

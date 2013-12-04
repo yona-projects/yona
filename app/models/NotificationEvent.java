@@ -6,6 +6,9 @@ import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.GlobalResource;
 import models.resource.Resource;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
@@ -20,6 +23,7 @@ import play.mvc.Http.Request;
 import playRepository.Commit;
 import playRepository.GitConflicts;
 import playRepository.GitRepository;
+import utils.WatchService;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -231,7 +235,7 @@ public class NotificationEvent extends Model {
             }
         }
 
-        event.receivers = getFilteredReceivers(event);
+        filterReceivers(event);
         if (event.receivers.isEmpty()) {
             return;
         }
@@ -243,20 +247,23 @@ public class NotificationEvent extends Model {
      * 특정 알림 유형에 대해 설정을 꺼둔 사용자가 있을 경우 수신인에서 제외
      * 알림의 대상 Resource 가 project 별 on / off 설정이 불가능할 경우 필터링을 하지 않는다.
      */
-    private static Set<User> getFilteredReceivers(NotificationEvent event) {
-        Set<User> receivers = event.receivers;
-        Project project = event.getProject();
+    private static void filterReceivers(final NotificationEvent event) {
+        final Project project = event.getProject();
         if (project == null) {
-            return receivers;
+            return;
         }
 
-        Set<User> filteredReceivers = new HashSet<>();
-        for (User receiver : receivers) {
-            if (UserProjectNotification.isEnabledNotiType(receiver, project, event.eventType)) {
-                filteredReceivers.add(receiver);
+        final Resource resource = project.asResource();
+        CollectionUtils.filter(event.receivers, new Predicate() {
+            @Override
+            public boolean evaluate(Object obj) {
+                User receiver = (User) obj;
+                if (!WatchService.isWatching(receiver, resource)) {
+                    return true;
+                }
+                return UserProjectNotification.isEnabledNotiType(receiver, project, event.eventType);
             }
-        }
-        return filteredReceivers;
+        });
     }
 
     public static void deleteBy(Resource resource) {
