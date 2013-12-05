@@ -48,9 +48,10 @@
                             </a>
                             @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
                             @if(branch.getUser != null) {
-                                <img src="@utils.GravatarUtil.getAvatar(branch.getUser.email, 25)">
+                                <img src="@branch.getUser.avatarUrl" height="25" width="25">
                                 <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="blue-txt">@branch.getUser.name</a>
                             } else {
+                                <img src="@utils.GravatarUtil.getAvatar(branch.getHeadCommit.getCommitterEmail, 25)" height="25" width="25">
                                 @branch.getHeadCommit.getCommitterName
                             }
                         </td>
