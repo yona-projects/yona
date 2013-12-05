@@ -1,12 +1,7 @@
 @(project: Project, branches: List[playRepository.GitBranch])
 
 @import utils.JodaDateUtil._
-@import utils.TemplateHelper._
-@import utils.Url
-@import playRepository.RepositoryService
 @import java.net.URLEncoder
-@import org.joda.time.Duration
-@import controllers.CodeApp
 @import utils.AccessControl._
 
 @getShowCommitURL(project:Project, gitBranch:playRepository.GitBranch) = @{
