@@ -702,13 +702,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         timelineComments.addAll(commitComment);
         timelineComments.addAll(pullRequestEvents);
 
-        Collections.sort(timelineComments, new Comparator<TimelineItem>() {
-            @Override
-            public int compare(TimelineItem o1, TimelineItem o2) {
-                return o1.getDate().compareTo(o2.getDate());
-            }
-
-        });
+        Collections.sort(timelineComments, TimelineItem.ASC);
 
         return timelineComments;
     }

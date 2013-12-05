@@ -1,6 +1,7 @@
 package models;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -150,6 +151,8 @@ public class PullRequestEvent extends Model implements TimelineItem {
         for (String commitId: commitIds) {
             commits.add(PullRequestCommit.findById(commitId));
         }
+
+        Collections.sort(commits, TimelineItem.DESC);
 
         return commits;
     }

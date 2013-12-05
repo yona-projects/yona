@@ -20,11 +20,14 @@
  */
 package models;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.*;
 
 import utils.WatchService;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -122,5 +125,43 @@ public class PullRequestTest extends ModelTest<PullRequest> {
 
         // Then
         assertThat(watchers).containsOnly(pullRequest.contributor);
+    }
+
+    @Test
+    public void getTimelineComments() throws Exception {
+        // Given
+        PullRequestComment comment1 = createPullRequestComment("2013-12-10");
+        PullRequestComment comment2 = createPullRequestComment("2013-12-12");
+        List<PullRequestComment> comments = new ArrayList<>();
+        comments.add(comment1);
+        comments.add(comment2);
+
+        PullRequestEvent event1 = createPullRequestEvent("2013-12-11");
+        PullRequestEvent event2 = createPullRequestEvent("2013-12-13");
+        List<PullRequestEvent> events = new ArrayList<>();
+        events.add(event1);
+        events.add(event2);
+
+        PullRequest pullRequest = new PullRequest();
+        pullRequest.comments = comments;
+        pullRequest.pullRequestEvents = events;
+
+        // When
+        List<TimelineItem> timeline = pullRequest.getTimelineComments();
+
+        // Then
+        assertThat(timeline).containsExactly(comment1, event1, comment2, event2);
+    }
+
+    private PullRequestComment createPullRequestComment(String str) throws ParseException {
+        PullRequestComment comment = new PullRequestComment();
+        comment.createdDate = DateUtils.parseDate(str, "yyyy-MM-dd");
+        return comment;
+    }
+
+    private PullRequestEvent createPullRequestEvent(String str) throws ParseException {
+        PullRequestEvent event = new PullRequestEvent();
+        event.created = DateUtils.parseDate(str, "yyyy-MM-dd");
+        return event;
     }
 }
