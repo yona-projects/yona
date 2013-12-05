@@ -442,3 +442,13 @@ projectUsers:
                             id: 3
         role:           !!models.Role
                             id: 2
+
+# UserProjectNotification
+userProjectNotification:
+    - !!models.UserProjectNotification
+        user:           !!models.User
+                            id: 1
+        project:        !!models.Project
+                            id: 1
+        notificationType:   NEW_ISSUE
+        allowed:            true
