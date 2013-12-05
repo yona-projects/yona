@@ -7,6 +7,7 @@
 @import java.net.URLEncoder
 @import org.joda.time.Duration
 @import controllers.CodeApp
+@import utils.AccessControl._
 
 @getShowCommitURL(project:Project, gitBranch:playRepository.GitBranch) = @{
     var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8");
@@ -59,9 +60,11 @@
                             }
                         </td>
                         <td>
-                            <a class="ybtn ybtn-danger" data-request-method="delete" href="@deleteBranchURL(project, branch.getName)">
+                            @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
+                                <a class="ybtn ybtn-danger" data-request-method="delete" href="@deleteBranchURL(project, branch.getName)">
                                 @Messages("button.delete")
-                            </a>
+                                </a>
+                            }
                         </td>
                     </tr>
                 }
