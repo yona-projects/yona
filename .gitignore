@@ -18,6 +18,7 @@ RUNNING_PID
 db
 *.db
 .DS_Store
+*.DS_Store
 bin
 .svn
 nohup.out
