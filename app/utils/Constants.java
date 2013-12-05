@@ -1,8 +1,5 @@
 package utils;
 
-import models.PullRequest;
-import play.db.ebean.Model.Finder;
-
 public class Constants {
     public static final String WARNING = "warning";
     public static final String INFO = "info";
