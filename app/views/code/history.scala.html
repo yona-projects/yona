@@ -15,9 +15,9 @@
         routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, "HEAD", "")
     }
 }
-@getHistoryURL = @{
+@getHistoryURL(path:String) = @{
     if(selectedBranch){
-        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), null)
+        routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(selectedBranch, "UTF-8"), path)
     } else {
         routes.CodeHistoryApp.historyUntilHead(project.owner, project.name)
     }
@@ -92,7 +92,7 @@
                     <a href="@getFilesURL">@Messages("code.files")</a>
                 </li>
                 <li class="active">
-                    <a href="@getHistoryURL">@Messages("code.commits")</a>
+                    <a href="@getHistoryURL(path)">@Messages("code.commits")</a>
                 </li>
                 @if(project.isGit()) {
                 <li>
@@ -192,11 +192,11 @@
 
         <div class="actrow margin-top-20">
             @if(page > 0) {
-            <a href="@getHistoryURL?page=@(page - 1)" class="ybtn pull-left">@Messages("code.newer")</a>
+            <a href="@getHistoryURL(path)?page=@(page - 1)" class="ybtn pull-left">@Messages("code.newer")</a>
             }
 
             @if(isHistoryExistAndHasParent(history)) {
-            <a href="@getHistoryURL?page=@(page + 1)" class="ybtn pull-left">@Messages("code.older")</a>
+            <a href="@getHistoryURL(path)?page=@(page + 1)" class="ybtn pull-left">@Messages("code.older")</a>
             }
         </div>
     </div>
@@ -210,10 +210,10 @@ $(document).ready(function(){
 
     var htKeyMap = {};
     @if(page > 0){
-    htKeyMap.A = "@getHistoryURL?page=@(page - 1)";
+    htKeyMap.A = "@getHistoryURL(path)?page=@(page - 1)";
     }
     @if(isHistoryExistAndHasParent(history)) {
-    htKeyMap.S = "@getHistoryURL?page=@(page + 1)";
+    htKeyMap.S = "@getHistoryURL(path)?page=@(page + 1)";
     }
     if(htKeyMap.A || htKeyMap.S){
         yobi.ShortcutKey.setKeymapLink(htKeyMap);
