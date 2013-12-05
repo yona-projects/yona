@@ -339,7 +339,10 @@ public class GitRepositoryTest {
         Repository repository = GitRepository.buildCloneRepository(pullRequest);
 
         Git git = new Git(repository);
-        String branchName = "refs/heads/maste";
+        String branchName = "refs/heads/master";
+        newCommit(original, repository, "readme.md", "Hello World", "Initial commit");
+        git.branchCreate().setName("develop").setForce(true).call();
+        GitRepository.checkout(repository, "develop");
 
         // When
         GitRepository.deleteBranch(repository, branchName);
