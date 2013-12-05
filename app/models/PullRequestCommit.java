@@ -76,7 +76,11 @@ public class PullRequestCommit extends Model implements TimelineItem {
     }
 
     public static List<PullRequestCommit> getCurrentCommits(PullRequest pullRequest) {
-        return find.where().eq("pullRequest", pullRequest).eq("state", State.CURRENT).findList();
+        return find.where()
+                .eq("pullRequest", pullRequest)
+                .eq("state", State.CURRENT)
+                .order().desc("created")
+                .findList();
     }
 
     public static List<PullRequestCommit> getPriorCommits(PullRequest pullRequest) {
