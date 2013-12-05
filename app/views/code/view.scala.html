@@ -96,7 +96,7 @@
     }
 }
 @getFileDate(file:org.codehaus.jackson.JsonNode, field:String) = @{
-    JodaDateUtil.momentFromNow(file.get(field).getLongValue)
+    JodaDateUtil.momentFromNow(file.get(field).getLongValue, lang.language)
 }
 @getCorrectedPath(filePath:String, fileName:String) = @{
     if((filePath != "") && (filePath.substring(filePath.length() - 1) == "/")){
@@ -253,11 +253,10 @@
 </div>
 </script>
 
-<link rel="stylesheet" type="text/css" href="/assets/stylesheets/dynatree/skin/ui.dynatree.css" />
-<script type="text/javascript" src="/assets/javascripts/lib/moment.min.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/moment.ko.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/ace/ace.js"></script>
-<script type="text/javascript" src="/assets/javascripts/lib/spin.js"></script>
+<link rel="stylesheet" type="text/css" href="@getCSSLink("dynatree/skin/ui.dynatree")" />
+<script type="text/javascript" src="@getJSLink("lib/moment-with-langs.min")"></script>
+<script type="text/javascript" src="@getJSLink("lib/ace/ace")"></script>
+<script type="text/javascript" src="@getJSLink("lib/spin")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Browser", {

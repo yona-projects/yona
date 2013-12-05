@@ -21,6 +21,20 @@ public class MomentUtilTest {
         String result = invocable.invoke("fromNow");
 
         // Then
+        assertThat(result).isEqualTo("a day ago");
+    }
+
+    @Test
+    public void momentWithLanguage() {
+        // Given
+        DateTime now = new DateTime();
+        DateTime oneDayBefore = now.minusDays(1);
+
+        // When
+        JSInvocable invocable = MomentUtil.newMoment(oneDayBefore.getMillis(), "ko");
+        String result = invocable.invoke("fromNow");
+
+        // Then
         assertThat(result).isEqualTo("하루 전");
     }
 }
