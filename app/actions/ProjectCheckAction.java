@@ -25,6 +25,7 @@ import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import utils.AccessControl;
+import utils.AccessLogger;
 import utils.ErrorViews;
 import actions.support.PathParser;
 import controllers.UserApp;
@@ -50,17 +51,22 @@ public class ProjectCheckAction extends Action<ProjectAccess> {
         String projectName = parser.getProjectName();
 
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
+
         if (project == null) {
-            return notFound(ErrorViews.NotFound.render("No project matches given parameters '" + ownerLoginId + "' and project_name '" + projectName + "'"));
+            return AccessLogger.log(context.request()
+                    , notFound(ErrorViews.NotFound.render("No project matches given parameters '" + ownerLoginId + "' and project_name '" + projectName + "'"))
+                    , null);
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), this.configuration.value())) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            return AccessLogger.log(context.request()
+                    , forbidden(ErrorViews.Forbidden.render("error.forbidden", project))
+                    , null);
         }
 
         boolean isGitOnly = this.configuration.isGitOnly();
         if(isGitOnly && !project.isGit()) {
-            return badRequest(ErrorViews.BadRequest.render());
+            return AccessLogger.log(context.request(), badRequest(ErrorViews.BadRequest.render()), null);
         }
 
         return this.delegate.call(context);

@@ -26,6 +26,7 @@ import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import utils.AccessControl;
+import utils.AccessLogger;
 import utils.ErrorViews;
 import actions.support.PathParser;
 import controllers.UserApp;
@@ -56,11 +57,15 @@ public class PullRequestCheckAction extends Action<PullRequestAccess> {
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
         if (pullRequest == null) {
-            return notFound(ErrorViews.NotFound.render("No pullrequest matches given parameter '" + pullRequestNumber + "'", project));
+            return AccessLogger.log(context.request()
+                    , notFound(ErrorViews.NotFound.render("No pullrequest matches given parameter '" + pullRequestNumber + "'", project))
+                    , null);
         }
 
         if (!AccessControl.isAllowed(UserApp.currentUser(), pullRequest.asResource(), this.configuration.value())) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            return AccessLogger.log(context.request()
+                    , forbidden(ErrorViews.Forbidden.render("error.forbidden", project))
+                    , null);
         }
 
         return this.delegate.call(context);
