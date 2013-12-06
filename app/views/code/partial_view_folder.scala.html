@@ -1,0 +1,91 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project, files:org.codehaus.jackson.JsonNode, branch:String, listPath:String)
+
+@import utils.TemplateHelper.CodeBrowser._
+@import java.net.URLEncoder
+
+@makeFileItem(file:org.codehaus.jackson.JsonNode, fileName:String, listPath:String) = {
+    @defining(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), listPath).toString()) { filePath =>
+    @defining(fieldText(file, "type")) { fileType =>
+    <div id="cb-@listPath@fileName" class="row-fluid listitem" data-path="@getDataPath(listPath, fileName)">
+        <div class="span6 filename">
+            <a href="@getCorrectedPath(filePath, fileName)@if(fileType.eq(" folder")){#cb-@listPath@fileName}"
+                class="@getFileClass(file)" title="@fileName" @if(fileType.eq("folder")){data-type="folder"}
+                data-targetPath="@getDataPath(listPath, fileName)">
+                <span class="dynatree-icon vmiddle"></span>@fileName
+            </a>
+        </div>
+        <div class="span5 commitMsg">
+            @Html(getAvatar(file))
+            <span class="ml5">@fieldText(file, "msg")</span>
+        </div>
+        <div class="span1 commitDate">@getFileDate(file, "createdDate")</div>
+    </div>
+    }
+    }
+}
+
+<div class="list-wrap" data-type="folder" @if(listPath != ""){data-listPath="@listPath"}>
+    <div class="row-fluid listhead">
+        <div class="span6 filename"><strong>@Messages("code.filename")</strong></div>
+        <div class="span5 commitMsg"><strong>@Messages("code.commitMsg")</strong></div>
+        <div class="span1 commitDate"><strong>@Messages("code.commitDate")</strong></div>
+    </div>
+
+    @** no files **@
+    @if(files.getFieldNames().hasNext == false){
+    <div class="warning-none">@Messages("code.nofiles")</div>
+    }
+
+    @** folders **@
+    @for(fileName <- files.getFieldNames()){
+        @defining(files.get(fileName)) { file =>
+            @if(fieldText(file, "type").eq("folder")){
+                @makeFileItem(file, fileName, listPath)
+            }
+        }
+    }
+
+    @** files **@
+    @for(fileName <- files.getFieldNames()){
+        @defining(files.get(fileName)) { file =>
+            @if(!fieldText(file, "type").eq("folder")){
+                @makeFileItem(file, fileName, listPath)
+            }
+        }
+    }
+</div>
+
+<script id="tplFileListItem" type="text/x-jquery-tmpl">
+<div id="cb-${listPath}${fileName}" class="row-fluid listitem" data-path="${targetPath}">
+    <div class="span6 filename">
+        <a href="${path}" class="${fileClass}" title="${fileName}" data-targetPath="${targetPath}" data-type="${type}">
+            <span class="dynatree-icon vmiddle"></span>${fileName}
+        </a>
+    </div>
+    <div class="span5 commitMsg">
+        ${avatarImg}
+        <span class="ml5">${commitMsg}</span>
+    </div>
+    <div class="span1 commitDate">${commitDate}</div>
+</div>
+</script>

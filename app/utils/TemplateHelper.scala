@@ -327,4 +327,77 @@ object TemplateHelper {
       }
     }
   }
+
+  object CodeBrowser {
+    def fieldText(obj:org.codehaus.jackson.JsonNode, field:String):String = {
+      if(obj.get(field) != null){
+        obj.get(field).getTextValue()
+      } else {
+        ""
+      }
+    }
+
+    def getDataPath(listPath:String, fileName:String):String = {
+      if(listPath == ""){
+        fileName
+      }else{
+        getCorrectedPath(listPath, fileName)
+      }
+    }
+
+    def getUserLink(userLoginId:String):String = {
+      if(userLoginId != null && userLoginId != ""){
+        "/" + userLoginId
+      } else {
+        "javascript:void(); return false;"
+      }
+    }
+
+    def getAvatar(file:org.codehaus.jackson.JsonNode):String = {
+      val avatarURL = fieldText(file, "avatar");
+
+      if(avatarURL != null){
+        "<a href=\"" + getUserLink(fieldText(file, "userLoginId")) + "\" class=\"avatar-wrap smaller\"><img src=\"" + avatarURL + "\"></a>"
+      } else {
+        ""
+      }
+    }
+
+    def getFileClass(file:org.codehaus.jackson.JsonNode):String = {
+      if(fieldText(file, "name") == ".."){
+        "updir"
+      } else {
+        fieldText(file, "type") match {
+          case "folder" => { "dynatree-ico-cf" }
+          case _ =>        { "dynatree-ico-c"  }
+        }
+      }
+    }
+
+    def getFileDate(file:org.codehaus.jackson.JsonNode, field:String):String = {
+      JodaDateUtil.momentFromNow(file.get(field).getLongValue)
+    }
+
+    def getCorrectedPath(filePath:String, fileName:String):String = {
+      if((filePath != "") && (filePath.substring(filePath.length() - 1) == "/")){
+        filePath + fileName
+      } else {
+        filePath + "/" + fileName
+      }
+    }
+
+    def getFileRev(vcsType:String, file:org.codehaus.jackson.JsonNode):String = {
+      vcsType match {
+        case "GIT" => {
+          fieldText(file,"commitId")
+        }
+        case "Subversion" => {
+          fieldText(file, "revisionNo")
+        }
+        case _ => {
+          ""
+        }
+      }
+    }
+  }
 }
