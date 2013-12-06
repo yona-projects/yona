@@ -97,7 +97,8 @@
         $yobi.loadModule("git.View", {
             "sWatchUrl"  : "@routes.WatchApp.watch(pull.asResource.asParameter)",
             "sUnwatchUrl": "@routes.WatchApp.unwatch(pull.asResource.asParameter)",
-            "sStateUrl"  : "@routes.PullRequestApp.pullRequestState(pull.toProject.owner, pull.toProject.name, pull.number)"
+            "sStateUrl"  : "@routes.PullRequestApp.pullRequestState(pull.toProject.owner, pull.toProject.name, pull.number)",
+            "bCommentable" : "@isProjectResourceCreatable(UserApp.currentUser, project, ResourceType.PULL_REQUEST_COMMENT)"
         });
 
         yobi.Mention({

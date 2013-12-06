@@ -217,42 +217,12 @@
 
         function _attachCommentBoxToggleEvent() {
             if (htVar.bCommentable) {
-                var welCloseButton = $('.close-comment-box');
-                var welOpenButton = $('.open-comment-box');
-
-                var fOnClickAddButton = function(weEvt) {
-                    _showCommentBox($(weEvt.target).closest("tr"));
-                    $(weEvt.target).siblings(".close-comment-box").show();
-                    $(weEvt.target).hide();
-                };
-
-                var fOnClickCloseButton = function(weEvt) {
-                    _hideCommentBox();
-                    $(weEvt.target).siblings(".open-comment-box").show();
-                    $(weEvt.target).hide();
-                };
-
-                welCloseButton.click(fOnClickCloseButton).hide();
-                welOpenButton.click(fOnClickAddButton);
+                yobi.CodeCommentBox.init({
+                    fCallbackAfterShowCommentBox: _updateMiniMap,
+                    fCallbackAfterHideCommentbox: _updateMiniMap,
+                    welDiff: htOptions.htDiff
+                });
             }
-        }
-
-        /**
-         * 댓글 상자를 숨긴다.
-         *
-         * when: 특정 줄의, (댓글 상자가 나타난 상태에서의) 댓글 아이콘이나,
-         * 댓글창 닫기 버튼을 눌렀을 때
-         */
-        function _hideCommentBox() {
-            htElement.welCommentTr.remove();
-            htElement.welEmptyCommentForm.find('[name=path]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=line]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=commitA]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=commitB]').removeAttr('value');
-            htElement.welEmptyCommentForm.find('[name=commitId]').removeAttr('value');
-            $('.code-browse-wrap').append(htElement.welEmptyCommentForm);
-            _updateMiniMap();
         }
 
         /**
@@ -275,65 +245,10 @@
                 $(weEvt.target).closest('tr').next().find('#comment-form');
 
             if (commentForm.length > 0) {
-                _hideCommentBox();
+                yobi.CodeCommentBox.hide();
             } else {
-                _showCommentBox($(weEvt.target).closest("tr"));
+                yobi.CodeCommentBox.show($(weEvt.target).closest("tr"));
             }
-        }
-
-        /**
-         * welTr 밑에 댓글 상자를 보여준다.
-         *
-         * when: 특정 줄의, (댓글 상자가 안 나타난 상태에서의) 댓글 아이콘이나,
-         * 댓글창 열기 버튼을 눌렀을 때
-         *
-         * @param {Object} welTr
-         */
-        function _showCommentBox(welTr) {
-            var welTd = $("<td colspan=3>");
-            var welCommentTr;
-            var nLine = parseInt(welTr.data('line'));
-            var sType = welTr.data('type');
-            var sCommitId;
-            var sPath;
-            var sCommitA = welTr.closest('.diff-body').data('commitA');
-            var sCommitB = welTr.closest('.diff-body').data('commitB');
-
-            if (isNaN(nLine)) {
-                nLine = parseInt(welTr.prev().data('line'));
-                sType = welTr.prev().data('type');
-            }
-
-            if (isNaN(nLine)) {
-                return;
-            }
-
-            if (sType == 'remove') {
-                sPath = welTr.closest('table').data('path-a');
-                sCommitId = sCommitA;
-            } else {
-                sPath = welTr.closest('table').data('path-b');
-                sCommitId = sCommitB;
-            }
-
-            if (htElement.welCommentTr) {
-                htElement.welCommentTr.remove();
-            }
-
-            htElement.welCommentTr = $("<tr>")
-                .append(welTd.append(htElement.welEmptyCommentForm.width(htElement.welDiff.width())));
-
-            welCommentTr = htElement.welCommentTr;
-            welCommentTr.find('[name=path]').attr('value', sPath);
-            welCommentTr.find('[name=line]').attr('value', nLine);
-            sType = (sType == 'remove') ? 'A' : 'B';
-            welCommentTr.find('[name=side]').attr('value', sType);
-
-            welCommentTr.find('[name=commitA]').attr('value', sCommitA);
-            welCommentTr.find('[name=commitB]').attr('value', sCommitB);
-
-            welTr.after(htElement.welCommentTr);
-            _updateMiniMap();
         }
 
         /**
