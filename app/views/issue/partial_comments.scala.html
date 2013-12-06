@@ -105,7 +105,7 @@
                 }
                 case EventType.ISSUE_ASSIGNEE_CHANGED => {
                     <span class="state changed"><i class="yobicon-ftpaccounts"></i> @Messages("issue.state.assigned")</span>
-                    @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,user.name, true)))
+                    @Html(Messages(assginedMesssage(event.newValue, user), linkToUser(user.loginId, user.name), linkToUser(event.newValue,User.findByLoginId(event.newValue).name, true)))
                 }
                 case EventType.ISSUE_REFERRED => {
                     @Html(event.newValue)
