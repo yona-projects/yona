@@ -1,3 +1,8 @@
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,form,fieldset,p,button{ 
+    margin:0;
+    padding:0
+}
+
 html, body {
     min-height: 100%;
 }
@@ -7,6 +12,7 @@ body {
    font-family: @base-font-family;
    text-rendering: auto !important;
 }
+
 input, button, select, textarea { font-family: @base-font-family !important; }
 h1,h2,h3,h4,h5,h6 { text-rendering:auto !important; }
 
@@ -31,6 +37,16 @@ input[type=number]::-webkit-outer-spin-button {
     visibility: hidden !important;
 }
 .cb { clear:both; }
+.blind {
+    overflow:hidden;
+    position:absolute;
+    top:0;
+    left:0;
+    width:0;
+    height:0;
+    font-size:0;
+    line-height:0
+}
 
 /** pagination **/
 .page-navigation-wrap {
