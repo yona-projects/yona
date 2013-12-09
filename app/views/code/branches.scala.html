@@ -60,13 +60,13 @@
                                 @branch.getHeadCommit.getCommitterName
                             }
                         </td>
-                        <td>
-                            @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
+                        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
+                            <td>
                                 <a class="ybtn ybtn-danger" data-request-method="delete" href="@deleteBranchURL(branch.getName)">
                                 @Messages("button.delete")
                                 </a>
-                            }
-                        </td>
+                            </td>
+                        }
                     </tr>
                 }
                 </tbody>
