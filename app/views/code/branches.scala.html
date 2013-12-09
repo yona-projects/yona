@@ -46,6 +46,7 @@
                         <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitMsg")</th>
                         <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitDate")</th>
                         <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.author")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest")</th>
                         @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
                             <th></th>
                         }
@@ -76,6 +77,11 @@
                                     @head.getHeadCommit.getCommitterName
                             }
                         </td>
+                        <td>
+                        @if(head.getPullRequest != null) {
+                            head.getPullRequest.state
+                        }
+                        </td>
                         <td></td>
                     </tr>
                 @for(branch <- branches.iterator()) {
@@ -84,7 +90,7 @@
                             <a href="@goToBranchURL(branch.getName)" class="blue-txt"><strong>@branch.getShortName</strong></a>
                         </td>
                         <td>
-                            <a href="@getShowCommitURL(branch)" class="blue-txt">
+                            <a href="@getShowCommitURL(branch)" class="blue-txt" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                 @branch.getHeadCommit.getShortMessage
                             </a>
                         </td>
@@ -99,6 +105,14 @@
                                 <img src="@utils.GravatarUtil.getAvatar(branch.getHeadCommit.getCommitterEmail, 25)" height="25" width="25">
                                     @branch.getHeadCommit.getCommitterName
                             }
+                        </td>
+                        <td>
+                        @if(branch.getPullRequest != null) {
+                            <a href="@routes.PullRequestApp.pullRequest(branch.getPullRequest.toProject.owner, branch.getPullRequest.toProject.name, branch.getPullRequest.number)" class="blue-txt">
+                                <strong>!@branch.getPullRequest.number</strong>
+                            </a>
+                            <code>@branch.getPullRequest.state</code>
+                        }
                         </td>
                         @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
                             <td>

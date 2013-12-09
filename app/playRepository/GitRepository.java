@@ -624,6 +624,8 @@ public class GitRepository implements PlayRepository {
             walk.dispose();
 
             GitBranch newBranch = new GitBranch(branchRef.getName(), new GitCommit(head));
+            setTheLatestPullRequest(newBranch);
+
             branches.add(newBranch);
         }
 
@@ -635,6 +637,11 @@ public class GitRepository implements PlayRepository {
         });
 
         return branches;
+    }
+
+    private void setTheLatestPullRequest(GitBranch gitBranch) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        gitBranch.setPullRequest(PullRequest.findTheLatestOneFrom(project, gitBranch.getName()));
     }
 
     @Override
