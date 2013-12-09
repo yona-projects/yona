@@ -39,7 +39,7 @@
                 <div style="float:left">
                     <div class="header">
                         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="black">@project.name</a>
-                        @if(project.isFork()){
+                        @if(project.isForkedFromOrigin()){
                             <span class="small-font blue-txt">
                                 <a class="origin-title" href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)'>
                                     <i class="yobicon-split"></i>

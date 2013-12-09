@@ -10,7 +10,7 @@
 }
 
 @getPullRequestURL(project:Project) = @{
-    if(project.isFork()){
+    if(project.isForkedFromOrigin()){
         routes.PullRequestApp.sentPullRequests(project.owner, project.name)
     } else {
         routes.PullRequestApp.pullRequests(project.owner, project.name)

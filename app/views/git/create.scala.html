@@ -1,4 +1,4 @@
-@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String], mergeResult:models.PullRequestMergeResult, pullRequest:models.PullRequest)
+@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String], pullRequest:models.PullRequest, mergeResult:models.PullRequestMergeResult)
 
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
@@ -105,7 +105,7 @@
             </div>
 
             <div id="frmWrap">
-            @views.html.git.partial_diff(form, project, mergeResult, pullRequest)
+            @views.html.git.partial_diff(form, project, pullRequest, mergeResult)
             </div>
         }
     </div>

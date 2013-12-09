@@ -59,8 +59,6 @@ import java.util.*;
  */
 public class PullRequestApp extends Controller {
 
-    private static final String NEW_LINE_DELIMETER = "\n";
-
     /**
      * {@code userName}과 {@code projectName}에 해당하는 프로젝트를
      * 복사하여 현재 접속한 사용자의 새 프로젝트로 생성할 수 있다는 안내 메시지와 안내 정보를 보여준다.
@@ -204,37 +202,24 @@ public class PullRequestApp extends Controller {
     public static Result newPullRequestForm(String userName, String projectName) throws IOException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validateBeforePullRequest(project, userName, projectName);
-        if(result != null) {
-            return result;
+        ValidationResult validation = validateBeforePullRequest(project);
+        if(validation.hasError()) {
+            return validation.getResult();
         }
 
         List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
         List<String> toBranches = RepositoryService.getRepository(project.originalProject).getBranches();
+        PullRequest pullRequest = PullRequest.createNewPullRequest(project
+                            , request().getQueryString("fromBranch")
+                            , request().getQueryString("toBranch"));
+        PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
 
-        PullRequest pullRequest = new PullRequest();
-        pullRequest.toProject = project.originalProject;
-        pullRequest.fromProject = project;
-        pullRequest.fromBranch = request().getQueryString("fromBranch");
-        pullRequest.toBranch = request().getQueryString("toBranch");
-
-        PullRequestMergeResult mergeResult = null;
-
-        if (!StringUtils.isEmpty(pullRequest.fromBranch) && !StringUtils.isEmpty(pullRequest.toBranch)) {
-            mergeResult = pullRequest.attemptMerge();
-            Map<String, String> suggestText = suggestTitleAndBodyFromDiffCommit(mergeResult.getGitCommits());
-            pullRequest.title = suggestText.get("title");
-            pullRequest.body = suggestText.get("body");
-        }
-
-        String xRequested = request().getHeader("X-Requested-With");
-
-        if (!StringUtils.isEmpty(xRequested)) {
+        if (HttpUtil.isRequestedWithXHR(request())) {
             response().setHeader("Cache-Control", "no-cache, no-store");
-            return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, mergeResult, pullRequest));
+            return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
         }
 
-        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, fromBranches, toBranches, mergeResult, pullRequest));
+        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, fromBranches, toBranches, pullRequest, mergeResult));
     }
 
     /**
@@ -255,9 +240,9 @@ public class PullRequestApp extends Controller {
     public static Result newPullRequest(String userName, String projectName) throws IOException, ServletException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
-        Result result = validateBeforePullRequest(project, userName, projectName);
-        if(result != null) {
-            return result;
+        ValidationResult validation = validateBeforePullRequest(project);
+        if(validation.hasError()) {
+            return validation.getResult();
         }
 
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
@@ -300,52 +285,6 @@ public class PullRequestApp extends Controller {
 
         return redirect(pullRequestCall);
     }
-
-    /**
-     * diff commit message로 pull request의 title과 body를 채운다.<br>
-     * <br>
-     * case 1 : commit이 한개이고 message가 한줄일 경우 title에 추가한다.<br>
-     * case 2 : commit이 한개이고 message가 여러줄일 경우 첫번째줄 mesage는 title 나머지 message는 body에 추가<br>
-     * case 3 : commit이 여러개일 경우 각 commit의 첫번째줄 message들을 모아서 body에 추가 <br>
-     *
-     * @param commits
-     * @return
-     */
-    private static Map<String, String> suggestTitleAndBodyFromDiffCommit(List<GitCommit> commits) {
-        Map<String, String> messageMap = new HashMap<>();
-
-        String message = StringUtils.EMPTY;
-
-        if (commits.isEmpty()) {
-            return messageMap;
-
-        } else if (commits.size() == 1) {
-            message = commits.get(0).getMessage();
-            String[] messages = message.split(NEW_LINE_DELIMETER);
-
-            if (messages.length > 1) {
-                String[] msgs = Arrays.copyOfRange(messages, 1, messages.length);
-                messageMap.put("title", messages[0]);
-                messageMap.put("body", StringUtils.join(msgs, NEW_LINE_DELIMETER));
-
-            } else {
-                messageMap.put("title", messages[0]);
-                messageMap.put("body", StringUtils.EMPTY);
-            }
-
-        } else {
-            String[] firstMessages = new String[commits.size()];
-            for (int i = 0; i < commits.size(); i++) {
-                String[] messages = commits.get(i).getMessage().split(NEW_LINE_DELIMETER);
-                firstMessages[i] = messages[0];
-            }
-            messageMap.put("body", StringUtils.join(firstMessages, NEW_LINE_DELIMETER));
-
-        }
-
-        return messageMap;
-    }
-
 
     private static void validateForm(Form<PullRequest> form) {
         Map<String, String> data = form.data();
@@ -809,18 +748,39 @@ public class PullRequestApp extends Controller {
      * @param projectName
      * @return
      */
-    private static Result validateBeforePullRequest(Project project, String userName, String projectName) {
-
-        if(!project.isFork()) {
-            return badRequest(ErrorViews.BadRequest.render("Only fork project is allowed this request", project));
+    private static ValidationResult validateBeforePullRequest(Project project) {
+        Result result = null;
+        boolean hasError = false;
+        if(!project.isForkedFromOrigin()) {
+            result = badRequest(ErrorViews.BadRequest.render("Only fork project is allowed this request", project));
+            hasError = true;
         }
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
         if(isGuest(project, UserApp.currentUser())) {
-            return forbidden(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
+            result = forbidden(ErrorViews.BadRequest.render("Guest is not allowed this request", project));
+            hasError = true;
         }
 
-        return null;
+        return new ValidationResult(result, hasError);
+    }
+
+    static class ValidationResult {
+        private Result result;
+        private boolean hasError;
+
+        ValidationResult(Result result, boolean hasError) {
+            this.result = result;
+            this.hasError = hasError;
+        }
+
+        public boolean hasError(){
+            return hasError;
+        }
+        public Result getResult() {
+            return result;
+        }
+
     }
 
     private static boolean isGuest(Project project, User currentUser) {

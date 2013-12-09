@@ -11,4 +11,5 @@ public class Constants {
     public static final String ADMIN_LOGIN_ID = "admin";
 
     public static final String DEFAULT_LANGUAGE = "en";
+    public static final String NEW_LINE_DELIMETER = "\n";
 }
