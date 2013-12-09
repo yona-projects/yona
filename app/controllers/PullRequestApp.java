@@ -352,7 +352,6 @@ public class PullRequestApp extends Controller {
         ValidationUtils.rejectIfEmpty(flash(), data.get("fromBranch"), "pullRequest.fromBranch.required");
         ValidationUtils.rejectIfEmpty(flash(), data.get("toBranch"), "pullRequest.toBranch.required");
         ValidationUtils.rejectIfEmpty(flash(), data.get("title"), "pullRequest.title.required");
-        ValidationUtils.rejectIfEmpty(flash(), data.get("body"), "pullRequest.body.required");
     }
 
     /**
