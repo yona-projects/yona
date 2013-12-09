@@ -23,6 +23,8 @@ package controllers;
 import controllers.annotation.ProjectAccess;
 import models.Project;
 import models.enumeration.Operation;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import play.mvc.Controller;
@@ -42,8 +44,20 @@ public class BranchApp extends Controller {
     @ProjectAccess(value = Operation.READ, isGitOnly = true)
     public static Result branches(String loginId, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
-        List<GitBranch> allBranches = new GitRepository(project).getAllBranches();
-        return ok(branches.render(project, allBranches));
+        GitRepository gitRepository = new GitRepository(project);
+        List<GitBranch> allBranches = gitRepository.getAllBranches();
+        final GitBranch headBranch = gitRepository.getHeadBranch();
+
+        // filter the head branch from all branch list.
+        CollectionUtils.filter(allBranches, new Predicate() {
+            @Override
+            public boolean evaluate(Object o) {
+                GitBranch gitBranch = (GitBranch)o;
+                return !gitBranch.getName().equals(headBranch.getName());
+            }
+        });
+
+        return ok(branches.render(project, allBranches, headBranch));
     }
 
     @ProjectAccess(value = Operation.DELETE, isGitOnly = true)

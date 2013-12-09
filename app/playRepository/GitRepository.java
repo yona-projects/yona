@@ -1561,6 +1561,21 @@ public class GitRepository implements PlayRepository {
         }
     }
 
+    public GitBranch getHeadBranch() {
+        try {
+            String headBranchName = getDefaultBranch();
+
+            ObjectId branchObjectId = repository.resolve(headBranchName);
+            RevWalk walk = new RevWalk(repository);
+            RevCommit head = walk.parseCommit(branchObjectId);
+            walk.dispose();
+
+            return new GitBranch(headBranchName, new GitCommit(head));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Clone과 Fetch 이후 작업에 필요한 정보를 담을 객체로 사용한다.
      */

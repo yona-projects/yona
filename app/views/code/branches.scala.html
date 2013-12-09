@@ -1,4 +1,4 @@
-@(project: Project, branches: List[playRepository.GitBranch])
+@(project: Project, branches: List[playRepository.GitBranch], head: playRepository.GitBranch)
 
 @import utils.JodaDateUtil._
 @import java.net.URLEncoder
@@ -39,25 +39,65 @@
                 }
             </ul>
 
-            <table class="table table-bordered">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>@Messages("title.branches")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitMsg")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitDate")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.author")</th>
+                        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
+                            <th></th>
+                        }
+                    </tr>
+                </thead>
                 <tbody>
+                    <tr style="background-color: aliceblue">
+                        <td>
+                            <a href="@goToBranchURL(head.getName)" class="blue-txt">
+                                <strong>@head.getShortName</strong>
+                            </a>
+                            <code>HEAD</code>
+                        </td>
+                        <td>
+                            <a href="@getShowCommitURL(head)" class="blue-txt">
+                                @head.getHeadCommit.getShortMessage
+                            </a>
+                        </td>
+                        <td>
+                            @momentFromNow(head.getHeadCommit.getCommitterDate, lang.language)
+                        </td>
+                        <td>
+                            @if(head.getUser != null) {
+                                <img src="@head.getUser.avatarUrl" height="25" width="25">
+                                <a href="@routes.UserApp.userInfo(head.getUser.loginId)" class="blue-txt">@head.getUser.name</a>
+                            } else {
+                                <img src="@utils.GravatarUtil.getAvatar(head.getHeadCommit.getCommitterEmail, 25)" height="25" width="25">
+                                    @head.getHeadCommit.getCommitterName
+                            }
+                        </td>
+                        <td></td>
+                    </tr>
                 @for(branch <- branches.iterator()) {
                     <tr>
                         <td>
-                            <a href="@goToBranchURL(branch.getName)"><h4>@branch.getShortName</h4></a>
+                            <a href="@goToBranchURL(branch.getName)" class="blue-txt"><strong>@branch.getShortName</strong></a>
                         </td>
                         <td>
-                            @Messages("branch.recently.update")
                             <a href="@getShowCommitURL(branch)" class="blue-txt">
-                                @branch.getHeadCommit.getShortId
+                                @branch.getHeadCommit.getShortMessage
                             </a>
+                        </td>
+                        <td>
                             @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
+                        </td>
+                        <td>
                             @if(branch.getUser != null) {
                                 <img src="@branch.getUser.avatarUrl" height="25" width="25">
                                 <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="blue-txt">@branch.getUser.name</a>
                             } else {
                                 <img src="@utils.GravatarUtil.getAvatar(branch.getHeadCommit.getCommitterEmail, 25)" height="25" width="25">
-                                @branch.getHeadCommit.getCommitterName
+                                    @branch.getHeadCommit.getCommitterName
                             }
                         </td>
                         @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
