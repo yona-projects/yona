@@ -9,8 +9,8 @@
 @layout(Messages(title))(""){
     <header class="gnb-outer">
         <div class="gnb-inner">
-            <a href="@routes.Application.index()" class="logo"><span class="blind">@Messages("app.name")</span><span class='beta'>beta</span></a>
-            <ul class="gnb">
+            <a href="@routes.Application.index()" class="logo"><h1 class="blind">@Messages("app.name")</h1></a>
+            <ul class="gnb-nav">
                 <li class="@isActiveMenu(MenuType.PROJECTS)">
                     <a href="@routes.ProjectApp.projects()">@Messages("title.projectList")</a>
                 </li>
