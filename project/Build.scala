@@ -8,7 +8,7 @@ import play.Project.lessEntryPoints
 
 object ApplicationBuild extends Build {
 
-  val appName         = "nforge4"
+  val appName         = "yobi"
   val appVersion      = "1.0-SNAPSHOT"
 
   val appDependencies = Seq(
