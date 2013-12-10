@@ -26,7 +26,7 @@
 <h5>@Messages("pullRequest.pushed.branches.title")</h5>
 <div class="alert alert-info">
     @for(branch <- project.getRecentlyPushedBranches){
-        <div><i class="yobicon-split"></i><span style="margin-left:5px;font-weight:bold;">@branch.project.owner/@branch.project.name:@branch.getShortName ( @momentFromNow(branch.pushedDate, lang.language) )</span> - <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)?fromBranch=@branch.name&toBranch=refs/heads/master">@Messages("pullRequest")</a></div>
+        <div><i class="yobicon-split"></i><span style="margin-left:5px;font-weight:bold;">@branch.project.owner/@branch.project.name:@branch.getShortName ( @momentFromNow(branch.pushedDate, lang.language) )</span> - <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)?fromBranch=@branch.name&toBranch=@project.defaultBranch">@Messages("pullRequest")</a></div>
     }
 </div>
 }

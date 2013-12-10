@@ -199,7 +199,7 @@ public class PullRequestApp extends Controller {
      */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequestForm(String userName, String projectName) throws IOException, ServletException {
+    public static Result newPullRequestForm(String userName, String projectName) throws ServletException, IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -207,11 +207,12 @@ public class PullRequestApp extends Controller {
             return validation.getResult();
         }
 
-        List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
-        List<String> toBranches = RepositoryService.getRepository(project.originalProject).getBranches();
+        List<GitBranch> fromBranches = new GitRepository(project).getAllBranches();
+        List<GitBranch> toBranches = new GitRepository(project.originalProject).getAllBranches();
+
         PullRequest pullRequest = PullRequest.createNewPullRequest(project
-                            , request().getQueryString("fromBranch")
-                            , request().getQueryString("toBranch"));
+                            , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
+                            , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch())); 
         PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
 
         if (HttpUtil.isRequestedWithXHR(request())) {
@@ -237,7 +238,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequest(String userName, String projectName) throws IOException, ServletException {
+    public static Result newPullRequest(String userName, String projectName) throws ServletException, IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -248,8 +249,8 @@ public class PullRequestApp extends Controller {
         Form<PullRequest> form = new Form<>(PullRequest.class).bindFromRequest();
         validateForm(form);
         if(form.hasErrors()) {
-            List<String> fromBranches = RepositoryService.getRepository(project).getBranches();
-            List<String> toBranches = RepositoryService.getRepository(project.originalProject).getBranches();
+            List<GitBranch> fromBranches = new GitRepository(project).getAllBranches();
+            List<GitBranch> toBranches = new GitRepository(project.originalProject).getAllBranches();
             return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, fromBranches, toBranches, null, null));
         }
 
@@ -602,14 +603,14 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.UPDATE)
-    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, ServletException {
+    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws ServletException, IOException, GitAPIException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;
 
         Form<PullRequest> editForm = new Form<>(PullRequest.class).fill(pullRequest);
-        List<String> fromBranches = RepositoryService.getRepository(pullRequest.fromProject).getBranches();
-        List<String> toBranches = RepositoryService.getRepository(pullRequest.toProject).getBranches();
+        List<GitBranch> fromBranches = new GitRepository(pullRequest.fromProject).getAllBranches();
+        List<GitBranch> toBranches = new GitRepository(pullRequest.toProject).getAllBranches();
 
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
@@ -711,7 +712,7 @@ public class PullRequestApp extends Controller {
      */
     @Transactional
     @ProjectAccess(Operation.READ)
-    public static Result commitView(String userName, String projectName, Long pullRequestNumber, String commitId) throws IOException, ServletException, GitAPIException, SVNException {
+    public static Result commitView(String userName, String projectName, Long pullRequestNumber, String commitId) throws GitAPIException, SVNException, IOException, ServletException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
 

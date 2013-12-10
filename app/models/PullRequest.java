@@ -154,9 +154,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static PullRequest createNewPullRequest(Project project, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
         pullRequest.toProject = project.originalProject;
+        pullRequest.toBranch = toBranch;
         pullRequest.fromProject = project;
         pullRequest.fromBranch = fromBranch;
-        pullRequest.toBranch = toBranch;
         return pullRequest;
     }
 

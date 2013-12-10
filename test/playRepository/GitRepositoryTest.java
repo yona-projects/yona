@@ -1,15 +1,12 @@
 package playRepository;
 
 import static play.test.Helpers.*;
-
 import models.Project;
 import models.PullRequest;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoFilepatternException;
 import org.eclipse.jgit.lib.*;
@@ -21,6 +18,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import play.test.FakeApplication;
+import play.test.Helpers;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -502,6 +502,46 @@ public class GitRepositoryTest {
         assertThat(gitRepository.isFile(fileName)).isEqualTo(true);
         assertThat(gitRepository.isFile("not_exist_file")).isEqualTo(false);
         assertThat(gitRepository.isFile(fileName, "not_exist_branch")).isEqualTo(false);
+    }
+
+    @Test
+    public void testGetAllBranches() throws IOException, GitAPIException {
+        FakeApplication app = Helpers.fakeApplication(support.Config.makeTestConfig());
+        Helpers.start(app);
+
+        // Given
+        String userName = "wansoon";
+        String projectName = "test";
+        String email = "test@email.com";
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+        String repoPath = wcPath + "/.git";
+        String dirName = "dir";
+        String fileName = "file";
+
+        Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
+        repository.create(false);
+        Git git = new Git(repository);
+        FileUtils.forceMkdir(new File(wcPath + "/" + dirName));
+        FileUtils.touch(new File(wcPath + "/" + fileName));
+        git.add().addFilepattern(dirName).call();
+        git.add().addFilepattern(fileName).call();
+        git.commit().setMessage("test").setAuthor(userName, email).call();
+
+        String branchName = "testBranch";
+        git.branchCreate()
+                .setName(branchName)
+                .setForce(true)
+                .call();
+        GitRepository gitRepository = new GitRepository(userName, projectName + "/");
+
+        // When
+        List<GitBranch> gitBranches = gitRepository.getAllBranches();
+
+        // Then
+        assertThat(gitBranches.size()).isEqualTo(2);
+        assertThat(gitBranches.get(1).getShortName()).isEqualTo(branchName);
+
+        Helpers.stop(app);
     }
 
     private Project createProject(String owner, String name) {
