@@ -1,3 +1,91 @@
+<a name="english"></a>
+[[한국어]](#korean)
+
+# Receiving Notifications
+
+Use `Watching` to receive notifications through Yobi main page and email when projects are changed. 
+
+## Watching
+
+`Watching` is available below
+
+* Projects
+* Articles on board
+* Each commits of `Code` and `Pull Request`
+* Items of `Pull Requests`
+* Items of `Issues` 
+
+You have to have access authorization to use `Watching`.  While everyone can use `Watching` on public projects, private projects are only allowed for members.
+
+### Watching Projects
+
+On circumstances like those below you can get notifications through `Watching Project`.
+
+* Posting new issues
+* Posting new notices
+* Sending new codes
+* Changing issues status
+* Changing owner of a issue
+* Changing pull request status
+* Posting comments of notices and issues
+* Posting comments of pull requests
+* Registering members
+* Merging pull requests
+* Mentioning issues
+* Changing commits of pull requests
+
+For `Watching Project` :
+
+1. Go to the project you want.
+2. Click `Watch`.
+3. Click `Watch` on popup.
+
+<그림 삽입>
+
+You basically will get notifications on all above conditions when you use it. But you can configure notification settings in more detail. In this case, refer `Notification Setting`.
+
+### Individual Watching
+
+Individual watching is available below.
+
+* Articles on a `Board`.
+* Items of `Issues` and `Pull Request`
+* Commits of `Code` and `Pull Request`
+
+Below are an example for watching indivisual items of `Issues`.
+ 
+* Go to the `Issues` and click the item you want.
+* Click `Watch`
+* You will get notifications about modification of the item.   
+
+<그림 삽입> 
+
+## Unwatching
+
+If you do not want to receive notification any more, use `Unwatch`.
+
+### Unwatching projects
+
+To unwatch the project :
+
+* Go to the project watched.
+* Click `Watching`  and `Unwatch` on popup.
+
+<그림 삽입>
+
+### Unwatching the Board, Issues and Pull Request
+
+To unwatch individual items :
+
+* Go to the items on the `Board`, `Issues` or `Pull Request`.
+* Click `Unwatch` to stop getting notifications.
+
+<그림 삽입>
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
+
 # 알림 받기
 
 `프로젝트`에서 변경사항에 대해 이메일과 Yobi 메인 페이지에서 알림을 받고 싶다면 Yobi의 `지켜보기` 기능을 사용하면 됩니다.
@@ -48,8 +136,6 @@
 * `게시판`의 각 게시글
 * `이슈`와 `코드주고 받기`의 각 아이템
 * `코드`와 `코드주고받기`의 각 커밋
-
-에서 `지켜보기`를 사용 할 수 있습니다. 
 
 아래는 이슈에 대한 지켜보기 설명입니다. 
 

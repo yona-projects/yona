@@ -1,3 +1,41 @@
+<a name="english"></a>
+[[한국어]](#korean)
+
+# Notification Setting
+
+You can configure notifications of your own and watching projects more detail by using `Notification Setting`.
+
+Items to be able to configure are below
+
+* Posting new issues
+* Posting new notices
+* Sending new codes
+* Changing issues status
+* Changing owner of a issue
+* Changing pull request status
+* Posting comments of notices and issues
+* Posting comments of pull requests
+* Registering members
+* Merging pull requests.
+* Mentioning issues
+* Changing commits of pull requests
+
+Click the profile picture and `Account Setting`.
+
+<그림 삽입>
+
+Click `Notification Setting` tab.
+
+<그림 삽입>
+
+You can change notification settings through switches within each projects.
+
+<그림 삽입>
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
+
 # 알림 설정
 
 `알림 설정`을 이용하여 자신의 프로젝트와 지켜보고 있는 프로젝트의 알림 설정을 좀더 세분화 하여 설정 할 수 있습니다.
