@@ -1,23 +1,6 @@
 @(project: Project, branches: List[playRepository.GitBranch], head: playRepository.GitBranch)
 
-@import utils.JodaDateUtil._
-@import java.net.URLEncoder
 @import utils.AccessControl._
-
-@getShowCommitURL(gitBranch:playRepository.GitBranch) = @{
-    var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8");
-    routes.CodeHistoryApp.show(project.owner, project.name, gitBranch.getHeadCommit.getId) + queryString;
-}
-
-@deleteBranchURL(branch:String) =@{
-    var branchName = URLEncoder.encode(branch, "UTF-8");
-    routes.BranchApp.deleteBranch(project.owner, project.name, branchName);
-}
-
-@goToBranchURL(branch:String) =@{
-    var branchName = URLEncoder.encode(branch, "UTF-8");
-    routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "");
-}
 
 @projectLayout(Messages("title.branches"), project, utils.MenuType.CODE) {
 <div class="page">
@@ -66,5 +49,4 @@
         </div>
     </div>
 </div>
-
 }
