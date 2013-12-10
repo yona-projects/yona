@@ -15,7 +15,6 @@ import models.enumeration.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
-import org.openqa.selenium.android.library.Logger;
 import org.tmatesoft.svn.core.SVNException;
 
 import play.data.Form;
