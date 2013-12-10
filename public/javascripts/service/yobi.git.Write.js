@@ -194,7 +194,6 @@
             // check whether required field is empty
             var htRequired = {
                 "title"     : $.trim(htElement.welInputTitle.val()),
-                "body"      : $.trim(htElement.welInputBody.val()),
                 "fromBranch": $.trim(htElement.welInputFromBranch.val()),
                 "toBranch"  : $.trim(htElement.welInputToBranch.val())
             };
