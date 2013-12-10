@@ -281,28 +281,26 @@ public class GitRepository implements PlayRepository {
     private ObjectNode fileAsJson(TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
         Git git = new Git(repository);
 
-        RevCommit commit = git.log()
+        GitCommit commit = new GitCommit(git.log()
             .add(untilCommitId)
             .addPath(treeWalk.getPathString())
             .call()
             .iterator()
-            .next();
+            .next());
 
         ObjectNode result = Json.newObject();
         long commitTime = commit.getCommitTime() * 1000L;
-        PersonIdent commitAuthor = commit.getAuthorIdent();
-        String emailAddress = commitAuthor.getEmailAddress();
-        User user = User.findByEmail(emailAddress);
+        User author = commit.getAuthor();
 
         result.put("type", "file");
         result.put("msg", commit.getShortMessage());
-        result.put("author", commitAuthor.getName());
-        result.put("avatar", getAvatar(user));
-        result.put("userName", user.name);
-        result.put("userLoginId", user.loginId);
+        result.put("author", commit.getAuthorName());
+        result.put("avatar", getAvatar(author));
+        result.put("userName", author.name);
+        result.put("userLoginId", author.loginId);
         result.put("createdDate", commitTime);
         result.put("commitMessage", commit.getShortMessage());
-        result.put("commiter", commitAuthor.getName());
+        result.put("commiter", commit.getCommitterName());
         result.put("commitDate", commitTime);
         result.put("commitId", untilCommitId.getName());
         ObjectLoader file = repository.open(treeWalk.getObjectId(0));
@@ -414,16 +412,17 @@ public class GitRepository implements PlayRepository {
             // Now, every objects in `objects` are interested. Get metadata from the objects, put
             // them into listData and remove the path from paths.
             for (String path : objects.keySet()) {
+                GitCommit commit = new GitCommit(curr);
                 ObjectNode data = Json.newObject();
                 data.put("type", modes.get(path));
-                data.put("msg", curr.getShortMessage());
-                String emailAddress = curr.getAuthorIdent().getEmailAddress();
+                data.put("msg", commit.getShortMessage());
+                String emailAddress = commit.getAuthorEmail();
                 User user = User.findByEmail(emailAddress);
                 data.put("avatar", getAvatar(user));
                 data.put("userName", user.name);
                 data.put("userLoginId", user.loginId);
                 data.put("createdDate", curr.getCommitTime() * 1000l);
-                data.put("author", curr.getAuthorIdent().getName());
+                data.put("author", commit.getAuthorName());
                 listData.put(path, data);
                 paths.remove(path);
             }
