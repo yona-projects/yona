@@ -5,7 +5,6 @@
 @import utils.AccessControl._
 @import models.enumeration.ResourceType;
 
-
 @projectLogoImage = @{
     defining(Attachment.findByContainer(project.asResource)) { files =>
         if(files.size > 0){
@@ -15,188 +14,122 @@
         }
     }
 }
-
-@getPullRequestURL(project:Project) = @{
-    if(project.isForkedFromOrigin()){
-        routes.PullRequestApp.sentPullRequests(project.owner, project.name)
-    } else {
-        routes.PullRequestApp.pullRequests(project.owner, project.name)
-    }
-}
-<div class="project-header" style="background-image:url(@projectLogoImage)">
-    <div class="project-header-toggle">
-        <button class="project-header-toggle-btn"><i class="yobicon-resizev"></i></button>
-    </div>
-    <header class="project-header-wrap" >
-        <div class="project-breadcrumb">
-            <div class="project-breadcrumb-wrap">
-                <div class="avatar-wrap large">
-                    <img src="@User.findByLoginId(project.owner).avatarUrl" />
+<div class="project-header-outer" style="background-image:url(@projectLogoImage)">
+    <div class="project-header-inner">
+        <div class="project-header-wrap">
+            <div class="project-header-avatar">
+                <img src="@projectLogoImage" />
+            </div>
+            <div class="project-breadcrumb-wrap @if(project.isForkedFromOrigin()){fork}">
+                <div class="project-breadcrumb">
+                    <span class="project-author"><a href="">@project.owner</a></span>
+                    <span class="project-separator">/</span>
+                    <span class="project-name">@project.name</span>
+                    @if(!project.isPublic){
+                    <span class="project-private">
+                        <i class="yobicon-lock"></i>
+                    </span>
+                    }
                 </div>
-                <a href="@routes.UserApp.userInfo(project.owner)" class="project-owner">@project.owner</a>
-                <span class="separator">/</span>
-                <a href="@routes.ProjectApp.project(project.owner, project.name)" class="project-name">@project.name</a>
-                @if(!project.isPublic){
-                <div class="private">
-                    <i class="yobicon-lock"></i>
-                </div>
-                }
                 @if(project.isForkedFromOrigin()){
-                    <div class="origin">
-                        <span class="origin-title">@Messages("fork.original") </span>
-                        <a href='@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)' class="blue-txt">
-                            @project.originalProject.owner / @project.originalProject.name
-                        </a>
-
-                    </div>
+                <div class="project-origin">
+                    <span class="project-origin-title">@Messages("fork.original")</span>
+                    <a href="@routes.ProjectApp.project(project.originalProject.owner, project.originalProject.name)" class="project-origin-name">
+                        @project.originalProject.owner / @project.originalProject.name
+                    </a>
+                </div>    
                 }
             </div>
-        </div>
-        <div class="project-utility">
-            <ul class="project-utility-wrap">
-                <li>
-                    <button  type="button" class="ybtn ybtn-small dropdown-toggle" data-toggle="cloneURL">
-                        <i class="yobicon-link"></i> @Messages("code.repoUrl")
-                    </button>
-                    <div class="dropdown-menu flat right title" data-toggle="popover-wrap">
-                        <div class="pop-title">@Messages("code.repoUrl")</div>
-                        <div class="pop-content center">
-                            <label for="cloneURL" class="vcs">@project.vcs</label>
-                            <input type="text" id="cloneURL" class="project-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
-                        </div>
-                        <div class="pop-content btn-wrap">
-                            <button class="ybtn" id="cloneURLBtn">@Messages("code.copyUrl")</button>
-
-                        </div>
-                    </div>
-                </li>
-                <li>
-                    @if(User.isWatching(project)) {
-                    <button class="ybtn ybtn-watching ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
-                        <i class="yobicon-eye"></i> @Messages("project.watching")
-                    </button>
-                    } else {
-                    <button class="ybtn ybtn-small dropdown-toggle" type="button"data-toggle="dropdown">
-                        <i class="yobicon-eye-off"></i> @Messages("project.watch")
-                    </button>
-                    }
-                    <div class="dropdown-menu flat right title">
-                        @if(User.isWatching(project)){
-                        <div class="pop-title">@Messages("project.you.are.watching", project.name)</div>
-                        <div class="pop-content">
-                            <p>@Messages("notification.help")</p>
-                            <ul class="icons-ul">
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
-                            </ul>
-                        </div>
-                        <div class="pop-content btn-wrap">
-                            <a class="ybtn
-                             watchBtn " href="@routes.WatchProjectApp.unwatch(project.owner, project.name)">
-                                <i class="yobicon-eye-off"></i>
-                                @Messages("project.unwatch")
-                            </a>
+            <div class="project-util-wrap">
+                <ul class="project-util">
+                    @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
+                    <li>
+                        @if(User.enrolled(project)) {
+                        <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="yobicon-addfriend"></i>
+                        </button>
+                        <div class="dropdown-menu flat right title">
+                            <div class="pop-title">@Messages("project.you.want.to.be.a.member", project)</div>
+                            <div class="pop-content">
+                                @Messages("project.member.enrollment.help")
+                            </div>
+                            <div class="pop-content btn-wrap">
+                                <a class="ybtn enrollBtn" href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" id="enrollBtn">
+                                    <i class="yobicon-removefriend"></i>
+                                    @Messages("button.cancel.enrollment")
+                                </a>
+                            </div>
                         </div>
                         } else {
-                        <div class="pop-title">@Messages("project.you.are.not.watching", project.name)</div>
-                        <div class="pop-content">
-                            <p>@Messages("notification.will.help")</p>
-                            <ul class="icons-ul">
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
-                                <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
-                            </ul>
-                        </div>
-                        <div class="pop-content btn-wrap">
-                            <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
-                                <i class="yobicon-eye"></i>
-                                @Messages("project.watch")
-                            </a>
+                        <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
+                            <i class="yobicon-addfriend"></i>
+                        </button>
+                        <div class="dropdown-menu flat right title">
+                            <div class="pop-title">@Messages("project.you.may.want.to.be.a.member", project)</div>
+                            <div class="pop-content">
+                                @Messages("project.member.enrollment.will.help")
+                            </div>
+                            <div class="pop-content btn-wrap">
+                                <a class="ybtn ybtn-info enrollBtn" href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" id="enrollBtn">
+                                    <i class="yobicon-addfriend"></i>
+                                    @Messages("button.new.enrollment")
+                                </a>
+                            </div>
                         </div>
                         }
-                    </div>
-                </li>
-                @if(project.vcs.equals("GIT")){
-                <li>
-                    <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
-                        <i class="yobicon-split"></i> @Messages("fork")
-                    </button>
-                    <ul class="dropdown-menu flat right title">
-                        <li class="pop-title">@Messages("fork.help.title")</li>
-                        <li class="pop-content">
-                            <p>@Messages("fork.help.message.1") <p/>
-                            <p>@Messages("fork.help.message.2") <p/>
-                        </li>
-                        <li class="pop-content btn-wrap">
-                            <a class="ybtn" href="@routes.PullRequestApp.newFork(project.owner, project.name)">
-                                <i class="yobicon-split"></i>
-                                @Messages("fork")
-                            </a>
-                        </li>
-                        <li class="pop-title">
-                            @Messages("fork.forks")
-                            <span class="numberic">@project.forkingProjects.size</span>
-                        </li>
-
-                        @for(fork <- project.forkingProjects) {
-                        <li>
-                            <a href="@routes.ProjectApp.project(fork.owner, fork.name)">
-                                <span class="gray">@fork.owner / </span><span class="bold">@fork.name</span>
-                            </a>
-                        </li>
+                    </li> 
+                    }
+                    <li>
+                        @if(User.isWatching(project)) {
+                        <button class="ybtn ybtn-watching ybtn-small dropdown-toggle" tyle="button" data-toggle="dropdown">
+                            <i class="yobicon-eye"></i> @Messages("project.watching")
+                        </button>
+                        } else {
+                        <button class="ybtn ybtn-small dropdown-toggle" type="button"data-toggle="dropdown">
+                            <i class="yobicon-eye-off"></i> @Messages("project.watch")
+                        </button>
                         }
-                    </ul>
-                </li>
-                }
-
-                @if(ProjectUser.roleOf(session.get("loginId"), project).equals(RoleType.GUEST.getLowerCasedName())) {
-                <li>
-                @if(User.enrolled(project)) {
-                    <button class="ybtn ybtn-small ybtn-info dropdown-toggle" type="button" data-toggle="dropdown">
-                        <i class="yobicon-addfriend"></i>
-                    </button>
-                    <div class="dropdown-menu flat right title">
-                        <div class="pop-title">@Messages("project.you.want.to.be.a.member", project)</div>
-                        <div class="pop-content">
-                            @Messages("project.member.enrollment.help")
+                        <div class="dropdown-menu flat right title">
+                            @if(User.isWatching(project)){
+                            <div class="pop-title">@Messages("project.you.are.watching", project.name)</div>
+                            <div class="pop-content">
+                                <p>@Messages("notification.help")</p>
+                                <ul class="icons-ul">
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
+                                </ul>
+                            </div>
+                            <div class="pop-content btn-wrap">
+                                <a class="ybtn
+                                 watchBtn " href="@routes.WatchProjectApp.unwatch(project.owner, project.name)">
+                                    <i class="yobicon-eye-off"></i>
+                                    @Messages("project.unwatch")
+                                </a>
+                            </div>
+                            } else {
+                            <div class="pop-title">@Messages("project.you.are.not.watching", project.name)</div>
+                            <div class="pop-content">
+                                <p>@Messages("notification.will.help")</p>
+                                <ul class="icons-ul">
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new")</li>
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.new.comment")</li>
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.issue")</li>
+                                    <li><i class="yobicon-li yobicon-ok"></i>@Messages("notification.help.update.pullrequest")</li>
+                                </ul>
+                            </div>
+                            <div class="pop-content btn-wrap">
+                                <a class="ybtn ybtn-watching watchBtn" href="@routes.WatchProjectApp.watch(project.owner, project.name)">
+                                    <i class="yobicon-eye"></i>
+                                    @Messages("project.watch")
+                                </a>
+                            </div>
+                            }
                         </div>
-                        <div class="pop-content btn-wrap">
-                            <a class="ybtn enrollBtn" href="@routes.EnrollProjectApp.cancelEnroll(project.owner, project.name)" id="enrollBtn">
-                                <i class="yobicon-removefriend"></i>
-                                @Messages("button.cancel.enrollment")
-                            </a>
-                        </div>
-                    </div>
-                } else {
-                    <button class="ybtn ybtn-small dropdown-toggle" type="button" data-toggle="dropdown">
-                        <i class="yobicon-addfriend"></i>
-                    </button>
-                    <div class="dropdown-menu flat right title">
-                        <div class="pop-title">@Messages("project.you.may.want.to.be.a.member", project)</div>
-                        <div class="pop-content">
-                            @Messages("project.member.enrollment.will.help")
-                        </div>
-                        <div class="pop-content btn-wrap">
-                            <a class="ybtn ybtn-info enrollBtn" href="@routes.EnrollProjectApp.enroll(project.owner, project.name)" id="enrollBtn">
-                                <i class="yobicon-addfriend"></i>
-                                @Messages("button.new.enrollment")
-                            </a>
-                        </div>
-                    </div>
-                }
-                </li>
-                }
-            </ul>
-        </div>
-    </header>
-</div>
-<script id="tplRepoURL" type="text/x-jquery-tmpl">
-    <strong class="clone-label @project.vcs">@project.vcs</strong>
-    <p class="repo-wrap">
-        <input type="text" class="text repo-url" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
-        <button type="button" class="btn copy-url">@Messages("code.copyUrl")</button>
-    </p>
-</script>
+                    </li>
+                <ul>    
+            </div>    
+        </div>    
+    </div>
+</div>    
