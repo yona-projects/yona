@@ -21,9 +21,8 @@
 @urlToIssues = @{ urlToList(request.getHeader("Referer"), routes.IssueApp.issues(project.owner, project.name, "open").toString) }
 
 @projectLayout(getTitle(issue, project).toString(), project, utils.MenuType.ISSUE){
-<div class="page board-view">
-    @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+<div class="project-page-wrap board-view">
     @** Post Info **@
     <div class="board-header issue">
         <div class="title pull-left">

@@ -5,9 +5,8 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @projectLayout(title, project, utils.MenuType.BOARD) {
-<div class="page">
-	@projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.BOARD, "main-menu-only")
+<div class="project-page-wrap">
 	<form action="@routes.BoardApp.newPost(project.owner, project.name)" method="post" enctype="multipart/form-data" class="nm">
 	<div class="content-wrap frm-wrap">
 		<dl>

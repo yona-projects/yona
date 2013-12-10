@@ -8,11 +8,9 @@
 @import utils.TemplateHelper._
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
-<div class="page">
-    @projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+<div class="project-page-wrap">
     <div class="content-wrap frm-wrap">
-
     @form(action = routes.IssueApp.editIssue(project.owner, project.name, issue.getNumber), 'id -> "issue-form", 'enctype -> "multipart/form-data") {
     <input type="hidden" name="authorId" value="@issue.authorId">
 

@@ -8,11 +8,9 @@
 @import controllers.UserApp
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE) {
-<div class="page">
-	@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+<div class="project-page-wrap">
 	<div class="content-wrap frm-wrap">
-
 	@form(action = routes.IssueApp.newIssue(project.owner, project.name), 'id -> "issue-form", 'enctype -> "multipart/form-data" ) {
     <div class="row-fluid">
         <div class="span12">

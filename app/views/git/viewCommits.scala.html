@@ -7,9 +7,8 @@
 @import scala.collection.JavaConversions._
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
-    <div class="page">
-        @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    <div class="project-page-wrap">
         @partial_info(project, pull)
 
         <ul class="nav nav-tabs nm">

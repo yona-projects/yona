@@ -4,8 +4,8 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @projectLayout(title, project.originalProject, utils.MenuType.PULL_REQUEST) {
-<div class="page">
-    @projectMenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
+@projectMenu(project.originalProject, utils.MenuType.PULL_REQUEST, "main-menu-only")
+<div class="project-page-wrap">
     <div class="content-wrap frm-wrap">
         <legend>
             @Messages("fork.forking", project.originalProject.owner, project.originalProject.name, project.owner, project.name)

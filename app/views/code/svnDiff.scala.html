@@ -28,11 +28,8 @@
 }
 
 @projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
-
-<div class="page">
-
-    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+<div class="project-page-wrap">
     <div class="code-browse-wrap">
         <div id="branches" class="btn-group branches pull-right" data-name="branch" data-activate="manual">
             <button class="btn dropdown-toggle large" data-toggle="dropdown">

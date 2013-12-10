@@ -14,10 +14,10 @@
 }
 
 @projectLayout(message, project, utils.MenuType.PROJECT_SETTING) {
-<div class="page">
-	@projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
-    @partial_settingmenu(project)
+@projectMenu(project, utils.MenuType.PROJECT_SETTING, "")
 
+<div class="project-page-wrap">
+    @partial_settingmenu(project)
 	<form id="saveSetting" method="post" action="@routes.ProjectApp.settingProject(project.owner, project.name)" enctype="multipart/form-data" class="nm">
     <div class="bubble-wrap gray" style="overflow: visible">
         <input type="hidden" name="id" value="@projectForm("id").value.toLong">

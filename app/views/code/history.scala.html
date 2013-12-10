@@ -60,9 +60,8 @@
 }
 
 @projectLayout(Messages("title.commitHistory"), project, utils.MenuType.CODE) {
-<div class="page">
-    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+<div class="project-page-wrap">
     <div class="bubble-wrap dark-gray repo-wrap">
         <div class="code-browse-wrap">
             @if(path != null){

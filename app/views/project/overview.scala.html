@@ -33,9 +33,9 @@
 @makeHistoryWhat(history:History) = {@Messages("project.history.type." + history.getWhat())}
 
 @projectLayout(message, project, utils.MenuType.PROJECT_HOME) {
-<div class="page">
-	@projectMenu(project, utils.MenuType.PROJECT_HOME, "")
-    <div class="row-fluid">
+@projectMenu(project, utils.MenuType.PROJECT_HOME, "")
+<div class="project-page-wrap">
+	<div class="row-fluid">
         <div class="span9">
 	        <ul id="homeTabs" class="nav nav-tabs">
 	            <li class="active"><a href="#readme" data-toggle="tab">README</a></li>

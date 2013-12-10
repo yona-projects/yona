@@ -2,9 +2,8 @@
 models.support.SearchCondition, project:Project)
 
 @projectLayout(Messages(title), project, utils.MenuType.ISSUE){
-<div class="page">
-	@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.ISSUE, "main-menu-only")
+<div class="project-page-wrap">
 	@views.html.issue.partial_search(title, currentPage, param, project)
 </div>
 <div id="spin" style="position:absolute; top:35%; left:50%"></div>

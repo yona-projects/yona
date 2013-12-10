@@ -30,9 +30,8 @@
 
 
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
-<div class="page">
-    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+<div class="project-page-wrap">
     <div class="content-wrap frm-wrap">
         @helper.form(action=routes.PullRequestApp.newPullRequest(project.owner, project.name), 'enctype -> "multipart/form-data", 'class->"nm"){
 
