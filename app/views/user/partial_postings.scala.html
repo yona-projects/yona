@@ -32,7 +32,7 @@
         </p>
         <p class="infos nm">
             <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="author">@post.authorName</a>
-            <span class="date">@JodaDateUtil.momentFromNow(post.createdDate.getTime())</span>
+            <span class="date">@JodaDateUtil.momentFromNow(post.createdDate.getTime(), lang.language)</span>
         </p>
     </div>
     <div class="right-panel">

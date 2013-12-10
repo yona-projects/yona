@@ -29,14 +29,14 @@
     case EventType.PULL_REQUEST_STATE_CHANGED => {
     <li class="event" id="comment-@event.id">
         <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate())</a></span>
+        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
     </li>
     }
 
     case EventType.PULL_REQUEST_MERGED => {
     <li class="event" id="comment-@event.id">
         <span class="state @event.newValue">@Messages("pullRequest.event." + event.newValue)</span>
-        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate())</a></span>
+        <span class="date"><a href="#event-@event.id">@Messages("pullRequest.event.message." + event.newValue, event.senderLoginId) - @momentFromNow(event.getDate(), lang.language)</a></span>
     </li>
     }
 
@@ -55,7 +55,7 @@
                         <strong>@event.senderLoginId @Messages("pullRequest.event.commit")</strong>
                     </a>
                 </span>
-                <span class="ago">@momentFromNow(event.created)</span>
+                <span class="ago">@momentFromNow(event.created, lang.language)</span>
             </div>
             <ul class="commit-list">
             @for(commit <- event.getPullRequestCommits) {
