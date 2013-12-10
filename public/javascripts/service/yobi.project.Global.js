@@ -50,7 +50,6 @@
             htElement.welProjectHeaher = $('.project-header')
             htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
             htElement.welBtnEnroll  = $("#enrollBtn");
-            htElement.welBtnMenuToggle = $('#btnMenuToggler');
 
             htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
             htElement.welInputCloneURL =$('#cloneURL');
@@ -69,7 +68,7 @@
         function _attachEvent() {
             htElement.welBtnWatch.on('click',_onClickBtnWatch);
             htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
-            htElement.welBtnMenuToggle.on('click', _onClickBtnMenuToggle);
+
             // 내용은 data-content 속성으로 scala 파일 내에 있음.
             htElement.welForkedFrom.popover({
                 "html"   : true
@@ -128,20 +127,6 @@
 
             weEvt.preventDefault();
             return false;
-        }
-
-        /**
-         * MenuToggle 버튼 클릭시 이벤트 핸들러
-         * @param {Wrapped Event} weEvt
-         */
-        function _onClickBtnMenuToggle(weEvt){
-            if(htElement.welPageWrap.hasClass('mini')){
-                htElement.welPageWrap.removeClass('mini');
-                htElement.weSideMenu.tooltip('disable');
-            }else{
-                htElement.welPageWrap.addClass('mini');
-                htElement.weSideMenu.tooltip('enable');
-            }            
         }
 
         /**
