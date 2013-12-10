@@ -1,3 +1,26 @@
+<a name="english"></a>
+[[한국어]](#korean)
+
+# Forking projects
+
+`Fork` is creating a project by copying a certain project.
+
+If you want to join other user's project or start your own project based on other's project, you can create a project by using `Fork`.
+
+1. Go to the project you want to fork.
+2. Click `Fork`.
+3. Click `Fork` on occurred popup.
+
+<그림 삽입>
+
+After setting `project name` and `share option`, click `Fork`.
+
+<그림 삽입>
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
+
 # 프로젝트 복사하기
 
 `프로젝트 복사하기`란 한 프로젝트의 저장소를 복사하여 새로운 프로젝트를 생성하는 것을 의미합니다.
