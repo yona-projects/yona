@@ -1,7 +1,12 @@
 @(title: String)
 
 @siteLayout(Messages(title), utils.MenuType.HELP) {
-<div class="page">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>@Messages("title.help")</h3>
+    </div>    
+</div>
+<div class="page-wrap">
     <ul class="qas">
         <li class="qa">
             <div class="question-wrap">

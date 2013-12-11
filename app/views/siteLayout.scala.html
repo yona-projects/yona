@@ -28,9 +28,7 @@
     @if(menuType == utils.MenuType.SITE_HOME && UserApp.currentUser.isAnonymous){
         @index.partial_intro()
     } else {
-        <div class="page-wrap">
-            @content
-        </div>
+        @content
     }
 
     <footer class="page-footer-outer">

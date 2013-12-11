@@ -5,8 +5,12 @@
 @import utils.GravatarUtil._
 
 @siteLayout(user.loginId, utils.MenuType.USER) {
-
-<div class="page">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>@Messages("userinfo.accountSetting")</h3>
+    </div>    
+</div>
+<div class="page-wrap">
     <h1 class="page-title">
         <span class="gray">@Messages("app.name")/</span>@user.loginId
     </h1>

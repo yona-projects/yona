@@ -22,8 +22,12 @@
 @isActiveTab(tabId:String) = { @if(selected == tabId){ active } }
 
 @siteLayout(user.loginId, utils.MenuType.USER) {
-
-<div class="page">
+<div class="site-breadcrumb-outer">
+    <div class="site-breadcrumb-inner">
+        <h3>@Messages("userinfo.profile")</h3>
+    </div>    
+</div>
+<div class="page-wrap">
     <section class="user-box">
         <div class="user-info-box">
             <div class="whoami-wrap" style="background-image:url('@user.avatarUrl')">
