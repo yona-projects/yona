@@ -26,6 +26,7 @@ import controllers.routes;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
+import utils.AccessLogger;
 import utils.Constants;
 
 /**
@@ -41,7 +42,7 @@ public class AnonymousCheckAction extends Action.Simple {
         User user = UserApp.currentUser();
         if(user.isAnonymous()) {
             play.mvc.Controller.flash(Constants.WARNING, "user.login.alert");
-            return redirect(routes.UserApp.loginForm());
+            return AccessLogger.log(context.request(), redirect(routes.UserApp.loginForm()), null);
         }
         return this.delegate.call(context);
     }

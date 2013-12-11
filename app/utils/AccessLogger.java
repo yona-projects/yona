@@ -64,14 +64,16 @@ public class AccessLogger {
      * @param startTimeMillis 요청을 처음 받은 시간 (밀리초 단위)
      * @see <a href="http://httpd.apache.org/docs/2.2/logs.html">Log Files - Apache HTTP Server</a>
      */
-    public static void log(Http.Request request, Result result, Long startTimeMillis) {
+    public static Result log(Http.Request request, Result result, Long startTimeMillis) {
         if (!(result.getWrappedResult() instanceof play.api.mvc.PlainResult)) {
-            return;
+            return result;
         }
 
         int status = ((PlainResult) result.getWrappedResult()).header().status();
 
         log(request, UserApp.currentUser().loginId, status, startTimeMillis);
+
+        return result;
     }
 
     /**

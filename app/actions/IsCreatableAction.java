@@ -26,6 +26,7 @@ import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;
 import utils.AccessControl;
+import utils.AccessLogger;
 import utils.ErrorViews;
 import actions.support.PathParser;
 import controllers.UserApp;
@@ -54,12 +55,16 @@ public class IsCreatableAction extends Action<IsCreatable> {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
         if (project == null) {
-            return notFound(ErrorViews.NotFound.render("No project matches given parameters '" + ownerLoginId + "' and project_name '" + projectName + "'"));
+            return AccessLogger.log(context.request()
+                    , notFound(ErrorViews.NotFound.render("No project matches given parameters '" + ownerLoginId + "' and project_name '" + projectName + "'"))
+                    , null);
         }
 
         User currentUser = UserApp.currentUser();
         if (!AccessControl.isProjectResourceCreatable(currentUser, project, this.configuration.value())) {
-            return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
+            return AccessLogger.log(context.request()
+                    , forbidden(ErrorViews.Forbidden.render("error.forbidden", project))
+                    , null);
         }
 
         return this.delegate.call(context);
