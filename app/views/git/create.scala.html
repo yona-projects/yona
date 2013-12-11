@@ -1,4 +1,4 @@
-@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String], pullRequest:models.PullRequest, mergeResult:models.PullRequestMergeResult)
+@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[playRepository.GitBranch], toBranches: List[playRepository.GitBranch], pullRequest:models.PullRequest, mergeResult:models.PullRequestMergeResult)
 
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
@@ -69,9 +69,7 @@
                             </button>
                             <ul class="dropdown-menu">
                                 @for(branch <- fromBranches) {
-                                    @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-                                        @makeBranchItem(branch, pullRequest.fromBranch)
-                                    }
+                                    @makeBranchItem(branch.getName, pullRequest.fromBranch)
                                 }
                             </ul>
                         </div>
@@ -94,9 +92,7 @@
                             </button>
                             <ul class="dropdown-menu">
                                 @for(branch <- toBranches) {
-                                    @if(!branch.equals("HEAD") && !branch.contains("refs/remotes/")) {
-                                        @makeBranchItem(branch, pullRequest.toBranch)
-                                    }
+                                    @makeBranchItem(branch.getName, pullRequest.toBranch)
                                 }
                             </ul>
                         </div>

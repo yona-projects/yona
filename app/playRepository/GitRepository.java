@@ -615,10 +615,9 @@ public class GitRepository implements PlayRepository {
         return new ArrayList<>(repository.getAllRefs().keySet());
     }
 
-    public List<GitBranch> getAllBranches() throws GitAPIException, IOException {
-        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
-
+    public List<GitBranch> getAllBranches() throws IOException, GitAPIException {
         List<GitBranch> branches = new ArrayList<>();
+
         for(Ref branchRef : new Git(repository).branchList().call()) {
             RevWalk walk = new RevWalk(repository);
             RevCommit head = walk.parseCommit(branchRef.getObjectId());

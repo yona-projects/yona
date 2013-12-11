@@ -13,12 +13,10 @@ import models.resource.Resource;
 
 import org.apache.tika.Tika;
 import org.codehaus.jackson.node.ObjectNode;
-
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.diff.RawText;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
-
 import org.tigris.subversion.javahl.*;
 import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
@@ -27,13 +25,10 @@ import org.tmatesoft.svn.core.wc.SVNDiffClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import controllers.ProjectApp;
-
 import play.libs.Json;
-
 import utils.FileUtil;
 import utils.GravatarUtil;
 
-import org.joda.time.*;
 import org.joda.time.format.*;
 
 public class SVNRepository implements PlayRepository {

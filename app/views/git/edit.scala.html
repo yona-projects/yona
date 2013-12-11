@@ -1,4 +1,4 @@
-@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[String], toBranches: List[String], pull: PullRequest)
+@(title:String, form: Form[PullRequest], project: Project, fromBranches: List[playRepository.GitBranch], toBranches: List[playRepository.GitBranch], pull: PullRequest)
 
 @import utils.TemplateHelper._
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
