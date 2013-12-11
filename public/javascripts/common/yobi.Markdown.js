@@ -32,7 +32,7 @@ yobi.Markdown = (function(htOptions){
         htVar.sProjectUrl = htOptions.sProjectUrl;
         htVar.bBreaks = htOptions.bBreaks;
         htVar.sUserRules = '[a-z0-9_\\-\\.]';
-        htVar.sProjecRules = '[a-z0-9_\\-]';
+        htVar.sProjecRules = '[a-z0-9_\\-\\.]';
         htVar.sIssueRules = '\\d';
         htVar.sSha1Rules = '[a-f0-9]{7,40}';
         htVar.htFilter = new Filter();
@@ -92,7 +92,7 @@ yobi.Markdown = (function(htOptions){
                 .replace(rxProject, htVar.sProjecRules)
                 .replace(rxShar1,   htVar.sSha1Rules)
                 .replace(rxIssue,   htVar.sIssueRules);
-    
+
             htVar.rxGfmLinkRules = new RegExp(sGfmLinkRules,'gm');
         }
         
@@ -150,10 +150,14 @@ yobi.Markdown = (function(htOptions){
             sRef = [sOwner, sProject, 'issue', sIssue].join("/");
             sTitle = sMatch;
             sClass="issueLink";
-        } else if(sShar1 && !sAt) {
+        } else if(sShar1 && !sAt && !/[^0-9a-f]/.test(sMatch)) {
             // SHA1 be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sOwner, sProject, 'commit' , sMatch].join("/");
             sTitle = sMatch.slice(0,7);
+        } else if(sShar1 && sAt) {
+            // SHA1 @be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
+            sRef = [sOwner, sProject, 'commit' , sMatch.slice(1)].join("/");
+            sTitle = sMatch.slice(1,7);    
         } else if(sProjectGroup && sUserName && sShar1 && sAt && !sProjectPath ) {
             // User@SHA1 nforge@be6a8cc1c1ecfe9489fb51e4869af15a13fc2cd2
             sRef = [sUserName, sProject, 'commit' , sShar1].join("/");
