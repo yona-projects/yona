@@ -33,7 +33,7 @@
             </div>
             <div class="infos nm">
                 <a href="@routes.UserApp.userInfo(req.contributor.loginId)" class="author">@req.contributor.name</a>
-                <span class="date">@JodaDateUtil.momentFromNow(req.created)</span>
+                <span class="date">@JodaDateUtil.momentFromNow(req.created, lang.language)</span>
 
                 <div class="pullRequest-branch ml20">
                     <span data-toggle="tooltip" data-original-title="@Messages("pullRequest.from")">

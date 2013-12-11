@@ -39,8 +39,8 @@
             </div>
             <div class="desc">@project.overview</div>
             <div class="name-tag">
-                @Messages("project.create") <strong>@JodaDateUtil.momentFromNow(project.createdDate)</strong> 
-                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@JodaDateUtil.momentFromNow(project.lastPushedDate.getTime())}</strong>
+                @Messages("project.create") <strong>@JodaDateUtil.momentFromNow(project.createdDate, lang.language)</strong> 
+                @if(project.lastPushedDateAgo() != null) {, @Messages("project.codeUpdate") <strong>@JodaDateUtil.momentFromNow(project.lastPushedDate.getTime(), lang.language)}</strong>
             </div>
         </div>
     </div>

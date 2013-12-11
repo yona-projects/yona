@@ -50,7 +50,7 @@
                             <a href="@getShowCommitURL(project, branch)" class="blue-txt">
                                 @branch.getHeadCommit.getShortId
                             </a>
-                            @momentFromNow(branch.getHeadCommit.getCommitterDate)
+                            @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
                             @if(branch.getUser != null) {
                                 <img src="@utils.GravatarUtil.getAvatar(branch.getUser.email, 25)">
                                 <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="blue-txt">@branch.getUser.name</a>
