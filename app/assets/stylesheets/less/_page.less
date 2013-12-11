@@ -2006,7 +2006,7 @@
 }
 
 .milestone-info {
-    margin-bottom:20px;
+    margin:10px 0;
     /*border: 2px solid #DADADA;*/
     background-color: #fff;
     /*border-radius: 5px;
@@ -2229,8 +2229,44 @@
 }
 
 //-- project home
+.project-clone-wrap {
+    display: inline-block;
+    float:left;
+    margin-bottom: 15px;
+    background-color: #F7F7F7;
+    padding:10px;
+    .border-radius(6px);
+    
+    .project-clone-url {
+        float:left;
+        margin-bottom:0;
+        background-color:#FFF;
+        width: 175px;
+        border:1px solid #DDD;
+        border-right:none;
+        outline: 0 none;
+        cursor: auto;
+        .border-radius(3px 0 0 3px);
+    }
+
+    .project-clone-button {
+        margin:0;
+        padding:0 5px;
+        .border-radius(0 3px 3px 0);
+        border:1px solid #ddd;
+        float:left;
+        background-color: transparent;
+        height:30px;
+        outline: 0 none;
+        width:65px;
+
+        &.hover {
+            border:1px solid #858484;
+        }
+    }
+}
+
 .project-home {
-    width:260px;
     padding: 10px;
     /*font-size: 0;*/
 
@@ -2241,7 +2277,7 @@
 
      .project-btn-wrap {
         text-align:center;
-        padding:5px 15px;
+        padding:5px 0;
 
         a {
             display:block !important;
@@ -2256,12 +2292,10 @@
         overflow: hidden;
         vertical-align: top;
 
-        .inline-block;
         .box-shadow(0 1px 0 rgba(0, 0, 0, .05));
         .border-radius(10px);
 
         &.member-info {
-            width: 260px; /*230px;*/
             margin-right: 0;
 			height:auto !important;
         }
@@ -2285,7 +2319,6 @@
 
         &.project-info {
             /*width: 53.3%;/*390px; /*350px;*/
-            width:260px;
 
             .infos {
                 overflow-y: auto;
@@ -2351,7 +2384,8 @@
 
         header {
             background-color: #F8F8F8;
-            padding: 10px 15px; /*10px 20px;*/
+            padding: 10px 0;
+            
             h3 {
                 font-size: 12px;/* 16px;*/
                 color: #4C4C4C;

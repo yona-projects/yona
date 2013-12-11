@@ -36,29 +36,19 @@
          * initialize normal variables
          */
         function _initVar(htOptions){
-            htVar.sRepoURL = htOptions.sRepoURL;
+            
         }
 
         /**
          * 엘리먼트 변수 초기화
          * initialize element variables
          */
-        function _initElement() {
-            htElement.welProjectMenu = $(".project-menu");
-            htElement.welPageWrap = $(".project-page-wrap");
-            htElement.welProjectHeaherWrap = $('.project-header-wrap');
-            htElement.welProjectHeaher = $('.project-header')
+        function _initElement() {            
             htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
             htElement.welBtnEnroll  = $("#enrollBtn");
 
-            htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
-            htElement.welInputCloneURL =$('#cloneURL');
-            htElement.welBtnCopy   = $('#cloneURLBtn');
             htElement.welForkedFrom = $("#forkedFrom");
-            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');
-            // 프로젝트 페이지에서만.
-            
-            htElement.weSideMenu = $('.project-menu-wrap li a');
+            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');                
         }
 
         /**
@@ -73,18 +63,6 @@
             htElement.welForkedFrom.popover({
                 "html"   : true
             });
-
-            htElement.welProjectHeaherWrap.on('click.toggle-clone-url','[data-toggle="cloneURL"]',_onClickBtnClone);
-
-            htElement.welBtnCopy.zclip({
-                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                "copy": htVar.sRepoURL
-            });
-
-            htElement.weBtnHeaderToggle.on('click',function(){
-                htElement.welProjectHeaher.toggleClass('vertical-large');
-            });
-
         }
 
         /**
@@ -136,13 +114,6 @@
          */
         function _initShortcutKey(htKeyMap){
             yobi.ShortcutKey.setKeymapLink(htKeyMap);
-        }
-
-        /**
-         * Clone 버튼 클릭시 이벤트 핸들러
-         */
-        function _onClickBtnClone(){
-            $(this).parent().toggleClass('open');
         }
 
         _init(htOptions || {});
