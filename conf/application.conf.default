@@ -97,6 +97,16 @@ smtp.archive.size = 5
 #if you want to use sign-up confirm, uncomment below
 #signup.require.confirm = true
 
+# Notification
+# ~~~~~~~~~~~~
+# Check mails to send every this seconds.
+application.notification.bymail.interval = 60s
+# Sending a notification mail delays this seconds.
+application.notification.bymail.delay = 180s
+# A new event notification can be merged if possible with previous one which is
+# not older than this seconds.
+application.notification.draft-time = 30s
+
 #customize play default thread pool size
 play {
   akka {
