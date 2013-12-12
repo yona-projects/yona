@@ -21,7 +21,7 @@
 # - userinfo
 # - validation
 #
-app.description = 共に、簡単に、作りましょう！
+app.description = Web-based collaborative platform for software development.
 app.name = Yobi
 app.restart.notice = サーバの再始動が必要です
 app.restart.welcome = ようこそ！

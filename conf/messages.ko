@@ -21,7 +21,7 @@
 # - userinfo
 # - validation
 #
-app.description = Make it better and simpler!
+app.description = 웹기반 소프트웨어 개발 플랫폼.
 app.name = Yobi
 app.restart.notice = 서버를 재시작해야합니다.
 app.restart.welcome = 환영합니다!
