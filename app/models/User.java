@@ -553,6 +553,6 @@ public class User extends Model implements ResourceConvertible {
             return email.user;
         }
 
-        return null;
+        return anonymous;
     }
 }
