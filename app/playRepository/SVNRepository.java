@@ -62,7 +62,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public ObjectNode getMetaDataFromPath(String path) throws SVNException {
+    public ObjectNode getMetaDataFromPath(String path) throws SVNException, IOException {
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
         SVNNodeKind nodeKind = repository.checkPath(path , -1 );
@@ -173,7 +173,7 @@ public class SVNRepository implements PlayRepository {
         }
     }
 
-    private ObjectNode fileAsJson(String path, org.tmatesoft.svn.core.io.SVNRepository repository) throws SVNException {
+    private ObjectNode fileAsJson(String path, org.tmatesoft.svn.core.io.SVNRepository repository) throws SVNException, IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         SVNProperties prop = new SVNProperties();
         repository.getFile(path, -1l, prop, baos);
@@ -189,7 +189,7 @@ public class SVNRepository implements PlayRepository {
             byte[] bytes = baos.toByteArray();
             isBinary = RawText.isBinary(bytes);
             if (!isBinary) {
-                data = new String(bytes);
+                data = new String(bytes, FileUtil.detectCharset(bytes));
             }
             mimeType = new Tika().detect(bytes, path);
         }
