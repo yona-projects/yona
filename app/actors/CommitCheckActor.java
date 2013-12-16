@@ -2,7 +2,6 @@ package actors;
 
 import akka.actor.UntypedActor;
 import controllers.routes;
-import controllers.UserApp;
 import models.*;
 import models.enumeration.EventType;
 import org.eclipse.jgit.lib.ObjectId;
@@ -16,11 +15,10 @@ import playRepository.GitRepository;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-
-import utils.TemplateHelper.*;
 
 /**
+ * 커밋에서 언급한 이슈에 이슈 참조 이벤트를 생성한다.
+ *
  * @author Keesun Baik
  */
 public class CommitCheckActor extends UntypedActor {
@@ -44,7 +42,7 @@ public class CommitCheckActor extends UntypedActor {
         String fullMessage = gitCommit.getMessage();
         Set<Issue> referredIssues = IssueEvent.findReferredIssue(fullMessage, project);
         String newValue = getNewEventValue(gitCommit, project);
-        
+
         for(Issue issue : referredIssues) {
             IssueEvent issueEvent = new IssueEvent();
             issueEvent.issue = issue;
@@ -58,21 +56,17 @@ public class CommitCheckActor extends UntypedActor {
     }
 
     private String getNewEventValue(GitCommit gitCommit, Project project) {
-        String senderEmail = gitCommit.getCommitterEmail();
-        User user = User.findByEmail(senderEmail);        
-        String userInfoURL = routes.UserApp.userInfo(user.loginId, UserApp.DEFAULT_GROUP, UserApp.DAYS_AGO, UserApp.DEFAULT_SELECTED_TAB).toString();
+        User user = User.findByCommitterEmail(gitCommit.getCommitterEmail());
         String userAvatar = utils.TemplateHelper.getUserAvatar(user, "small");
-        String commiterName = user.isAnonymous() ? gitCommit.getCommitterName() : user.name;
         String commiterLoginId = user.isAnonymous() ? "" : user.loginId;
-        
+
         return Messages.get("issue.event.referred.from.commit",
                 commiterLoginId,
                 userAvatar,
                 gitCommit.getShortId(),
                 routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()),
                 gitCommit.getShortMessage(),
-                gitCommit.getMessage()
-               );
+                gitCommit.getMessage());
     }
 
     private List<RevCommit> getCommits(CommitCheckMessage message) {
