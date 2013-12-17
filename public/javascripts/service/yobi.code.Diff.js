@@ -28,6 +28,7 @@
             _initFileDownloader();
             _initToggleCommentsButton();
             _initMiniMap();
+            _initCodeCommentBlock();
         }
 
         /**
@@ -204,6 +205,7 @@
          * @param {Object} welTable
          * @param {Object} htDiff
          */
+        /*
         function _flushChangedLines(welTable, htDiff) {
             if (htDiff.aRemoved.length == 1 && htDiff.aAdded.length == 1) {
                 _appendChangedLinesWithWordHighlight(welTable, htDiff);
@@ -214,6 +216,7 @@
             htDiff.aRemoved = [];
             htDiff.aAdded = [];
         }
+        */
 
         function _attachCommentBoxToggleEvent() {
             if (htVar.bCommentable) {
@@ -223,6 +226,37 @@
                     welDiff: htOptions.htDiff
                 });
             }
+        }
+
+        /**
+         * init BlockComment
+         * @private
+         */
+        function _initCodeCommentBlock(){
+            if(htVar.bCommentable && yobi.CodeCommentBlock){
+                var welContainer = $("div.diff-body");
+                var welBtnAddBlockComment = welContainer.find(".btnPop");
+
+                yobi.CodeCommentBlock.init({
+                    "welContainer"    : welContainer,
+                    "welButtonOnBlock": welBtnAddBlockComment
+                });
+
+                welContainer.on("click", ".btnPop", _onClickBtnAddBlockComment);
+            }
+        }
+
+        /**
+         * 댓글작성 버튼 클릭시
+         * @private
+         */
+        function _onClickBtnAddBlockComment(){
+            // 블록 정보를 얻어서 블록 표시
+            var htBlockInfo = yobi.CodeCommentBlock.getData();
+            yobi.CodeCommentBlock.block(htBlockInfo);
+
+            //TODO: 댓글 작성 폼 보여주는 구문을 이곳에 구현
+            console.log(htBlockInfo);
         }
 
         /**

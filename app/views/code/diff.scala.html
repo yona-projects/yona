@@ -71,6 +71,7 @@
             <pre class="commitMsg">@commit.getMessage</pre>
             <div class="diff-body">
             @views.html.partial_diff(diff, comments, project, project)
+            <div class="btnPop"><button type="button" class="ybtn ybtn-info">+</button></div>
             </div>
 
             @** Comment **@
@@ -137,6 +138,7 @@
 
 <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("javascripts/lib/mentionjs/mention.css")">
 <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/mentionjs/mention.js")"></script>
+<script type="text/javascript" src="@routes.Assets.at("javascripts/common/yobi.CodeCommentBlock.js")"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         $yobi.loadModule("code.Diff", {
