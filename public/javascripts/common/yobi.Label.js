@@ -392,14 +392,11 @@ yobi.Label = (function(htOptions){
         // 이미 .active 상태의 색상이 지정되어 있음
 
         // 해당되는 라벨 엘리먼트에 active 클래스 지정
-        $('.labels button.issue-label[data-labelId="' + sId + '"]').addClass('active');
+        $('.labels .issue-label[data-labelId="' + sId + '"]').addClass('active');
     }
 
     function _resetLabel(labelId) {
-        $("button.issue-label").each(function(nIndex, elLabel) {
-            $(elLabel).removeClass("active");
-        });
-
+        $(".labels .issue-label").removeClass("active");
         _setActiveLabel(labelId);
     }
 
