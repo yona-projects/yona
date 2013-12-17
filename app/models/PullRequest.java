@@ -165,6 +165,9 @@ public class PullRequest extends Model implements ResourceConvertible {
     )
     public Set<User> relatedAuthors = new HashSet<>();
 
+    @ManyToMany
+    public List<CommentThread> commentThreads;
+
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
         pullRequest.toProject = toProject;
