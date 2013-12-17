@@ -190,9 +190,8 @@
 }
 
 @projectLayout(Messages("menu.code"), project, utils.MenuType.CODE){
-<div class="page">
-    @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+<div class="project-page-wrap">
     <div class="code-browse-wrap">
         <div id="breadcrumbs" class="code-browse-header">
             <a href="@routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), "")">@project.name</a>

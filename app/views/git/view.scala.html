@@ -8,11 +8,10 @@
 @import scala.collection.JavaConversions._
 
 @projectLayout(Messages("menu.pullRequest"), project, utils.MenuType.PULL_REQUEST) {
-    <div class="page">
-        @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
 
+    <div class="project-page-wrap">
         @partial_info(project, pull)
-
         <ul class="nav nav-tabs nm">
             <li class="active"><a href="@routes.PullRequestApp.pullRequest(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.overview")</a></li>
             <li><a href="@routes.PullRequestApp.pullRequestCommits(project.owner, project.name, pull.number)">@Messages("pullRequest.menu.commit")</a></li>

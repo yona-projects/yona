@@ -30,6 +30,7 @@
             htVar.sURLLabels = htOptions.sURLLabels;
             htVar.sURLLabelCategories = htOptions.sURLLabelCategories;
             htVar.nProjectId = htOptions.nProjectId;
+            htVar.sRepoURL = htOptions.sRepoURL;
         }
 
         /**
@@ -39,6 +40,11 @@
             var welBtnPlus = $('#plus-button-template').tmpl();
 
             htElement.welRepoURL = $("#repositoryURL");
+            
+            // clone url
+            htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
+            htElement.welInputCloneURL =$('#cloneURL');
+            htElement.welBtnCopy   = $('#cloneURLBtn');
 
             // project label
             htElement.welLabelBoard = htOptions.welLabelBoard;
@@ -113,7 +119,14 @@
 
             htElement.welBtnPlusCategory.click(_onClickPlusCategory);
 
-            //$(window).bind("resize", _resizeProjectInfo);
+            htElement.welBtnCopy.zclip({
+                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                "copy": htElement.welInputCloneURL.val()
+            });
+
+             htElement.welInputCloneURL.on('click',function(){
+                $(this).select();
+             });
         }
 
         /*

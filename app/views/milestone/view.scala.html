@@ -17,8 +17,8 @@
 }
 
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
-<div class="page">
-	@projectMenu(project, utils.MenuType.MILESTONE, "")
+@projectMenu(project, utils.MenuType.MILESTONE, "")
+<div class="project-page-wrap">
     <h4>
         <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
         <small class="ml10">

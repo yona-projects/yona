@@ -4,9 +4,8 @@
 @implicitField = @{ helper.FieldConstructor(simpleForm) }
 
 @projectLayout(title, project, utils.MenuType.PULL_REQUEST) {
-<div class="page">
-    @projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
-
+@projectMenu(project, utils.MenuType.PULL_REQUEST, "main-menu-only")
+<div class="project-page-wrap">
     @if(isNew) {
 
     <div class="content-wrap frm-wrap">

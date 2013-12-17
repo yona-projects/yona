@@ -36,30 +36,19 @@
          * initialize normal variables
          */
         function _initVar(htOptions){
-            htVar.sRepoURL = htOptions.sRepoURL;
+            
         }
 
         /**
          * 엘리먼트 변수 초기화
          * initialize element variables
          */
-        function _initElement() {
-            htElement.welProjectMenu = $(".project-menu");
-            htElement.welPageWrap = $(".project-page-wrap");
-            htElement.welProjectHeaherWrap = $('.project-header-wrap');
-            htElement.welProjectHeaher = $('.project-header')
+        function _initElement() {            
             htElement.welBtnWatch   = $(".watchBtn, #btnWatch");
             htElement.welBtnEnroll  = $("#enrollBtn");
-            htElement.welBtnMenuToggle = $('#btnMenuToggler');
 
-            htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
-            htElement.welInputCloneURL =$('#cloneURL');
-            htElement.welBtnCopy   = $('#cloneURLBtn');
             htElement.welForkedFrom = $("#forkedFrom");
-            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');
-            // 프로젝트 페이지에서만.
-            
-            htElement.weSideMenu = $('.project-menu-wrap li a');
+            htElement.weBtnHeaderToggle = $('.project-header-toggle-btn');                
         }
 
         /**
@@ -69,23 +58,11 @@
         function _attachEvent() {
             htElement.welBtnWatch.on('click',_onClickBtnWatch);
             htElement.welBtnEnroll.on('click',_onClickBtnEnroll);
-            htElement.welBtnMenuToggle.on('click', _onClickBtnMenuToggle);
+
             // 내용은 data-content 속성으로 scala 파일 내에 있음.
             htElement.welForkedFrom.popover({
                 "html"   : true
             });
-
-            htElement.welProjectHeaherWrap.on('click.toggle-clone-url','[data-toggle="cloneURL"]',_onClickBtnClone);
-
-            htElement.welBtnCopy.zclip({
-                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                "copy": htVar.sRepoURL
-            });
-
-            htElement.weBtnHeaderToggle.on('click',function(){
-                htElement.welProjectHeaher.toggleClass('vertical-large');
-            });
-
         }
 
         /**
@@ -131,33 +108,12 @@
         }
 
         /**
-         * MenuToggle 버튼 클릭시 이벤트 핸들러
-         * @param {Wrapped Event} weEvt
-         */
-        function _onClickBtnMenuToggle(weEvt){
-            if(htElement.welPageWrap.hasClass('mini')){
-                htElement.welPageWrap.removeClass('mini');
-                htElement.weSideMenu.tooltip('disable');
-            }else{
-                htElement.welPageWrap.addClass('mini');
-                htElement.weSideMenu.tooltip('enable');
-            }            
-        }
-
-        /**
          * 프로젝트 전역 공통 단축키
          * @param {Hash Table} htKeyMap
          * @require yobi.ShortcutKey
          */
         function _initShortcutKey(htKeyMap){
             yobi.ShortcutKey.setKeymapLink(htKeyMap);
-        }
-
-        /**
-         * Clone 버튼 클릭시 이벤트 핸들러
-         */
-        function _onClickBtnClone(){
-            $(this).parent().toggleClass('open');
         }
 
         _init(htOptions || {});

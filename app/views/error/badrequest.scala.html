@@ -1,8 +1,8 @@
 @(messageKey:String = "error.badrequest", project: Project)
 
 @projectLayout(Messages(messageKey), project, utils.MenuType.NONE) {
-<div class="page">
-	@projectMenu(project, utils.MenuType.PROJECT_HOME, "")
+@projectMenu(project, utils.MenuType.PROJECT_HOME, "")
+<div class="project-page-wrap">
 	<div class="error-wrap">
 		<i class="ico ico-err2"></i>
 		<p>@Messages(messageKey)</p>

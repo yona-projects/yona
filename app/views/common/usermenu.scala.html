@@ -1,114 +1,104 @@
 @(project:Project)
 @orderString = @{"createdDate DESC"}
-
-<div class="gnb-collapse">
-    <div class="gnb-search-bar">
+<ul class="gnb-usermenu">
+    <li>
         <form action="@routes.ProjectApp.projects()">
-            <input type="text" name="filter" autocomplete="off" accesskey="S">
-            <button type="submit"><i class="yobicon-search"></i></button>
+            <div class="search-box">
+                <input type="text" name="filter" autocomplete="off" accesskey="S">
+                <button type="submit"><i class="yobicon-search"></i></button>
+            </div>
         </form>
-    </div>
-    <ui class="gnb">
-        @if(session.contains("loginId")){
-        <li class="item">
-            <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success">
-                <i class="yobicon-database-add"></i>
-            </a>
-        </li>
-        @if(session.get("userId").equals("1")) {
-        <li>
-            <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom">
-                <i class="yobicon-wrench"></i>
-            </a>
-        </li>
-        }
-        <li class="gnb-dropdown">
-            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
-                <i class="yobicon-database"></i>
-                <span class="caret"></span>
-
-            </a>
-            <ul class="dropdown-menu flat right title">
-                @defining(UserApp.currentUser.getWatchingProjects()){ watchingProjects =>
-                    <li class="title">
-                        @Messages("project.watchingproject")
-                        <span class="numberic">@watchingProjects.size</span>
-                    </li>
-                    @if(watchingProjects.length > 0) {
-                        @for(project <- watchingProjects){
-                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
-                        }
-                    } else {
-                        <li class="empty">@Messages("project.is.empty")</li>
-                    }
-                }
-
-                @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
-                    <li class="title">
-                        @Messages("project.createdByMe")
-                        <span class="numberic">@myProjects.size</span>
-                    </li>
-                    @if(myProjects.length > 0) {
-                        @for(project <- myProjects){
-                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
-                        }
-                    } else {
-                        <li class="empty">@Messages("project.is.empty")</li>
-                    }
-                }
-
-                @defining(Project.findProjectsJustMemberAndNotOwner(UserApp.currentUser, orderString)) { memberProjects =>
-                    <li class="title">
-                        @Messages("project.default.group.member")
-                        <span class="numberic">@memberProjects.size</span>
-                    </li>
-                    @if(memberProjects.length > 0) {
-                        @for(project <- memberProjects){
-                            <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
-                        }
-                    } else {
-                        <li class="empty">@Messages("project.is.empty")</li>
-                    }
-                }
-            </ul>
-        </li>
-        <li class="gnb-dropdown">
-            <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
-                <span class="avatar-wrap smaller">
-                    <img src="@User.findByLoginId(session.get("loginId")).avatarUrl" />
-                </span>
-                <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu flat right">
+    </li>
+    @if(session.contains("loginId")){
+    <li>
+        <a href="@routes.ProjectApp.newProjectForm()" data-toggle="tooltip" title="@Messages("button.newProject")" data-placement="bottom" class="ybtn ybtn-success">
+            <i class="yobicon-database-add"></i>
+        </a>
+    </li>  
+    @if(session.get("userId").equals("1")) {
+    <li class="gnb-usermenu-item">
+        <a href="@routes.SiteApp.userList()" data-toggle="tooltip" title="@Messages("menu.siteAdmin")" data-placement="bottom">
+            <i class="yobicon-wrench"></i>
+        </a>
+    </li>
+    }  
+    <li class="gnb-usermenu-dropdown">
+        <a href="javascript:void(0);" class="gnb-dropdown-toggle" data-toggle="dropdown">
+            <span class="avatar-wrap smaller">
+                <img src="@User.findByLoginId(session.get("loginId")).avatarUrl" />
+            </span>
+            <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu flat right">
+            <li class="title">
+                @User.findByLoginId(session.get("loginId")).name <span class="disabled">@{"@"}@session.get("loginId")</span>
+            </li>
+            <li>
+                <a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a>
+            </li>
+            <li>
+                <a href="@routes.UserApp.editUserInfoForm()">
+                    @Messages("userinfo.accountSetting")
+                 </a>
+            </li>
+            <li>
+                <a href="@routes.UserApp.logout()">
+                    @Messages("title.logout")
+                </a>
+            </li>
+            @defining(UserApp.currentUser.getWatchingProjects()){ watchingProjects =>
                 <li class="title">
-                    @User.findByLoginId(session.get("loginId")).name <span class="disabled">@{"@"}@session.get("loginId")</span>
+                    @Messages("project.watchingproject")
+                    <span class="numberic">@watchingProjects.size</span>
                 </li>
-                <li>
-                    <a href="@routes.UserApp.userInfo(session.get("loginId"))">@Messages("userinfo.profile")</a>
+                @if(watchingProjects.length > 0) {
+                    @for(project <- watchingProjects){
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                    }
+                } else {
+                    <li class="empty">@Messages("project.is.empty")</li>
+                }
+            }
+
+            @defining(Project.findProjectsCreatedByUser(UserApp.currentUser.loginId, orderString)) { myProjects =>
+                <li class="title">
+                    @Messages("project.createdByMe")
+                    <span class="numberic">@myProjects.size</span>
                 </li>
-                <li>
-                    <a href="@routes.UserApp.editUserInfoForm()">
-                        @Messages("userinfo.accountSetting")
-                     </a>
+                @if(myProjects.length > 0) {
+                    @for(project <- myProjects){
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                    }
+                } else {
+                    <li class="empty">@Messages("project.is.empty")</li>
+                }
+            }
+
+            @defining(Project.findProjectsJustMemberAndNotOwner(UserApp.currentUser, orderString)) { memberProjects =>
+                <li class="title">
+                    @Messages("project.default.group.member")
+                    <span class="numberic">@memberProjects.size</span>
                 </li>
-                <li>
-                    <a href="@routes.UserApp.logout()">
-                        @Messages("title.logout")
-                    </a>
-                </li>
-            </ul>
-        </li>
-        } else {
-        <li class="item">
-            <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success" data-toggle="tooltip" title="@Messages("title.signup")" data-placement="bottom">
-                @Messages("title.signup")
-            </a>
-        </li>
-        <li >
-            <a href="@routes.UserApp.loginForm()" class="user-item-btn" >
-                @Messages("title.login")
-            </a>
-        </li>
-        }
-    </ul>
-</div>
+                @if(memberProjects.length > 0) {
+                    @for(project <- memberProjects){
+                        <li><a href="@routes.ProjectApp.project(project.owner, project.name)"><span class="gray">@project.owner / </span><span class="bold">@project.name</span></a></li>
+                    }
+                } else {
+                    <li class="empty">@Messages("project.is.empty")</li>
+                }
+            }
+        </ul>
+    </li> 
+    } else {
+    <li>
+        <a href="@routes.UserApp.signupForm()" class="ybtn ybtn-success" data-toggle="tooltip" title="@Messages("title.signup")" data-placement="bottom">
+            @Messages("title.signup")
+        </a>
+    </li>
+    <li class="gnb-usermenu-item">
+        <a href="@routes.UserApp.loginForm()" class="user-item-btn" >
+            @Messages("title.login")
+        </a>
+    </li>
+    }
+</ul>
