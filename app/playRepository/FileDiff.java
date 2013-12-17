@@ -5,6 +5,7 @@ import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.diff.RawText;
+import org.eclipse.jgit.lib.FileMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ public class FileDiff {
     public DiffEntry.ChangeType changeType;
     public Integer interestLine = null;
     public CodeComment.Side interestSide = null;
+    public FileMode oldMode;
+    public FileMode newMode;
 
     /**
      * Get list of hunks
@@ -161,5 +164,19 @@ public class FileDiff {
         }
 
         editList = newEditList;
+    }
+
+    /**
+     * FileMode 가 변경되었는지 여부
+     * @return
+     */
+    public boolean isFileModeChanged() {
+        if (FileMode.MISSING.equals(oldMode.getBits())) {
+            return false;
+        }
+        if (FileMode.MISSING.equals(newMode.getBits())) {
+            return false;
+        }
+        return oldMode.getBits() != newMode.getBits();
     }
 }

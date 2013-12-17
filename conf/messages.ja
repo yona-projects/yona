@@ -95,6 +95,7 @@ code.fullDiff = Side-by-side diff
 code.showCommit = コミット詳細
 code.showCode = コードを見る
 code.showCodeAtThisCommit = この時点でのコードを見る
+code.fileModeChanged = File mode changed
 common.attach.attachIfYouSave = 表示されたファイルはセーブしたら添付されます。
 common.attach.clickbutton = ボタンで選んでください
 common.attach.clickToPost = 本文に入れる
