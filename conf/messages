@@ -512,6 +512,7 @@ pullRequest.restore.frombranch.message = can be restored.
 pullRequest.select.branch = Select Branch
 pullRequest.sent.code = Sent Code
 pullRequest.state.closed = Closed
+pullRequest.state.conflict = Conflict
 pullRequest.state.open = Open
 pullRequest.state.merged = Merged
 pullRequest.state.rejected = Postponed
