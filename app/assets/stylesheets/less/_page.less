@@ -2245,39 +2245,62 @@
 }
 
 //-- project home
-.project-clone-wrap {
-    display: inline-block;
-    float:left;
-    margin-bottom: 15px;
-    background-color: #F7F7F7;
-    padding:10px;
-    .border-radius(6px);
-    
-    .project-clone-url {
-        float:left;
-        margin-bottom:0;
-        background-color:#FFF;
-        width: 175px;
-        border:1px solid #DDD;
-        border-right:none;
-        outline: 0 none;
-        cursor: auto;
-        .border-radius(3px 0 0 3px);
+.project-home-header {
+    padding:5px 0 ;
+    margin-bottom:20px;
+    position: relative;
+    border-left:3px solid #fc491e;
+
+    .project-overview {
+        
+        padding:0 10px;
+        h3 { 
+            line-height: 20px;
+            font-size:14px;
+            font-weight: normal;
+            padding-right:320px;
+        }
     }
 
-    .project-clone-button {
-        margin:0;
-        padding:0 5px;
-        .border-radius(0 3px 3px 0);
-        border:1px solid #ddd;
-        float:left;
-        background-color: transparent;
-        height:30px;
-        outline: 0 none;
-        width:65px;
+    .project-clone-wrap {
+        position: absolute;
+        right: 0;
+        top:0;
+        background-color: #F7F7F7;
+        padding:5px 10px;
+        .border-radius(6px);
+        
+        .project-clone-url {
+            float:left;
+            margin-bottom:0;
+            background-color:#FFF;
+            width: 175px;
+            border:1px solid #DDD;
+            border-right:none;
+            outline: 0;
+            cursor: pointer;
+            .border-radius(3px 0 0 3px);
+            .transition(width .15s);
 
-        &.hover {
-            border:1px solid #858484;
+            &:focus {
+                width:450px;
+            }
+        }
+
+        .project-clone-button {
+            margin:0;
+            padding:0 5px;
+            .border-radius(0 3px 3px 0);
+            border:1px solid #ddd;
+            float:left;
+            background-color: transparent;
+            height:30px;
+            outline: 0;
+            width:65px;
+
+            &:hover {
+                border:1px solid #000;
+            }
         }
     }
 }
