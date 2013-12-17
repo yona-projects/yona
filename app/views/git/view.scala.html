@@ -54,9 +54,6 @@
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
                     }
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
-                        <a data-request-method="post" href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
-                    }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
                         <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
                     }

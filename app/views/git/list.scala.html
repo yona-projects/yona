@@ -47,12 +47,6 @@
                     <span class="num-badge">@PullRequest.findClosedPullRequests(project).size</span>
                 </a>
             </li>
-            <li @if(requestType.equals("rejected")){class="active"}>
-                <a href="@routes.PullRequestApp.rejectedPullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.rejected.code")
-                    <span class="num-badge">@PullRequest.findRejectedPullRequests(project).size</span>
-                </a>
-            </li>
         }
         @if(project.isForkedFromOrigin()){
             <li @if(requestType.equals("sent")){class="active"}>
