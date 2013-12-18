@@ -42,6 +42,14 @@ public class CommentThread extends Model {
                 .findList();
     }
 
+    public static List<CommentThread> findByCommitIdAndState(String commitId, ThreadState state) {
+        return find.where()
+                .eq("commitId", commitId)
+                .eq("state", state)
+                .order().desc("createdDate")
+                .findList();
+    }
+
     enum ThreadState {
         OPEN, CLOSED;
     }

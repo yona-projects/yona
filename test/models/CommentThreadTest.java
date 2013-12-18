@@ -1,5 +1,6 @@
 package models;
 
+import org.apache.shiro.util.ThreadState;
 import org.junit.Test;
 import utils.JodaDateUtil;
 
@@ -34,17 +35,35 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         assertThat(threadList.get(1).createdDate).isEqualTo(JodaDateUtil.before(3));
     }
 
+    @Test
+    public void findByCommitIdAndState() {
+        // given
+        String commitId = "123123";
+        addTestData(commitId);
+
+        // when and then
+        List<CommentThread> threadList = CommentThread.findByCommitIdAndState(commitId, CommentThread.ThreadState.OPEN);
+        assertThat(threadList.get(0).id).isEqualTo(1);
+
+        // when and then
+        threadList = CommentThread.findByCommitIdAndState(commitId, CommentThread.ThreadState.CLOSED);
+        assertThat(threadList.get(0).id).isEqualTo(2);
+    }
+
     /**
      * {@code commitId}를 가지는 {@link models.NonRangedCodeCommentThread} 한 개 저장.
      *  - state: OPEN
      *  - createDate: 3일전
+     *  - id: 1
      * {@code commitId}를 가지는 {@link models.CodeCommentThread} 한 개 저장.
      *  - state: CLOSED
      *  - path: "readme.md"
      *  - createdDate: 2일전
+     *  - id: 2
      * 123321을 커밋 ID로 가지는 {@link models.NonRangedCodeCommentThread} 한 개 저장.
      *  - state: OPEN
      *  - createdDate: 1일전
+     *  - id: 3
      *
      * @param commitId
      */
