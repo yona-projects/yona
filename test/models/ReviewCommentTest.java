@@ -1,12 +1,34 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2013 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Wansoon Park
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package models;
 
 import models.enumeration.Operation;
 import org.junit.Before;
 import org.junit.Test;
+
 import utils.JodaDateUtil;
 import utils.AccessControl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -54,6 +76,83 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         assertThat(commentList.size()).isEqualTo(1);
         assertThat(commentList.get(0).id).isEqualTo(ids.get(4));
     }
+
+    @Test
+    public void saveReviewComment() {
+        // given
+        CommentThread thread = createTestThread();
+        createTestReviewComment(thread, "리뷰댓글");
+
+        // when
+        List<ReviewComment> savedReviewCommentList = ReviewComment.findByThread(thread.id);
+        CommentThread savedThread = CommentThread.find.byId(thread.id);
+
+        // then
+        assertThat(savedReviewCommentList.size()).isEqualTo(1);
+        assertThat(savedThread.reviewComments.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void deleteReviewComment() {
+        // given
+        CommentThread thread = createTestThread();
+        ReviewComment firstReviewComment = createTestReviewComment(thread, "첫번째");
+        ReviewComment secondReviewComment = createTestReviewComment(thread, "두번째");
+        long threadId = thread.id;
+
+        // when
+        firstReviewComment.delete();
+
+        // then
+        assertThat(ReviewComment.find.byId(firstReviewComment.id)).isNull();
+        assertThat(CommentThread.find.byId(threadId)).isNotNull();
+        assertThat(CommentThread.find.byId(threadId).reviewComments.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void deleteLastReviewComment() {
+        // given
+        ReviewComment reviewComment = createTestReviewComment(createTestThread(), "리뷰댓글");
+        ReviewComment lastReviewComment = ReviewComment.find.byId(reviewComment.id);
+        long threadId = lastReviewComment.thread.id;
+
+        // when
+        lastReviewComment.delete();
+
+        // then
+        assertThat(ReviewComment.find.byId(reviewComment.id)).isNull();
+        assertThat(CommentThread.find.byId(threadId)).isNull();
+    }
+
+
+    private SimpleCommentThread createTestThread() {
+        User author = new User();
+        author.id = 1L;
+        author.loginId = "tesT";
+        author.name = "이름";
+
+        UserIdent userIdent = new UserIdent(author);
+
+        SimpleCommentThread thread = new SimpleCommentThread();
+        thread.project = Project.find.byId(1L);
+        thread.state = CommentThread.ThreadState.OPEN;
+        thread.author = userIdent;
+        thread.save();
+
+        return thread;
+    }
+
+    private ReviewComment createTestReviewComment(CommentThread thread, String contents) {
+        ReviewComment reviewComment = new ReviewComment();
+        reviewComment.setContents(contents);
+        reviewComment.author = thread.author;
+        reviewComment.createdDate = new Date();
+        reviewComment.thread = thread;
+        reviewComment.save();
+
+        return reviewComment;
+    }
+
 
     /**
      * {@code commitId}를 가지는 {@link models.NonRangedCodeCommentThread} 한 개 저장.
@@ -235,5 +334,4 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         assertThat(AccessControl.isAllowed(anonymous, comment.asResource(),
                 Operation.DELETE)).isFalse();
     }
-
 }
