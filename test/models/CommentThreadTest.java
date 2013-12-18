@@ -50,6 +50,7 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         assertThat(threadList.get(0).id).isEqualTo(2);
     }
 
+
     /**
      * {@code commitId}를 가지는 {@link models.NonRangedCodeCommentThread} 한 개 저장.
      *  - state: OPEN

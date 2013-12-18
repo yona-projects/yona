@@ -12,4 +12,5 @@ public class NonRangedCodeCommentThread extends CommentThread {
 
     String commitId;
 
+
 }

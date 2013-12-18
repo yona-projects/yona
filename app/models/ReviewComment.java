@@ -5,12 +5,14 @@ import play.db.ebean.Model;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Keesun Baik
  */
 @Entity
 public class ReviewComment extends Model {
+    public static final Finder<Long, ReviewComment> find = new Finder<>(Long.class, ReviewComment.class);
 
     @Id
     public Long id;
@@ -34,5 +36,12 @@ public class ReviewComment extends Model {
 
     public String getContents() {
         return contents;
+    }
+
+    public static List<ReviewComment> findByThread(Long threadId) {
+        return find.where()
+                .eq("thread.id", threadId)
+                .order().desc("createdDate")
+                .findList();
     }
 }

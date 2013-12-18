@@ -5,6 +5,7 @@ import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class CommentThread extends Model {
     public UserIdent author;
 
     @OneToMany(mappedBy = "thread")
-    public List<ReviewComment> reviewComments;
+    public List<ReviewComment> reviewComments = new ArrayList<ReviewComment>();
 
     @Enumerated(EnumType.STRING)
     public ThreadState state;
@@ -52,6 +53,11 @@ public class CommentThread extends Model {
 
     enum ThreadState {
         OPEN, CLOSED;
+    }
+
+    public void addComment(ReviewComment reviewComment) {
+        reviewComments.add(reviewComment);
+        reviewComment.thread = this;
     }
 
 }
