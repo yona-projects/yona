@@ -26,7 +26,7 @@
                 </div>
                 <div class="pull-right">
                     <div class="date">@agoString(pull.createdAgo)</div>
-                    <span class="badge badge-issue-@pull.state.state.toLowerCase">@Messages("pullRequest.state." + pull.state.state)</span>
+                    <span class="badge @if(pull.isConflict) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
                 </div>
             </div>
 

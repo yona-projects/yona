@@ -511,6 +511,7 @@ pullRequest.resolver.step9 = rebase가 끝났다면 origin으로 코드를 강�
 pullRequest.restore.branch = 브랜치 복구
 pullRequest.restore.frombranch.message = 브랜치를 복구할 수 있습니다.
 pullRequest.state.closed = 닫힘
+pullRequest.state.conflict = 충돌
 pullRequest.state.open = 열림
 pullRequest.state.merged = 병합
 pullRequest.state.rejected = 보류
