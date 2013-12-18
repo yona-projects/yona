@@ -3,6 +3,7 @@ package models;
 import actors.PullRequestEventActor;
 import akka.actor.Props;
 
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Page;
 
 import controllers.UserApp;
@@ -46,6 +47,8 @@ import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.*;
 import java.io.File;
+
+import static com.avaje.ebean.Expr.eq;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -229,7 +232,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static List<PullRequest> findClosedPullRequests(Project project) {
         return finder.where()
                 .eq("toProject", project)
-                .or(com.avaje.ebean.Expr.eq("state", State.CLOSED), com.avaje.ebean.Expr.eq("state", State.MERGED))
+                .or(eq("state", State.CLOSED), eq("state", State.MERGED))
                 .order().desc("created")
                 .findList();
     }
@@ -244,7 +247,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static List<PullRequest> findAcceptedPullRequests(Project project) {
         return finder.where()
                 .eq("fromProject", project)
-                .or(com.avaje.ebean.Expr.eq("state", State.CLOSED), com.avaje.ebean.Expr.eq("state", State.MERGED))
+                .or(eq("state", State.CLOSED), eq("state", State.MERGED))
                 .order().desc("created")
                 .findList();
     }
@@ -293,11 +296,11 @@ public class PullRequest extends Model implements ResourceConvertible {
         return finder.where()
                 .or(
                         Expr.and(
-                                Expr.eq("fromProject", project),
-                                Expr.eq("fromBranch", branch)),
+                                eq("fromProject", project),
+                                eq("fromBranch", branch)),
                         Expr.and(
-                                Expr.eq("toProject", project),
-                                Expr.eq("toBranch", branch)))
+                                eq("toProject", project),
+                                eq("toBranch", branch)))
                 .ne("state", State.CLOSED)
                 .ne("state", State.MERGED)
                 .findList();
@@ -492,7 +495,7 @@ public class PullRequest extends Model implements ResourceConvertible {
 
     public static List<PullRequest> findByFromProjectAndBranch(Project fromProject, String fromBranch) {
         return finder.where().eq("fromProject", fromProject).eq("fromBranch", fromBranch)
-                .or(com.avaje.ebean.Expr.eq("state", State.OPEN), com.avaje.ebean.Expr.eq("state", State.REJECTED)).findList();
+                .or(eq("state", State.OPEN), eq("state", State.REJECTED)).findList();
     }
 
     @Transactional
@@ -599,7 +602,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public static Page<PullRequest> findClosedPagingList(Project project, int pageNum) {
         return finder.where()
                 .eq("toProject",  project)
-                .or(com.avaje.ebean.Expr.eq("state", State.CLOSED), com.avaje.ebean.Expr.eq("state", State.MERGED))
+                .or(eq("state", State.CLOSED), eq("state", State.MERGED))
                 .order().desc("created")
                 .findPagingList(ITEMS_PER_PAGE)
                 .getPage(pageNum);
@@ -935,6 +938,35 @@ public class PullRequest extends Model implements ResourceConvertible {
         }
 
         return messageMap;
+    }
+
+    /**
+     * {@code fromProject}의 {@code fromBranch}에서 보낸 가장 최근 코드보내기 요청을 찾는다.
+     *
+     * fromProject와 toProject가 같은 수도 있다고 가정한다.
+     * {@code fromProject}가 fork 프로젝트 일때는 upstream으로 보낸 코드보내기 요청을 포함하여 찾는다.
+     *
+     * when: 코드 메뉴의 브랜치 탭에서 브랜치 목록을 보여줄 때 특정 브랜치와 관련있는 코드보내기 요청을 찾을 때 사용한다.
+     *
+     * @param fromProject
+     * @param fromBranch
+     * @return
+     */
+    public static PullRequest findTheLatestOneFrom(Project fromProject, String fromBranch) {
+        ExpressionList<PullRequest> el = finder.where()
+                .eq("fromProject", fromProject)
+                .eq("fromBranch", fromBranch);
+
+        if(fromProject.isForkedFromOrigin()) {
+            el.in("toProject", fromProject, fromProject.originalProject);
+        } else {
+            el.eq("toProject", fromProject);
+        }
+
+        return el
+                .order().desc("number")
+                .setMaxRows(1)
+                .findUnique();
     }
 
 }

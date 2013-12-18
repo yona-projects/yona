@@ -624,6 +624,8 @@ public class GitRepository implements PlayRepository {
             walk.dispose();
 
             GitBranch newBranch = new GitBranch(branchRef.getName(), new GitCommit(head));
+            setTheLatestPullRequest(newBranch);
+
             branches.add(newBranch);
         }
 
@@ -635,6 +637,11 @@ public class GitRepository implements PlayRepository {
         });
 
         return branches;
+    }
+
+    private void setTheLatestPullRequest(GitBranch gitBranch) {
+        Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
+        gitBranch.setPullRequest(PullRequest.findTheLatestOneFrom(project, gitBranch.getName()));
     }
 
     @Override
@@ -1558,6 +1565,21 @@ public class GitRepository implements PlayRepository {
                 updateRef.setNewObjectId(ref.getObjectId());
                 updateRef.update();
             }
+        }
+    }
+
+    public GitBranch getHeadBranch() {
+        try {
+            String headBranchName = getDefaultBranch();
+
+            ObjectId branchObjectId = repository.resolve(headBranchName);
+            RevWalk walk = new RevWalk(repository);
+            RevCommit head = walk.parseCommit(branchObjectId);
+            walk.dispose();
+
+            return new GitBranch(headBranchName, new GitCommit(head));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

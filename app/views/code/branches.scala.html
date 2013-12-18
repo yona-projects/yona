@@ -1,22 +1,26 @@
-@(project: Project, branches: List[playRepository.GitBranch])
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Keesun Baik
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project: Project, branches: List[playRepository.GitBranch], head: playRepository.GitBranch)
 
-@import utils.JodaDateUtil._
-@import utils.TemplateHelper._
-@import utils.Url
-@import playRepository.RepositoryService
-@import java.net.URLEncoder
-@import org.joda.time.Duration
-@import controllers.CodeApp
-
-@getShowCommitURL(project:Project, gitBranch:playRepository.GitBranch) = @{
-    var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8");
-    routes.CodeHistoryApp.show(project.owner, project.name, gitBranch.getHeadCommit.getId) + queryString;
-}
-
-@deleteBranchURL(project:Project, branch:String) =@{
-    var branchName = URLEncoder.encode(branch, "UTF-8");
-    routes.BranchApp.deleteBranch(project.owner, project.name, branchName);
-}
+@import utils.AccessControl._
 
 @projectLayout(Messages("title.branches"), project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
@@ -37,31 +41,26 @@
                 }
             </ul>
 
-            <table class="table table-bordered">
-                <tbody>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>@Messages("title.branches")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitMsg")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.commitDate")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("code.author")</th>
+                        <th>@Messages("userinfo.daysAgo.prefix") @Messages("pullRequest")</th>
+                        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
+                            <th></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody class="branch-list-wrap">
+                    <tr style="background-color: aliceblue">
+                        @partial_branchrow(project, head, true)
+                    </tr>
                 @for(branch <- branches.iterator()) {
                     <tr>
-                        <td>
-                            <h4>@branch.getShortName</h4>
-                        </td>
-                        <td>
-                            @Messages("branch.recently.update")
-                            <a href="@getShowCommitURL(project, branch)" class="blue-txt">
-                                @branch.getHeadCommit.getShortId
-                            </a>
-                            @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
-                            @if(branch.getUser != null) {
-                                <img src="@utils.GravatarUtil.getAvatar(branch.getUser.email, 25)">
-                                <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="blue-txt">@branch.getUser.name</a>
-                            } else {
-                                @branch.getHeadCommit.getCommitterName
-                            }
-                        </td>
-                        <td>
-                            <a class="ybtn ybtn-danger" data-request-method="delete" href="@deleteBranchURL(project, branch.getName)">
-                                @Messages("button.delete")
-                            </a>
-                        </td>
+                        @partial_branchrow(project, branch, false)
                     </tr>
                 }
                 </tbody>
@@ -69,5 +68,4 @@
         </div>
     </div>
 </div>
-
 }
