@@ -256,6 +256,8 @@ public class AccessControl {
         case COMMIT_COMMENT:
         case PULL_REQUEST:
         case PULL_REQUEST_COMMENT:
+        case COMMENT_THREAD:
+        case REVIEW_COMMENT:
             return resource.getAuthorId().equals(user.id);
         default:
             return false;

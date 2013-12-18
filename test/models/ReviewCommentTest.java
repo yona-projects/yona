@@ -1,8 +1,10 @@
 package models;
 
-
+import models.enumeration.Operation;
+import org.junit.Before;
 import org.junit.Test;
 import utils.JodaDateUtil;
+import utils.AccessControl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,16 @@ import java.util.List;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class ReviewCommentTest extends ModelTest<ReviewComment> {
+    private User admin;
+    private User manager;
+    private User member;
+    private User threadAuthor;
+    private User author;
+    private User nonmember;
+    private User anonymous;
+    private ReviewComment comment;
+    private CommentThread thread;
+    private Project project;
 
     @Test
     public void findByThread() {
@@ -65,6 +77,7 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         List<Long> ids = new ArrayList<>();
 
         NonRangedCodeCommentThread thread1 = new NonRangedCodeCommentThread();
+        thread1.project = project;
         thread1.commitId = "123456";
         thread1.state = CommentThread.ThreadState.OPEN;
         thread1.createdDate = JodaDateUtil.before(3);
@@ -86,6 +99,7 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         ids.add(reviewComment2.id);
 
         CodeCommentThread thread2 = new CodeCommentThread();
+        thread2.project = project;
         thread2.commitId = "123456";
         thread2.state = CommentThread.ThreadState.CLOSED;
         CodeRange codeRange = new CodeRange();
@@ -109,6 +123,117 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         ids.add(reviewComment3.id);
 
         return ids;
+    }
+
+    @Before
+    public void before() {
+        project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        admin = User.findByLoginId("admin");
+        manager = User.findByLoginId("yobi");
+        member = User.findByLoginId("laziel");
+        author = User.findByLoginId("nori");
+        threadAuthor = User.findByLoginId("alecsiel");
+        nonmember = User.findByLoginId("doortts");
+        anonymous = new NullUser();
+
+        thread = new SimpleCommentThread();
+        thread.project = project;
+        thread.author = new UserIdent(threadAuthor);
+        thread.state = SimpleCommentThread.ThreadState.OPEN;
+        thread.save();
+
+        comment = new ReviewComment();
+        comment.thread = thread;
+        comment.author = new UserIdent(author);
+        comment.save();
+
+        assertThat(this.admin.isSiteManager()).describedAs("admin is Site Admin.").isTrue();
+        assertThat(ProjectUser.isManager(manager.id, project.id)).describedAs("manager is a manager").isTrue();
+        assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is not a manager").isFalse();
+        assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
+        assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
+        assertThat(ProjectUser.isMember(threadAuthor.id, project.id)).describedAs("threadAuthor is not a member").isFalse();
+        assertThat(project.isPublic).isTrue();
+    }
+
+    @Test
+    public void editByAuthor() {
+        assertThat(AccessControl.isAllowed(author, comment.asResource(), Operation.UPDATE)).isTrue();
+    }
+
+    @Test
+    public void editByThreadAuthor() {
+        assertThat(AccessControl.isAllowed(threadAuthor, comment.asResource(),
+                Operation.UPDATE)).isFalse();
+    }
+
+    @Test
+    public void editBySiteAdmin() {
+        assertThat(AccessControl.isAllowed(admin, comment.asResource(), Operation.UPDATE)).isTrue();
+    }
+
+    @Test
+    public void editByManager() {
+        assertThat(AccessControl.isAllowed(member, comment.asResource(),
+                Operation.UPDATE)).isTrue();
+    }
+
+    @Test
+    public void editByMember() {
+        assertThat(AccessControl.isAllowed(member, comment.asResource(),
+                Operation.UPDATE)).isTrue();
+    }
+
+    @Test
+    public void editByNonmember() {
+        assertThat(AccessControl.isAllowed(nonmember, comment.asResource(),
+                Operation.UPDATE)).isFalse();
+    }
+
+    @Test
+    public void editByAnonymous() {
+        assertThat(AccessControl.isAllowed(anonymous, comment.asResource(),
+                Operation.UPDATE)).isFalse();
+    }
+
+    @Test
+    public void deleteByAuthor() {
+        assertThat(AccessControl.isAllowed(author, comment.asResource(), Operation.DELETE)).isTrue();
+    }
+
+    @Test
+    public void deleteByThreadAuthor() {
+        assertThat(AccessControl.isAllowed(threadAuthor, comment.asResource(),
+                Operation.DELETE)).isFalse();
+    }
+
+    @Test
+    public void deleteBySiteAdmin() {
+        assertThat(AccessControl.isAllowed(admin, comment.asResource(), Operation.DELETE)).isTrue();
+    }
+
+    @Test
+    public void deleteByManager() {
+        assertThat(AccessControl.isAllowed(member, comment.asResource(),
+                Operation.DELETE)).isTrue();
+    }
+
+    @Test
+    public void deleteByMember() {
+        assertThat(AccessControl.isAllowed(member, comment.asResource(),
+                Operation.DELETE)).isTrue();
+    }
+
+    @Test
+    public void deleteByNonmember() {
+        assertThat(AccessControl.isAllowed(nonmember, comment.asResource(),
+                Operation.DELETE)).isFalse();
+    }
+
+    @Test
+    public void deleteByAnonymous() {
+        assertThat(AccessControl.isAllowed(anonymous, comment.asResource(),
+                Operation.DELETE)).isFalse();
     }
 
 }

@@ -2,6 +2,9 @@ package models;
 
 import play.data.format.Formats;
 import play.data.validation.Constraints;
+import models.enumeration.ResourceType;
+import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
@@ -14,7 +17,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class CommentThread extends Model {
+public class CommentThread extends Model implements ResourceConvertible {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,6 +52,33 @@ public class CommentThread extends Model {
                 .eq("state", state)
                 .order().desc("createdDate")
                 .findList();
+    }
+
+    @ManyToOne
+    public Project project;
+
+    public Resource asResource() {
+        return new Resource() {
+            @Override
+            public String getId() {
+                return String.valueOf(id);
+            }
+
+            @Override
+            public Project getProject() {
+                return project;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.COMMENT_THREAD;
+            }
+
+            @Override
+            public Long getAuthorId() {
+                return author.authorId;
+            }
+        };
     }
 
     enum ThreadState {

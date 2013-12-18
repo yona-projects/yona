@@ -3,6 +3,7 @@
 create table comment_thread (
       dtype                     varchar(10) not null,
       id                        bigint not null,
+      project_id                bigint not null,
       author_id                 bigint,
       author_login_id           varchar(255),
       author_name               varchar(255),
@@ -51,6 +52,9 @@ create sequence review_comment_seq;
 alter table review_comment add constraint fk_review_comment_thread_28 foreign key (thread_id) references comment_thread (id) on delete restrict on update restrict;
 create index ix_review_comment_thread_28 on review_comment (thread_id);
 
+alter table comment_thread add constraint fk_comment_thread_project_29 foreign key (project_id) references project (id) on delete restrict on update restrict;
+create index ix_comment_thread_29 on comment_thread (project_id);
+
 alter table comment_thread_n4user add constraint fk_comment_thread_n4user_comm_01 foreign key (comment_thread_id) references comment_thread (id) on delete restrict on update restrict;
 
 alter table comment_thread_n4user add constraint fk_comment_thread_n4user_n4us_02 foreign key (n4user_id) references n4user (id) on delete restrict on update restrict;
@@ -66,6 +70,8 @@ drop table if exists comment_thread;
 drop table if exists pull_request_comment_thread;
 
 drop table if exists review_comment;
+
+drop table if exists comment_thread_n4user;
 
 drop sequence if exists comment_thread_seq;
 

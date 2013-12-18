@@ -1,5 +1,7 @@
 package models;
 
+import models.enumeration.ResourceType;
+import models.resource.Resource;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -43,5 +45,30 @@ public class ReviewComment extends Model {
                 .eq("thread.id", threadId)
                 .order().desc("createdDate")
                 .findList();
+    }
+
+    public Resource asResource() {
+        return new Resource() {
+
+            @Override
+            public String getId() {
+                return String.valueOf(id);
+            }
+
+            @Override
+            public Project getProject() {
+                return thread.project;
+            }
+
+            @Override
+            public ResourceType getType() {
+                return ResourceType.REVIEW_COMMENT;
+            }
+
+            @Override
+            public Long getAuthorId() {
+                return author.authorId;
+            }
+        };
     }
 }

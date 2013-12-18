@@ -14,4 +14,9 @@ public class UserIdent {
     public String authorLoginId;
     public String authorName;
 
+    public UserIdent(User author) {
+        authorId = author.id;
+        authorLoginId = author.loginId;
+        authorName = author.name;
+    }
 }

@@ -2,7 +2,10 @@ package models;
 
 import org.apache.shiro.util.ThreadState;
 import org.junit.Test;
+import org.junit.Before;
 import utils.JodaDateUtil;
+import utils.AccessControl;
+import models.enumeration.Operation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +16,37 @@ import static org.fest.assertions.Assertions.assertThat;
  * @author Keesun Baik
  */
 public class CommentThreadTest extends ModelTest<CommentThread>  {
+    private User admin;
+    private User manager;
+    private User member;
+    private User author;
+    private User nonmember;
+    private User anonymous;
+    private Project project;
+    private SimpleCommentThread thread;
 
-    @Test
-    public void save() {
-        SimpleCommentThread thread = new SimpleCommentThread();
-        thread.state = CommentThread.ThreadState.OPEN;
+    @Before
+    public void before() {
+        project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        admin = User.findByLoginId("admin");
+        manager = User.findByLoginId("yobi");
+        member = User.findByLoginId("laziel");
+        author = User.findByLoginId("nori");
+        nonmember = User.findByLoginId("doortts");
+        anonymous = new NullUser();
+
+        thread = new SimpleCommentThread();
+        thread.project = project;
+        thread.author = new UserIdent(author);
+        thread.state = SimpleCommentThread.ThreadState.OPEN;
         thread.save();
+
+        assertThat(this.admin.isSiteManager()).describedAs("admin is Site Admin.").isTrue();
+        assertThat(ProjectUser.isManager(manager.id, project.id)).describedAs("manager is a manager").isTrue();
+        assertThat(ProjectUser.isManager(member.id, project.id)).describedAs("member is not a manager").isFalse();
+        assertThat(ProjectUser.isMember(member.id, project.id)).describedAs("member is a member").isTrue();
+        assertThat(ProjectUser.isMember(author.id, project.id)).describedAs("author is not a member").isFalse();
+        assertThat(project.isPublic).isTrue();
     }
 
     @Test
@@ -70,6 +98,7 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         List<Long> threadIds = new ArrayList<>();
 
         NonRangedCodeCommentThread thread1 = new NonRangedCodeCommentThread();
+        thread1.project = project;
         thread1.commitId = commitId;
         thread1.state = CommentThread.ThreadState.OPEN;
         thread1.createdDate = JodaDateUtil.before(3);
@@ -77,6 +106,7 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         threadIds.add(thread1.id);
 
         CodeCommentThread thread2 = new CodeCommentThread();
+        thread2.project = project;
         thread2.commitId = commitId;
         thread2.state = CommentThread.ThreadState.CLOSED;
         CodeRange codeRange = new CodeRange();
@@ -93,6 +123,7 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         threadIds.add(thread2.id);
 
         NonRangedCodeCommentThread thread3 = new NonRangedCodeCommentThread();
+        thread3.project = project;
         thread3.commitId = "123321";
         thread3.state = CommentThread.ThreadState.OPEN;
         thread3.createdDate = JodaDateUtil.before(1);
@@ -102,5 +133,70 @@ public class CommentThreadTest extends ModelTest<CommentThread>  {
         return threadIds;
     }
 
+    @Test
+    public void reopenByAuthor() {
+        assertThat(AccessControl.isAllowed(author, thread.asResource(), Operation.REOPEN)).isTrue();
+    }
 
+    @Test
+    public void reopenBySiteAdmin() {
+        assertThat(AccessControl.isAllowed(admin, thread.asResource(), Operation.REOPEN)).isTrue();
+    }
+
+    public void reopenByManager() {
+        assertThat(AccessControl.isAllowed(member, thread.asResource(),
+                Operation.REOPEN)).isTrue();
+    }
+
+    @Test
+    public void reopenByMember() {
+        assertThat(AccessControl.isAllowed(member, thread.asResource(),
+                Operation.REOPEN)).isTrue();
+    }
+
+    @Test
+    public void reopenByNonmember() {
+        assertThat(AccessControl.isAllowed(nonmember, thread.asResource(),
+                Operation.REOPEN)).isFalse();
+    }
+
+    @Test
+    public void reopenByAnonymous() {
+        assertThat(AccessControl.isAllowed(anonymous, thread.asResource(),
+                Operation.REOPEN)).isFalse();
+    }
+
+    @Test
+    public void closeByAuthor() {
+        assertThat(AccessControl.isAllowed(author, thread.asResource(), Operation.CLOSE)).isTrue();
+    }
+
+    @Test
+    public void closeBySiteAdmin() {
+        assertThat(AccessControl.isAllowed(admin, thread.asResource(), Operation.CLOSE)).isTrue();
+    }
+
+    @Test
+    public void closeByManager() {
+        assertThat(AccessControl.isAllowed(member, thread.asResource(),
+                Operation.CLOSE)).isTrue();
+    }
+
+    @Test
+    public void closeByMember() {
+        assertThat(AccessControl.isAllowed(member, thread.asResource(),
+                Operation.CLOSE)).isTrue();
+    }
+
+    @Test
+    public void closeByNonmember() {
+        assertThat(AccessControl.isAllowed(nonmember, thread.asResource(),
+                Operation.CLOSE)).isFalse();
+    }
+
+    @Test
+    public void closeByAnonymous() {
+        assertThat(AccessControl.isAllowed(anonymous, thread.asResource(),
+                Operation.CLOSE)).isFalse();
+    }
 }
