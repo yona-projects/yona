@@ -4615,6 +4615,12 @@ div.markdown-preview {
         text-align: right;
         color: rgba(0, 0, 0, 0.3);
         white-space: nowrap;
+        .user-select();
+        
+        &:before {
+            content: attr(data-line-num);
+            width:40px;
+        }
     }
     .code {
         white-space: pre;
