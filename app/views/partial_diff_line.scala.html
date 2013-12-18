@@ -2,4 +2,17 @@
 
 @import utils.TemplateHelper.DiffRenderer._
 
-<tr class="@klass" data-line="@num" data-type="@klass"><td class="linenum" data-line-num="@Option(numA).getOrElse("")"><i class="icon-comment"></i><span class="hidden">@Option(numA).getOrElse("")</span></td><td class="linenum" data-line-num="@Option(numB).getOrElse("")"><span class="hidden">@Option(numB).getOrElse("")</span></td><td class="code"><span>@prefix</span>@content @if(isEndOfLineMissing){@Html(noNewlineAtEof)}</td></tr>
+<tr class="@klass" data-line="@num" data-type="@klass">
+    <td class="linenum">
+        <i class="icon-comment"></i>
+        <div class="line-number" data-line-num="@Option(numA).getOrElse("")"></div>
+        <span class="hidden">@Option(numA).getOrElse("")</span>
+    </td>
+    <td class="linenum" >
+        <div class="line-number" data-line-num="@Option(numB).getOrElse("")"></div>
+        <span class="hidden">@Option(numB).getOrElse("")</span>
+    </td>
+    <td class="code">
+        <pre class="diff-partial-codeline">@prefix@content</pre> @if(isEndOfLineMissing){@Html(noNewlineAtEof)}
+    </td>
+</tr>

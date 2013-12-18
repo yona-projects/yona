@@ -74,14 +74,15 @@ yobi.CodeCommentBox = (function() {
      * @param {Object} welTr
      */
     function _show(welTr, fCallback) {
-        var welTd = $("<td colspan=3>");
+        var welTd = $('<td colspan="3">');
+        welTd.addClass('diff-comment-box');
         var welCommentTr;
         var nLine = parseInt(welTr.data('line'));
         var sType = welTr.data('type');
         var sCommitId;
         var sPath;
-        var sCommitA = welTr.closest('.diff-body').data('commitA');
-        var sCommitB = welTr.closest('.diff-body').data('commitB');
+        var sCommitA = welTr.closest('.diff-container').data('commitA');
+        var sCommitB = welTr.closest('.diff-container').data('commitB');
 
         if (isNaN(nLine)) {
             nLine = parseInt(welTr.prev().data('line'));

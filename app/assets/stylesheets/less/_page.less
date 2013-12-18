@@ -412,6 +412,10 @@
 .project-page-wrap {
     width: 1170px;
     margin:20px auto 0;
+
+    label {
+        display: inline-block;
+    }
 }
 
 .site-breadcrumb-outer {
@@ -4595,82 +4599,181 @@ div.markdown-preview {
 
 .diff-body {
     font-family: "monospace", Consolas, Tahoma;
-    overflow:auto;
 
-    .isBinary { color:#bbb; text-shadow:-1px -1px #fff; }
+    .isBinary { color:#bbb; text-shadow:-1px -1px #fff; padding:5px 10px; }
 
-    table {
-        border: 1px solid #eee;
-        width: 100%;
-    }
-    table {
+    .diff-partial-outer {
+        border: 1px solid #bbb;
         margin-bottom: 20px;
-    }
-    td {
-        border-width: 0px 1px;
-        border-color: #e5e5e5;
-        border-style: solid;
-    }
-    td.linenum {
-        text-align: right;
-        color: rgba(0, 0, 0, 0.3);
-        white-space: nowrap;
-        .user-select();
-        
-        &:before {
-            content: attr(data-line-num);
-            width:40px;
-        }
-    }
-    .code {
-        white-space: pre;
-    }
-    span.add {
-        background-color: #aaffaa;
-    }
-    span.remove {
-        background-color: #ffaaaa;
-    }
-    tr.add {
-        background-color: #eeffcc;
-    }
-    tr.remove {
-        background-color: #fdd;
-    }
-    tr.file {
-        background-color: #eee;
-        border:1px solid #bbb;
-        height:30px; /* 40px? */
-        font-weight: bold;
-    }
-    tr.range {
-        color: #999;
-        background-color: #f8f8ff;
-    }
-    .yobicon-comments {
-        visibility: hidden;
-        opacity: 0.6;
-    }
-    .icon-comment {
-        display:none;
-        float: left;
-        opacity: 0.6;
-    }
-    tr:hover .icon-comment {
-        display:block;
-    }
-    .linenum:hover .icon-comment {
-        opacity: 1.0;
-    }
-    .linenum, .filemode {
-        width: 40px;
-    }
-    .linenum-from { min-width:15px; }
-    .filename { float:left; line-height:30px; }
 
-    .hide {
-        display:none;
-    }
+        .diff-partial-inner {
+            .diff-partial-meta {
+                background-color: #eee;
+                border-bottom: 1px solid #bbb;
+                height: 30px;
+
+                .diff-partial-commit {
+                    float:left;
+
+                    .diff-partial-commit-id {
+                        float:left;
+                        padding:5px 2px;  
+                        font-weight: bold;
+                        border-right:1px solid #bbb;
+                        width:52px;
+                        text-align: center;
+                    }
+                }
+
+                .diff-partial-file {
+                    float: left;
+                    padding:5px 10px;
+                    font-weight: bold;
+                }
+
+                .diff-partial-utility {
+                    float:right;
+                    padding:2px 5px;
+                }
+            }
+
+            .diff-partial-code {
+                overflow: auto;
+                overflow-x: auto;
+                overflow-y: hidden;
+
+                table {
+                    width: 100%;
+                    border-collapse: separate;
+                    border-spacing: 0;
+
+                    tr {
+                        position: relative;
+                        td {
+                            &.linenum {
+                                text-align: right;
+                                color: rgba(0, 0, 0, 0.3);
+                                white-space: nowrap;
+                                border-right: 1px solid #e5e5e5;
+                                width:50px;
+                                padding:0 3px;
+                                .user-select(none);
+                                cursor: pointer;
+
+                                .line-number {
+                                    width: 50px;
+                                    height: 20px;
+                                    position: relative;
+
+                                    &:before { 
+                                        position: absolute;
+                                        content: attr(data-line-num); 
+                                        width: 50px;
+                                        display: block;
+                                    } 
+                                }
+                            }
+
+                            &.code {
+                                white-space: nowrap;
+                                padding:0 5px;
+                                .diff-partial-codeline {
+                                    font-family: "monospace", Consolas, Tahoma;
+                                    background-color: transparent;
+                                    border:none;
+                                    margin:0;
+                                    padding:0;
+                                    font-size:12px;
+                                    white-space: pre;
+                                }
+                            }
+
+                            &.diff-comment-box {
+                                border:1px solid #e5e5e5;
+                                border-left: none;
+                                border-right: none;
+
+                                form { margin:0;}
+                                
+                                .write-comment-box {
+                                    background-color: #f5f5f5;
+                                    margin:0;
+                                    .write-comment-wrap {
+                                        max-width: 1070px;
+                                    }
+                                }
+                            }
+                        }
+
+                        &.add {
+                            background-color: #eeffcc;
+                        }
+
+                        &.remove {
+                            background-color: #fdd;
+                        }
+
+                        &.range {
+                            color: #999;
+                            background-color: #f8f8ff;
+
+                            td {
+                                text-align: right;
+                                border-right: 1px solid #e5e5e5;
+
+                                &.hunk {
+                                    text-align: left;
+                                    padding-left:5px;
+                                }
+                            }
+                        }
+
+                        &.comments {
+                            display: table-row;
+                            td {
+                                border:1px solid #e5e5e5;
+                                border-left: none;
+                                border-right: none;
+                                padding:10px 5px;
+
+                                li {
+                                    max-width: 1150px;
+                                }
+                            }
+                        }
+                    }
+                }
+               
+                .icon-comment {
+                    position:absolute;
+                    cursor: pointer; 
+                    .opacity(0);
+                    margin-left: -75px;
+                    width: 25px;
+                    margin-top:2px;
+
+                }
+
+                tr.add:hover, tr.remove:hover,tr.context:hover{
+                    background-color: #CCE9FF !important;
+
+                    .icon-comment {
+                        .opacity(100);
+                    }
+                }
+                
+                .linenum:hover .icon-comment {
+                    opacity: 1.0;
+                }
+                
+                .linenum-from { min-width:15px; }
+                
+                .hide {
+                    display:none;
+                }    
+            }
+        }
+    }    
 }
 
 div.diff-body[data-outdated="true"] tr:hover .icon-comment {

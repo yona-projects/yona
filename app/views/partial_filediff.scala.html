@@ -20,11 +20,11 @@
 **@
 @renderDiffLines(diff: playRepository.FileDiff, comments: Map[String, List[_ <: CodeComment]]) = {
   @if(diff.isFileModeChanged) {
-    <tr><td class="filemode">@diff.oldMode</td><td class="filemode">@diff.newMode</td><td>@Messages("code.fileModeChanged")</td></tr>
+    <tr><td class="linenum"><div class="line-number" data-line-num="@diff.oldMode"></div><span class="hidden">@diff.oldMode</span></td><td class="linenum"><div class="line-number" data-line-num="@diff.newMode"></div><span class="hidden">@diff.newMode</span></td><td class="isBinary">@Messages("code.fileModeChanged")</td></tr>
   }
   @if(diff.getHunks.size > 0){
     @for(hunk <- diff.getHunks) {
-      <tr class="range"><td>...</td><td>...</td><td>@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
+      <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
       @Html(renderLines(hunk.lines.toList, comments, eolMissingChecker(diff)))
     }
   } else {
@@ -57,18 +57,18 @@
             builder.append(i + 1)
             builder.append("' data-type='")
             builder.append(klass)
-            builder.append("'><td class='linenum'><i class='icon-comment'></i></td><td class='linenum' data-line-num='")
+            builder.append("'><td class='linenum'><i class='icon-comment'></i><div class='line-number'></div></td>")
+            builder.append("<td class='linenum'><div class='line-number' data-line-num='")
             builder.append(i + 1)
-            builder.append("'><span class='hidden'>")
+            builder.append("'></div><span class='hidden'>")
             builder.append(i + 1)
-            builder.append("</span></td><td class='code'><span>")
+            builder.append("</span></td><td class='code'><pre class='diff-partial-codeline'>")
             builder.append(prefix)
-            builder.append("</span>")
             builder.append(escapeHtml(rawText.getString(i)))
             if ((i + 1 == rawText.size) && rawText.isMissingNewlineAtEnd) {
                 builder.append(noNewlineAtEof)
             }
-            builder.append("</td></tr>")
+            builder.append("</pre></td></tr>")
             builder.append(partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1))).toString.trim)
         }
 
@@ -136,30 +136,47 @@
  * @param renderedLines
 **@
 @renderFile(diff: FileDiff, fileHeader: String, renderedLines: Html) = {
-  <table class="diff-body show-comments" data-path-a="@diff.pathA" data-path-b="@diff.pathB" data-commit-a="@diff.commitA" data-commit-b="@diff.commitB"><tbody>
-  <tr id="@getFileHeadId(diff)" class="file">
-      <td class="linenum-from">
-          @if(diff.commitA != null && diff.pathA != null){
-          <a href="@routes.CodeApp.codeBrowserWithBranch(projectA.owner, projectA.name, diff.commitA, diff.pathA)" title="@diff.commitA" target="_blank">@getShortenedCommitId(diff.commitA)</a>
-          }
-      </td>
-      <td class="linenum-to">
-          @if(diff.commitB != null && diff.pathB != null){
-          <a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a></td>
-          }
-      <td class="line-body">
+  <div class="diff-partial-outer">
+    <div class="diff-partial-inner">
+      <div class="diff-partial-meta">
+        <div class="diff-partial-commit">
+          <div class="diff-partial-commit-id">
+            @if(diff.commitA != null && diff.pathA != null){
+            <a href="@routes.CodeApp.codeBrowserWithBranch(projectA.owner, projectA.name, diff.commitA, diff.pathA)" title="@diff.commitA" target="_blank">@getShortenedCommitId(diff.commitA)</a>
+            } else {
+            &nbsp;
+            }
+          </div>
+          <div class="diff-partial-commit-id">
+            @if(diff.commitB != null && diff.pathB != null){
+            <a href="@routes.CodeApp.codeBrowserWithBranch(projectB.owner, projectB.name, diff.commitB, diff.pathB)" title="@diff.commitB" target="_blank">@getShortenedCommitId(diff.commitB)</a></td>
+            } else {
+            &nbsp;
+            }
+          </div>
+        </div>
+        <div class="diff-partial-file">
           <span class="filename">@fileHeader</span>
+        </div>
+        <div class="diff-partial-utility">
           @if(diff.commitA && diff.commitB && diff.pathA && diff.pathB){
-          <button type="button" class="ybtn pull-right" data-toggle="mergely"
-            data-pathA="@diff.pathA" data-pathB="@diff.pathB" data-commitA="@diff.commitA" data-commitB="@diff.commitB"
-            data-rawA="@routes.CodeApp.showRawFile(projectA.owner, projectA.name, diff.commitA, diff.pathA)" 
-            data-rawB="@routes.CodeApp.showRawFile(projectB.owner, projectB.name, diff.commitB, diff.pathB)"
-          >@Messages("code.fullDiff")</button>
+              <button type="button" class="ybtn ybtn-small" data-toggle="mergely"
+                data-pathA="@diff.pathA" data-pathB="@diff.pathB" data-commitA="@diff.commitA" data-commitB="@diff.commitB"
+                data-rawA="@routes.CodeApp.showRawFile(projectA.owner, projectA.name, diff.commitA, diff.pathA)" 
+                data-rawB="@routes.CodeApp.showRawFile(projectB.owner, projectB.name, diff.commitB, diff.pathB)"
+              >@Messages("code.fullDiff")</button>
           }
-      </td>
-  </tr>
-  @renderedLines
-  </tbody></table>
+        </div>
+      </div>
+      <div class="diff-partial-code">
+        <table class="diff-container show-comments" data-path-a="@diff.pathA" data-path-b="@diff.pathB" data-commit-a="@diff.commitA" data-commit-b="@diff.commitB">
+        <tbody>
+          @renderedLines
+        </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 }
 
 @**
@@ -197,7 +214,7 @@
  * @param prefix
 **@
 @renderCodeIsBinary(klass:String = "", prefix:String = "") = {
-    <tr class="@klass"><td></td><td></td><td class="isBinary">@prefix@Messages("code.isBinary")</td></tr>
+    <tr class="@klass"><td class='linenum'><div class='line-number'></div></td><td class='linenum'><div class='line-number'></div></td><td class="isBinary">@prefix@Messages("code.isBinary")</td></tr>
 }
 
 @getComments(comments: java.util.List[_ <: CodeComment]) = @{
