@@ -36,7 +36,7 @@
 @projectMenu(project, utils.MenuType.PROJECT_HOME, "")
 <div class="project-page-wrap">
     <div class="project-home-header">
-        <div class="project-overview"><h3>@project.overview</h3></div>    
+        <div class="project-overview"><h3>@if(!project.overview.isEmpty()) {@project.overview} else {@project.name}</h3></div>    
         <div class="project-clone-wrap">
             <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
             <button class="project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>         
