@@ -62,7 +62,7 @@
                     }
                 </div>
 
-                <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && (pull.isClosed() || pull.isRejected)){display:block;}else{display:none;}">
+                <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && pull.isClosed()) {display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }

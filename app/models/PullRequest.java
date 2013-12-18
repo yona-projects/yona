@@ -194,10 +194,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return this.state == State.OPEN;
     }
 
-    public boolean isRejected() {
-        return this.state == State.REJECTED;
-    }
-
     public static PullRequest findById(long id) {
         return finder.byId(id);
     }
@@ -248,14 +244,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         return finder.where()
                 .eq("fromProject", project)
                 .or(eq("state", State.CLOSED), eq("state", State.MERGED))
-                .order().desc("created")
-                .findList();
-    }
-
-    public static List<PullRequest> findRejectedPullRequests(Project project) {
-        return finder.where()
-                .eq("toProject", project)
-                .eq("state", State.REJECTED)
                 .order().desc("created")
                 .findList();
     }
@@ -467,12 +455,6 @@ public class PullRequest extends Model implements ResourceConvertible {
         this.received = JodaDateUtil.now();
         this.receiver = UserApp.currentUser();
         this.update();
-    }
-    /**
-     * 코드 보내기 보류
-     */
-    public void reject() {
-        changeState(State.REJECTED);
     }
 
     /**
@@ -967,6 +949,16 @@ public class PullRequest extends Model implements ResourceConvertible {
                 .order().desc("number")
                 .setMaxRows(1)
                 .findUnique();
+    }
+
+    public static void changeStateToClosed() {
+        List<PullRequest> rejectedPullRequests = PullRequest.finder.where()
+                                    .eq("state", State.REJECTED).findList();
+        for (PullRequest rejectedPullRequest : rejectedPullRequests) {
+            rejectedPullRequest.state = State.CLOSED;
+            rejectedPullRequest.received = JodaDateUtil.now();
+            rejectedPullRequest.update();
+        }
     }
 
 }
