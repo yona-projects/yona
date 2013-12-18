@@ -12,6 +12,8 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
 
     @Test
     public void findByThread() {
+        /* Test comments in NonRangedCodeCommentThread */
+
         // given
         addTestData();
         CommentThread thread = CommentThread.find.byId(1l);
@@ -24,19 +26,42 @@ public class ReviewCommentTest extends ModelTest<ReviewComment> {
         assertThat(commentList.size()).isEqualTo(2);
         assertThat(commentList.get(0).id).isEqualTo(2);
         assertThat(commentList.get(1).id).isEqualTo(1);
-    }
 
+
+        /* Test comments in CodeCommentThread */
+
+        // given
+        thread = CommentThread.find.byId(2l);
+        assertThat(thread).isNotNull();
+
+        // when
+        commentList = ReviewComment.findByThread(2l);
+
+        // then
+        assertThat(commentList.size()).isEqualTo(1);
+        assertThat(commentList.get(0).id).isEqualTo(3l);
+    }
 
     /**
      * {@code commitId}를 가지는 {@link models.NonRangedCodeCommentThread} 한 개 저장.
      *  - state: OPEN
      *  - createDate: 3일전
      *  - id: 1
+     * {@link models.ReviewComment} 생성하여 {@link models.NonRangedCodeCommentThread}에 추가.
+     *  - createdDate: 3일전
+     *  - id: 1
+     * {@link models.ReviewComment} 생성하여 {@link models.NonRangedCodeCommentThread}에 추가.
+     *  - createdDate: 2일전
+     *  - id: 2
      * {@code commitId}를 가지는 {@link models.CodeCommentThread} 한 개 저장.
      *  - state: CLOSED
      *  - path: "readme.md"
      *  - createdDate: 2일전
      *  - id: 2
+     * {@code }
+     * {@link models.ReviewComment} 생성하여 {@link models.CodeCommentThread}에 추가.
+     *  - createdDate: 3일전
+     *  - id: 1
      */
     private void addTestData() {
         NonRangedCodeCommentThread thread1 = new NonRangedCodeCommentThread();
