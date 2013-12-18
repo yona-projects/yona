@@ -1,8 +1,11 @@
 package models;
 
+import play.data.format.Formats;
+import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,6 +16,8 @@ import java.util.List;
 public class CommentThread extends Model {
 
     private static final long serialVersionUID = 1L;
+
+    public static final Finder<Long, CommentThread> find = new Finder<>(Long.class, CommentThread.class);
 
     @Id
     public Long id;
@@ -25,6 +30,17 @@ public class CommentThread extends Model {
 
     @Enumerated(EnumType.STRING)
     public ThreadState state;
+
+    @Constraints.Required
+    @Formats.DateTime(pattern = "YYYY/MM/DD/hh/mm/ss")
+    public Date createdDate;
+
+    public static List<CommentThread> findByCommitId(String commitId) {
+        return find.where()
+                .eq("commitId", commitId)
+                .order().desc("createdDate")
+                .findList();
+    }
 
     enum ThreadState {
         OPEN, CLOSED;
