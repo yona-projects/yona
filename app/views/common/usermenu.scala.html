@@ -29,7 +29,7 @@
             </span>
             <span class="caret"></span>
         </a>
-        <ul class="dropdown-menu flat right">
+        <ul class="dropdown-menu flat right maximum">
             <li class="title">
                 @User.findByLoginId(session.get("loginId")).name <span class="disabled">@{"@"}@session.get("loginId")</span>
             </li>
