@@ -1,5 +1,7 @@
 package models;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -14,10 +16,12 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("ranged")
 public class CodeCommentThread extends CommentThread {
+    public static final Finder<Long, CodeCommentThread> find = new Finder<>(Long.class, CodeCommentThread.class);
 
     @Embedded
     public CodeRange codeRange;
 
+    public String prevCommitId = StringUtils.EMPTY;
     public String commitId;
 
     @ManyToMany
