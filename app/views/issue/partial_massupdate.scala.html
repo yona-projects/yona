@@ -7,7 +7,7 @@
             @labels.map { label =>
             <li data-value="@label.id" data-category="@category">
             <a>
-                <span class="issue-label active" data-labelId="@label.id">@label.name</span>
+                <span class="issue-label active list-label" data-labelId="@label.id">@label.name</span>
             </a>
             </li>
             }
@@ -33,7 +33,7 @@
             <span class="d-label">@Messages("issue.update.state")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu mass-update-list">
             <li data-value="@State.OPEN.name"><a>@Messages("issue.state.open")</a></li>
             <li data-value="@State.CLOSED.name"><a>@Messages("issue.state.closed")</a></li>
         </ul>
@@ -44,7 +44,7 @@
             <span class="d-label">@Messages("issue.update.assignee")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu mass-update-list">
             <li data-value="@User.anonymous.id"><a>@Messages("issue.noAssignee")</a></li>
             @if(ProjectUser.isMember(UserApp.currentUser().id, project.id)){
                 <li data-value="@UserApp.currentUser().id"><a>@Messages("issue.assignToMe")</a></li>
@@ -61,7 +61,7 @@
             <span class="d-label">@Messages("issue.update.milestone")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu mass-update-list">
             <li data-value="@Milestone.NULL_MILESTONE_ID"><a>@Messages("issue.noMilestone")</a></li>
             @for(milestone <- Milestone.findByProjectId(project.id)) {
                 <li data-value="@milestone.id"><a>@milestone.title</a></li>
@@ -74,7 +74,7 @@
             <span class="d-label">@Messages("issue.update.attachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul id="attach-label-list" class="dropdown-menu">
+        <ul id="attach-label-list" class="dropdown-menu mass-update-list">
             @labelList(project)
         </ul>
     </div>
@@ -84,7 +84,7 @@
             <span class="d-label">@Messages("issue.update.detachLabel")</span>
             <span class="d-caret"><span class="caret"></span></span>
         </button>
-        <ul id="delete-label-list" class="dropdown-menu">
+        <ul id="delete-label-list" class="dropdown-menu mass-update-list">
             @labelList(project)
         </ul>
     </div>
