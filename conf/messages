@@ -98,6 +98,7 @@ code.fullDiff = Side-by-side diff
 code.showCommit = View Commit
 code.showCode = Browse code
 code.showCodeAtThisCommit = Browse the code at this point
+code.fileModeChanged = File mode changed
 common.attach.attachIfYouSave = will be attached when you save
 common.attach.clickbutton = click Upload button
 common.attach.clickToPost = Click to post

@@ -1476,6 +1476,9 @@ public class GitRepository implements PlayRepository {
 
             fileDiff.changeType = diff.getChangeType();
 
+            fileDiff.oldMode = diff.getOldMode();
+            fileDiff.newMode = diff.getNewMode();
+
             String pathA = diff.getPath(DiffEntry.Side.OLD);
             String pathB = diff.getPath(DiffEntry.Side.NEW);
 
