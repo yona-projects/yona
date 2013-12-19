@@ -57,7 +57,8 @@ public class UserApp extends Controller {
     public static final String SESSION_USERNAME = "userName";
     public static final String TOKEN = "yobi.token";
     public static final int MAX_AGE = 30*24*60*60;
-    public static final String DEFAULT_AVATAR_URL = "/assets/images/default-avatar-128.png";
+    public static final String DEFAULT_AVATAR_URL
+            = routes.Assets.at("images/default-avatar-128.png").url();
     public static final int MAX_FETCH_USERS = 1000;
     private static final int HASH_ITERATIONS = 1024;
     public static final int DAYS_AGO = 7;
@@ -509,7 +510,6 @@ public class UserApp extends Controller {
                 if (primary.equals("image")) {
                     Attachment.deleteAll(currentUser().avatarAsResource());
                     attachment.moveTo(currentUser().avatarAsResource());
-                    user.avatarUrl = routes.AttachmentApp.getFile(attachment.id).url();
                 }
             }
         } catch (NumberFormatException e) {
@@ -795,7 +795,6 @@ public class UserApp extends Controller {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
         user.passwordSalt = rng.nextBytes().getBytes().toString();
         user.password = hashedPassword(user.password, user.passwordSalt);
-        user.avatarUrl = DEFAULT_AVATAR_URL;
         User.create(user);
         if (isUseSignUpConfirm()) {
             user.changeState(UserState.LOCKED);

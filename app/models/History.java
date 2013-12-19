@@ -213,6 +213,6 @@ public class History {
     private static void setUserPageUrl(History history, User user) {
         history.setWho(user.name);
         history.setUserPageUrl("/" + user.loginId);
-        history.setUserAvatarUrl(user.avatarUrl);
+        history.setUserAvatarUrl(user.avatarUrl());
     }
 }

@@ -19,7 +19,6 @@ public class NullUser extends User {
         this.loginId = "";
         this.email = "";
         this.createdDate = new Date();
-        this.avatarUrl = UserApp.DEFAULT_AVATAR_URL;
     }
 
     public List<Project> myProjects(){

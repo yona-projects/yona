@@ -114,11 +114,11 @@ public class SVNRepository implements PlayRepository {
     }
 
     private static String getAvatar(User user) {
-        if(user.isAnonymous() || user.avatarUrl.equals(UserApp.DEFAULT_AVATAR_URL)) {
+        if(user.isAnonymous() || user.avatarUrl().equals(UserApp.DEFAULT_AVATAR_URL)) {
             String defaultImageUrl = "http://ko.gravatar.com/userimage/53495145/0eaeeb47c620542ad089f17377298af6.png";
             return GravatarUtil.getAvatar(user.email, 34, defaultImageUrl);
         } else {
-            return user.avatarUrl;
+            return user.avatarUrl();
         }
     }
 

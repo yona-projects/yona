@@ -323,10 +323,10 @@ public class GitRepository implements PlayRepository {
     }
 
     private String getAvatar(User user) {
-        if(user.isAnonymous() || user.avatarUrl.equals(UserApp.DEFAULT_AVATAR_URL)) {
+        if(user.isAnonymous() || user.avatarUrl().equals(UserApp.DEFAULT_AVATAR_URL)) {
             return GravatarUtil.getAvatar(user.email, 34);
         } else {
-            return user.avatarUrl;
+            return user.avatarUrl();
         }
     }
 

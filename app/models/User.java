@@ -92,10 +92,7 @@ public class User extends Model implements ResourceConvertible {
      */
     @Constraints.Email(message = "user.wrongEmail.alert")
     public String email;
-    /**
-     * 아바타 URL
-     */
-    public String avatarUrl;
+
     /**
      * 로그인 정보를 기억할지 나타내는 값
      */
@@ -289,7 +286,11 @@ public class User extends Model implements ResourceConvertible {
     @Transient
     public Long avatarId(){
         List<Attachment> attachments = Attachment.findByContainer(avatarAsResource());
-        return attachments.get(attachments.size()-1).id;
+        if (attachments.size() > 0) {
+            return attachments.get(attachments.size()-1).id;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -463,7 +464,6 @@ public class User extends Model implements ResourceConvertible {
             password = "";
             passwordSalt = "";
             email = "deleted-" + loginId + "@noreply.yobi.io";
-            avatarUrl = UserApp.DEFAULT_AVATAR_URL;
             rememberMe = false;
             projectUser.clear();
             enrolledProjects.clear();
@@ -476,10 +476,18 @@ public class User extends Model implements ResourceConvertible {
         update();
     }
 
+    public String avatarUrl() {
+        Long avatarId = avatarId();
+        if (avatarId == null) {
+            return UserApp.DEFAULT_AVATAR_URL;
+        } else {
+            return controllers.routes.AttachmentApp.getFile(avatarId).url();
+        }
+    }
+
     public static List<User> findIssueAuthorsByProjectId(long projectId) {
-        String sql = "select user.id, user.avatar_url, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id group by issue.author_id";
+        String sql = "select user.id, user.name, user.login_id from issue issue, n4user user where issue.author_id = user.id group by issue.author_id";
         RawSql rawSql = RawSqlBuilder.parse(sql)
-                        .columnMapping("user.avatar_url", "avatarUrl")
                         .columnMapping("user.login_id", "loginId")
                         .create();
 
