@@ -28,7 +28,13 @@ public class ReservedWordsValidator extends Validator<String> {
     static {
         RESERVED_WORDS = new HashSet<>();
         List<Tuple3<String, String, String>> list = Scala.asJava(Play.current().routes().get().documentation());
-        Pattern pattern = Pattern.compile("^/(" + User.LOGIN_ID_PATTERN + ")/?");
+        play.Configuration config = play.Configuration.root();
+        String context = config.getString("application.context");
+        String regex = String.format("^%s%s(%s)/?",
+                context,
+                (context.endsWith("/") ? "" : "/"),
+                User.LOGIN_ID_PATTERN);
+        Pattern pattern = Pattern.compile(regex);
         for (Tuple3<String, String, String> tuple : list) {
             Matcher matcher = pattern.matcher(tuple._2());
             if (matcher.find()) {
