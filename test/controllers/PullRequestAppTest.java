@@ -308,8 +308,7 @@ public class PullRequestAppTest {
 
     @Before
     public void before() {
-        Map<String, String> config = support.Config.makeTestConfig();
-        app = Helpers.fakeApplication(config);
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
 

@@ -20,10 +20,10 @@ public class PasswordResetAppTest {
 
     @Test
     public void testRequestResetPassword_validLoginIdAndEmailAddress() {
-        Map<String, String> config = support.Config.makeTestConfig();
+        Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("application.langs", "ko");
 
-        running(fakeApplication(config), new Runnable() {
+        running(support.Helpers.makeTestApplication(config), new Runnable() {
             public void run() {
                 //Given
                 Map<String,String> data = new HashMap<>();

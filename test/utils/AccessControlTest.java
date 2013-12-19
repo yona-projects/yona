@@ -15,17 +15,6 @@ import models.enumeration.Operation;
 import models.enumeration.State;
 
 public class AccessControlTest extends ModelTest<Role>{
-    @Before
-    public void before() {
-        app = Helpers.fakeApplication(support.Config.makeTestConfig());
-        Helpers.start(app);
-    }
-
-    @After
-    public void after() {
-        Helpers.stop(app);
-    }
-
     @Test
     public void isAllowed_siteAdmin() {
         // Given

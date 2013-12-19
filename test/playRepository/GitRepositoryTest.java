@@ -267,7 +267,7 @@ public class GitRepositoryTest {
         git.tag().setName(annotatedTagName).setAnnotated(true).setMessage("annotated tag").call();
         repository.close();
 
-        running(fakeApplication(inMemoryDatabase()), new Runnable() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
             @Override
             public void run() {
                 try {
@@ -507,7 +507,7 @@ public class GitRepositoryTest {
 
     @Test
     public void testGetAllBranches() throws IOException, GitAPIException {
-        FakeApplication app = Helpers.fakeApplication(support.Config.makeTestConfig());
+        FakeApplication app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 
         // Given
@@ -547,8 +547,11 @@ public class GitRepositoryTest {
         .setForce(true)
         .call();
 
+        repository.close();
+
         // When
         List<GitBranch> gitBranches = gitRepository.getAllBranches();
+        gitRepository.close();
 
         // Then
         assertThat(gitBranches.size()).isEqualTo(1);

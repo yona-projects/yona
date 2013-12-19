@@ -36,10 +36,7 @@ public class IssueAppTest {
 
     @Before
     public void before() {
-        Map<String, String> config = support.Config.makeTestConfig();
-        config.put("application.secret", "foo");
-
-        app = Helpers.fakeApplication(config);
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
 
         Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");

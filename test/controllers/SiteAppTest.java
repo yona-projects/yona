@@ -27,10 +27,9 @@ public class SiteAppTest {
 
     @Before
     public void before() {
-        Map<String, String> config = support.Config.makeTestConfig();
+        Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("signup.require.confirm", "true");
-        config.put("application.secret", "foo");
-        app = Helpers.fakeApplication(config);
+        app = support.Helpers.makeTestApplication(config);
         Helpers.start(app);
     }
 
