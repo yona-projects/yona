@@ -6,15 +6,6 @@
 @import utils.AccessControl._
 @import models.enumeration._
 
-@projectLogoImage = @{
-	defining(Attachment.findByContainer(project.asResource)) { files =>
-		if(files.size > 0){
-			"/files/" + files.head.id
-		} else {
-			routes.Assets.at("images/bg-default-project.jpg")
-		}
-	}
-}
 @userPageUrlOnHistory(history:History) = @{
 	if(history.getUserPageUrl() != null) {
 		history.getUserPageUrl()

@@ -6,16 +6,6 @@
 @import models.enumeration.ResourceType
 @import models.enumeration.Operation
 
-@projectLogoImage = @{
-    defining(Attachment.findByContainer(project.asResource)) { files =>
-        if(files.size > 0){
-            "/files/" + files.head.id
-        } else {
-            routes.Assets.at("images/bg-default-project.jpg")
-        }
-    }
-}
-
 @makeIssuesLink(mId: Long, _state: String) = @{
     buildQueryString(routes.IssueApp.issues(project.owner, project.name, _state),Map("milestoneId"->mId.toString))
 }
@@ -23,7 +13,7 @@
 <li class="milestone">
     <div class="pull-left">
         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap large" style="margin:8px 8px 0 0;">
-            <img src="@projectLogoImage">
+            <img src="@urlToProjectLogo(project)">
         </a>
     </div>
     <div class="infos">

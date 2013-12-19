@@ -2,20 +2,10 @@
 @import utils.JodaDateUtil
 @import utils.TemplateHelper._
 
-@projectLogoImage = @{
-    defining(Attachment.findByContainer(project.asResource)) { files =>
-        if(files.size > 0){
-            "/files/" + files.head.id
-        } else {
-            routes.Assets.at("images/bg-default-project.jpg")
-        }
-    }
-}
-
 <li class="board" style="padding:10px 0;">
     <div class="pull-left">
         <a href="@routes.ProjectApp.project(project.owner, project.name)" class="avatar-wrap mlarge">
-            <img src="@projectLogoImage" alt="@project.owner / @project.name"/>
+            <img src="@urlToProjectLogo(project)" alt="@project.owner / @project.name"/>
         </a>
         <a href="@routes.UserApp.userInfo(post.authorLoginId)" class="avatar-wrap mlarge">
             <img src="@User.findByLoginId(post.authorLoginId).avatarUrl" alt="@post.authorName">
