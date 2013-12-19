@@ -80,8 +80,22 @@ public class Global extends GlobalSettings {
         }
 
         PullRequest.regulateNumbers();
+
         PullRequest.changeStateToClosed();
-        NotificationMail.startSchedule();
+
+        if (notificationEnabled()) {
+            NotificationMail.startSchedule();
+        }
+    }
+
+    private boolean notificationEnabled() {
+        play.Configuration config = play.Configuration.root();
+        Boolean notificationEnabled = config.getBoolean("notification.enabled");
+        if (notificationEnabled == null || notificationEnabled) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private boolean validateSecret() {
