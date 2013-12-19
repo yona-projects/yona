@@ -1,0 +1,83 @@
+@**
+* Yobi, Project Hosting SW
+*
+* Copyright 2013 NAVER Corp.
+* http://yobi.io
+*
+* @Author Jihan Kim
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+**@
+@(project:Project, files:org.codehaus.jackson.node.ObjectNode, branch:String, path:String)
+
+@import utils.TemplateHelper._
+@import utils.TemplateHelper.CodeBrowser._
+@import java.net.URLEncoder
+
+@defining(path.substring(path.lastIndexOf("/") + 1)) { fileName =>
+@defining(getFileRev(project.vcs, files)) { revId=>
+@defining(routes.CodeApp.showRawFile(project.owner, project.name, revId, path)) { filePath =>
+<div class="file-wrap" data-type="file">
+    <div class="file-header nm">
+        <div id="fileInfo" class="file-info">
+            <span id="commiter" class="commiter">
+                @Html(getAvatar(files))
+                <a href="@getUserLink(fieldText(files, "userLoginId"))" class="ml5">@fieldText(files,"commiter")</a>
+            </span>
+            <span id="commitDate" class="commitDate">@getFileDate(files,"createdDate")</span>
+            <span id="revisionNo" class="revision">
+                <a href="@routes.CodeHistoryApp.show(project.owner, project.name, revId)@if(branch){?branch=@URLEncoder.encode(branch, "UTF-8")}#@path">
+                    @if(project.vcs.equals("GIT")){ @revId.substring(0,7) } else { Revision @revId }
+                    @defining(CommitComment.count(project, fieldText(files, "commitId"), "/"+path)){ numOfComment =>
+                    @if(numOfComment > 0) {
+                        <span class="number-of-comments ml5"><i class="yobicon-comments"></i> @numOfComment</span>
+                    }
+                    }
+                </a>
+            </span>
+            <span id="commitMessage" class="commitMsg">@fieldText(files,"commitMessage")</span>
+        </div>
+        <div class="pull-right">
+            @if(!files.get("isBinary").getBooleanValue()){
+            <a href="@filePath" class="ybtn" target="_blank">
+                <i class="yobicon-download-alt yobicon-white vmiddle"></i> Raw
+            </a>
+            }
+            <a href="@routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branch, "UTF-8"), path)" class="ybtn">@Messages("code.history")</a>
+        </div>
+    </div>
+
+    @** Binary File **@
+    @if(files.get("isBinary").getBooleanValue()){
+    @if(fieldText(files, "mimeType").indexOf("image/") == 0){
+    <div id="showImage" class="image-wrap"><img src="@filePath"></div>
+    } else {
+    <div id="showFile" class="file-wrap">
+        <p>
+            <strong class="filename">@fileName</strong><br>
+            <span class="filesize">@fieldText(files, "size")</span><br>
+            <a href="@filePath" class="filehref ybtn"><i class="yobicon-download-alt yobicon-white vmiddle"></i> @Messages("button.download")</a>
+        </p>
+    </div>
+    }
+    } else {
+    @** Text(Code) **@
+    <div id="codeVal" class="hidden">@if(files.get("data") != null){@fieldText(files, "data")}</div>
+    <pre id="showCode" class="code-wrap" data-mimeType="@files.get("mimeType")"></pre>
+    }
+</div>
+}
+}
+}
+
+<script type="text/javascript" src="@getJSLink("lib/ace/ace")"></script>
