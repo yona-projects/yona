@@ -13,6 +13,7 @@ import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.junit.After;
 import org.junit.Before;
@@ -512,14 +513,21 @@ public class GitRepositoryTest {
         // Given
         String userName = "wansoon";
         String projectName = "test";
+        Project project = createProject(userName, projectName);
+        project.save();
+
         String email = "test@email.com";
-        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + projectName;
+        String wcPath = GitRepository.getRepoPrefix() + userName + "/" + "clone-" + projectName + ".git";
         String repoPath = wcPath + "/.git";
         String dirName = "dir";
         String fileName = "file";
 
+        GitRepository gitRepository = new GitRepository(userName, projectName);
+        gitRepository.create();
+
         Repository repository = new RepositoryBuilder().setGitDir(new File(repoPath)).build();
         repository.create(false);
+
         Git git = new Git(repository);
         FileUtils.forceMkdir(new File(wcPath + "/" + dirName));
         FileUtils.touch(new File(wcPath + "/" + fileName));
@@ -532,14 +540,19 @@ public class GitRepositoryTest {
                 .setName(branchName)
                 .setForce(true)
                 .call();
-        GitRepository gitRepository = new GitRepository(userName, projectName + "/");
+
+        git.push()
+        .setRemote(GitRepository.getGitDirectoryURL(project))
+        .setRefSpecs(new RefSpec(branchName + ":" + branchName))
+        .setForce(true)
+        .call();
 
         // When
         List<GitBranch> gitBranches = gitRepository.getAllBranches();
 
         // Then
-        assertThat(gitBranches.size()).isEqualTo(2);
-        assertThat(gitBranches.get(1).getShortName()).isEqualTo(branchName);
+        assertThat(gitBranches.size()).isEqualTo(1);
+        assertThat(gitBranches.get(0).getShortName()).isEqualTo(branchName);
 
         Helpers.stop(app);
     }
