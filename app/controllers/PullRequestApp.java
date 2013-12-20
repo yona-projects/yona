@@ -207,12 +207,18 @@ public class PullRequestApp extends Controller {
             return validation.getResult();
         }
 
-        List<GitBranch> fromBranches = new GitRepository(project).getAllBranches();
-        List<GitBranch> toBranches = new GitRepository(project.originalProject).getAllBranches();
+        List<Project> projects = project.getAssociationProjects();
 
-        PullRequest pullRequest = PullRequest.createNewPullRequest(project
+        Project fromProject = getSelectedProject(project, request().getQueryString("fromProjectId"), false);
+        Project toProject = getSelectedProject(project, request().getQueryString("toProjectId"), true);
+
+        List<GitBranch> fromBranches = new GitRepository(fromProject).getAllBranches();
+        List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
+
+        PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
                             , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
-                            , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch())); 
+                            , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
+
         PullRequestMergeResult mergeResult = pullRequest.getPullRequestMergeResult();
 
         if (HttpUtil.isRequestedWithXHR(request())) {
@@ -220,7 +226,30 @@ public class PullRequestApp extends Controller {
             return ok(partial_diff.render(new Form<>(PullRequest.class).fill(pullRequest), project, pullRequest, mergeResult));
         }
 
-        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, fromBranches, toBranches, pullRequest, mergeResult));
+        return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class).fill(pullRequest), project, projects, fromProject, toProject, fromBranches, toBranches, pullRequest, mergeResult));
+    }
+
+    /**
+     * 현재 선택된 프로젝트 정보를 가져온다.
+     *
+     * 디폴트는 현재 프로젝트이고 받는 프로젝트일 경우 원본프로젝트이다.
+     *
+     * @param project 현재 프로젝트
+     * @param projectId 선택된 프로젝트ID
+     * @param isToProject 받는 프로젝트인지 여부
+     * @return
+     */
+    private static Project getSelectedProject(Project project, String projectId, boolean isToProject) {
+        Project selectedProject = project;
+        if(isToProject && project.isForkedFromOrigin()) {
+            selectedProject = project.originalProject;
+        }
+
+        if(StringUtils.isNumeric(projectId)) {
+            selectedProject = Project.find.byId(Long.parseLong(projectId));
+        }
+
+        return selectedProject;
     }
 
     /**
@@ -251,23 +280,21 @@ public class PullRequestApp extends Controller {
         if(form.hasErrors()) {
             List<GitBranch> fromBranches = new GitRepository(project).getAllBranches();
             List<GitBranch> toBranches = new GitRepository(project.originalProject).getAllBranches();
-            return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, fromBranches, toBranches, null, null));
+            return ok(create.render("title.newPullRequest", new Form<>(PullRequest.class), project, null, null, null, fromBranches, toBranches, null, null));
         }
-
-        Project originalProject = project.originalProject;
 
         PullRequest pullRequest = form.get();
         pullRequest.created = JodaDateUtil.now();
         pullRequest.contributor = UserApp.currentUser();
-        pullRequest.fromProject = project;
-        pullRequest.toProject = originalProject;
+        pullRequest.toProject = Project.find.byId(pullRequest.toProjectId);
+        pullRequest.fromProject = Project.find.byId(pullRequest.fromProjectId);
         pullRequest.isMerging = true;
         pullRequest.isConflict = false;
 
-        // 동일한 브랜치로 주고 받으며, Open 상태의 PullRequest가 이미 존재한다면 해당 PullRequest로 이동한다.
+        // 동일한 저장소와 브랜치로 주고 받으며, Open 상태의 PullRequest가 이미 존재한다면 해당 PullRequest로 이동한다.
         PullRequest sentRequest = PullRequest.findDuplicatedPullRequest(pullRequest);
         if(sentRequest != null) {
-            return redirect(routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, sentRequest.number));
+            return redirect(routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, sentRequest.number));
         }
 
         pullRequest.save();
@@ -275,7 +302,7 @@ public class PullRequestApp extends Controller {
         PushedBranch.removeByPullRequestFrom(pullRequest);
         Attachment.moveAll(UserApp.currentUser().asResource(), pullRequest.asResource());
 
-        Call pullRequestCall = routes.PullRequestApp.pullRequest(originalProject.owner, originalProject.name, pullRequest.number);
+        Call pullRequestCall = routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number);
 
         NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
@@ -709,10 +736,6 @@ public class PullRequestApp extends Controller {
     private static ValidationResult validateBeforePullRequest(Project project) {
         Result result = null;
         boolean hasError = false;
-        if(!project.isForkedFromOrigin()) {
-            result = badRequest(ErrorViews.BadRequest.render("Only fork project is allowed this request", project));
-            hasError = true;
-        }
 
         // anonymous는 위에서 걸렀고, 남은건 manager, member, site-manager, guest인데 이중에서 guest만 다시 걸러낸다.
         if(isGuest(project, UserApp.currentUser())) {
