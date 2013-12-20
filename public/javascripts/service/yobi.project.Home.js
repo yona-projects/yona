@@ -123,7 +123,7 @@
                 "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
                 "copy": htElement.welInputCloneURL.val(),
                 "afterCopy": function(){
-                    yobi.Common.notify("Url copied", 2000);
+                    yobi.Common.notify("Url copied", 1000);
                 }
             });
 

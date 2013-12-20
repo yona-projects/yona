@@ -2270,11 +2270,14 @@
         position: absolute;
         right: 0;
         top:0;
-        background-color: #F7F7F7;
         padding:5px 10px;
         .border-radius(6px);
-        
-        .project-clone-url {
+        &:hover {
+          .project-clone-url {width:450px;}
+        }
+
+      .project-clone-url {
+            text-align: right;
             float:left;
             margin-bottom:0;
             background-color:#FFF;
@@ -2285,26 +2288,12 @@
             cursor: pointer;
             .border-radius(3px 0 0 3px);
             .transition(width .15s);
-
-            &:focus {
-                width:450px;
-            }
         }
 
         .project-clone-button {
-            margin:0;
-            padding:0 5px;
+            margin-left:0;
             .border-radius(0 3px 3px 0);
-            border:1px solid #ddd;
             float:left;
-            background-color: transparent;
-            height:30px;
-            outline: 0;
-            width:65px;
-
-            &:hover {
-                border:1px solid #000;
-            }
         }
     }
 }
