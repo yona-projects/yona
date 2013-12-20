@@ -121,7 +121,10 @@
 
             htElement.welBtnCopy.zclip({
                 "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                "copy": htElement.welInputCloneURL.val()
+                "copy": htElement.welInputCloneURL.val(),
+                "afterCopy": function(){
+                    yobi.Common.notify("Url copied", 2000);
+                }
             });
 
              htElement.welInputCloneURL.on('click',function(){
