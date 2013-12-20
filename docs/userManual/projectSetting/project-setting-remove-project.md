@@ -1,3 +1,24 @@
+<a name="english"></a>
+[[한국어]](#korean)
+
+# Deleting projects
+
+To delete the project use `Delete this project`, provided you have administrator authorization.
+
+* Go to the project to be deleted.
+* Click `Administrator`.
+* Go to the `Delete project`. <그림 삽입>
+* Click `I agree with deleteig this project`
+* Click `Delete this project` 
+
+Once you have deleted a project, you cannot recover it.
+
+<그림 삽입>
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
+
 # 프로젝트 삭제하기
 
 프로젝트를 삭제하길 원한다면 `프로젝트 삭제` 기능을 사용 할 수 있습니다. 단, 해당 프로젝트의 관리자 권한을 가지고 있어야 합니다.

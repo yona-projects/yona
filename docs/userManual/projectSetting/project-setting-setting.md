@@ -1,3 +1,44 @@
+<a name="english"></a>
+[[한국어]](#korean)
+
+# Setting Project
+
+You can change project settings if you have administrator permissions of the project.
+
+Project log, name, description, share option and member can be configured.
+
+* Go to the project of which you have authroization. <그림 삽입>
+* Click `Setting` tab and change project log, name, description and share option. <그림 삽입>
+
+## Logo
+
+The Project logo is displayed on home page and top of the project when setting is done. 
+
+<그림 삽입>
+
+## Name
+
+The project name can be changed. If the name is changed, it affects below.
+
+* `URL` that indicates repository.
+* Everywhere the name is shown.
+
+## Description
+
+If the project description is altered, the explanation on project main page is modified.
+
+<그림 삽입>
+
+## Share Option
+
+You can change share option.
+
+Setting to public allows all users to access and watch all items. Setting to private prohibits users who are not member of the project from accessing and watching.
+
+<a name="korean"></a>
+# for Korean
+[[English]](#english)
+
 # 프로젝트 설정하기
 
 자신이 프로젝트 관리자로 등록되어 있는 프로젝트가 있다면 해당 프로젝트의 설정을 변경 할 수 있습니다. 
