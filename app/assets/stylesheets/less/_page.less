@@ -415,6 +415,9 @@
 
     label {
         display: inline-block;
+    h4 {
+        padding:10px 0;
+        line-height: 30px;
     }
 }
 
@@ -2019,8 +2022,10 @@
        .border-radius(2px);
        width:35px; height:7px;
        margin:0 3px;
-       &.orange { background:@orange; }
-       &.blue { background:@blue2;     }
+
+       &.open { background-color: @state-open; }
+       &.closed{ background-color : @state-closed;}
+
        &.gray { background:#B1B1B1;   }
     }
 }
@@ -2034,7 +2039,7 @@
     padding: 4px;
 
     .progress {
-        background-color:666;
+        background-color:@state-open;
         height:7px;
         width:100%;
 
@@ -2097,30 +2102,8 @@
                 .sp       { margin: 0 5px; color:#E4E4E4; }
                 .due-date { color: #666; /*999;*/ }
 
-                .nbtn {
-                    border: 1px solid #ccc;
-                    border-right: none;
-                    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0);
-                    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0);
-                    -webkit-border-radius: 2px 0 0 2px !important;
-                    -moz-border-radius: 2px 0 0 2px !important;
-                    border-radius: 2px 0 0 2px !important;
-                }
-
-                .closed-issue {
-                    background: #f36c22;
-                }
-
-                .closed-issue:hover {
-                    color:#fff;
-                    background-color: #d6530c;
-                }
-
-                .open-issue:hover {
-                    background-color: #575757;
-                    color:#fff;
-                }
+                .open { background-color: @state-open; color:#FFF;}
+                .closed { background-color: @state-closed; color:#FFF;}
 
                 .num-badge {
                     color: #fff;
@@ -2132,6 +2115,18 @@
                 color: #999;
                 font-size: 11px;
                 margin-top:15px;
+
+                .progress {
+                    background-color: @state-open;
+                    
+                    &.empty { background-color: #B1B1B1; }
+
+                    .progress-bar { 
+                        background-color: @state-closed;
+                        height: inherit;
+                    }
+                }
+
             }
             .desc {
                 font-size: 11px;
@@ -2176,6 +2171,18 @@
     .border-radius(2px);
 }
 
+.milesion-wrap {
+    .progress {
+        background-color: @state-open;
+        
+        &.empty { background-color: #B1B1B1; }
+
+        .progress-bar { 
+            background-color: @state-closed;
+            height: inherit;
+        }
+    }
+}
 
 
 //-- new milestone
