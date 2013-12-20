@@ -13,15 +13,19 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
     @Test
     public void checkDefaultValueForPrevCommitId() {
         // given
-        String commitId = "1234568";
+        Project project = new Project();
+        project.name = "testProject";
+        project.save();
 
         CodeCommentThread codeCommentThread = new CodeCommentThread();
-        codeCommentThread.createdDate = JodaDateUtil.before(2);
-        codeCommentThread.commitId = commitId;
+        codeCommentThread.createdDate = JodaDateUtil.now();
+        codeCommentThread.commitId = "1234568";
+        codeCommentThread.project = project;
         codeCommentThread.save();
+        Long id = codeCommentThread.id;
 
         // when
-        CodeCommentThread savedCodeCommentThread = CodeCommentThread.find.byId(1l);
+        CodeCommentThread savedCodeCommentThread = CodeCommentThread.find.byId(id);
 
         // then
         assertThat(savedCodeCommentThread.prevCommitId).isEqualTo(StringUtils.EMPTY);
