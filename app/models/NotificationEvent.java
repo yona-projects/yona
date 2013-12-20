@@ -84,7 +84,7 @@ public class NotificationEvent extends Model {
 
     public static String formatReplyTitle(PullRequest pullRequest) {
         return String.format("Re: [%s] %s (#%s)",
-                pullRequest.toProject.name, pullRequest.title, pullRequest.id);
+                pullRequest.toProject.name, pullRequest.title, pullRequest.number);
     }
 
     public static String formatReplyTitle(AbstractPosting posting) {
@@ -103,7 +103,7 @@ public class NotificationEvent extends Model {
 
     public static String formatNewTitle(PullRequest pullRequest) {
         return String.format("[%s] %s (#%d)",
-                pullRequest.toProject.name, pullRequest.title, pullRequest.id);
+                pullRequest.toProject.name, pullRequest.title, pullRequest.number);
     }
 
     public static String formatNewTitle(Project project, User user) {
@@ -314,7 +314,7 @@ public class NotificationEvent extends Model {
      * @return
      */
     public static NotificationEvent addPullRequestUpdate(Call pullRequestCall, Http.Request request, PullRequest pullRequest, State oldState, State newState) {
-        String title = NotificationEvent.formatNewTitle(pullRequest);
+        String title = NotificationEvent.formatReplyTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
         watchers.remove(UserApp.currentUser());
@@ -347,7 +347,7 @@ public class NotificationEvent extends Model {
      * @return
      */
     public static NotificationEvent addPullRequestUpdate(User sender, PullRequest pullRequest, State oldState, State newState) {
-        String title = NotificationEvent.formatNewTitle(pullRequest);
+        String title = NotificationEvent.formatReplyTitle(pullRequest);
         Set<User> watchers = pullRequest.getWatchers();
         watchers.addAll(NotificationEvent.getMentionedUsers(pullRequest.body));
         watchers.remove(sender);
