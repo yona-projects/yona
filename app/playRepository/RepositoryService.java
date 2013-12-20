@@ -10,14 +10,10 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -26,7 +22,6 @@ import javax.servlet.ServletException;
 import actors.CommitsNotificationActor;
 import actors.IssueReferredFromCommitEventActor;
 import models.*;
-import models.PostReceiveMessage;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -35,7 +30,7 @@ import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.PacketLineOut;
 import org.eclipse.jgit.transport.PostReceiveHook;
-import org.eclipse.jgit.transport.ReceiveCommand;
+import org.eclipse.jgit.transport.PostReceiveHookChain;
 import org.eclipse.jgit.transport.ReceivePack;
 import org.eclipse.jgit.transport.RefAdvertiser.PacketLineOutRefAdvertiser;
 import org.eclipse.jgit.transport.UploadPack;
@@ -44,13 +39,14 @@ import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.internal.server.dav.DAVServlet;
 
 import play.Logger;
-import play.libs.Akka;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import utils.JodaDateUtil;
 import actors.PullRequestEventActor;
 import akka.actor.Props;
+import playRepository.hooks.*;
+
 import controllers.ProjectApp;
 import controllers.UserApp;
 
@@ -382,147 +378,21 @@ public class RepositoryService {
     /*
      * receive-pack 후처리 객체 생성
      * project 의 lastPushedDate 업데이트
+     * 최근 push 된 branch 정보 저장
+     * 커밋에서 언급한 이슈에 이슈 참조 이벤트를 생성
      * 변경된 branch 와 관련된 pull-request 들 충돌 검사
+     * 삭제된 branch 와 관련된 pull-request 삭제
+     * 새로운 커밋 알림
      */
     private static PostReceiveHook createPostReceiveHook(
             final User currentUser, final Project project, final Request request) {
-        return new PostReceiveHook() {
-            @Override
-            public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
-                updateLastPushedDate();
-                updateRecentlyPushedBranch(commands);
-
-                PostReceiveMessage message = new PostReceiveMessage(commands, project, currentUser);
-                addIssueReferredFromCommitsEvents(message);
-                notifyPushedCommits(message);
-            }
-
-            /**
-             * 프로젝트에 Push된 내용을 전달한다.
-             * @param message
-             */
-            private void notifyPushedCommits(PostReceiveMessage message) {
-                Akka.system().actorOf(new Props(CommitsNotificationActor.class)).tell(message, null);
-            }
-
-            /**
-             * 프로젝트의 가장 최근 Push된 브랜치 저장
-             * @param commands
-             */
-            private void updateRecentlyPushedBranch(
-                    Collection<ReceiveCommand> commands) {
-                removeOldPushedBranches();
-                saveRecentlyPushedBranch(getUpdatedBranches(commands));
-            }
-
-            /**
-             * 오래전 푸쉬된 브랜치를 삭제한다.
-             */
-            private void removeOldPushedBranches() {
-                List<PushedBranch> list = project.getOldPushedBranches();
-                for (PushedBranch pushedBranch : list) {
-                    pushedBranch.delete();
-                }
-            }
-
-            /**
-             * 최근 푸쉬된 브랜치를 저장한다.
-             * 이미 존재할 경우 {@code pushedDate}만 업데이트한다.
-             * 푸쉬된 브랜치를 보내는 코드(열림/보류 상태)가 있으면 저장하지 않는다.
-             * @param updatedBranches
-             */
-            private void saveRecentlyPushedBranch(Set<String> updatedBranches) {
-                for (String branch : updatedBranches) {
-                    PushedBranch pushedBranch = PushedBranch.find.where()
-                                    .eq("project", project).eq("name", branch).findUnique();
-
-                    if (pushedBranch != null) {
-                        pushedBranch.pushedDate = JodaDateUtil.now();
-                        pushedBranch.update();
-                    }
-
-                    if (pushedBranch == null && PullRequest.findByFromProjectAndBranch(project, branch).isEmpty()) {
-                        pushedBranch = new PushedBranch(JodaDateUtil.now(), branch, project);
-                        pushedBranch.save();
-                    }
-                }
-            }
-
-            private void addIssueReferredFromCommitsEvents(PostReceiveMessage message) {
-                Akka.system().actorOf(new Props(IssueReferredFromCommitEventActor.class)).tell(message, null);
-                checkPullRequests(message.getCommands());
-            }
-
-            /*
-             * project 가 마지막 업데이트된 시점 저장
-             */
-            private void updateLastPushedDate() {
-                project.lastPushedDate = new Date();
-                project.save();
-            }
-
-            /*
-             * 성공한 ReceiveCommand 로 영향받은 branch 에 대해서
-             * 관련 있는 오픈된 코드-보내기 요청을 찾아 코드가 안전한지 확인한다.
-             * branch가 삭제된 경우 관련 있는 오픈된 코드-보내기 요청을 모두 삭제한다.
-             */
-            private void checkPullRequests(Collection<ReceiveCommand> commands) {
-                Set<String> branches = getUpdatedBranches(commands);
-                for (String branch : branches) {
-                    PullRequestEventMessage message = new PullRequestEventMessage(currentUser, request, project, branch);
-                    PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
-                    Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
-                }
-
-                Set<String> deletedBranches = getDeletedBranches(commands);
-                for (String branch : deletedBranches) {
-                    List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
-                    for (PullRequest pullRequest : pullRequests) {
-                        pullRequest.delete();
-                    }
-                }
-            }
-
-            /*
-             * ReceiveCommand 중, branch update 에 해당하는 것들의 참조 branch set 을 구한다.
-             */
-            private Set<String> getUpdatedBranches(
-                    Collection<ReceiveCommand> commands) {
-                Set<String> branches = new HashSet<>();
-                for (ReceiveCommand command : commands) {
-                    if (isUpdateCommand(command)) {
-                        branches.add(command.getRefName());
-                    }
-                }
-                return branches;
-            }
-
-            private Set<String> getDeletedBranches(
-                    Collection<ReceiveCommand> commands) {
-                Set<String> branches = new HashSet<>();
-                for (ReceiveCommand command : commands) {
-                    if (isDeleteCommand(command)) {
-                        branches.add(command.getRefName());
-                    }
-                }
-                return branches;
-
-            }
-            /*
-             * command 가 update type 인지 판별한다.
-             */
-            private boolean isUpdateCommand(ReceiveCommand command) {
-                return command.getType() == ReceiveCommand.Type.UPDATE
-                        || command.getType() == ReceiveCommand.Type.UPDATE_NONFASTFORWARD;
-            }
-
-            /*
-             * command 가 delete type 인지 판별한다.
-             */
-            private boolean isDeleteCommand(ReceiveCommand command) {
-                return command.getType() == ReceiveCommand.Type.DELETE;
-            }
-        };
+        List<PostReceiveHook> hooks = new ArrayList<>();
+        hooks.add(new UpdateLastPushedDate(project));
+        hooks.add(new UpdateRecentlyPushedBranch(project));
+        hooks.add(new IssueReferredFromCommitEvent(project, currentUser));
+        hooks.add(new PullRequestCheck(currentUser, request, project));
+        hooks.add(new NotifyPushedCommits(project, currentUser));
+        return PostReceiveHookChain.newChain(hooks);
     }
 
     private static void receivePack(final InputStream input, Repository repository,
