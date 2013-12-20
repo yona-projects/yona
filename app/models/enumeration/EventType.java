@@ -17,7 +17,8 @@ public enum EventType {
     MEMBER_ENROLL_REQUEST("notification.type.member.enroll", 9),
     PULL_REQUEST_MERGED("notification.type.pullrequest.merged", 10),
     ISSUE_REFERRED("notification.type.issue.referred", 11),
-    PULL_REQUEST_COMMIT_CHANGED("notification.type.pullrequest.commit.changed", 12);
+    PULL_REQUEST_COMMIT_CHANGED("notification.type.pullrequest.commit.changed", 12),
+    NEW_COMMIT("notification.type.new.commit", 13);
 
     private String descr;
 

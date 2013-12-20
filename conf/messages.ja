@@ -311,6 +311,7 @@ notification.type.issue.state.changed = イシュー状態変更
 notification.type.issue.referred = イシューの言及
 notification.type.member.enroll = メンバー追加の申請
 notification.type.new.comment = 新しいコメントが投稿されました
+notification.type.new.commit = New Commits on a Project
 notification.type.new.issue = 新しいイシューが投稿されました
 notification.type.new.posting = 新しいスレッドが投稿されました
 notification.type.new.pullrequest = 新しいプルリクエストを受けました
