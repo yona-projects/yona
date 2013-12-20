@@ -200,7 +200,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
      * @return
      * @throws IOException
      */
-    static private boolean noChangesBetween(Repository repoA, String rev1,
+    static public boolean noChangesBetween(Repository repoA, String rev1,
                                             Repository repoB, String rev2,
                                             String path) throws IOException {
         ObjectId a = getBlobId(repoA, rev1, path);
@@ -209,6 +209,9 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
     }
 
     static private ObjectId getBlobId(Repository repo, String rev, String path) throws IOException {
+        if (StringUtils.isEmpty(rev)) {
+            throw new IllegalArgumentException("rev must not be empty");
+        }
         RevTree tree = new RevWalk(repo).parseTree(repo.resolve(rev));
         TreeWalk tw = TreeWalk.forPath(repo, path, tree);
         if (tw == null) {

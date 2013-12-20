@@ -19,6 +19,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.Duration;
+
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.avaje.ebean.Expr.*;
+import static models.PullRequestComment.noChangesBetween;
 
 @Entity
 public class PullRequest extends Model implements ResourceConvertible {
@@ -166,7 +168,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     public Set<User> relatedAuthors = new HashSet<>();
 
     @ManyToMany
-    public List<CommentThread> commentThreads;
+    public List<CommentThread> commentThreads = new ArrayList<>();
 
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
@@ -996,4 +998,47 @@ public class PullRequest extends Model implements ResourceConvertible {
     public int getLackingReviewerCount() {
         return toProject.defaultReviewerCount - reviewers.size();
     }
+
+    /**
+     * 변경내역에 달린 댓글들을 얻는다.
+     *
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
+    public List<CodeCommentThread> getCodeCommentThreadsForChanges() throws IOException, GitAPIException {
+        List<CodeCommentThread> result = new ArrayList<>();
+        for(CommentThread commentThread : commentThreads) {
+            // Include CodeCommentThread only
+            if (!(commentThread instanceof CodeCommentThread)) {
+                continue;
+            }
+
+            CodeCommentThread codeCommentThread = (CodeCommentThread) commentThread;
+
+            // Exclude threads on commit
+            if (codeCommentThread.isCommitComment()) {
+                continue;
+            }
+
+            // Include threads which are not outdated certainly.
+            if (mergedCommitIdFrom.equals(codeCommentThread.prevCommitId) && mergedCommitIdTo
+                    .equals(codeCommentThread.commitId)) {
+                result.add(codeCommentThread);
+                continue;
+            }
+
+            // Include the other non-outdated threads
+            Repository mergedRepository = getMergedRepository();
+            if (noChangesBetween(mergedRepository,
+                mergedCommitIdFrom, mergedRepository, codeCommentThread.prevCommitId,
+                    codeCommentThread.codeRange.path) && noChangesBetween(mergedRepository,
+                    mergedCommitIdTo, mergedRepository, codeCommentThread.commitId,
+                    codeCommentThread.codeRange.path)) {
+                result.add(codeCommentThread);
+            }
+        }
+        return result;
+    }
+
 }

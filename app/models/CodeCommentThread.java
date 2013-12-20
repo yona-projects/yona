@@ -1,6 +1,7 @@
 package models;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Embedded;
@@ -16,6 +17,8 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("ranged")
 public class CodeCommentThread extends CommentThread {
+    private static final long serialVersionUID = 1L;
+
     public static final Finder<Long, CodeCommentThread> find = new Finder<>(Long.class, CodeCommentThread.class);
 
     @Embedded
@@ -26,5 +29,9 @@ public class CodeCommentThread extends CommentThread {
 
     @ManyToMany
     public List<User> codeAuthors;
+
+    public boolean isCommitComment() {
+        return ObjectUtils.equals(prevCommitId, StringUtils.EMPTY);
+    }
 
 }
