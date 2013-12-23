@@ -156,31 +156,6 @@ public class PullRequestAppTest {
     }
 
     @Test
-    public void testRejectAnonymous() {
-        initParameters("alecsiel", "sample", 10L);
-        Result result = callAction(
-                controllers.routes.ref.PullRequestApp.reject(ownerLoginId, projectName, pullRequestNumber)
-        );
-
-        assertThat(status(result)).isEqualTo(SEE_OTHER);
-    }
-
-    @Test
-    public void testRejectPullRequest() {
-        initParameters("yobi", "projectYobi", 1L);
-        User currentUser = User.findByLoginId("admin");
-
-        Result result = callAction(
-                controllers.routes.ref.PullRequestApp.reject(ownerLoginId, projectName, pullRequestNumber),
-                fakeRequest("GET", "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber)
-                .withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-              );
-
-        assertThat(status(result)).isEqualTo(SEE_OTHER);
-        assertThat(PullRequest.findById(pullRequestNumber).state).isEqualTo(State.REJECTED);
-    }
-
-    @Test
     public void testAcceptAnonymous() {
         initParameters("alecsiel", "sample", 10L);
         Result result = callAction(
@@ -322,23 +297,6 @@ public class PullRequestAppTest {
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
         assertThat(pullRequest.state).isEqualTo(State.OPEN);
-    }
-
-    @Test
-    public void testRejectRoute() {
-        initParameters("yobi", "projectYobi", 1L);
-        String url = "/" + ownerLoginId + "/" + projectName + "/pullRequest/" + pullRequestNumber + "/reject";
-        User currentUser = User.findByLoginId("yobi");
-
-        Result result = route(
-            fakeRequest(POST, url).withSession(UserApp.SESSION_USERID, currentUser.id.toString())
-        );
-        assertThat(status(result)).isEqualTo(SEE_OTHER);
-
-        Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        assertThat(pullRequest.state).isEqualTo(State.REJECTED);
     }
 
     @BeforeClass

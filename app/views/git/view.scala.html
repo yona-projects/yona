@@ -54,15 +54,12 @@
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
                     }
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REJECT)) {
-                        <a data-request-method="post" href="@routes.PullRequestApp.reject(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reject")</a>
-                    }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.UPDATE)) {
                         <a href="@routes.PullRequestApp.editPullRequestForm(pull.toProject.owner, pull.toProject.name, pull.number)" class="ybtn">@Messages("button.edit")</a>
                     }
                 </div>
 
-                <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && (pull.isClosed() || pull.isRejected)){display:block;}else{display:none;}">
+                <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && pull.isClosed()) {display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }

@@ -329,20 +329,6 @@ public class PullRequestApp extends Controller {
     }
 
     /**
-     * 보류 상태의 코드 요청을 조회한다.
-     *
-     * @param userName
-     * @param projectName
-     * @return
-     */
-    @ProjectAccess(Operation.READ)
-    public static Result rejectedPullRequests(String userName, String projectName, int pageNum) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        Page<PullRequest> page = PullRequest.findPagingList(State.REJECTED, project, pageNum - 1);
-        return ok(list.render(project, page, "rejected"));
-    }
-
-    /**
      * 보낸 코드 요청을 조회한다.
      *
      * @param userName
@@ -417,7 +403,6 @@ public class PullRequestApp extends Controller {
             requestState.put("id", pullRequestNumber);
             requestState.put("isOpen",     pullRequest.isOpen());
             requestState.put("isClosed",   pullRequest.isClosed());
-            requestState.put("isRejected", pullRequest.isRejected());
             requestState.put("isMerging",  pullRequest.isMerging);
             requestState.put("isConflict", pullRequest.isConflict);
             requestState.put("canDeleteBranch", canDeleteBranch);
@@ -501,33 +486,6 @@ public class PullRequestApp extends Controller {
     private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {
         NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, from, to);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
-    }
-
-    /**
-     * {@code pullRequestId}에 해당하는 코드 요청을 보류한다.
-     *
-     * 해당 코드 요청을 보류 상태로 변경한다.
-     *
-     * @param userName
-     * @param projectName
-     * @param pullRequestNumber
-     * @return
-     */
-    @Transactional
-    @With(AnonymousCheckAction.class)
-    @ProjectAccess(Operation.READ)
-    @PullRequestAccess(Operation.REJECT)
-    public static Result reject(String userName, String projectName, Long pullRequestNumber) {
-        Project project = Project.findByOwnerAndProjectName(userName, projectName);
-        PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        State beforeState = pullRequest.state;
-        pullRequest.reject();
-
-        Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
-        addNotification(pullRequest, call, beforeState, State.REJECTED);
-
-        return redirect(call);
     }
 
     /**

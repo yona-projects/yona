@@ -154,7 +154,6 @@ GET     /:ownerName/:project/pullRequests               controllers.PullRequestA
 
 GET     /:ownerName/:project/closedPullRequests         controllers.PullRequestApp.closedPullRequests(ownerName, project, pageNum: Int ?= 1)
 GET     /:ownerName/:project/sentPullRequests           controllers.PullRequestApp.sentPullRequests(ownerName, project, pageNum: Int ?= 1)
-GET     /:ownerName/:project/rejectedPullRequests       controllers.PullRequestApp.rejectedPullRequests(ownerName, project, pageNum: Int ?= 1)
 GET     /:ownerName/:project/pullRequest/:id            controllers.PullRequestApp.pullRequest(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/commits    controllers.PullRequestApp.pullRequestCommits(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/changes    controllers.PullRequestApp.pullRequestChanges(ownerName, project, id: Long)
@@ -162,7 +161,6 @@ GET     /:ownerName/:project/pullRequest/:id/state      controllers.PullRequestA
 GET     /:ownerName/:project/newPullRequestForm         controllers.PullRequestApp.newPullRequestForm(ownerName:String, project:String)
 POST    /:ownerName/:project/pullRequests               controllers.PullRequestApp.newPullRequest(ownerName, project)
 POST     /:ownerName/:project/pullRequest/:id/accept     controllers.PullRequestApp.accept(ownerName, project, id: Long)
-POST     /:ownerName/:project/pullRequest/:id/reject     controllers.PullRequestApp.reject(ownerName, project, id: Long)
 POST     /:ownerName/:project/pullRequest/:id/close      controllers.PullRequestApp.close(ownerName, project, id: Long)
 POST     /:ownerName/:project/pullRequest/:id/open       controllers.PullRequestApp.open(ownerName, project, id: Long)
 GET     /:ownerName/:project/pullRequest/:id/editform   controllers.PullRequestApp.editPullRequestForm(ownerName, project, id: Long)

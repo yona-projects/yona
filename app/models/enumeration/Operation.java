@@ -1,7 +1,7 @@
 package models.enumeration;
 
 public enum Operation {
-    READ("read"), UPDATE("edit"), DELETE("delete"), ACCEPT("accept"), REJECT("reject"), REOPEN("reopen"), CLOSE("close");
+    READ("read"), UPDATE("edit"), DELETE("delete"), ACCEPT("accept"), REOPEN("reopen"), CLOSE("close");
 
     private String operation;
 
