@@ -1,6 +1,12 @@
 # This is the main configuration file for the application.
 # ~~~~~
 
+# Notification
+# ~~~~~
+# Notfication email is delivered by default.
+# If you want to disable the delivery, set the 'notification.bymail.enabled' to 'false'.
+notification.bymail.enabled = true
+
 # Secret key
 # ~~~~~
 # The secret key is used to secure cryptographics functions.

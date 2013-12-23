@@ -90,7 +90,7 @@ public class Global extends GlobalSettings {
 
     private boolean notificationEnabled() {
         play.Configuration config = play.Configuration.root();
-        Boolean notificationEnabled = config.getBoolean("notification.enabled");
+        Boolean notificationEnabled = config.getBoolean("notification.bymail.enabled");
         if (notificationEnabled == null || notificationEnabled) {
             return true;
         } else {
