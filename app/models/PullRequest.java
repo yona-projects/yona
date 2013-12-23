@@ -1041,4 +1041,15 @@ public class PullRequest extends Model implements ResourceConvertible {
         return result;
     }
 
+    /**
+     * 주어진 {@commitId}의 변경내역을 돌려준다.
+     *
+     * @param commitId
+     * @return
+     * @throws IOException
+     */
+    public List<FileDiff> getDiff(String commitId) throws IOException {
+        return GitRepository.getDiff(getMergedRepository(), commitId);
+    }
+
 }

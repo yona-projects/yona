@@ -1,6 +1,5 @@
 package models;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
@@ -12,9 +11,7 @@ import playRepository.GitRepository;
 import utils.JodaDateUtil;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
@@ -44,16 +41,6 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
         rm_rf(new File(MERGING_REPO_PREFIX));
     }
 
-    private RevCommit commit(Repository repository, String wcPath, String fileName,
-                        String contents, String commitMessage) throws IOException, GitAPIException {
-        Git git = new Git(repository);
-        BufferedWriter out = new BufferedWriter(new FileWriter(wcPath + "/" + fileName));
-        out.write(contents);
-        out.flush();
-        git.add().addFilepattern(fileName).call();
-        return git.commit().setMessage(commitMessage).call();
-    }
-
     private void addTestRepository() throws IOException, GitAPIException {
         GitRepository.setRepoPrefix(REPO_PREFIX);
         GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
@@ -68,10 +55,10 @@ public class CodeCommentThreadTest extends ModelTest<CodeCommentThread>  {
         repo.create(false);
 
         // when
-        baseCommit = commit(repo, wcPath, "a.txt", "read me", "base commit");
-        firstCommit = commit(repo, wcPath, "a.txt", "hello", "commit 1");
-        secondCommit = commit(repo, wcPath, "b.txt", "world", "commit 2");
-        thirdCommit = commit(repo, wcPath, "a.txt", "HELLO", "commit 3");
+        baseCommit = support.Git.commit(repo, wcPath, "a.txt", "read me", "base commit");
+        firstCommit = support.Git.commit(repo, wcPath, "a.txt", "hello", "commit 1");
+        secondCommit = support.Git.commit(repo, wcPath, "b.txt", "world", "commit 2");
+        thirdCommit = support.Git.commit(repo, wcPath, "a.txt", "HELLO", "commit 3");
     }
 
     @Test

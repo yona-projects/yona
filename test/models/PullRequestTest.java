@@ -21,17 +21,30 @@
 package models;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.*;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.RefSpec;
 import org.junit.*;
 
+import org.tigris.subversion.javahl.ClientException;
+import org.tmatesoft.svn.core.SVNException;
+import play.test.Helpers;
+import playRepository.*;
 
+import javax.servlet.ServletException;
+import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.test.Helpers.callAction;
+import static utils.FileUtil.rm_rf;
 
 public class PullRequestTest extends ModelTest<PullRequest> {
     @Test
@@ -201,5 +214,120 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         PullRequestEvent event = new PullRequestEvent();
         event.created = DateUtils.parseDate(str, "yyyy-MM-dd");
         return event;
+    }
+
+    private static final String MERGING_REPO_PREFIX = "resources/test/repo/git-merging/";
+    private static final String REPO_PREFIX = "resources/test/repo/git/";
+    private static final String LOCAL_REPO_PREFIX = "resources/test/local-repo/git/";
+
+    private RevCommit baseCommit;
+    private RevCommit firstCommit;
+    private RevCommit secondCommit;
+    private PullRequest pullRequest;
+    private Project forkedProject;
+
+    @Before
+    public void initRepositories() throws IOException, GitAPIException, ServletException,
+            ClientException {
+        GitRepository.setRepoPrefix(REPO_PREFIX);
+        GitRepository.setRepoForMergingPrefix(MERGING_REPO_PREFIX);
+
+        Map<String, String> config = support.Helpers.makeTestConfig();
+        app = Helpers.fakeApplication(config);
+        Helpers.start(app);
+
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        forkedProject = Project.findByOwnerAndProjectName("yobi", "projectYobi-1");
+
+        // 1. projectYobi 저장소를 만듦
+        RepositoryService.createRepository(project);
+
+        // 2. projectYobi 저장소에 커밋 하나
+        {
+            String localRepoPath = LOCAL_REPO_PREFIX + project.name;
+            Git git = Git.cloneRepository()
+                    .setURI(GitRepository.getGitDirectoryURL(project))
+                    .setDirectory(new File(localRepoPath))
+                    .call();
+            Repository repo = git.getRepository();
+            baseCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(), "test.txt",
+                    "apple\nbanana\ncat\n", "commit 1");
+            git.push().setRefSpecs(new RefSpec("+refs/heads/master:refs/heads/master")).call();
+        }
+
+        // 3. 포크된 프로젝트 클론된 저장소 만들기
+        GitRepository.cloneLocalRepository(project, forkedProject);
+
+        // 4. 포크된 저장소에 새 브랜치를 만들어 그 브랜치에 커밋을 두개 하고
+        {
+            String localRepoPath = LOCAL_REPO_PREFIX + forkedProject.name;
+            Git git = Git.cloneRepository()
+                    .setURI(GitRepository.getGitDirectoryURL(forkedProject))
+                    .setDirectory(new File(localRepoPath))
+                    .call();
+            git.branchCreate().setName("fix/1").call();
+            git.checkout().setName("fix/1").call();
+            Repository repo = git.getRepository();
+            assertThat(repo.isBare()).describedAs("projectYobi-1 must be non-bare").isFalse();
+            firstCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
+                    "test.txt", "apple\nbanana\ncorn\n", "commit 1");
+            secondCommit = support.Git.commit(repo, repo.getWorkTree().getAbsolutePath(),
+                    "test.txt", "apple\nbanana\ncake\n", "commit 2");
+            git.push().setRefSpecs(new RefSpec("+refs/heads/fix/1:refs/heads/fix/1")).call();
+        }
+
+        // 5. 그 브랜치로 projectYobi에 pullrequest를 보낸다.
+        pullRequest = PullRequest.createNewPullRequest(forkedProject, project, "refs/heads/fix/1",
+                "refs/heads/master");
+
+        // 6. attempt merge
+        boolean isConflict = pullRequest.attemptMerge().conflicts();
+
+        assertThat(isConflict).isFalse();
+    }
+
+    @After
+    public void after() {
+        rm_rf(new File(REPO_PREFIX));
+        rm_rf(new File(MERGING_REPO_PREFIX));
+        rm_rf(new File(LOCAL_REPO_PREFIX));
+        Helpers.stop(app);
+    }
+
+    @Test
+    public void getDiff1() throws IOException {
+        // given
+        List<FileDiff> expected = new ArrayList<>();
+        expected.add(new FileDiff());
+        expected.get(0).commitA = baseCommit.getName();
+        expected.get(0).commitB = firstCommit.getName();
+        expected.get(0).a = new RawText("apple\nbanana\ncat\n".getBytes());
+        expected.get(0).b = new RawText("apple\nbanana\ncorn\n".getBytes());
+        expected.get(0).pathA = "test.txt";
+        expected.get(0).pathB = "test.txt";
+        expected.get(0).editList
+                = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)
+                .diff(RawTextComparator.DEFAULT, expected.get(0).a, expected.get(0).b);
+        expected.get(0).changeType = DiffEntry.ChangeType.MODIFY;
+
+        // when
+        List<FileDiff> diff = pullRequest.getDiff(firstCommit.getName());
+
+        // then
+        assertThat(diff).isEqualTo(expected);
+    }
+
+    @Test
+    public void getDiff2() throws IOException, ServletException, GitAPIException, SVNException {
+        // given
+        PlayRepository repo = RepositoryService.getRepository(forkedProject);
+        String commitId = secondCommit.getName();
+        List<FileDiff> expected = repo.getDiff(commitId);
+
+        // when
+        List<FileDiff> diff = pullRequest.getDiff(secondCommit.getName());
+
+        // then
+        assertThat(diff).isEqualTo(expected);
     }
 }

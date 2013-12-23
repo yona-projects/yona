@@ -650,10 +650,19 @@ public class GitRepository implements PlayRepository {
      * @throws IOException
      */
     public List<FileDiff> getDiff(String rev) throws IOException {
-        return getDiff(repository.resolve(rev));
+        return getDiff(repository, rev);
+    }
+
+    static public List<FileDiff> getDiff(Repository repository, String rev) throws IOException {
+        return getDiff(repository, repository.resolve(rev));
     }
 
     public List<FileDiff> getDiff(ObjectId commitId) throws IOException {
+        return getDiff(repository, commitId);
+    }
+
+    static public List<FileDiff> getDiff(Repository repository, ObjectId commitId) throws
+            IOException {
         if (commitId == null) {
             return null;
         }
