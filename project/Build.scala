@@ -22,11 +22,11 @@ object ApplicationBuild extends Build {
       // Smart HTTP Servlet
       "org.eclipse.jgit" % "org.eclipse.jgit.http.server" % "3.1.0.201310021548-r",
       // svnkit
-      "sonia.svnkit" % "svnkit" % "1.7.5-1",
+      "sonia.svnkit" % "svnkit" % "1.7.10-scm3",
       // svnkit-dav
-      "sonia.svnkit" % "svnkit-dav" % "1.7.5-1",
+      "sonia.svnkit" % "svnkit-dav" % "1.7.10-scm3",
       // javahl
-      "org.tmatesoft.svnkit" % "svnkit-javahl" % "1.3.5",
+      "sonia.svnkit" % "svnkit-javahl16" % "1.7.10-scm3",
       "net.sourceforge.jexcelapi" % "jxl" % "2.6.10",
     // shiro
       "org.apache.shiro" % "shiro-core" % "1.2.1",
@@ -48,6 +48,7 @@ object ApplicationBuild extends Build {
       // Add your own project settings here
       resolvers += "jgit-repository" at "http://download.eclipse.org/jgit/maven",
       resolvers += "scm-manager release repository" at "http://maven.scm-manager.org/nexus/content/groups/public",
+      resolvers += "tmatesoft release repository" at "http://maven.tmatesoft.com/content/repositories/releases",
       resolvers += "julienrf.github.com" at "http://julienrf.github.com/repo/",
       templatesImport += "models.enumeration._",
       lessEntryPoints <<= baseDirectory(_ / "app" / "assets" / "stylesheets" ** "yobi.less"),
