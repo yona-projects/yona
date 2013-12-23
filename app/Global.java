@@ -209,7 +209,7 @@ public class Global extends GlobalSettings {
             newUserForm.reject("loginId", "user.wrongloginId.alert");
         }
 
-        if (newUserForm.field("loginId").value().contains(" ")) {
+        if (!newUserForm.field("loginId").value().equals("admin")) {
             newUserForm.reject("loginId", "user.wrongloginId.alert");
         }
 
