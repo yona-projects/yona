@@ -1,7 +1,28 @@
+/**
+ * Yobi, Project Hosting SW
+ *
+ * Copyright 2013 NAVER Corp.
+ * http://yobi.io
+ *
+ * @Author Wansoon Park, Yi EungJun, Suwon Chae
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,11 +36,13 @@ import models.*;
 import com.avaje.ebean.Ebean;
 
 import controllers.routes;
+import org.apache.commons.lang3.StringUtils;
 import play.Application;
 import play.GlobalSettings;
 import play.Configuration;
 import play.Play;
 import play.api.mvc.Handler;
+import play.data.Form;
 import play.libs.Yaml;
 import play.mvc.Action;
 import play.mvc.Http;
@@ -30,10 +53,12 @@ import play.mvc.Results;
 import utils.AccessLogger;
 import utils.ErrorViews;
 
-import play.data.DynamicForm;
 import views.html.welcome.secret;
 import views.html.welcome.restart;
 import static play.data.Form.form;
+import static play.mvc.Results.badRequest;
+import static play.mvc.Results.ok;
+import static play.mvc.Results.redirect;
 
 public class Global extends GlobalSettings {
     public static final String APPLICATION_CONF_DEFAULT = "application.conf.default";
@@ -175,30 +200,82 @@ public class Global extends GlobalSettings {
         };
     }
 
+    /*
+     * 사이트 관리자 입력 폼 유효성 체크
+     */
+    private static void validate(Form<User> newUserForm) {
+        // loginId가 빈 값이 들어오면 안된다.
+        if (StringUtils.isBlank(newUserForm.field("loginId").value())) {
+            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        }
+
+        if (!newUserForm.field("loginId").value().equals("admin")) {
+            newUserForm.reject("loginId", "user.wrongloginId.alert");
+        }
+
+        // password가 빈 값이 들어오면 안된다.
+        if (StringUtils.isBlank(newUserForm.field("password").value())) {
+            newUserForm.reject("password", "user.wrongPassword.alert");
+        }
+
+        // password와 retypedPassword가 일치해야 한다.
+        if (!newUserForm.field("password").value().equals(newUserForm.field("retypedPassword").value())) {
+            newUserForm.reject("retypedPassword", "user.confirmPassword.alert");
+        }
+
+        // email이 빈 값이 들어오면 안된다.
+        if (StringUtils.isBlank(newUserForm.field("email").value())) {
+            newUserForm.reject("email", "validation.invalidEmail");
+        }
+
+        // 중복된 email로 가입할 수 없다.
+        if (User.isEmailExist(newUserForm.field("email").value())) {
+            newUserForm.reject("email", "user.email.duplicate");
+        }
+    }
+
     private Action<Void> getConfigSecretAction() {
         return new Action.Simple() {
             @Override
             public Result call(Http.Context ctx) throws Throwable {
-                DynamicForm form = form().bindFromRequest();
-                String seed = form.get("seed");
-                if (seed != null) {
-                    SecureRandom random = new SecureRandom(seed.getBytes());
-                    String secret = new BigInteger(130, random).toString(32);
+                if( ctx.request().method().toLowerCase().equals("post") ) {
+                    Form<User> newSiteAdminUserForm = form(User.class).bindFromRequest();
+                    validate(newSiteAdminUserForm);
 
-                    Path path = Paths.get("conf/application.conf");
-                    byte[] bytes = Files.readAllBytes(path);
-                    String config = new String(bytes);
-                    config = config.replace(DEFAULT_SECRET, secret);
-                    Files.write(path, config.getBytes());
+                    if (newSiteAdminUserForm.hasErrors()) {
+                        return badRequest(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, newSiteAdminUserForm));
+                    }
 
+                    User siteAdmin = SiteAdmin.updateDefaultSiteAdmin(newSiteAdminUserForm.get());
+                    replaceSiteSecretKey(createSeed(siteAdmin.password));
                     isRestartRequired = true;
-
                     return ok(restart.render());
                 } else {
-                    return ok(secret.render());
+                    return ok(secret.render(SiteAdmin.SITEADMIN_DEFAULT_LOGINID, new Form<>(User.class)));
                 }
             }
         };
+    }
+
+    private String createSeed(String basicSeed) {
+        String seed = basicSeed;
+        try {
+            seed += InetAddress.getLocalHost();
+        } catch (Exception e) {
+            play.Logger.warn("Failed to get localhost address", e);
+        }
+        return seed;
+    }
+
+    private void replaceSiteSecretKey(String seed) throws IOException {
+        SecureRandom random = new SecureRandom(seed.getBytes());
+        String secret = new BigInteger(130, random).toString(32);
+
+        Path path = Paths.get("conf/application.conf");
+        byte[] bytes = Files.readAllBytes(path);
+        String config = new String(bytes);
+        config = config.replace(DEFAULT_SECRET, secret);
+        Files.write(path, config.getBytes());
     }
 
     private Action<Void> getRestartAction() {
@@ -249,7 +326,7 @@ public class Global extends GlobalSettings {
     @Override
     public Result onBadRequest(RequestHeader request, String error) {
         AccessLogger.log(request, null, Http.Status.BAD_REQUEST);
-        return Results.badRequest(ErrorViews.BadRequest.render());
+        return badRequest(ErrorViews.BadRequest.render());
     }
 
 }
