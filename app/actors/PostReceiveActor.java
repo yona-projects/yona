@@ -57,14 +57,45 @@ public abstract class PostReceiveActor extends UntypedActor {
 
     abstract void doReceive(PostReceiveMessage cap);
 
-    protected List<RevCommit> getCommits(PostReceiveMessage message) {
+    class CommitAndRefNames {
+
         List<RevCommit> commits = new ArrayList<>();
+        List<String> refNames = new ArrayList<>();
+
+        public List<RevCommit> getCommits() {
+            return commits;
+        }
+
+        public void setCommits(List<RevCommit> commits) {
+            this.commits = commits;
+        }
+
+        public List<String> getRefNames() {
+            return refNames;
+        }
+
+        public void setRefNames(List<String> refNames) {
+            this.refNames = refNames;
+        }
+
+        public void addAll(Collection<? extends RevCommit> revCommits) {
+            this.commits.addAll(revCommits);
+        }
+
+        public void add(String refName) {
+            this.refNames.add(refName);
+        }
+    }
+
+    protected CommitAndRefNames commitAndRefNames(PostReceiveMessage message) {
+        CommitAndRefNames car = new CommitAndRefNames();
         for(ReceiveCommand command : message.getCommands()) {
             if(isNewOrUpdateCommand(command)) {
-                commits.addAll(parseCommitsFrom(command, message.getProject()));
+                car.addAll(parseCommitsFrom(command, message.getProject()));
+                car.add(command.getRefName());
             }
         }
-        return commits;
+        return car;
     }
 
     protected boolean isNewOrUpdateCommand(ReceiveCommand command) {

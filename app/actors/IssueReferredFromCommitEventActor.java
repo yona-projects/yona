@@ -40,7 +40,7 @@ public class IssueReferredFromCommitEventActor extends PostReceiveActor {
 
     @Override
     void doReceive(PostReceiveMessage cap) {
-        List<RevCommit> commits = getCommits(cap);
+        List<RevCommit> commits = commitAndRefNames(cap).getCommits();
         for(RevCommit commit : commits) {
             addIssueEvent(commit, cap.getProject());
         }

@@ -30,22 +30,34 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import playRepository.GitCommit;
 import utils.WatchService;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 /**
+ * 새로운 커밋 알림을 생성한다.
+ *
  * @author Keesun Baik
  */
 public class CommitsNotificationActor extends PostReceiveActor {
 
     @Override
     void doReceive(PostReceiveMessage message) {
-        List<RevCommit> commits = getCommits(message);
+        CommitAndRefNames car = commitAndRefNames(message);
+        List<RevCommit> commits = car.getCommits();
+        List<String> refNames = car.getRefNames();
+
         Project project = message.getProject();
         User sender = message.getUser();
 
-        String title = String.format("[%s] pushed %d commits.", sender.loginId, commits.size());
+        String title = "";
+        if(refNames.size() == 1) {
+            title = String.format("[%s] pushed %d commits to %s.", sender.loginId, commits.size(), refNames.get(0));
+        } else {
+            title = String.format("[%s] pushed %d commits.", sender.loginId, commits.size());
+        }
 
         Set<User> watchers = WatchService.findWatchers(project.asResource());
         watchers.remove(sender);
@@ -60,24 +72,48 @@ public class CommitsNotificationActor extends PostReceiveActor {
         notiEvent.resourceType = project.asResource().getType();
         notiEvent.eventType = EventType.NEW_COMMIT;
         notiEvent.oldValue = null;
-        notiEvent.newValue = message(commits, project);
+        notiEvent.newValue = message(commits, refNames, project);
         NotificationEvent.add(notiEvent);
     }
 
-    private String message(List<RevCommit> commits, Project project) {
+    private String message(List<RevCommit> commits, List<String> refNames, Project project) {
         StringBuilder result = new StringBuilder();
-        for(RevCommit commit : commits) {
-            GitCommit gitCommit = new GitCommit(commit);
-            // <a href="/owner/project/commit/1231234">1231234</a>: commit's short message \n
-            result.append("<a href=\"");
-            result.append(routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()).url());
-            result.append("\">");
-            result.append(gitCommit.getShortId());
-            result.append("</a>");
-            result.append(": ");
-            result.append(gitCommit.getShortMessage());
-            result.append("\n");
+
+        if(commits.size() > 0) {
+            result.append("New Commits: \n");
+            for(RevCommit commit : commits) {
+                GitCommit gitCommit = new GitCommit(commit);
+                // <a href="/owner/project/commit/1231234">1231234</a>: commit's short message \n
+                result.append("<a href=\"");
+                result.append(routes.CodeHistoryApp.show(project.owner, project.name, gitCommit.getId()).url());
+                result.append("\">");
+                result.append(gitCommit.getShortId());
+                result.append("</a>");
+                result.append(": ");
+                result.append(gitCommit.getShortMessage());
+                result.append("\n");
+            }
         }
+
+        if(refNames.size() > 0) {
+            result.append("Branches: \n");
+            for(String refName: refNames) {
+                // <a href="/owner/project/branch_name">branch_name</a> \n
+                result.append("<a href=\"");
+                String branchName = null;
+                try {
+                    branchName = URLEncoder.encode(refName, "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+                result.append(routes.CodeHistoryApp.history(project.owner, project.name, branchName, null).url());
+                result.append("\">");
+                result.append(refName);
+                result.append("</a>");
+                result.append("\n");
+            }
+        }
+
         return result.toString();
     }
 }
