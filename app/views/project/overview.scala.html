@@ -1,4 +1,5 @@
 @(message: String, project: Project, histories: List[models.History] )
+@import org.apache.commons.lang.StringUtils
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -36,10 +37,24 @@
 @projectMenu(project, utils.MenuType.PROJECT_HOME, "")
 <div class="project-page-wrap">
     <div class="project-home-header">
-        <div class="project-overview"><h3>@if(!project.overview.isEmpty()) {@project.overview} else {@project.name}</h3></div>    
+        <div class="project-overview">
+            <div class="project-description" data-toggle="project-description-tab">
+            <h3><span id="project-description">@if(StringUtils.isEmpty(project.overview)) {@Messages("project.description.placeholder")} else {@project.overview}</span>
+                @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
+            <button type="button" class="ybtn ybtn-minimum" data-toggle="description-edit" "><i class="yobicon-edit"></i></button>
+                }
+            </h3>
+            </div>
+            <div class="project-description-edit hidden" data-toggle="project-description-tab">
+                <form action="@routes.ProjectApp.projectOverviewUpdate(project.owner, project.name)" onsubmit="return false">
+                <input type="text" id="project-description-input" class="span6" placeholder="@Messages("project.description.placeholder")" value="@project.overview"/>
+                <button type="button" class="ybtn ybtn-success" id="descriptionSaveBtn" >@Messages("button.save")</button> <button type="button" class="ybtn" data-toggle="description-cancel">@Messages("button.cancel")</button>
+                </form>
+            </div>
+        </div>
         <div class="project-clone-wrap">
             <input type="text" class="project-clone-url" id="cloneURL" readonly="readonly" value="@CodeApp.getURLWithLoginId(project)">
-            <button class="project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>         
+            <button class="ybtn project-clone-button" id="cloneURLBtn">@Messages("code.copyUrl")</button>
         </div>
     </div>    
     <div class="row-fluid">
@@ -53,7 +68,7 @@
 
 	        <div class="tab-content">
 	            <div id="readme" class="tab-pane active">
-	                <div class="bubble-wrap gray readme">
+	                <div class="bubble-wrap gray readmee">
 	                @if(project.readme == null){
 	                    <p class="default">
 	                       <span class="v"></span>
@@ -107,14 +122,11 @@
 
         <div class="span3">
             <div class="bubble-wrap gray project-home">
-                <div class="project-btn-wrap">
+                <div class="project-btn-wrap @if(project.vcs.equals("GIT")){ git-project }">
                     <a href="@routes.IssueApp.newIssueForm(project.owner, project.name)" class="ybtn ybtn-success">@Messages("button.newIssue")</a>
+                    @if(project.vcs.equals("GIT")){
+                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn">@Messages("fork")</a>                }
                 </div>
-                @if(project.vcs.equals("GIT")){
-                <div class="project-btn-wrap">
-                    <a href="@routes.PullRequestApp.newFork(project.owner, project.name)" class="ybtn">@Messages("fork")</a>
-                </div>
-                }    
                 @defining(Milestone.findOpenMilestones(project.id)){ milestones =>
                     @if(milestones.length > 0){
                         @views.html.milestone.partial_status(milestones(0), project)
@@ -196,7 +208,8 @@ $(document).ready(function(){
         "sURLLabelCategories": "@routes.LabelApp.categories()",
         "welLabelBoard": $('#label-board'),
         "welLabelEditorToggle": $('#label-editor-toggle'),
-        "nProjectId"     : @project.id
+        "nProjectId"     : @project.id,
+        "sURLProject"       : "@routes.ProjectApp.projectOverviewUpdate(project.owner, project.name)"
     });
 });
 </script>

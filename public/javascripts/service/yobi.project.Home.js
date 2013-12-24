@@ -31,6 +31,7 @@
             htVar.sURLLabelCategories = htOptions.sURLLabelCategories;
             htVar.nProjectId = htOptions.nProjectId;
             htVar.sRepoURL = htOptions.sRepoURL;
+            htVar.sURLProject = htOptions.sURLProject;
         }
 
         /**
@@ -43,6 +44,7 @@
             
             // clone url
             htElement.welBtnClone   = $('[data-toggle="cloneURL"]');
+
             htElement.welInputCloneURL =$('#cloneURL');
             htElement.welBtnCopy   = $('#cloneURLBtn');
 
@@ -121,12 +123,37 @@
 
             htElement.welBtnCopy.zclip({
                 "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
-                "copy": htElement.welInputCloneURL.val()
+                "copy": htElement.welInputCloneURL.val(),
+                "afterCopy": function(){
+                    yobi.Common.notify("Url copied", 1000);
+                }
             });
 
-             htElement.welInputCloneURL.on('click',function(){
+            htElement.welInputCloneURL.on('click',function(){
                 $(this).select();
-             });
+            });
+
+            $('.project-page-wrap')
+                .on('click', '[data-toggle="description-edit"]', function(){
+                    $('[data-toggle="project-description-tab"]').toggleClass('hidden');
+                    $('.project-description-edit input').focus();
+                }).on('click', '[data-toggle="description-cancel"]', function(){
+                    $('[data-toggle="project-description-tab"]').toggleClass('hidden');
+                });
+            $('#descriptionSaveBtn').on('click',function(){
+                var overview = {"overview" : $("#project-description-input").val() };
+                $.ajax({
+                    "url": htVar.sURLProject,
+                    "method": "put",
+                    "data": JSON.stringify(overview),
+                    "contentType":"application/json"
+                }).done(function(data){
+                        $('[data-toggle="project-description-tab"]').toggleClass('hidden');
+                        $("#project-description").text(data.overview);
+                }).fail(function(err){
+                        console.log("err>> ", err);
+                });
+            });
         }
 
         /*

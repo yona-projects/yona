@@ -248,8 +248,8 @@
                             color:#FFF;
 
                             &:hover {
-                                color:#fc491e;
-                                text-decoration: none;
+                                color:#FFF;
+                                text-decoration: underline;
                             } 
                         }
                     }
@@ -261,6 +261,10 @@
 
                     .project-name {
                         color:#fc491e;
+                        a:hover {
+                          color:#fc491e;
+                          text-decoration: underline;
+                        }
                     }
 
                     .project-private {
@@ -2264,17 +2268,26 @@
             font-weight: normal;
             padding-right:320px;
         }
+
+        .project-description-edit {
+            input {
+              margin: 0;
+            }
+        }
     }
 
     .project-clone-wrap {
         position: absolute;
         right: 0;
         top:0;
-        background-color: #F7F7F7;
         padding:5px 10px;
         .border-radius(6px);
-        
-        .project-clone-url {
+        &:hover {
+          .project-clone-url {width:450px;}
+        }
+
+      .project-clone-url {
+            text-align: right;
             float:left;
             margin-bottom:0;
             background-color:#FFF;
@@ -2285,26 +2298,12 @@
             cursor: pointer;
             .border-radius(3px 0 0 3px);
             .transition(width .15s);
-
-            &:focus {
-                width:450px;
-            }
         }
 
         .project-clone-button {
-            margin:0;
-            padding:0 5px;
+            margin-left:0;
             .border-radius(0 3px 3px 0);
-            border:1px solid #ddd;
             float:left;
-            background-color: transparent;
-            height:30px;
-            outline: 0;
-            width:65px;
-
-            &:hover {
-                border:1px solid #000;
-            }
         }
     }
 }
@@ -2318,12 +2317,17 @@
         a.btn { width:105px; }
     }
 
-     .project-btn-wrap {
+    .project-btn-wrap {
         text-align:center;
         padding:5px 0;
 
         a {
             display:block !important;
+        }
+        &.git-project{
+          a {
+            display: inline-block !important;
+          }
         }
     }
     .inner {
