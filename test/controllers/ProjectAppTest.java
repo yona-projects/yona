@@ -4,6 +4,7 @@ import models.Label;
 import models.Project;
 import models.User;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -18,6 +19,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.libs.Json.toJson;
 import static play.test.Helpers.*;
 
 public class ProjectAppTest {
@@ -140,5 +142,32 @@ public class ProjectAppTest {
         //Then
         assertThat(status(result)).isEqualTo(204);
         assertThat(Project.findByOwnerAndProjectName("yobi", "projectYobi").labels.contains(label1)).isFalse();
+    }
+
+    @Test
+    public void projectOverviewUpdateTest(){
+        //Given
+        Project project = Project.findByOwnerAndProjectName("yobi", "projectYobi");
+        String newDescription = "new overview description";
+
+        ObjectNode requestJson = Json.newObject();
+        requestJson.put("overview",newDescription);
+        User member = User.findByLoginId("yobi");
+
+        //When
+        Result result = callAction(
+                controllers.routes.ref.ProjectApp.projectOverviewUpdate("yobi", "projectYobi"),
+                fakeRequest(PUT, "/yobi/projectYobi").withJsonBody(requestJson)
+                        .withHeader("Accept", "application/json")
+                        .withHeader("Content-Type", "application/json")
+                        .withSession(UserApp.SESSION_USERID, member.id.toString())
+        );
+
+        //Then
+        assertThat(status(result)).isEqualTo(200);  //response status code
+        assertThat(contentAsString(result)).isEqualTo("{\"overview\":\"new overview description\"}");   //response json body
+
+        project.refresh();
+        assertThat(project.overview).isEqualTo(newDescription);  //is model updated
     }
 }

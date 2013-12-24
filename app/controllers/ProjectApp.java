@@ -1,14 +1,18 @@
 package controllers;
 
+import actions.AnonymousCheckAction;
 import com.avaje.ebean.Junction;
 import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
+import controllers.annotation.ProjectAccess;
 import models.*;
 import models.enumeration.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
@@ -16,11 +20,10 @@ import org.tmatesoft.svn.core.SVNException;
 import play.data.Form;
 import play.data.validation.ValidationError;
 import play.db.ebean.Transactional;
-import play.mvc.Controller;
-import play.mvc.Http;
+import play.libs.Json;
+import play.mvc.*;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Http.MultipartFormData.FilePart;
-import play.mvc.Result;
 import playRepository.Commit;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
@@ -41,6 +44,7 @@ import java.util.*;
 
 import static play.data.Form.form;
 import static play.libs.Json.toJson;
+
 
 /**
  * ProjectApp
@@ -82,6 +86,22 @@ public class ProjectApp extends Controller {
      */
     public static Project getProject(String userName, String projectName) {
         return Project.findByOwnerAndProjectName(userName, projectName);
+    }
+
+    @With(AnonymousCheckAction.class)
+    @ProjectAccess(Operation.UPDATE)
+    public static Result projectOverviewUpdate(String ownerId, String projectName){
+        JsonNode json = request().body().asJson();
+        Project targetProject = Project.findByOwnerAndProjectName(ownerId, projectName);
+        ObjectNode result = Json.newObject();
+        if (targetProject == null) {
+            return notFound(ErrorViews.NotFound.render("error.notfound"));
+        }
+        targetProject.overview = json.findPath("overview").getTextValue();
+        targetProject.save();
+        result.put("overview", targetProject.overview);
+        play.Logger.debug(result.toString());
+        return ok(result);
     }
 
     /**
