@@ -206,12 +206,15 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
                                             String path) throws IOException, GitAPIException {
         ObjectId a = getBlobId(repoA, rev1, path);
         ObjectId b = getBlobId(repoB, rev2, path);
-        return a.equals(b);
+        return ObjectUtils.equals(a, b);
     }
 
     static private ObjectId getBlobId(Repository repo, String rev, String path) throws IOException {
         RevTree tree = new RevWalk(repo).parseTree(repo.resolve(rev));
         TreeWalk tw = TreeWalk.forPath(repo, path, tree);
+        if (tw == null) {
+            return null;
+        }
         return tw.getObjectId(0);
     }
 
