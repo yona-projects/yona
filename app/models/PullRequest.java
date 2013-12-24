@@ -585,7 +585,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         return finder.where()
                 .eq("toProject",  project)
                 .or(eq("state", State.CLOSED), eq("state", State.MERGED))
-                .order().desc("created")
+                .order().desc("received")
                 .findPagingList(ITEMS_PER_PAGE)
                 .getPage(pageNum);
     }
