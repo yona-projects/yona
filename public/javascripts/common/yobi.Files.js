@@ -41,9 +41,10 @@ yobi.Files = (function(){
         htVar.sUploadURL   = htOptions.sUploadURL;
         htVar.htUploadOpts = {"dataType": "json"} || htOptions.htUploadOpts;
 
-        htVar.bXHR2 = (typeof FormData != "undefined"); // XMLHttpRequest 2 required
-        htVar.bDroppable = (typeof window.File != "undefined"); // HTML5 FileAPI required
-        htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2; // onpaste & XHR2 required
+        htVar.bXHR2 = (typeof FormData != "undefined");                   // XMLHttpRequest 2 required
+        htVar.bDroppable = (typeof window.File != "undefined");           // HTML5 FileAPI required
+        htVar.bPastable = (typeof document.onpaste != "undefined") && htVar.bXHR2 // onpaste & XHR2 required
+                       && (navigator.userAgent.indexOf("FireFox") === -1); // and not FireFox
 
         htVar.nMaxFileSize = 2147483454; // maximum filesize (<= 2,147,483,454 bytes)
     }
@@ -374,24 +375,24 @@ yobi.Files = (function(){
 
         // Upload by Drag & Drop
         if(htVar.bDroppable){
-            htElement.welContainer.bind("dragover", function(weEvt){
+            htElement.welContainer.on("dragover", function(weEvt){
                 weEvt.preventDefault();
                 return false;
             });
 
             if(htElement.welTextarea){
-                htElement.welTextarea.bind("drop", function(weEvt){
+                htElement.welTextarea.on("drop", function(weEvt){
                     _onDropFile(sNamespace, weEvt);
                 });
             }
-            htElement.welContainer.bind("drop", function(weEvt){
+            htElement.welContainer.on("drop", function(weEvt){
                 _onDropFile(sNamespace, weEvt);
             });
         }
 
         // Upload by paste
         if(htVar.bPastable && htElement.welTextarea){
-            htElement.welTextarea.bind("paste", function(weEvt){
+            htElement.welTextarea.on("paste", function(weEvt){
                 _onPasteFile(sNamespace, weEvt);
             });
         }
@@ -408,9 +409,9 @@ yobi.Files = (function(){
      */
     function _detachEvent(sNamespace){
         var htElement = htElements[sNamespace];
-        htElement.welInputFile.unbind();
-        htElement.welContainer.unbind();
-        htElement.welTextarea.unbind();
+        htElement.welInputFile.off();
+        htElement.welContainer.off();
+        htElement.welTextarea.off();
         htElement.welContainer.data("isYobiUploader", false);
         htElement.welTextarea.data("isYobiUploader", false);
     }
@@ -432,29 +433,6 @@ yobi.Files = (function(){
     }
 
     /**
-     * 이미지 데이터를 클립보드에서 붙여넣었을 때 이벤트 핸들러
-     *
-     * @param {String} sNamespace
-     * @param {Wrapped Event} weEvt
-     */
-    function _onPasteFile(sNamespace, weEvt){
-        if(!weEvt.originalEvent.clipboardData || !weEvt.originalEvent.clipboardData.items || !weEvt.originalEvent.clipboardData.items[0]){
-            return;
-        }
-
-        var oItem = weEvt.originalEvent.clipboardData.items[0];
-        var nSubmitId = _getSubmitId();
-        var oFile = oItem.getAsFile();
-
-        if(!oFile || oFile.type.indexOf("image/") !== 0){
-            return;
-        }
-
-        oFile.name = nSubmitId + ".png"; // works in Chrome
-        _uploadSingleFile(oFile, nSubmitId, sNamespace);
-    }
-
-    /**
      * 파일을 드래그앤드롭해서 가져왔을 때 이벤트 핸들러
      *
      * @param {String} sNamespace
@@ -468,6 +446,37 @@ yobi.Files = (function(){
         _uploadFile(oFiles, sNamespace);
 
         weEvt.stopPropagation();
+        weEvt.preventDefault();
+        return false;
+    }
+
+    /**
+     * 이미지 데이터를 클립보드에서 붙여넣었을 때 이벤트 핸들러
+     *
+     * @param {String} sNamespace
+     * @param {Wrapped Event} weEvt
+     */
+    function _onPasteFile(sNamespace, weEvt){
+        debugger;
+        var oClipboardData = weEvt.originalEvent.clipboardData;
+        if(!oClipboardData || !oClipboardData.items){
+            return;
+        }
+
+        var oItem, nSubmitId, oFile;
+
+        for(var i = 0, nLength = oClipboardData.items.length; i < nLength; i++){
+            oItem = oClipboardData.items[i];
+            oFile = oItem.getAsFile();
+
+            if(oFile && oFile.type.indexOf("image/") === 0){
+                nSubmitId = _getSubmitId();
+                oFile.name = nSubmitId + ".png";
+
+                _uploadSingleFile(oFile, nSubmitId, sNamespace);
+            }
+        }
+
         weEvt.preventDefault();
         return false;
     }
