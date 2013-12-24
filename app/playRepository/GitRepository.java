@@ -162,7 +162,7 @@ public class GitRepository implements PlayRepository {
             new GitRepository(forkProject).delete();
             play.Logger.warn(
                     "Failed to clone a repository using hardlink. Fall back to straight copy", e);
-            cloneRepository(getGitDirectory(originalProject), forkProject);
+            cloneRepository(getGitDirectoryURL(originalProject), forkProject);
         }
     }
 
