@@ -169,24 +169,25 @@
             
             var sTargetPath = document.location.hash.substr(1);
             var welList = $('[data-listpath="' + sTargetPath + '"]');
-            
+
+            var sCheckPath = "";
+            htVar.aPathQueue = [];
+            htVar.aWelList = [];
+
+            // Path 단위로 목록이 필요함
+            sTargetPath.split("/").forEach(function(sPath){
+                sCheckPath = (sCheckPath === "") ? sPath : (sCheckPath + "/" + sPath);
+                htVar.aPathQueue.push(sCheckPath);
+            });
+            _updateBreadcrumbs(htVar.aPathQueue);
+
             if(welList.length > 0){ // 이미 리스트를 붙인 상태라면
                 welList.toggle();   // 목록 표시 여부만 토글하고
                 _setCurrentPathBold(sTargetPath);
             } else {                // 없으면 새로 리스트 만들어서 붙임
-                var sCheckPath = "";
-                htVar.aPathQueue = [];
-                htVar.aWelList = [];
-                
-                // Path 단위로 목록이 필요함
-                sTargetPath.split("/").forEach(function(sPath){
-                    sCheckPath = (sCheckPath === "") ? sPath : (sCheckPath + "/" + sPath);
-                    htVar.aPathQueue.push(sCheckPath);
-                });
-                
-                _updateBreadcrumbs(htVar.aPathQueue);
                 _requestFolderList();
             }
+
         }
         
         /**
