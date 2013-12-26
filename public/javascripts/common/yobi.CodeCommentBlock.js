@@ -22,10 +22,9 @@
 yobi = yobi || {};
 
 yobi.CodeCommentBlock = (function(){
-    var nLastMouseUp = 0;
-    var htBlockInfo = {};
     var htVar = {};
     var htElement = {};
+    var htBlockInfo = {};
 
     /**
      * 초기화
@@ -37,7 +36,8 @@ yobi.CodeCommentBlock = (function(){
         _initElement(htOptions);
         _attachEvent();
 
-        htVar.bPopButtonOnBlock = (typeof htOptions.bPopButtonOnBlock !== "undefined") ? htOptions.bPopButtonOnBlock : true;
+        htVar.bPopButtonOnBlock = (typeof htOptions.bPopButtonOnBlock !== "undefined")
+                                    ? htOptions.bPopButtonOnBlock : true;
     }
 
     /**
@@ -55,17 +55,19 @@ yobi.CodeCommentBlock = (function(){
      * @private
      */
     function _attachEvent(){
-        htElement.welContainer.on("mouseup",     ".diff-container", _onMouseUpOnDiff);
-        htElement.welContainer.on("selectstart", ".diff-container", _onSelectStartOnDiff);
+        htElement.welContainer.on("mouseup",   "td.code pre", _onMouseUpOnDiff);
+        htElement.welContainer.on("mousedown", "td.code pre", _onMouseDownOnDiff);
     }
 
     /**
-     * DiffBody 영역에서 selectstart 이벤트 발생시 핸들러
+     * DiffBody 영역에서 mousedown 이벤트 발생시 핸들러
+     * selectstart 이벤트는 FireFox 브라우저에서 지원되지 않기 때문에 mousedown 이벤트 사용
      *
      * @private
      */
-    function _onSelectStartOnDiff(){
+    function _onMouseDownOnDiff(){
         _unwrapAll();
+        window.getSelection().removeAllRanges(); // 기존의 Selection 정보를 지워야 함
     }
 
     /**
@@ -74,141 +76,123 @@ yobi.CodeCommentBlock = (function(){
      * @param weEvt
      * @private
      */
-    function _onMouseUpOnDiff(weEvt){
-        // prevent doubled mouseUp event
-        if((weEvt.timeStamp - nLastMouseUp) < 10){
-            return;
+    function _onMouseUpOnDiff(){
+        if(_doesCommentableRangeExists()){
+            _setBlockDataBySelection();
+            _onWrapCodeCommentBlock();
         }
-        nLastMouseUp = weEvt.timeStamp;
-
-        // if something selected
-        if(_getSelectionHtml() === ''){
-            return;
-        }
-
-        _setBlockDataBySelection();
     }
 
     /**
-     * 선택한 영역의 HTML 내용을 반환한다
+     * 코멘트 달 수 있는 블럭 영역인지 여부를 불리언 값으로 반환
      *
-     * @returns {string}
+     * @returns {boolean}
+     * @private
      */
-    function _getSelectionHtml() {
-        var oSelection, sHTML="";
+    function _doesCommentableRangeExists(){
+        var bHasRange = false;
+        var oSelection = document.getSelection();
 
-        if(window.getSelection !== undefined){
-            oSelection = window.getSelection();
-            if(oSelection.rangeCount){
-                var elContainer = document.createElement('div');
-                for(var i = 0, nLength = oSelection.rangeCount; i < nLength; i++){
-                    elContainer.appendChild(oSelection.getRangeAt(i).cloneContents());
-                }
-                sHTML = elContainer.innerHTML;
-            }
-        } else if(document.selection !== undefined){
-            if(document.selection.type === 'Text'){
-                sHTML = document.selection.createRange().htmlText;
-            }
+        // type is Range or Caret. and 'Range' is required.
+        if(oSelection.type !== "Range"){
+            return false;
         }
-        return sHTML;
+
+        // get anchor, focus row (TR) from selected text node
+        var welAnchor = $(oSelection.anchorNode.parentElement).closest("tr");
+        var welFocus = $(oSelection.focusNode.parentElement).closest("tr");
+
+        // data-line attribute is required on both of anchor and focus
+        if(typeof welAnchor.data("line") === "undefined" || typeof welFocus.data("line") === "undefined"){
+            return false;
+        }
+
+        // Range should be in same TABLE which means same file
+        // .data("filePath") could be compared.
+        if(welAnchor.closest("table").get(0) != welFocus.closest("table").get(0)){
+            return false;
+        }
+
+        // detect whether is reversed
+        var nAnchorIndex = welAnchor.index();
+        var nFocusIndex = welFocus.index();
+        var bIsReversed = (nAnchorIndex > nFocusIndex);
+        var welStartLine = bIsReversed ? welFocus : welAnchor;
+        var welEndLine = bIsReversed ? welAnchor : welFocus;
+
+        // in range ...
+        if(nAnchorIndex !== nFocusIndex){
+            welStartLine.nextUntil(welEndLine).each(function(){
+                if($(this).find("td.code > pre").length !== 1){
+                    bHasRange = true;
+                }
+            });
+        }
+
+        return !bHasRange;
     }
 
     /**
-     * DiffBody 에서 선택한 영역 정보를 찾아 저장(= _setBlockData 를 호출)한다
+     * DiffBody 에서 선택한 영역 정보를 찾아 저장한다
      * @private
      */
     function _setBlockDataBySelection(){
-        var htInfo = _getSelectionInfo();
-
-        if(htInfo){
-            _setBlockData(htInfo);
-        }
-    }
-
-    /**
-     * 선택한 영역에 관한 정보를 반환한다
-     *
-     * @returns {Hash Table}
-     */
-    function _getSelectionInfo(){
+        // get anchor, focus row (TR) from selected text node
         var oSelection = document.getSelection();
-        var elStart = _findClosestAncestorElementFrom(oSelection.anchorNode, "tr");
-        var elEnd = _findClosestAncestorElementFrom(oSelection.focusNode, "tr");
-        var welStart = $(elStart);
-        var welEnd = $(elEnd);
+        var welAnchor = $(oSelection.anchorNode.parentElement).closest("tr");
+        var welFocus = $(oSelection.focusNode.parentElement).closest("tr");
+        var welTable = welAnchor.closest("table");
 
-        if(elStart === false || elEnd === false){ // 적당한 TR 엘리먼트를 찾지 못하는 경우
-            return false;
-        }
-        if(!welStart.data("line") || !welEnd.data("line")){ // 줄 정보를 확인할 수 없으면
-            return false;
-        }
-        if(elStart.parentElement !== elEnd.parentElement){  // 같은 파일 Diff 내에서만
-            return false;
-        }
+        // detect whether is reversed
+        var nAnchorIndex = welAnchor.index();
+        var nFocusIndex = welFocus.index();
+        var bIsReversed = (nAnchorIndex > nFocusIndex);
+        var welStartLine = bIsReversed ? welFocus : welAnchor;
+        var welEndLine = bIsReversed ? welAnchor : welFocus;
 
-        // 아래쪽에서 위로 선택영역을 잡은 경우 시작, 끝이 반대로 잡힌다
-        // 혹은 같은 줄에서 오른쪽에서 왼쪽으로 선택 영역을 잡은 경우도
-        var bReversed = (welStart.index() > welEnd.index())
-                     || (elStart === elEnd && oSelection.anchorOffset > oSelection.focusOffset);
-        var elStartLine = bReversed ? elEnd : elStart;
-        var elEndLine = bReversed ? elStart : elEnd;
-
-        /// start of range
-        var aRows = [elStartLine];
-
-        // if 2 or more rows has selected
-        if(elStartLine !== elEndLine){
-            /// in range
-            aRows = aRows.concat(_getRowsBetween(elStartLine, elEndLine));
-
-            /// end of range
-            aRows.push(elEndLine);
-        }
-
-        // return information
-        return {
-            "aRows": aRows,
-            "bReversed"    : bReversed,
-            "nAnchorOffset": bReversed ? oSelection.focusOffset  : oSelection.anchorOffset,
-            "nFocusOffset" : bReversed ? oSelection.anchorOffset : oSelection.focusOffset,
-            "oAnchorNode"  : bReversed ? oSelection.focusNode    : oSelection.anchorNode, // Note: node not equals row element
-            "oFocusNode"   : bReversed ? oSelection.anchorNode   : oSelection.focusNode,
-            "welStartLine" : $(elStartLine),
-            "welEndLine"   : $(elEndLine)
+        htBlockInfo = {
+            "bIsReversed" : bIsReversed,
+            "nStartLine"  : welStartLine.data("line"),
+            "sStartType"  : welStartLine.data("type"),
+            "nStartOffset": bIsReversed ? oSelection.focusOffset  : oSelection.anchorOffset,
+            "nEndLine"    : welEndLine.data("line"),
+            "sEndType"    : welEndLine.data("type"),
+            "nEndOffset"  : bIsReversed ? oSelection.anchorOffset : oSelection.focusOffset,
+            "sPathA"      : welTable.data("pathA"),
+            "sPathB"      : welTable.data("pathB"),
+            "sFilePath"   : welTable.data("filePath")
         };
     }
 
     /**
-     * elStart 와 elEnd 사이의 TableRow(TR) 배열을 반환한다
+     * CodeCommentBlock 에서 wrap 이벤트 발생시
+     * 사용자가 어떤 영역을 선택하면 그 근처에 댓글작 버튼을 표시
      *
-     * @param elStart
-     * @param elEnd
-     * @returns {Array}
      * @private
      */
-    function _getRowsBetween(elStart, elEnd){
-        var aRows = [];
+    function _onWrapCodeCommentBlock(){
+        if(htVar.bPopButtonOnBlock && htElement.welButtonOnBlock){
+            var htBlockInfo = _getBlockData();
+            var htElements = _getElementsByOffsetOptions(htBlockInfo);
 
-        $(elStart).nextUntil(elEnd).each(function(i, elRow){
-            if($(elRow).data("line")){
-                aRows.push(elRow);
+            var welLine = (htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine);
+            var welCode = welLine.find("td.code");
+            var nBlockOffset = (htBlockInfo.bIsReversed ? htBlockInfo.nStartOffset : htBlockInfo.nEndOffset);
+            var htCodeOffset = welCode.offset();
+            var nTop = htCodeOffset.top + (htBlockInfo.bIsReversed ? -20 : welCode.height());
+            var nLeft = htCodeOffset.left + (nBlockOffset * 7);
+
+            // 블럭 영역이 diff-container 테이블 밖에 잡힐때를 대비해서
+            if(nLeft > (htCodeOffset.left + welLine.width() - 40)){
+                nLeft = htCodeOffset.left + welLine.width() - 80;
             }
-        });
 
-        return aRows;
-    }
-
-    /**
-     * 지정한 노드에서 가장 가까운 상위 엘리먼트 중 지정한 태그명을 갖는 엘리먼트를 반환한다
-     *
-     * @param {Object} oNode 기준 노드
-     * @param {String} sTagName 태그명
-     * @returns {*}
-     */
-    function _findClosestAncestorElementFrom(oNode, sTagName){
-        return (oNode.nodeType === 1 && oNode.tagName.toLowerCase() === sTagName) ? oNode : (oNode.parentNode ? _findClosestAncestorElementFrom(oNode.parentNode, sTagName) : false);
+            htElement.welButtonOnBlock.show();
+            htElement.welButtonOnBlock.css({
+                "top" : nTop +"px",
+                "left": nLeft+"px"
+            });
+        }
     }
 
     /**
@@ -228,75 +212,48 @@ yobi.CodeCommentBlock = (function(){
      * _wrapByOffset({"nStartLine": 117, "nStartOffset":0, "nEndLine":120, "nEndOffset":3});
      */
     function _wrapByOffset(htOffset){
-        var htInfo = _getOffsetInfo(htOffset);
-
-        if(htInfo !== false){
-            _unwrapAll();
-            _wrapOnDiff(htInfo);
-        }
-    }
-
-    /**
-     * 지정한 오프셋 영역에 대한 정보를 반환한다
-     *
-     * @param htOffset
-     * @returns {*}
-     * @private
-     */
-    function _getOffsetInfo(htOffset){
-        var htElements = _getElementsByOffsetOptions(htOffset);
-        if(!htElements.elStartLine || !htElements.elEndLine){
-            return false;
-        }
-
-        var oAnchorNode = htElements.welStartLine.find("pre").get(0).childNodes[0];
-        var oFocusNode = htElements.welEndLine.find("pre").get(0).childNodes[0];
-        var aRows = [htElements.elStartLine];
-
-        if(htElements.elStartLine !== htElements.elEndLine){
-            aRows = aRows.concat(_getRowsBetween(htElements.elStartLine, htElements.elEndLine));
-            aRows.push(htElements.elEndLine);
-        }
-
-        var htInfo = {
-            "aRows": aRows,
-            "nAnchorOffset": htOffset.nStartOffset || 0,
-            "nFocusOffset" : htOffset.nEndOffset || oFocusNode.length,
-            "oAnchorNode"  : oAnchorNode,
-            "oFocusNode"   : oFocusNode,
-            "welStartLine" : htElements.welStartLine,
-            "welEndLine"   : htElements.welEndLine
-        };
-
-        return htInfo;
+        _unwrapAll();
+        _wrapOnDiff(htOffset);
     }
 
     /**
      * 선택한 영역을 Wrap
      *
-     * @param {Hash Table} htInfo
+     * @param {Hash Table} htOffset _setBlockDataBySelection 에서 반환하는 값과 같은 형식
      * @private
      */
-    function _wrapOnDiff(htInfo){
-        htInfo.aRows.forEach(function(elRow){
-            var welRow = $(elRow);
-            var oRange = document.createRange();
-            var elWrapper = _getCommentLineWrapper(htInfo);
+    function _wrapOnDiff(htOffset){
+        var htElements = _getElementsByOffsetOptions(htOffset);
+        if(!htElements.elStartLine || !htElements.elEndLine){
+            return false;
+        }
 
-            // wrap selected lines
-            if(welRow.has(htInfo.oAnchorNode).length > 0){ // first line
-                oRange.setStart(htInfo.oAnchorNode, htInfo.nAnchorOffset);
-                oRange.setEnd(htInfo.oAnchorNode, htInfo.oAnchorNode === htInfo.oFocusNode ? htInfo.nFocusOffset : htInfo.oAnchorNode.length);
-            } else if((htInfo.oAnchorNode != htInfo.oFocusNode) && (welRow.has(htInfo.oFocusNode).length > 0)){ // last line
-                oRange.setStart(htInfo.oFocusNode, 0);
-                oRange.setEnd(htInfo.oFocusNode, htInfo.nFocusOffset);
-            } else { // other rows
-                var elCode = welRow.find("pre")[0];
-                oRange.setStart(elCode, 0);
-                oRange.setEnd(elCode, elCode.childNodes.length);
+        var nRows = htElements.aRows.length;
+        htElements.aRows.forEach(function(welRow, nIndex){
+            var welRowNode = welRow.find("td.code > pre").get(0).childNodes[0];
+            var oRange = document.createRange();
+            var elBlock = _getCommentLineWrapper();
+            var nStartOffset = 0;
+            var nEndOffset = 0;
+            var nNodeLength = welRowNode.length;
+
+            if(nRows === 1){               // in one line
+                nStartOffset = htOffset.nStartOffset;
+                nEndOffset = htOffset.nEndOffset;
+            } else if(nIndex === 0){       // first line
+                nStartOffset = htOffset.nStartOffset;
+                nEndOffset = nNodeLength;
+            } else if(nIndex === nRows-1){ // last line
+                nStartOffset = 0;
+                nEndOffset = htOffset.nEndOffset;
+            } else {                       // and the others
+                nStartOffset = 0;
+                nEndOffset = nNodeLength;
             }
 
-            oRange.surroundContents(elWrapper);
+            oRange.setStart(welRowNode, nStartOffset);
+            oRange.setEnd(welRowNode, nEndOffset);
+            oRange.surroundContents(elBlock);
         });
 
         document.getSelection().removeAllRanges();
@@ -324,22 +281,53 @@ yobi.CodeCommentBlock = (function(){
         htResult.elStartLine = htResult.welStartLine.get(0);
         htResult.elEndLine = htResult.welEndLine.get(0);
 
+        /// start of range
+        htResult.aRows = [htResult.welStartLine];
+
+        // if 2 or more rows has selected
+        if(htResult.elStartLine !== htResult.elEndLine){
+            /// in range
+            htResult.aRows = htResult.aRows.concat(_getRowsBetween(htResult.elStartLine, htResult.elEndLine));
+
+            /// end of range
+            htResult.aRows.push(htResult.welEndLine);
+        }
+
         return htResult;
     }
 
     /**
+     * elStart 와 elEnd 사이의 TableRow(TR) 배열을 반환한다
+     *
+     * @param elStart
+     * @param elEnd
+     * @returns {Array}
+     * @private
+     */
+    function _getRowsBetween(elStart, elEnd){
+        var aRows = [];
+
+        $(elStart).nextUntil(elEnd).each(function(i, elRow){
+            var welRow = $(elRow);
+
+            if(welRow.data("line")){
+                aRows.push(welRow);
+            }
+        });
+
+        return aRows;
+    }
+
+    /**
      * Returns comment line wrapper HTMLElement
-     * @param htInfo
      * @returns {HTMLElement}
      * @private
      */
-    function _getCommentLineWrapper(htInfo){
-        var sWrapperId = _getCommentLineWrapperId(htInfo);
+    function _getCommentLineWrapper(){
         var elWrapper =  document.createElement("SPAN");
 
-        // 여러 줄에 사용되는 line wrapper 는 모두 다른 엘리먼트
         // TODO: Style 속성은 CSS ClassName 으로 대체할 것
-        elWrapper.setAttribute("data-comment-wrapperId", sWrapperId);
+        elWrapper.setAttribute("data-toggle", "comment-block");
         elWrapper.style.backgroundColor = "rgba(0,133,255,0.25)";//"rgba(133,246,150,0.25)";
         elWrapper.style.padding = "4px 0";
 
@@ -347,48 +335,15 @@ yobi.CodeCommentBlock = (function(){
     }
 
     /**
-     * Returns comment-wrapperId
-     * @param htInfo
-     * @returns {string}
-     * @private
-     */
-    function _getCommentLineWrapperId(htInfo){
-        return "__wrapper-" + [htInfo.welStartLine.data("line"), htInfo.nAnchorOffset, htInfo.welEndLine.data("line"), htInfo.nFocusOffset].join("-");
-    }
-
-    /**
      * Unwrap all comment wrappers
      * @private
      */
     function _unwrapAll(){
-        $("[data-comment-wrapperId]").each(function(i, el){
-            el.outerHTML = el.innerHTML;
+        $('[data-toggle="comment-block"]').each(function(){
+            this.outerHTML = this.innerHTML;
         });
 
         _onUnwrapAllCodeCommentBlock();
-    }
-
-    /**
-     * CodeCommentBlock 에서 wrap 이벤트 발생시
-     * 사용자가 어떤 영역을 선택하면 그 근처에 댓글작 버튼을 표시
-     * @param htInfo
-     * @private
-     */
-    function _onWrapCodeCommentBlock(htInfo){
-        if(htVar.bPopButtonOnBlock && htElement.welButtonOnBlock){
-            var welLine = (htInfo.bReversedRange ? htInfo.welStartLine : htInfo.welEndLine);
-            var welCode = welLine.find("td.code");
-            var nBlockOffset = (htInfo.bReversedRange ? htInfo.nStartOffset : htInfo.nEndOffset);
-            var htCodeOffset = welCode.offset();
-            var nTop = htCodeOffset.top + (htInfo.bReversedRange ? -20 : welCode.height());
-            var nLeft = htCodeOffset.left + (nBlockOffset * 7);
-
-            htElement.welButtonOnBlock.show();
-            htElement.welButtonOnBlock.css({
-                "top" : nTop +"px",
-                "left": nLeft+"px"
-            });
-        }
     }
 
     /**
@@ -408,34 +363,6 @@ yobi.CodeCommentBlock = (function(){
      */
     function _getBlockData(){
         return htBlockInfo;
-    }
-
-    /**
-     * Setter for block data
-     * @param htInfo
-     * @returns {{sStartLineType: *, nStartLine: *, nStartOffset: (*|htInfo.nAnchorOffset), sEndLineType: *, nEndLine: *, nEndOffset: (*|htInfo.nFocusOffset), welStartLine: (*|htInfo.welStartLine), welEndLine: (*|htInfo.welEndLine), bReversedRange: (*|yobi.CodeCommentBlock._getSelectionInfo.bReversed), sPathA: *, sPathB: *}}
-     * @private
-     */
-    function _setBlockData(htInfo){
-        var welContainer = htInfo.welStartLine.parents("table");
-        var sPathA = welContainer.data("path-a");
-        var sPathB = welContainer.data("path-b");
-
-        htBlockInfo = {
-            "sStartLineType": htInfo.welStartLine.data("type"),
-            "nStartLine"    : htInfo.welStartLine.data("line"),
-            "nStartOffset"  : htInfo.nAnchorOffset,
-            "sEndLineType"  : htInfo.welEndLine.data("type"),
-            "nEndLine"      : htInfo.welEndLine.data("line"),
-            "nEndOffset"    : htInfo.nFocusOffset,
-            "welStartLine"  : htInfo.welStartLine,
-            "welEndLine"    : htInfo.welEndLine,
-            "bReversedRange": htInfo.bReversed,
-            "sPathA"        : sPathA,
-            "sPathB"        : sPathB
-        };
-
-        _onWrapCodeCommentBlock(htBlockInfo);
     }
 
     // public interface

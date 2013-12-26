@@ -82,6 +82,14 @@ object TemplateHelper {
 
   def nullOrEquals(a: String, b: String) = (a == null || b == null) ||  a.equals(b)
 
+  def ifElse(condition:Boolean, a: String, b: String): String = {
+    if(condition){
+      a
+    } else {
+      b
+    }
+  }
+
   def equals(a: String, b: String) = (a == b) || a.equals(b)
 
   def getPort(uri: URI) = {

@@ -11,7 +11,8 @@
 @import scala.collection.immutable.Map
 @import scala.collection.immutable.List
 @import scala.collection.JavaConversions._
-@import org.apache.commons.lang.StringEscapeUtils.escapeHtml;
+@import org.apache.commons.lang.StringEscapeUtils.escapeHtml
+@import org.apache.commons.lang3.StringUtils
 
 @**
  * 변경 내용(Diff) 표시
@@ -187,7 +188,10 @@
         </div>
       </div>
       <div class="diff-partial-code">
-        <table class="diff-container show-comments" data-path-a="@diff.pathA" data-path-b="@diff.pathB" data-commit-a="@diff.commitA" data-commit-b="@diff.commitB">
+        <table class="diff-container show-comments"
+               data-path-a="@diff.pathA" data-path-b="@diff.pathB"
+               data-commit-a="@diff.commitA" data-commit-b="@diff.commitB"
+               data-file-path="@StringUtils.defaultIfEmpty(diff.pathB, diff.pathA)">
         <tbody>
           @renderedLines
         </tbody>
