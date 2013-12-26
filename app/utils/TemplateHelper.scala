@@ -28,6 +28,7 @@ import models.Project
 import java.net.URLEncoder
 import scala.annotation.tailrec
 import playRepository.FileDiff
+import play.api.i18n.Lang
 
 object TemplateHelper {
 
@@ -374,8 +375,8 @@ object TemplateHelper {
       }
     }
 
-    def getFileDate(file:org.codehaus.jackson.JsonNode, field:String):String = {
-      JodaDateUtil.momentFromNow(file.get(field).getLongValue)
+    def getFileDate(file:org.codehaus.jackson.JsonNode, field:String)(implicit lang:Lang):String = {
+      JodaDateUtil.momentFromNow(file.get(field).getLongValue, lang.language)
     }
 
     def getCorrectedPath(filePath:String, fileName:String):String = {
