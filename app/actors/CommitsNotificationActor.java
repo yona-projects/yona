@@ -106,7 +106,7 @@ public class CommitsNotificationActor extends PostReceiveActor {
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
-                result.append(routes.CodeHistoryApp.history(project.owner, project.name, branchName, null).url());
+                result.append(routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "").url());
                 result.append("\">");
                 result.append(refName);
                 result.append("</a>");
