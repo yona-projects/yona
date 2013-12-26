@@ -457,7 +457,6 @@ yobi.Files = (function(){
      * @param {Wrapped Event} weEvt
      */
     function _onPasteFile(sNamespace, weEvt){
-        debugger;
         var oClipboardData = weEvt.originalEvent.clipboardData;
         if(!oClipboardData || !oClipboardData.items){
             return;
@@ -474,6 +473,11 @@ yobi.Files = (function(){
                 oFile.name = nSubmitId + ".png";
 
                 _uploadSingleFile(oFile, nSubmitId, sNamespace);
+
+                _fireEvent("pasteFile", {
+                    "nSubmitId": nSubmitId,
+                    "oFile"    : oFile
+                }, sNamespace);
             }
         }
 

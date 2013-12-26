@@ -94,7 +94,8 @@ yobi.Attachments = function(htOptions) {
             "beforeUpload"  : _onBeforeUpload,
             "uploadProgress": _onUploadProgress,
             "successUpload" : _onSuccessUpload,
-            "errorUpload"   : _onErrorUpload
+            "errorUpload"   : _onErrorUpload,
+            "pasteFile"     : _onPasteFile
         }, sUploaderId);
     }
 
@@ -109,7 +110,8 @@ yobi.Attachments = function(htOptions) {
             "beforeUpload"  : _onBeforeUpload,
             "uploadProgress": _onUploadProgress,
             "successUpload" : _onSuccessUpload,
-            "errorUpload"   : _onErrorUpload
+            "errorUpload"   : _onErrorUpload,
+            "pasteFile"     : _onPasteFile
         }, sUploaderId);
     }
 
@@ -285,6 +287,11 @@ yobi.Attachments = function(htOptions) {
         if(_updateFileItem(nSubmitId, oRes) !== false){
             _setProgressBar(nSubmitId, 100);
         }
+
+        // 임시 업로드 링크가 있으면 실제 링크로 교체
+        var sTempLink = _getTempLinkText(htData.nSubmitId + ".png");
+        var sRealLink = _getLinkText($("#" + htData.nSubmitId));
+        _replaceLinkInTextarea(sTempLink, sRealLink);
     }
 
     /**
@@ -337,6 +344,7 @@ yobi.Attachments = function(htOptions) {
         }
 
         $yobi.notify(Messages("common.attach.error", htData.oRes.status, htData.oRes.statusText));
+        _clearLinkInTextarea(_getTempLinkText(htData.nSubmitId + ".png"));
     }
 
     /**
@@ -359,24 +367,6 @@ yobi.Attachments = function(htOptions) {
     }
 
     /**
-     * 선택한 파일 아이템의 링크 텍스트를 textarea에 추가하는 함수
-     *
-     * @param {Wrapped Element} welItem
-     */
-    function _insertLinkToTextarea(welItem){
-        var welTextarea = htElements.welTextarea;
-        if(welTextarea.length === 0){
-            return false;
-        }
-
-        var nPos  = welTextarea.prop('selectionStart');
-        var sText = welTextarea.val();
-        var sLink = _getLinkText(welItem);
-
-        welTextarea.val(sText.substring(0, nPos) + sLink + sText.substring(nPos));
-    }
-
-    /**
      * 선택한 파일 아이템을 첨부 파일에서 삭제
      * textarea에서 해당 파일의 링크 텍스트도 제거함 (_clearLinkInTextarea)
      *
@@ -384,6 +374,7 @@ yobi.Attachments = function(htOptions) {
      */
     function _deleteAttachedFile(welItem){
        var sURL = welItem.attr("data-href");
+
        yobi.Files.deleteFile({
            "sURL"   : sURL,
            "fOnLoad": function(){
@@ -400,6 +391,24 @@ yobi.Attachments = function(htOptions) {
                 $yobi.alert(Messages("error.internalServerError"));
             }
        });
+    }
+
+    /**
+     * 선택한 파일 아이템의 링크 텍스트를 textarea에 추가하는 함수
+     *
+     * @param {Variant} vLink 파일항목에 해당하는 Wrapped Element 객체 또는 링크 텍스트
+     */
+    function _insertLinkToTextarea(vLink){
+        var welTextarea = htElements.welTextarea;
+        if(welTextarea.length === 0){
+            return false;
+        }
+
+        var nPos  = welTextarea.prop('selectionStart');
+        var sText = welTextarea.val();
+        var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
+
+        welTextarea.val(sText.substring(0, nPos) + sLink + sText.substring(nPos));
     }
 
     /**
@@ -424,19 +433,58 @@ yobi.Attachments = function(htOptions) {
     }
 
     /**
-     * textarea에서 해당 파일 아이템의 링크 텍스트를 제거하는 함수
-     * _deleteAttachedFile 에서 호출한다
+     * 임시 파일 텍스트를 반환하는 함수
+     * 업로드 도중에 사용되는 텍스트일뿐 실제 링크는 아니다
      *
-     * @param {Wrapped Element} welItem
+     * @param sFilename
+     * @returns {string}
+     * @private
      */
-    function _clearLinkInTextarea(welItem){
+    function _getTempLinkText(sFilename){
+        return "<!--_" + sFilename + "_-->";
+    }
+
+    /**
+     * textarea에서 해당 파일 아이템의 링크 텍스트를 제거하는 함수
+     * 첨부파일 목록에서 삭제할 때는 _deleteAttachedFile 에서 호출한다
+     * 파일 업로드 실패시 임시태그 삭제는 _onErrorSubmit 에서 호출한다
+     *
+     * @param {Variant} vLink 파일항목에 해당하는 Wrapped Element 객체 또는 링크 텍스트
+     */
+    function _clearLinkInTextarea(vLink){
         var welTextarea = htElements.welTextarea;
         if(welTextarea.length === 0){
             return false;
         }
 
-        var sLink = _getLinkText(welItem);
+        var sLink = (typeof vLink === "string") ? vLink : _getLinkText(vLink);
         welTextarea.val(welTextarea.val().split(sLink).join(''));
+    }
+
+    /**
+     * textarea에서 link1 을 link2 로 교체하는 함수
+     * 임시 링크를 실제 링크로 교체하는데 사용한다
+     *
+     * @param sLink1
+     * @param sLink2
+     * @private
+     */
+    function _replaceLinkInTextarea(sLink1, sLink2){
+        var welTextarea = htElements.welTextarea;
+        if(welTextarea.length === 0){
+            return false;
+        }
+
+        welTextarea.val(welTextarea.val().split(sLink1).join(sLink2));
+    }
+
+    /**
+     * 클립보드에서 붙여넣기로 파일 업로드 하는 경우 발생하는 이벤트 핸들러
+     * @param htData
+     * @private
+     */
+    function _onPasteFile(htData){
+        _insertLinkToTextarea(_getTempLinkText(htData.oFile.name));
     }
 
     /**
