@@ -22,7 +22,7 @@ public class Config {
         if (hostname != null && !hostname.isEmpty()) {
             Integer port = play.Configuration.root().getInt("application.port");
 
-            if (port != null) {
+            if (port != null && !port.equals("80")) {
                return hostname + ":" + port.toString();
             } else {
                return hostname;
