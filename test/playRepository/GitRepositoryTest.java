@@ -319,7 +319,7 @@ public class GitRepositoryTest {
         new GitRepository("keesun", "test").create();
 
         // When
-        Repository repository = GitRepository.buildCloneRepository(pullRequest);
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
 
         // Then
         assertThat(repository).isNotNull();
@@ -337,7 +337,7 @@ public class GitRepositoryTest {
         Project original = createProject("keesun", "test");
         PullRequest pullRequest = createPullRequest(original);
         new GitRepository(original).create();
-        Repository repository = GitRepository.buildCloneRepository(pullRequest);
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
 
         Git git = new Git(repository);
         String branchName = "refs/heads/master";
@@ -363,7 +363,7 @@ public class GitRepositoryTest {
         Project original = createProject("keesun", "test");
         PullRequest pullRequest = createPullRequest(original);
         new GitRepository(original).create();
-        Repository repository = GitRepository.buildCloneRepository(pullRequest);
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
 
         RevCommit commit = newCommit(original, repository, "readme.md", "hello 1", "commit 1");
         new Git(repository).push().call();
@@ -396,7 +396,7 @@ public class GitRepositoryTest {
         Project original = createProject("keesun", "test");
         PullRequest pullRequest = createPullRequest(original);
         new GitRepository(original).create();
-        Repository repository = GitRepository.buildCloneRepository(pullRequest);
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
         // 커밋이 없으면 HEAD도 없어서 브랜치 만들 때 에러가 발생하기 때문에 일단 하나 커밋한다.
         newCommit(original, repository, "readme.md", "hello 1", "commit 1");
 
@@ -421,7 +421,7 @@ public class GitRepositoryTest {
         PullRequest pullRequest = createPullRequest(original);
         GitRepository gitRepository = new GitRepository(original);
         gitRepository.create();
-        Repository repository = GitRepository.buildCloneRepository(pullRequest);
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
 
         // master에 commit 1 추가
         newCommit(original, repository, "readme.md", "hello 1", "commit 1");
@@ -456,7 +456,7 @@ public class GitRepositoryTest {
         Project original = createProject("keesun", "test");
         PullRequest pullRequest = createPullRequest(original);
         new GitRepository(original).create();
-        Repository repository = GitRepository.buildCloneRepository(pullRequest);
+        Repository repository = GitRepository.buildMergingRepository(pullRequest);
         // master에 commit 1 추가
         String fileName = "readme.md";
         String content = "hello 1";

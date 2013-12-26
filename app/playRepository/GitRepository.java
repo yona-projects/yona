@@ -1014,7 +1014,7 @@ public class GitRepository implements PlayRepository {
     public static synchronized void cloneAndFetch(PullRequest pullRequest, AfterCloneAndFetchOperation operation) {
         Repository cloneRepository = null;
         try {
-            cloneRepository = buildCloneRepository(pullRequest);
+            cloneRepository = buildMergingRepository(pullRequest);
 
             String srcToBranchName = pullRequest.toBranch;
             String destToBranchName = srcToBranchName + "-to-" + pullRequest.id;
@@ -1060,20 +1060,20 @@ public class GitRepository implements PlayRepository {
      * @throws GitAPIException
      * @throws IOException
      */
-    public static Repository buildCloneRepository(PullRequest pullRequest) {
+    public static Repository buildMergingRepository(PullRequest pullRequest) {
         Project toProject = pullRequest.toProject;
 
         // merge 할 때 사용할 Git 저장소 디렉토리 경로를 생성한다.
-        String directory = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
+        String workingTree = GitRepository.getDirectoryForMerging(toProject.owner, toProject.name);
 
         try {
             // 이미 만들어둔 clone 디렉토리가 있다면 그걸 사용해서 Repository를 생성하고
             // 없을 때는 새로 만든다.
-            File workingTreeDirectory = new File(directory + "/.git");
-            if(!workingTreeDirectory.exists()) {
-                return cloneRepository(pullRequest.toProject, directory).getRepository();
+            File gitDir = new File(workingTree + "/.git");
+            if(!gitDir.exists()) {
+                return cloneRepository(pullRequest.toProject, workingTree).getRepository();
             } else {
-                return new RepositoryBuilder().setGitDir(workingTreeDirectory).build();
+                return new RepositoryBuilder().setGitDir(gitDir).build();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
