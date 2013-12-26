@@ -49,7 +49,11 @@
                 }
                 </p>
             </div>
-            @if(StringUtils.isEmpty(issue.body)){<img src="@routes.Assets.at("/images/no_contents.jpg")">} else {<div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>}
+            @if(StringUtils.isEmpty(issue.body)){
+            <div class="content empty-content"></div>
+            } else {
+            <div class="content markdown-wrap markdown-before" markdown="true">@issue.body</div>
+            }
             <div class="attachments" data-resourceType="@ResourceType.ISSUE_POST" data-resourceId="@issue.id"></div>
         </div>
 
