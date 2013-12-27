@@ -244,12 +244,18 @@ public class Milestone extends Model implements ResourceConvertible {
         Duration duration = new Duration(DateTime.now(), new DateTime(dueDate));
         long days = duration.getStandardDays();
         if(days < 0) {
-            return Messages.get("common.time.before", -days);
+            return Messages.get("common.time.overday", -days);
         } else if(days == 0) {
             return Messages.get("common.time.today");
         } else {
-            return Messages.get("common.time.after", days);
+            return Messages.get("common.time.leftday", days);
         }
+    }
+
+    public Boolean isOverDueDate(){
+        Duration duration = new Duration(DateTime.now(), new DateTime(dueDate));
+        long days = duration.getStandardDays();
+        return (days < 0);
     }
 
     @Override
