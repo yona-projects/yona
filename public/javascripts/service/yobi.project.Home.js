@@ -148,8 +148,12 @@
                     "data": JSON.stringify(overview),
                     "contentType":"application/json"
                 }).done(function(data){
+                        var sDescription = (data.overview) 
+                                            ? data.overview 
+                                            : $("#project-description-input").attr('placeholder');
+                                            
                         $('[data-toggle="project-description-tab"]').toggleClass('hidden');
-                        $("#project-description").text(data.overview);
+                        $("#project-description").text(sDescription);
                 }).fail(function(err){
                         console.log("err>> ", err);
                 });

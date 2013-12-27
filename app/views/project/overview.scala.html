@@ -41,7 +41,7 @@
             <div class="project-description" data-toggle="project-description-tab">
             <h3><span id="project-description">@if(StringUtils.isEmpty(project.overview)) {@Messages("project.description.placeholder")} else {@project.overview}</span>
                 @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
-            <button type="button" class="ybtn ybtn-minimum" data-toggle="description-edit" "><i class="yobicon-edit"></i></button>
+            <button type="button" class="ybtn ybtn-minimum" data-toggle="description-edit"><i class="yobicon-edit"></i></button>
                 }
             </h3>
             </div>
@@ -68,7 +68,7 @@
 
 	        <div class="tab-content">
 	            <div id="readme" class="tab-pane active">
-	                <div class="bubble-wrap gray readmee">
+	                <div class="bubble-wrap gray readme">
 	                @if(project.readme == null){
 	                    <p class="default">
 	                       <span class="v"></span>
