@@ -32,6 +32,8 @@ import com.avaje.ebean.Page;
 import com.avaje.ebean.ExpressionList;
 
 import java.io.IOException;
+import java.lang.Integer;
+import java.lang.NumberFormatException;
 import java.net.URL;
 import java.util.*;
 import org.codehaus.jackson.node.ObjectNode;
@@ -39,6 +41,7 @@ import play.libs.Json;
 
 public class IssueApp extends AbstractPostingApp {
     private static final String EXCEL_EXT = "xls";
+    private static final Integer ITEMS_PER_PAGE_MAX = 45;
 
     /**
      * 이슈 목록 조회
@@ -83,8 +86,9 @@ public class IssueApp extends AbstractPostingApp {
             format = HttpUtil.isPJAXRequest(request()) ? "pjax" : "json";
         }
 
+        Integer itemsPerPage = getItemsPerPage();
         ExpressionList<Issue> el = searchCondition.asExpressionList(project);
-        Page<Issue> issues = el.findPagingList(ITEMS_PER_PAGE).getPage(searchCondition.pageNum);
+        Page<Issue> issues = el.findPagingList(itemsPerPage).getPage(searchCondition.pageNum);
 
         switch(format){
             case EXCEL_EXT:
@@ -100,6 +104,26 @@ public class IssueApp extends AbstractPostingApp {
             default:
                 return issuesAsHTML(project, issues, searchCondition); 
         }
+    }
+
+    /**
+     * 한 페이지에 표시할 항목의 갯수를 반환한다
+     * GET 쿼리로 itemsPerPage 가 있으면 그것을 활용하고,
+     * 기본값은 ITEMS_PER_PAGE 상수를 사용한다
+     * 최대값인 ITEMS_PER_PAGE_MAX 를 넘을수는 없다
+     * @return
+     */
+    private static Integer getItemsPerPage(){
+        Integer itemsPerPage = ITEMS_PER_PAGE;
+        String amountStr = request().getQueryString("itemsPerPage");
+
+        if(amountStr != null){ // or amount from query string
+            try {
+                itemsPerPage = Integer.parseInt(amountStr);
+            } catch (NumberFormatException e){}
+        }
+
+        return Math.min(itemsPerPage, ITEMS_PER_PAGE_MAX);
     }
 
     /**

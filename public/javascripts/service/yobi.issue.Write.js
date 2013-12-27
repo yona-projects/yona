@@ -228,7 +228,8 @@
             $.get(htVar.sIssueListURL, {
                 "state"   : "all",
                 "filter"  : sKeyword,
-                "exceptId": htVar.sIssueId
+                "exceptId": htVar.sIssueId,
+                "itemsPerPage": 5
             }, _onLoadRelativeIssue);
         }
         
