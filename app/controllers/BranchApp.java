@@ -41,6 +41,15 @@ import java.util.List;
  */
 public class BranchApp extends Controller {
 
+    /**
+     * 저장소에 존재하는 브랜치 목록 표시
+     *
+     * @param loginId
+     * @param projectName
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
     @ProjectAccess(value = Operation.READ, isGitOnly = true)
     public static Result branches(String loginId, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
@@ -60,6 +69,17 @@ public class BranchApp extends Controller {
         return ok(branches.render(project, allBranches, headBranch));
     }
 
+    /**
+     * 지정한 브랜치를 삭제한다
+     * 삭제한 뒤 브랜치 목록으로 돌아간
+     *
+     * @param loginId
+     * @param projectName
+     * @param branchName
+     * @return
+     * @throws IOException
+     * @throws GitAPIException
+     */
     @ProjectAccess(value = Operation.DELETE, isGitOnly = true)
     public static Result deleteBranch(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(loginId, projectName);
@@ -68,4 +88,20 @@ public class BranchApp extends Controller {
         return redirect(routes.BranchApp.branches(loginId, projectName));
     }
 
+    /**
+     * 지정한 브랜치를 기본 브랜치로 설정한다
+     *
+     * @param loginId
+     * @param projectName
+     * @param branchName
+     * @return
+     */
+    @ProjectAccess(value = Operation.UPDATE, isGitOnly = true)
+    public static Result setAsDefault(String loginId, String projectName, String branchName) throws IOException, GitAPIException {
+        Project project = Project.findByOwnerAndProjectName(loginId, projectName);
+        GitRepository gitRepository = new GitRepository(project);
+        gitRepository.setDefaultBranch(branchName);
+
+        return utils.HttpUtil.isRequestedWithXHR(request()) ? ok() : redirect(routes.BranchApp.branches(loginId, projectName));
+    }
 }

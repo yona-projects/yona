@@ -21,8 +21,8 @@
 @(project: Project, branch: playRepository.GitBranch, isHead: Boolean)
 
 @import utils.JodaDateUtil._
-@import java.net.URLEncoder
 @import utils.AccessControl._
+@import java.net.URLEncoder
 
 @getShowCommitURL(gitBranch:playRepository.GitBranch) = @{
     var queryString = "?branch=" + URLEncoder.encode(gitBranch.getName, "UTF-8");
@@ -39,45 +39,75 @@
     routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, branchName, "");
 }
 
-<td>
-    <a href="@goToBranchURL(branch.getName)" class="blue-txt">
-        <strong>@branch.getShortName</strong>
-    </a>
-    @if(isHead) {
-        <code>HEAD</code>
-    }
-</td>
-<td>
-    <a href="@getShowCommitURL(branch)" class="blue-txt commitMsg">
-        @branch.getHeadCommit.getShortMessage
-    </a>
-</td>
-<td>
-    @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
-</td>
-<td>
-    @if(branch.getUser != null) {
-        <img src="@branch.getUser.avatarUrl" height="25" width="25">
-        <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="blue-txt">@branch.getUser.name</a>
+@getCommiterAvatar(gitBranch:playRepository.GitBranch) = {
+    @if(branch.getUser != null){
+        <a href="@routes.UserApp.userInfo(branch.getUser.loginId)" class="usf-group" data-toggle="tooltip" data-placement="top" title="@branch.getUser.name">
+            <img src="@branch.getUser.avatarUrl" class="avatar-wrap smaller">
+        </a>
     } else {
-        <img src="@utils.GravatarUtil.getAvatar(branch.getHeadCommit.getCommitterEmail, 25)" height="25" width="25">
-            @branch.getHeadCommit.getCommitterName
+        <a class="usf-group" data-toggle="tooltip" data-placement="top" title="@branch.getHeadCommit.getCommitterName">
+            <img src="@utils.GravatarUtil.getAvatar(branch.getHeadCommit.getCommitterEmail, 25)" class="avatar-wrap smaller">
+        </a>
     }
-</td>
-<td>
-@if(branch.getPullRequest != null) {
-    <a href="@routes.PullRequestApp.pullRequest(branch.getPullRequest.toProject.owner, branch.getPullRequest.toProject.name, branch.getPullRequest.number)" class="blue-txt">
-        PULL-@branch.getPullRequest.number
-    </a>
-    <code>@branch.getPullRequest.state</code>
 }
-</td>
-@if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
-    <td>
-        @if(!isHead) {
-            <a class="ybtn ybtn-danger" data-request-method="delete" href="@deleteBranchURL(branch.getName)">
-            @Messages("button.delete")
+
+<tr @if(isHead){class="head"}>
+    <td class="branchName">
+        <a href="@goToBranchURL(branch.getName)">@branch.getShortName</a>
+        @if(isHead){<span class="headBranch ml10">@Messages("code.branches.defaultBranch")</span>}
+    </td>
+    <td class="commitMsg">
+        @getCommiterAvatar(branch)
+
+        <a href="@getShowCommitURL(branch)" class="message">
+            @if(branch.getHeadCommit.getShortMessage()){
+                @branch.getHeadCommit.getShortMessage()
+            } else {
+                @Messages("code.commitMsg.empty")
+            }
+
+            @defining(branch.getHeadCommit.getMessage){ commitMsg =>
+                @if(commitMsg.split("\n").length > 1){
+                    <button type="button" class="more">&hellip;</button>
+                    <pre class="hidden">@commitMsg.replace(commitMsg.split("\n")(0)+"\n", "")</pre>
+                }
+            }
+        </a>
+    </td>
+    <td class="commitDate">
+        @momentFromNow(branch.getHeadCommit.getCommitterDate, lang.language)
+    </td>
+    <td class="pullRequest">
+    @if(branch.getPullRequest != null) {
+        <a href="@routes.PullRequestApp.pullRequest(branch.getPullRequest.toProject.owner, branch.getPullRequest.toProject.name, branch.getPullRequest.number)"
+           class="blue-txt pullrequest-state @branch.getPullRequest.state.toString().toLowerCase()">
+           pullRequest-@branch.getPullRequest.number
+        </a>
+    } else {
+        <span class="disabled">@Messages("code.branches.noPullRequest")</span>
+    }
+    </td>
+
+    @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE) ||
+        isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)) {
+    <td class="actions">
+        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.UPDATE)){
+            @if(branch.getName() != project.defaultBranch()){
+                <button type="button"
+                        class="ybtn ybtn-default"
+                        data-request-method="post"
+                        data-request-uri="@routes.BranchApp.setAsDefault(project.owner, project.name, URLEncoder.encode(branch.getName(), "UTF-8"))">
+                    @Messages("code.branches.setAsDefault")
+                </button>
+            }
+        }
+
+        @if(isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE) && !isHead){
+            <a href="@deleteBranchURL(branch.getName)" class="ybtn ybtn-danger" data-request-method="delete">
+                @Messages("button.delete")
             </a>
         }
     </td>
-}
+    }
+</tr>
+
