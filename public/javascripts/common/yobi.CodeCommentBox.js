@@ -106,7 +106,7 @@ yobi.CodeCommentBox = (function() {
         }
 
         htElement.welCommentTr = $("<tr>")
-            .append(welTd.append(htElement.welEmptyCommentForm.width(htElement.welDiff.width())));
+            .append(welTd.append(htElement.welEmptyCommentForm));
 
         welCommentTr = htElement.welCommentTr;
         welCommentTr.find('[name=path]').attr('value', sPath);
