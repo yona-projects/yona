@@ -900,4 +900,14 @@ public class Project extends Model implements LabelOwner {
         return vcs.equals("GIT");
     }
 
+    public List<Project> getAssociationProjects() {
+        List<Project> projects = new ArrayList<>();
+        projects.add(this);
+        projects.addAll(forkingProjects);
+        if(isForkedFromOrigin()) {
+            projects.add(originalProject);
+        }
+        return projects;
+    }
+
 }

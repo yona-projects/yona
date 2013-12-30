@@ -13,7 +13,7 @@
 
         var htVar = {};
         var htElement = {};
-        
+
         /**
          * initialize
          */
@@ -21,7 +21,7 @@
             _initVar(htOptions || {});
             _initElement(htOptions || {});
             _attachEvent();
-            
+
             _initFileUploader();
         }
 
@@ -31,15 +31,17 @@
          */
         function _initVar() {
             htVar.sFormURL = htOptions.sFormURL;
+            htVar.oFromProject = new yobi.ui.Dropdown({"elContainer": htOptions.welFromProject});
+            htVar.oToProject = new yobi.ui.Dropdown({"elContainer": htOptions.welToProject});
             htVar.oFromBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welFromBranch});
             htVar.oToBranch  = new yobi.ui.Dropdown({"elContainer": htOptions.welToBranch});
             htVar.sUploaderId = null;
             htVar.oSpinner = null;
-            
+
             htVar.htUserInput = {};
             htVar.sTplFileItem = $('#tplAttachedFile').text();
         }
-        
+
         /**
          * 엘리먼트 변수 초기화
          * initialize element variables
@@ -48,10 +50,12 @@
             htElement.welForm = $("form.nm");
             htElement.welInputTitle = $('#title');
             htElement.welInputBody  = $('#body');
-            
+
+            htElement.welInputFromProject = $('input[name="fromProjectId"]');
+            htElement.welInputToProject = $('input[name="toProjectId"]');
             htElement.welInputFromBranch = $('input[name="fromBranch"]');
             htElement.welInputToBranch = $('input[name="toBranch"]');
-            
+
             htElement.welUploader = $("#upload");
             htElement.welContainer = $("#frmWrap");
         }
@@ -64,24 +68,26 @@
             htElement.welForm.submit(_onSubmitForm);
             htElement.welInputTitle.on("keyup", _onKeyupInput);
             htElement.welInputBody.on("keyup", _onKeyupInput);
-            
+
+            htVar.oFromProject.onChange(_refreshNewPullRequestForm);
+            htVar.oToProject.onChange(_refreshNewPullRequestForm);
             htVar.oFromBranch.onChange(_reloadNewPullRequestForm);
             htVar.oToBranch.onChange(_reloadNewPullRequestForm);
-            
+
             $('#helpMessage').hide();
             $('#helpBtn').click(function(e){
                 e.preventDefault();
                 $('#helpMessage').toggle();
             });
-            
+
             $('body').on('click','button.more',function(){
-               $(this).next('pre').toggleClass("hidden"); 
+               $(this).next('pre').toggleClass("hidden");
             });
         }
 
         /**
          * 제목/내용에 키 입력이 발생할 때의 이벤트 핸들러
-         * 
+         *
          * @param {Wrapped Event} weEvt
          */
         function _onKeyupInput(weEvt){
@@ -90,7 +96,15 @@
             htVar.htUserInput = htVar.htUserInput || {};
             htVar.htUserInput[sInputId] = true;
         }
-        
+
+        function _refreshNewPullRequestForm() {
+            var htData = {};
+
+            htData.fromProjectId = htVar.oFromProject.getValue();
+            htData.toProjectId = htVar.oToProject.getValue();
+
+            location.href = htVar.sFormURL + "?fromProjectId=" + htData.fromProjectId + "&toProjectId=" + htData.toProjectId;
+        }
         /**
          * 브랜치 선택이 바뀌면 폼 내용을 변경한다
          * request to reload pullRequestForm
@@ -99,13 +113,15 @@
             var htData = {};
             htData.fromBranch = htVar.oFromBranch.getValue();
             htData.toBranch = htVar.oToBranch.getValue();
-            
+            htData.fromProjectId = htVar.oFromProject.getValue();
+            htData.toProjectId = htVar.oToProject.getValue();
+
             if(!(htData.fromBranch && htData.toBranch)) {
                 return;
             }
-            
+
             _startSpinner();
-            
+
             $.ajax(htVar.sFormURL, {
                 "method" : "get",
                 "data"   : htData,
@@ -113,14 +129,14 @@
                 "error"  : _onErrorReloadForm
             });
         }
-        
+
         /**
          * onSuccess to reloadForm
          */
         function _onSuccessReloadForm(sRes){
             var sTitle = htElement.welInputTitle.val();
             var sBody = htElement.welInputBody.val();
-            
+
             htElement.welContainer.html(sRes);
             _reloadElement();
 
@@ -131,11 +147,11 @@
             if(sBody.length > 0 && htVar.htUserInput.body){
                 htElement.welInputBody.val(sBody);
             }
-            
+
             _initFileUploader();
             _stopSpinner();
         }
-        
+
         /**
          * pjax 영역 변화에 의해 다시 찾아야 하는 엘리먼트 레퍼런스
          * _onSuccessReloadForm 에서 호출
@@ -144,7 +160,7 @@
             htElement.welInputTitle = $('#title');
             htElement.welInputBody  = $('#body');
             htElement.welUploader = $("#upload");
-            
+
             htElement.welInputTitle.on("keyup", _onKeyupInput);
             htElement.welInputBody.on("keyup", _onKeyupInput);
         }
@@ -156,7 +172,7 @@
             _stopSpinner();
             $yobi.showAlert(Messages("error.internalServerError"));
         }
-        
+
         /**
          * Spinner 시작
          */
@@ -164,7 +180,7 @@
             htVar.oSpinner = htVar.oSpinner || new Spinner();
             htVar.oSpinner.spin(document.getElementById('spin'));
         }
-        
+
         /**
          * Spinner 종료
          */
@@ -174,7 +190,7 @@
             }
             htVar.oSpinner = null;
         }
-        
+
         /**
          * Event handler on submit form
          */
@@ -190,14 +206,18 @@
             // these two fields should be loaded dynamically.
             htElement.welInputFromBranch = $('input[name="fromBranch"]');
             htElement.welInputToBranch = $('input[name="toBranch"]');
-            
+            htElement.welInputFromProject = $('input[name="fromProjectId"]');
+            htElement.welInputToProject = $('input[name="toProjectId"]');
+
             // check whether required field is empty
             var htRequired = {
                 "title"     : $.trim(htElement.welInputTitle.val()),
+                "fromProject": $.trim(htElement.welInputFromProject.val()),
+                "toProject" : $.trim(htElement.welInputToProject.val()),
                 "fromBranch": $.trim(htElement.welInputFromBranch.val()),
                 "toBranch"  : $.trim(htElement.welInputToBranch.val())
             };
-            
+
             for(var sMessageKey in htRequired){
                 if(htRequired[sMessageKey].length === 0){
                     $yobi.alert(Messages("pullRequest." + sMessageKey + ".required"));
@@ -230,7 +250,7 @@
                 yobi.Files.destroyUploader(htVar.sUploaderId);
                 htVar.sUploaderId = null;
             }
-            
+
             // 업로더 초기화
             var oUploader = yobi.Files.getUploader(htElement.welUploader, htElement.welInputBody);
             if(oUploader){
@@ -243,7 +263,7 @@
                 });
             }
         }
-        
+
         _init(htOptions || {});
     };
 })("yobi.git.Write");

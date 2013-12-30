@@ -14,50 +14,36 @@
         }
     }
     <div class="pull-right">
-        @if(project.isForkedFromOrigin){
         <a href="@routes.PullRequestApp.newPullRequestForm(project.owner, project.name)" class="ybtn ybtn-success">
             <i class="yobicon-merge yobicon-large"></i>
             @Messages("pullRequest")
         </a>
-        }
-
-        @** 이 프로젝트가 복사본이 아니며, 현재 사용자가 복사본을 갖고 있고, 코드보내기 권한이 있는 경우 **@
-        @defining(Project.findByOwnerAndOriginalProject(UserApp.currentUser().loginId, project)){ myFork =>
-        @if(!project.isForkedFromOrigin && myFork != null && AccessControl.isProjectResourceCreatable(UserApp.currentUser(), project, ResourceType.PULL_REQUEST)){
-        <a href="@routes.PullRequestApp.newPullRequestForm(myFork.owner, myFork.name)" class="ybtn ybtn-success">
-            <i class="yobicon-split yobicon-large"></i>
-            @Messages("pullRequest.toHere")
-        </a>
-        }
-        }
     </div>
 
     @if(project.hasForks() || project.isForkedFromOrigin()) {
     <ul class="nav nav-tabs">
-        @if(project.hasForks()){
-            <li @if(requestType.equals("opened")){class="active"}>
-                <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.opened.code")
-                    <span class="num-badge">@PullRequest.findOpendPullRequests(project).size</span>
-                </a>
-            </li>
-            <li @if(requestType.equals("closed")){class="active"}>
-                <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.accepted.code")
-                    <span class="num-badge">@PullRequest.findClosedPullRequests(project).size</span>
-                </a>
-            </li>
-        }
-        @if(project.isForkedFromOrigin()){
-            <li @if(requestType.equals("sent")){class="active"}>
-                <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
-                    @Messages("pullRequest.sent.code")
-                    <span class="num-badge">@PullRequest.findAcceptedPullRequests(project).size / @PullRequest.findSentPullRequests(project).size</span>
-                </a>
-            </li>
+        <li @if(requestType.equals("opened")){class="active"}>
+            <a href="@routes.PullRequestApp.pullRequests(project.owner, project.name)">
+                @Messages("pullRequest.opened.code")
+                <span class="num-badge">@PullRequest.findOpendPullRequests(project).size</span>
+            </a>
+        </li>
+        <li @if(requestType.equals("closed")){class="active"}>
+            <a href="@routes.PullRequestApp.closedPullRequests(project.owner, project.name)">
+                @Messages("pullRequest.accepted.code")
+                <span class="num-badge">@PullRequest.findClosedPullRequests(project).size</span>
+            </a>
+        </li>
+    }
+    @if(project.isForkedFromOrigin()){
+        <li @if(requestType.equals("sent")){class="active"}>
+            <a href="@routes.PullRequestApp.sentPullRequests(project.owner, project.name)">
+                @Messages("pullRequest.sent.code")
+                <span class="num-badge">@PullRequest.findAcceptedPullRequests(project).size / @PullRequest.findSentPullRequests(project).size</span>
+            </a>
+        </li>
         }
     </ul>
-    }
 
     <div class="tab-content">
         <div id="list" class="row-fluid tab-pane active">

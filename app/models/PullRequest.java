@@ -73,6 +73,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     @Lob
     public String body;
 
+    @Transient
+    public Long toProjectId;
+    @Transient
+    public Long fromProjectId;
+
     @ManyToOne
     public Project toProject;
 
@@ -154,11 +159,11 @@ public class PullRequest extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "pullRequest")
     public List<PullRequestComment> comments;
 
-    public static PullRequest createNewPullRequest(Project project, String fromBranch, String toBranch) {
+    public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
-        pullRequest.toProject = project.originalProject;
+        pullRequest.toProject = toProject;
         pullRequest.toBranch = toBranch;
-        pullRequest.fromProject = project;
+        pullRequest.fromProject = fromProject;
         pullRequest.fromBranch = fromBranch;
         return pullRequest;
     }
