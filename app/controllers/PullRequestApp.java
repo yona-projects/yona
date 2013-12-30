@@ -223,8 +223,8 @@ public class PullRequestApp extends Controller {
         final List<GitBranch> toBranches = new GitRepository(toProject).getAllBranches();
 
         final PullRequest pullRequest = PullRequest.createNewPullRequest(fromProject, toProject
-                            , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
-                            , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
+                , StringUtils.defaultIfBlank(request().getQueryString("fromBranch"), fromBranches.get(0).getName())
+                , StringUtils.defaultIfBlank(request().getQueryString("toBranch"), project.defaultBranch()));
 
         Promise<PullRequestMergeResult> promise = Akka.future(new Callable<PullRequestMergeResult>() {
             @Override
@@ -500,16 +500,7 @@ public class PullRequestApp extends Controller {
     public static Result pullRequestChanges(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
-
-        List<PullRequestComment> comments = new ArrayList<>();
-
-        for (PullRequestComment comment : pullRequest.comments) {
-            if (comment.hasValidCommitId()) {
-                comments.add(comment);
-            }
-        }
-
-        return ok(viewChanges.render(project, pullRequest, comments));
+        return ok(viewChanges.render(project, pullRequest));
     }
 
     /**
@@ -526,7 +517,7 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @IsAllowed(value = Operation.ACCEPT, resourceType = ResourceType.PULL_REQUEST)
     public static Result accept(final String userName, final String projectName,
-            final long pullRequestNumber) {
+                                final long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         final PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -759,7 +750,10 @@ public class PullRequestApp extends Controller {
         List<CommitComment> comments = CommitComment.find.where().eq("commitId",
                 commitId).eq("project.id", project.id).order("createdDate").findList();
 
-        return ok(diff.render(pullRequest, commit, parentCommit, fileDiffs, comments));
+        List<CodeCommentThread> threads = CodeCommentThread.findByCommitId
+                (CodeCommentThread.find, project, commitId);
+
+        return ok(diff.render(pullRequest, commit, parentCommit, fileDiffs, threads));
     }
 
 

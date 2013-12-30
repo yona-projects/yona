@@ -1,4 +1,4 @@
-@(project: Project, pull: PullRequest, comments: List[PullRequestComment])
+@(project: Project, pull: PullRequest)
 
 @import utils.JodaDateUtil._
 @import utils.TemplateHelper._
@@ -22,7 +22,7 @@
         <div id="__changes" class="mt20">
             <div class="diff-body">
                 @if(pull.isMerging == false && pull.isConflict == false){
-                    @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated), pull.toProject, pull.toProject)
+                    @views.html.partial_diff(pull.getDiff, pull.getCodeCommentThreadsForChanges, pull.toProject, pull.toProject)
                 } else {
                     @partial_state(project, pull, false, false)
                 }

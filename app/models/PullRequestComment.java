@@ -14,6 +14,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import playRepository.FileDiff;
 import playRepository.GitRepository;
+import models.CodeRange.Side;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;

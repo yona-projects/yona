@@ -10,8 +10,7 @@ import views.html._
 import java.net.URI
 import playRepository.DiffLine
 import playRepository.DiffLineType
-import models.CodeComment
-import models.CodeComment.Side
+import models.CodeRange.Side
 import scala.collection.JavaConversions._
 import org.apache.commons.lang3.StringEscapeUtils.escapeHtml4
 import views.html.partial_diff_comment_on_line
@@ -29,6 +28,7 @@ import java.net.URLEncoder
 import scala.annotation.tailrec
 import playRepository.FileDiff
 import play.api.i18n.Lang
+import models.CodeCommentThread
 
 object TemplateHelper {
 
@@ -204,40 +204,40 @@ object TemplateHelper {
         case _ => List(diff.text, diff.text)
       }
 
-    def writeHtmlLine(klass: String, indicator: String, numA: Integer, numB: Integer, html: String, commentsOnLine: List[_ <: CodeComment]) = {
+    def writeHtmlLine(klass: String, indicator: String, numA: Integer, numB: Integer, html: String, commentsOnLine: List[_ <: CodeCommentThread]) = {
       partial_diff_line_html(klass, indicator, numA, numB, html) + (if(commentsOnLine != null) partial_diff_comment_on_line(commentsOnLine).body else "")
     }
 
-    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[_ <: CodeComment]]) = {
+    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[_ <: CodeCommentThread]]) = {
       val lines = wordDiffLinesInHtml((new DiffMatchPatch()).diffMain(lineA.content, lineB.content).toList)
-      writeHtmlLine(lineA.kind.toString.toLowerCase, "-", null, lineA.numA + 1, lines(0), commentsOrEmpty(comments, commentKey(lineA.file.pathA, "remove", lineA.numA + 1))) + writeHtmlLine(lineB.kind.toString.toLowerCase, "+", lineB.numB + 1, null, lines(1), commentsOrEmpty(comments, commentKey(lineB.file.pathB, "add", lineB.numB + 1)))
+      writeHtmlLine(lineA.kind.toString.toLowerCase, "-", null, lineA.numA + 1, lines(0), threadsOrEmpty(comments, threadKey(lineA.file.pathA, "remove", lineA.numA + 1))) + writeHtmlLine(lineB.kind.toString.toLowerCase, "+", lineB.numB + 1, null, lines(1), threadsOrEmpty(comments, threadKey(lineB.file.pathB, "add", lineB.numB + 1)))
     }
     */
 
     /* Not implemented yet */
-    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean) =
+    def renderWordDiff(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeCommentThread]], isEndOfLineMissing: DiffLine => Boolean) =
       renderLine(lineA, comments, isEndOfLineMissing) + renderLine(lineB, comments, isEndOfLineMissing)
 
-    def renderTwoLines(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean) =
+    def renderTwoLines(lineA: DiffLine, lineB: DiffLine, comments: Map[String, List[CodeCommentThread]], isEndOfLineMissing: DiffLine => Boolean) =
       (lineA.kind, lineB.kind) match {
         case (DiffLineType.REMOVE, DiffLineType.ADD) => renderWordDiff(lineA, lineB, comments, isEndOfLineMissing)
         case _ => renderLine(lineA, comments, isEndOfLineMissing) + renderLine(lineB, comments, isEndOfLineMissing)
       }
 
-    def commentKey(path: String, side: Side, lineNum: Integer) =
+    def threadKey(path: String, side: Side, lineNum: Integer) =
       path + ":" + side + ":" + lineNum
 
-    def commentsOrEmpty(comments: Map[String, List[CodeComment]], key: String) =
-      if (comments != null && comments.contains(key)) comments(key) else Nil
+    def threadsOrEmpty(threads: Map[String, List[CodeCommentThread]], key: String) =
+      if (threads != null && threads.contains(key)) threads(key) else Nil
 
-    def commentsOnAddLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
-      commentsOrEmpty(comments, commentKey(line.file.pathB, Side.B, line.numB + 1))
+    def threadsOnAddLine(line: DiffLine, threads: Map[String, List[CodeCommentThread]]) =
+      threadsOrEmpty(threads, threadKey(line.file.pathB, Side.B, line.numB + 1))
 
-    def commentsOnRemoveLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
-      commentsOrEmpty(comments, commentKey(line.file.pathA, Side.A, line.numA + 1))
+    def threadsOnRemoveLine(line: DiffLine, threads: Map[String, List[CodeCommentThread]]) =
+      threadsOrEmpty(threads, threadKey(line.file.pathA, Side.A, line.numA + 1))
 
-    def commentsOnContextLine(line: DiffLine, comments: Map[String, List[CodeComment]]) =
-      commentsOrEmpty(comments, commentKey(line.file.pathB, Side.B, line.numB + 1))
+    def threadsOnContextLine(line: DiffLine, threads: Map[String, List[CodeCommentThread]]) =
+      threadsOrEmpty(threads, threadKey(line.file.pathB, Side.B, line.numB + 1))
 
     def indicator(line: DiffLine) =
       line.kind match {
@@ -254,28 +254,29 @@ object TemplateHelper {
         case _ => (line.numB + 1) == diff.b.size && diff.b.isMissingNewlineAtEnd
       }
 
-    def renderLine(line: DiffLine, num: Integer, numA: Integer, numB: Integer, commentsOnLine: List[CodeComment], isEndOfLineMissing: DiffLine => Boolean) =
+    def renderLine(line: DiffLine, num: Integer, numA: Integer, numB: Integer,
+                   threads: List[CodeCommentThread], isEndOfLineMissing: DiffLine => Boolean) =
       partial_diff_line(line.kind.toString.toLowerCase, indicator(line), num, numA, numB, line.content, isEndOfLineMissing(line)) +
-      partial_diff_comment_on_line(commentsOnLine).body.trim
+      partial_diff_comment_on_line(threads).body.trim
 
-    def renderLine(line: DiffLine, comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
+    def renderLine(line: DiffLine, threads: Map[String, List[CodeCommentThread]], isEndOfLineMissing: DiffLine => Boolean): String =
       line.kind match {
         case DiffLineType.ADD =>
-          renderLine(line, line.numB + 1, null, line.numB + 1, commentsOnAddLine(line, comments), isEndOfLineMissing)
+          renderLine(line, line.numB + 1, null, line.numB + 1, threadsOnAddLine(line, threads), isEndOfLineMissing)
         case DiffLineType.REMOVE =>
-          renderLine(line, line.numA + 1, line.numA + 1, null, commentsOnRemoveLine(line, comments), isEndOfLineMissing)
+          renderLine(line, line.numA + 1, line.numA + 1, null, threadsOnRemoveLine(line, threads), isEndOfLineMissing)
         case _ =>
-          renderLine(line, line.numB + 1, line.numA + 1, line.numB + 1, commentsOnContextLine(line, comments), isEndOfLineMissing)
+          renderLine(line, line.numB + 1, line.numA + 1, line.numB + 1, threadsOnContextLine(line, threads), isEndOfLineMissing)
       }
 
-    @tailrec def _renderLines(progress: String, lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
+    @tailrec def _renderLines(progress: String, lines: List[DiffLine], comments: Map[String, List[CodeCommentThread]], isEndOfLineMissing: DiffLine => Boolean): String =
       lines match {
         case Nil => progress
         case first::Nil => progress + renderLine(first, comments, isEndOfLineMissing)
         case first::second::tail => _renderLines(progress + renderTwoLines(first, second, comments, isEndOfLineMissing), tail, comments, isEndOfLineMissing)
       }
 
-    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeComment]], isEndOfLineMissing: DiffLine => Boolean): String =
+    def renderLines(lines: List[DiffLine], comments: Map[String, List[CodeCommentThread]], isEndOfLineMissing: DiffLine => Boolean): String =
       _renderLines("", lines, comments, isEndOfLineMissing)
 
     @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
@@ -303,23 +304,10 @@ object TemplateHelper {
 
     @tailrec def renderCommentsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html = {
       val remains = comments.head match {
-        case (comment: PullRequestComment) if isLineComment(comment) =>
-          threadAndRemains(comment, comments) match {
-            case (thread, remains) =>
-              html += partial_pull_request_comment(pull, comment, thread)
-              remains
-          }
-        case (comment: PullRequestComment) =>
-          html += partial_pull_request_comment(pull, comment)
-          comments.tail
-        case (comment: CommitComment) =>
-          html += partial_commit_comment(pull, comment)
-          comments.tail
         case (event: PullRequestEvent) =>
           html += partial_pull_request_event(pull, event)
           comments.tail
       }
-
       if (remains.isEmpty) {
         html
       } else {

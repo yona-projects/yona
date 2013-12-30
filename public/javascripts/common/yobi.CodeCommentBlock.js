@@ -154,15 +154,18 @@ yobi.CodeCommentBlock = (function(){
             "bIsReversed" : bIsReversed,
             "nStartLine"  : welStartLine.data("line"),
             "sStartType"  : welStartLine.data("type"),
-            "nStartOffset": bIsReversed ? oSelection.focusOffset  : oSelection.anchorOffset,
+            "sStartSide"  : welStartLine.data("type") == 'remove' ? 'A' : 'B',
+            "nStartColumn": bIsReversed ? oSelection.focusOffset  : oSelection.anchorOffset,
             "nEndLine"    : welEndLine.data("line"),
             "sEndType"    : welEndLine.data("type"),
-            "nEndOffset"  : bIsReversed ? oSelection.anchorOffset : oSelection.focusOffset,
+            "sEndSide"    : welEndLine.data("type") == 'remove' ? 'A' : 'B',
+            "nEndColumn"  : bIsReversed ? oSelection.anchorOffset : oSelection.focusOffset,
             "sPathA"      : welTable.data("pathA"),
             "sPathB"      : welTable.data("pathB"),
-            "sCommitA"    : welTable.data("commitA"),
-            "sCommitB"    : welTable.data("commitB"),
-            "sFilePath"   : welTable.data("filePath")
+            "sPrevCommitId": welTable.data("commitA"),
+            "sCommitId"    : welTable.data("commitB"),
+            "sFilePath"   : welTable.data("filePath"),
+            "sPath"   : welTable.data("filePath")
         };
     }
 
@@ -179,7 +182,7 @@ yobi.CodeCommentBlock = (function(){
 
             var welLine = (htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine);
             var welCode = welLine.find("td.code");
-            var nBlockOffset = (htBlockInfo.bIsReversed ? htBlockInfo.nStartOffset : htBlockInfo.nEndOffset);
+            var nBlockOffset = (htBlockInfo.bIsReversed ? htBlockInfo.nStartColumn : htBlockInfo.nEndColumn);
             var htCodeOffset = welCode.position();
             var nTop = htCodeOffset.top + (htBlockInfo.bIsReversed ? -20 : welCode.height());
             var nLeft = htCodeOffset.left + (nBlockOffset * 7);
@@ -204,14 +207,14 @@ yobi.CodeCommentBlock = (function(){
      * @param htOffset.sPathA
      * @param htOffset.sPathB
      * @param htOffset.nStartLine
-     * @param htOffset.nStartOffset (optional)
+     * @param htOffset.nStartColumn (optional)
      * @param htOffset.sStartLineType (optional)
      * @param htOffset.nEndLine
-     * @param htOffset.nEndOffset (optional)
+     * @param htOffset.nEndColumn (optional)
      * @param htOffset.sEndLineType (optional)
      * @private
      * @example
-     * _wrapByOffset({"nStartLine": 117, "nStartOffset":0, "nEndLine":120, "nEndOffset":3});
+     * _wrapByOffset({"nStartLine": 117, "nStartColumn":0, "nEndLine":120, "nEndColumn":3});
      */
     function _wrapByOffset(htOffset){
         _unwrapAll();
@@ -235,26 +238,26 @@ yobi.CodeCommentBlock = (function(){
             var welRowNode = welRow.find("td.code > pre").get(0).childNodes[0];
             var oRange = document.createRange();
             var elBlock = _getCommentLineWrapper();
-            var nStartOffset = 0;
-            var nEndOffset = 0;
+            var nStartColumn = 0;
+            var nEndColumn = 0;
             var nNodeLength = welRowNode.length;
 
             if(nRows === 1){               // in one line
-                nStartOffset = htOffset.nStartOffset;
-                nEndOffset = htOffset.nEndOffset;
+                nStartColumn = htOffset.nStartColumn;
+                nEndColumn = htOffset.nEndColumn;
             } else if(nIndex === 0){       // first line
-                nStartOffset = htOffset.nStartOffset;
-                nEndOffset = nNodeLength;
+                nStartColumn = htOffset.nStartColumn;
+                nEndColumn = nNodeLength;
             } else if(nIndex === nRows-1){ // last line
-                nStartOffset = 0;
-                nEndOffset = htOffset.nEndOffset;
+                nStartColumn = 0;
+                nEndColumn = htOffset.nEndColumn;
             } else {                       // and the others
-                nStartOffset = 0;
-                nEndOffset = nNodeLength;
+                nStartColumn = 0;
+                nEndColumn = nNodeLength;
             }
 
-            oRange.setStart(welRowNode, nStartOffset);
-            oRange.setEnd(welRowNode, nEndOffset);
+            oRange.setStart(welRowNode, nStartColumn);
+            oRange.setEnd(welRowNode, nEndColumn);
             oRange.surroundContents(elBlock);
         });
 

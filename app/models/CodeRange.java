@@ -1,8 +1,12 @@
 package models;
 
+import com.avaje.ebean.annotation.EnumValue;
+import play.data.validation.Constraints;
+
 import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -11,8 +15,9 @@ import javax.validation.constraints.NotNull;
 @Embeddable
 public class CodeRange {
 
-    enum Side {
-        A, B;
+    public enum Side {
+        @EnumValue("A") A,
+        @EnumValue("B") B
     }
 
     public String path;
@@ -20,19 +25,19 @@ public class CodeRange {
     @Enumerated(EnumType.STRING)
     public Side startSide;
 
-    @NotNull
+    @Constraints.Required
     public Integer startLine;
 
-    @NotNull
+    @Constraints.Required
     public Integer startColumn;
 
     @Enumerated(EnumType.STRING)
     public Side endSide;
 
-    @NotNull
+    @Constraints.Required
     public Integer endLine;
 
-    @NotNull
+    @Constraints.Required
     public Integer endColumn;
 
 }

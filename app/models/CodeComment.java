@@ -17,10 +17,6 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, CodeComment> find = new Finder<>(Long.class, CodeComment.class);
 
-    public enum Side {
-        A, B
-    }
-
     @Id
     public Long id;
     @ManyToOne
@@ -28,7 +24,7 @@ abstract public class CodeComment extends Model implements ResourceConvertible, 
     public String path;
     public Integer line; // FIXME: DB엔 integer가 아닌 bigint로 되어있음.
     @Enumerated(EnumType.STRING)
-    public Side side;
+    public CodeRange.Side side;
     @Lob @Constraints.Required
     public String contents;
     @Constraints.Required

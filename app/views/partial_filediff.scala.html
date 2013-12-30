@@ -1,4 +1,4 @@
-@(diff: playRepository.FileDiff, comments: java.util.List[_ <: CodeComment], projectB: Project, projectA: Project)
+@(diff: playRepository.FileDiff, threads: java.util.List[_ <: CodeCommentThread], projectB: Project, projectA: Project)
 
 @import playRepository.DiffLineType
 @import playRepository.DiffLine
@@ -18,9 +18,9 @@
  * 변경 내용(Diff) 표시
  *
  * @param diff
- * @param comments
+ * @param threads
 **@
-@renderDiffLines(diff: playRepository.FileDiff, comments: Map[String, List[_ <: CodeComment]]) = {
+@renderDiffLines(diff: playRepository.FileDiff, threads: Map[String, List[CodeCommentThread]]) = {
   @if(diff.isFileModeChanged) {
     <tr><td class="linenum"><div class="line-number" data-line-num="@diff.oldMode"></div><span class="hidden">@diff.oldMode</span></td><td class="linenum"><div class="line-number" data-line-num="@diff.newMode"></div><span class="hidden">@diff.newMode</span></td><td class="isBinary">@Messages("code.fileModeChanged")</td></tr>
   }
@@ -38,7 +38,7 @@
         case hunks => {
           @for(hunk <- diff.getHunks) {
             <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -@(hunk.beginA + 1),@(hunk.endA - hunk.beginA) +@(hunk.beginB + 1),@(hunk.endB - hunk.beginB) @@@@</td></tr>
-            @Html(renderLines(hunk.lines.toList, comments, eolMissingChecker(diff)))
+            @Html(renderLines(hunk.lines.toList, threads, eolMissingChecker(diff)))
           }
         }
       }
@@ -59,9 +59,9 @@
  * @param rawText
  * @param kind
  * @param prefix
- * @param comments
+ * @param threads
 **@
-@renderRawFile(klass: String, path: String, rawText: RawText, side: CodeComment.Side, prefix: String, comments: Map[String, List[_ <: CodeComment]]) = {
+@renderRawFile(klass: String, path: String, rawText: RawText, side: CodeRange.Side, prefix: String, comments: Map[String, List[_ <: CodeCommentThread]]) = {
     @defining(new StringBuilder) { builder =>
         @for(i <- 0 until rawText.size) @{
             builder.append("<tr class='")
@@ -82,7 +82,7 @@
                 builder.append(noNewlineAtEof)
             }
             builder.append("</pre></td></tr>")
-            builder.append(partial_diff_comment_on_line(commentsOrEmpty(comments, commentKey(path, side, i + 1))).toString.trim)
+            builder.append(partial_diff_comment_on_line(threadsOrEmpty(comments, threadKey(path, side, i + 1))).toString.trim)
         }
 
         @Html(builder.toString)
@@ -93,16 +93,16 @@
  * 추가된 라인 표시
  *
  * @param diff
- * @param comments
+ * @param threads
  * @param isBinaryOverwritten 기존 데이터가 바이너리인 경우 true
 **@
-@renderAddedLines(diff: FileDiff, comments:Map[String, List[_ <: CodeComment]], isBinaryOverwritten: Boolean = false) = {
+@renderAddedLines(diff: FileDiff, threads:Map[String, List[_ <: CodeCommentThread]], isBinaryOverwritten: Boolean = false) = {
   @diff.getError match {
     case FileDiff.Error.OTHERS_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
     case FileDiff.Error.B_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
     case null => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -0,0 +1,@diff.b.size @@@@</td></tr>
       @if(isBinaryOverwritten ) { @renderCodeIsBinary("remove", "-") }
-      @renderRawFile("add", diff.pathB, diff.b, CodeComment.Side.B, "+", comments)
+      @renderRawFile("add", diff.pathB, diff.b, CodeRange.Side.B, "+", threads)
     }
     case _ => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
   }
@@ -112,15 +112,15 @@
  * 삭제된 라인 표시
  *
  * @param diff
- * @param comments
+ * @param threads
  * @param isOverwrittenByBinary 새 데이터가 바이너리인 경우 true
 **@
-@renderRemovedLines(diff: FileDiff, comments:Map[String, List[_ <: CodeComment]], isOverwrittenByBinary: Boolean = false) = {
+@renderRemovedLines(diff: FileDiff, threads:Map[String, List[_ <: CodeCommentThread]], isOverwrittenByBinary: Boolean = false) = {
   @diff.getError match {
     case FileDiff.Error.OTHERS_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.skipDiff")</td></tr> }
     case FileDiff.Error.A_SIZE_EXCEEDED => { <tr><td colspan=3>@Messages("code.tooBigDiff")</td></tr> }
     case null => { <tr class="range"><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="linenum"><div class="line-number" data-line-num="..."><span class="hidden">...</span></div></td><td class="hunk">@@@@ -1,@diff.a.size +0,0 @@@@</td></tr>
-      @renderRawFile("remove", diff.pathA, diff.a, CodeComment.Side.A, "-", comments)
+      @renderRawFile("remove", diff.pathA, diff.a, CodeRange.Side.A, "-", threads)
       @if(isOverwrittenByBinary) { @renderCodeIsBinary("add", "+") }
     }
     case _ => { <tr><td colspan=3>@Messages("code.unknownError")</td></tr> }
@@ -239,51 +239,51 @@
     <tr class="@klass"><td class='linenum'><div class='line-number'></div></td><td class='linenum'><div class='line-number'></div></td><td class="isBinary">@prefix@Messages("code.isBinary")</td></tr>
 }
 
-@getComments(comments: java.util.List[_ <: CodeComment]) = @{
-    if(comments != null){
-        comments.toList.groupBy((comment: CodeComment) => commentKey(comment.path, comment.side, comment.line))
+@getThreads(threads: java.util.List[_ <: CodeCommentThread]) = @{
+    if(threads != null){
+        threads.toList.filter(v => v.codeRange != null).groupBy((thread: CodeCommentThread) => threadKey(thread.codeRange.path, thread.codeRange.endSide, thread.codeRange.endLine))
     } else {
         null
     }
 }
 
-@defining(getComments(comments)) { comments =>
+@defining(getThreads(threads)) { threads =>
   @diff.changeType match {
     case DiffEntry.ChangeType.MODIFY => {
         @(diff.isBinaryA, diff.isBinaryB) match {
             case (true, true)   => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderCodeIsBinary()) }
-            case (true, false)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderAddedLines(diff, comments, true))   }
-            case (false, true)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderRemovedLines(diff, comments, true)) }
-            case (false, false) => { @renderFile(diff, diff.pathB, renderDiffLines(diff, comments)) }
+            case (true, false)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderAddedLines(diff, threads, true))   }
+            case (false, true)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.MODIFY, diff), renderRemovedLines(diff, threads, true)) }
+            case (false, false) => { @renderFile(diff, diff.pathB, renderDiffLines(diff, threads)) }
         }
     }
     case DiffEntry.ChangeType.ADD => {
         @if(diff.isBinaryB){
             @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.ADD, diff), renderCodeIsBinary())
         } else {
-            @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.ADD, diff), renderAddedLines(diff, comments))
+            @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.ADD, diff), renderAddedLines(diff, threads))
         }
     }
     case DiffEntry.ChangeType.DELETE => {
         @if(diff.isBinaryA){
             @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.DELETE, diff), renderCodeIsBinary())
         } else {
-            @renderFile(diff, Messages("code.deletedPath", diff.pathA), renderRemovedLines(diff, comments))
+            @renderFile(diff, Messages("code.deletedPath", diff.pathA), renderRemovedLines(diff, threads))
         }
     }
     case DiffEntry.ChangeType.RENAME => {
         @(diff.isBinaryA, diff.isBinaryB) match {
             case (true, true)   => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderCodeIsBinary()) }
-            case (true, false)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderAddedLines(diff, comments, true)) }
-            case (false, true)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderRemovedLines(diff, comments, true)) }
-            case (false, false) => { @renderFile(diff, Messages("code.renamedPath", diff.pathA, diff.pathB), renderDiffLines(diff, comments)) }
+            case (true, false)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderAddedLines(diff, threads, true)) }
+            case (false, true)  => { @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.RENAME, diff), renderRemovedLines(diff, threads, true)) }
+            case (false, false) => { @renderFile(diff, Messages("code.renamedPath", diff.pathA, diff.pathB), renderDiffLines(diff, threads)) }
         }
     }
     case DiffEntry.ChangeType.COPY => {
         @if(diff.isBinaryB){
             @renderFile(diff, getFileHeaderMessage(DiffEntry.ChangeType.COPY, diff), renderCodeIsBinary())
         } else {
-            @renderFile(diff, Messages("code.copiedPath", diff.pathA, diff.pathB), renderAddedLines(diff, comments))
+            @renderFile(diff, Messages("code.copiedPath", diff.pathA, diff.pathB), renderAddedLines(diff, threads))
         }
     }
   }

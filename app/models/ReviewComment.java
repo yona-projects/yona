@@ -23,14 +23,11 @@ package models;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
+import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -38,7 +35,7 @@ import play.db.ebean.Model;
  * @author Keesun Baik
  */
 @Entity
-public class ReviewComment extends Model {
+public class ReviewComment extends Model implements ResourceConvertible {
     private static final long serialVersionUID = 1L;
     public static final Finder<Long, ReviewComment> find = new Finder<>(Long.class, ReviewComment.class);
 
@@ -53,9 +50,14 @@ public class ReviewComment extends Model {
     public Date createdDate;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "id", column = @Column(name = "author_id")),
+            @AttributeOverride(name = "loginId", column = @Column(name = "author_login_id")),
+            @AttributeOverride(name = "name", column = @Column(name = "author_name")),
+    })
     public UserIdent author;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     public CommentThread thread;
 
     public void setContents(String contents) {
@@ -64,6 +66,10 @@ public class ReviewComment extends Model {
 
     public String getContents() {
         return contents;
+    }
+
+    public ReviewComment() {
+        createdDate = new Date();
     }
 
     public static List<ReviewComment> findByThread(Long threadId) {
@@ -93,7 +99,7 @@ public class ReviewComment extends Model {
 
             @Override
             public Long getAuthorId() {
-                return author.authorId;
+                return author.id;
             }
         };
     }

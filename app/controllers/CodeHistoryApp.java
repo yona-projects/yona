@@ -3,10 +3,7 @@ package controllers;
 import actions.NullProjectCheckAction;
 import controllers.annotation.IsAllowed;
 import controllers.annotation.IsCreatable;
-import models.Attachment;
-import models.CommitComment;
-import models.NotificationEvent;
-import models.Project;
+import models.*;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -29,12 +26,10 @@ import utils.RouteUtil;
 import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
-import views.html.code.svnDiff;
 import views.html.error.notfound;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 public class CodeHistoryApp extends Controller {
@@ -134,7 +129,7 @@ public class CodeHistoryApp extends Controller {
     @IsAllowed(Operation.READ)
     public static Result show(String ownerName, String projectName, String commitId)
             throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
-            SVNException {
+            SVNException, NoSuchMethodException {
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
         PlayRepository repository = RepositoryService.getRepository(project);
 
@@ -151,8 +146,8 @@ public class CodeHistoryApp extends Controller {
         }
 
         Commit parentCommit = repository.getParentCommitOf(commitId);
-        List<CommitComment> comments = CommitComment.find.where().eq("commitId",
-                commitId).eq("project.id", project.id).order("createdDate").findList();
+        List<CodeCommentThread> threads
+                = CodeCommentThread.findByCommitId(CodeCommentThread.find, project, commitId);
 
         String selectedBranch = StringUtils.defaultIfBlank(request().getQueryString("branch"), "HEAD");
         String path = StringUtils.defaultIfBlank(request().getQueryString("path"), "");
@@ -164,7 +159,9 @@ public class CodeHistoryApp extends Controller {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
-            return ok(svnDiff.render(project, commit, parentCommit, patch, comments, selectedBranch, path));
+            // Handling for svn will be added after implementing of review
+            // feature for git is done.
+            throw new UnsupportedOperationException();
         } else {
             List<FileDiff> fileDiffs = repository.getDiff(commitId);
 
@@ -172,19 +169,22 @@ public class CodeHistoryApp extends Controller {
                 return notFound(ErrorViews.NotFound.render("error.notfound", project));
             }
 
-            return ok(diff.render(project, commit, parentCommit, comments, selectedBranch, fileDiffs, path));
+            return ok(diff.render(project, commit, parentCommit, threads, selectedBranch,
+                    fileDiffs, path));
         }
     }
 
     @IsCreatable(ResourceType.COMMIT_COMMENT)
     public static Result newComment(String ownerName, String projectName, String commitId)
             throws IOException, ServletException, SVNException {
-        Form<CommitComment> codeCommentForm = new Form<>(CommitComment.class)
+        Form<CodeRange> codeRangeForm = new Form<>(CodeRange.class).bindFromRequest();
+
+        Form<ReviewComment> reviewCommentForm = new Form<>(ReviewComment.class)
                 .bindFromRequest();
 
         Project project = Project.findByOwnerAndProjectName(ownerName, projectName);
 
-        if (codeCommentForm.hasErrors()) {
+        if (reviewCommentForm.hasErrors()) {
             return badRequest(ErrorViews.BadRequest.render("error.validation", project));
         }
 
@@ -192,21 +192,40 @@ public class CodeHistoryApp extends Controller {
             return notFound(notfound.render("error.notfound", project, request().path()));
         }
 
-        CommitComment codeComment = codeCommentForm.get();
-        codeComment.project = project;
-        codeComment.commitId = commitId;
-        codeComment.createdDate = new Date();
-        codeComment.setAuthor(UserApp.currentUser());
-        codeComment.save();
+        ReviewComment comment = reviewCommentForm.get();
+        comment.author = new UserIdent(UserApp.currentUser());
+        if (comment.thread == null) {
+            CodeCommentThread thread = new CodeCommentThread();
+            thread.project = project;
+            thread.state = CommentThread.ThreadState.OPEN;
+            thread.commitId = commitId;
+            thread.prevCommitId = null;
+            if (codeRangeForm.errors().isEmpty()) {
+                CodeRange codeRange = codeRangeForm.get();
+                User codeAuthor
+                        = RepositoryService.getRepository(project).getCommit(commitId).getAuthor();
+                if (!codeAuthor.isAnonymous()) {
+                    thread.codeAuthors.add(codeAuthor);
+                }
+                thread.codeRange = codeRange;
+            }
+            comment.thread = thread;
+            comment.thread.createdDate = comment.createdDate;
+            comment.thread.author = comment.author;
+        } else {
+            comment.thread = CommentThread.find.byId(comment.thread.id);
+        }
+        comment.save();
 
-        Attachment.moveAll(UserApp.currentUser().asResource(), codeComment.asResource());
+        Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
         Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
         toView = backToThePullRequestCommitView(toView);
 
-        NotificationEvent.afterNewCommitComment(project, codeComment);
-
-        return redirect(RouteUtil.getUrl(codeComment));
+        // The below lines should be refactored using RouteUtil.
+        String urlToView = toView + "#comment-" + comment.id;
+        NotificationEvent.afterNewCommitComment(project, comment, commitId, urlToView);
+        return redirect(urlToView);
     }
 
     public static Call backToThePullRequestCommitView(Call toView) {

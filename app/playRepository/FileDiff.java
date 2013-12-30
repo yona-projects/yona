@@ -1,6 +1,6 @@
 package playRepository;
 
-import models.CodeComment;
+import models.CodeRange;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
@@ -31,7 +31,7 @@ public class FileDiff {
     public boolean isBinaryB = false;
     public DiffEntry.ChangeType changeType;
     public Integer interestLine = null;
-    public CodeComment.Side interestSide = null;
+    public CodeRange.Side interestSide = null;
     public FileMode oldMode;
     public FileMode newMode;
     private Hunks hunks;

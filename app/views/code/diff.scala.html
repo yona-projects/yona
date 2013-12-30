@@ -1,4 +1,6 @@
-@(project: Project, commit:playRepository.Commit, parentCommit:playRepository.Commit, comments:List[CommitComment], selectedBranch:String, diff: List[playRepository.FileDiff],path:String)
+@(project: Project, commit:playRepository.Commit,
+parentCommit:playRepository.Commit, threads:List[CodeCommentThread], selectedBranch:String, diff:
+List[playRepository.FileDiff],path:String)
 
 @import playRepository.RepositoryService
 @import java.net.URLEncoder
@@ -8,6 +10,7 @@
 
 @projectLayout(Messages("code.commits") + " @" + commit.getId, project, utils.MenuType.CODE) {
 @projectMenu(project, utils.MenuType.CODE, "main-menu-only")
+
 <div class="page-wrap-outer">
     <div class="project-page-wrap">
         <div id="code-browse-wrap" class="code-browse-wrap">
@@ -61,7 +64,7 @@
                     @agoString(JodaDateUtil.ago(commit.getAuthorDate))
                 </span>
                 <strong class="commitId pull-right">@{"@"}@commit.getId</strong>
-                @if(comments.size > 0) {
+                @if(threads.size > 0) {
                 <span class="pull-right mt5 mr10">
                     <input id="toggle-comments" type="checkbox" checked="checked" class="checkbox">
                     <label for="toggle-comments" class="form-label">@Messages("code.showcomments")</label>
@@ -70,27 +73,32 @@
             </p>
             <pre class="commitMsg">@commit.getMessage</pre>
             <div class="diff-body">
-            @views.html.partial_diff(diff, comments, project, project)
-            <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-plus"></i></button></div>
+                @views.html.partial_diff(diff, threads, project, project)
+                <div class="btnPop"><button type="button" class="ybtn ybtn-info ybtn-mini"><i class="yobicon-plus"></i></button></div>
             </div>
 
             @** Comment **@
             <div id="comments-wrap" class="board-comment-wrap">
-                @defining(comments.filter(v => v.line == null)) { comments =>
-                @if(comments.size > 0) {
+                @defining(threads.filter(v => v.codeRange == null)) { threads =>
+                @if(threads.size > 0) {
                 <ul class="comments">
-                    @for(comment <- comments){
-                    <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
+                    @for(thread <- threads){
+                    @for(comment <- thread.reviewComments){
+                    <li id="comment-@comment.id" data-thread-id="@thread.id" class="comment">
                         <div class="comment-avatar">
-                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
+                            <a href="@routes.UserApp.userInfo(comment.author.loginId)"
+                               class="avatar-wrap" data-toggle="tooltip" data-placement="top"
+                               title="@comment.author.name">
+                                <img src="@User.findByLoginId(comment.author.loginId).avatarUrl"
+                                     width="32" height="32" alt="@comment.author.loginId">
                             </a>
                         </div>
                         <div class="media-body">
                             <div class="meta-info">
                                 <span class="comment_author pull-left">
-                                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                        <strong>@comment.authorLoginId </strong>
+                                    <i class="yobicon-comment"></i>
+                                    <a href="@routes.UserApp.userInfo(comment.author.loginId)" data-toggle="tooltip" data-placement="top" title="@comment.author.name">
+                                        <strong>@comment.author.loginId </strong>
                                     </a>
                                 </span>
                                 <span class="ago" title="@JodaDateUtil.getDateString(comment.createdDate)">
@@ -105,11 +113,12 @@
                                 }
                             </div>
 
-                            <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                            <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.getContents</div>
 
                             <div class="attachments" data-resourceType="@ResourceType.COMMIT_COMMENT" data-resourceId="@comment.id"></div>
                         </div>
                     </li>
+                    }
                     }
                 </ul>
                 }

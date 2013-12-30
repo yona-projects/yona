@@ -1,11 +1,12 @@
-@(fileDiffs: java.util.List[playRepository.FileDiff], comments:java.util.List[_ <: CodeComment] = new ArrayList[CodeComment], projectA: Project, projectB: Project)
+@(fileDiffs: java.util.List[playRepository.FileDiff], threads:java.util.List[CodeCommentThread] =
+new ArrayList[CodeCommentThread], projectA: Project, projectB: Project)
 
 @if(fileDiffs.size >= playRepository.GitRepository.DIFF_FILE_LIMIT) {
   <p class="alert">@Messages("code.fileDiffLimitExceeded", playRepository.GitRepository.DIFF_FILE_LIMIT)</p>
 }
 
 @for(diff <- fileDiffs) {
-  @views.html.partial_filediff(diff, comments, projectA, projectB)
+  @views.html.partial_filediff(diff, threads, projectA, projectB)
 }
 
 @common.mergely()

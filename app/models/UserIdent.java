@@ -10,13 +10,13 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class UserIdent {
 
-    public Long authorId;
-    public String authorLoginId;
-    public String authorName;
+    public Long id;
+    public String loginId;
+    public String name;
 
     public UserIdent(User author) {
-        authorId = author.id;
-        authorLoginId = author.loginId;
-        authorName = author.name;
+        id = author.id;
+        loginId = author.loginId;
+        name = author.name;
     }
 }

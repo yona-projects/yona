@@ -8,6 +8,7 @@ import models.resource.ResourceConvertible;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +27,11 @@ public class CommentThread extends Model implements ResourceConvertible {
     public Long id;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "id", column = @Column(name = "author_id")),
+            @AttributeOverride(name = "loginId", column = @Column(name = "author_login_id")),
+            @AttributeOverride(name = "name", column = @Column(name = "author_name")),
+    })
     public UserIdent author;
 
     @OneToMany(mappedBy = "thread")
@@ -45,12 +51,34 @@ public class CommentThread extends Model implements ResourceConvertible {
                 .findList();
     }
 
+    public static <T extends CommentThread> List<T> findByCommitId(Finder<Long, T> find,
+                                                                   Project project,
+                                                                   String commitId) {
+        return find.where()
+                .eq("commitId", commitId)
+                .eq("project.id", project.id)
+                .order().desc("createdDate")
+                .findList();
+    }
+
     public static List<CommentThread> findByCommitIdAndState(String commitId, ThreadState state) {
         return find.where()
                 .eq("commitId", commitId)
                 .eq("state", state)
                 .order().desc("createdDate")
                 .findList();
+    }
+
+    @Override
+    public String toString() {
+        return "CommentThread{" +
+                "id=" + id +
+                ", author=" + author +
+                ", reviewComments=" + reviewComments +
+                ", state=" + state +
+                ", createdDate=" + createdDate +
+                ", project=" + project +
+                '}';
     }
 
     @ManyToOne
@@ -75,12 +103,12 @@ public class CommentThread extends Model implements ResourceConvertible {
 
             @Override
             public Long getAuthorId() {
-                return author.authorId;
+                return author.id;
             }
         };
     }
 
-    enum ThreadState {
+    public enum ThreadState {
         OPEN, CLOSED;
     }
 

@@ -492,18 +492,20 @@ public class NotificationEvent extends Model {
         NotificationEvent.add(notiEvent);
     }
 
-    public static void afterNewCommitComment(Project project, CommitComment codeComment) throws IOException, SVNException, ServletException {
-        Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
+    public static void afterNewCommitComment(Project project, ReviewComment comment,
+                                             String commitId, String urlToView) throws
+            IOException, SVNException, ServletException {
+        Commit commit = RepositoryService.getRepository(project).getCommit(commitId);
         Set<User> watchers = commit.getWatchers(project);
-        watchers.addAll(getMentionedUsers(codeComment.contents));
+        watchers.addAll(getMentionedUsers(comment.getContents()));
         watchers.remove(UserApp.currentUser());
 
-        NotificationEvent notiEvent = createFromCurrentUser(codeComment);
+        NotificationEvent notiEvent = createFromCurrentUser(comment);
         notiEvent.title = formatReplyTitle(project, commit);
         notiEvent.receivers = watchers;
         notiEvent.eventType = NEW_COMMENT;
         notiEvent.oldValue = null;
-        notiEvent.newValue = codeComment.contents;
+        notiEvent.newValue = comment.getContents();
 
         NotificationEvent.add(notiEvent);
     }

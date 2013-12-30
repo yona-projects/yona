@@ -1,42 +1,47 @@
-@(comments: List[CodeComment])
+@(threads: List[CodeCommentThread])
 
 @import utils.TemplateHelper._
 @import utils.TemplateHelper.DiffRenderer._
 
-@if(!comments.isEmpty){
-<tr class="comments board-comment-wrap" data-commit-id="@comments(0).getCommitId">
-    <td colspan=3>
-        <ul class="comments">
-            @for(comment: CodeComment <- comments) {
-            <li id="comment-@comment.id" data-path="@comment.path" data-side="@comment.side" data-line="@comment.line" class="comment">
-                <div class="comment-avatar">
-                    <a href="@routes.UserApp.userInfo(comment.authorLoginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                        <img src="@User.findByLoginId(comment.authorLoginId).avatarUrl" width="32" height="32" alt="@comment.authorLoginId">
-                    </a>
-                </div>
-                <div class="media-body">
-                    <div class="meta-info">
-                        <span class="comment_author pull-left">
-                            <a href="@routes.UserApp.userInfo(comment.authorLoginId)" data-toggle="tooltip" data-placement="top" title="@comment.authorName">
-                                <strong>@comment.authorLoginId </strong>
-                            </a>
-                        </span>
-                        <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(utils.JodaDateUtil.ago(comment.createdDate))</a></span>
-                        @if(utils.AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
-                        <span class="edit pull-right">
-                            <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CommentApp.delete(comment.asResource.getType.resource, comment.asResource.getId)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
-                        </span>
-                        }
-                    </div>
+@if(!threads.isEmpty){
+    <tr class="comments board-comment-wrap" data-commit-id="@threads(0).commitId">
+        <td colspan=3>
+            <ul class="comments">
+            @for(thread: CodeCommentThread <- threads) {
+                <div class="well">
+                    @for(comment: ReviewComment <- thread.reviewComments) {
+                        <li id="comment-@comment.id" class="comment">
+                            <div class="comment-avatar">
+                                <a href="@routes.UserApp.userInfo(comment.author.loginId)" class="avatar-wrap" data-toggle="tooltip" data-placement="top" title="@comment.author.name">
+                                    <img src="@User.findByLoginId(comment.author.loginId).avatarUrl" width="32" height="32" alt="@comment.author.loginId">
+                                </a>
+                            </div>
+                            <div class="media-body">
+                                <div class="meta-info">
+                                    <span class="comment_author pull-left">
+                                        <i class="yobicon-comment"></i>
+                                        <a href="@routes.UserApp.userInfo(comment.author.loginId)" data-toggle="tooltip" data-placement="top" title="@comment.author.name">
+                                            <strong>@comment.author.loginId </strong>
+                                        </a>
+                                    </span>
+                                    <span class="ago"><a href="#comment-@comment.id">@utils.TemplateHelper.agoString(utils.JodaDateUtil.ago(comment.createdDate))</a></span>
+                                    @if(utils.AccessControl.isAllowed(UserApp.currentUser(), comment.asResource(), Operation.DELETE)){
+                                        <span class="edit pull-right">
+                                            <button class="btn-transparent pull-right close" data-toggle="comment-delete" data-request-uri="@routes.CommentApp.delete(comment.asResource.getType.resource, comment.asResource.getId)" title="@Messages("common.comment.delete")"><i class="yobicon-trash"></i></button>
+                                        </span>
+                                    }
+                                </div>
 
-                    <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.contents</div>
+                                <div class="comment-body markdown-wrap markdown-before" markdown="true">@comment.getContents</div>
 
-                    <div class="attachments" data-resourceType="@comment.asResource.getType" data-resourceId="@comment.id"></div>
+                                <div class="attachments" data-resourceType="@comment.asResource.getType" data-resourceId="@comment.id"></div>
+                            </div>
+                        </li>
+                    }
+                <button type="button" class="ybtn ybtn-default ybtn-small btn-thread" data-thread-id="@thread.id"><i class="yobicon-comments"></i> @Messages("button.comment.new")</button>
                 </div>
-            </li>
             }
-            <button type="button" class="ybtn ybtn-default ybtn-small btn-thread"><i class="yobicon-comments"></i> @Messages("button.comment.new")</button>
-        </ul>
-    </td>
-</tr>
+            </ul>
+        </td>
+    </tr>
 }
