@@ -394,9 +394,9 @@ public class PullRequest extends Model implements ResourceConvertible {
 
                 if (mergeResult.getMergeStatus().isSuccessful()) {
                     // merge 커밋 메시지 수정
-                    writeMergeCommitMessage(cloneRepository, UserApp.currentUser());
+                    RevCommit mergeCommit = writeMergeCommitMessage(cloneRepository, UserApp.currentUser());
                     pullRequest.mergedCommitIdFrom = mergedCommitIdFrom;
-                    pullRequest.mergedCommitIdTo = mergeResult.getNewHead().getName();
+                    pullRequest.mergedCommitIdTo = mergeCommit.getId().getName();
 
                     // 코드 받을 프로젝트의 코드 받을 브랜치(srcToBranchName)로 clone한 프로젝트의
                     // merge 한 브랜치(destToBranchName)의 코드를 push 한다.
@@ -437,8 +437,8 @@ public class PullRequest extends Model implements ResourceConvertible {
         return WatchService.findActualWatchers(actualWatchers, asResource());
     }
 
-    private void writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {
-        new Git(cloneRepository).commit()
+    private RevCommit writeMergeCommitMessage(Repository cloneRepository, User user) throws GitAPIException {
+        return new Git(cloneRepository).commit()
                 .setAmend(true).setAuthor(user.name, user.email)
                 .setMessage(makeMergeCommitMessage())
                 .setCommitter(user.name, user.email)
