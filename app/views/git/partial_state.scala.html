@@ -44,8 +44,8 @@
     }
 }
 
-@if(!pull.isMerging && !pull.isClosed && !pull.isMerged){
-    @if(!pull.isConflict){
+@if(pull.isMerging == false && !pull.isClosed && !pull.isMerged){
+    @if(pull.isConflict == false){
     <div class="alert alert-success">
         <h5>@Messages("pullRequest.is.safe")</h5>
     </div>
@@ -82,7 +82,7 @@
     }
 }
 
-@if(pull.isMerging){
+@if(pull.isMerging == true){
     <div class="alert alert-warnning">
         <h5>@Messages("pullRequest.is.merging")</h5>
     </div>

@@ -20,7 +20,7 @@
 
         <div id="__changes" class="mt20">
             <div class="diff-body">
-                @if(!pull.isMerging && !pull.isConflict){
+                @if(pull.isMerging == false && pull.isConflict == false){
                     @views.html.partial_diff(pull.getDiff, comments.filter(v => !v.isOutdated), pull.fromProject, pull.toProject)
                 } else {
                     @partial_state(project, pull, false, false)
