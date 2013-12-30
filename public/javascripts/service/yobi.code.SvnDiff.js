@@ -280,8 +280,9 @@
             } else {
                 var welRow = $(this).closest('tr');
                 var welPath = welRow.closest('table');
-
-                _showCommentBox(welRow, welPath.data('filePath'), welRow.data('line'),welRow.data('type'));
+                if(welRow.data('type')=='add' || welRow.data('type')=='context' || welRow.data('type')=='remove') {
+                    _showCommentBox(welRow, welPath.data('filePath'), welRow.data('line'),welRow.data('type'));
+                }
             }
         }
 
@@ -354,12 +355,13 @@
          */
         function _renderDiff(sDiff) {
             var rxDiff = /^Index: [\S]+\n[=]+\n/igm;
+            var aMatchDiff = sDiff.match(rxDiff);
             var aDiffPath = sDiff.split(rxDiff).slice(1);
             var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
             var rxFileHeader = /^(---|\+\+\+) (.+)\t[^\t]+$/; // http://en.wikipedia.org/wiki/Diff#Unified_format
             var sPath;
-
-            aDiffPath.forEach(function(sDiffRow){
+            
+            aDiffPath.forEach(function(sDiffRow,nIndex){
                 var welDiffWrapOuter = $('<div/>',{class:'diff-partial-outer'});
                 var welDiffWrapInner = $('<div/>',{class:'diff-partial-inner'});
                 var welDiffMeta = $('<div/>',{class:'diff-partial-meta'});
@@ -381,100 +383,115 @@
                 var nLastLineB=1;
                 var nCodeLineA;
                 var nCodeLineB;
-                
-                aLine.forEach(function(sLine){
-                    switch(sLine.substr(0,2)) {
-                        case '--':
-                        case '++':
-                            var aMatch = sLine.match(rxFileHeader);   
-                            
-                            if(aMatch === null) {
-                                if (sLine.indexOf("---") === 0 || sLine.indexOf("+++") === 0) {
-                                    aMatch = ['', sLine.substring(0, 3), sLine.substr(4)];
+               
+                if(aLine[0].indexOf('file marked as a binary type') !==-1) {
+                    var sDiffIndex = aMatchDiff[nIndex].split('\n')[0];
+                    var welLineA = $('<td/>',{class:'linenum'}).append($('<div/>',{class:'line-number'}));
+                    var welLineB = welLineA.clone();
+
+                    sPath = sDiffIndex.substr(7);
+                    
+                    welDiffMetaCommit.append($('<div/>',{class:'diff-partial-commit-id'}).html("&nbsp;"));
+                    welDiffMetaCommit.append(_makeCommitLink(sPath,htVar.sCommitId));
+                    welDiffMetaFile.append($('<span/>',{class:'filename'}).text(sPath));
+                    welDiffCodeTableBody.append(_makeCodeLine(null,null,'binary',Messages('code.isBinary')));
+
+                } else {
+                    aLine.forEach(function(sLine){
+                        switch(sLine.substr(0,2)) {
+                            case '--':
+                            case '++':
+                                var aMatch = sLine.match(rxFileHeader);   
+                                
+                                if(aMatch === null) {
+                                    if (sLine.indexOf("---") === 0 || sLine.indexOf("+++") === 0) {
+                                        aMatch = ['', sLine.substring(0, 3), sLine.substr(4)];
+                                    } else {
+                                        return ;
+                                    }
+                                } 
+
+                                if(aMatch[1]==='---') {
+                                    sPath = aMatch[2];
+                                    welDiffCodeTable.attr('data-path-a',sPath);
+                                    welFullDiff.attr('data-path-a',sPath);
+                                    welFullDiff.attr('data-commit-a',htVar.sParentCommitId);
+
+                                    var welCommit = _makeCommitLink(sPath,htVar.sParentCommitId);
+                                    welDiffMetaCommit.append(welCommit);
+
+                                } else if(aMatch[1]==='+++') {
+                                    sPath = aMatch[2] == "/dev/null" ? sPath : aMatch[2];
+                                    welDiffCodeTable.attr('data-path-b',sPath);
+                                    welDiffCodeTable.attr('data-file-path',sPath);
+
+                                    welFullDiff.attr('data-path-b',sPath);
+                                    welFullDiff.attr('data-path',sPath);
+                                    welFullDiff.attr('data-commit-b',htVar.sCommitId);
+
+                                    var welCommit = _makeCommitLink(sPath,htVar.sCommitId);
+                                    welDiffMetaCommit.append(welCommit);
+                                    welDiffMetaFile.append($('<span>',{class:'filename'}).text(sPath));
+                                }
+
+                                break;
+                            case '@@' : 
+                                var aMatch = sLine.match(rxHunkHeader);
+                                var aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
+                                    return parseInt(sVal, 10);
+                                }) : null;
+
+                                if (aHunkRange == null || aHunkRange.length < 4) {
+                                    if (console instanceof Object) {
+                                        console.warn("Failed to parse hunk header");
+                                    }
                                 } else {
-                                    return ;
+                                    welDiffCodeTableBody.append(_makeCodeLine('...','...','range',sLine));
+                                }    
+                                
+                                nLineA = aHunkRange[1];
+                                if (isNaN(aHunkRange[2])) {
+                                    nLastLineA = nLineA + 1;
+                                } else {
+                                    nLastLineA = nLineA + aHunkRange[2];
                                 }
-                            } 
+                                nLineB = aHunkRange[3];
+                                if (isNaN(aHunkRange[4])) {
+                                    nLastLineB = nLineB + 1;
+                                } else {
+                                    nLastLineB = nLineB + aHunkRange[4];
+                                }                       
+                                break;
+                            default:
+                                var sLineType = (sLine[0]=='+') 
+                                                ? 'add' : (sLine[0]=='-') 
+                                                ? 'remove' : 'context';
 
-                            if(aMatch[1]==='---') {
-                                sPath = aMatch[2];
-                                welDiffCodeTable.attr('data-path-a',sPath);
-                                welFullDiff.attr('data-path-a',sPath);
-                                welFullDiff.attr('data-commit-a',htVar.sParentCommitId);
-
-                                var welCommit = _makeCommitLink(sPath,htVar.sParentCommitId);
-                                welDiffMetaCommit.append(welCommit);
-
-                            } else if(aMatch[1]==='+++') {
-                                sPath = aMatch[2] == "/dev/null" ? sPath : aMatch[2];
-                                welDiffCodeTable.attr('data-path-b',sPath);
-                                welDiffCodeTable.attr('data-file-path',sPath);
-
-                                welFullDiff.attr('data-path-b',sPath);
-                                welFullDiff.attr('data-path',sPath);
-                                welFullDiff.attr('data-commit-b',htVar.sCommitId);
-
-                                var welCommit = _makeCommitLink(sPath,htVar.sCommitId);
-                                welDiffMetaCommit.append(welCommit);
-                                welDiffMetaFile.append($('<span>',{class:'filename'}).text(sPath));
-                            }
-
-                            break;
-                        case '@@' : 
-                            var aMatch = sLine.match(rxHunkHeader);
-                            var aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
-                                return parseInt(sVal, 10);
-                            }) : null;
-
-                            if (aHunkRange == null || aHunkRange.length < 4) {
-                                if (console instanceof Object) {
-                                    console.warn("Failed to parse hunk header");
+                                if(sLineType=='add') {
+                                    nCodeLineB= nLineB++;
+                                    nCodeLineA=null;
+                                } else if(sLineType=='remove') {
+                                    nCodeLineB=null;
+                                    nCodeLineA = nLineA++;
+                                } else {
+                                    nCodeLineA=nLineA++;
+                                    nCodeLineB=nLineB++;
+                                }   
+                                var welCodeRow = _makeCodeLine(nCodeLineA,nCodeLineB,sLineType,sLine);            
+                                welDiffCodeTableBody.append(welCodeRow);
+                                
+                                var welCodeReview = _appendCommentThreadOnLine(welCodeRow,sPath);
+                                
+                                if(typeof welCodeReview != 'undefined') {
+                                    welDiffCodeTableBody.append(welCodeReview);
                                 }
-                            } else {
-                                welDiffCodeTableBody.append(_makeCodeLine('...','...','range',sLine));
-                            }    
-                            
-                            nLineA = aHunkRange[1];
-                            if (isNaN(aHunkRange[2])) {
-                                nLastLineA = nLineA + 1;
-                            } else {
-                                nLastLineA = nLineA + aHunkRange[2];
-                            }
-                            nLineB = aHunkRange[3];
-                            if (isNaN(aHunkRange[4])) {
-                                nLastLineB = nLineB + 1;
-                            } else {
-                                nLastLineB = nLineB + aHunkRange[4];
-                            }                       
-                            break;
-                        default:
-                            var sLineType = (sLine[0]=='+') 
-                                            ? 'add' : (sLine[0]=='-') 
-                                            ? 'remove' : 'context';
-
-                            if(sLineType=='add') {
-                                nCodeLineB= nLineB++;
-                                nCodeLineA=null;
-                            } else if(sLineType=='remove') {
-                                nCodeLineB=null;
-                                nCodeLineA = nLineA++;
-                            } else {
-                                nCodeLineA=nLineA++;
-                                nCodeLineB=nLineB++;
-                            }   
-                            var welCodeRow = _makeCodeLine(nCodeLineA,nCodeLineB,sLineType,sLine);            
-                            welDiffCodeTableBody.append(welCodeRow);
-                            
-                            var welCodeReview = _appendCommentThreadOnLine(welCodeRow,sPath);
-                            
-                            if(typeof welCodeReview != 'undefined') {
-                                welDiffCodeTableBody.append(welCodeReview);
-                            }
-                            break;
-                    }
-                });
-                
-                welDiffMetaUtility.append(welFullDiff);
+                                break;
+                        }
+                    });
+                    
+                    welDiffMetaUtility.append(welFullDiff);
+                }
+               
                 welDiffMeta.append(welDiffMetaCommit);
                 welDiffMeta.append(welDiffMetaFile);
                 welDiffMeta.append(welDiffMetaUtility);
@@ -505,12 +522,15 @@
             if(sRowType=='range') {
                 welCellCode.addClass('hunk');
                 welCellCode.text(sCode);
+            } else if(sRowType=='binary') {
+                welCellCode.addClass('binary');
+                welCellCode.text(sCode);
             } else {
                 var welCode = $('<pre/>',{class:'diff-partial-codeline'}).text(sCode);
                 var nLine = (nLineB==null) ? nLineA : nLineB;
-                welRow.attr('data-line',nLine).attr('data-type',sRowType);
-                welCellLineA.append($('<i/>',{class:'icon-comment'}));
                 welCellCode.addClass('code');
+                welRow.attr('data-line',nLine).attr('data-type',sRowType);    
+                welCellLineA.append($('<i/>',{class:'icon-comment'}));
                 welCellCode.append(welCode);
             }
 
