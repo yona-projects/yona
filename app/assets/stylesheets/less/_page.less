@@ -2099,7 +2099,10 @@
                 margin:5px 0 10px;
                 .title    { font-size:20px; font-weight:bold; }
                 .sp       { margin: 0 5px; color:#E4E4E4; }
-                .due-date { color: #666; /*999;*/ }
+                .due-date {
+                    color: #666;
+                    &.over { color:#f36c22; }
+                }
 
                 .nbtn {
                     border: 1px solid #ccc;
