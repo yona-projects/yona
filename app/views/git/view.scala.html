@@ -26,7 +26,7 @@
                 </div>
                 <div class="pull-right">
                     <div class="date">@agoString(pull.createdAgo)</div>
-                    <span class="badge @if(pull.isConflict) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
+                    <span class="badge @if(pull.isConflict == true) {badge-issue-conflict} else {badge-issue-@pull.state.state.toLowerCase}">@if(pull.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + pull.state.state)}</span>
                 </div>
             </div>
 
@@ -47,9 +47,9 @@
                         @Messages("project.watch")
                     }
                 </button>
-                <div id="actOnOpen" class="mr5 pull-right" style="@if(!pull.isMerging && pull.isOpen()){display:block;}else{display:none;}">
+                <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen()){display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-                        <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict){style="display:none;"}>@Messages("pullRequest.accept")</a>
+                        <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict == true){style="display:none;"}>@Messages("pullRequest.accept")</a>
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>
@@ -59,7 +59,7 @@
                     }
                 </div>
 
-                <div id="actOnRejected" class="mr5 pull-right" style="@if(!pull.isMerging && pull.isClosed()) {display:block;}else{display:none;}">
+                <div id="actOnRejected" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isClosed()) {display:block;}else{display:none;}">
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.REOPEN)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.open(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.reopen")</a>
                     }

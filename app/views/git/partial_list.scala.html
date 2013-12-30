@@ -7,7 +7,7 @@
 
 @if(page.getList().size()> 0){
     @for(req <- page.getList().iterator()) {
-        <div class="row-fluid issue-item @if(req.isConflict) {conflict}">
+        <div class="row-fluid issue-item @if(req.isConflict == true) {conflict}">
             <div class="span10">
                 <div class="num pull-left number-id">
                     <a href="@routes.PullRequestApp.pullRequest(req.toProject.owner, req.toProject.name, req.number)">
@@ -68,7 +68,7 @@
                         &nbsp;
                     }
                 </div>
-                <div class="state @if(req.isConflict) {conflict} else { @req.state.toString.toLowerCase} pull-right">@if(req.isConflict) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + req.state.toString.toLowerCase)}</div>
+                <div class="state @if(req.isConflict == true) {conflict} else { @req.state.toString.toLowerCase} pull-right">@if(req.isConflict == true) {@Messages("pullRequest.state.conflict")} else {@Messages("pullRequest.state." + req.state.toString.toLowerCase)}</div>
             </div>
         </div>
     }
