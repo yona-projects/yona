@@ -294,28 +294,18 @@
         function _getSortedList(htData){
             var sType;
             var htListByType = {};
-            var htResult = {};
             
-            // 먼저 타입별로 정리하고
+            // 타입별로 정리
             for(var sFileName in htData){
                 htFileInfo = htData[sFileName];
                 htFileInfo.fileName = sFileName;
                 sType = htFileInfo.type;
                 
                 htListByType[sType] = htListByType[sType] || [];
-                htListByType[sType].push(sFileName);
-            }
-            
-            // 타입 내에서 알파벳 순으로 정렬
-            for(var sType in htListByType){
-                htResult[sType] = [];
-                htListByType[sType].sort();
-                htListByType[sType].forEach(function(sFileName){
-                    htResult[sType].push(htData[sFileName]);
-                });
+                htListByType[sType].push(htData[sFileName]);
             }
 
-            return htResult;
+            return htListByType;
         }
         
         /**

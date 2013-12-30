@@ -9,8 +9,10 @@ import models.enumeration.ResourceType;
 import models.resource.Resource;
 
 import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -340,103 +342,139 @@ public class GitRepository implements PlayRepository {
      * @see <a href="https://www.kernel.org/pub/software/scm/git/docs/git-log.html">git log until</a>
      */
     private ObjectNode treeAsJson(String basePath, TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
-        Git git = new Git(repository);
         ObjectNode result = Json.newObject();
-        result.put("type", "folder");
-
         ObjectNode listData = Json.newObject();
+        listData.putAll(new ObjectFinder(basePath, treeWalk, untilCommitId).find());
+        result.put("type", "folder");
+        result.put("data", listData);
+        return result;
+    }
 
-        LogCommand logCommand = git.log().add(untilCommitId);
+    public class ObjectFinder {
+        private SortedMap<String, JsonNode> found = new TreeMap<>();
+        private Map<String, JsonNode> targets = new HashMap<>();
+        private String basePath;
+        private AnyObjectId untilCommitId;
+        private Iterator<RevCommit> commitIterator;
 
-        if (!basePath.isEmpty()) {
-           logCommand.addPath(basePath);
+        public ObjectFinder(String basePath, TreeWalk treeWalk, AnyObjectId untilCommitId) throws IOException, GitAPIException {
+            while (treeWalk.next()) {
+                String path = treeWalk.getNameString();
+                ObjectNode object = Json.newObject();
+                object.put("type", treeWalk.isSubtree() ? "folder" : "file");
+                targets.put(path, object);
+            }
+            this.basePath = basePath;
+            this.untilCommitId = untilCommitId;
+            this.commitIterator = getCommitIterator();
         }
 
-        Set<String> paths = new HashSet<>();
-        Map<String, String> modes = new HashMap<>();
-
-        while (treeWalk.next()) {
-            paths.add(treeWalk.getNameString());
-            modes.put(treeWalk.getNameString(), treeWalk.isSubtree() ? "folder" : "file");
+        public SortedMap<String, JsonNode> find() throws IOException, GitAPIException {
+            while (shouldFindMore()) {
+                RevCommit commit = commitIterator.next();
+                Map<String, ObjectId> objects = findObjects(commit);
+                found(commit, objects);
+            }
+            return found;
         }
 
-        // For each of every blobs and trees under the given basePath,
-        // get metadata including the log of the "interested" commit.
-        // We are interested only in the latest commits made change for anyone of `paths`.
-        Iterator<RevCommit> commitIter = logCommand.call().iterator();
-        while (commitIter.hasNext()) {
-            RevCommit curr = commitIter.next();
+        /*
+         * get commit logs with untilCommitId and basePath
+         */
+        private Iterator<RevCommit> getCommitIterator() throws IOException, GitAPIException {
+            Git git = new Git(repository);
+            LogCommand logCommand = git.log().add(untilCommitId);
+            if (StringUtils.isNotEmpty(basePath)) {
+                logCommand.addPath(basePath);
+             }
+            return logCommand.call().iterator();
+        }
 
-            // We want to find the latest commit for each of `paths`. We already know they have
-            // same `basePath`. So get every blobs and trees match one of `paths`, under the
+        private boolean shouldFindMore() {
+            // If targets is empty, it means we have found every interested objects and no need to continue.
+            if (targets.isEmpty()) {
+                return false;
+            }
+            return commitIterator.hasNext();
+        }
+
+        private Map<String, ObjectId> findObjects(RevCommit commit) throws IOException {
+            final Map<String, ObjectId> objects = new HashMap<>();
+
+            // We want to find the latest commit for each of `targets`. We already know they have
+            // same `basePath`. So get every blobs and trees match one of `targets`, under the
             // `basePath`, and put them into `objects`.
-            TreeWalk twForCurrent;
-            if (basePath.isEmpty()) {
-                twForCurrent = new TreeWalk(repository);
-                twForCurrent.addTree(curr.getTree());
-            } else {
-                twForCurrent = TreeWalk.forPath(repository, basePath, curr.getTree());
-                twForCurrent.enterSubtree();
-            }
-            Map<String, ObjectId> objects = new HashMap<>();
-            while(twForCurrent.next()) {
-                if (paths.contains(twForCurrent.getNameString())) {
-                    objects.put(twForCurrent.getNameString(), twForCurrent.getObjectId(0));
+            TreeWalkHandler objectCollector = new TreeWalkHandler() {
+                @Override
+                public void handle(TreeWalk treeWalk) {
+                    if (targets.containsKey(treeWalk.getNameString())) {
+                        objects.put(treeWalk.getNameString(), treeWalk.getObjectId(0));
+                    }
                 }
-            }
+            };
+
+            // Remove every blob and tree from `objects` if any of parent commits have a
+            // object whose path and id is identical with the blob or the tree. It means the
+            // blob or tree is not changed so we are not interested in it.
+            TreeWalkHandler objectRemover = new TreeWalkHandler() {
+                @Override
+                public void handle(TreeWalk treeWalk) {
+                    if (treeWalk.getObjectId(0).equals(objects.get(treeWalk.getNameString()))) {
+                        objects.remove(treeWalk.getNameString());
+                    }
+                }
+            };
 
             // Choose only "interest" objects from the blobs and trees. We are interested in
             // blobs and trees which has change between the last commit and the current commit.
-            for(RevCommit parent : curr.getParents()) {
-                TreeWalk twForParent;
-                if (basePath.isEmpty()) {
-                    twForParent = new TreeWalk(repository);
-                    twForParent.addTree(parent.getTree());
-                } else {
-                    twForParent = TreeWalk.forPath(repository, basePath, parent.getTree());
-                    if (twForParent == null) {
-                        continue;
-                    }
-                    twForParent.enterSubtree();
-                }
-
-                // Remove every blob and tree from `objects` if any of parent commits have a
-                // object whose path and id is identical with the blob or the tree. It means the
-                // blob or tree is not changed so we are not interested in it.
-                while(twForParent.next()) {
-                    if (twForParent.getObjectId(0).equals(objects.get(twForParent.getNameString()))) {
-                        objects.remove(twForParent.getNameString());
-                    }
-                }
+            traverseTree(commit, objectCollector);
+            for(RevCommit parent : commit.getParents()) {
+                traverseTree(parent, objectRemover);
             }
+            return objects;
+        }
 
-            // Now, every objects in `objects` are interested. Get metadata from the objects, put
-            // them into listData and remove the path from paths.
+        private void traverseTree(RevCommit commit, TreeWalkHandler handler) throws IOException {
+            TreeWalk treeWalk = null;
+            if (StringUtils.isEmpty(basePath)) {
+                treeWalk = new TreeWalk(repository);
+                treeWalk.addTree(commit.getTree());
+            } else {
+                treeWalk = TreeWalk.forPath(repository, basePath, commit.getTree());
+                if (treeWalk == null) {
+                    return;
+                }
+                treeWalk.enterSubtree();
+            }
+            while (treeWalk.next()) {
+                handler.handle(treeWalk);
+            }
+        }
+
+        /*
+         * Now, every objects in `objects` are interested. Get metadata from the objects, put
+         * them into `found` and remove from `targets`.
+         */
+        private void found(RevCommit revCommit, Map<String, ObjectId> objects) {
             for (String path : objects.keySet()) {
-                GitCommit commit = new GitCommit(curr);
-                ObjectNode data = Json.newObject();
-                data.put("type", modes.get(path));
+                GitCommit commit = new GitCommit(revCommit);
+                ObjectNode data = (ObjectNode) targets.get(path);
                 data.put("msg", commit.getShortMessage());
                 String emailAddress = commit.getAuthorEmail();
                 User user = User.findByEmail(emailAddress);
                 data.put("avatar", getAvatar(user));
                 data.put("userName", user.name);
                 data.put("userLoginId", user.loginId);
-                data.put("createdDate", curr.getCommitTime() * 1000l);
+                data.put("createdDate", revCommit.getCommitTime() * 1000l);
                 data.put("author", commit.getAuthorName());
-                listData.put(path, data);
-                paths.remove(path);
-            }
-
-            // If paths is empty, it means we have found every interested objects and no need to
-            // continue.
-            if (paths.isEmpty()) {
-                break;
+                found.put(path, data);
+                targets.remove(path);
             }
         }
+    }
 
-        result.put("data", listData);
-        return result;
+    public static interface TreeWalkHandler {
+        void handle(TreeWalk treeWalk);
     }
 
     /**
