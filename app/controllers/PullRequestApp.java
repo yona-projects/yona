@@ -34,7 +34,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.tmatesoft.svn.core.SVNException;
 
 import actions.AnonymousCheckAction;
-import actors.PullRequestEventActor;
+import actors.PullRequestMergingActor;
+import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
@@ -288,7 +289,7 @@ public class PullRequestApp extends Controller {
         pullRequest.contributor = UserApp.currentUser();
         pullRequest.toProject = Project.find.byId(pullRequest.toProjectId);
         pullRequest.fromProject = Project.find.byId(pullRequest.fromProjectId);
-        pullRequest.isMerging = true;
+        pullRequest.isMerging = false;
         pullRequest.isConflict = false;
 
         // 동일한 저장소와 브랜치로 주고 받으며, Open 상태의 PullRequest가 이미 존재한다면 해당 PullRequest로 이동한다.
@@ -308,8 +309,8 @@ public class PullRequestApp extends Controller {
         PullRequestEvent.addEvent(notiEvent, pullRequest);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
-                UserApp.currentUser(), request(), pullRequest.toProject, pullRequest.toBranch);
-        Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
+                UserApp.currentUser(), request(), pullRequest);
+        Akka.system().actorOf(new Props(PullRequestMergingActor.class)).tell(message, null);
 
         return redirect(pullRequestCall);
     }
@@ -569,8 +570,8 @@ public class PullRequestApp extends Controller {
         addNotification(pullRequest, call, beforeState, State.OPEN);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
-                UserApp.currentUser(), request(), pullRequest.fromProject, pullRequest.fromBranch);
-        Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
+                UserApp.currentUser(), request(), pullRequest);
+        Akka.system().actorOf(new Props(PullRequestMergingActor.class)).tell(message, null);
 
         return redirect(call);
     }

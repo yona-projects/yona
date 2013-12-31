@@ -1,6 +1,6 @@
 package models;
 
-import actors.PullRequestEventActor;
+import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 
 import com.avaje.ebean.ExpressionList;
@@ -411,9 +411,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                     NotificationEvent.addPullRequestUpdate(call, message.getRequest(), pullRequest, State.OPEN, State.MERGED);
                     PullRequestEvent.addStateEvent(pullRequest, State.MERGED);
 
-
-                    PullRequest.changeStateToMergingRelatedPullRequests(message.getProject(), message.getBranch());
-                    Akka.system().actorOf(new Props(PullRequestEventActor.class)).tell(message, null);
+                    Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);
                 }
             }
         });
@@ -846,24 +844,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         return pullRequestMergeResult;
     }
 
-    /**
-     * project/branch와 연관된 보낸코드들의 상태를 병합중으로 수정한다.
-     *
-     * @param project
-     * @param branch
-     */
-    public static void changeStateToMergingRelatedPullRequests(Project project, String branch) {
-        List<PullRequest> pullRequests = PullRequest.findRelatedPullRequests(project, branch);
-
-        for (PullRequest pullRequest : pullRequests) {
-            if (!pullRequest.isClosed()) {
-                pullRequest.startMerge();
-            }
-            pullRequest.update();
-        }
-    }
-
-    private void startMerge() {
+    public void startMerge() {
         isMerging = true;
     }
 

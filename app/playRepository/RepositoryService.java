@@ -19,8 +19,6 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import actors.CommitsNotificationActor;
-import actors.IssueReferredFromCommitEventActor;
 import models.*;
 
 import org.codehaus.jackson.node.ObjectNode;
@@ -42,9 +40,6 @@ import play.Logger;
 import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
-import utils.JodaDateUtil;
-import actors.PullRequestEventActor;
-import akka.actor.Props;
 import playRepository.hooks.*;
 
 import controllers.ProjectApp;
