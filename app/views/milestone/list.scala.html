@@ -61,8 +61,8 @@
 
     <div class="filter-wrap milestone">
         <div class="milestone-legend pull-left">
-            <i class="orange"></i> @Messages("issue.state.closed")
-            <i class="gray"></i> @Messages("issue.state.open")
+            <i class="open"></i> @Messages("issue.state.open")
+            <i class="closed"></i> @Messages("issue.state.closed")
 
         </div>
 
@@ -97,40 +97,46 @@
                             <span class="date">(@milestone.until)</span>
                         </span>
                     }
-                    <div class="issue-wrap nbtn-group pull-right">
-                        <a href="@makeIssuesLink(milestone.id,"open")" class="nbtn medium open-issue">
+                    <div class="issue-wrap pull-right">
+                        <a href="@makeIssuesLink(milestone.id,"open")" class="ybtn open medium open-issue">
                             @Messages("issue.state.open") <strong class="num-badge">@milestone.getNumOpenIssues</strong>
                         </a>
-                        <a href="@makeIssuesLink(milestone.id,"closed")" class="nbtn medium closed-issue">
+                        <a href="@makeIssuesLink(milestone.id,"closed")" class="ybtn closed medium closed-issue">
                             @Messages("issue.state.closed") <strong class="num-badge">@milestone.getNumClosedIssues</strong>
                         </a>
                     </div>
                 </div>
 
                 <div class="progress-wrap">
-					<div class="progress">
-						<div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
-						@**
-						<!--
-						<div class="bar blue" style="width: 30%"></div>
-						-->
-						**@
+					<div class="progress @if(milestone.getCompletionRate==0){empty}">
+						<div class="progress-bar" style="width: @milestone.getCompletionRate%;"></div>
 					</div>
+                    
 					<div class="progress-label">
-						@** 0% 일 수도 있어서 최소한의 텍스트 영역 확보 **@
-						<div class="pull-left" style="width: @milestone.getCompletionRate%; min-width:100px;">
+                        @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
+						<div class="pull-left">
 							<a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
 						</div>
 						<div class="pull-right">
 							<a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
 						</div>
+                        } else {
+                            <div class="empty-issue">@Messages("issue.is.empty")</div>
+                        }
 					</div>
+                   
 				</div>
             </div>
-            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}"><!--
-             -->@milestone.getCompletionRate<!--
-             --><i>%</i>
+            
+            <div class="completion-rate @if(milestone.getCompletionRate == 100){done}">
+                @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
+                @milestone.getCompletionRate
+                <i>%</i>
+                } else {
+                    -
+                }
 			</div>
+            
         </li>
         }
     </ul>

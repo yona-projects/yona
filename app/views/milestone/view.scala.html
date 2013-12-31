@@ -19,79 +19,84 @@
 @projectLayout(title, project, utils.MenuType.MILESTONE) {
 @projectMenu(project, utils.MenuType.MILESTONE, "")
 <div class="project-page-wrap">
-    <h4>
-        <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
-        <small class="ml10">
-            @if(milestone.dueDate != null) {
-            <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
-            <span class="date">(@milestone.until)</span>
-            }
-            <span class="badge badge-issue-@milestone.state.state.toLowerCase margin-left-5">@Messages("milestone.state." + milestone.state.state)</span>
-        </small>
-    </h4>
+    <div class="milesion-wrap">
+        <h4>
+            <a href="@routes.MilestoneApp.milestone(project.owner, project.name, milestone.id)" class="title">@milestone.title</a>
+            <small class="ml10">
+                @if(milestone.dueDate != null) {
+                <span class="due-date">@Messages("label.dueDate") <strong>@milestone.getDueDateString</strong></span>
+                <span class="date">(@milestone.until)</span>
+                }
+                <span class="badge badge-issue-@milestone.state.state.toLowerCase margin-left-5">@Messages("milestone.state." + milestone.state.state)</span>
+            </small>
+        </h4>
 
-    <div class="progress">
-        <div class="bar orange" style="width: @milestone.getCompletionRate%;"></div>
-    </div>
-    <div class="progress-label clearfix">
-        <div class="pull-left">
-            <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+        <div class="progress @if(milestone.getCompletionRate==0){empty}">
+            <div class="progress-bar" style="width: @milestone.getCompletionRate%;"></div>
         </div>
-        <div class="pull-right">
-            <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+        <div class="progress-label clearfix">
+            @if(milestone.getNumOpenIssues + milestone.getNumClosedIssues > 0) {
+            <div class="pull-left">
+                <a href="@makeIssuesLink(milestone.id,"closed")">@Messages("issue.state.closed") <strong>@milestone.getCompletionRate%</strong></a>
+            </div>
+            <div class="pull-right">
+                <a href="@makeIssuesLink(milestone.id,"open")">@Messages("issue.state.open") <strong>@{100 - milestone.getCompletionRate}%</strong></a>
+            </div>
+            } else {
+                <div class="empty-issue">@Messages("issue.is.empty")</div>
+            }
         </div>
-    </div>
 
-    <div class="milestone-desc">
-        <div markdown="true" class="markdown-wrap">@milestone.contents</div>
-        <div class="attachments" data-resourceType="@ResourceType.MILESTONE" data-resourceId="@milestone.id"></div>
-    </div>
+        <div class="milestone-desc">
+            <div markdown="true" class="markdown-wrap">@milestone.contents</div>
+            <div class="attachments" data-resourceType="@ResourceType.MILESTONE" data-resourceId="@milestone.id"></div>
+        </div>
 
-	<ul class="nav nav-tabs">
-    @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
-        <li @if(issueState == state) { class="active" }>
-            <a href="@getTabLinkByState(state)">
-                @Messages("issue.state." + state.name.toLowerCase())
-                <span class="num-badge">@Issue.countIssuesBy(project.id, new SearchCondition().setState(state).setMilestoneId(milestone.id))</span>
-            </a>
-        </li>
-    }
-    </ul>
-
-	<div class="issues">
-	    <div class="filter-wrap">
-		@issue.partial_massupdate(project, new SearchCondition())
-		</div>
-        @{
-	        if(issueState == State.OPEN) {
-			issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new SearchCondition(),0,0)
-	        } else if(issueState == State.CLOSED) {
-			issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new SearchCondition(),0,0)
-	        } else {
-			issue.partial_list(project, milestone.sortedByNumberOfIssue(), new SearchCondition(),0,0)
-	        }
+    	<ul class="nav nav-tabs">
+        @for(state <- Array(State.ALL, State.OPEN, State.CLOSED)) {
+            <li @if(issueState == state) { class="active" }>
+                <a href="@getTabLinkByState(state)">
+                    @Messages("issue.state." + state.name.toLowerCase())
+                    <span class="num-badge">@Issue.countIssuesBy(project.id, new SearchCondition().setState(state).setMilestoneId(milestone.id))</span>
+                </a>
+            </li>
         }
+        </ul>
 
-	</div>
-
-    <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
-        @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
-        <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger pull-left">@Messages("milestone.delete")</a>
-        }
-
-        @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
-            @if(milestone.state == State.OPEN) {
-                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.close")</button>
+    	<div class="issues">
+    	    <div class="filter-wrap">
+    		@issue.partial_massupdate(project, new SearchCondition())
+    		</div>
+            @{
+    	        if(issueState == State.OPEN) {
+    			issue.partial_list(project, milestone.sortedByNumberOfOpenIssue(), new SearchCondition(),0,0)
+    	        } else if(issueState == State.CLOSED) {
+    			issue.partial_list(project, milestone.sortedByNumberOfClosedIssue(), new SearchCondition(),0,0)
+    	        } else {
+    			issue.partial_list(project, milestone.sortedByNumberOfIssue(), new SearchCondition(),0,0)
+    	        }
             }
-            @if(milestone.state == State.CLOSED) {
-                <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.open")</button>
+
+    	</div>
+
+        <div class="actrow right-txt" style="padding: 15px 0; clear:both;">
+            @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.DELETE)){
+            <a href="#deleteConfirm" data-toggle="modal" class="ybtn ybtn-danger pull-left">@Messages("milestone.delete")</a>
             }
-            <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="ybtn">@Messages("button.edit")</a>
-        }
-        <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.list")</a>
+
+            @if(isAllowed(UserApp.currentUser(), milestone.asResource(), Operation.UPDATE)){
+                @if(milestone.state == State.OPEN) {
+                    <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.close(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.close")</button>
+                }
+                @if(milestone.state == State.CLOSED) {
+                    <button type="button" data-request-method="post" data-request-uri="@routes.MilestoneApp.open(project.owner, project.name, milestone.id)" class="ybtn">@Messages("milestone.open")</button>
+                }
+                <a href="@routes.MilestoneApp.editMilestoneForm(project.owner, project.name, milestone.id)" class="ybtn">@Messages("button.edit")</a>
+            }
+            <a href="@routes.MilestoneApp.milestones(project.owner, project.name)" class="ybtn">@Messages("button.list")</a>
+        </div>
+
     </div>
-
-
 </div>
 
 @** Confirm to delete post **@
