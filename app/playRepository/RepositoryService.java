@@ -23,12 +23,10 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import models.CommitCheckMessage;
-import models.Project;
-import models.PullRequest;
-import models.PullRequestEventMessage;
-import models.PushedBranch;
-import models.User;
+import actors.CommitsNotificationActor;
+import actors.IssueReferredFromCommitEventActor;
+import models.*;
+import models.PostReceiveMessage;
 
 import org.codehaus.jackson.node.ObjectNode;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
@@ -51,7 +49,6 @@ import play.mvc.Http.RawBuffer;
 import play.mvc.Http.Request;
 import play.mvc.Http.Response;
 import utils.JodaDateUtil;
-import actors.CommitCheckActor;
 import actors.PullRequestEventActor;
 import akka.actor.Props;
 import controllers.ProjectApp;
@@ -394,7 +391,18 @@ public class RepositoryService {
             public void onPostReceive(ReceivePack receivePack, Collection<ReceiveCommand> commands) {
                 updateLastPushedDate();
                 updateRecentlyPushedBranch(commands);
-                commitCheck(commands);
+
+                PostReceiveMessage message = new PostReceiveMessage(commands, project, currentUser);
+                addIssueReferredFromCommitsEvents(message);
+                notifyPushedCommits(message);
+            }
+
+            /**
+             * 프로젝트에 Push된 내용을 전달한다.
+             * @param message
+             */
+            private void notifyPushedCommits(PostReceiveMessage message) {
+                Akka.system().actorOf(new Props(CommitsNotificationActor.class)).tell(message, null);
             }
 
             /**
@@ -440,10 +448,9 @@ public class RepositoryService {
                 }
             }
 
-            private void commitCheck(Collection<ReceiveCommand> commands) {
-                CommitCheckMessage message = new CommitCheckMessage(commands, project);
-                Akka.system().actorOf(new Props(CommitCheckActor.class)).tell(message, null);
-                checkPullRequests(commands);
+            private void addIssueReferredFromCommitsEvents(PostReceiveMessage message) {
+                Akka.system().actorOf(new Props(IssueReferredFromCommitEventActor.class)).tell(message, null);
+                checkPullRequests(message.getCommands());
             }
 
             /*

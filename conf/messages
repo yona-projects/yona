@@ -267,6 +267,7 @@ notification.type.issue.state.changed = Changed Issue's State
 notification.type.issue.referred = Issue Reffered
 notification.type.member.enroll = Requests for joining projects
 notification.type.new.comment = New Comment on a Posting or a Issue
+notification.type.new.commit = New Commits on a Project
 notification.type.new.issue = New Issue
 notification.type.new.posting = New Posting
 notification.type.new.pullrequest = New PullRequest
