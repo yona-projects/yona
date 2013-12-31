@@ -32,6 +32,7 @@
             htVar.nProjectId = htOptions.nProjectId;
             htVar.sRepoURL = htOptions.sRepoURL;
             htVar.sURLProject = htOptions.sURLProject;
+            htVar.sURLZeroClipboard = htOptions.sURLZeroClipboard;
         }
 
         /**
@@ -122,7 +123,7 @@
             htElement.welBtnPlusCategory.click(_onClickPlusCategory);
 
             htElement.welBtnCopy.zclip({
-                "path": "/assets/javascripts/lib/jquery/ZeroClipboard.swf",
+                "path": htVar.sURLZeroClipboard,
                 "copy": htElement.welInputCloneURL.val(),
                 "afterCopy": function(){
                     yobi.Common.notify("Url copied", 1000);
