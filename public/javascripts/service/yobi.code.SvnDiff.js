@@ -27,7 +27,6 @@
             _initFileUploader();
             _initFileDownloader();
             _initToggleCommentsButton();
-            _initFileViewButton();
             _initMiniMap();
             _initMergely();
         }
@@ -111,6 +110,12 @@
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
             $(window).on("resize", _resizeMergely);
+
+            $('.diff-wrap').on('click','td.linenum',_onClickLineNumA);
+
+            $('.diff-wrap').on('click','[data-toggle="commentBoxToggle"]',_onClickCommentBoxToggleBtn);
+            
+            $('.diff-wrap').on('click','[data-toggle="mergely"]',_onClickBtnFullDiff);
         }
 
         /**
@@ -179,155 +184,16 @@
         }
 
         /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
-         *
-         * 만약 변경된 라인들이 정확하게 삭제된 라인 1줄, 추가된 라인
-         * 1줄이라면 단어 단위 하이라이팅을 적용한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
-         */
-        function _flushChangedLines(welTable, htDiff) {
-            if (htDiff.aRemoved.length == 1 && htDiff.aAdded.length == 1) {
-                _appendChangedLinesWithWordHighlight(welTable, htDiff);
-            } else {
-                _appendChangedLinesWithoutWordHighlight(welTable, htDiff);
-            }
-
-            htDiff.aRemoved = [];
-            htDiff.aAdded = [];
-        }
-
-        /**
-         * welTable에 새 row를 추가한다.
-         *
-         * @param {Object} welTable
-         * @param {String} sClass
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         * @param {Object|String} vContent
-         */
-        function _appendLine(
-                welTable, sClass, sPath, nLineA, nLineB, vContent) {
-            var welTr = $('<tr>').addClass(sClass);
-
-            _setPropertiesOnLine(welTr, sPath, nLineA, nLineB);
-            _prependLineNumberOnLine(welTr, nLineA, nLineB);
-
-            var welBody = ((typeof vContent) == 'string') ? $('<td>').append($("<span>").text(vContent)) : vContent;
-            welBody.addClass("line-body");
-            welTr.append(welBody);
-
-            if(sClass === "file"){
-                welTr.attr("id", sPath);
-                welBody.find("span").addClass("filename");
-            }
-            welTable.append(welTr);
-
-            _appendCommentThreadOnLine(welTr); // Append comments
-        }
-
-        /**
-         * diff에서 얻은 특정 파일의 header를 welTable에 새 row로 추가한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} sHunkHeader
-         */
-        function _appendFileHeader(welTable, sFileHeader) {
-            _appendLine(welTable, "file", sFileHeader, "", "", sFileHeader);
-        }
-
-        /**
-         * diff에서 얻은 특정 hunk의 header를 welTable에 새 row로 추가한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} sHunkHeader
-         */
-        function _appendHunkHeader(welTable, sPath, sHunkHeader) {
-            _appendLine(welTable, "range", sPath, "...", "...", sHunkHeader);
-        }
-
-        /**
-         * 현재 줄에 다음의 프로퍼티를 설정한다.
-         *
-         * - path (파일 경로)
-         * - line (줄 번호)
-         * - side (left, right, base 중 하나)
-         *
-         * @param {Object} welTr
-         * @param {String} sPath
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         */
-        function _setPropertiesOnLine(welTr, sPath, nLineA, nLineB) {
-            welTr.data('line', nLineA || nLineB);
-            welTr.data('path', sPath);
-            if (nLineA && nLineB) {
-                welTr.data('side', 'base');
-            } else if (nLineA && !nLineB) {
-                welTr.data('side', 'left');
-            } else if (!nLineA && nLineB) {
-                welTr.data('side', 'right');
-            }
-        }
-
-        /**
-         * welTr에 줄 번호를 붙인다.
-         *
-         * @param {Object} welTr
-         * @param {Number} nLineA
-         * @param {Number} nLineB
-         */
-        function _prependLineNumberOnLine(welTr, nLineA, nLineB) {
-            var welLineNumA =
-                htElement.welEmptyLineNumColumn.clone().text(nLineA).addClass("linenum-from");
-            var welLineNumB =
-                htElement.welEmptyLineNumColumn.clone().text(nLineB).addClass("linenum-to");
-
-            welTr.append(welLineNumA);
-            welTr.append(welLineNumB);
-
-            if (htVar.bCommentable
-                    && (!isNaN(parseInt(nLineA)) || !isNaN(parseInt(nLineB)))) {
-                _prependCommentIcon(welLineNumA, welTr);
-                welLineNumA.click(_onClickLineNumA);
-            }
-        }
-
-        /**
          * 현재 줄에 댓글 스레드와 댓글 상자 토글 버튼을 덧붙인다.
          *
          * @param {Object} welTr
          */
-        function _appendCommentThreadOnLine(welTr) {
-            var welUl = _createCommentThreadOnLine(welTr);
+        function _appendCommentThreadOnLine(welTr,sPath) {
+            var welUl = _createCommentThreadOnLine(welTr,sPath);
+
             if (welUl.children().length > 0) {
-                _appendCommentToggle(welTr, welUl);
+                return _appendCommentToggle(welTr, welUl);
             }
-        }
-
-        /**
-         * welPrependTo에, welHoverOn에 마우스 호버시 보여질 댓글 아이콘을
-         * 붙인다.
-         *
-         * @param {Object} welPrependTo
-         * @param {Object} welHoverOn
-         */
-        function _prependCommentIcon(welPrependTo, welHoverOn) {
-            var welIcon = htElement.welIcon.clone()
-            welIcon.prependTo(welPrependTo);
-
-            welHoverOn.hover(function() {
-                welIcon.css('visibility', 'visible');
-            }, function() {
-                welIcon.css('visibility', 'hidden');
-            });
-
-            welPrependTo.hover(function() {
-                welIcon.css('opacity', '1.0');
-            }, function() {
-                welIcon.css('opacity', '0.6');
-            });
         }
 
         /**
@@ -346,37 +212,32 @@
                 .data("path", welTr.data("path"));
 
             if (htVar.bCommentable) {
-                var welCloseButton = htElement.welEmptyCommentButton.clone()
-                    .text(Messages("code.closeCommentBox"));
-                var welOpenButton = htElement.welEmptyCommentButton.clone()
-                    .text(Messages("code.openCommentBox"));
-
-                var fOnClickAddButton = function(weEvt) {
-                    _showCommentBox($(weEvt.target).closest("tr"));
-                    welCloseButton.show();
-                    $(weEvt.target).hide();
-                };
-
-                var fOnClickCloseButton = function(weEvt) {
-                    _hideCommentBox();
-                    welOpenButton.show();
-                    $(weEvt.target).hide();
-                };
-
-                welCloseButton.click(fOnClickCloseButton).hide();
-                welOpenButton.click(fOnClickAddButton);
-
-                welUl.append(welOpenButton);
-                welUl.append(welCloseButton);
+                var welCommentBoxToggleButton = htElement.welEmptyCommentButton.clone()
+                    .text(Messages("code.openCommentBox"))
+                    .attr('data-toggle','commentBoxToggle')
+                    .attr('data-type','open');
+                
+                welUl.append(welCommentBoxToggleButton);
             }
 
-            welTr.after($('<tr>')
-                    .addClass('comments board-comment-wrap')
-                    .data("path", welTr.data("path"))
-                    .data("line", welTr.data("line"))
-                    .data("side", welTr.data("side"))
-                    .append($('<td colspan="3">')
-                        .append(welUl)));
+            return $('<tr/>',{class:'comments board-comment-wrap'})                   
+                    .append($('<td colspan="3">').append(welUl));
+        }
+
+        function _onClickCommentBoxToggleBtn(weEvt) {
+            var welCommentTr = $(this).closest('tr');
+            var welCodeTr = welCommentTr.prev('tr');
+            var welPath = welCodeTr.closest('table');
+            var sType = $(this).data('type');
+
+            if(sType=='open') {
+                _showCommentBox(welCommentTr,welPath.data('filePath'),welCodeTr.data('line'),welCodeTr.data('type'));
+                $(this).data('type','close').text(Messages("code.closeCommentBox"));
+            } else {
+                _hideCommentBox();
+                $(this).data('type','open').text(Messages("code.openCommentBox"));
+            }
+
         }
 
         /**
@@ -410,70 +271,18 @@
          * @param {Event} weEvt
          */
         function _onClickLineNumA(weEvt) {
+
             var commentForm =
                 $(weEvt.target).closest('tr').next().find('#comment-form');
 
             if (commentForm.length > 0) {
                 _hideCommentBox();
             } else {
-                _showCommentBox($(weEvt.target).closest("tr"));
-            }
-        }
-
-        /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
-         *
-         * 단어 단위 하이라이팅을 적용한다.
-         * 삭제된 라인과 추가된 라인이 정확히 1줄씩인 경우임을 가정한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
-         */
-        function _appendChangedLinesWithWordHighlight(welTable, htDiff) {
-            var aDiff = JsDiff.diffWords(
-                    htDiff.aRemoved[0].substr(1), htDiff.aAdded[0].substr(1));
-            var welRemoved = $("<td>");
-            var welAdded = $("<td>");
-
-            welRemoved.append($("<span>").text("-"));
-            welAdded.append($("<span>").text("+"));
-
-            for (var i = 0; i < aDiff.length; i++) {
-                sValue = aDiff[i].value;
-                if (aDiff[i].added) {
-                    welAdded.append($("<span>").addClass("add").text(sValue));
-                } else if (aDiff[i].removed) {
-                    welRemoved.append($("<span>").addClass("remove")
-                            .text(sValue));
-                } else {
-                    welAdded.append($("<span>").text(sValue));
-                    welRemoved.append($("<span>").text(sValue));
+                var welRow = $(this).closest('tr');
+                var welPath = welRow.closest('table');
+                if(welRow.data('type')=='add' || welRow.data('type')=='context' || welRow.data('type')=='remove') {
+                    _showCommentBox(welRow, welPath.data('filePath'), welRow.data('line'),welRow.data('type'));
                 }
-            }
-
-            _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++, "",
-                    welRemoved);
-            _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++,
-                    welAdded);
-        }
-
-        /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
-         *
-         * 단어 단위 하이라이팅을 적용하지 않는다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
-         */
-        function _appendChangedLinesWithoutWordHighlight(welTable, htDiff) {
-            for (var i = 0; i < htDiff.aRemoved.length; i++) {
-                _appendLine(welTable, "remove", htDiff.sPath, htDiff.nLineA++,
-                        "", htDiff.aRemoved[i]);
-            }
-
-            for (var i = 0; i < htDiff.aAdded.length; i++) {
-                _appendLine(welTable, "add", htDiff.sPath, "", htDiff.nLineB++,
-                        htDiff.aAdded[i]);
             }
         }
 
@@ -486,19 +295,19 @@
          * @param {Object} welTr
          * @param {Object} welUl
          */
-        function _createCommentThreadOnLine(welTr) {
+        function _createCommentThreadOnLine(welTr,sPath) {
             var waComments = htElement.welComments.children('li.comment');
-            var welUl = $('<ul>').addClass("comments");
-
+            var welUl = $('<ul>',{class:'comments'});
+            
+            var nLinenum = welTr.data('line');
+            var sSide = (welTr.data('type') == 'remove') ? 'A' : 'B';
+            
             for(var i = 0; i < waComments.length; i++) {
                var welComment = $(waComments[i]);
-               var linenum = welComment.data('line');
-               var side = welComment.data('side');
-               var path = welComment.data('path');
-
-               if (welTr.data('path') == welComment.data('path')
-                       && welTr.data('line') == welComment.data('line')
-                       && welTr.data('side') == welComment.data('side')) {
+               
+               if (sPath == welComment.data('path')
+                       && nLinenum == waComments.data('line')
+                       && sSide == welComment.data('side')) {
                     welUl.append(welComment);
                }
             }
@@ -514,27 +323,22 @@
          *
          * @param {Object} welTr
          */
-        function _showCommentBox(welTr) {
-            var welTd = $("<td colspan=3>");
+        function _showCommentBox(welTr,sPath,nLine,sType) {
+            var welTd = $("<td/>",{class:'diff-comment-box',colspan:3});
             var welCommentTr;
-            var sSide;
-
-            if (isNaN(parseInt(welTr.data('line')))) {
-                return;
-            }
+            var sSide = (sType == 'remove') ? 'A' : 'B';
 
             if (htElement.welCommentTr) {
                 htElement.welCommentTr.remove();
             }
 
             htElement.welCommentTr = $("<tr>")
-                .append(welTd.append(htElement.welEmptyCommentForm.width(htElement.welDiff.width())));
+                .append(welTd.append(htElement.welEmptyCommentForm));
 
             welCommentTr = htElement.welCommentTr;
-            welCommentTr.find('[name=path]').attr('value', welTr.data('path'));
-            welCommentTr.find('[name=line]').attr('value', welTr.data('line'));
-            sSide == (welTr.data('side') == 'remove') ? 'A' : 'B';
-            welCommentTr.find('[name=side]').attr('value', sSide);
+            welCommentTr.find('[name="path"]').val(sPath);
+            welCommentTr.find('[name="line"]').val(nLine);
+            welCommentTr.find('[name="side"]').val(sSide);
 
             welTr.after(htElement.welCommentTr);
             _updateMiniMap();
@@ -550,151 +354,195 @@
          * @return {Object} 렌더링한 결과로 만들어진 HTML 테이블
          */
         function _renderDiff(sDiff) {
-            var aLine = sDiff.split('\n');
-            var welTable = $('<table>');
-            var htDiff = {
-                aRemoved: [],
-                aAdded: [],
-                nLineA: 0,
-                nLineB: 0,
-                sPath: ""
-            };
+            var rxDiff = /^Index: [\S]+\n[=]+\n/igm;
+            var aMatchDiff = sDiff.match(rxDiff);
+            var aDiffPath = sDiff.split(rxDiff).slice(1);
             var rxHunkHeader = /@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/;
             var rxFileHeader = /^(---|\+\+\+) (.+)\t[^\t]+$/; // http://en.wikipedia.org/wiki/Diff#Unified_format
-            var bAddedOrRemoved;
-            var aHunkRange;
-            var nLastLineA = 0;
-            var nLastLineB = 0;
-            var bInHunk = false;
+            var sPath;
+            
+            aDiffPath.forEach(function(sDiffRow,nIndex){
+                var welDiffWrapOuter = $('<div/>',{class:'diff-partial-outer'});
+                var welDiffWrapInner = $('<div/>',{class:'diff-partial-inner'});
+                var welDiffMeta = $('<div/>',{class:'diff-partial-meta'});
+                var welDiffMetaCommit = $('<div/>',{class:'diff-partial-commit'});
+                var welDiffMetaFile = $('<div/>',{class:'diff-partial-file'});
+                var welDiffMetaUtility = $('<div/>',{class:'diff-partial-utility'});
+                var welDiffCodeWrap = $('<div/>',{class:'diff-partial-code'});
+                var welDiffCodeTable = $('<table/>',{class:'diff-container show-comments'});
+                var welDiffCodeTableBody = $('<tbody/>');
+                var welFullDiff = $('<button/>',{class:'ybtn ybtn-small',type:'button'})
+                                    .attr('data-toggle','mergely')
+                                    .text(Messages("code.fullDiff"));
 
-            for (var i = 0; i < aLine.length; i++) {
-                bAddedOrRemoved = false;
+                var aLine = sDiffRow.split('\n').slice(0,-1);
+                var sPath;
+                var nLineA=1;
+                var nLineB=1;
+                var nLastLineA=1;
+                var nLastLineB=1;
+                var nCodeLineA;
+                var nCodeLineB;
+               
+                if(aLine[0].indexOf('file marked as a binary type') !==-1) {
+                    var sDiffIndex = aMatchDiff[nIndex].split('\n')[0];
+                    var welLineA = $('<td/>',{class:'linenum'}).append($('<div/>',{class:'line-number'}));
+                    var welLineB = welLineA.clone();
 
-                if (bInHunk) {
-                    switch (aLine[i][0]) {
-                    case '+':
-                        bAddedOrRemoved = true;
-                        htDiff.aAdded.push(aLine[i]);
-                        break;
-                    case '-':
-                        bAddedOrRemoved = true;
-                        htDiff.aRemoved.push(aLine[i]);
-                        break;
-                    case ' ':
-                        _flushChangedLines(welTable, htDiff);
-                        _appendLine(welTable, "", htDiff.sPath, htDiff.nLineA++,
-                                htDiff.nLineB++, aLine[i]);
-                        break;
-                    default:
-                        break;
-                    }
+                    sPath = sDiffIndex.substr(7);
+                    
+                    welDiffMetaCommit.append($('<div/>',{class:'diff-partial-commit-id'}).html("&nbsp;"));
+                    welDiffMetaCommit.append(_makeCommitLink(sPath,htVar.sCommitId));
+                    welDiffMetaFile.append($('<span/>',{class:'filename'}).text(sPath));
+                    welDiffCodeTableBody.append(_makeCodeLine(null,null,'binary',Messages('code.isBinary')));
+
                 } else {
-                    switch (aLine[i].substr(0, 2)) {
-                    case '--':
-                    case '++':
-                        var m = aLine[i].match(rxFileHeader);
-                        if (m == null) {
-                            if (aLine[i].indexOf("---") === 0 || aLine[i].indexOf("+++") === 0) {
-                                // (revision N), (working copy), timestamp 등이 없을 때
-                                m = ['', aLine[i].substring(0, 3), aLine[i].substr(4)];
-                            } else {
-                                continue;
-                            }
+                    aLine.forEach(function(sLine){
+                        switch(sLine.substr(0,2)) {
+                            case '--':
+                            case '++':
+                                var aMatch = sLine.match(rxFileHeader);   
+                                
+                                if(aMatch === null) {
+                                    if (sLine.indexOf("---") === 0 || sLine.indexOf("+++") === 0) {
+                                        aMatch = ['', sLine.substring(0, 3), sLine.substr(4)];
+                                    } else {
+                                        return ;
+                                    }
+                                } 
+
+                                if(aMatch[1]==='---') {
+                                    sPath = aMatch[2];
+                                    welDiffCodeTable.attr('data-path-a',sPath);
+                                    welFullDiff.attr('data-path-a',sPath);
+                                    welFullDiff.attr('data-commit-a',htVar.sParentCommitId);
+
+                                    var welCommit = _makeCommitLink(sPath,htVar.sParentCommitId);
+                                    welDiffMetaCommit.append(welCommit);
+
+                                } else if(aMatch[1]==='+++') {
+                                    sPath = aMatch[2] == "/dev/null" ? sPath : aMatch[2];
+                                    welDiffCodeTable.attr('data-path-b',sPath);
+                                    welDiffCodeTable.attr('data-file-path',sPath);
+
+                                    welFullDiff.attr('data-path-b',sPath);
+                                    welFullDiff.attr('data-path',sPath);
+                                    welFullDiff.attr('data-commit-b',htVar.sCommitId);
+
+                                    var welCommit = _makeCommitLink(sPath,htVar.sCommitId);
+                                    welDiffMetaCommit.append(welCommit);
+                                    welDiffMetaFile.append($('<span>',{class:'filename'}).text(sPath));
+                                }
+
+                                break;
+                            case '@@' : 
+                                var aMatch = sLine.match(rxHunkHeader);
+                                var aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
+                                    return parseInt(sVal, 10);
+                                }) : null;
+
+                                if (aHunkRange == null || aHunkRange.length < 4) {
+                                    if (console instanceof Object) {
+                                        console.warn("Failed to parse hunk header");
+                                    }
+                                } else {
+                                    welDiffCodeTableBody.append(_makeCodeLine('...','...','range',sLine));
+                                }    
+                                
+                                nLineA = aHunkRange[1];
+                                if (isNaN(aHunkRange[2])) {
+                                    nLastLineA = nLineA + 1;
+                                } else {
+                                    nLastLineA = nLineA + aHunkRange[2];
+                                }
+                                nLineB = aHunkRange[3];
+                                if (isNaN(aHunkRange[4])) {
+                                    nLastLineB = nLineB + 1;
+                                } else {
+                                    nLastLineB = nLineB + aHunkRange[4];
+                                }                       
+                                break;
+                            default:
+                                var sLineType = (sLine[0]=='+') 
+                                                ? 'add' : (sLine[0]=='-') 
+                                                ? 'remove' : 'context';
+
+                                if(sLineType=='add') {
+                                    nCodeLineB= nLineB++;
+                                    nCodeLineA=null;
+                                } else if(sLineType=='remove') {
+                                    nCodeLineB=null;
+                                    nCodeLineA = nLineA++;
+                                } else {
+                                    nCodeLineA=nLineA++;
+                                    nCodeLineB=nLineB++;
+                                }   
+                                var welCodeRow = _makeCodeLine(nCodeLineA,nCodeLineB,sLineType,sLine);            
+                                welDiffCodeTableBody.append(welCodeRow);
+                                
+                                var welCodeReview = _appendCommentThreadOnLine(welCodeRow,sPath);
+                                
+                                if(typeof welCodeReview != 'undefined') {
+                                    welDiffCodeTableBody.append(welCodeReview);
+                                }
+                                break;
                         }
-                        if (m[1] == "---") {
-                            htDiff.sPath = m[2];
-                        } else if (m[1] == "+++") {
-                            htDiff.sPath = m[2] == "/dev/null" ? htDiff.sPath : m[2];
-                            _flushChangedLines(welTable, htDiff);
-                            _appendFileHeader(welTable, htDiff.sPath);
-                        }
-                        break;
-                    case '@@':
-                        aMatch = aLine[i].match(rxHunkHeader);
-                        aHunkRange = aMatch ? jQuery.map(aMatch, function(sVal) {
-                            return parseInt(sVal, 10);
-                        }) : null;
-                        if (aHunkRange == null || aHunkRange.length < 4) {
-                            if (console instanceof Object) {
-                                console.warn("Failed to parse hunk header");
-                            }
-                        } else {
-                            htDiff.nLineA = aHunkRange[1];
-                            if (isNaN(aHunkRange[2])) {
-                                nLastLineA = htDiff.nLineA + 1;
-                            } else {
-                                nLastLineA = htDiff.nLineA + aHunkRange[2];
-                            }
-                            htDiff.nLineB = aHunkRange[3];
-                            if (isNaN(aHunkRange[4])) {
-                                nLastLineB = htDiff.nLineB + 1;
-                            } else {
-                                nLastLineB = htDiff.nLineB + aHunkRange[4];
-                            }
-                            _flushChangedLines(welTable, htDiff);
-                            _appendHunkHeader(welTable, htDiff.sPath, aLine[i]);
-                            bInHunk = true;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
+                    });
+                    
+                    welDiffMetaUtility.append(welFullDiff);
                 }
-
-                if (htDiff.nLineA > nLastLineA || htDiff.nLineB > nLastLineB) {
-                    if (console instanceof Object) {
-                        console.warn("This hunk has incorrect range.");
-                    }
-                }
-
-                if (htDiff.nLineA + htDiff.aRemoved.length >= nLastLineA
-                        && htDiff.nLineB + htDiff.aAdded.length >= nLastLineB) {
-                    bInHunk = false;
-                    _flushChangedLines(welTable, htDiff);
-                }
-            }
-
-            _flushChangedLines(welTable, htDiff);
-
-            return welTable;
+               
+                welDiffMeta.append(welDiffMetaCommit);
+                welDiffMeta.append(welDiffMetaFile);
+                welDiffMeta.append(welDiffMetaUtility);
+                welDiffCodeTable.append(welDiffCodeTableBody);
+                welDiffCodeWrap.append(welDiffCodeTable);
+                welDiffWrapInner.append(welDiffMeta);
+                welDiffWrapInner.append(welDiffCodeWrap);
+                welDiffWrapOuter.append(welDiffWrapInner);
+                $('.diff-body').append(welDiffWrapOuter);
+            });
         }
 
-        /**
-         * 부모/현재 CommitId 의 파일을 보기 위한 버튼을 만든다
-         */
-        function _initFileViewButton(){
-            $('tr.file').each(function(index, elTR) {
-                var welTR = $(elTR);
-                var welTo = welTR.find("td.linenum-to");
-                var welFrom = welTR.find("td.linenum-from");
-                var welBody = welTR.find("td.line-body");
-                var sPath = welBody.text();
-                var sURL = "#", sCommitId="";
+        function _makeCommitLink(sPath,sCommitId) {
+            var sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":sCommitId, "path":sPath});
+            var welCommit = $('<div/>',{class:'diff-partial-commit-id'});
+            var welCommitLink = $('<a/>',{href:sURL,target:'_blink'}).text(sCommitId);
+            welCommit.append(welCommitLink);
+            
+            return welCommit;
+        }
 
-                // 부모 커밋(from)이 있는 경우
-                if(htVar.sParentCommitId) {
-                    sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sParentCommitId, "path":sPath});
-                    sCommitId = htVar.sParentCommitId.substr(0, Math.min(7, htVar.sParentCommitId.length));
-                    welFrom.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
+        function _makeCodeLine(nLineA,nLineB,sRowType,sCode) {
+            var welRow = $('<tr/>',{class:sRowType});
+            var welCellLineA = $('<td/>',{class:'linenum'});
+            var welCellLineB = $('<td/>',{class:'linenum'});
+            var welCellCode = $('<td/>');
 
-                    // 전체비교(fulldiff) 버튼 추가
-                    var welBtnFullDiff = $('<button type="button" class="ybtn pull-right">').text(Messages("code.fullDiff"));
-                    welBtnFullDiff.data({
-                        "path": sPath,
-                        "from": htVar.sParentCommitId,
-                        "to"  : htVar.sCommitId
-                    });
-                    welBtnFullDiff.on("click", _onClickBtnFullDiff);
-                    welBody.append(welBtnFullDiff);
-                }
+            if(sRowType=='range') {
+                welCellCode.addClass('hunk');
+                welCellCode.text(sCode);
+            } else if(sRowType=='binary') {
+                welCellCode.addClass('binary');
+                welCellCode.text(sCode);
+            } else {
+                var welCode = $('<pre/>',{class:'diff-partial-codeline'}).text(sCode);
+                var nLine = (nLineB==null) ? nLineA : nLineB;
+                welCellCode.addClass('code');
+                welRow.attr('data-line',nLine).attr('data-type',sRowType);    
+                welCellLineA.append($('<i/>',{class:'icon-comment'}));
+                welCellCode.append(welCode);
+            }
 
-                // 변경된 새 커밋(to) 표시
-                sURL = $yobi.tmpl(htVar.sTplFileURL, {"commitId":htVar.sCommitId, "path":sPath});
-                sCommitId = htVar.sCommitId.substr(0, Math.min(7, htVar.sCommitId.length));
-                welTo.html('<a class="pull-left fileView" href="' + sURL + '" target="_blank">' + sCommitId + '</a>');
+            welCellLineA.append($('<div/>',{class:'line-number'}).attr('data-line-num',nLineA));
+            welCellLineA.append($('<span/>',{class:'hidden'}).text(nLineA));
+            welCellLineB.append($('<div/>',{class:'line-number'}).attr('data-line-num',nLineB));
+            welCellLineB.append($('<span/>',{class:'hidden'}).text(nLineB));
 
-                welTR = welTo = welFrom = welBody = null; // gc
-            });
+            welRow.append(welCellLineA);
+            welRow.append(welCellLineB);
+            welRow.append(welCellCode);
+            return welRow;
         }
 
         /**
@@ -730,8 +578,8 @@
          */
         function _onClickBtnFullDiff(weEvt){
             var welTarget = $(weEvt.target);
-            var sToId   = welTarget.data("to");
-            var sFromId = welTarget.data("from");
+            var sToId   = welTarget.data("commitA");
+            var sFromId = welTarget.data("commitB");
             var sPath   = welTarget.data("path");
             sPath = sPath.indexOf("/") === 0 ? sPath.substr(1) : sPath;
             var sRawURLFrom = $yobi.tmpl(htVar.sTplRawURL, {"commitId": sToId, "path": sPath});
