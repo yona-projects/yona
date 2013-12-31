@@ -75,7 +75,7 @@
             </div>
 
             @** Comment **@
-            <div class="board-comment-wrap">
+            <div id="comments-wrap" class="board-comment-wrap">
                 @defining(comments.filter(v => v.line == null)) { comments =>
                 @if(comments.size > 0) {
                 <ul class="comments">

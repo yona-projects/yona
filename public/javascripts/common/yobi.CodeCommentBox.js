@@ -63,6 +63,8 @@ yobi.CodeCommentBox = (function() {
             .append(welHidden.clone().attr('name', 'commitA'))
             .append(welHidden.clone().attr('name', 'commitB'))
             .append(welHidden.clone().attr('name', 'commitId'));
+
+        htElement.welDiffCommentList = $("#comments-wrap");
     }
 
     /**
@@ -131,6 +133,10 @@ yobi.CodeCommentBox = (function() {
      * 댓글창 닫기 버튼을 눌렀을 때
      */
     function _hide(fCallback) {
+        // 댓글 상자를 원래 위치로 되돌려 놓고
+        htElement.welDiffCommentList.append(htElement.welEmptyCommentForm);
+
+        // 중간에 넣었던 댓글상자 줄(TR)은 제거한다
         htElement.welCommentTr.remove();
         htElement.welEmptyCommentForm.find('[name=path]').removeAttr('value');
         htElement.welEmptyCommentForm.find('[name=line]').removeAttr('value');
