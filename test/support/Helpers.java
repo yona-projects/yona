@@ -23,6 +23,7 @@ public class Helpers {
     public static Map<String, String> makeTestConfig() {
         HashMap<String, String> config = new HashMap<>(play.test.Helpers.inMemoryDatabase());
         config.put("ebean.default", "models.*");
+        config.put("application.secret", "foo");
         return config;
     }
 

@@ -33,13 +33,14 @@ import org.junit.*;
 import com.avaje.ebean.Ebean;
 
 import play.test.FakeApplication;
+import support.Helpers;
 
 public class YamlUtilTest {
     private FakeApplication application;
 
     @Before
     public void before() {
-        application = fakeApplication(inMemoryDatabase(), fakeGlobal());
+        application = fakeApplication(Helpers.makeTestConfig(), fakeGlobal());
         start(application);
     }
 
