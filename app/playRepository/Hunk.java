@@ -18,6 +18,7 @@ public class Hunk {
             length += line.content.length();
         }
         return length;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -120,7 +120,7 @@
             @** // Comment **@
         </div>
 
-        <button id="watch-button" type="button" class="ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active ybtn-watching }" data-toggle="button">@Messages("notification.watch")</button>
+        <button id="watch-button" type="button" class="pull-left ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active ybtn-watching }" data-toggle="button">@Messages("notification.watch")</button>
 
         <a href="@routes.CodeHistoryApp.history(project.owner, project.name, selectedBranch, path)" class="ybtn pull-right">@Messages("button.list")</a>
 
