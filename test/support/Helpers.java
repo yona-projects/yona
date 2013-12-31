@@ -24,6 +24,7 @@ public class Helpers {
         HashMap<String, String> config = new HashMap<>(play.test.Helpers.inMemoryDatabase());
         config.put("ebean.default", "models.*");
         config.put("application.secret", "foo");
+        config.put("application.context", "/");
         return config;
     }
 
