@@ -93,8 +93,8 @@ yobi.CodeCommentBlock = (function(){
         var bHasRange = false;
         var oSelection = document.getSelection();
 
-        // type is Range or Caret. and 'Range' is required.
-        if(oSelection.type !== "Range"){
+        // check empty seletction string
+        if(oSelection.toString().length == 0){
             return false;
         }
 
