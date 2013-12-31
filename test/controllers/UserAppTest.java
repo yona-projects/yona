@@ -13,13 +13,6 @@ import static play.test.Helpers.*;
 import static org.fest.assertions.Assertions.*;
 
 public class UserAppTest {
-    private Map<String, String> getTestConfig() {
-        Map<String, String> config = support.Config.makeTestConfig();
-        config.put("application.secret", "foo");
-
-        return config;
-    }
-
     @BeforeClass
     public static void beforeClass() {
         callAction(
@@ -29,7 +22,7 @@ public class UserAppTest {
 
     @Test
     public void findById_doesntExist() {
-        running(fakeApplication(getTestConfig()), new Runnable() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -52,7 +45,7 @@ public class UserAppTest {
 
     @Test
     public void findById_alreadyExist() {
-        running(fakeApplication(getTestConfig()), new Runnable() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -75,7 +68,7 @@ public class UserAppTest {
 
     @Test
     public void isEmailExist() {
-        running(fakeApplication(getTestConfig()), new Runnable() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -93,10 +86,10 @@ public class UserAppTest {
 
     @Test
     public void login_notComfirmedUser() {
-        Map<String, String> config = getTestConfig();
+        Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("signup.require.confirm", "true");
 
-        running(fakeApplication(config), new Runnable() {
+        running(support.Helpers.makeTestApplication(config), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -127,10 +120,10 @@ public class UserAppTest {
 
     @Test
     public void newUser_confirmSignUpMode() {
-        Map<String, String> config = getTestConfig();
+        Map<String, String> config = support.Helpers.makeTestConfig();
         config.put("signup.require.confirm", "true");
 
-        running(fakeApplication(config), new Runnable() {
+        running(support.Helpers.makeTestApplication(config), new Runnable() {
             @Override
             public void run() {
                 //Given
@@ -155,7 +148,7 @@ public class UserAppTest {
 
     @Test
     public void findById_reserved() {
-        running(fakeApplication(getTestConfig()), new Runnable() {
+        running(support.Helpers.makeTestApplication(), new Runnable() {
             @Override
             public void run() {
                 //Given

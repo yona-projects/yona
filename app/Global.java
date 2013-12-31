@@ -27,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.*;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -43,7 +42,6 @@ import play.Configuration;
 import play.Play;
 import play.api.mvc.Handler;
 import play.data.Form;
-import play.libs.Yaml;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Http.RequestHeader;
@@ -52,6 +50,7 @@ import play.mvc.Results;
 
 import utils.AccessLogger;
 import utils.ErrorViews;
+import utils.YamlUtil;
 
 import views.html.welcome.secret;
 import views.html.welcome.restart;
@@ -100,9 +99,6 @@ public class Global extends GlobalSettings {
         isValidationRequired = !validateSecret();
 
         insertInitialData();
-        if (app.isTest()) {
-            insertTestData();
-        }
 
         PullRequest.regulateNumbers();
 
@@ -133,59 +129,12 @@ public class Global extends GlobalSettings {
         }
     }
 
-    private static void insertDataFromYaml(String yamlFileName, String[] entityNames) {
-        @SuppressWarnings("unchecked")
-        Map<String, List<Object>> all = (Map<String, List<Object>>) Yaml
-                .load(yamlFileName);
-
-        // Check whether every entities exist.
-        for (String entityName : entityNames) {
-            if (all.get(entityName) == null) {
-                throw new RuntimeException("Failed to find the '" + entityName
-                        + "' entity in '" + yamlFileName + "'");
-            }
-        }
-
-        for (String entityName : entityNames) {
-            Ebean.save(all.get(entityName));
-        }
-    }
-
     private static void insertInitialData() {
         if (Ebean.find(User.class).findRowCount() == 0) {
             String[] entityNames = {
                 "users", "roles", "siteAdmins"
             };
-
-            insertDataFromYaml("initial-data.yml", entityNames);
-        }
-    }
-
-    private static void insertTestData() {
-        String[] entityNames = {
-            "users", "projects", "pullRequests", "milestones", "issues", "issueComments",
-            "postings", "postingComments", "projectUsers"
-        };
-
-        insertDataFromYaml("test-data.yml", entityNames);
-
-        // Do numbering for issues and postings.
-        for (Project project : Project.find.findList()) {
-            List<Issue> issues = Issue.finder.where()
-                    .eq("project.id", project.id).orderBy("id desc")
-                    .findList();
-
-            for (Issue issue: issues) {
-                issue.save();
-            }
-
-            List<Posting> postings = Posting.finder.where()
-                    .eq("project.id", project.id).orderBy("id desc")
-                    .findList();
-
-            for (Posting posting: postings) {
-                posting.save();
-            }
+            YamlUtil.insertDataFromYaml("initial-data.yml", entityNames);
         }
     }
 

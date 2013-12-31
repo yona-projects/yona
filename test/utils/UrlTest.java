@@ -18,11 +18,11 @@ public class UrlTest {
 
     @Before
     public void before() {
-        additionalConfiguration = support.Config.makeTestConfig();
+        additionalConfiguration = support.Helpers.makeTestConfig();
         additionalConfiguration.put("application.scheme", "http");
         additionalConfiguration.put("application.hostname", "localhost");
         additionalConfiguration.put("application.port", "9999");
-        app = Helpers.fakeApplication(additionalConfiguration);
+        app = support.Helpers.makeTestApplication(additionalConfiguration);
         Helpers.start(app);
     }
 

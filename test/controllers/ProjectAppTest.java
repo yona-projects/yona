@@ -34,9 +34,7 @@ public class ProjectAppTest {
 
     @Before
     public void before() {
-        Map<String, String> config = support.Config.makeTestConfig();
-        config.put("application.secret", "foo");
-        app = Helpers.fakeApplication(config);
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
 

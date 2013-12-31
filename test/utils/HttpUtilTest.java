@@ -16,7 +16,7 @@ public class HttpUtilTest {
 
     @Before
     public void before() {
-        app = Helpers.fakeApplication(support.Config.makeTestConfig());
+        app = support.Helpers.makeTestApplication();
         Helpers.start(app);
     }
 

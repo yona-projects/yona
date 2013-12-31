@@ -43,7 +43,7 @@ public class WatchServiceTest {
 
     @Before
     public void setUp() {
-        application = fakeApplication(inMemoryDatabase());
+        application = support.Helpers.makeTestApplication();
         start(application);
     }
 

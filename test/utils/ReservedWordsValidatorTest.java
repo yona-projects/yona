@@ -19,7 +19,7 @@ public class ReservedWordsValidatorTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        application = Helpers.fakeApplication(support.Config.makeTestConfig());
+        application = support.Helpers.makeTestApplication();
         Helpers.start(application);
     }
 
