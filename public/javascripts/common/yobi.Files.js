@@ -458,6 +458,7 @@ yobi.Files = (function(){
      */
     function _onPasteFile(sNamespace, weEvt){
         var oClipboardData = weEvt.originalEvent.clipboardData;
+
         if(!oClipboardData || !oClipboardData.items){
             return;
         }
@@ -478,10 +479,11 @@ yobi.Files = (function(){
                     "nSubmitId": nSubmitId,
                     "oFile"    : oFile
                 }, sNamespace);
+
+                weEvt.preventDefault();
             }
         }
 
-        weEvt.preventDefault();
         return false;
     }
 
