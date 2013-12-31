@@ -54,17 +54,30 @@ yobi.CodeCommentBox = (function() {
         welCloseButton.click(fOnClickCloseButton).hide();
         welOpenButton.click(fOnClickAddButton);
 
-        var welHidden = $('<input>').attr('type', 'hidden');
         htElement.welDiff = htOptions.welDiff || $('#commit');
-        htElement.welEmptyCommentForm = $('#comment-form')
-            .append(welHidden.clone().attr('name', 'path'))
-            .append(welHidden.clone().attr('name', 'line'))
-            .append(welHidden.clone().attr('name', 'side'))
-            .append(welHidden.clone().attr('name', 'commitA'))
-            .append(welHidden.clone().attr('name', 'commitB'))
-            .append(welHidden.clone().attr('name', 'commitId'));
-
+        htElement.welEmptyCommentForm = _getEmptyCommentForm("#comment-form");
         htElement.welDiffCommentList = $("#comments-wrap");
+    }
+
+    /**
+     * 필요한 INPUT(type=hidden) 필드가 존재하는 댓글 폼을 반환한다
+     * @returns {*|jQuery|HTMLElement}
+     * @private
+     */
+    function _getEmptyCommentForm(sFormSelector){
+        var welForm = $(sFormSelector);
+        var welHidden = $('<input type="hidden">');
+        var aFields = ["path", "line", "side", "commitA", "commitB", "blockInfo"];
+        var aInput = [];
+
+        aFields.forEach(function(sFieldName){
+            if(welForm.find('input[name="' + sFieldName + '"]').length === 0){
+                aInput.push(welHidden.clone().attr('name', sFieldName));
+            }
+        });
+
+        welForm.append(aInput);
+        return welForm;
     }
 
     /**
@@ -76,34 +89,27 @@ yobi.CodeCommentBox = (function() {
      * @param {Object} welTr
      */
     function _show(welTr, fCallback) {
-        var welTd = $('<td colspan="3">');
-        welTd.addClass('diff-comment-box');
-        var welCommentTr;
-        var nLine = parseInt(welTr.data('line'));
-        var sType = welTr.data('type');
-        var sCommitId;
         var sPath;
+        var welCommentTr;
+        var nLine = parseInt(welTr.data('line'), 10);
         var sCommitA = welTr.closest('.diff-container').data('commitA');
         var sCommitB = welTr.closest('.diff-container').data('commitB');
+        var sBlockInfo = welTr.data('blockInfo');
+        var sType = welTr.data('type');
+        var welTd = $('<td colspan="3" class="diff-comment-box">');
 
-        if (isNaN(nLine)) {
-            nLine = parseInt(welTr.prev().data('line'));
+        if(isNaN(nLine)){
+            nLine = parseInt(welTr.prev().data('line'), 10);
             sType = welTr.prev().data('type');
         }
 
-        if (isNaN(nLine)) {
+        if(isNaN(nLine)){
             return;
         }
 
-        if (sType == 'remove') {
-            sPath = welTr.closest('table').data('path-a');
-            sCommitId = sCommitA;
-        } else {
-            sPath = welTr.closest('table').data('path-b');
-            sCommitId = sCommitB;
-        }
+        sPath = welTr.closest('table').data(sType === 'remove' ? 'path-a' : 'path-b');
 
-        if (htElement.welCommentTr) {
+        if(htElement.welCommentTr){
             htElement.welCommentTr.remove();
         }
 
@@ -113,11 +119,11 @@ yobi.CodeCommentBox = (function() {
         welCommentTr = htElement.welCommentTr;
         welCommentTr.find('[name=path]').attr('value', sPath);
         welCommentTr.find('[name=line]').attr('value', nLine);
-        sType = (sType == 'remove') ? 'A' : 'B';
-        welCommentTr.find('[name=side]').attr('value', sType);
+        welCommentTr.find('[name=side]').attr('value', (sType === 'remove') ? 'A' : 'B');
 
         welCommentTr.find('[name=commitA]').attr('value', sCommitA);
         welCommentTr.find('[name=commitB]').attr('value', sCommitB);
+        welCommentTr.find('[name=blockInfo]').attr('value', sBlockInfo);
 
         welTr.after(htElement.welCommentTr);
 

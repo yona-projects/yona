@@ -271,9 +271,9 @@ yobi.CodeCommentBlock = (function(){
         var sContainerProp = htOffset.sPathA ? "[data-path-a='" + htOffset.sPathA + "']" :
             (htOffset.sPathB ? "[data-path-b='" + htOffset.sPathB + "']" : "");
         var sStartProp = [htOffset.nStartLine ? "[data-line=" + htOffset.nStartLine + "]": "",
-            htOffset.sStartLineType ? "[data-type=" + htOffset.sStartLineType + "]" : ""].join("");
+            htOffset.sStartType ? "[data-type=" + htOffset.sStartType + "]" : ""].join("");
         var sEndProp = [htOffset.nEndLine ? "[data-line=" + htOffset.nEndLine + "]": "",
-            htOffset.sEndLineType ? "[data-type=" + htOffset.sEndLineType + "]": ""].join("");
+            htOffset.sEndType ? "[data-type=" + htOffset.sEndType + "]": ""].join("");
         var welContainer = $("table.diff-container" + sContainerProp);
 
         htResult.welStartLine = welContainer.find("tr" + sStartProp);

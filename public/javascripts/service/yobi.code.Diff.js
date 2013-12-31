@@ -66,7 +66,7 @@
                 .append(welHidden.clone().attr('name', 'side'))
                 .append(welHidden.clone().attr('name', 'commitA'))
                 .append(welHidden.clone().attr('name', 'commitB'))
-                .append(welHidden.clone().attr('name', 'commitId'));
+                .append(welHidden.clone().attr('name', 'blockInfo'));
             htElement.welComments = $('ul.comments');
 
             // 지켜보기
@@ -255,8 +255,13 @@
             var htBlockInfo = yobi.CodeCommentBlock.getData();
             yobi.CodeCommentBlock.block(htBlockInfo);
 
-            //TODO: 댓글 작성 폼 보여주는 구문을 이곳에 구현
-            console.log(htBlockInfo);
+            // 댓글을 표시할 줄을 찾아 CodeCommentBox 호출
+            var sLineNum = htBlockInfo.bIsReversed ? htBlockInfo.nStartLine : htBlockInfo.nEndLine;
+            var sLineType = htBlockInfo.bIsReversed ? htBlockInfo.sStartType : htBlockInfo.sEndType;
+            var welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
+            var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
+            welTR.data("blockInfo", JSON.stringify(htBlockInfo)); // 블록정보 JSON
+            yobi.CodeCommentBox.show(welTR);
         }
 
         /**
