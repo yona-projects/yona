@@ -10,12 +10,19 @@ public class PullRequestEventMessage {
     private Request request;
     private Project project;
     private String branch;
+    private PullRequest pullRequest;
 
     public PullRequestEventMessage(User sender, Request request, Project project, String branch) {
         this.sender = sender;
         this.request = request;
         this.project = project;
         this.branch = branch;
+    }
+
+    public PullRequestEventMessage(User sender, Request request, PullRequest pullRequest) {
+        this.sender = sender;
+        this.request = request;
+        this.pullRequest = pullRequest;
     }
 
     public User getSender() {
@@ -32,5 +39,9 @@ public class PullRequestEventMessage {
 
     public String getBranch() {
         return branch;
+    }
+
+    public PullRequest getPullRequest() {
+        return pullRequest;
     }
 }
