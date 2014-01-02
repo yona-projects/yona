@@ -126,8 +126,10 @@ public class GitRepository implements PlayRepository {
      */
     public static Repository buildGitRepository(String ownerName, String projectName) {
         try {
-            return new RepositoryBuilder().setGitDir(
-                    new File(getGitDirectory(ownerName, projectName))).build();
+            return new RepositoryBuilder()
+                .setGitDir(new File(getGitDirectory(ownerName, projectName)))
+                .addAlternateObjectDirectory(new File(getDirectoryForMergingObjects(ownerName, projectName)))
+                .build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -887,6 +889,10 @@ public class GitRepository implements PlayRepository {
      */
     public static String getDirectoryForMerging(String owner, String projectName) {
         return getRepoForMergingPrefix() + owner + "/" + projectName + ".git";
+    }
+
+    public static String getDirectoryForMergingObjects(String owner, String projectName) {
+        return getDirectoryForMerging(owner, projectName) + "/.git/objects";
     }
 
     /**
