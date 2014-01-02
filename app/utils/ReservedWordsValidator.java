@@ -29,7 +29,7 @@ public class ReservedWordsValidator extends Validator<String> {
         RESERVED_WORDS = new HashSet<>();
         List<Tuple3<String, String, String>> list = Scala.asJava(Play.current().routes().get().documentation());
         play.Configuration config = play.Configuration.root();
-        String context = config.getString("application.context");
+        String context = config.getString("application.context", "/");
         String regex = String.format("^%s%s(%s)/?",
                 context,
                 (context.endsWith("/") ? "" : "/"),
