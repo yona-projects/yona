@@ -5,20 +5,11 @@
 @import utils.AccessControl._
 @import models.enumeration.ResourceType;
 
-@projectLogoImage = @{
-    defining(Attachment.findByContainer(project.asResource)) { files =>
-        if(files.size > 0){
-            "/files/" + files.head.id
-        } else {
-            routes.Assets.at("images/bg-default-project.jpg")
-        }
-    }
-}
-<div class="project-header-outer" style="background-image:url(@projectLogoImage)">
+<div class="project-header-outer" style="background-image:url(@urlToProjectLogo(project))">
     <div class="project-header-inner">
         <div class="project-header-wrap">
             <div class="project-header-avatar">
-                <img src="@projectLogoImage" />
+                <img src="@urlToProjectLogo(project)" />
             </div>
             <div class="project-breadcrumb-wrap @if(project.isForkedFromOrigin()){fork}">
                 <div class="project-breadcrumb">
@@ -132,4 +123,4 @@
             </div>    
         </div>    
     </div>
-</div>    
+</div>

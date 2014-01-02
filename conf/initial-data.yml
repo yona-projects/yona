@@ -6,7 +6,6 @@ users:
         password:       5v4TVjzLo1bqullT1CU4/bENUNOUfX97WpdunGLvJvw=
         passwordSalt:   '[B@1032a4'
         email:          admin@nhn.com
-        avatarUrl:      /assets/images/default-avatar-128.png
         createdDate:           2012-11-01 08:00:00
 
 siteAdmins:

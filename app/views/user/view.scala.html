@@ -3,16 +3,6 @@
 
 @import utils.TemplateHelper._
 
-@projectLogoImage(project:Project) = @{
-    defining(Attachment.findByContainer(project.asResource)) { files =>
-        if(files.size > 0){
-            "/files/" + files.head.id
-        } else {
-            routes.Assets.at("images/bg-default-project.jpg")
-        }
-    }
-}
-
 @watching_count(loginId: String) = { @User.findByLoginId(loginId).getWatchingProjects().size() }
 @belongsToMe_count() = { @(user.myProjects("name").size() - Project.findProjectsCreatedByUser(user.loginId, "name").size()) }
 @showBadgeNumberIfExist(number:Int) = { @if(number>0){ <span class="num-badge">@number</span> } }

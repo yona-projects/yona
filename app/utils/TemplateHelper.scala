@@ -174,7 +174,14 @@ object TemplateHelper {
   def getUserAvatar(user: models.User, avatarSize:String = "small") = {
     var userInfoURL = routes.UserApp.userInfo(user.loginId).toString();
 
-    "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>" 
+    "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
+  }
+
+  def urlToProjectLogo(project: Project) = {
+    models.Attachment.findByContainer(project.asResource) match {
+      case files if files.size > 0 => routes.AttachmentApp.getFile(files.head.id)
+      case _ => routes.Assets.at("images/bg-default-project.jpg")
+    }
   }
 
   object DiffRenderer {

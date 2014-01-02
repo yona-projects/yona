@@ -645,7 +645,7 @@ public class ProjectApp extends Controller {
             if(!user.loginId.equals(Constants.ADMIN_LOGIN_ID) && user != null){
                 projectUserMap.put("username", user.loginId);
                 projectUserMap.put("name", user.name);
-                projectUserMap.put("image", user.avatarUrl);
+                projectUserMap.put("image", user.avatarUrl());
                 users.add(projectUserMap);
             }
         }
