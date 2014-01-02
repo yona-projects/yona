@@ -98,4 +98,15 @@ public class ReviewSearchCondition extends AbstractPostingApp.SearchCondition {
         this.state = state;
         return this;
     }
+
+    public ReviewSearchCondition setAuthorId(Long authorId) {
+        this.authorId = authorId;
+        return this;
+    }
+
+    public ReviewSearchCondition setParticipationId(Long participationId) {
+        this.participationId = participationId;
+        return this;
+    }
+
 }

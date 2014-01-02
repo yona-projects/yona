@@ -5112,3 +5112,54 @@ div.diff-body[data-outdated="true"] tr:hover .icon-comment {
         text-decoration: none;
     }
 }
+
+.review-list-wrap {
+    ul {
+        list-style: none;
+        padding:15px 0;
+
+        .review-item {
+            border-bottom:1px solid #ddd;
+            clear:both;
+            padding:10px 0;
+
+            .review-number {
+                float:left;
+                width: 62px;
+                text-align: center;
+                font-size: 13px;
+                color:#51aacc;
+                font-weight: bold;
+                line-height: 42px;
+            }
+
+            .review-avatar {
+                float:left;
+            }
+
+            .review-content {
+                margin-left:115px;
+
+                .review-comment {
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    font-size: 14px;
+                }
+
+                .review-meta {
+                    font-size: 12px;
+                    color:#999;
+
+                    .author {
+
+                    }
+
+                    .date {
+                        margin-left:10px;
+                    }
+                }
+            }
+        }
+    }
+}
