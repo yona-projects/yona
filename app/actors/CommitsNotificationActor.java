@@ -54,9 +54,9 @@ public class CommitsNotificationActor extends PostReceiveActor {
 
         String title = "";
         if(refNames.size() == 1) {
-            title = String.format("[%s] pushed %d commits to %s.", sender.loginId, commits.size(), refNames.get(0));
+            title = String.format("[%s] pushed %d commits to %s.", project.name, commits.size(), refNames.get(0));
         } else {
-            title = String.format("[%s] pushed %d commits.", sender.loginId, commits.size());
+            title = String.format("[%s] pushed %d commits.", project.name, commits.size());
         }
 
         Set<User> watchers = WatchService.findWatchers(project.asResource());
