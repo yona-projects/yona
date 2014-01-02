@@ -48,8 +48,24 @@
                     }
                 </button>
                 <div id="actOnOpen" class="mr5 pull-right" style="@if(pull.isMerging == false && pull.isOpen()){display:block;}else{display:none;}">
-                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)){
-                        <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict == true){style="display:none;"}>@Messages("pullRequest.accept")</a>
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
+                        @if(pull.isReviewedBy(UserApp.currentUser())) {
+                            <a data-request-method="post" class="ybtn" href="@routes.ReviewApp.unreview(project.owner, project.name, pull.number)">
+                            @Messages("pullRequest.unreviewed")
+                            </a>
+                        } else {
+                            <a data-request-method="post" class="ybtn ybtn-success" href="@routes.ReviewApp.review(project.owner, project.name, pull.number)">
+                            @Messages("pullRequest.reviewed")
+                            </a>
+                        }
+                    }
+                    @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.ACCEPT)) {
+                        @if(pull.isReviewed) {
+                            <a data-request-method="post" id="btnAccept" href="@routes.PullRequestApp.accept(project.owner, project.name, pull.number)" class="ybtn ybtn-success" @if(pull.isConflict == true){style="display:none;"}>@Messages("pullRequest.accept")</a>
+                        } else {
+                            <button class="ybtn ybtn-disabled" data-toggle="tooltip" data-placement="top" title="@Messages("pullRequest.not.enough.review.point", pull.getLackingPoints())">@Messages("pullRequest.accept")</button>
+                        }
+
                     }
                     @if(isAllowed(UserApp.currentUser(), pull.asResource(), Operation.CLOSE)) {
                         <a data-request-method="post" href="@routes.PullRequestApp.close(project.owner, project.name, pull.number)" class="ybtn">@Messages("pullRequest.close")</a>

@@ -53,6 +53,7 @@ public abstract class PullRequestActor extends UntypedActor {
                 mergeResult.saveCommits();
                 if (!mergeResult.getNewCommits().isEmpty()) {
                     PullRequestEvent.addCommitEvents(message.getSender(), pullRequest, mergeResult.getNewCommits());
+                    pullRequest.clearReviewers();
                 }
             } else {
                 mergeResult.setMergedStateOfPullRequest(message.getSender());

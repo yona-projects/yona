@@ -159,6 +159,14 @@ public class PullRequest extends Model implements ResourceConvertible {
     @OneToMany(mappedBy = "pullRequest")
     public List<PullRequestComment> comments;
 
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+        name = "pull_request_reviewers",
+        joinColumns = @JoinColumn(name = "pull_request_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id")
+    )
+    public List<User> reviewers = new ArrayList<>();
+
     public static PullRequest createNewPullRequest(Project fromProject, Project toProject, String fromBranch, String toBranch) {
         PullRequest pullRequest = new PullRequest();
         pullRequest.toProject = toProject;
@@ -571,7 +579,7 @@ public class PullRequest extends Model implements ResourceConvertible {
         return finder.where()
                 .eq("toProject", project)
                 .eq("state", state)
-                .order().desc("created")
+                .order().desc("number")
                 .findPagingList(ITEMS_PER_PAGE)
                 .getPage(pageNum);
     }
@@ -945,6 +953,37 @@ public class PullRequest extends Model implements ResourceConvertible {
             rejectedPullRequest.received = JodaDateUtil.now();
             rejectedPullRequest.update();
         }
+    }
+
+    public void clearReviewers() {
+        this.reviewers = new ArrayList<>();
+        this.update();
+    }
+
+    public int getRequiredReviewPoint() {
+        return this.toProject.defaultReviewPoint;
+    }
+
+    public void addReviewer(User user) {
+        this.reviewers.add(user);
+        this.update();
+    }
+
+    public void removeReviewer(User user) {
+        this.reviewers.remove(user);
+        this.update();
+    }
+
+    public boolean isReviewedBy(User user) {
+        return this.reviewers.contains(user);
+    }
+
+    public boolean isReviewed() {
+        return reviewers.size() >= toProject.defaultReviewPoint;
+    }
+
+    public int getLackingPoints() {
+        return toProject.defaultReviewPoint - reviewers.size();
     }
 
 }

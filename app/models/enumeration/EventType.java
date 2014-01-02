@@ -18,7 +18,9 @@ public enum EventType {
     PULL_REQUEST_MERGED("notification.type.pullrequest.merged", 10),
     ISSUE_REFERRED("notification.type.issue.referred", 11),
     PULL_REQUEST_COMMIT_CHANGED("notification.type.pullrequest.commit.changed", 12),
-    NEW_COMMIT("notification.type.new.commit", 13);
+    NEW_COMMIT("notification.type.new.commit", 13),
+    PULL_REQUEST_REVIEWED("notification.type.pullrequest.reviewed", 14),
+    PULL_REQUEST_UNREVIEWED("notification.type.pullrequest.unreviewed", 15);
 
     private String descr;
 

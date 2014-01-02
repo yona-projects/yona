@@ -153,6 +153,46 @@ public class PullRequestTest extends ModelTest<PullRequest> {
         assertThat(timeline).containsExactly(comment1, event1, comment2, event2);
     }
 
+    @Test
+    public void testReviewPoint() {
+        // Given
+        PullRequest pullRequest = PullRequest.findById(1L);
+        Project project = pullRequest.toProject;
+
+        // When & Then
+        assertThat(pullRequest.getRequiredReviewPoint()).isEqualTo(project.defaultReviewPoint);
+        assertThat(pullRequest.getRequiredReviewPoint()).isEqualTo(1);
+        assertThat(pullRequest.isReviewed()).isFalse();
+
+        // When & Then
+        pullRequest.addReviewer(getTestUser());
+        assertThat(pullRequest.isReviewed()).isTrue();
+
+        // When & Then
+        pullRequest.clearReviewers();
+        assertThat(pullRequest.reviewers.size()).isEqualTo(0);
+        assertThat(pullRequest.isReviewed()).isFalse();
+        assertThat(pullRequest.getLackingPoints()).isEqualTo(1);
+    }
+
+    @Test
+    public void testReviewer() {
+        // Given
+        PullRequest pullRequest = PullRequest.findById(2L);
+        User user = getTestUser();
+        assertThat(pullRequest.reviewers.size()).isEqualTo(0);
+
+        // When & Then
+        pullRequest.addReviewer(user);
+        assertThat(pullRequest.reviewers.size()).isEqualTo(1);
+        assertThat(pullRequest.isReviewedBy(user)).isTrue();
+
+        // When & Then
+        pullRequest.removeReviewer(user);
+        assertThat(pullRequest.reviewers.size()).isEqualTo(0);
+        assertThat(pullRequest.isReviewedBy(user)).isFalse();
+    }
+
     private PullRequestComment createPullRequestComment(String str) throws ParseException {
         PullRequestComment comment = new PullRequestComment();
         comment.createdDate = DateUtils.parseDate(str, "yyyy-MM-dd");

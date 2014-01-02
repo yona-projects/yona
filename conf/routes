@@ -232,3 +232,7 @@ GET     /*paths                                         controllers.Application.
 
 # Comment
 DELETE  /comments/:type/:id                             controllers.CommentApp.delete(type, id)
+
+# Review
+POST   /:user/:project/pullRequest/:number/review       controllers.ReviewApp.review(user, project, number: Long)
+POST   /:user/:project/pullRequest/:number/unreview     controllers.ReviewApp.unreview(user, project, number: Long)
