@@ -285,6 +285,12 @@ public class PullRequestApp extends Controller {
         }
 
         PullRequest pullRequest = form.get();
+
+        if (pullRequest.body == null) {
+            return status(REQUEST_ENTITY_TOO_LARGE,
+                    ErrorViews.RequestTextEntityTooLarge.render());
+        }
+
         pullRequest.created = JodaDateUtil.now();
         pullRequest.contributor = UserApp.currentUser();
         pullRequest.toProject = Project.find.byId(pullRequest.toProjectId);
@@ -625,6 +631,12 @@ public class PullRequestApp extends Controller {
 
         Form<PullRequest> pullRequestForm = new Form<>(PullRequest.class).bindFromRequest();
         PullRequest updatedPullRequest = pullRequestForm.get();
+
+        if (pullRequest.body == null) {
+            return status(REQUEST_ENTITY_TOO_LARGE,
+                    ErrorViews.RequestTextEntityTooLarge.render());
+        }
+
         updatedPullRequest.toProject = toProject;
         updatedPullRequest.fromProject = fromProject;
 

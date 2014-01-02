@@ -486,6 +486,12 @@ public class IssueApp extends AbstractPostingApp {
         }
 
         final Issue newIssue = issueForm.get();
+
+        if (newIssue.body == null) {
+            return status(REQUEST_ENTITY_TOO_LARGE,
+                    ErrorViews.RequestTextEntityTooLarge.render());
+        }
+
         newIssue.createdDate = JodaDateUtil.now();
         newIssue.updatedDate = JodaDateUtil.now();
         newIssue.setAuthor(UserApp.currentUser());
