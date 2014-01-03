@@ -1,7 +1,9 @@
 package controllers;
 
-import models.*;
-import models.enumeration.EventType;
+import models.Attachment;
+import models.NotificationEvent;
+import models.PullRequest;
+import models.PullRequestComment;
 import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import play.data.Form;
@@ -14,8 +16,6 @@ import utils.ErrorViews;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Date;
-import java.util.Set;
 
 /**
  * {@link models.PullRequestComment} CRUD 컨트롤러
@@ -47,46 +47,14 @@ public class PullRequestCommentApp extends Controller {
         PullRequestComment newComment = commentForm.get();
         newComment.authorInfos(UserApp.currentUser());
         newComment.pullRequest = pullRequest;
-
         newComment.save();
 
         // Attach all of the files in the current user's temporary storage to this comment.
         Attachment.moveAll(UserApp.currentUser().asResource(), newComment.asResource());
 
         String url = new URL(referer).getPath() + "#comment-" + newComment.id;
-        addNewCommentNotification(pullRequestId, newComment, url);
+        NotificationEvent.afterNewComment(pullRequest, newComment, url);
         return redirect(url);
-    }
-
-    private static void addNewCommentNotification(Long pullRequestId,
-                                                  PullRequestComment newComment, String url) {
-        PullRequest pullRequest = PullRequest.findById(pullRequestId);
-        if(pullRequest == null) {
-            return;
-        }
-
-        String title = NotificationEvent.formatReplyTitle(pullRequest);
-        Set<User> watchers = pullRequest.getWatchers();
-        addPullRequestCommentNotificationEvent(title, watchers, newComment, url);
-    }
-
-    private static void addPullRequestCommentNotificationEvent(String title, Set<User> watchers, PullRequestComment pullRequestComment, String url) {
-        watchers.addAll(NotificationEvent.getMentionedUsers(pullRequestComment.contents));
-        watchers.remove(User.findByLoginId(pullRequestComment.authorLoginId));
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = title;
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = url;
-        notiEvent.resourceId = pullRequestComment.id.toString();
-        notiEvent.resourceType = pullRequestComment.asResource().getType();
-        notiEvent.eventType = EventType.NEW_PULL_REQUEST_COMMENT;
-        notiEvent.oldValue = null;
-        notiEvent.newValue = pullRequestComment.contents;
-
-        NotificationEvent.add(notiEvent);
     }
 
     @Transactional

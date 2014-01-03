@@ -1,22 +1,15 @@
 package controllers;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.ServletException;
-
-import models.*;
-import models.enumeration.EventType;
+import models.Attachment;
+import models.CommitComment;
+import models.NotificationEvent;
+import models.Project;
 import models.enumeration.Operation;
-
 import models.enumeration.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.NoHeadException;
 import org.tmatesoft.svn.core.SVNException;
-
 import play.data.Form;
 import play.mvc.Call;
 import play.mvc.Controller;
@@ -26,16 +19,21 @@ import playRepository.FileDiff;
 import playRepository.PlayRepository;
 import playRepository.RepositoryService;
 import utils.AccessControl;
-import utils.HttpUtil;
 import utils.ErrorViews;
+import utils.HttpUtil;
 import utils.PullRequestCommit;
+import views.html.code.diff;
 import views.html.code.history;
 import views.html.code.nohead;
-import views.html.code.diff;
 import views.html.code.svnDiff;
 import views.html.error.forbidden;
 import views.html.error.notfound;
 import views.html.error.notfound_default;
+
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 public class CodeHistoryApp extends Controller {
 
@@ -220,7 +218,7 @@ public class CodeHistoryApp extends Controller {
         Call toView = routes.CodeHistoryApp.show(project.owner, project.name, commitId);
         toView = backToThePullRequestCommitView(toView);
 
-        addNotificationEventForNewComment(project, codeComment, toView);
+        NotificationEvent.afterNewCommitComment(project, codeComment, toView.url());
 
         return redirect(toView + "#comment-" + codeComment.id);
     }
@@ -232,27 +230,6 @@ public class CodeHistoryApp extends Controller {
             toView = routes.PullRequestApp.commitView(prc.getProjectOwner(), prc.getProjectName(), prc.getPullRequestNumber(), prc.getCommitId());
         }
         return toView;
-    }
-
-    private static void addNotificationEventForNewComment(Project project, CommitComment codeComment, Call toView) throws IOException, SVNException, ServletException {
-        Commit commit = RepositoryService.getRepository(project).getCommit(codeComment.commitId);
-        Set<User> watchers = commit.getWatchers(project);
-        watchers.addAll(NotificationEvent.getMentionedUsers(codeComment.contents));
-        watchers.remove(UserApp.currentUser());
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = NotificationEvent.formatReplyTitle(project, commit);
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = toView.url();
-        notiEvent.resourceId = codeComment.id.toString();
-        notiEvent.resourceType = codeComment.asResource().getType();
-        notiEvent.eventType = EventType.NEW_COMMENT;
-        notiEvent.oldValue = null;
-        notiEvent.newValue = codeComment.contents;
-
-        NotificationEvent.add(notiEvent);
     }
 
     public static Result deleteComment(String ownerName, String projectName, String commitId,

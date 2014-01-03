@@ -21,11 +21,7 @@
 package actors;
 
 import akka.actor.UntypedActor;
-import models.NotificationEvent;
-import models.PullRequest;
-import models.PullRequestEvent;
-import models.PullRequestEventMessage;
-import models.PullRequestMergeResult;
+import models.*;
 import models.enumeration.EventType;
 import models.enumeration.State;
 
@@ -57,21 +53,21 @@ public abstract class PullRequestActor extends UntypedActor {
                 }
             } else {
                 mergeResult.setMergedStateOfPullRequest(message.getSender());
-                NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(message.getSender(),
+                NotificationEvent notiEvent = NotificationEvent.afterPullRequestUpdated(message.getSender(),
                         pullRequest, pullRequest.state, State.MERGED);
                 PullRequestEvent.addEvent(notiEvent, pullRequest);
             }
 
             if (mergeResult.conflicts()) {
                 mergeResult.setConflictStateOfPullRequest();
-                NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
+                NotificationEvent notiEvent = NotificationEvent.afterMerge(message.getSender(),
                         pullRequest, mergeResult.getGitConflicts(), State.CONFLICT);
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.CONFLICT, pullRequest);
             }
 
             if (mergeResult.resolved()) {
                 mergeResult.setResolvedStateOfPullRequest();
-                NotificationEvent notiEvent = NotificationEvent.addPullRequestMerge(message.getSender(),
+                NotificationEvent notiEvent = NotificationEvent.afterMerge(message.getSender(),
                         pullRequest, mergeResult.getGitConflicts(), State.RESOLVED);
                 PullRequestEvent.addMergeEvent(notiEvent.getSender(), EventType.PULL_REQUEST_MERGED, State.RESOLVED, pullRequest);
             }

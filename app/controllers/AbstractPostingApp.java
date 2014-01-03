@@ -2,7 +2,10 @@ package controllers;
 
 import info.schleichardt.play2.mailplugin.Mailer;
 import models.*;
-import models.enumeration.*;
+import models.enumeration.Direction;
+import models.enumeration.Operation;
+import models.enumeration.ResourceType;
+import models.enumeration.UserState;
 import models.resource.Resource;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.mail.HtmlEmail;
@@ -22,7 +25,6 @@ import utils.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -160,30 +162,9 @@ public class AbstractPostingApp extends Controller {
         // Attach all of the files in the current user's temporary storage.
         Attachment.moveAll(UserApp.currentUser().asResource(), comment.asResource());
 
-        addNotificationEventFromNewComment(comment, toView);
+        NotificationEvent.afterNewComment(comment, toView.url());
 
         return redirect(toView + "#comment-" + comment.id);
-    }
-
-    private static void addNotificationEventFromNewComment(Comment comment, Call toView) {
-        AbstractPosting post = comment.getParent();
-        Set<User> watchers = post.getWatchers();
-        watchers.addAll(NotificationEvent.getMentionedUsers(comment.contents));
-        watchers.remove(UserApp.currentUser());
-
-        NotificationEvent notiEvent = new NotificationEvent();
-        notiEvent.created = new Date();
-        notiEvent.title = NotificationEvent.formatReplyTitle(post);
-        notiEvent.senderId = UserApp.currentUser().id;
-        notiEvent.receivers = watchers;
-        notiEvent.urlToView = toView.url();
-        notiEvent.resourceId = comment.id.toString();
-        notiEvent.resourceType = comment.asResource().getType();
-        notiEvent.eventType = EventType.NEW_COMMENT;
-        notiEvent.oldValue = null;
-        notiEvent.newValue = comment.contents;
-
-        NotificationEvent.add(notiEvent);
     }
 
     /**
