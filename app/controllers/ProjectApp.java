@@ -100,7 +100,6 @@ public class ProjectApp extends Controller {
         targetProject.overview = json.findPath("overview").getTextValue();
         targetProject.save();
         result.put("overview", targetProject.overview);
-        play.Logger.debug(result.toString());
         return ok(result);
     }
 
