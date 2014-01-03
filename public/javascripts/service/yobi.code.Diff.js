@@ -20,7 +20,7 @@
          */
         function _init(htOptions){
             _initVar(htOptions);
-            _initElement(htOptions);
+            _initElement();
             _attachEvent();
             _render();
 
@@ -53,20 +53,12 @@
         /**
          * initialize element
          */
-        function _initElement(htOptions){
+        function _initElement(){
+            // 전체 댓글
             htElement.welUploader = $("#upload");
             htElement.welTextarea = $("#comment-editor");
 
-            var welHidden = $('<input>').attr('type', 'hidden');
-
-            htElement.welDiff = htOptions.welDiff || $('#commit');
-            htElement.welEmptyCommentForm = $('#comment-form')
-                .append(welHidden.clone().attr('name', 'path'))
-                .append(welHidden.clone().attr('name', 'line'))
-                .append(welHidden.clone().attr('name', 'side'))
-                .append(welHidden.clone().attr('name', 'commitA'))
-                .append(welHidden.clone().attr('name', 'commitB'))
-                .append(welHidden.clone().attr('name', 'blockInfo'));
+            // 코드 댓글
             htElement.welComments = $('ul.comments');
 
             // 지켜보기
@@ -83,34 +75,36 @@
          * attach event handler
          */
         function _attachEvent(){
-            if (htElement.welBtnWatch == null) {
-                return;
+            // 지켜보기
+            if(htElement.welBtnWatch){
+                htElement.welBtnWatch.click(function(weEvt) {
+                    var welTarget = $(weEvt.target);
+                    var bWatched = welTarget.hasClass("active");
+
+                    $yobi.sendForm({
+                        "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
+                        "fOnLoad": function(){
+                            welTarget.toggleClass("active ybtn-watching");
+                        }
+                    });
+                });
             }
 
-            htElement.welBtnWatch.click(function(weEvt) {
-                var welTarget = $(weEvt.target);
-                var bWatched = welTarget.hasClass("active");
-
-                $yobi.sendForm({
-                    "sURL": bWatched ? htVar.sUnwatchUrl : htVar.sWatchUrl,
-                    "fOnLoad": function(){
-                        welTarget.toggleClass("active ybtn-watching");
-                    }
-                });
-            });
-
+            // 미니맵
             $(window).on("resize", _initMiniMap);
             $(window).on("scroll", _updateMiniMapCurr);
-            $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').click(_onClickLineNumA);
 
-            _attachCommentBoxToggleEvent();
+            // 코드 댓글
+            if(htVar.bCommentable){
+                $('div.diff-body[data-outdated!="true"] tr .linenum:first-child').click(_onClickLineNumA);
+                _initCodeCommentBox();
+            }
         }
 
         /**
          * Render diff and comments
          */
-        function _render() {
-
+        function _render(){
             if(!htVar.bCommentable) {
                 $(".diff-body .icon-comment").css("display", "none");
             }
@@ -197,35 +191,23 @@
         }
 
         /**
-         * diff에서 얻은 변경된 라인들을 welTable에 새 row들로 추가한다.
-         *
-         * 만약 변경된 라인들이 정확하게 삭제된 라인 1줄, 추가된 라인
-         * 1줄이라면 단어 단위 하이라이팅을 적용한다.
-         *
-         * @param {Object} welTable
-         * @param {Object} htDiff
+         * 댓글 상자 초기화
+         * @private
          */
-        /*
-        function _flushChangedLines(welTable, htDiff) {
-            if (htDiff.aRemoved.length == 1 && htDiff.aAdded.length == 1) {
-                _appendChangedLinesWithWordHighlight(welTable, htDiff);
-            } else {
-                _appendChangedLinesWithoutWordHighlight(welTable, htDiff);
-            }
+        function _initCodeCommentBox() {
+            yobi.CodeCommentBox.init({
+                "fOnAfterShow": _updateMiniMap,
+                "fOnAfterHide": function(){
+                    _updateMiniMap();
+                    yobi.CodeCommentBlock.unblock();
+                },
+                "sTplFileItem": htVar.sTplFileItem
+            });
 
-            htDiff.aRemoved = [];
-            htDiff.aAdded = [];
-        }
-        */
-
-        function _attachCommentBoxToggleEvent() {
-            if (htVar.bCommentable) {
-                yobi.CodeCommentBox.init({
-                    fCallbackAfterShowCommentBox: _updateMiniMap,
-                    fCallbackAfterHideCommentbox: _updateMiniMap,
-                    welDiff: htOptions.htDiff
-                });
-            }
+            $("div.diff-body button.btn-thread").on("click", function(weEvt){
+                var welButton = $(weEvt.currentTarget);
+                yobi.CodeCommentBox.toggle(welButton);
+            });
         }
 
         /**
@@ -243,6 +225,11 @@
                 });
 
                 welContainer.on("click", ".btnPop", _onClickBtnAddBlockComment);
+                welContainer.on("mousedown", ":not(.btnPop)", function(){
+                    if(document.getSelection().toString().length === 0){
+                        yobi.CodeCommentBox.hide();
+                    }
+                });
             }
         }
 
@@ -261,7 +248,10 @@
             var welContainer = $('.diff-container[data-file-path="' + htBlockInfo.sFilePath + '"]');
             var welTR = welContainer.find('tr[data-line="' + sLineNum + '"][data-type="' + sLineType + '"]');
             welTR.data("blockInfo", JSON.stringify(htBlockInfo)); // 블록정보 JSON
-            yobi.CodeCommentBox.show(welTR);
+
+            yobi.CodeCommentBox.show(welTR, {
+                "sPlacement": htBlockInfo.bIsReversed ? "top" : "bottom"
+            });
         }
 
         /**
@@ -279,15 +269,22 @@
          *
          * @param {Event} weEvt
          */
-        function _onClickLineNumA(weEvt) {
-            var commentForm =
-                $(weEvt.target).closest('tr').next().find('#comment-form');
+        function _onClickLineNumA(weEvt){
+            // 기존의 Selection 제거하고
+            window.getSelection().removeAllRanges();
 
-            if (commentForm.length > 0) {
-                yobi.CodeCommentBox.hide();
-            } else {
-                yobi.CodeCommentBox.show($(weEvt.target).closest("tr"));
-            }
+            var welTarget = $(weEvt.target).closest("tr").find("td.code pre");
+            var oNode = welTarget.get(0).childNodes[0];
+            var oRange = document.createRange();
+
+            // 클릭한 줄을 전부 선택한 것으로 취급해서
+            oRange.setStart(oNode, 0);
+            oRange.setEnd(oNode, oNode.length);
+            window.getSelection().addRange(oRange);
+
+            // 블록 댓글 작성 폼을 띄운다
+            welTarget.trigger("mouseup");
+            _onClickBtnAddBlockComment();
         }
 
         /**

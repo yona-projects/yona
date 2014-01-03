@@ -178,7 +178,7 @@ yobi.CodeCommentBlock = (function(){
             var welLine = (htBlockInfo.bIsReversed ? htElements.welStartLine : htElements.welEndLine);
             var welCode = welLine.find("td.code");
             var nBlockOffset = (htBlockInfo.bIsReversed ? htBlockInfo.nStartOffset : htBlockInfo.nEndOffset);
-            var htCodeOffset = welCode.offset();
+            var htCodeOffset = welCode.position();
             var nTop = htCodeOffset.top + (htBlockInfo.bIsReversed ? -20 : welCode.height());
             var nLeft = htCodeOffset.left + (nBlockOffset * 7);
 
@@ -325,11 +325,8 @@ yobi.CodeCommentBlock = (function(){
      */
     function _getCommentLineWrapper(){
         var elWrapper =  document.createElement("SPAN");
-
-        // TODO: Style 속성은 CSS ClassName 으로 대체할 것
         elWrapper.setAttribute("data-toggle", "comment-block");
-        elWrapper.style.backgroundColor = "rgba(0,133,255,0.25)";//"rgba(133,246,150,0.25)";
-        elWrapper.style.padding = "4px 0";
+        elWrapper.className = "review-block";
 
         return elWrapper;
     }

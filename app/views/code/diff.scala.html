@@ -118,6 +118,10 @@
                 @common.commentForm(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
             </div>
             @** // Comment **@
+
+            @if(isProjectResourceCreatable(User.findByLoginId(session.get("loginId")), project, ResourceType.COMMIT_COMMENT)){
+                @partial_reviewform(project, ResourceType.COMMIT_COMMENT, routes.CodeHistoryApp.newComment(project.owner, project.name, commit.getId).toString())
+            }
         </div>
 
         <button id="watch-button" type="button" class="pull-left ybtn @if(commit.getWatchers(project).contains(UserApp.currentUser())) { active ybtn-watching }" data-toggle="button">@Messages("notification.watch")</button>

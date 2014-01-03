@@ -31,48 +31,67 @@
 
 yobi = yobi || {};
 
-yobi.CodeCommentBox = (function() {
+yobi.CodeCommentBox = (function(){
+    "use strict";
+
+    var htVar = {};
     var htElement = {};
 
-    function _init(htOptions) {
-        var welCloseButton = $('.close-comment-box');
-        var welOpenButton = $('.open-comment-box');
+    /**
+     * 초기화
+     *
+     * @param htOptions
+     * @private
+     */
+    function _init(htOptions){
+        _initVar(htOptions);
+        _initElement();
+        _attachEvent();
 
-        var fOnClickAddButton = function(weEvt) {
-            _show($(weEvt.target).closest("tr"),
-                htOptions.fCallbackAfterShowCommentBox);
-            $(weEvt.target).siblings(".close-comment-box").show();
-            $(weEvt.target).hide();
+        _initFileUploader();
+    }
+
+    function _initVar(htOptions){
+        htVar.fOnAfterShow = htOptions.fOnAfterShow;
+        htVar.fOnAfterHide = htOptions.fOnAfterHide;
+        htVar.sTplFileItem = htOptions.sTplFileItem || $('#tplAttachedFile').text();
+        htVar.htArrowPlacement = {
+            "top": "bottom",
+            "bottom": "top"
         };
+    }
 
-        var fOnClickCloseButton = function(weEvt) {
-            _hide(htOptions.fCallbackAfterHideCommentBox);
-            $(weEvt.target).siblings(".open-comment-box").show();
-            $(weEvt.target).hide();
-        };
+    function _initElement(){
+        htElement.welCommentWrap = $("#review-form");
+        htElement.welCommentForm = _getEmptyCommentForm(htElement.welCommentWrap.find("form"));
+        htElement.welCommentTextarea = htElement.welCommentForm.find("textarea.comment");
+        htElement.welCommentUploader = htElement.welCommentForm.find(".upload-wrap");
+    }
 
-        welCloseButton.click(fOnClickCloseButton).hide();
-        welOpenButton.click(fOnClickAddButton);
-
-        htElement.welDiff = htOptions.welDiff || $('#commit');
-        htElement.welEmptyCommentForm = _getEmptyCommentForm("#comment-form");
-        htElement.welDiffCommentList = $("#comments-wrap");
+    function _attachEvent(){
+        htElement.welCommentForm.on("click", '[data-toggle="close"]', function(){
+            _hide();
+        });
     }
 
     /**
      * 필요한 INPUT(type=hidden) 필드가 존재하는 댓글 폼을 반환한다
+     *
      * @returns {*|jQuery|HTMLElement}
      * @private
      */
-    function _getEmptyCommentForm(sFormSelector){
-        var welForm = $(sFormSelector);
-        var welHidden = $('<input type="hidden">');
-        var aFields = ["path", "line", "side", "commitA", "commitB", "blockInfo"];
+    function _getEmptyCommentForm(welForm){
         var aInput = [];
+        var aFields = ["path", "line", "side", "commitA", "commitB", "blockInfo"];
+        var welHidden = $('<input type="hidden">');
 
         aFields.forEach(function(sFieldName){
-            if(welForm.find('input[name="' + sFieldName + '"]').length === 0){
-                aInput.push(welHidden.clone().attr('name', sFieldName));
+            var welField = welForm.find('input[name="' + sFieldName + '"]');
+
+            if(welField.length === 0){
+                aInput.push(welHidden.clone().attr("name", sFieldName)); // append new field
+            } else {
+                welField.val(""); // empty previous value
             }
         });
 
@@ -81,85 +100,134 @@ yobi.CodeCommentBox = (function() {
     }
 
     /**
-     * welTr 밑에 댓글 상자를 보여준다.
-     *
-     * when: 특정 줄의, (댓글 상자가 안 나타난 상태에서의) 댓글 아이콘이나,
-     * 댓글창 열기 버튼을 눌렀을 때
+     * welTr 을 기준으로 리뷰 작성 폼을 표시한다
      *
      * @param {Object} welTr
      */
-    function _show(welTr, fCallback) {
-        var sPath;
-        var welCommentTr;
-        var nLine = parseInt(welTr.data('line'), 10);
-        var sCommitA = welTr.closest('.diff-container').data('commitA');
-        var sCommitB = welTr.closest('.diff-container').data('commitB');
-        var sBlockInfo = welTr.data('blockInfo');
-        var sType = welTr.data('type');
-        var welTd = $('<td colspan="3" class="diff-comment-box">');
+    function _show(welTr, htOptions) {
+        htOptions = htOptions || {};
 
-        if(isNaN(nLine)){
-            nLine = parseInt(welTr.prev().data('line'), 10);
-            sType = welTr.prev().data('type');
+        var welTarget = welTr;
+
+        if(typeof welTarget.data("line") === "undefined"){
+            welTarget = welTr.prevUntil("tr[data-line]");
         }
 
-        if(isNaN(nLine)){
-            return;
+        var sType = welTarget.data("type");
+        var welDiffContainer = welTarget.closest(".diff-container"); // = table
+        var htData = {
+            "line"     : welTarget.data("line"),
+            "side"     : (sType === 'remove') ? 'A' : 'B',
+            "blockInfo": welTarget.data("blockInfo"),
+            "commitA"  : welDiffContainer.data("commitA"),
+            "commitB"  : welDiffContainer.data("commitB"),
+            "path"     : welDiffContainer.data(sType === "remove" ? "path-a" : "path-b")
+        };
+        // TODO: 서버 전송할 필드에 따라 불필요한 정보는 제거할 필요 있음 (대부분의 정보는 blockInfo 에 포함하고 있어서)
+
+        // show form and fill fields
+        // sPlacement means where to show commentBox from welTr (top or bottom)
+        // sArrowPlacement means where to show arrow on commentBox (opposite side to sPlacement)
+        var sPlacement = (htOptions.sPlacement || "bottom").toLowerCase();
+        var sArrowPlacement = htVar.htArrowPlacement[sPlacement];
+        var nAdjustmentTop = (sPlacement === "bottom") ? (welTr.height() + 10)
+                               : -1 * (htElement.welCommentWrap.height() + 30);
+        var nTop = welTr.position().top + nAdjustmentTop;
+
+        htElement.welCommentWrap.removeClass("arrow-top arrow-bottom")
+                                .addClass("arrow-" + sArrowPlacement);
+        htElement.welCommentWrap.css("top", nTop + "px");
+        htElement.welCommentWrap.show();
+        htElement.welCommentTextarea.focus();
+        _setReviewFormFields(htElement.welCommentForm, htData);
+
+        // run callback function
+        if(typeof htOptions.fCallback === "function"){
+            htOptions.fCallback();
         }
 
-        sPath = welTr.closest('table').data(sType === 'remove' ? 'path-a' : 'path-b');
-
-        if(htElement.welCommentTr){
-            htElement.welCommentTr.remove();
+        if(typeof htVar.fOnAfterShow === "function"){
+            htVar.fOnAfterShow();
         }
+    }
 
-        htElement.welCommentTr = $("<tr>")
-            .append(welTd.append(htElement.welEmptyCommentForm));
+    /**
+     * welForm 을 htData 를 기준으로 폼 데이터를 채운다
+     *
+     * @param welForm
+     * @param htData
+     * @private
+     */
+    function _setReviewFormFields(welForm, htData){
+        var welInput;
 
-        welCommentTr = htElement.welCommentTr;
-        welCommentTr.find('[name=path]').attr('value', sPath);
-        welCommentTr.find('[name=line]').attr('value', nLine);
-        welCommentTr.find('[name=side]').attr('value', (sType === 'remove') ? 'A' : 'B');
+        for(var sFieldName in htData){
+            welInput = welForm.find('input[name="' + sFieldName + '"]');
 
-        welCommentTr.find('[name=commitA]').attr('value', sCommitA);
-        welCommentTr.find('[name=commitB]').attr('value', sCommitB);
-        welCommentTr.find('[name=blockInfo]').attr('value', sBlockInfo);
-
-        welTr.after(htElement.welCommentTr);
-
-        if (fCallback !== undefined) {
-            fCallback();
+            if(welInput.length === 1){
+                welInput.val(htData[sFieldName]);
+            }
         }
     }
 
     /**
      * 댓글 상자를 숨긴다.
      *
-     * when: 특정 줄의, (댓글 상자가 나타난 상태에서의) 댓글 아이콘이나,
-     * 댓글창 닫기 버튼을 눌렀을 때
+     * @param htOptions.fCallback
+     * @private
      */
-    function _hide(fCallback) {
-        // 댓글 상자를 원래 위치로 되돌려 놓고
-        htElement.welDiffCommentList.append(htElement.welEmptyCommentForm);
+    function _hide(htOptions){
+        htOptions = htOptions || {};
+        htElement.welCommentWrap.hide();
 
-        // 중간에 넣었던 댓글상자 줄(TR)은 제거한다
-        htElement.welCommentTr.remove();
-        htElement.welEmptyCommentForm.find('[name=path]').removeAttr('value');
-        htElement.welEmptyCommentForm.find('[name=line]').removeAttr('value');
-        htElement.welEmptyCommentForm.find('[name=side]').removeAttr('value');
-        htElement.welEmptyCommentForm.find('[name=commitA]').removeAttr('value');
-        htElement.welEmptyCommentForm.find('[name=commitB]').removeAttr('value');
-        htElement.welEmptyCommentForm.find('[name=commitId]').removeAttr('value');
+        // run callback function
+        if(typeof htOptions.fCallback === "function"){
+            htOptions.fCallback();
+        }
 
-        if (fCallback !== undefined) {
-            fCallback(htElement.welEmptyCommentForm);
+        if(typeof htVar.fOnAfterHide === "function"){
+            htVar.fOnAfterHide();
+        }
+    }
+
+    /**
+     * 댓글 상자 표시 토글
+     *
+     * @param welTr
+     * @param fCallback
+     * @private
+     */
+    function _toggleVisibility(welTr, htOptions){
+       if(htElement.welCommentWrap.css("display") === "block"){
+           _hide(htOptions);
+       } else {
+           _show(welTr, htOptions);
+       }
+    }
+
+    /**
+     * 댓글 상자에 파일 업로더를 설정한다
+     *
+     * @private
+     */
+    function _initFileUploader(){
+        var oUploader = yobi.Files.getUploader(htElement.welCommentUploader, htElement.welCommentTextarea);
+
+        if(oUploader){
+            (new yobi.Attachments({
+                "elContainer"  : htElement.welCommentUploader,
+                "elTextarea"   : htElement.welCommentTextarea,
+                "sTplFileItem" : htVar.sTplFileItem,
+                "sUploaderId"  : oUploader.attr("data-namespace")
+            }));
         }
     }
 
     // public interface
     return {
         "init"  : _init,
-        "show" : _show,
-        "hide" : _hide
+        "show"  : _show,
+        "hide"  : _hide,
+        "toggle": _toggleVisibility
     };
 })();

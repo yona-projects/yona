@@ -3456,6 +3456,8 @@ label.issue-item-row {
 }
 
 .code-browse-wrap {
+    position:relative;
+
     .code-browse-header {
       margin-top:10px;
       margin-bottom:10px;
@@ -4895,6 +4897,68 @@ label.issue-item-row {
 
 div.diff-body[data-outdated="true"] tr:hover .icon-comment {
     visibility: hidden;
+}
+
+.review-form {
+    position:absolute; display: none;
+    z-index:99; top:0px; left:10px; right:10px;
+    padding: 15px 15px 10px;
+    background: #fff;
+    border:1px solid #ccc;
+    font-family:@base-font-family;
+    .border-radius(6px);
+
+    label { display:inline-block; } /* for Markdown Edit/Preview radio button */
+
+    /*&.arrow-left:before,*/
+    &.arrow-top:before,
+    &.arrow-bottom:before {
+        content: ' ';
+        position: absolute;
+        width : 12px;
+        height: 12px;
+        left: 50%;
+        border-color:#ccc;
+        border-style:solid;
+        background-color: #fff;
+        .rotate(45deg);
+    }
+    /*
+    &.arrow-left:before {
+        top: 23px; left: 0px;
+        border-width:0px 0px 1px 1px; margin-left: -7px;
+    }
+    */
+    &.arrow-top:before  {
+        top: -7px;
+        border-width:1px 0px 0px 1px;
+    }
+    &.arrow-bottom:before {
+        bottom: -7px;
+        border-width:0px 1px 1px 0px;
+    }
+
+    .author-info-wrap {
+        padding: 0px; margin-bottom: 10px;
+        display: block; clear: both;
+        height: 35px;
+    }
+
+    .markdown-help { right:0; }
+
+    .write-comment-box {
+        padding:0;
+    }
+}
+.review-block { /** ref: yobi.CodeCommentBlock.js **/
+    /*background-color:rgba(133,246,150,0.25);*/ /* green */
+    background-color:rgba(0,133,255,0.25); /* blue */
+    /*background-color:rgba(255,245,0,0.35); /* yellow */
+    padding:4px 0;
+}
+.btn-thread {
+    margin-left:52px !important;
+    display:block; width:100%; max-width:1098px;
 }
 
 .warning-none {
