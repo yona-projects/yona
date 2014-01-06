@@ -147,7 +147,7 @@ public class ProjectUser extends Model {
         int findRowCount = find.where().eq("role.id", RoleType.MANAGER.roleType())
                 .eq("project.id", projectId).ne("user.id", userId).findRowCount();
 
-        return (findRowCount > 0) ? false : true;
+        return (findRowCount <= 0);
     }
 
     /**
@@ -163,7 +163,7 @@ public class ProjectUser extends Model {
         int findRowCount = find.where().eq("user.id", userId)
                 .eq("role.id", RoleType.MANAGER.roleType()).eq("project.id", projectId)
                 .findRowCount();
-        return (findRowCount != 0) ? true : false;
+        return (findRowCount != 0);
     }
 
     /**
@@ -181,7 +181,7 @@ public class ProjectUser extends Model {
         }
         int findRowCount = find.where().eq("user.id", userId).eq("project.id", projectId)
                 .findRowCount();
-        return (findRowCount != 0) ? true : false;
+        return (findRowCount != 0);
     }
 
     /**

@@ -186,7 +186,7 @@ public class Project extends Model implements LabelOwner {
     public static boolean exists(String loginId, String projectName) {
         int findRowCount = find.where().ieq("owner", loginId)
                 .ieq("name", projectName).findRowCount();
-        return (findRowCount != 0) ? true : false;
+        return (findRowCount != 0);
     }
 
     /**
@@ -203,7 +203,7 @@ public class Project extends Model implements LabelOwner {
                                                 String projectName) {
         int findRowCount = find.where().ieq("name", projectName)
                 .ieq("owner", userName).ne("id", id).findRowCount();
-        return (findRowCount == 0) ? true : false;
+        return (findRowCount == 0);
     }
 
     /**
