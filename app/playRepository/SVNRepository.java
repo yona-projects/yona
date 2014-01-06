@@ -76,11 +76,7 @@ public class SVNRepository implements PlayRepository {
 
             result.put("type", "folder");
 
-            Iterator<SVNDirEntry> iterator = entries.iterator( );
-
-            while(iterator.hasNext()){
-                SVNDirEntry entry = iterator.next( );
-
+            for (SVNDirEntry entry : entries) {
                 ObjectNode data = Json.newObject();
                 String author = entry.getAuthor();
                 User user = User.findByLoginId(author);
@@ -138,11 +134,7 @@ public class SVNRepository implements PlayRepository {
 
             result.put("type", "folder");
 
-            Iterator<SVNDirEntry> iterator = entries.iterator();
-
-            while(iterator.hasNext()){
-                SVNDirEntry entry = iterator.next();
-
+            for (SVNDirEntry entry : entries) {
                 ObjectNode data = Json.newObject();
                 String author = entry.getAuthor();
                 User user = User.findByLoginId(author);

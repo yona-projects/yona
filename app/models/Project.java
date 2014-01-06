@@ -222,10 +222,7 @@ public class Project extends Model implements LabelOwner {
                 .eq("projectUser.role.id", RoleType.MANAGER.roleType())
                 .findList();
 
-        Iterator<Project> iterator = projects.iterator();
-
-        while (iterator.hasNext()) {
-            Project project = iterator.next();
+        for (Project project : projects) {
             if (ProjectUser.checkOneMangerPerOneProject(userId, project.id)) {
                 return true;
             }
