@@ -36,7 +36,7 @@ public class PlayServletResponse implements HttpServletResponse {
     private int status = 0;
     private PrintWriter pw;
     private ChunkedOutputStream outputStream;
-    private Object statusLock;
+    private final Object statusLock;
     private boolean committed;
 
     /**
