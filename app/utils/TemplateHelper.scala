@@ -90,7 +90,7 @@ object TemplateHelper {
     elements.input
   }
 
-  def getJSPath(): String = {
+  def getJSPath: String = {
     routes.Assets.at("javascripts/").toString
   }
 
