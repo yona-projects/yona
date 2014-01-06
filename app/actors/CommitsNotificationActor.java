@@ -52,7 +52,7 @@ public class CommitsNotificationActor extends PostReceiveActor {
         Project project = message.getProject();
         User sender = message.getUser();
 
-        String title = "";
+        String title;
         if(refNames.size() == 1) {
             title = String.format("[%s] pushed %d commits to %s.", project.name, commits.size(), refNames.get(0));
         } else {
@@ -100,7 +100,7 @@ public class CommitsNotificationActor extends PostReceiveActor {
             for(String refName: refNames) {
                 // <a href="/owner/project/branch_name">branch_name</a> \n
                 result.append("<a href=\"");
-                String branchName = null;
+                String branchName;
                 try {
                     branchName = URLEncoder.encode(refName, "UTF-8");
                 } catch (UnsupportedEncodingException e) {

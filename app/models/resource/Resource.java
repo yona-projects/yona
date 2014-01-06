@@ -10,7 +10,7 @@ import java.util.EnumSet;
 
 public abstract class Resource {
     public static boolean exists(ResourceType type, String id) {
-        Model.Finder<Long, ? extends Model> finder = null;
+        Model.Finder<Long, ? extends Model> finder;
 
         switch(type) {
             case ISSUE_POST:
@@ -77,7 +77,7 @@ public abstract class Resource {
     }
 
     public static Resource get(ResourceType resourceType, String resourceId) {
-        Resource resource = null;
+        Resource resource;
 
         if (resourceType.equals(ResourceType.COMMIT)) {
             return Commit.getAsResource(resourceId);

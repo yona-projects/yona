@@ -60,7 +60,7 @@ public class SiteApp extends Controller {
         email.setCharset("utf-8");
 
         String errorMessage = null;
-        boolean sended = false;
+        boolean sended;
         String result = Mailer.send(email);
         Logger.info(">>>" + result);
         sended = true;

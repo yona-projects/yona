@@ -372,7 +372,7 @@ public class UserApp extends Controller {
         Collections.sort(projects, new Comparator<Project>() {
             @Override
             public int compare(Project p1, Project p2) {
-                int compareLastPushedDate = 0;
+                int compareLastPushedDate;
                 if (p1.lastPushedDate == null && p2.lastPushedDate == null) {
                     return p1.name.compareTo(p2.name);
                 }

@@ -495,7 +495,7 @@ public class ProjectApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", project));
         }
 
-        PullRequest pullRequest = null;
+        PullRequest pullRequest;
         Project fromProject = project;
         if( pullRequestId != -1 ){
             pullRequest = PullRequest.findById(pullRequestId);
@@ -610,7 +610,7 @@ public class ProjectApp extends Controller {
     }
 
     private static void collectAuthorAndCommenter(Project project, Long number, List<User> userList, String resourceType) {
-        AbstractPosting posting = null;
+        AbstractPosting posting;
         switch (ResourceType.getValue(resourceType)) {
             case ISSUE_POST:
                 posting = AbstractPosting.findByNumber(Issue.finder, project, number);

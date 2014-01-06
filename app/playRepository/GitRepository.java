@@ -437,7 +437,7 @@ public class GitRepository implements PlayRepository {
         }
 
         private void traverseTree(RevCommit commit, TreeWalkHandler handler) throws IOException {
-            TreeWalk treeWalk = null;
+            TreeWalk treeWalk;
             if (StringUtils.isEmpty(basePath)) {
                 treeWalk = new TreeWalk(repository);
                 treeWalk.addTree(commit.getTree());
@@ -1155,9 +1155,9 @@ public class GitRepository implements PlayRepository {
      * @return
      */
     public static boolean canDeleteFromBranch(PullRequest pullRequest) {
-        List<Ref> refs = null;
+        List<Ref> refs;
         Repository fromRepo = null; // repository that sent the pull request
-        String currentBranch = null;
+        String currentBranch;
         try {
             fromRepo = buildGitRepository(pullRequest.fromProject);
             currentBranch = fromRepo.getFullBranch();
@@ -1286,8 +1286,7 @@ public class GitRepository implements PlayRepository {
             return commits;
         }
 
-        Repository repo = null;
-        RevWalk walk = null;
+        Repository repo;
         try {
             if(pullRequest.isClosed()) {
                 repo = buildGitRepository(pullRequest.toProject);
@@ -1346,8 +1345,7 @@ public class GitRepository implements PlayRepository {
             return "";
         }
 
-        Repository repo = null;
-        RevWalk walk = null;
+        Repository repo;
         try {
             repo = buildGitRepository(pullRequest.toProject);
 

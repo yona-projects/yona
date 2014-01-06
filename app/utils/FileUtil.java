@@ -62,7 +62,7 @@ public class FileUtil {
     static protected String detectCharset(InputStream is) throws IOException {
         UniversalDetector detector = new UniversalDetector(null);
         byte[] buf = new byte[4096];
-        int nRead = 0;
+        int nRead;
 
         while ((nRead = is.read(buf)) > 0 && !detector.isDone()) {
             detector.handleData(buf, 0, nRead);

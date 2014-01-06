@@ -390,8 +390,8 @@ public class PullRequest extends Model implements ResourceConvertible {
                 // 코드를 받을 브랜치(toBranch)로 이동(checkout)한다.
                 GitRepository.checkout(cloneRepository, cloneAndFetch.getDestToBranchName());
 
-                String mergedCommitIdFrom = null;
-                MergeResult mergeResult = null;
+                String mergedCommitIdFrom;
+                MergeResult mergeResult;
 
                 mergedCommitIdFrom =
                         cloneRepository.getRef(org.eclipse.jgit.lib.Constants.HEAD).getObjectId().getName();
@@ -824,8 +824,8 @@ public class PullRequest extends Model implements ResourceConvertible {
 
                 GitRepository.checkout(clonedRepository, cloneAndFetch.getDestToBranchName());
 
-                String mergedCommitIdFrom = null;
-                MergeResult mergeResult = null;
+                String mergedCommitIdFrom;
+                MergeResult mergeResult;
 
                 synchronized(this) {
                     mergedCommitIdFrom =
@@ -883,7 +883,7 @@ public class PullRequest extends Model implements ResourceConvertible {
     private Map<String, String> suggestTitleAndBodyFromDiffCommit(List<GitCommit> commits) {
         Map<String, String> messageMap = new HashMap<>();
 
-        String message = StringUtils.EMPTY;
+        String message;
 
         if (commits.isEmpty()) {
             return messageMap;

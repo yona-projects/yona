@@ -397,7 +397,7 @@ public class SVNRepository implements PlayRepository {
 
     @Override
     public boolean isEmpty() {
-        SVNURL svnURL = null;
+        SVNURL svnURL;
         org.tmatesoft.svn.core.io.SVNRepository repository = null;
         try {
             svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
