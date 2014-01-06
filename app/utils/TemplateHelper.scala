@@ -122,7 +122,7 @@ object TemplateHelper {
   }
 
   def branchItemType(branch: String) = {
-    var names = branch.split('/');
+    var names = branch.split('/')
 
     if(names(0).equals("refs") && names.length >= 3){
         names(1) match {
@@ -136,19 +136,19 @@ object TemplateHelper {
   }
 
   def branchItemName(branch: String) = {
-    var names = branch.split('/');
+    var names = branch.split('/')
 
     if(names(0).equals("refs") && names.length >= 3){
-        names.slice(2, names.length).mkString("/");
+        names.slice(2, names.length).mkString("/")
     } else {
         branch
     }
   }
 
   def branchInHTML(branch: String) = {
-    var names = branch.split('/');
-    var branchType = branchItemType(branch);
-    var branchName = branchItemName(branch);
+    var names = branch.split('/')
+    var branchType = branchItemType(branch)
+    var branchName = branchItemName(branch)
 
     if(names(0).equals("refs") && names.length >= 3){
         "<span class=\"label " + branchType + "\">" + branchType + "</span>" + branchName
@@ -172,7 +172,7 @@ object TemplateHelper {
   }
 
   def getUserAvatar(user: models.User, avatarSize:String = "small") = {
-    var userInfoURL = routes.UserApp.userInfo(user.loginId).toString();
+    var userInfoURL = routes.UserApp.userInfo(user.loginId).toString()
 
     "<a href=\"" + userInfoURL + "\" class=\"usf-group\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + user.name + "\"><img src=\"" + user.avatarUrl + "\" class=\"avatar-wrap " + avatarSize + "\"></a>"
   }
@@ -362,7 +362,7 @@ object TemplateHelper {
     }
 
     def getAvatar(file:org.codehaus.jackson.JsonNode):String = {
-      val avatarURL = fieldText(file, "avatar");
+      val avatarURL = fieldText(file, "avatar")
 
       if(avatarURL != null){
         "<a href=\"" + getUserLink(fieldText(file, "userLoginId")) + "\" class=\"avatar-wrap smaller\"><img src=\"" + avatarURL + "\"></a>"
