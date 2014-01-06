@@ -356,7 +356,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    public static Result massUpdate(String ownerName, String projectName) throws IOException {
+    public static Result massUpdate(String ownerName, String projectName) {
         Form<IssueMassUpdate> issueMassUpdateForm
                 = new Form<>(IssueMassUpdate.class).bindFromRequest();
         if (issueMassUpdateForm.hasErrors()) {
@@ -470,7 +470,7 @@ public class IssueApp extends AbstractPostingApp {
      * @throws IOException
      */
     @Transactional
-    public static Result newIssue(String ownerName, String projectName) throws IOException {
+    public static Result newIssue(String ownerName, String projectName) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
         Project project = ProjectApp.getProject(ownerName, projectName);
         if (project == null) {
@@ -601,7 +601,7 @@ public class IssueApp extends AbstractPostingApp {
      * @see {@link AbstractPostingApp#editPosting(models.AbstractPosting, models.AbstractPosting, play.data.Form}
      */
     @Transactional
-    public static Result editIssue(String ownerName, String projectName, Long number) throws IOException {
+    public static Result editIssue(String ownerName, String projectName, Long number) {
         Form<Issue> issueForm = new Form<>(Issue.class).bindFromRequest();
 
         Project project = ProjectApp.getProject(ownerName, projectName);

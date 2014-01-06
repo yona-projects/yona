@@ -46,7 +46,7 @@ import java.util.List;
 public abstract class PostReceiveActor extends UntypedActor {
 
     @Override
-    public void onReceive(Object message) throws Exception {
+    public void onReceive(Object message) {
         if(!(message instanceof PostReceiveMessage)) {
             return;
         }

@@ -200,7 +200,7 @@ public class PullRequestApp extends Controller {
      */
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequestForm(String userName, String projectName) throws ServletException, IOException, GitAPIException {
+    public static Result newPullRequestForm(String userName, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -268,7 +268,7 @@ public class PullRequestApp extends Controller {
     @Transactional
     @With(AnonymousCheckAction.class)
     @IsCreatable(ResourceType.FORK)
-    public static Result newPullRequest(String userName, String projectName) throws ServletException, IOException, GitAPIException {
+    public static Result newPullRequest(String userName, String projectName) throws IOException, GitAPIException {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
 
         ValidationResult validation = validateBeforePullRequest(project);
@@ -380,7 +380,7 @@ public class PullRequestApp extends Controller {
      */
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.READ)
-    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) throws IOException {
+    public static Result pullRequest(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -414,7 +414,7 @@ public class PullRequestApp extends Controller {
      */
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.READ)
-    public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) throws IOException {
+    public static Result pullRequestState(String userName, String projectName, long pullRequestNumber) {
         Project project = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(project, pullRequestNumber);
 
@@ -593,7 +593,7 @@ public class PullRequestApp extends Controller {
     @With(AnonymousCheckAction.class)
     @ProjectAccess(Operation.READ)
     @PullRequestAccess(Operation.UPDATE)
-    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws ServletException, IOException, GitAPIException {
+    public static Result editPullRequestForm(String userName, String projectName, Long pullRequestNumber) throws IOException, GitAPIException {
         Project toProject = Project.findByOwnerAndProjectName(userName, projectName);
         PullRequest pullRequest = PullRequest.findOne(toProject, pullRequestNumber);
         Project fromProject = pullRequest.fromProject;

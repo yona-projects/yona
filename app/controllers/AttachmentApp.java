@@ -120,7 +120,7 @@ public class AttachmentApp extends Controller {
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    public static Result getFile(Long id) throws NoSuchAlgorithmException, IOException {
+    public static Result getFile(Long id) throws IOException {
         Attachment attachment = Attachment.find.byId(id);
 
         if (attachment == null) {
@@ -163,8 +163,7 @@ public class AttachmentApp extends Controller {
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    public static Result deleteFile(Long id)
-            throws NoSuchAlgorithmException, IOException {
+    public static Result deleteFile(Long id) {
         // _method must be 'delete'
         Map<String, String[]> data =
                 request().body().asMultipartFormData().asFormUrlEncoded();

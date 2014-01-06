@@ -157,7 +157,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
         return _isCommitLost;
     }
 
-    public boolean isOutdated() throws IOException, ServletException, GitAPIException {
+    public boolean isOutdated() throws IOException, GitAPIException {
         if (line == null) {
             return false;
         }
@@ -203,7 +203,7 @@ public class PullRequestComment extends CodeComment implements ResourceConvertib
      */
     static private boolean noChangesBetween(Repository repoA, String rev1,
                                             Repository repoB, String rev2,
-                                            String path) throws IOException, GitAPIException {
+                                            String path) throws IOException {
         ObjectId a = getBlobId(repoA, rev1, path);
         ObjectId b = getBlobId(repoB, rev2, path);
         return ObjectUtils.equals(a, b);

@@ -36,7 +36,7 @@ public class FileUtil {
      * @return
      * @throws IOException
      */
-    public static String detectCharset(byte bytes[]) throws IOException {
+    public static String detectCharset(byte bytes[]) {
         UniversalDetector detector = new UniversalDetector(null);
         int offset = 0;
 

@@ -47,7 +47,7 @@ public class SVNRepository implements PlayRepository {
 
     private final String ownerName;
 
-    public SVNRepository(final String userName, String projectName) throws ServletException {
+    public SVNRepository(final String userName, String projectName) {
         this.ownerName = userName;
         this.projectName = projectName;
     }
@@ -123,7 +123,7 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public ObjectNode getMetaDataFromPath(String branch, String path) throws AmbiguousObjectException,
+    public ObjectNode getMetaDataFromPath(String branch, String path) throws
             IOException, SVNException {
         org.tmatesoft.svn.core.io.SVNRepository repository = getSVNRepository();
 
@@ -252,13 +252,13 @@ public class SVNRepository implements PlayRepository {
     }
 
     @Override
-    public List<FileDiff> getDiff(String commitId) throws GitAPIException, IOException, SVNException {
+    public List<FileDiff> getDiff(String commitId) throws IOException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<Commit> getHistory(int page, int limit, String until, String path) throws AmbiguousObjectException,
-            IOException, NoHeadException, GitAPIException, SVNException {
+    public List<Commit> getHistory(int page, int limit, String until, String path) throws
+            IOException, GitAPIException, SVNException {
         // Get the repository
         SVNURL svnURL = SVNURL.fromFile(new File(repoPrefix + ownerName + "/" + projectName));
         org.tmatesoft.svn.core.io.SVNRepository repository = SVNRepositoryFactory.create(svnURL);

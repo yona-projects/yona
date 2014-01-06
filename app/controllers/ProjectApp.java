@@ -483,7 +483,7 @@ public class ProjectApp extends Controller {
      * @throws SVNException
      */
     public static Result mentionListAtCommitDiff(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
-            throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
+            throws IOException, UnsupportedOperationException, ServletException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 
@@ -536,7 +536,7 @@ public class ProjectApp extends Controller {
      * @throws SVNException
      */
     public static Result mentionListAtPullRequest(String ownerLoginId, String projectName, String commitId, Long pullRequestId)
-            throws IOException, UnsupportedOperationException, ServletException, GitAPIException,
+            throws IOException, UnsupportedOperationException, ServletException,
             SVNException {
         Project project = Project.findByOwnerAndProjectName(ownerLoginId, projectName);
 

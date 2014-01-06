@@ -79,7 +79,7 @@ public class CodeApp extends Controller {
      * @param path 파일 경로
      */
     public static Result codeBrowserWithBranch(String userName, String projectName, String branch, String path)
-        throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException, Exception {
+        throws UnsupportedOperationException, IOException, SVNException, GitAPIException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
 
         if (!RepositoryService.VCS_GIT.equals(project.vcs) && !RepositoryService.VCS_SUBVERSION.equals(project.vcs)) {

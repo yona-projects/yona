@@ -407,7 +407,7 @@ public class Project extends Model implements LabelOwner {
      * @throws SVNException the sVN exception
      * @throws ServletException the servlet exception
      */
-    public String getReadmeFileName() throws IOException, GitAPIException, SVNException, ServletException {
+    public String getReadmeFileName() throws IOException, SVNException, ServletException {
         String baseFileName = "README.md";
 
         PlayRepository repo = RepositoryService.getRepository(this);

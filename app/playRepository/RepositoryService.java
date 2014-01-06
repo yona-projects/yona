@@ -22,6 +22,7 @@ import javax.servlet.ServletException;
 import models.*;
 
 import org.codehaus.jackson.node.ObjectNode;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.errors.AmbiguousObjectException;
 import org.eclipse.jgit.errors.IncorrectObjectTypeException;
 import org.eclipse.jgit.errors.MissingObjectException;
@@ -129,8 +130,10 @@ public class RepositoryService {
      * @return
      * @throws Exception
      */
-    public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository, String branch, String path)
-        throws Exception {
+    public static List<ObjectNode> getMetaDataFromAncestorDirectories(PlayRepository repository,
+                                                                      String branch,
+                                                                      String path) throws
+            SVNException, GitAPIException, IOException {
 
         List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
 
@@ -174,8 +177,7 @@ public class RepositoryService {
      * @see {@link PlayRepository#getRawFile(String)}
      */
     public static byte[] getFileAsRaw(String userName, String projectName, String revision, String path)
-            throws MissingObjectException, IncorrectObjectTypeException, AmbiguousObjectException,
-            UnsupportedOperationException, IOException, ServletException, SVNException {
+            throws UnsupportedOperationException, IOException, ServletException, SVNException {
         Project project = ProjectApp.getProject(userName, projectName);
         return RepositoryService.getRepository(project).getRawFile(revision, path);
     }

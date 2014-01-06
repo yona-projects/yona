@@ -30,7 +30,7 @@ import models.PullRequestEventMessage;
  */
 public class PullRequestMergingActor extends PullRequestActor {
     @Override
-    public void onReceive(Object object) throws Exception {
+    public void onReceive(Object object) {
         if (!(object instanceof PullRequestEventMessage)) {
             return;
         }
