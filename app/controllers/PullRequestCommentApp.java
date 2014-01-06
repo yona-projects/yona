@@ -40,7 +40,7 @@ public class PullRequestCommentApp extends Controller {
             return redirect(referer);
         }
 
-        if (!AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PULL_REQUEST_COMMENT)) {
+        if (!AccessControl.isCreatable(UserApp.currentUser())) {
             return forbidden(ErrorViews.Forbidden.render("error.auth.unauthorized.comment"));
         }
 

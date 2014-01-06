@@ -9,7 +9,6 @@ import com.avaje.ebean.Page;
 import controllers.UserApp;
 import controllers.routes;
 import models.enumeration.EventType;
-import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.enumeration.State;
 import models.resource.Resource;
@@ -19,12 +18,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.Duration;
-import org.springframework.util.Assert;
 
 import com.avaje.ebean.Expr;
 
@@ -35,7 +32,6 @@ import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.i18n.Messages;
 import play.libs.Akka;
-import play.mvc.Controller;
 import playRepository.*;
 import playRepository.GitRepository.AfterCloneAndFetchOperation;
 import playRepository.GitRepository.CloneAndFetch;
@@ -415,7 +411,7 @@ public class PullRequest extends Model implements ResourceConvertible {
                     pullRequest.receiver = UserApp.currentUser();
                     pullRequest.update();
 
-                    NotificationEvent.addPullRequestUpdate(call, message.getRequest(), pullRequest, State.OPEN, State.MERGED);
+                    NotificationEvent.addPullRequestUpdate(call, pullRequest, State.OPEN, State.MERGED);
                     PullRequestEvent.addStateEvent(pullRequest, State.MERGED);
 
                     Akka.system().actorOf(new Props(RelatedPullRequestMergingActor.class)).tell(message, null);

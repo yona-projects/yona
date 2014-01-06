@@ -205,7 +205,7 @@ public class ProjectApp extends Controller {
      */
     @Transactional
     public static Result newProject() throws Exception {
-        if( !AccessControl.isCreatable(UserApp.currentUser(), ResourceType.PROJECT) ){
+        if( !AccessControl.isCreatable(UserApp.currentUser()) ){
            return forbidden(ErrorViews.Forbidden.render("'" + UserApp.currentUser().name + "' has no permission"));
         }
         Form<Project> filledNewProjectForm = form(Project.class).bindFromRequest();
@@ -381,7 +381,7 @@ public class ProjectApp extends Controller {
         }
 
         if (AccessControl.isAllowed(UserApp.currentUser(), project.asResource(), Operation.DELETE)) {
-            RepositoryService.deleteRepository(loginId, projectName, project.vcs);
+            RepositoryService.deleteRepository(loginId, projectName);
             project.delete();
 
             // XHR 호출에 의한 경우라면 204 No Content 와 Location 헤더로 응답한다

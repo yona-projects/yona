@@ -81,13 +81,12 @@ public class RepositoryService {
      *
      * @param userName
      * @param projectName
-     * @param type
      * @throws IOException
      * @throws ServletException
      * @see {@link ProjectApp#deleteProject(String, String)}
      * @see {@link playRepository.PlayRepository#delete()}
      */
-    public static void deleteRepository(String userName, String projectName, String type)
+    public static void deleteRepository(String userName, String projectName)
             throws IOException, ServletException {
         Project project = ProjectApp.getProject(userName, projectName);
         RepositoryService.getRepository(project).delete();
@@ -106,12 +105,12 @@ public class RepositoryService {
      * @throws ServletException
      * @throws ClientException
      * @throws UnsupportedOperationException
-     * @see {@link #deleteRepository(String, String, String)}
+     * @see {@link #deleteRepository(String, String)}
      * @see {@link PlayRepository#create()}
      */
     public static void createRepository(Project project) throws IOException, ServletException,
             ClientException, UnsupportedOperationException {
-        RepositoryService.deleteRepository(project.owner, project.name, project.vcs);
+        RepositoryService.deleteRepository(project.owner, project.name);
         RepositoryService.getRepository(project).create();
     }
 

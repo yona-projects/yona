@@ -35,7 +35,6 @@ import org.tmatesoft.svn.core.SVNException;
 
 import actions.AnonymousCheckAction;
 import actors.PullRequestMergingActor;
-import actors.RelatedPullRequestMergingActor;
 import akka.actor.Props;
 import play.api.mvc.Call;
 import play.data.Form;
@@ -305,7 +304,7 @@ public class PullRequestApp extends Controller {
 
         Call pullRequestCall = routes.PullRequestApp.pullRequest(pullRequest.toProject.owner, pullRequest.toProject.name, pullRequest.number);
 
-        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, request(), pullRequest);
+        NotificationEvent notiEvent = NotificationEvent.addNewPullRequest(pullRequestCall, pullRequest);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
 
         PullRequestEventMessage message = new PullRequestEventMessage(
@@ -516,7 +515,7 @@ public class PullRequestApp extends Controller {
     }
 
     private static void addNotification(PullRequest pullRequest, Call call, State from, State to) {
-        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, request(), pullRequest, from, to);
+        NotificationEvent notiEvent = NotificationEvent.addPullRequestUpdate(call, pullRequest, from, to);
         PullRequestEvent.addEvent(notiEvent, pullRequest);
     }
 

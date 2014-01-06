@@ -18,10 +18,9 @@ public class AccessControl {
      * 유저가 로그인하지 않았으면 생성권한이 없다고 판단한다.
      *
      * @param user
-     * @param resourceType
      * @return user가 해당 resourceType을 생성할 수 있는지 여부
      */
-    public static boolean isCreatable(User user, ResourceType resourceType) {
+    public static boolean isCreatable(User user) {
         return !user.isAnonymous();
     }
 
@@ -112,7 +111,7 @@ public class AccessControl {
         case PROJECT:
             return ProjectUser.isManager(user.id, Long.valueOf(resource.getId()));
         case PULL_REQUEST_COMMENT:
-            return user.isSiteManager() || isEditableAsAuthor(user, null, resource);
+            return user.isSiteManager() || isEditableAsAuthor(user, resource);
         default:
             // undefined
             return false;
@@ -167,20 +166,20 @@ public class AccessControl {
                 // Nonmember cannot update the repository.
                 return false;
             } else {
-                return project.isPublic && isEditableAsAuthor(user, project, resource);
+                return project.isPublic && isEditableAsAuthor(user, resource);
             }
         case DELETE:
             if (resource.getType() == ResourceType.CODE) {
                 return false;
             } else {
                 return ProjectUser.isMember(user.id, project.id) ||
-                        (project.isPublic && isEditableAsAuthor(user, project, resource));
+                        (project.isPublic && isEditableAsAuthor(user, resource));
             }
         case ACCEPT:
             return ProjectUser.isMember(user.id, project.id);
         case CLOSE:
         case REOPEN:
-            return ProjectUser.isMember(user.id, project.id) || isEditableAsAuthor(user,project, resource);
+            return ProjectUser.isMember(user.id, project.id) || isEditableAsAuthor(user, resource);
         default:
             // undefined
             return false;
@@ -224,12 +223,11 @@ public class AccessControl {
      * 현재는 이슈 및 게시물과 그것들의 댓글에 대해서만 동작한다.
      *
      * @param user
-     * @param project
      * @param resource
      * @return {@code user}가 {@code project}의 {@code resource}에
      *         대해 저자로서의 수정 권한을 갖는지의 여부를 반환한다.
      */
-    private static boolean isEditableAsAuthor(User user, Project project, Resource resource) {
+    private static boolean isEditableAsAuthor(User user, Resource resource) {
         switch (resource.getType()) {
         case ISSUE_POST:
         case ISSUE_COMMENT:
