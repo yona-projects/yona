@@ -56,8 +56,6 @@ import views.html.welcome.secret;
 import views.html.welcome.restart;
 import static play.data.Form.form;
 import static play.mvc.Results.badRequest;
-import static play.mvc.Results.ok;
-import static play.mvc.Results.redirect;
 
 public class Global extends GlobalSettings {
     public static final String APPLICATION_CONF_DEFAULT = "application.conf.default";

@@ -34,7 +34,6 @@ import com.avaje.ebean.ExpressionList;
 import java.io.IOException;
 import java.lang.Integer;
 import java.lang.NumberFormatException;
-import java.net.URL;
 import java.util.*;
 import org.codehaus.jackson.node.ObjectNode;
 import play.libs.Json;

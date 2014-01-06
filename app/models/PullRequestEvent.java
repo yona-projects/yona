@@ -13,12 +13,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-
 import controllers.UserApp;
 import models.enumeration.EventType;
 import models.enumeration.State;
-import play.Configuration;
 import play.db.ebean.Model;
 import utils.JodaDateUtil;
 

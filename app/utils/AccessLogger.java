@@ -1,7 +1,6 @@
 package utils;
 
 import controllers.UserApp;
-import models.User;
 import play.api.mvc.PlainResult;
 import play.mvc.Http;
 import play.mvc.Result;

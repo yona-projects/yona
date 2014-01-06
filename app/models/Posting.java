@@ -8,7 +8,6 @@ import javax.persistence.*;
 
 import models.enumeration.ResourceType;
 import models.resource.Resource;
-import play.Logger;
 import utils.JodaDateUtil;
 
 import java.util.*;

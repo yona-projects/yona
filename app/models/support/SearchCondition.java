@@ -16,8 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avaje.ebean.Expr.icontains;
-
 public class SearchCondition extends AbstractPostingApp.SearchCondition {
     public String state;
     public Boolean commentedCheck;

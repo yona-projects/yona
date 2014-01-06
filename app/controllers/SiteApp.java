@@ -23,7 +23,6 @@ import views.html.site.*;
 
 import java.util.*;
 
-import static play.data.Form.form;
 import static play.libs.Json.toJson;
 
 /**

@@ -1,12 +1,9 @@
 package models;
 
-import controllers.UserApp;
 import controllers.routes;
-import info.schleichardt.play2.mailplugin.Mailer;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 
-import org.apache.commons.mail.SimpleEmail;
 import org.joda.time.*;
 import play.data.validation.*;
 import play.db.ebean.*;

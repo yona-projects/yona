@@ -1,7 +1,6 @@
 package models;
 
 import org.eclipse.jgit.transport.ReceiveCommand;
-import org.eclipse.jgit.transport.ReceivePack;
 
 import java.util.Collection;
 

@@ -6,12 +6,10 @@ import models.resource.ResourceConvertible;
 import models.support.*;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import play.Logger;
 import play.data.format.*;
 import play.data.validation.*;
 import play.db.ebean.*;
 import play.i18n.Messages;
-import utils.JodaDateUtil;
 
 import javax.persistence.*;
 import java.text.*;

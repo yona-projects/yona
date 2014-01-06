@@ -1,7 +1,6 @@
 package utils;
 
 import controllers.UserApp;
-import play.i18n.Messages;
 import play.mvc.Action;
 import play.mvc.Http.Context;
 import play.mvc.Result;

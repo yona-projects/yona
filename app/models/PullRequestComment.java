@@ -17,7 +17,6 @@ import playRepository.GitRepository;
 
 import javax.persistence.*;
 import javax.servlet.ServletException;
-import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;

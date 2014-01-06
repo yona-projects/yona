@@ -1,6 +1,5 @@
 package models;
 
-import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
 import play.data.validation.Constraints;
@@ -8,7 +7,6 @@ import play.db.ebean.Model;
 
 import javax.persistence.*;
 import java.beans.Transient;
-import java.util.ArrayList;
 import java.util.Date;
 
 import org.joda.time.Duration;

@@ -2,7 +2,6 @@ package models.support;
 
 import com.avaje.ebean.*;
 
-import play.Logger;
 import play.db.ebean.*;
 
 import java.util.*;

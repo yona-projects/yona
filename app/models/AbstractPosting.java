@@ -1,7 +1,5 @@
 package models;
 
-import com.avaje.ebean.Page;
-import models.enumeration.Operation;
 import models.enumeration.ResourceType;
 import models.resource.Resource;
 import models.resource.ResourceConvertible;
@@ -10,7 +8,6 @@ import org.joda.time.Duration;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 import play.db.ebean.*;
-import utils.AccessControl;
 import utils.JodaDateUtil;
 import utils.WatchService;
 
@@ -20,8 +17,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.avaje.ebean.Expr.contains;
 
 /**
  * {@link Posting}과 {@link Issue}의 공통 속성과 메서드를 모아둔 클래스

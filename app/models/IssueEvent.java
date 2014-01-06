@@ -1,6 +1,5 @@
 package models;
 
-import controllers.UserApp;
 import models.enumeration.EventType;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;

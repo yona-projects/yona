@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
-import javax.validation.constraints.Size;
 
 import org.apache.commons.lang3.StringUtils;
 

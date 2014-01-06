@@ -10,7 +10,6 @@ import views.html.error.notfound_default;
 import views.html.index.index;
 
 import java.io.File;
-import java.util.List;
 
 public class Application extends Controller {
 
