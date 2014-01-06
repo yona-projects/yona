@@ -200,12 +200,13 @@ public class RepositoryService {
             return null;
         }
 
-        if (project.vcs.equals(VCS_GIT)) {
-            return new GitRepository(project.owner, project.name);
-        } else if (project.vcs.equals(VCS_SUBVERSION)) {
-            return new SVNRepository(project.owner, project.name);
-        } else {
-            throw new UnsupportedOperationException();
+        switch (project.vcs) {
+            case VCS_GIT:
+                return new GitRepository(project.owner, project.name);
+            case VCS_SUBVERSION:
+                return new SVNRepository(project.owner, project.name);
+            default:
+                throw new UnsupportedOperationException();
         }
     }
 
@@ -349,15 +350,19 @@ public class RepositoryService {
             Repository repository = GitRepository.createGitRepository(project);
             PipedInputStream responseStream = new PipedInputStream();
 
-            if (service.equals("git-upload-pack")) {
-                uploadPack(requestStream, repository, new PipedOutputStream(responseStream));
-            } else if (service.equals("git-receive-pack")) {
-                PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
-                receivePack(requestStream, repository, new PipedOutputStream(responseStream),
-                        postReceiveHook);
-                // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
-            } else {
-                requestStream.close();
+            switch (service) {
+                case "git-upload-pack":
+                    uploadPack(requestStream, repository, new PipedOutputStream(responseStream));
+                    break;
+                case "git-receive-pack":
+                    PostReceiveHook postReceiveHook = createPostReceiveHook(UserApp.currentUser(), project, request);
+                    receivePack(requestStream, repository, new PipedOutputStream(responseStream),
+                            postReceiveHook);
+                    // receivePack.setEchoCommandFailures(true);//git버전에 따라서 불린값 설정필요.
+                    break;
+                default:
+                    requestStream.close();
+                    break;
             }
 
             return responseStream;

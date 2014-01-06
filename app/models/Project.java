@@ -308,14 +308,15 @@ public class Project extends Model implements LabelOwner {
      * @return 프로젝트 카운트
      */
     public static int countByState(String state) {
-        if (state.equals("all")) {
-            return find.findRowCount();
-        } else if (state.equals("public")) {
-            return find.where().eq("isPublic", true).findRowCount();
-        } else if (state.equals("private")) {
-            return find.where().eq("isPublic", false).findRowCount();
-        } else {
-            return 0;
+        switch (state) {
+            case "all":
+                return find.findRowCount();
+            case "public":
+                return find.where().eq("isPublic", true).findRowCount();
+            case "private":
+                return find.where().eq("isPublic", false).findRowCount();
+            default:
+                return 0;
         }
     }
 
