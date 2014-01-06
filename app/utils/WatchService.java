@@ -33,7 +33,7 @@ public class WatchService {
 
     @Transactional
     public static void watch(User user, Resource resource) {
-        watch(user, resource.getType(), resource.getId().toString());
+        watch(user, resource.getType(), resource.getId());
     }
 
     public static void watch(User user, ResourceType resourceType, String resourceId) {
@@ -57,7 +57,7 @@ public class WatchService {
     }
 
     public static void unwatch(User user, Resource resource) {
-        unwatch(user, resource.getType(), resource.getId().toString());
+        unwatch(user, resource.getType(), resource.getId());
     }
 
     public static void unwatch(User user, ResourceType resourceType, String resourceId) {
@@ -77,7 +77,7 @@ public class WatchService {
     }
 
     public static Set<User> findWatchers(Resource target) {
-        return findWatchers(target.getType(), target.getId().toString());
+        return findWatchers(target.getType(), target.getId());
     }
 
     public static Set<User> findWatchers(ResourceType resourceType, String resourceId) {
@@ -89,7 +89,7 @@ public class WatchService {
     }
 
     public static Set<User> findUnwatchers(Resource target) {
-        return findUnwatchers(target.getType(), target.getId().toString());
+        return findUnwatchers(target.getType(), target.getId());
     }
 
     public static Set<User> findUnwatchers(ResourceType resourceType, String resourceId) {
@@ -119,11 +119,11 @@ public class WatchService {
     }
 
     public static boolean isWatching(User user, Resource resource) {
-        return isWatching(user, resource.getType(), resource.getId().toString());
+        return isWatching(user, resource.getType(), resource.getId());
     }
 
     public static boolean isWatching(Resource resource) {
-        return isWatching(UserApp.currentUser(), resource.getType(), resource.getId().toString());
+        return isWatching(UserApp.currentUser(), resource.getType(), resource.getId());
     }
 
     /**
