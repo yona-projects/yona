@@ -159,15 +159,12 @@ object TemplateHelper {
 
   def getBranchURL(project:Project, branchName:String, viewType:String, path:String) = {
     viewType match {
-        case "history" => {
-            routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
-        }
-        case "code" => {
-            routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
-        }
-        case _ => {
-            "#"
-        }
+        case "history" =>
+          routes.CodeHistoryApp.history(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), null)
+        case "code" =>
+          routes.CodeApp.codeBrowserWithBranch(project.owner, project.name, URLEncoder.encode(branchName, "UTF-8"), path)
+        case _ =>
+          "#"
     }
   }
 
@@ -284,12 +281,10 @@ object TemplateHelper {
         (thread, remains)
       } else {
         (thread.head, comments.head) match {
-          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) => {
+          case (a: PullRequestComment, b: PullRequestComment) if a.threadEquals(b) =>
             _threadAndRemains(thread :+ b, remains, comments.tail)
-          }
-          case (a, b) => {
+          case (a, b) =>
             _threadAndRemains(thread, remains :+ b, comments.tail)
-          }
         }
       }
     }
@@ -306,26 +301,22 @@ object TemplateHelper {
 
     @tailrec def renderCommentsOnPullRequest(pull: PullRequest, html: play.api.templates.Html, comments: List[TimelineItem]): play.api.templates.Html = {
       val remains = comments.head match {
-        case (comment: PullRequestComment) if isLineComment(comment) => {
+        case (comment: PullRequestComment) if isLineComment(comment) =>
           threadAndRemains(comment, comments) match {
             case (thread, remains) => {
               html += partial_pull_request_comment(pull, comment, thread)
               remains
             }
           }
-        }
-        case (comment: PullRequestComment) => {
+        case (comment: PullRequestComment) =>
           html += partial_pull_request_comment(pull, comment)
           comments.tail
-        }
-        case (comment: CommitComment) => {
+        case (comment: CommitComment) =>
           html += partial_commit_comment(pull, comment)
           comments.tail
-        }
-        case (event: PullRequestEvent) => {
+        case (event: PullRequestEvent) =>
           html += partial_pull_request_event(pull, event)
           comments.tail
-        }
       }
 
       if (remains.isEmpty) {
@@ -376,8 +367,8 @@ object TemplateHelper {
         "updir"
       } else {
         fieldText(file, "type") match {
-          case "folder" => { "dynatree-ico-cf" }
-          case _ =>        { "dynatree-ico-c"  }
+          case "folder" => "dynatree-ico-cf"
+          case _ =>        "dynatree-ico-c"
         }
       }
     }
@@ -396,15 +387,9 @@ object TemplateHelper {
 
     def getFileRev(vcsType:String, file:org.codehaus.jackson.JsonNode):String = {
       vcsType match {
-        case "GIT" => {
-          fieldText(file,"commitId")
-        }
-        case "Subversion" => {
-          fieldText(file, "revisionNo")
-        }
-        case _ => {
-          ""
-        }
+        case "GIT" => fieldText(file,"commitId")
+        case "Subversion" => fieldText(file, "revisionNo")
+        case _ => ""
       }
     }
   }
