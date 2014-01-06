@@ -849,7 +849,7 @@ public class IssueApp extends AbstractPostingApp {
      */
     private static void addLabels(Issue issue, Http.Request request) {
         if (issue.labels == null) {
-            issue.labels = new HashSet<IssueLabel>();
+            issue.labels = new HashSet<>();
         }
 
         Http.MultipartFormData multipart = request.body().asMultipartFormData();

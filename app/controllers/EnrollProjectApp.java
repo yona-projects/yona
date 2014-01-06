@@ -128,7 +128,7 @@ public class EnrollProjectApp extends Controller {
      * - 해당 프로젝트의 매니저이면서 지켜보기를 켜둔 사용자들
      */
     private static Set<User> getReceivers(Project project) {
-        Set<User> receivers = new HashSet<User>();
+        Set<User> receivers = new HashSet<>();
         List<User> managers = User.findUsersByProject(project.id, RoleType.MANAGER);
         for (User manager : managers) {
             if (WatchService.isWatching(manager, project.asResource())) {

@@ -26,7 +26,7 @@ import utils.JodaDateUtil;
 public class PullRequestEvent extends Model implements TimelineItem {
 
     private static final long serialVersionUID = 1981361242582594128L;
-    public static Finder<Long, PullRequestEvent> finder = new Finder<Long, PullRequestEvent>(Long.class, PullRequestEvent.class);
+    public static Finder<Long, PullRequestEvent> finder = new Finder<>(Long.class, PullRequestEvent.class);
 
     @Id
     public Long id;
@@ -142,7 +142,7 @@ public class PullRequestEvent extends Model implements TimelineItem {
      */
     @Transient
     public List<PullRequestCommit> getPullRequestCommits() {
-        List<PullRequestCommit> commits = new ArrayList<PullRequestCommit>();
+        List<PullRequestCommit> commits = new ArrayList<>();
 
         String[] commitIds = this.newValue.split(PullRequest.DELIMETER);
         for (String commitId: commitIds) {

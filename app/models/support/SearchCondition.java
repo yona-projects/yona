@@ -35,7 +35,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         one.state = this.state;
         one.commentedCheck = this.commentedCheck;
         one.milestoneId = this.milestoneId;
-        one.labelIds = new HashSet<Long>(this.labelIds);
+        one.labelIds = new HashSet<>(this.labelIds);
         one.authorId = this.authorId;
         one.assigneeId = this.assigneeId;
         return one;

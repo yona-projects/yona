@@ -93,7 +93,7 @@ public class CodeApp extends Controller {
         }
         fileInfo.put("path", path);
 
-        List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
+        List<ObjectNode> recursiveData = new ArrayList<>();
         List<String> branches = repository.getBranches();
 
         /** 해당 경로가 폴더이고 최상위가 아니면, 최상위 경로부터 순서대로 정보를 추가한다 **/

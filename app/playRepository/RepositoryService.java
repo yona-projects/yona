@@ -134,7 +134,7 @@ public class RepositoryService {
                                                                       String path) throws
             SVNException, GitAPIException, IOException {
 
-        List<ObjectNode> recursiveData = new ArrayList<ObjectNode>();
+        List<ObjectNode> recursiveData = new ArrayList<>();
 
         String partialPath = "";
         String[] pathArray = path.split("/");

@@ -786,7 +786,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      */
     private List<CommitComment> commitCommentsGroupByKey(String groupKey,
             List<CommitComment> codeComments) {
-        List<CommitComment> commitCommentGroups = new ArrayList<CommitComment>();
+        List<CommitComment> commitCommentGroups = new ArrayList<>();
         for (CommitComment commitComment : codeComments) {
             if (commitComment.groupKey().equals(groupKey)) {
                 commitCommentGroups.add(commitComment);
