@@ -240,10 +240,7 @@ public class ProjectUser extends Model {
         if(user.isSiteManager()) {
             return true;
         }
-        if(ProjectUser.isMember(user.id, project.id) || ProjectUser.isManager(user.id, project.id)) {
-            return true;
-        }
-        return false;
+        return ProjectUser.isMember(user.id, project.id) || ProjectUser.isManager(user.id, project.id);
     }
 
     /**
@@ -308,9 +305,6 @@ public class ProjectUser extends Model {
         if(user.isAnonymous()) {
             return false;
         }
-        if(user.isSiteManager() || ProjectUser.isManager(user.id, project.id)) {
-            return true;
-        }
-        return false;
+        return user.isSiteManager() || ProjectUser.isManager(user.id, project.id);
     }
 }

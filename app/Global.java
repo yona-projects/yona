@@ -112,21 +112,13 @@ public class Global extends GlobalSettings {
     private boolean notificationEnabled() {
         play.Configuration config = play.Configuration.root();
         Boolean notificationEnabled = config.getBoolean("notification.bymail.enabled");
-        if (notificationEnabled == null || notificationEnabled) {
-            return true;
-        } else {
-            return false;
-        }
+        return notificationEnabled == null || notificationEnabled;
     }
 
     private boolean validateSecret() {
         play.Configuration config = play.Configuration.root();
         String secret = config.getString("application.secret");
-        if (secret == null || !secret.equals(DEFAULT_SECRET)) {
-            return true;
-        } else {
-            return false;
-        }
+        return secret == null || !secret.equals(DEFAULT_SECRET);
     }
 
     private static void insertInitialData() {

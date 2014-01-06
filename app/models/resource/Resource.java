@@ -56,11 +56,7 @@ public abstract class Resource {
                 try {
                     String[] pair = id.split(":");
                     Project project = Project.find.byId(Long.valueOf(pair[0]));
-                    if (RepositoryService.getRepository(project).getCommit(pair[1]) != null) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return RepositoryService.getRepository(project).getCommit(pair[1]) != null;
                 } catch (Exception e) {
                     play.Logger.error("Failed to determine whether the commit exists", e);
                     return false;

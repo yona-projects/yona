@@ -60,12 +60,9 @@ public class GitApp extends Controller {
         }
 
         PlayRepository repository = RepositoryService.getRepository(project);
-        if (AccessControl
-                .isAllowed(UserApp.currentUser(), repository.asResource(), operation)) {
-            return true;
-        }
+        return AccessControl
+                .isAllowed(UserApp.currentUser(), repository.asResource(), operation);
 
-        return false;
     }
 
     /**

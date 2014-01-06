@@ -115,11 +115,7 @@ public class WatchService {
         Watch watch = Watch.findBy(user, resourceType, resourceId);
         Unwatch unwatch = Unwatch.findBy(user, resourceType, resourceId);
 
-        if (watch != null && unwatch == null) {
-            return true;
-        } else {
-            return false;
-        }
+        return watch != null && unwatch == null;
     }
 
     public static boolean isWatching(User user, Resource resource) {

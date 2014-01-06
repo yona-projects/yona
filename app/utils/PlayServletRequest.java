@@ -308,11 +308,7 @@ public class PlayServletRequest implements HttpServletRequest {
     @Override
     public boolean isSecure() {
         // FIXME: Make this to work precisely after releasing Play 2.1.
-        if (getScheme().equals("https")) {
-            return true;
-        } else {
-            return false;
-        }
+        return getScheme().equals("https");
     }
 
     @Override
