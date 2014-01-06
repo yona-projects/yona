@@ -280,7 +280,7 @@ public class PlayServletResponse implements HttpServletResponse {
 
     @Override
     public Collection<String> getHeaders(String name) {
-        return Arrays.<String>asList(this.response.getHeaders().get(name).split(","));
+        return Arrays.asList(this.response.getHeaders().get(name).split(","));
     }
 
     @Override
