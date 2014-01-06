@@ -76,19 +76,17 @@ public class RepositoryService {
      * when: {@link ProjectApp#deleteProject(String, String)}에서 프로젝트를 삭제할 때
      * 해당 프로젝트와 관련있는 저장소를 삭제할 때 사용한다.
      * <p/>
-     * {@code userName}과 {@code projectName}에 해당하는 프로젝트의 {@link PlayRepository}를 읽어오고
+     * {@code project}에 해당하는 프로젝트의 {@link PlayRepository}를 읽어오고
      * {@link playRepository.PlayRepository#delete()}를 호출한다.
      *
-     * @param userName
-     * @param projectName
+     * @param project
      * @throws IOException
      * @throws ServletException
      * @see {@link ProjectApp#deleteProject(String, String)}
      * @see {@link playRepository.PlayRepository#delete()}
      */
-    public static void deleteRepository(String userName, String projectName)
+    public static void deleteRepository(Project project)
             throws IOException, ServletException {
-        Project project = ProjectApp.getProject(userName, projectName);
         RepositoryService.getRepository(project).delete();
     }
 
@@ -105,12 +103,12 @@ public class RepositoryService {
      * @throws ServletException
      * @throws ClientException
      * @throws UnsupportedOperationException
-     * @see {@link #deleteRepository(String, String)}
+     * @see {@link #deleteRepository(Project)}
      * @see {@link PlayRepository#create()}
      */
     public static void createRepository(Project project) throws IOException, ServletException,
             ClientException, UnsupportedOperationException {
-        RepositoryService.deleteRepository(project.owner, project.name);
+        RepositoryService.deleteRepository(project);
         RepositoryService.getRepository(project).create();
     }
 
