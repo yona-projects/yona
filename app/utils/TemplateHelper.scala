@@ -276,7 +276,7 @@ object TemplateHelper {
         case first::second::tail => renderTwoLines(first, second, comments, isEndOfLineMissing) + renderLines(tail, comments, isEndOfLineMissing)
       }
 
-    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+    @tailrec def _threadAndRemains(thread: List[PullRequestComment], remains: List[TimelineItem], comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
       if (comments.isEmpty) {
         (thread, remains)
       } else {
@@ -289,7 +289,7 @@ object TemplateHelper {
       }
     }
 
-    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): Tuple2[List[PullRequestComment], List[TimelineItem]] = {
+    def threadAndRemains(comment: PullRequestComment, comments: List[TimelineItem]): (List[PullRequestComment], List[TimelineItem]) = {
       _threadAndRemains(List(comment), List(), if (comments.isEmpty) List() else comments.tail)
     }
 
