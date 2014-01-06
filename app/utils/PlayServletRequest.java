@@ -262,7 +262,7 @@ public class PlayServletRequest implements HttpServletRequest {
 
         try {
             scheme = new URI(request.uri()).getScheme();
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException ignored) {
         }
 
         if (scheme == null) {

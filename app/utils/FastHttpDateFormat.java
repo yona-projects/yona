@@ -188,7 +188,7 @@ public final class FastHttpDateFormat {
         for (int i = 0; (date == null) && (i < formats.length); i++) {
             try {
                 date = formats[i].parse(value);
-            } catch (ParseException e) {
+            } catch (ParseException ignored) {
             }
         }
         if (date == null) {

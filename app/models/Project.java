@@ -355,7 +355,7 @@ public class Project extends Model implements LabelOwner {
     public String defaultBranch() {
         try {
             return RepositoryService.getRepository(this).getDefaultBranch();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return "HEAD";
     }

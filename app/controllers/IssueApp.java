@@ -120,7 +120,7 @@ public class IssueApp extends AbstractPostingApp {
         if(amountStr != null){ // or amount from query string
             try {
                 itemsPerPage = Integer.parseInt(amountStr);
-            } catch (NumberFormatException e){}
+            } catch (NumberFormatException ignored){}
         }
 
         return Math.min(itemsPerPage, ITEMS_PER_PAGE_MAX);

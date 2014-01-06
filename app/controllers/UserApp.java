@@ -512,7 +512,7 @@ public class UserApp extends Controller {
                     attachment.moveTo(currentUser().avatarAsResource());
                 }
             }
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException ignored) {
         }
 
         Email.deleteOtherInvalidEmails(user.email);
