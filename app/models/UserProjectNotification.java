@@ -84,7 +84,7 @@ public class UserProjectNotification extends Model {
     }
 
     public void toggle() {
-        if(this.allowed == false) {
+        if(!this.allowed) {
             this.allowed = true;
         } else {
             this.allowed = false;
@@ -117,6 +117,6 @@ public class UserProjectNotification extends Model {
         if (notification == null || notification.allowed) {
             return true;
         }
-        return notification.allowed;
+        return false;
     }
 }

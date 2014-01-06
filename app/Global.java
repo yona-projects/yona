@@ -142,7 +142,7 @@ public class Global extends GlobalSettings {
     @SuppressWarnings("rawtypes")
     public Action onRequest(final Http.Request request, Method actionMethod) {
         if (isValidationRequired) {
-            if (validateSecret() == false) {
+            if (!validateSecret()) {
                 if (isRestartRequired) {
                     return getRestartAction();
                 } else {
