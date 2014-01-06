@@ -29,6 +29,8 @@ import org.apache.shiro.crypto.RandomNumberGenerator;
 import org.apache.shiro.crypto.SecureRandomNumberGenerator;
 import play.db.ebean.Model;
 
+import java.util.Arrays;
+
 @Entity
 public class SiteAdmin extends Model {
     /**
@@ -51,7 +53,7 @@ public class SiteAdmin extends Model {
 
     public static User updateDefaultSiteAdmin(User user) {
         RandomNumberGenerator rng = new SecureRandomNumberGenerator();
-        String passwordSalt = rng.nextBytes().getBytes().toString();
+        String passwordSalt = Arrays.toString(rng.nextBytes().getBytes());
 
         User defaultSiteAdmin = User.findByLoginId(SITEADMIN_DEFAULT_LOGINID);
         defaultSiteAdmin.name = user.name;
