@@ -149,8 +149,9 @@ public class PlayServletRequest implements HttpServletRequest {
             }
 
             @Override
-            protected void finalize() throws IOException {
+            protected void finalize() throws Throwable {
                 close();
+                super.finalize();
             }
         };
     }
