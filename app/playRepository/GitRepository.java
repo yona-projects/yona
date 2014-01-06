@@ -1312,10 +1312,6 @@ public class GitRepository implements PlayRepository {
             return commits;
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            if(walk != null) {
-                walk.dispose();
-            }
         }
     }
 
@@ -1337,8 +1333,7 @@ public class GitRepository implements PlayRepository {
             treeWalk.setRecursive(true);
             diffFormatter.format(DiffEntry.scan(treeWalk));
 
-            String patch = out.toString("UTF-8");
-            return patch;
+            return out.toString("UTF-8");
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -1368,10 +1363,6 @@ public class GitRepository implements PlayRepository {
             return getPatch(repo, untilId.getName(), sinceId.getName());
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            if(walk != null) {
-                walk.dispose();
-            }
         }
     }
 

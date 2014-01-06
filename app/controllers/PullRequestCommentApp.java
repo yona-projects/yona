@@ -60,7 +60,6 @@ public class PullRequestCommentApp extends Controller {
 
     private static void addNewCommentNotification(Long pullRequestId,
                                                   PullRequestComment newComment, String url) {
-        String prefix = ResourceType.PULL_REQUEST.resource() + Constants.RESOURCE_KEY_DELIM;
         PullRequest pullRequest = PullRequest.findById(pullRequestId);
         if(pullRequest == null) {
             return;

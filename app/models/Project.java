@@ -288,9 +288,7 @@ public class Project extends Model implements LabelOwner {
             return userProjectList;
         }
 
-        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
-
-        return filteredList;
+        return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
 
     public static List<Project> findProjectsCreatedByUser(String loginId, String orderString) {
@@ -299,9 +297,7 @@ public class Project extends Model implements LabelOwner {
             return userProjectList;
         }
 
-        List<Project> filteredList = Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
-
-        return filteredList;
+        return Ebean.filter(Project.class).sort(orderString).filter(userProjectList);
     }
     /**
      * {@code state} 별 프로젝트 카운트를 반환한다.

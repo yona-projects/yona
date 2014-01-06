@@ -44,9 +44,7 @@ public class Role extends Model {
      * @return
      */
     public static List<Role> getActiveRoles() {
-        List<Role> projectRoles = find.where().eq("active", true)
-                .findList();
-        return projectRoles;
+        return find.where().eq("active", true).findList();
     }
 
     /**

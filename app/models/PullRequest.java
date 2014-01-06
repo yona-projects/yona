@@ -370,8 +370,7 @@ public class PullRequest extends Model implements ResourceConvertible {
      * @see #lastCommitId
      */
     public void deleteFromBranch() {
-        String lastCommitId = GitRepository.deleteFromBranch(this);
-        this.lastCommitId = lastCommitId;
+        this.lastCommitId = GitRepository.deleteFromBranch(this);
         update();
     }
 
