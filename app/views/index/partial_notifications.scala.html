@@ -26,17 +26,15 @@
         case EventType.NEW_POSTING => { "notes" }
         case EventType.NEW_PULL_REQUEST | EventType.PULL_REQUEST_STATE_CHANGED => {
             if(state=="closed") "merge closed"
+            else if(state=="merged") "merge merged"
             else  "merge"
-        }
-        case EventType.PULL_REQUEST_MERGED => {
-            if(state=="resolved") "merge"
-            else "merge warning"
         }
         case EventType.MEMBER_ENROLL_REQUEST => {
             if(state=="ACCEPT") "addfriend closed"
             else if (state=="CANCEL") "addfriend rejected"
             else  "addfriend"
         }
+        case EventType.NEW_COMMIT =>{"push"}
         case _ => {"info"}
     }
 }
