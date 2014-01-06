@@ -127,7 +127,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (authorId != null) {
-            if (authorId == User.anonymous.id) {
+            if (authorId.equals(User.anonymous.id)) {
                 el.isNull("authorId");
             } else {
                 el.eq("authorId", authorId);
@@ -135,7 +135,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (assigneeId != null) {
-            if (assigneeId == User.anonymous.id) {
+            if (assigneeId.equals(User.anonymous.id)) {
                 el.isNull("assignee");
             } else {
                 el.eq("assignee.user.id", assigneeId);
@@ -144,7 +144,7 @@ public class SearchCondition extends AbstractPostingApp.SearchCondition {
         }
 
         if (milestoneId != null) {
-            if (milestoneId == Milestone.NULL_MILESTONE_ID) {
+            if (milestoneId.equals(Milestone.NULL_MILESTONE_ID)) {
                 el.isNull("milestone");
             } else {
                 el.eq("milestone.id", milestoneId);

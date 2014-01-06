@@ -206,7 +206,7 @@ public class IssueApp extends AbstractPostingApp {
         for (Issue issue : issueList){
             Long issueId = issue.getNumber();
 
-            if(issueId == exceptId){
+            if(issueId.equals(exceptId)){
                 continue;
             }
 

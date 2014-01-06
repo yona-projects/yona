@@ -118,7 +118,7 @@ abstract public class AbstractPosting extends Model implements ResourceConvertib
             fixLastNumber();
             number = increaseNumber();
             // What causes this PersistenceException?
-            if (oldNumber != number) {
+            if (!oldNumber.equals(number)) {
                 // caused by invalid number.
                 play.Logger.warn(String.format("%s/%s: Invalid last number %d is fixed to %d",
                         asResource().getProject(), asResource().getType(), oldNumber, number));
