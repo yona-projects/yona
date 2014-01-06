@@ -42,8 +42,7 @@ public class NotificationEvent extends Model {
     @Id
     public Long id;
 
-    public static Finder<Long, NotificationEvent> find = new Finder<Long,
-            NotificationEvent>(Long.class, NotificationEvent.class);
+    public static Finder<Long, NotificationEvent> find = new Finder<>(Long.class, NotificationEvent.class);
 
     public String title;
 
@@ -169,6 +168,10 @@ public class NotificationEvent extends Model {
             } else {
                 return Messages.get("notification.member.enroll.cancel");
             }
+        case PULL_REQUEST_REVIEWED:
+            return Messages.get("notification.pullrequest.reviewed", newValue);
+        case PULL_REQUEST_UNREVIEWED:
+            return Messages.get("notification.pullrequest.unreviewed", newValue);
         default:
             return null;
         }
@@ -381,7 +384,6 @@ public class NotificationEvent extends Model {
      * @return
      */
     public static NotificationEvent addPullRequestMerge(User sender, PullRequest pullRequest, GitConflicts conflicts, Request request, State state) {
-
         String title = NotificationEvent.formatReplyTitle(pullRequest);
         Resource resource = pullRequest.asResource();
         Set<User> receivers = new HashSet<>();
@@ -403,6 +405,30 @@ public class NotificationEvent extends Model {
         if (conflicts != null) {
             notiEvent.oldValue = StringUtils.join(conflicts.conflictFiles, "\n");
         }
+
+        add(notiEvent);
+
+        return notiEvent;
+    }
+
+    public static NotificationEvent addPullRequestReviewed(Call call, PullRequest pullRequest, EventType eventType) {
+        String title = formatReplyTitle(pullRequest);
+        Resource resource = pullRequest.asResource();
+        Set<User> receivers = pullRequest.getWatchers();
+        receivers.add(pullRequest.contributor);
+        User reviewer = UserApp.currentUser();
+        receivers.remove(reviewer);
+
+        NotificationEvent notiEvent = new NotificationEvent();
+        notiEvent.created = new Date();
+        notiEvent.title = title;
+        notiEvent.senderId = reviewer.id;
+        notiEvent.receivers = receivers;
+        notiEvent.urlToView = call.url();
+        notiEvent.resourceId = resource.getId();
+        notiEvent.resourceType = resource.getType();
+        notiEvent.eventType = eventType;
+        notiEvent.newValue = reviewer.loginId;
 
         add(notiEvent);
 

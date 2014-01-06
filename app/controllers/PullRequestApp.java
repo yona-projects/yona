@@ -505,6 +505,10 @@ public class PullRequestApp extends Controller {
         PullRequestEventMessage message = new PullRequestEventMessage(
                 UserApp.currentUser(), request(), project, pullRequest.toBranch);
 
+        if(!pullRequest.isReviewed()) {
+            return badRequest(ErrorViews.BadRequest.render("pullRequest.not.enough.review.point"));
+        }
+
         Call call = routes.PullRequestApp.pullRequest(userName, projectName, pullRequestNumber);
         pullRequest.merge(message, call);
 

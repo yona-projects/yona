@@ -44,7 +44,15 @@
                 </code>
             </span>
         </div>
+        <div class="pull-right">
+            <span class="badge">@Messages("pullRequest.reviewed") @pull.reviewers.size
+                @for(reviewer <- pull.reviewers) {
+                    @Html(getUserAvatar(reviewer))
+                }
+            </span>
+        </div>
     </div>
+
     <div id="helpMessage" class="well" style="display:none;">
         <div class="row-fluid">
         <div class="pull-left">

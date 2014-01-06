@@ -39,7 +39,22 @@
                     <input id="project-name" type="text" name="name" maxlength="250" value="@project.name">
                     <!-- @inputText(projectForm("name"), 'class->"text", 'maxlength -> "250") -->
                 </dd>
-
+                <dt>
+                    <label for="project-review-point">@Messages("project.review.point")</label>
+                </dt>
+                <dd>
+                    <div data-id="project-review-point" id="branches" class="btn-group branches" data-name="defaultReviewPoint">
+                        <button class="btn dropdown-toggle large" data-toggle="dropdown">
+                            <span class="d-label">@project.defaultReviewPoint</span>
+                            <span class="d-caret"><span class="caret"></span></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                        @for(point <- 1 to project.getMaxNumberOfRequiredReviewPoint){
+                            <li data-value="@point"><a>@point</a></li>
+                        }
+                        </ul>
+                    </div>
+                </dd>
                 <dt>
                     <label for="project-default-branch">@Messages("project.defaultBranch.placeholder")</label>
                 </dt>
