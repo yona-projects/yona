@@ -92,7 +92,7 @@ public class AccessLogger {
      * @see <a href="http://httpd.apache.org/docs/2.2/logs.html">Log Files - Apache HTTP Server</a>
      */
     public static void log(Http.RequestHeader request, String username, int status) {
-        log(request, "-", status, null);
+        log(request, username, status, null);
     }
 
     /**
