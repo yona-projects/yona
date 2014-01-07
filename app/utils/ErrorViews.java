@@ -50,6 +50,27 @@ public enum ErrorViews {
             return render("error.notfound");
         }
     },
+    RequestTextEntityTooLarge {
+        @Override
+        public Html render() {
+            return views.html.error.requestTextEntityTooLarge.render();
+        }
+
+        @Override
+        public Html render(String messageKey) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Html render(String messageKey, Project project) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Html render(String messageKey, Project project, String target) {
+            throw new UnsupportedOperationException();
+        }
+    },
     BadRequest {
         @Override
         public Html render(String messageKey) {

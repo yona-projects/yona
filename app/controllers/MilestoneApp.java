@@ -122,6 +122,12 @@ public class MilestoneApp extends Controller {
             return ok(create.render("title.newMilestone", milestoneForm, project));
         } else {
             Milestone newMilestone = milestoneForm.get();
+
+            if (newMilestone.contents == null) {
+                return status(REQUEST_ENTITY_TOO_LARGE,
+                        ErrorViews.RequestTextEntityTooLarge.render());
+            }
+
             newMilestone.project = project;
             Milestone.create(newMilestone);
             Attachment.moveAll(UserApp.currentUser().asResource(), newMilestone.asResource());
@@ -206,7 +212,14 @@ public class MilestoneApp extends Controller {
             return ok(edit.render("title.editMilestone", milestoneForm, milestoneId, project));
         } else {
             Milestone existingMilestone = Milestone.findById(milestoneId);
-            existingMilestone.updateWith(milestoneForm.get());
+            Milestone milestone = milestoneForm.get();
+
+            if (milestone.contents == null) {
+                return status(REQUEST_ENTITY_TOO_LARGE,
+                        ErrorViews.RequestTextEntityTooLarge.render());
+            }
+
+            existingMilestone.updateWith(milestone);
             Attachment.moveAll(UserApp.currentUser().asResource(), existingMilestone.asResource());
             return redirect(routes.MilestoneApp.milestone(userName, projectName, existingMilestone.id));
         }

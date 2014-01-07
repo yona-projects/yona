@@ -285,6 +285,11 @@ public class AbstractPostingApp extends Controller {
             return forbidden(ErrorViews.Forbidden.render("error.forbidden", original.project));
         }
 
+        if (posting.body == null) {
+            return status(REQUEST_ENTITY_TOO_LARGE,
+                    ErrorViews.RequestTextEntityTooLarge.render());
+        }
+
         posting.id = original.id;
         posting.createdDate = original.createdDate;
         posting.updatedDate = JodaDateUtil.now();

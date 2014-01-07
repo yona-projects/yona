@@ -135,6 +135,11 @@ public class BoardApp extends AbstractPostingApp {
         }
 
         final Posting post = postForm.get();
+
+        if (post.body == null) {
+            return status(REQUEST_ENTITY_TOO_LARGE, ErrorViews.RequestTextEntityTooLarge.render());
+        }
+
         post.createdDate = JodaDateUtil.now();
         post.updatedDate = JodaDateUtil.now();
         post.setAuthor(UserApp.currentUser());

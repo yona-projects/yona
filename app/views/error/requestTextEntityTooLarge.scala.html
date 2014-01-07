@@ -1,0 +1,12 @@
+@siteLayout(Messages("error.tooLargeText.title"), utils.MenuType.SITE_HOME) {
+<div class="project-page-wrap">
+	<div class="error-wrap">
+		<i class="ico ico-err2"></i>
+		<p>@Messages("error.tooLargeText.title")</p>
+        <p>@Messages("error.tooLargeText.limit", play.api.mvc.BodyParsers.parse.DEFAULT_MAX_TEXT_LENGTH)</p>
+        @if(UserApp.currentUser.isSiteManager) {
+        <p>@Messages("error.tooLargeText.admin")</p>
+        }
+	</div>
+</div>
+}
